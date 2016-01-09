@@ -29,14 +29,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
+public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> {
     @Override
     protected int getDepth() {
         return 1;
     }
 
     @Override
-    public void render(final TestExecutionHistory testHistory, Writer writer) throws IOException {
+    public void render(final PerformanceTestHistory testHistory, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
             html();
             head();
@@ -152,7 +152,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             th().text("Gradle JVM opts").end();
             th().text("Daemon").end();
             end();
-            for (PerformanceResults results : testHistory.getPerformanceResults()) {
+            for (PerformanceTestExecution results : testHistory.getPerformanceResults()) {
                 tr();
                 textCell(format.timestamp(new Date(results.getTestTime())));
                 textCell(results.getVcsBranch());

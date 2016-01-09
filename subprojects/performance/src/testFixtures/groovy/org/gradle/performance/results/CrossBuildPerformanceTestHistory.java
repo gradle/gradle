@@ -25,13 +25,13 @@ import org.gradle.performance.fixture.MeasuredOperationList;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
+public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory {
     private final String name;
     private final List<BuildDisplayInfo> builds;
 
     private final List<CrossBuildPerformanceResults> newestFirst;
 
-    public CrossBuildTestExecutionHistory(String name, List<BuildDisplayInfo> builds, List<CrossBuildPerformanceResults> newestFirst) {
+    public CrossBuildPerformanceTestHistory(String name, List<BuildDisplayInfo> builds, List<CrossBuildPerformanceResults> newestFirst) {
         this.name = name;
         this.builds = builds;
         this.newestFirst = newestFirst;
@@ -55,10 +55,10 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
     }
 
     @Override
-    public List<PerformanceResults> getPerformanceResults() {
-        return Lists.transform(newestFirst, new Function<CrossBuildPerformanceResults, PerformanceResults>() {
-            public PerformanceResults apply(@Nullable final CrossBuildPerformanceResults results) {
-                return new KnownBuildSpecificationsPerformanceResults(results);
+    public List<PerformanceTestExecution> getPerformanceResults() {
+        return Lists.transform(newestFirst, new Function<CrossBuildPerformanceResults, PerformanceTestExecution>() {
+            public PerformanceTestExecution apply(@Nullable final CrossBuildPerformanceResults results) {
+                return new KnownBuildSpecificationsPerformanceTestExecution(results);
             }
         });
     }
@@ -119,10 +119,10 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
         });
     }
 
-    private class KnownBuildSpecificationsPerformanceResults implements PerformanceResults {
+    private class KnownBuildSpecificationsPerformanceTestExecution implements PerformanceTestExecution {
         private final CrossBuildPerformanceResults results;
 
-        public KnownBuildSpecificationsPerformanceResults(CrossBuildPerformanceResults results) {
+        public KnownBuildSpecificationsPerformanceTestExecution(CrossBuildPerformanceResults results) {
             this.results = results;
         }
 

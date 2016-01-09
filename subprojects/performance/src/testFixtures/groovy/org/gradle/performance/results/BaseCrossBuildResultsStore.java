@@ -141,14 +141,14 @@ public class BaseCrossBuildResultsStore implements ResultsStore, DataReporter<Cr
     }
 
     @Override
-    public CrossBuildTestExecutionHistory getTestResults(String testName) {
+    public CrossBuildPerformanceTestHistory getTestResults(String testName) {
         return getTestResults(testName, Integer.MAX_VALUE);
     }
 
-    public CrossBuildTestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
         try {
-            return db.withConnection(new ConnectionAction<CrossBuildTestExecutionHistory>() {
-                public CrossBuildTestExecutionHistory execute(Connection connection) throws Exception {
+            return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>() {
+                public CrossBuildPerformanceTestHistory execute(Connection connection) throws Exception {
                     List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(new Comparator<BuildDisplayInfo>() {
                         @Override
@@ -210,7 +210,7 @@ public class BaseCrossBuildResultsStore implements ResultsStore, DataReporter<Cr
                     operationsForExecution.close();
                     executionsForName.close();
 
-                    return new CrossBuildTestExecutionHistory(testName, ImmutableList.copyOf(builds), results);
+                    return new CrossBuildPerformanceTestHistory(testName, ImmutableList.copyOf(builds), results);
                 }
             });
         } catch (Exception e) {

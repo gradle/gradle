@@ -142,15 +142,15 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     @Override
-    public CrossVersionTestExecutionHistory getTestResults(String testName) {
+    public CrossVersionPerformanceTestHistory getTestResults(String testName) {
         return getTestResults(testName, Integer.MAX_VALUE);
     }
 
     @Override
-    public CrossVersionTestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
         try {
-            return db.withConnection(new ConnectionAction<CrossVersionTestExecutionHistory>() {
-                public CrossVersionTestExecutionHistory execute(Connection connection) throws Exception {
+            return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
+                public CrossVersionPerformanceTestHistory execute(Connection connection) throws Exception {
                     List<CrossVersionPerformanceResults> results = new ArrayList<CrossVersionPerformanceResults>();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
                         public int compare(String o1, String o2) {
@@ -213,7 +213,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     operationsForExecution.close();
                     executionsForName.close();
 
-                    return new CrossVersionTestExecutionHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), results);
+                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), results);
                 }
             });
         } catch (Exception e) {

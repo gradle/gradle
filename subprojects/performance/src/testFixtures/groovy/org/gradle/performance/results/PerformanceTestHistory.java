@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * The execution history for a particular performance test.
  */
-public interface TestExecutionHistory {
+public interface PerformanceTestHistory {
     /**
      * A unique id for this performance test, must be stable over time.
      */
@@ -35,7 +35,7 @@ public interface TestExecutionHistory {
     /**
      * The results of all executions of this performance test, ordered from most recent to least recent.
      */
-    List<? extends PerformanceResults> getPerformanceResults();
+    List<? extends PerformanceTestExecution> getPerformanceResults();
 
     /**
      * Returns the number of experiments per performance test.

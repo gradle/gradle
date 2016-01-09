@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
+public class CrossVersionPerformanceTestHistory implements PerformanceTestHistory {
     private final String name;
     private final List<String> versions;
     private final List<String> branches;
@@ -35,7 +35,7 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
     private List<CrossVersionPerformanceResults> oldestFirst;
     private List<String> knownVersions;
 
-    public CrossVersionTestExecutionHistory(String name, List<String> versions, List<String> branches, List<CrossVersionPerformanceResults> newestFirst) {
+    public CrossVersionPerformanceTestHistory(String name, List<String> versions, List<String> branches, List<CrossVersionPerformanceResults> newestFirst) {
         this.name = name;
         this.versions = versions;
         this.branches = branches;
@@ -89,10 +89,10 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
     }
 
     @Override
-    public List<PerformanceResults> getPerformanceResults() {
-        return Lists.transform(getResults(), new Function<CrossVersionPerformanceResults, PerformanceResults>() {
-            public PerformanceResults apply(final CrossVersionPerformanceResults result) {
-                return new KnownVersionsPerformanceResults(result);
+    public List<PerformanceTestExecution> getPerformanceResults() {
+        return Lists.transform(getResults(), new Function<CrossVersionPerformanceResults, PerformanceTestExecution>() {
+            public PerformanceTestExecution apply(final CrossVersionPerformanceResults result) {
+                return new KnownVersionsPerformanceTestExecution(result);
             }
         });
     }
@@ -153,10 +153,10 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
         return getKnownVersions();
     }
 
-    private class KnownVersionsPerformanceResults implements PerformanceResults {
+    private class KnownVersionsPerformanceTestExecution implements PerformanceTestExecution {
         private final CrossVersionPerformanceResults result;
 
-        public KnownVersionsPerformanceResults(CrossVersionPerformanceResults result) {
+        public KnownVersionsPerformanceTestExecution(CrossVersionPerformanceResults result) {
             this.result = result;
         }
 

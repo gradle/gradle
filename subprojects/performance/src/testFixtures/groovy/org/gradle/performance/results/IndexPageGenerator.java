@@ -44,8 +44,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
                     for (String testName : testNames) {
-                        TestExecutionHistory testHistory = store.getTestResults(testName, 5);
-                        List<? extends PerformanceResults> results = testHistory.getPerformanceResults();
+                        PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
+                        List<? extends PerformanceTestExecution> results = testHistory.getPerformanceResults();
                         if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
                             archived.put(testHistory.getId(), testHistory.getName());
                             continue;
@@ -69,17 +69,17 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 renderHeaderForSamples(label);
                             }
                         end();
-                        for (PerformanceResults performanceResults : results) {
+                        for (PerformanceTestExecution performanceTestExecution : results) {
                             tr();
-                                td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
-                                td().text(performanceResults.getVcsBranch()).end();
-                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                td().text(format.timestamp(new Date(performanceTestExecution.getTestTime()))).end();
+                                td().text(performanceTestExecution.getVcsBranch()).end();
+                                renderSamplesForExperiment(performanceTestExecution.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalTime();
                                     }
                                 });
-                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(performanceTestExecution.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalMemoryUsed();

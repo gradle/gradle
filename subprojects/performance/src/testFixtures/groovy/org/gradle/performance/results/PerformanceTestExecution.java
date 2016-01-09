@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * The result of a single execution of a performance test.
  */
-public interface PerformanceResults {
+public interface PerformanceTestExecution {
 
     String getVersionUnderTest();
     String getVcsBranch();

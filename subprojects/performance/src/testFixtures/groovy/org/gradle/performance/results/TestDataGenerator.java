@@ -27,17 +27,17 @@ import java.io.Writer;
 import java.util.Date;
 import java.util.List;
 
-public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writer> {
+public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Writer> {
     protected final FormatSupport format = new FormatSupport();
 
     @Override
-    public void render(TestExecutionHistory testHistory, Writer output) throws IOException {
+    public void render(PerformanceTestHistory testHistory, Writer output) throws IOException {
         PrintWriter out = new PrintWriter(output);
-        List<? extends PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
+        List<? extends PerformanceTestExecution> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("{");
         out.println("\"labels\": [");
         for (int i = 0; i < sortedResults.size(); i++) {
-            PerformanceResults results = sortedResults.get(i);
+            PerformanceTestExecution results = sortedResults.get(i);
             if (i > 0) {
                 out.print(", ");
             }
@@ -61,8 +61,8 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
         out.flush();
     }
 
-    void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
-        List<? extends PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
+    void render(PerformanceTestHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
+        List<? extends PerformanceTestExecution> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("  [");
         List<String> labels = testHistory.getExperimentLabels();
         for (int i = 0; i < labels.size(); i++) {
@@ -74,7 +74,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
             out.print("\"data\": [");
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
-                PerformanceResults results = sortedResults.get(j);
+                PerformanceTestExecution results = sortedResults.get(j);
                 MeasuredOperationList measuredOperations = results.getExperiments().get(i);
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
