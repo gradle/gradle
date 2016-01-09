@@ -31,10 +31,21 @@ th, td {
     padding-left: 12px;
     padding-right: 12px;
     text-align: left;
+    vertical-align: bottom;
 }
 
 th.numeric, td.numeric {
     text-align: right;
+}
+
+.more-detail {
+    color: #a0a0a0;
+    font-size: 8pt;
+}
+
+td.more-detail {
+    text-align: left;
+    padding-left: 0;
 }
 
 .table-row-even {

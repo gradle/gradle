@@ -101,14 +101,14 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             table().classAttr("history");
             tr().classAttr("control-groups");
             th().colspan("4").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average build time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average configuration time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max heap usage").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max uncollected heap").end();
-            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max committed heap").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average build time").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average configuration time").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average total heap usage").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max heap usage").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max uncollected heap").end();
+            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average max committed heap").end();
             th().colspan("4").text("Details").end();
             end();
             tr();
@@ -118,7 +118,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             th().text("Git commit").end();
             for (int i = 0; i < 8; i++) {
                 for (String label : testHistory.getExperimentLabels()) {
-                    th().classAttr("numeric").text(label).end();
+                    renderHeaderForSamples(label);
                 }
             }
             th().text("Operating System").end();
@@ -199,15 +199,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             end();
             footer(this);
             endAll();
-        }
-            void textCell(Object obj) {
-                td();
-                if (obj != null) {
-                    text(obj.toString());
-                }
-                end();
-            }
-        };
+        }};
     }
 
     private static class Link {

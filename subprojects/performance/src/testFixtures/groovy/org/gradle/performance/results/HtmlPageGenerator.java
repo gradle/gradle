@@ -71,6 +71,22 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             super(writer);
         }
 
+        protected void textCell(Object obj) {
+            td();
+            if (obj != null) {
+                text(obj.toString());
+            }
+            end();
+        }
+
+        protected int getColumnsForSamples() {
+            return 2;
+        }
+
+        protected void renderHeaderForSamples(String label) {
+            th().colspan(String.valueOf(getColumnsForSamples())).text(label).end();
+        }
+
         protected <T> void renderSamplesForExperiment(Iterable<MeasuredOperationList> experiments, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
             List<DataSeries<T>> values = new ArrayList<DataSeries<T>>();
             Amount<T> min = null;
@@ -98,8 +114,10 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             for (DataSeries<T> data : values) {
                 if (data == null) {
                     td().text("").end();
+                    td().text("").end();
                 } else {
                     Amount<T> value = data.getAverage();
+                    Amount<T> stddev = data.getStddev();
                     String classAttr = "numeric";
                     if (value.equals(min)) {
                         classAttr += " min-value";
@@ -109,8 +127,12 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     }
                     td()
                         .classAttr(classAttr)
-                        .title("avg: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + data.getStddev() + ", values: " + data)
+                        .title("avg: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + stddev + ", values: " + data)
                         .text(value.format())
+                    .end();
+                    td()
+                        .classAttr("numeric more-detail")
+                        .text("s: " + stddev.format())
                     .end();
                 }
             }

@@ -49,18 +49,18 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount() * getColumnsForSamples())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
                             for (String label : testHistory.getExperimentLabels()) {
-                                th().classAttr("numeric").text(label).end();
+                                renderHeaderForSamples(label);
                             }
                             for (String label : testHistory.getExperimentLabels()) {
-                                th().classAttr("numeric").text(label).end();
+                                renderHeaderForSamples(label);
                             }
                         end();
                         List<PerformanceResults> results = testHistory.getPerformanceResults();
