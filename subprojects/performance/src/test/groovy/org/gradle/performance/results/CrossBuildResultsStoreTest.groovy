@@ -166,6 +166,10 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
         history.results.first().buildResult(firstSpecification).size() == 1
         history.results.first().buildResult("simple display").size() == 1
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
     }
 
     def "scenario settings can change over time"() {
@@ -281,6 +285,10 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.executions[2].experiments[0].size() == 1
         history.executions[2].experiments[1].name == "scenario 2"
         history.executions[2].experiments[1].size() == 1
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
     }
 
     def "reports on union of all scenarios"() {
@@ -386,6 +394,10 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.executions[2].experiments[1].size() == 1
         history.executions[2].experiments[2].size() == 0
         history.executions[2].experiments[3].size() == 0
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
     }
 
     def "returns top n results in descending date order"() {
