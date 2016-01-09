@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 
 import java.util.List;
 
-public interface ExperimentDefinition {
+public interface ScenarioDefinition {
     /**
      * A human consumable display name for this definition.
      */

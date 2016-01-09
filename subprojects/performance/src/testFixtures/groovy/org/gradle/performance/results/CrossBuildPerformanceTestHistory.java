@@ -78,11 +78,11 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
     }
 
     @Override
-    public List<? extends ExperimentDefinition> getScenarios() {
-        return Lists.transform(builds, new Function<BuildDisplayInfo, ExperimentDefinition>() {
+    public List<? extends ScenarioDefinition> getScenarios() {
+        return Lists.transform(builds, new Function<BuildDisplayInfo, ScenarioDefinition>() {
             @Override
-            public ExperimentDefinition apply(final BuildDisplayInfo input) {
-                return new ExperimentDefinition() {
+            public ScenarioDefinition apply(final BuildDisplayInfo input) {
+                return new ScenarioDefinition() {
                     @Override
                     public String getDisplayName() {
                         return input.getDisplayName();

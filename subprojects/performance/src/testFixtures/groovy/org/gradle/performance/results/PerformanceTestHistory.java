@@ -50,5 +50,5 @@ public interface PerformanceTestHistory {
     /**
      * Returns the scenarios that are executed for this performance test.
      */
-    List<? extends ExperimentDefinition> getScenarios();
+    List<? extends ScenarioDefinition> getScenarios();
 }

@@ -108,7 +108,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
             end();
-            for (ExperimentDefinition experiment : testHistory.getScenarios()) {
+            for (ScenarioDefinition experiment : testHistory.getScenarios()) {
                 tr();
                     textCell(experiment.getDisplayName());
                     textCell(experiment.getTestProject());

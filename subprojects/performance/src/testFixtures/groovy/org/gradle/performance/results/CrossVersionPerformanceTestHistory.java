@@ -98,15 +98,15 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public List<? extends ExperimentDefinition> getScenarios() {
+    public List<? extends ScenarioDefinition> getScenarios() {
         if (newestFirst.isEmpty()) {
             return Collections.emptyList();
         }
         final CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
-        return Lists.transform(getKnownVersions(), new Function<String, ExperimentDefinition>() {
+        return Lists.transform(getKnownVersions(), new Function<String, ScenarioDefinition>() {
             @Override
-            public ExperimentDefinition apply(final String input) {
-                return new ExperimentDefinition() {
+            public ScenarioDefinition apply(final String input) {
+                return new ScenarioDefinition() {
                     @Override
                     public String getDisplayName() {
                         return input;
