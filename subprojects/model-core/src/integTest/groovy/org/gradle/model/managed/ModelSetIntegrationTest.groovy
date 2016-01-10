@@ -268,8 +268,9 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: Rules#group")
-        failure.assertHasCause("Property 'members' of type 'Group' cannot have a setter (ModelSet properties must be read only).")
+        failure.assertHasCause "Exception thrown while executing model rule: Rules#group"
+        failure.assertHasCause """Type Group is not a valid managed type:
+- Property 'members' is not valid: it cannot have a setter (ModelSet properties must be read only)"""
     }
 
     def "rule method can apply defaults to a managed set"() {

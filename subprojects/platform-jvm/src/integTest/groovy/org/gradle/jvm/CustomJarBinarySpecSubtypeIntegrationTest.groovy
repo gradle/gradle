@@ -203,7 +203,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         fails "components"
-        failure.assertHasCause "Abstract method 'IllegalJarBinarySpec.sayHello(String)' is not a property accessor, and it has no implementation."
+        failure.assertHasCause """Type IllegalJarBinarySpec is not a valid managed type:
+- Method sayHello(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     def registerCustomJarBinaryType() {

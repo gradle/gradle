@@ -81,7 +81,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         and:
-        failure.assertHasCause "Property 'longProperty' of type 'PrimitiveTypes' must have setter accepting parameter with type 'Long' instead of 'long'."
+        failure.assertHasCause """Type PrimitiveTypes is not a valid managed type:
+- Method setLongProperty(long) is not a valid method: it should take parameter with type 'Long'"""
     }
 
     def "values of primitive types are boxed as usual when using java"() {
