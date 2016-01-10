@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
@@ -37,6 +38,8 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -44,6 +47,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.walkTypeHierarchy;
 import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
@@ -92,7 +96,9 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
         StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<T>(publicSchema, implementedSchemas, delegateSchema);
 
-        // TODO:LPTR Validate view types have no fields
+        if (!(publicSchema instanceof RuleSourceSchema)) {
+            validateTypeHierarchy(extractionContext, publicType);
+        }
 
         Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = Maps.newTreeMap();
         Set<StructMethodBinding> methodBindings = collectMethodBindings(extractionContext, propertyBindings);
@@ -106,6 +112,70 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             publicSchema, declaredViewSchemas, implementedSchemas, delegateSchema,
             managedProperties, methodBindings
         );
+    }
+
+    private static <T> void validateTypeHierarchy(final StructBindingValidationProblemCollector problems, ModelType<T> type) {
+        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor<T>() {
+            @Override
+            public void visitType(Class<? super T> type) {
+                if (type.isAnnotationPresent(Managed.class)) {
+                    validateManagedType(problems, type);
+                }
+                validateType(problems, type);
+            }
+        });
+    }
+
+    private static void validateManagedType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+        if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
+            problems.add("Must be defined as an interface or an abstract class.");
+        }
+
+        if (typeClass.getTypeParameters().length > 0) {
+            problems.add("Cannot be a parameterized type.");
+        }
+    }
+
+    private static void validateType(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+        Constructor<?> customConstructor = findCustomConstructor(typeClass);
+        if (customConstructor != null) {
+            problems.add(customConstructor, "Custom constructors are not supported.");
+        }
+
+        ensureNoInstanceScopedFields(problems, typeClass);
+        ensureNoProtectedOrPrivateMethods(problems, typeClass);
+    }
+
+    private static Constructor<?> findCustomConstructor(Class<?> typeClass) {
+        Constructor<?>[] constructors = typeClass.getConstructors();
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.getParameterTypes().length > 0) {
+                return constructor;
+            }
+        }
+        return null;
+    }
+
+    private static void ensureNoInstanceScopedFields(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+        List<Field> declaredFields = Arrays.asList(typeClass.getDeclaredFields());
+        for (Field field : declaredFields) {
+            int fieldModifiers = field.getModifiers();
+            if (!field.isSynthetic() && !(Modifier.isStatic(fieldModifiers) && Modifier.isFinal(fieldModifiers))) {
+                problems.add(field, "Fields must be static final.");
+            }
+        }
+    }
+
+    private static void ensureNoProtectedOrPrivateMethods(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
+        // sort for determinism
+        Method[] methods = typeClass.getDeclaredMethods();
+        Arrays.sort(methods, Ordering.usingToString());
+        for (Method method : methods) {
+            int modifiers = method.getModifiers();
+            if (!method.isSynthetic() && !Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)) {
+                problems.add(method, "Protected and private methods are not supported.");
+            }
+        }
     }
 
     private <T, D> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {

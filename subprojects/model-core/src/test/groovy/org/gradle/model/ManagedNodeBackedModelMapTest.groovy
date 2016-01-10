@@ -18,7 +18,7 @@ package org.gradle.model
 
 import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
+import org.gradle.model.internal.manage.binding.InvalidManagedTypeException
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
@@ -80,8 +80,8 @@ class ManagedNodeBackedModelMapTest extends NodeBackedModelMapSpec<NamedThingInt
 
         then:
         def e = thrown ModelRuleExecutionException
-        e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == """Type $Invalid.name is not a valid model element type:
+        e.cause instanceof InvalidManagedTypeException
+        e.cause.message == """Type $Invalid.name is not a valid managed type:
 - Cannot be a parameterized type."""
     }
 }

@@ -487,22 +487,20 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 - Method foo() is not a valid rule method: The declared model element path ' ' is not a valid path: Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)."""
     }
 
-    static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
+    static class RuleSourceCreatingARawModelMap extends RuleSource {
         @Model
-        void bar(ManagedAnnotatedClass foo) {
+        void bar(ModelMap foo) {
         }
     }
 
     def "type of the first argument of void returning model definition has to be a valid managed type"() {
         when:
-        extract(RuleSourceCreatingAClassAnnotatedWithManaged)
+        extract(RuleSourceCreatingARawModelMap)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingAClassAnnotatedWithManaged#bar is invalid.'
-        e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == """Type $ManagedAnnotatedClass.name is not a valid model element type:
-- Must be defined as an interface or an abstract class."""
+        e.message == """Type $RuleSourceCreatingARawModelMap.name is not a valid rule source:
+- Method bar(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }
 
     static class RuleSourceWithAVoidReturningNoArgumentMethod extends RuleSource {
@@ -542,20 +540,18 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == """Type $invalidTypeName is not a valid model element type:
-- Cannot be a parameterized type.
+        e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
+- type parameter of org.gradle.model.ModelMap cannot be a wildcard.
 
 The type was analyzed due to the following dependencies:
 ${managedType.name}
   \\--- property 'managedWithNestedInvalidManagedType' (${nestedManagedType.name})
-    \\--- property 'invalidManaged' ($invalidTypeName)"""
+    \\--- property 'invalidManaged' ($ModelMap.name<?>)"""
 
         where:
         inspected                                                        | managedType                                    | nestedManagedType
         RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithNestedPropertyOfInvalidManagedType  | ManagedWithPropertyOfInvalidManagedType
         RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType | ManagedWithNestedReferenceOfInvalidManagedType | ManagedWithReferenceOfInvalidManagedType
-
-        invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
     static class RuleSourceCreatingManagedWithNonManageableParent extends RuleSource {
@@ -572,12 +568,12 @@ ${managedType.name}
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == """Type $invalidTypeName is not a valid model element type:
-- Cannot be a parameterized type.
+        e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
+- type parameter of org.gradle.model.ModelMap cannot be a wildcard.
 
 The type was analyzed due to the following dependencies:
 ${ManagedWithNonManageableParents.name}
-  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($invalidTypeName)"""
+  \\--- property 'invalidManaged' declared by ${AnotherManagedWithPropertyOfInvalidManagedType.name}, ${ManagedWithPropertyOfInvalidManagedType.name} ($ModelMap.name<?>)"""
 
         where:
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"

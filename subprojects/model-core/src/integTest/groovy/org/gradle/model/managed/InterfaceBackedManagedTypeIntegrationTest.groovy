@@ -264,7 +264,8 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         fails "tasks"
 
         and:
-        failure.assertHasCause "Property 'name' of type 'Person' must have either only abstract accessor methods or only implemented accessor methods."
+        failure.assertHasCause """Type Person is not a valid managed type:
+- Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
 
     @NotYetImplemented

@@ -53,7 +53,8 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     static abstract class TypeWithImplementedProperty {
-        int z
+        int getZ() { 0 }
+        void setZ(int value) {}
     }
 
     def "extracts simple type with an implemented property"() {
@@ -86,9 +87,118 @@ class DefaultStructBindingsStoreTest extends Specification {
         ex.message == "Type 'Object' is not a valid managed type: delegate type must be null or a non-abstract type instead of 'Serializable'."
     }
 
+    @Managed
+    static class EmptyStaticClass {}
+
+    def "public type must be abstract"() {
+        when: extract EmptyStaticClass
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $EmptyStaticClass.name is not a valid managed type:
+- Must be defined as an interface or an abstract class."""
+    }
+
+    @Managed
+    static interface ParameterizedEmptyInterface<T> {}
+
+    def "public type cannot be parameterized"() {
+        when: extract ParameterizedEmptyInterface
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $ParameterizedEmptyInterface.name is not a valid managed type:
+- Cannot be a parameterized type."""
+    }
+
+
+    @Managed
+    static abstract class WithInstanceScopedField {
+        private String name
+        private int age
+    }
+
+    def "instance scoped fields are not allowed"() {
+        when:  extract WithInstanceScopedField
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $WithInstanceScopedField.name is not a valid managed type:
+- Field name is not valid: Fields must be static final.
+- Field age is not valid: Fields must be static final."""
+    }
+
+    @Managed
+    static abstract class WithInstanceScopedFieldInSuperclass extends WithInstanceScopedField {
+    }
+
+    def "instance scoped fields are not allowed in super-class"() {
+        when: extract WithInstanceScopedFieldInSuperclass
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $WithInstanceScopedFieldInSuperclass.name is not a valid managed type:
+- Field WithInstanceScopedField.name is not valid: Fields must be static final.
+- Field WithInstanceScopedField.age is not valid: Fields must be static final."""
+    }
+
+    @Managed
+    static abstract class ProtectedAbstractMethods {
+        protected abstract String getName()
+
+        protected abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class ProtectedAbstractMethodsInSuper extends ProtectedAbstractMethods {
+    }
+
+    def "protected abstract methods are not allowed"() {
+        when:
+        extract(ProtectedAbstractMethods)
+
+        then:
+        def e = thrown InvalidManagedTypeException
+        e.message == """Type $ProtectedAbstractMethods.name is not a valid managed type:
+- Method getName() is not a valid method: Protected and private methods are not supported.
+- Method setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
+
+        when:
+        extract(ProtectedAbstractMethodsInSuper)
+
+        then:
+        e = thrown InvalidManagedTypeException
+        e.message == """Type $ProtectedAbstractMethodsInSuper.name is not a valid managed type:
+- Method ProtectedAbstractMethods.getName() is not a valid method: Protected and private methods are not supported.
+- Method ProtectedAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethods {
+        protected String getName() {
+            return null;
+        }
+
+        private void setName(String name) {}
+    }
+
+    def "protected and private non-abstract methods are not allowed"() {
+        when:
+        extract ProtectedAndPrivateNonAbstractMethods
+        then:
+        def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $ProtectedAndPrivateNonAbstractMethods.name is not a valid managed type:
+- Method setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
+- Method getName() is not a valid method: Protected and private methods are not supported."""
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethodsInSuper extends ProtectedAndPrivateNonAbstractMethods {
+    }
+
+    def "protected and private non-abstract methods are not allowed in super-type"() {
+        when: extract ProtectedAndPrivateNonAbstractMethodsInSuper
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $ProtectedAndPrivateNonAbstractMethodsInSuper.name is not a valid managed type:
+- Method ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
+- Method ProtectedAndPrivateNonAbstractMethods.getName() is not a valid method: Protected and private methods are not supported."""
+    }
+
     def "fails when implemented property is present in delegate"() {
         when:
-        extract(TypeWithImplementedProperty, DelegateTypeWithImplementedProperty)
+        extract TypeWithImplementedProperty, DelegateTypeWithImplementedProperty
         then:
         def ex = thrown InvalidManagedTypeException
         ex.message == """Type $TypeWithImplementedProperty.name is not a valid managed type:
@@ -476,6 +586,74 @@ class DefaultStructBindingsStoreTest extends Specification {
 
         where:
         type << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+    }
+
+    @Managed
+    static abstract class ConstructorWithArguments {
+        ConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class AdditionalConstructorWithArguments {
+        AdditionalConstructorWithArguments() {}
+        AdditionalConstructorWithArguments(String arg) {}
+    }
+
+    static class SuperConstructorWithArguments {
+        SuperConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class ConstructorCallingSuperConstructorWithArgs extends SuperConstructorWithArguments {
+        ConstructorCallingSuperConstructorWithArgs() {
+            super("foo")
+        }
+    }
+
+    @Managed
+    static abstract class CustomConstructorInSuperClass extends ConstructorCallingSuperConstructorWithArgs {
+    }
+
+    def "custom constructors are not allowed"() {
+        when: extract ConstructorWithArguments
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $ConstructorWithArguments.name is not a valid managed type:
+- Constructor ConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+
+        when: extract AdditionalConstructorWithArguments
+        then: ex = thrown InvalidManagedTypeException
+        ex.message == """Type $AdditionalConstructorWithArguments.name is not a valid managed type:
+- Constructor AdditionalConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+
+        when: extract CustomConstructorInSuperClass
+        then: ex = thrown InvalidManagedTypeException
+        ex.message == """Type $CustomConstructorInSuperClass.name is not a valid managed type:
+- Constructor SuperConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
+    }
+
+    static abstract class MultipleProblemsSuper {
+        private String field1
+        MultipleProblemsSuper(String s) {}
+        private String getPrivate() { field1 }
+    }
+
+    @Managed
+    static class MultipleProblems<T extends List<?>> extends MultipleProblemsSuper {
+        private String field2
+        MultipleProblems(String s) { super(s) }
+    }
+
+    def "collects all problems for a type"() {
+        when: extract MultipleProblems
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $MultipleProblems.name is not a valid managed type:
+- Must be defined as an interface or an abstract class.
+- Cannot be a parameterized type.
+- Constructor MultipleProblems(java.lang.String) is not valid: Custom constructors are not supported.
+- Field field2 is not valid: Fields must be static final.
+- Constructor MultipleProblemsSuper(java.lang.String) is not valid: Custom constructors are not supported.
+- Field MultipleProblemsSuper.field1 is not valid: Fields must be static final.
+- Method MultipleProblemsSuper.getPrivate() is not a valid method: Protected and private methods are not supported."""
     }
 
 
