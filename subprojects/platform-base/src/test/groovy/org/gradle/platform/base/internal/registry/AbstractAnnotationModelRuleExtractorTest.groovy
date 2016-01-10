@@ -97,10 +97,11 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     }
 
     ExtractedModelRule extract(MethodRuleDefinition<?, ?> definition) {
-        def context = new DefaultMethodModelRuleExtractionContext(ModelType.of(ruleClass), null)
+        def problems = new FormattingValidationProblemCollector("rule source", ModelType.of(ruleClass))
+        def context = new DefaultMethodModelRuleExtractionContext(null, problems)
         def registration = ruleHandler.registration(definition, context)
         if (context.hasProblems()) {
-            throw new InvalidModelRuleDeclarationException(context.problems.format())
+            throw new InvalidModelRuleDeclarationException(problems.format())
         }
         return registration
     }

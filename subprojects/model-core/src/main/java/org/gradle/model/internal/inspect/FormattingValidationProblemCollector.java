@@ -46,16 +46,6 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     }
 
     @Override
-    public void add(MethodRuleDefinition<?, ?> method, String problem) {
-        add(method.getMethod().getMethod(), problem);
-    }
-
-    @Override
-    public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
-        add(method.getMethod().getMethod(), problem + ": " + cause.getMessage());
-    }
-
-    @Override
     public void add(Field field, String problem) {
         if (field.getDeclaringClass().equals(source.getConcreteClass())) {
             problems.add("Field " + field.getName() + " is not valid: " + problem);
@@ -65,14 +55,22 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     }
 
     @Override
-    public void add(Method method, String problem) {
+    public void add(Method method, String role, String problem) {
         MethodDescription description = MethodDescription.name(method.getName())
                 .takes(method.getGenericParameterTypes());
+        StringBuilder message = new StringBuilder("Method ");
         if (method.getDeclaringClass().equals(source.getConcreteClass())) {
-            problems.add("Method " + description + " is not a valid rule method: " + problem);
+            message.append(description);
         } else {
-            problems.add("Method " + method.getDeclaringClass().getSimpleName() + '.' + description + " is not a valid rule method: " + problem);
+            message.append(method.getDeclaringClass().getSimpleName()).append('.').append(description);
         }
+        message.append(" is not a valid");
+        if (role != null) {
+            message.append(' ').append(role);
+        }
+        message.append(" method: ");
+        message.append(problem);
+        problems.add(message.toString());
     }
 
     @Override

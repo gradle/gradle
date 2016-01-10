@@ -20,7 +20,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.ValidationProblemCollector;
+import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
-    protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<V> typeParameter, ValidationProblemCollector problems) {
+    protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<V> typeParameter, RuleSourceValidationProblemCollector problems) {
         if (ruleDefinition.getReferences().size() == 0) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must have at least two parameters.");
             return;
@@ -66,7 +66,7 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
         }
     }
 
-    protected <S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<S> expectedDependency, ValidationProblemCollector problems) {
+    protected <S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<S> expectedDependency, RuleSourceValidationProblemCollector problems) {
         if (ruleDefinition.getReferences().isEmpty() && problems.hasProblems()) {
             return;
         }

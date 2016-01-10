@@ -48,7 +48,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return createRegistration(ruleDefinition, context);
     }
 
-    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, ValidationProblemCollector problems) {
+    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
         verifyMethodSignature(dataCollector, ruleDefinition, problems);
         if (problems.hasProblems()) {
@@ -59,7 +59,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return new ExtractedBinaryTasksRule<S>(ruleDefinition, binaryType);
     }
 
-    private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         validateIsVoidMethod(ruleDefinition, problems);
         visitSubject(taskDataCollector, ruleDefinition, TASK, problems);
         visitDependency(taskDataCollector, ruleDefinition, BINARY_SPEC, problems);

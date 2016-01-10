@@ -20,7 +20,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.Mutate;
+import org.gradle.model.internal.inspect.DefaultRuleSourceValidationProblemCollector;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
+import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -46,7 +48,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
                 return element.isAnnotationPresent(Mutate.class);
             }
         });
-        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector("rule source", ruleSourceType);
+        FormattingValidationProblemCollector problemsFormatter = new FormattingValidationProblemCollector("rule source", ruleSourceType);
+        RuleSourceValidationProblemCollector problems = new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
 
         if (mutateMethods.size() == 0) {
             problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
@@ -66,8 +69,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
             }
         }
 
-        if (problems.hasProblems()) {
-            throw new RuleActionValidationException(problems.format());
+        if (problemsFormatter.hasProblems()) {
+            throw new RuleActionValidationException(problemsFormatter.format());
         }
 
         return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), mutateMethods.get(0)));

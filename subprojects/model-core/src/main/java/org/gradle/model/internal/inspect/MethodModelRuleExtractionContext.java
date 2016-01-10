@@ -16,6 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-public interface MethodModelRuleExtractionContext extends ValidationProblemCollector {
+public interface MethodModelRuleExtractionContext extends RuleSourceValidationProblemCollector {
     ModelRuleExtractor getRuleExtractor();
 }

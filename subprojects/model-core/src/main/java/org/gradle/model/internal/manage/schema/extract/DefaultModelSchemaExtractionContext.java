@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -84,23 +83,18 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     @Override
+    public void add(Method method, String role, String problem) {
+        problems.add(method, role, problem);
+    }
+
+    @Override
     public void add(Method method, String problem) {
-        problems.add(method, problem);
+        add(method, null, problem);
     }
 
     @Override
     public void add(Constructor<?> constructor, String problem) {
         problems.add(constructor, problem);
-    }
-
-    @Override
-    public void add(MethodRuleDefinition<?, ?> method, String problem) {
-        problems.add(method, problem);
-    }
-
-    @Override
-    public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
-        problems.add(method, problem, cause);
     }
 
     public String getDescription() {

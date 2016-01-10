@@ -66,7 +66,7 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
      */
     protected abstract <P extends TYPE> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type);
 
-    protected ModelType<? extends TYPE> readType(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    protected ModelType<? extends TYPE> readType(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         validateIsVoidMethod(ruleDefinition, problems);
         if (ruleDefinition.getReferences().size() != 1) {
             problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));

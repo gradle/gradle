@@ -656,8 +656,8 @@ $ModelSet.name<$ModelMap.name>
         then:
         def e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type ${ProtectedAbstractMethods.name} is not a valid model element type:
-- Method getName() is not a valid rule method: Protected and private methods are not supported.
-- Method setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported."""
+- Method getName() is not a valid method: Protected and private methods are not supported.
+- Method setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
 
         when:
         extract(ProtectedAbstractMethodsInSuper)
@@ -665,8 +665,8 @@ $ModelSet.name<$ModelMap.name>
         then:
         e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type ${ProtectedAbstractMethodsInSuper.name} is not a valid model element type:
-- Method ProtectedAbstractMethods.getName() is not a valid rule method: Protected and private methods are not supported.
-- Method ProtectedAbstractMethods.setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported."""
+- Method ProtectedAbstractMethods.getName() is not a valid method: Protected and private methods are not supported.
+- Method ProtectedAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported."""
     }
 
     @Managed
@@ -689,8 +689,8 @@ $ModelSet.name<$ModelMap.name>
         then:
         def e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type ${ProtectedAndPrivateNonAbstractMethods.name} is not a valid model element type:
-- Method setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported.
-- Method getName() is not a valid rule method: Protected and private methods are not supported."""
+- Method setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
+- Method getName() is not a valid method: Protected and private methods are not supported."""
 
         when:
         extract(ProtectedAndPrivateNonAbstractMethodsInSuper)
@@ -698,8 +698,8 @@ $ModelSet.name<$ModelMap.name>
         then:
         e = thrown(InvalidManagedModelElementTypeException)
         e.message == """Type ${ProtectedAndPrivateNonAbstractMethodsInSuper.name} is not a valid model element type:
-- Method ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid rule method: Protected and private methods are not supported.
-- Method ProtectedAndPrivateNonAbstractMethods.getName() is not a valid rule method: Protected and private methods are not supported."""
+- Method ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
+- Method ProtectedAndPrivateNonAbstractMethods.getName() is not a valid method: Protected and private methods are not supported."""
     }
 
     interface SomeMap extends ModelMap<List<String>> {
@@ -1253,7 +1253,7 @@ interface Managed${typeName} {
 - Field field2 is not valid: Fields must be static final.
 - Constructor MultipleProblemsSuper(java.lang.String) is not valid: Custom constructors are not supported.
 - Field MultipleProblemsSuper.field1 is not valid: Fields must be static final.
-- Method MultipleProblemsSuper.getPrivate() is not a valid rule method: Protected and private methods are not supported."""
+- Method MultipleProblemsSuper.getPrivate() is not a valid method: Protected and private methods are not supported."""
     }
 
     String getName(ModelType<?> modelType) {

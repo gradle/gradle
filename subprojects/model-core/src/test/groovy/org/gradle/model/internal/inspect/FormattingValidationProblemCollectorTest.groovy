@@ -42,7 +42,7 @@ class FormattingValidationProblemCollectorTest extends Specification {
     def "formats message with a single method problem"() {
         given:
         def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(String))
-        collector.add(String.class.getMethod("indexOf", String), "is not annotated with anything.")
+        collector.add(String.class.getMethod("indexOf", String), "rule", "is not annotated with anything.")
 
         expect:
         collector.format() == '''Type java.lang.String is not a valid <thing>:
@@ -52,7 +52,7 @@ class FormattingValidationProblemCollectorTest extends Specification {
     def "formats message with a problem with inherited method"() {
         given:
         def collector = new FormattingValidationProblemCollector("<thing>", ModelType.of(WithConstructor))
-        collector.add(SuperClass.class.getMethod("thing"), "is not annotated with anything.")
+        collector.add(SuperClass.class.getMethod("thing"), "rule", "is not annotated with anything.")
 
         expect:
         collector.format() == """Type ${WithConstructor.name} is not a valid <thing>:

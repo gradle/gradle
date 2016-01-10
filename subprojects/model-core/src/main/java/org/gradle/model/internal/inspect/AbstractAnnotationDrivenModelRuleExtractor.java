@@ -37,7 +37,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }
 
-    protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must have void return type.");
         }

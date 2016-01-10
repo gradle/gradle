@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public interface ValidationProblemCollector {
-    boolean hasProblems();
+public interface RuleSourceValidationProblemCollector extends ValidationProblemCollector {
+    void add(MethodRuleDefinition<?, ?> method, String problem);
 
-    /**
-     * Adds a problem with the type.
-     */
-    void add(String problem);
+    void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause);
 
-    /**
-     * Adds a problem with a field.
-     */
-    void add(Field field, String problem);
-
-    /**
-     * Adds a problem with a method.
-     */
-    void add(Method method, String role, String problem);
-
-    /**
-     * Adds a problem with a constructor.
-     */
-    void add(Constructor<?> constructor, String problem);
+    void add(Method method, String problem);
 }

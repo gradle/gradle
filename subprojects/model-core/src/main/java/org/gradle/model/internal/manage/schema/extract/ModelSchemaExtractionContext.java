@@ -21,6 +21,8 @@ import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Method;
+
 public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollector {
     /**
      * Returns the type currently being inspected.
@@ -41,4 +43,9 @@ public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollec
      * Marks the type as recognized.
      */
     void found(ModelSchema<T> result);
+
+    /**
+     * Adds a problem with a method.
+     */
+    void add(Method method, String problem);
 }

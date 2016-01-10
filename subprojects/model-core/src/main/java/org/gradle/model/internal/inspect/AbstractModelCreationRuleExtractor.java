@@ -29,7 +29,7 @@ import java.util.List;
 
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    private ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    private ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 

@@ -99,13 +99,14 @@ public class ModelRuleExtractor {
 
     private <T> CachedRuleSource doExtract(final Class<T> source) {
         final ModelType<T> type = ModelType.of(source);
-        DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(type, this);
+        FormattingValidationProblemCollector problems = new FormattingValidationProblemCollector("rule source", type);
+        DefaultMethodModelRuleExtractionContext context = new DefaultMethodModelRuleExtractionContext(this, problems);
 
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
         StructSchema<T> schema = getSchema(source, context);
         if (schema == null) {
-            throw new InvalidModelRuleDeclarationException(context.problems.format());
+            throw new InvalidModelRuleDeclarationException(problems.format());
         }
 
         // sort for determinism
@@ -135,7 +136,7 @@ public class ModelRuleExtractor {
         }
 
         if (context.hasProblems()) {
-            throw new InvalidModelRuleDeclarationException(context.problems.format());
+            throw new InvalidModelRuleDeclarationException(problems.format());
         }
 
         StructBindings<T> bindings = structBindingsStore.getBindings(schema.getType());
@@ -147,9 +148,9 @@ public class ModelRuleExtractor {
         }
     }
 
-    private <T> StructSchema<T> getSchema(Class<T> source, DefaultMethodModelRuleExtractionContext context) {
+    private <T> StructSchema<T> getSchema(Class<T> source, RuleSourceValidationProblemCollector problems) {
         if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
-            context.add("Rule source classes must directly extend " + RuleSource.class.getName());
+            problems.add("Rule source classes must directly extend " + RuleSource.class.getName());
         }
 
         ModelSchema<T> schema = schemaStore.getSchema(source);
@@ -157,7 +158,7 @@ public class ModelRuleExtractor {
             return null;
         }
 
-        validateClass(source, context);
+        validateClass(source, problems);
         return (StructSchema<T>) schema;
     }
 
@@ -184,7 +185,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validateClass(Class<?> source, ValidationProblemCollector problems) {
+    private void validateClass(Class<?> source, RuleSourceValidationProblemCollector problems) {
         int modifiers = source.getModifiers();
 
         if (Modifier.isInterface(modifiers)) {
@@ -218,7 +219,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validateRuleMethod(MethodRuleDefinition<?, ?> ruleDefinition, Method ruleMethod, ValidationProblemCollector problems) {
+    private void validateRuleMethod(MethodRuleDefinition<?, ?> ruleDefinition, Method ruleMethod, RuleSourceValidationProblemCollector problems) {
         if (Modifier.isPrivate(ruleMethod.getModifiers())) {
             problems.add(ruleMethod, "A rule method cannot be private");
         }
@@ -251,7 +252,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private void validateNonRuleMethod(Method method, ValidationProblemCollector problems) {
+    private void validateNonRuleMethod(Method method, RuleSourceValidationProblemCollector problems) {
         if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !ModelSchemaUtils.isObjectMethod(method)) {
             problems.add(method, "A method that is not annotated as a rule must be private");
         }

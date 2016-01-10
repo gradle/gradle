@@ -40,7 +40,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return createRegistration(ruleDefinition, context);
     }
 
-    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, ValidationProblemCollector problems) {
+    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
         visitAndVerifyMethodSignature(dataCollector, ruleDefinition, problems);
         if (problems.hasProblems()) {
@@ -52,7 +52,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return new ExtractedComponentBinariesRule<S, C>(componentType, binaryType, ruleDefinition);
     }
 
-    private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ValidationProblemCollector problems) {
+    private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         validateIsVoidMethod(ruleDefinition, problems);
         visitSubject(dataCollector, ruleDefinition, BINARY_SPEC, problems);
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class), problems);

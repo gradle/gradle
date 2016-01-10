@@ -16,19 +16,17 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtractionContext {
-    final FormattingValidationProblemCollector problems;
     private final ModelRuleExtractor extractor;
+    private final RuleSourceValidationProblemCollector problems;
 
-    public DefaultMethodModelRuleExtractionContext(ModelType<?> ruleSourceClass, ModelRuleExtractor extractor) {
+    public DefaultMethodModelRuleExtractionContext(ModelRuleExtractor extractor, ValidationProblemCollector problems) {
         this.extractor = extractor;
-        this.problems = new FormattingValidationProblemCollector("rule source", ruleSourceClass);
+        this.problems = new DefaultRuleSourceValidationProblemCollector(problems);
     }
 
     @Override
@@ -49,6 +47,11 @@ class DefaultMethodModelRuleExtractionContext implements MethodModelRuleExtracti
     @Override
     public void add(Method method, String problem) {
         problems.add(method, problem);
+    }
+
+    @Override
+    public void add(Method method, String role, String problem) {
+        problems.add(method, role, problem);
     }
 
     @Override
