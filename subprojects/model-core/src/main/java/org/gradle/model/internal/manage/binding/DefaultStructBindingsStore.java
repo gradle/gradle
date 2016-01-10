@@ -178,9 +178,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
     }
 
-    private <T, D> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
+    private <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
         ImmutableSortedMap.Builder<String, ManagedProperty<?>> managedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
-        ModelType<T> publicType = extractionContext.getPublicSchema().getType();
         for (Map.Entry<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
             String propertyName = propertyEntry.getKey();
             Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings = propertyEntry.getValue();
