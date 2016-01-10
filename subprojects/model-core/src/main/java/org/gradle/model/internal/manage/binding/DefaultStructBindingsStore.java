@@ -80,7 +80,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
     <T, D> StructBindings<T> extract(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {
         if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
-            throw new IllegalArgumentException(String.format("Delegate '%s' type must be null or a non-abstract type", delegateType));
+            throw new InvalidManagedTypeException(String.format("Type '%s' is not a valid managed type: delegate type must be null or a non-abstract type instead of '%s'.",
+                publicType.getDisplayName(), delegateType.getDisplayName()));
         }
 
         Set<ModelType<?>> implementedViews = collectImplementedViews(publicType, internalViewTypes, delegateType);

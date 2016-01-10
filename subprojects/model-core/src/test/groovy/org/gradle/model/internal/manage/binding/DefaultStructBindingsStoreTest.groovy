@@ -80,6 +80,12 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
     }
 
+    def "fails when delegate type is abstract"() {
+        when: extract(Object, Serializable)
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == "Type 'Object' is not a valid managed type: delegate type must be null or a non-abstract type instead of 'Serializable'."
+    }
+
     def "fails when implemented property is present in delegate"() {
         when:
         extract(TypeWithImplementedProperty, DelegateTypeWithImplementedProperty)
