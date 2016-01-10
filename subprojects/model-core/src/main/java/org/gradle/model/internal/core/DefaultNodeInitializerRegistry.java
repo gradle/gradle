@@ -16,9 +16,13 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -27,9 +31,19 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
+
+    private final LoadingCache<NodeInitializerContext<?>, NodeInitializer> cache = CacheBuilder.newBuilder()
+        .weakValues()
+        .build(new CacheLoader<NodeInitializerContext<?>, NodeInitializer>() {
+            @Override
+            public NodeInitializer load(NodeInitializerContext<?> context) throws Exception {
+                return extractNodeInitializer(context);
+            }
+        });
 
     private final List<NodeInitializerExtractionStrategy> allStrategies;
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
@@ -61,23 +75,24 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     @Override
     public NodeInitializer getNodeInitializer(NodeInitializerContext<?> nodeInitializerContext) {
-        NodeInitializer nodeInitializer = findNodeInitializer(nodeInitializerContext.getModelType());
-        if (nodeInitializer != null) {
-            return nodeInitializer;
+        try {
+            return cache.get(nodeInitializerContext);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
-        throw canNotConstructTypeException(nodeInitializerContext);
     }
 
-    @Nullable
-    private NodeInitializer findNodeInitializer(ModelType<?> type) {
-        ModelSchema<?> schema = schemaStore.getSchema(type);
+    private NodeInitializer extractNodeInitializer(NodeInitializerContext<?> context) {
+        ModelSchema<?> schema = schemaStore.getSchema(context.getModelType());
         for (NodeInitializerExtractionStrategy extractor : allStrategies) {
             NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
             if (nodeInitializer != null) {
                 return nodeInitializer;
             }
         }
-        return null;
+        throw canNotConstructTypeException(context);
     }
 
     @Override
