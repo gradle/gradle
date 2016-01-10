@@ -84,8 +84,10 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithImplementedProperty, DelegateTypeWithImplementedProperty)
         then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Method '${DefaultStructBindingsStoreTest.simpleName}.${TypeWithImplementedProperty.simpleName}.getZ()' is both implemented by the view and the delegate type '${DefaultStructBindingsStoreTest.simpleName}.${DelegateTypeWithImplementedProperty.simpleName}.getZ()'"
+        def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $TypeWithImplementedProperty.name is not a valid managed type:
+- Method getZ() is not a valid method: it is both implemented by the view '${getName(TypeWithImplementedProperty)}' and the delegate type '${getName(DelegateTypeWithImplementedProperty)}'
+- Method setZ(int) is not a valid method: it is both implemented by the view '${getName(TypeWithImplementedProperty)}' and the delegate type '${getName(DelegateTypeWithImplementedProperty)}'"""
     }
 
     static abstract class TypeWithAbstractWriteOnlyProperty {
@@ -96,8 +98,9 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithAbstractWriteOnlyProperty)
         then:
-        def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'z' of type '${getName(TypeWithAbstractWriteOnlyProperty)}' must both have an abstract getter as well as a setter."
+        def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $TypeWithAbstractWriteOnlyProperty.name is not a valid managed type:
+- Property 'z' is not valid: it must both have an abstract getter and a setter"""
     }
 
     static abstract class TypeWithInconsistentPropertyType {
@@ -109,8 +112,9 @@ class DefaultStructBindingsStoreTest extends Specification {
         when:
         extract(TypeWithInconsistentPropertyType)
         then:
-        def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'z' of type '${getName(TypeWithInconsistentPropertyType)}' must have setter accepting parameter with type 'String' instead of 'int'."
+        def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $TypeWithInconsistentPropertyType.name is not a valid managed type:
+- Method setZ(int) is not a valid method: it should take parameter with type 'String'"""
     }
 
     static interface OverloadingNumber {
@@ -158,8 +162,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "cannot annotate managed type property with unmanaged"() {
         when: extract HasUnmanagedOnManaged
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'myEnum' of type '${getName(HasUnmanagedOnManaged)}' is marked as @Unmanaged, but is of @Managed type '${getName(MyEnum)}'. Please remove the @Managed annotation."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasUnmanagedOnManaged.name is not a valid managed type:
+- Property 'myEnum' is not valid: it is marked as @Unmanaged, but is of @Managed type '${getName(MyEnum)}'; please remove the @Managed annotation"""
     }
 
     @Managed
@@ -170,8 +175,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "must have setter for unmanaged"() {
         when: extract NoSetterForUnmanaged
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'thing' of type '${getName(NoSetterForUnmanaged)}' must not be read only, because it is marked as @Unmanaged."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $NoSetterForUnmanaged.name is not a valid managed type:
+- Property 'thing' is not valid: it must not be read only, because it is marked as @Unmanaged"""
     }
 
     @Managed
@@ -199,14 +205,16 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "map cannot be writable"() {
         when: extract WritableMapProperty
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'map' of type '${getName(WritableMapProperty)}' cannot have a setter (ModelMap properties must be read only)."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $WritableMapProperty.name is not a valid managed type:
+- Property 'map' is not valid: it cannot have a setter (ModelMap properties must be read only)"""
     }
 
     def "set cannot be writable"() {
         when: extract WritableSetProperty
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'set' of type '${getName(WritableSetProperty)}' cannot have a setter (ModelSet properties must be read only)."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $WritableSetProperty.name is not a valid managed type:
+- Property 'set' is not valid: it cannot have a setter (ModelSet properties must be read only)"""
     }
 
     @Managed
@@ -217,8 +225,10 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "malformed getter"() {
         when: extract GetterWithParams
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'name' of type '${getName(GetterWithParams)}' is invalid: getter method '${getName(GetterWithParams)}.getName(String)' must not take parameters."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $GetterWithParams.name is not a valid managed type:
+- Method getName(java.lang.String) is not a valid property accessor method: getter method must not take parameters
+- Property 'name' is not valid: it must both have an abstract getter and a setter"""
     }
 
     @Managed
@@ -229,8 +239,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "non void setter"() {
         when: extract NonVoidSetter
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'name' of type '${getName(NonVoidSetter)}' is invalid: setter method '${getName(NonVoidSetter)}.setName(String)' must have void return type."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $NonVoidSetter.name is not a valid managed type:
+- Method setName(java.lang.String) is not a valid property accessor method: setter method must have void return type"""
     }
 
     @Managed
@@ -241,8 +252,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "setter with extra params"() {
         when: extract SetterWithExtraParams
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'name' of type '${getName(SetterWithExtraParams)}' is invalid: setter method '${getName(SetterWithExtraParams)}.setName(String, String)' must have exactly one parameter."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $SetterWithExtraParams.name is not a valid managed type:
+- Method setName(java.lang.String, java.lang.String) is not a valid property accessor method: setter method must take exactly one parameter"""
     }
 
     @Managed
@@ -258,16 +270,18 @@ class DefaultStructBindingsStoreTest extends Specification {
     static interface ChildWithExtraNonPropertyMethods extends HasExtraNonPropertyMethods {
     }
 
-    @Unroll
-    def "can only have abstract getters and setters in #type"() {
-        when: extract type
-        then: def ex = thrown IllegalArgumentException
-        ex.message == "Abstract method '${getName(HasExtraNonPropertyMethods)}.foo(String)' is not a property accessor, and it has no implementation."
+    def "can only have abstract getters and setters"() {
+        when: extract HasExtraNonPropertyMethods
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasExtraNonPropertyMethods.name is not a valid managed type:
+- Method foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
+    }
 
-        where:
-        type                             | _
-        HasExtraNonPropertyMethods       | _
-        ChildWithExtraNonPropertyMethods | _
+    def "can only have abstract getters and setters in inherited type"() {
+        when: extract ChildWithExtraNonPropertyMethods
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $ChildWithExtraNonPropertyMethods.name is not a valid managed type:
+- Method ${HasExtraNonPropertyMethods.simpleName}.foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -277,8 +291,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "reject two firsts char lowercase getters"() {
         when: extract HasTwoFirstsCharLowercaseGetter
-        then: def ex = thrown IllegalArgumentException
-        ex.message == "Abstract method '${getName(HasTwoFirstsCharLowercaseGetter)}.getccCompiler()' is not a property accessor, and it has no implementation."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasTwoFirstsCharLowercaseGetter.name is not a valid managed type:
+- Method getccCompiler() is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -288,8 +303,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "get-getters-like methods not considered as getters"() {
         when: extract HasGetGetterLikeMethod
-        then: def ex = thrown IllegalArgumentException
-        ex.message == "Abstract method '${getName(HasGetGetterLikeMethod)}.gettingStarted()' is not a property accessor, and it has no implementation."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasGetGetterLikeMethod.name is not a valid managed type:
+- Method gettingStarted() is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -299,8 +315,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "is-getters-like methods not considered as getters"() {
         when: extract HasIsGetterLikeMethod
-        then: def ex = thrown IllegalArgumentException
-        ex.message == "Abstract method '${getName(HasIsGetterLikeMethod)}.isidore()' is not a property accessor, and it has no implementation."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasIsGetterLikeMethod.name is not a valid managed type:
+- Method isidore() is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -310,8 +327,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "setters-like methods not considered as setters"() {
         when: extract HasSetterLikeMethod
-        then: def ex = thrown IllegalArgumentException
-        ex.message == "Abstract method '${getName(HasSetterLikeMethod)}.settings(String)' is not a property accessor, and it has no implementation."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasSetterLikeMethod.name is not a valid managed type:
+- Method settings(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     @Managed
@@ -322,8 +340,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "misaligned setter type"() {
         when: def bindings = extract MisalignedSetterType
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'thing' of type '${getName(MisalignedSetterType)}' must have setter accepting parameter with type 'String' instead of 'Object'."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $MisalignedSetterType.name is not a valid managed type:
+- Method setThing(java.lang.Object) is not a valid method: it should take parameter with type 'String'"""
     }
 
     @Managed
@@ -340,14 +359,16 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "non-abstract getter with abstract setter is not allowed"() {
         when: extract NonAbstractGetterWithSetter
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'name' of type '${getName(NonAbstractGetterWithSetter)}' must have either only abstract accessor methods or only implemented accessor methods."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $NonAbstractGetterWithSetter.name is not a valid managed type:
+- Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
 
     def "non-abstract setter without getter is not allowed"() {
         when: extract NonAbstractSetter
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'name' of type '${getName(NonAbstractSetter)}' must have either only abstract accessor methods or only implemented accessor methods."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $NonAbstractSetter.name is not a valid managed type:
+- Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
 
     @Managed
@@ -358,8 +379,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
         given: when: extract CollectionType
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'items' of type '${getName(CollectionType)}' must have setter accepting parameter with type 'List<String>' instead of 'List<Integer>'."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $CollectionType.name is not a valid managed type:
+- Method setItems(java.util.List<java.lang.Integer>) is not a valid method: it should take parameter with type 'List<String>'"""
     }
 
     @Unroll
@@ -375,8 +397,9 @@ class DefaultStructBindingsStoreTest extends Specification {
             }
         """
         when: extract interfaceWithPrimitiveProperty
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'primitiveProperty' of type 'PrimitiveProperty' must have setter accepting parameter with type '$firstType.simpleName' instead of '$secondType.simpleName'."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type PrimitiveProperty is not a valid managed type:
+- Method setPrimitiveProperty($secondType.name) is not a valid method: it should take parameter with type '$firstType.simpleName'"""
 
         where:
         firstType | secondType
@@ -409,7 +432,8 @@ class DefaultStructBindingsStoreTest extends Specification {
 
         then:
         def e = thrown Exception
-        e.message == "Property 'name' of type '${getName(MutableName)}' must not have a setter, because the type implements '$Named.name'."
+        e.message == """Type $MutableName.name is not a valid managed type:
+- Property 'name' is not valid: it must not have a setter, because the type implements '$Named.name'"""
     }
 
     @Managed
@@ -420,8 +444,9 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     def "handles is/get property with non-matching type"() {
         when: extract HasIsAndGetPropertyWithDifferentTypes
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'value' of type '${getName(HasIsAndGetPropertyWithDifferentTypes)}' must have a consistent type, but it's defined as String, boolean."
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $HasIsAndGetPropertyWithDifferentTypes.name is not a valid managed type:
+- Property 'value' is not valid: it must have a consistent type, but it's defined as String, boolean"""
     }
 
     @Managed
@@ -438,12 +463,13 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     @Unroll
     def "should not allow 'is' as a prefix for getter on non primitive boolean in #managedType"() {
-        when: extract managedType
-        then: def ex = thrown InvalidManagedPropertyException
-        ex.message == "Property 'thing' of type '${getName(managedType)}' has invalid getter '${getName(managedType)}.isThing()': it should either return 'boolean', or its name should be 'getThing()'."
+        when: extract type
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type $type.name is not a valid managed type:
+- Method isThing() is not a valid method: it should either return 'boolean', or its name should be 'getThing()'"""
 
         where:
-        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+        type << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
     }
 
 
