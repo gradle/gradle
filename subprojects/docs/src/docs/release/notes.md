@@ -256,7 +256,7 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 ### TestKit indicates compatibility for target Gradle version
 
 Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit
-for particular Gradle versions. If a certain feature is not supported, TestKit thrown an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
+for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
 for an overview of known TestKit limitations.
 
 ## External contributions
