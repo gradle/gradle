@@ -38,11 +38,6 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property) {
-        return property.isReadable();
-    }
-
-    @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods, Iterable<ModelSchemaAspect> aspects) {
         boolean annotated = extractionContext.getType().isAnnotationPresent(UnmanagedStruct.class);
         return new UnmanagedImplStructSchema<R>(extractionContext.getType(), properties, nonPropertyMethods, aspects, annotated);

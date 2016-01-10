@@ -111,12 +111,10 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         return Collections2.filter(propertiesMap.values(), new Predicate<ModelPropertyExtractionContext>() {
             @Override
             public boolean apply(ModelPropertyExtractionContext property) {
-                return selectProperty(context, property);
+                return property.isReadable();
             }
         });
     }
-
-    protected abstract boolean selectProperty(ModelSchemaExtractionContext<?> context, ModelPropertyExtractionContext property);
 
     private static List<ModelPropertyExtractionResult<?>> extractProperties(Iterable<ModelPropertyExtractionContext> properties) {
         ImmutableList.Builder<ModelPropertyExtractionResult<?>> builder = ImmutableList.builder();
