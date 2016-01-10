@@ -54,10 +54,11 @@ public class ModelSchemaCache {
     }
 
     public <T> void set(ModelType<T> type, ModelSchema<T> schema) {
-        Map<ModelType<?>, ModelSchema<?>> typeCache = cache.get(WeakClassSet.of(type));
+        WeakClassSet cacheKey = WeakClassSet.of(type);
+        Map<ModelType<?>, ModelSchema<?>> typeCache = cache.get(cacheKey);
         if (typeCache == null) {
             typeCache = Maps.newHashMap();
-            cache.put(WeakClassSet.of(type), typeCache);
+            cache.put(cacheKey, typeCache);
         }
         typeCache.put(type, schema);
     }
