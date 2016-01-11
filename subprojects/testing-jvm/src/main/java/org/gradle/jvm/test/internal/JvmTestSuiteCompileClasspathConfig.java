@@ -74,14 +74,13 @@ public class JvmTestSuiteCompileClasspathConfig implements JavaLanguagePlugin.Pl
                     new LocalComponentResolveContext(((BinarySpecInternal) testedBinary).getId(),
                         DefaultVariantsMetaData.extractFrom(testedBinary, schemaStore),
                         collectDependencies(testedBinary, testedComponent, ((JarBinarySpecInternal)testedBinary).getApiDependencies()),
-                        UsageKind.RUNTIME,
+                        UsageKind.API,
                         testedBinary.getDisplayName()
                     ));
                 FileCollection fullClasspath = new UnionFileCollection(
                     classpath,
                     transitiveCompileClasspath,
-                    new SimpleFileCollection(assembly.getClassDirectories()),
-                    new SimpleFileCollection(assembly.getResourceDirectories()));
+                    new SimpleFileCollection(assembly.getClassDirectories()));
                 javaCompile.setClasspath(fullClasspath);
                 javaCompile.dependsOn(((WithJvmAssembly) testedBinary).getAssembly());
             }
