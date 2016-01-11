@@ -345,6 +345,15 @@ releasedVersions.allVersions.each { targetVersion ->
     }
 }
 
+task testKitVersionCompatibilityIntegTest(type: Test) {
+    description "Runs the TestKit version compatibility tests"
+    systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+    include 'org/gradle/testkit/**/*'
+}
+
+crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
+
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
     idea {
         module {

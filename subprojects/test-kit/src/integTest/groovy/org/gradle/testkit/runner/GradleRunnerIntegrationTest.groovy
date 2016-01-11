@@ -161,7 +161,7 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 return [TestedGradleDistribution.UNDER_DEVELOPMENT] as Set
             }
 
-            String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'all')
+            String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
             switch (version) {
                 case 'all': return [
                     TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
