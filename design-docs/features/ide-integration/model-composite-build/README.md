@@ -187,6 +187,23 @@ The algorithm for which projects will substitute in for which external dependenc
 
 More TBD
 
+### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
+
+This story provides and API that will allow the IDEA developers to define and model a build composite for multiple imported Gradle builds. The provided feature will be the exact analogue of the `EclipseWorkspace` model provided for Buildship.
+
+##### API
+
+The `IdeaProject` model can already provide an arbitrary set of imported Gradle projects as `IdeaModule` instances. As such, no new API will be required for this story. Example usage:
+
+```
+    ProjectConnection connection1 = GradleConnector.newConnector().forProjectDirectory(new File("myProject1")).connect();
+    ProjectConnection connection2 = GradleConnector.newConnector().forProjectDirectory(new File("myProject2")).connect();
+    GradleComposite composite = GradleCompositeBuilder.newComposite().withParticipant(connection1).withParticipant(connection2).build()
+    IdeaProject eclipseWorkspace = composite.model(IdeaProject.class)
+```
+
+The returned `IdeaProject` will have module names de-duplicated and binary dependencies substituted, as per `EclipseWorkspace`.
+
 ## Open issues
 
 - Out-of-scope for this feature would be the ability to run builds using the composite definition from the IDE or the command-line.
