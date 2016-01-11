@@ -18,10 +18,7 @@ package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -69,6 +66,29 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
+    public static void registerPlatformJavaCompileConfig(LanguageTransformContainer languages, final PlatformJavaCompileConfig configurer) {
+        languages.withType(JavaLanguagePlugin.Java.class).all(new Action<Java>() {
+            @Override
+            public void execute(JavaLanguagePlugin.Java java) {
+                java.registerPlatformJavaCompileConfig(configurer);
+            }
+        });
+    }
+
+    /**
+     * Interface for additional configuration to be done by plugins after the Java compile
+     * task has been configured.
+     */
+    public interface PlatformJavaCompileConfig {
+        /**
+         * Configures the generated {@link PlatformJavaCompile} tasks.
+         * @param spec the binary for which this compile task has been created
+         * @param sourceSet the source set for which this compile task has been created
+         * @param javaCompile the generated compile task
+         */
+        void configureJavaCompile(BinarySpec spec, JavaSourceSet sourceSet, PlatformJavaCompile javaCompile);
+    }
+
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType
@@ -87,7 +107,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     /**
      * The language transform implementation for Java sources.
      */
-    public static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
+    private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         private final JavaSourceTransformTaskConfig config;
         private final List<PlatformJavaCompileConfig> platformJavaConfigurers = Lists.newLinkedList();
 
@@ -151,20 +171,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
-        }
-
-        /**
-         * Interface for additional configuration to be done by plugins after the Java compile
-         * task has been configured.
-         */
-        public interface PlatformJavaCompileConfig {
-            /**
-             * Configures the generated {@link PlatformJavaCompile} tasks.
-             * @param spec the binary for which this compile task has been created
-             * @param sourceSet the source set for which this compile task has been created
-             * @param javaCompile the generated compile task
-             */
-            void configureJavaCompile(BinarySpec spec, JavaSourceSet sourceSet, PlatformJavaCompile javaCompile);
         }
 
         private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {

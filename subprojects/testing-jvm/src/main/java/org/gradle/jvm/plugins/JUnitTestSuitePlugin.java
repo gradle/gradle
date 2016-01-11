@@ -72,12 +72,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @Mutate
         public void registerCompileClasspathConfigurer(LanguageTransformContainer languages, final ServiceRegistry serviceRegistry, final ModelSchemaStore schemaStore) {
-            languages.withType(JavaLanguagePlugin.Java.class).all(new Action<JavaLanguagePlugin.Java>() {
-                @Override
-                public void execute(JavaLanguagePlugin.Java java) {
-                    java.registerPlatformJavaCompileConfig(new JvmTestSuiteCompileClasspathConfig(serviceRegistry, schemaStore));
-                }
-            });
+            JavaLanguagePlugin.registerPlatformJavaCompileConfig(languages, new JvmTestSuiteCompileClasspathConfig(serviceRegistry, schemaStore));
         }
 
         @ComponentType

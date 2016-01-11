@@ -45,7 +45,7 @@ import java.util.List;
 
 import static org.gradle.jvm.internal.DefaultJvmBinarySpec.collectDependencies;
 
-public class JvmTestSuiteCompileClasspathConfig implements JavaLanguagePlugin.Java.PlatformJavaCompileConfig {
+public class JvmTestSuiteCompileClasspathConfig implements JavaLanguagePlugin.PlatformJavaCompileConfig {
     private final ServiceRegistry serviceRegistry;
     private final ModelSchemaStore schemaStore;
 
