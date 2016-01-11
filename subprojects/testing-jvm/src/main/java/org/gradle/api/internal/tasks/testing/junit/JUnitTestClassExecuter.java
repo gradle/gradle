@@ -86,11 +86,9 @@ public class JUnitTestClassExecuter {
         if (!options.getIncludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
 
-            // If the test class name matches, skip the filter. This may be a test suite
-            // or other parent of multiple tests, in which case (if the class name matches)
-            // we should run the entire suite without requiring each individual test name
-            // to be explicitly included.
-            if (runner.getDescription().isSuite() && !matcher.matchesTest(testClassName, null)) {
+            // For test suites (including suite-like custom Runners), if the test suite class
+            // matches the filter, run the entire suite instead of filtering away its contents.
+            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
                 filters.add(new MethodNameFilter(matcher));
             }
         }
