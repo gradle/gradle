@@ -38,14 +38,12 @@ import java.io.IOException;
 public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private final CloseableHttpClient client;
+    private CloseableHttpClient client;
     private final BasicHttpContext httpContext = new BasicHttpContext();
+    private final HttpSettings settings;
 
     public HttpClientHelper(HttpSettings settings) {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
-        new HttpClientConfigurer(settings).configure(builder);
-        this.client = builder.build();
+        this.settings = settings;
     }
 
     public HttpResponse performRawHead(String source) {
@@ -101,7 +99,7 @@ public class HttpClientHelper implements Closeable {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
-        return client.execute(request, httpContext);
+        return getClient().execute(request, httpContext);
     }
 
     private HttpResponse processResponse(String source, String method, HttpResponse response) {
@@ -116,6 +114,16 @@ public class HttpClientHelper implements Closeable {
         }
 
         return response;
+    }
+
+    private CloseableHttpClient getClient() {
+        if (client == null) {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
+            new HttpClientConfigurer(settings).configure(builder);
+            this.client = builder.build();
+        }
+        return client;
     }
 
     @Override
