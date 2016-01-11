@@ -26,23 +26,26 @@ import java.util.List;
  * @param <T> The target type for this Spec
  */
 abstract public class CompositeSpec<T> implements Spec<T> {
-    private final List<Spec<? super T>> specs;
-    private final List<Spec<? super T>> unmodifiableSpecs;
+    private final Spec<? super T>[] specs;
 
     protected CompositeSpec(Spec<? super T>... specs) {
         this(Arrays.asList(specs));
     }
 
     protected CompositeSpec(Iterable<? extends Spec<? super T>> specs) {
-        this.specs = new ArrayList<Spec<? super T>>();
+        List<Spec<? super T>> copy = new ArrayList<Spec<? super T>>();
         for (Spec<? super T> spec : specs) {
-            this.specs.add(spec);
+            copy.add(spec);
         }
-        unmodifiableSpecs = Collections.unmodifiableList(this.specs);
+        this.specs = copy.toArray(new Spec[copy.size()]);
+    }
+
+    Spec<? super T>[] getSpecsArray() {
+        return specs;
     }
 
     public List<Spec<? super T>> getSpecs() {
-        return unmodifiableSpecs;
+        return Collections.unmodifiableList(Arrays.asList(specs));
     }
 
     @Override
@@ -56,7 +59,7 @@ abstract public class CompositeSpec<T> implements Spec<T> {
 
         CompositeSpec that = (CompositeSpec) o;
 
-        if (specs != null ? !specs.equals(that.specs) : that.specs != null) {
+        if (specs != null ? !Arrays.equals(specs, that.specs) : that.specs != null) {
             return false;
         }
 
@@ -65,6 +68,6 @@ abstract public class CompositeSpec<T> implements Spec<T> {
 
     @Override
     public int hashCode() {
-        return specs != null ? specs.hashCode() : 0;
+        return specs != null ? Arrays.hashCode(specs) : 0;
     }
 }
