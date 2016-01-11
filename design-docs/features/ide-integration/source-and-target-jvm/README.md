@@ -248,6 +248,12 @@ language levels for each module in a project.
 
 ### Story - Expose Idea module specific bytecode level in IdeaPlugin
 
+- if not specified otherwise, the idea project bytecode level is derived from the java runtime used.
+- The used java runtime can already be configured in the idea plugin via `org.gradle.plugins.ide.idea.model.IdeaProject.jdkName`.
+    - this implicitly changes the default bytecode level for an idea project.
+- to set the bytecode level on project level explicitly (independent from the target runtime) `<bytecodeTargetLevel target="1.7" />` can be added to the CompilerConfiguration in the `*.ipr` file.
+- to set the bytecode level on module level explicitly (independent from the target runtime and project bytecode level) `<bytecodeTargetLevel><module name="ModuleName" target="1.6" /></bytecodeTargetLevel>` can be set in the `*.ipr` file.
+
 ##### Implementation
 
 - if all java modules have same value for `project.targetCompatibility`
