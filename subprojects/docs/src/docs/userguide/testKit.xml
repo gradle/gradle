@@ -193,7 +193,7 @@
                 <para>
                     It is possible to use the GradleRunner to execute builds with Gradle 1.0 and later.
                     However, some runner features are not supported on earlier versions.
-                    In such cases, the runner will throw an exception when the feature is attempted to be used.
+                    In such cases, the runner will throw an exception when attempting to use the feature.
                 </para>
                 <para>
                     The following table lists the features that are sensitive to the Gradle version being used.
