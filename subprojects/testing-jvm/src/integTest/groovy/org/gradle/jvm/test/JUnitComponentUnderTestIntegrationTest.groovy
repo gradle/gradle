@@ -145,10 +145,26 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             }
         '''
         file('src/greeter/java/com/acme/internal/Utils.java') << '''package com.acme.internal;
+            import java.util.Properties;
+            import java.io.IOException;
+
             public class Utils {
-                public static String GREETER_PREFIX = "Hello, ";
+                static {
+                    String tmp = null;
+                    try {
+                        Properties properties = new Properties();
+                        properties.load(Utils.class.getClassLoader().getResourceAsStream("greeter.properties"));
+                        tmp = properties.getProperty("prefix");
+                    } catch (Exception ex) {
+                        tmp = "not found";
+                    } finally {
+                        GREETER_PREFIX = tmp;
+                    }
+                }
+                public static final String GREETER_PREFIX;
             }
         '''
+        file('src/greeter/resources/greeter.properties') << 'prefix=Hello, '
     }
 
     private void greeterLibraryWithExternalDependency() {
