@@ -26,10 +26,11 @@ import java.util.List;
  * @param <T> The target type for this Spec
  */
 abstract public class CompositeSpec<T> implements Spec<T> {
-    private List<Spec<? super T>> specs;
+    private final List<Spec<? super T>> specs;
+    private final List<Spec<? super T>> unmodifiableSpecs;
 
     protected CompositeSpec(Spec<? super T>... specs) {
-        this.specs = Arrays.asList(specs);
+        this(Arrays.asList(specs));
     }
 
     protected CompositeSpec(Iterable<? extends Spec<? super T>> specs) {
@@ -37,10 +38,11 @@ abstract public class CompositeSpec<T> implements Spec<T> {
         for (Spec<? super T> spec : specs) {
             this.specs.add(spec);
         }
+        unmodifiableSpecs = Collections.unmodifiableList(this.specs);
     }
 
     public List<Spec<? super T>> getSpecs() {
-        return Collections.unmodifiableList(specs);
+        return unmodifiableSpecs;
     }
 
     @Override
