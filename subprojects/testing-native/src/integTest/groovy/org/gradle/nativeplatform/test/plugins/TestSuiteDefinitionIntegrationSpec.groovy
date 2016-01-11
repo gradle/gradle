@@ -26,7 +26,9 @@ interface CustomTestSuite extends TestSuiteSpec {
 }
 
 class DefaultCustomTestSuite extends BaseComponentSpec implements CustomTestSuite {
-    ComponentSpec testedComponent
+    String testedComponent
+
+    void testing(String component) { this.testedComponent = component }
 }
 
 interface CustomTestBinary extends TestSuiteBinarySpec {
