@@ -18,11 +18,8 @@ package org.gradle.testkit.runner.fixtures.annotations;
 
 import java.lang.annotation.*;
 
-/**
- * Indicates that the annotated test works with a Gradle version compatible with the feature of capturing build output in debug mode.
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
-public @interface CaptureBuildOutputInDebug {
+public @interface InspectsBuildOutput {
 }

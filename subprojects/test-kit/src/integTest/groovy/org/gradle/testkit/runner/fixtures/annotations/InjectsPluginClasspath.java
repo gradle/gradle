@@ -18,11 +18,8 @@ package org.gradle.testkit.runner.fixtures.annotations;
 
 import java.lang.annotation.*;
 
-/**
- * Indicates that the annotated test works with a Gradle version compatible with the feature of injecting the plugin classpath.
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-public @interface PluginClasspathInjection {
+public @interface InjectsPluginClasspath {
 }

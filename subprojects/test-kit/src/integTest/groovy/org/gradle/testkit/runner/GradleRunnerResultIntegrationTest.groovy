@@ -16,15 +16,15 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 /**
  * Tests more intricate aspects of the BuildResult object
  */
-@CaptureExecutedTasks
+@InspectsExecutedTasks
 class GradleRunnerResultIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "execute task actions marked as up-to-date or skipped"() {
@@ -51,7 +51,7 @@ class GradleRunnerResultIntegrationTest extends GradleRunnerIntegrationTest {
         result.taskPaths(FAILED).empty
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "executed buildSrc tasks are not part of tasks in result object"() {
         given:
         file('buildSrc').mkdirs()

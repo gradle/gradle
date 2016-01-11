@@ -18,14 +18,14 @@ package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
-@CaptureBuildOutputInDebug
+@InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTest {
 
     static final String OUT = "-- out --"

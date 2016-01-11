@@ -22,7 +22,7 @@ import java.lang.annotation.*;
  * Indicates that the test controls the Gradle version used.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Inherited
 public @interface NonCrossVersion {
 }

@@ -18,17 +18,17 @@ package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@CaptureExecutedTasks
+@InspectsExecutedTasks
 class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrationTest {
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "build execution for script with invalid Groovy syntax"() {
         given:
         buildFile << """
@@ -47,7 +47,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
         result.tasks.empty
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "build execution for script with unknown Gradle API method class"() {
         given:
         buildFile << """
@@ -66,7 +66,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
         result.tasks.empty
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "build execution with badly formed argument"() {
         given:
         buildFile << helloWorldTask()
@@ -84,7 +84,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
         result.output.contains("Problem configuring task :helloWorld from command line.")
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "build execution with non-existent working directory"() {
         given:
         File nonExistentWorkingDir = new File('some/path/that/does/not/exist')

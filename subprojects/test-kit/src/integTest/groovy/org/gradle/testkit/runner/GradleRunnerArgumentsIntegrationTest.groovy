@@ -16,12 +16,12 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@CaptureExecutedTasks
+@InspectsExecutedTasks
 class GradleRunnerArgumentsIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
@@ -32,7 +32,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerIntegrationTest {
         result.task(":help")
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "execute build for multiple tasks"() {
         given:
         buildFile << helloWorldTask()
@@ -53,7 +53,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerIntegrationTest {
         result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
     }
 
-    @CaptureBuildOutputInDebug
+    @InspectsBuildOutput
     def "can provide arguments for build execution"() {
         given:
         final String debugMessage = 'Some debug message'

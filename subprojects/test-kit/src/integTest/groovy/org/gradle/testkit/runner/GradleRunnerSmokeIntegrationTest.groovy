@@ -17,13 +17,13 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.CaptureExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-@CaptureExecutedTasks
-@CaptureBuildOutputInDebug
+@InspectsExecutedTasks
+@InspectsBuildOutput
 class GradleRunnerSmokeIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "execute build for expected success"() {

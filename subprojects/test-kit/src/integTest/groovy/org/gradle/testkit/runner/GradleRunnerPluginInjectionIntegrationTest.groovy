@@ -21,15 +21,15 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.testkit.runner.fixtures.annotations.CaptureBuildOutputInDebug
-import org.gradle.testkit.runner.fixtures.annotations.PluginClasspathInjection
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InjectsPluginClasspath
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@PluginClasspathInjection
-@CaptureBuildOutputInDebug
+@InjectsPluginClasspath
+@InspectsBuildOutput
 @UsesNativeServices
 class GradleRunnerPluginInjectionIntegrationTest extends GradleRunnerIntegrationTest {
 

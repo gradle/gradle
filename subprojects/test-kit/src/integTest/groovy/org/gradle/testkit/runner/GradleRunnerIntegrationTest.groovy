@@ -28,10 +28,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.FeatureCompatibility
 import org.gradle.testkit.runner.fixtures.annotations.*
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
+import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
@@ -134,7 +134,12 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     static class Runner extends AbstractMultiTestRunner {
 
-        private static final List<Class<? extends Annotation>> TESTKIT_FEATURES = [CaptureExecutedTasks, PluginClasspathInjection]
+        private static final Map<Class<? extends Annotation>, TestKitFeature> TESTKIT_FEATURES = [
+            (InspectsExecutedTasks): TestKitFeature.CAPTURE_BUILD_RESULT_TASKS,
+            (InspectsBuildOutput): TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG,
+            (InjectsPluginClasspath): TestKitFeature.PLUGIN_CLASSPATH_INJECTION
+        ]
+
         private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
         private static final String COMPATIBILITY_SYSPROP_NAME = 'org.gradle.integtest.testkit.compatibility'
         private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
@@ -190,7 +195,12 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         }
 
         private GradleVersion getMinCompatibleVersion() {
-            List<GradleVersion> testedFeatures = TESTKIT_FEATURES.findAll { target.getAnnotation(it) }.collect { FeatureCompatibility.getMinSupportedVersion(it) }
+            List<GradleVersion> testedFeatures = TESTKIT_FEATURES.keySet().findAll {
+                target.getAnnotation(it)
+            }.collect {
+                TESTKIT_FEATURES[it].since
+            }
+
             !testedFeatures.empty ? testedFeatures.min() : MIN_TESTED_VERSION
         }
 
@@ -261,21 +271,37 @@ class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             @Override
             protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-                if (testDetails.getAnnotation(NonCrossVersion) && testedGradleDistribution != TestedGradleDistribution.UNDER_DEVELOPMENT) {
+                def gradleVersion = testedGradleDistribution.gradleVersion
+
+                if (testDetails.getAnnotation(InjectsPluginClasspath)) {
+                    if (gradleVersion < TESTKIT_FEATURES[InjectsPluginClasspath].since) {
+                        return false
+                    }
+                }
+
+                if (testDetails.getAnnotation(InspectsBuildOutput)) {
+                    if (debug && gradleVersion < TESTKIT_FEATURES[InspectsBuildOutput].since) {
+                        return false
+                    }
+                }
+
+                if (testDetails.getAnnotation(InspectsExecutedTasks)) {
+                    if (gradleVersion < TESTKIT_FEATURES[InspectsExecutedTasks].since) {
+                        return false
+                    }
+                }
+
+                if (testDetails.getAnnotation(NoDebug) && debug) {
                     return false
                 }
 
-                if (isDebugModeAndBuildOutputCapturedButVersionUnsupported(testDetails)) {
+                if (testDetails.getAnnotation(Debug) && !debug) {
                     return false
                 }
 
-                (!debug || !testDetails.getAnnotation(NoDebug)) && (debug || !testDetails.getAnnotation(Debug))
+                true
             }
 
-            private boolean isDebugModeAndBuildOutputCapturedButVersionUnsupported(AbstractMultiTestRunner.TestDetails testDetails) {
-                CaptureBuildOutputInDebug captureBuildOutputInDebug = testDetails.getAnnotation(CaptureBuildOutputInDebug)
-                debug && captureBuildOutputInDebug && !FeatureCompatibility.isSupported(CaptureBuildOutputInDebug, testedGradleDistribution.gradleVersion)
-            }
         }
     }
 }
