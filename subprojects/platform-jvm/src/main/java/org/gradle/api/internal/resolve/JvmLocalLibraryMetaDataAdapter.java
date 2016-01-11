@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.resolve;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
@@ -25,12 +26,9 @@ import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaD
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 
-import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
-import static org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME;
 import static org.gradle.jvm.internal.DefaultJvmBinarySpec.collectDependencies;
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvedLibraryMetadata;
 
@@ -38,28 +36,45 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
     @Override
     @SuppressWarnings("unchecked")
-    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String usage, String projectPath) {
+    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath) {
         JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) selectedBinary;
-        DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-        LibraryPublishArtifact jarBinary;
-        Collection<DependencySpec> dependencies;
-        if (CONFIGURATION_API.equals(usage)) {
-            JarFile apiJar = jarBinarySpec.getApiJar();
-            buildDependencies.add(apiJar);
-            jarBinary = new LibraryPublishArtifact("jar", apiJar.getFile());
-            dependencies = jarBinarySpec.getApiDependencies();
-        } else if (CONFIGURATION_RUNTIME.equals(usage)) {
-            JarFile runtimeJar = jarBinarySpec.getRuntimeJar();
-            buildDependencies.add(runtimeJar);
-            jarBinary = new LibraryPublishArtifact("jar", runtimeJar.getFile());
-            JvmLibrarySpec library = jarBinarySpec.getLibrary();
-            dependencies = collectDependencies(jarBinarySpec, library, library.getDependencies().getDependencies(), jarBinarySpec.getApiDependencies());
-        } else {
-            throw new GradleException("Unrecognized usage found: '" + usage + "'. Should be one of " + Arrays.asList(CONFIGURATION_API, CONFIGURATION_RUNTIME));
-        }
-        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(jarBinarySpec.getId(), usage, buildDependencies, dependencies, projectPath);
-        metadata.addArtifacts(usage, Collections.singleton(jarBinary));
+        EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
+        EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage = new EnumMap<UsageKind, TaskDependency>(UsageKind.class);
+
+        JarFile apiJar = jarBinarySpec.getApiJar();
+        populateUsageMetadata(UsageKind.API,
+            apiJar,
+            jarBinarySpec.getApiDependencies(),
+            dependenciesPerUsage,
+            buildDependenciesPerUsage);
+
+        JarFile runtimeJar = jarBinarySpec.getRuntimeJar();
+        JvmLibrarySpec library = jarBinarySpec.getLibrary();
+        populateUsageMetadata(UsageKind.RUNTIME,
+            runtimeJar,
+            library != null ? collectDependencies(jarBinarySpec, library, library.getDependencies().getDependencies(), jarBinarySpec.getApiDependencies()) : Collections.<DependencySpec>emptyList(),
+            dependenciesPerUsage,
+            buildDependenciesPerUsage);
+
+        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(jarBinarySpec.getId(), buildDependenciesPerUsage, dependenciesPerUsage, projectPath);
+        addArtifact(UsageKind.API, apiJar, metadata);
+        addArtifact(UsageKind.RUNTIME, runtimeJar, metadata);
+
         return metadata;
     }
 
+    private static void populateUsageMetadata(UsageKind usage,
+                                              JarFile artifact,
+                                              Iterable<DependencySpec> dependencies,
+                                              EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage,
+                                              EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage) {
+        DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+        buildDependencies.add(artifact);
+        dependenciesPerUsage.put(usage, dependencies);
+        buildDependenciesPerUsage.put(usage, buildDependencies);
+    }
+
+    private static void addArtifact(UsageKind usage, JarFile jarFile, DefaultLibraryLocalComponentMetaData metadata) {
+        metadata.addArtifacts(usage.getConfigurationName(), Collections.singletonList(new LibraryPublishArtifact("jar", jarFile.getFile())));
+    }
 }

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.resolve
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -49,6 +48,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.LibrarySpec
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -228,26 +228,36 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             ComponentSpecContainer components = Mock()
             project.modelRegistry.find(_, _) >> components
             def map = Mock(ModelMap)
+            def sources = Mock(ModelMap)
+            sources.values() >> []
             def librarySpecs = libraries.collect { library ->
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> library
+                lib.dependencies >> new DefaultDependencySpecContainer()
+                lib.sources >> sources
 
                 def apiJar = new DefaultJarFile()
                 apiJar.setFile(new File("api.jar"))
+                def runtimeJar = new DefaultJarFile()
+                runtimeJar.setFile(new File('runtime.jar'))
 
                 def binaries = Mock(ModelMap)
                 def binary = Mock(JarBinarySpecInternal)
                 binary.publicType >> JarBinarySpec
-                binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'api')
+                binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'foo')
                 binary.displayName >> "binary for $lib"
-                binary.name >> 'api'
+                binary.name >> 'foo'
                 binary.buildTask >> Mock(Task)
                 binary.targetPlatform >> platform
-                binary.jarFile >> new File("api.jar")
+                binary.jarFile >> runtimeJar.file
+                binary.apiJarFile >> apiJar.file
                 binary.apiJar >> apiJar
+                binary.runtimeJar >> runtimeJar
                 binary.apiDependencies >> []
                 binary.dependencies >> []
+                binary.library >> lib
                 binary.inputs >> toDomainObjectSet(LanguageSourceSet)
+                binary.sources >> sources
                 def values = [binary]
                 binaries.values() >> { values }
                 binaries.withType(JarBinarySpec) >> {

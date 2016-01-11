@@ -21,10 +21,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
+import org.gradle.internal.component.local.model.*;
 import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -98,7 +97,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
                 } else {
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
-                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, findTargetConfigurationName(dependency), selectorProjectPath);
+                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
                     result.resolved(metaData);
                 }
             }
@@ -113,7 +112,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     // This method tries to extract "dependency configuration" from the dependency metadata, knowing that in our case
     // there should be only one target configuration. However for backwards compatibility with Ivy we cannot simplify the API yet.
     private String findTargetConfigurationName(DependencyMetaData dependency) {
-        String targetConfigurationName = DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
+        String targetConfigurationName = UsageKind.API.getConfigurationName();
         String[] moduleConfigurations = dependency.getModuleConfigurations();
         if (moduleConfigurations==null) {
             return targetConfigurationName;

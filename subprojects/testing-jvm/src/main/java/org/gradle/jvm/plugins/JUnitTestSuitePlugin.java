@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -110,7 +110,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                             if (spec instanceof JUnitTestSuiteBinarySpec) {
                                 JUnitTestSuiteBinarySpec testSuiteBinary = (JUnitTestSuiteBinarySpec) spec;
                                 JvmBinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                                if (testedBinary instanceof WithJvmAssembly && testedBinary instanceof JarBinarySpec) {
+                                if (testedBinary instanceof JarBinarySpecInternal) {
                                     FileCollection classpath = javaCompile.getClasspath();
                                     JvmAssembly assembly = ((WithJvmAssembly) testedBinary).getAssembly();
                                     ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
@@ -126,7 +126,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                         new LocalComponentResolveContext(((BinarySpecInternal) testedBinary).getId(),
                                             DefaultVariantsMetaData.extractFrom(testedBinary, schemaStore),
                                             collectDependencies(testedBinary, testedComponent, ((JarBinarySpecInternal)testedBinary).getApiDependencies()),
-                                            DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
+                                            UsageKind.RUNTIME,
                                             testedBinary.getDisplayName()
                                         ));
                                     FileCollection fullClasspath = new UnionFileCollection(
@@ -249,7 +249,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 ((BinarySpecInternal) testSuiteBinarySpec).getId(),
                 DefaultVariantsMetaData.extractFrom(testSuiteBinarySpec, schemaStore),
                 collectAllDependencies(testSuiteBinarySpec, testedComponent, testSuiteBinarySpec.getTestedBinary()),
-                DefaultLibraryBinaryIdentifier.CONFIGURATION_RUNTIME,
+                UsageKind.RUNTIME,
                 testSuiteBinarySpec.getDisplayName()
             ));
             this.testedBinary = testSuiteBinarySpec.getTestedBinary();

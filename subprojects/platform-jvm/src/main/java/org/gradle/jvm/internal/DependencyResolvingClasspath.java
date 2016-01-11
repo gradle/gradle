@@ -17,7 +17,7 @@ package org.gradle.jvm.internal;
 
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -39,7 +39,7 @@ public class DependencyResolvingClasspath extends BaseDependencyResolvingClasspa
             String.format("source set '%s'", sourceSet.getDisplayName()),
             dependencyResolver,
             remoteRepositories,
-            new LocalComponentResolveContext(binarySpec.getId(), variantsMetaDataFrom(binarySpec, schemaStore), dependencies, DefaultLibraryBinaryIdentifier.CONFIGURATION_API, sourceSet.getDisplayName()));
+            new LocalComponentResolveContext(binarySpec.getId(), variantsMetaDataFrom(binarySpec, schemaStore), dependencies, UsageKind.API, sourceSet.getDisplayName()));
     }
 
 }

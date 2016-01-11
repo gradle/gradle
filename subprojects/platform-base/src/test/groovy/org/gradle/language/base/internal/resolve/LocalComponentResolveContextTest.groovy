@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.resolve
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
+import org.gradle.internal.component.local.model.UsageKind
 import org.gradle.language.base.internal.model.VariantsMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,19 +31,19 @@ class LocalComponentResolveContextTest extends Specification {
         def id = new DefaultLibraryBinaryIdentifier(path, COMPONENT_NAME, VARIANT)
 
         when:
-        def context = resolveContext(id, contextName)
+        def context = resolveContext(id, usage)
 
         then:
-        context.name == contextName
+        context.name == usage.configurationName
 
         where:
-        path       | library  | contextName
-        ':myPath'  | 'myLib'  | 'API'
-        ':myPath'  | 'myLib2' | 'runtime'
-        ':myPath2' | 'myLib'  | 'API'
+        path       | library  | usage
+        ':myPath'  | 'myLib'  | UsageKind.API
+        ':myPath'  | 'myLib2' | UsageKind.RUNTIME
+        ':myPath2' | 'myLib'  | UsageKind.API
     }
 
-    private LocalComponentResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, String usage) {
+    private LocalComponentResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, UsageKind usage) {
         new LocalComponentResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
     }
 

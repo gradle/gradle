@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.platform.base.DependencySpec;
@@ -28,7 +29,7 @@ import static org.gradle.language.base.internal.model.DefaultLibraryLocalCompone
 public class LocalComponentResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final String displayName;
-    private final String usage;
+    private final UsageKind usage;
     private final ResolutionStrategyInternal resolutionStrategy = new DefaultResolutionStrategy();
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
@@ -37,7 +38,7 @@ public class LocalComponentResolveContext implements ResolveContext {
         LibraryBinaryIdentifier libraryBinaryIdentifier,
         VariantsMetaData variants,
         Iterable<DependencySpec> dependencies,
-        String usage,
+        UsageKind usage,
         String displayName) {
         this.libraryBinaryIdentifier = libraryBinaryIdentifier;
         this.usage = usage;
@@ -48,7 +49,7 @@ public class LocalComponentResolveContext implements ResolveContext {
 
     @Override
     public String getName() {
-        return usage;
+        return usage.getConfigurationName();
     }
 
     @Override
