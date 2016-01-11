@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
@@ -25,13 +26,14 @@ import org.gradle.testkit.runner.internal.feature.FeatureCheck;
 
 import java.util.List;
 
-public class FeatureCheckBuildResult extends DefaultBuildResult {
+public class FeatureCheckBuildResult implements BuildResult {
 
+    private final BuildResult delegateBuildResult;
     private final FeatureCheck outputFeatureCheck;
     private final FeatureCheck tasksFeatureCheck;
 
     public FeatureCheckBuildResult(BuildOperationParameters buildOperationParameters, String output, List<BuildTask> tasks) {
-        super(output, tasks);
+        delegateBuildResult = new DefaultBuildResult(output, tasks);
         outputFeatureCheck = new BuildResultOutputFeatureCheck(buildOperationParameters.getTargetGradleVersion(), buildOperationParameters.isEmbedded());
         tasksFeatureCheck = new BuildResultTasksFeatureCheck(buildOperationParameters.getTargetGradleVersion());
     }
@@ -39,31 +41,31 @@ public class FeatureCheckBuildResult extends DefaultBuildResult {
     @Override
     public String getOutput() {
         outputFeatureCheck.verify();
-        return super.getOutput();
+        return delegateBuildResult.getOutput();
     }
 
     @Override
     public List<BuildTask> getTasks() {
         tasksFeatureCheck.verify();
-        return super.getTasks();
+        return delegateBuildResult.getTasks();
     }
 
     @Override
     public List<BuildTask> tasks(TaskOutcome outcome) {
         tasksFeatureCheck.verify();
-        return super.tasks(outcome);
+        return delegateBuildResult.tasks(outcome);
     }
 
     @Override
     public List<String> taskPaths(TaskOutcome outcome) {
         tasksFeatureCheck.verify();
-        return super.taskPaths(outcome);
+        return delegateBuildResult.taskPaths(outcome);
     }
 
     @Nullable
     @Override
     public BuildTask task(String taskPath) {
         tasksFeatureCheck.verify();
-        return super.task(taskPath);
+        return delegateBuildResult.task(taskPath);
     }
 }
