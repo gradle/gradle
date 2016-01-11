@@ -120,7 +120,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 lock.lock();
                 try {
                     long lastChangeAtValue = lastChangeAt.get();
-                    while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || monotonicClockMillis() - lastChangeAtValue < quietPeriodMillis)) {
+                    while (!cancellationToken.isCancellationRequested() && error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue)) {
                         condition.await(quietPeriodMillis, TimeUnit.MILLISECONDS);
                         lastChangeAtValue = lastChangeAt.get();
                     }
@@ -138,6 +138,13 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 watcher.stop();
             }
             return ImmutableList.copyOf(receivedEvents);
+        }
+
+        private boolean shouldKeepWaitingForQuietPeriod(long lastChangeAtValue) {
+            long now = monotonicClockMillis();
+            return lastChangeAtValue == 0   // no changes yet
+                || now < lastChangeAtValue  // handle case where monotic clock isn't monotonic
+                || now - lastChangeAtValue < quietPeriodMillis;
         }
 
         @Override
