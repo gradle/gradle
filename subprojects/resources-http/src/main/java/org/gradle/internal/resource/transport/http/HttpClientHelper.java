@@ -116,18 +116,14 @@ public class HttpClientHelper implements Closeable {
         return response;
     }
 
-    private CloseableHttpClient getClient() {
+    private synchronized CloseableHttpClient getClient() {
         if (client == null) {
-            initializeClient();
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
+            new HttpClientConfigurer(settings).configure(builder);
+            this.client = builder.build();
         }
         return client;
-    }
-
-    private synchronized void initializeClient() {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new AlwaysRedirectRedirectStrategy());
-        new HttpClientConfigurer(settings).configure(builder);
-        this.client = builder.build();
     }
 
     @Override
