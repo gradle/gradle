@@ -19,8 +19,6 @@ package org.gradle.jvm.test.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -66,18 +64,6 @@ public class JvmTestSuiteRuntimeClasspath extends BaseDependencyResolvingClasspa
         ));
         this.testedBinary = testSuiteBinarySpec.getTestedBinary();
         this.assembly = ((WithJvmAssembly) testSuiteBinarySpec).getAssembly();
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        if (testedBinary != null) {
-            DefaultTaskDependency dependencies = new DefaultTaskDependency();
-            dependencies.add(super.getBuildDependencies());
-            dependencies.add(testedBinary);
-            return dependencies;
-        }
-
-        return super.getBuildDependencies();
     }
 
     @SuppressWarnings("unchecked")
