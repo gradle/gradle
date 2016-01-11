@@ -145,6 +145,17 @@ public class DefaultGradlePropertiesLoaderTest {
     }
 
     @Test
+    public void environmentVariablesDefinePropertiesWithUnderscoresReplacedByDots() {
+        envProperties = GUtil.map(
+                IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX + "env_prop", "env value");
+
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+        Map<String, String> properties = gradlePropertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
+
+        assertEquals("env value", properties.get("env.prop"));
+    }
+
+    @Test
     public void environmentVariablesHavePrecedenceOverProjectProperties() {
         writePropertyFile(gradleUserHomeDir, GUtil.map("prop", "user value"));
         writePropertyFile(settingsDir, GUtil.map("prop", "settings value"));
