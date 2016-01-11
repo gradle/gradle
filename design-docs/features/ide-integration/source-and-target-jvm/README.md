@@ -7,9 +7,9 @@
 - [ ] TAPI: Expose target JDK for Java projects to IDEA
 - [ ] Expose Idea module specific source level in `IdeaPlugin`
 - [ ] Expose Idea module specific bytecode level in `IdeaPlugin`
-- [ ] [Buildship: Set additional builders and natures on projects](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#set-additional-builders-and-natures-on-the-projects)
-- [ ] [Buildship: Set source level for Java projects](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#set-source-level-for-java-projects)
-- [ ] [Buildship: Configure the target JDK for Java projects](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#configure-the-target-jdk-for-java-projects)
+- [x] [Buildship: Consume additional builders and natures from the TAPI](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#set-additional-builders-and-natures-on-the-projects)
+- [ ] [Buildship: Consume Java source level for Java projects from the TAPI](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#set-source-level-for-java-projects)
+- [ ] [Buildship: Consume target JDK for Java projects from the TAPI](https://github.com/eclipse/buildship/blob/master/docs/stories/ToolingAPI.md#configure-the-target-jdk-for-java-projects)
 
 
 ## Stories
