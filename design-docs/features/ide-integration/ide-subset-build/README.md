@@ -30,6 +30,11 @@ When a project is closed:
 ##### API
 
 ```
+    interface EclipseProjectIdentifier {
+        File getRootProjectDirectory()
+        String getPath()
+    }
+
     interface EclipseWorkspace {
         // New API
         /**
@@ -46,9 +51,42 @@ When a project is closed:
          */
         void openProject(EclipseProjectIdentifier id)
 
-        // Existing API
+        /**
+         * A set of lightweight project references for every Eclipse project that is built for the set of connected Gradle builds.
+         * This set should not be expensive to calculate.
+         */
         Set<EclipseProjectIdentifier> getAvailableProjects();
+
+        /**
+         * A flattened set of all projects in the Eclipse workspace.
+         * These project models are fully configured, and may be expensive to calculate.
+         * Note that not all projects necessarily share the same root.
+         */
         Map<EclipseProjectIdentifier, EclipseProject> getOpenProjects();
+    }
+
+
+    // Lightweight operation to get all of the eclipse projects that are mapped from the included Gradle builds
+    Set<EclipseProjectIdentifier> candidateProjects = eclipseWorkspace.getAvailableProjects()
+
+    // On import, create a project in eclipse for each candidate. Later we'll configure these projects
+    candidateProjectIds.each {
+        createEclipseProject(id)
+    }
+
+    // On startup, automatically import any newly discovered projects (later we might automatically create then as 'closed')
+    // Later, we'll configure the open projects based on model from Gradle.
+    candidateProjectIds.each {
+        if (!eclipseProjectExists(id) {
+            createEclipseProject(id)
+        }
+    }
+
+    // Configure all open eclipse projects with configuration from model.
+    // This is an expensive operation.
+    Map<EclipseProjectIdentifier, EclipseProject> workspaceProjects = eclipseWorkspace.getOpenProjects()
+    workspaceProjects.each { id, projectModel ->
+        configureEclipseProjectFromModel(id, projectModel)
     }
 ```
 
