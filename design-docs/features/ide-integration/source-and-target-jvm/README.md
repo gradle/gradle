@@ -263,7 +263,7 @@ language levels for each module in a project.
 
 ##### Test coverage
 
-- Multiproject build with same target compatibility (`1.7`) and jdkName set to (`1.8`)
+- Multiproject build with same target compatibility (`1.7`) and jdkName set to (`1.7`)
     - `CompilerConfiguration` component in `.ipr` does not contain `bytecodeTargetLevel` entry.
 - Multiproject build with module target compatibility (`1.7`) and jdkName set to (`1.8`)
     - `CompilerConfiguration` component in `.ipr` file has entry  `<bytecodeTargetLevel target="1.7" />`
