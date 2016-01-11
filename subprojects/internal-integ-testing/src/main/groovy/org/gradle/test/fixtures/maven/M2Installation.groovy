@@ -95,26 +95,6 @@ class M2Installation implements Action<GradleExecuter> {
         return this
     }
 
-//    @Override
-//    Statement apply(Statement base, Description description) {
-//        return new Statement() {
-//            @Override
-//            public void evaluate() throws Throwable {
-////                def m2RepositoryFolder = new File("${SystemProperties.instance.userHome}/.m2/repository")
-////                boolean existsBefore = m2RepositoryFolder.exists()
-////                try {
-//                    base.evaluate()
-////                } finally {
-////                    def existsAfter = m2RepositoryFolder.exists()
-////                    if (!existsBefore && existsAfter) {
-////                        GFileUtils.deleteDirectory(m2RepositoryFolder)
-////                        fail("Test modifies ${m2RepositoryFolder.absolutePath} folder")
-////                    }
-////                }
-//            }
-//        }
-//    }
-
     void execute(GradleExecuter gradleExecuter) {
         init()
         gradleExecuter.withUserHomeDir(userHomeDir)
