@@ -48,18 +48,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   file('$changingInput/input.txt').text = 'New input file'
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        file("$changingInput/input.txt").text = 'New input file'
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains('new file: ' + file("$changingInput/input.txt").absolutePath + '\nChange detected, executing build...')
 
@@ -72,18 +65,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..3).each { file("$changingInput/input\${it}.txt").text = 'New input file' }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..3).each { file("$changingInput/input${it}.txt").text = 'New input file' }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..3).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
 
@@ -96,18 +82,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..9).each { file("$changingInput/input\${it}.txt").text = 'New input file' }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..9).each { file("$changingInput/input${it}.txt").text = 'New input file' }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..3).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
 
@@ -124,18 +103,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..$changesCount).each { file("$changingInput/input\${String.format('%02d',it)}.txt").delete() }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}.txt").delete() }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d',it)}.txt").absolutePath }.join('\n') +
             (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
@@ -153,18 +125,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..$changesCount).each { file("$changingInput/input\${String.format('%02d',it)}.txt").text = 'File modified' }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}.txt").text = 'File modified' }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'modified: ' + file("$changingInput/input${String.format('%02d',it)}.txt").absolutePath }.join('\n') +
             (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
@@ -181,18 +146,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..$changesCount).each { file("$changingInput/input\${String.format('%02d',it)}Directory").mkdir() }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}Directory").mkdir() }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'new directory: ' + file("$changingInput/input${String.format('%02d',it)}Directory").absolutePath }.join('\n') +
             (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
@@ -211,18 +169,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         }
 
         when:
-        buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':$changingInput' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   (1..$changesCount).each { file("$changingInput/input\${String.format('%02d',it)}Directory").delete() }
-                   file('changetrigged').text = 'done'
-                }
-            }
-        """
+        succeeds("d")
+        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}Directory").delete() }
 
         then:
-        def result = succeeds("d")
+        def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d',it)}Directory").absolutePath }.join('\n') +
             (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
