@@ -30,6 +30,8 @@ import spock.lang.Shared
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTest {
 
+    public static final String VERSION = "2.10"
+
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
@@ -56,15 +58,14 @@ class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTe
         where:
         version                      | configurer
         buildContext.version.version | { it.withGradleInstallation(buildContext.gradleHomeDir) }
-        "2.7"                        | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))) }
-        "2.7"                        | { it.withGradleVersion("2.7") }
+        VERSION                      | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(VERSION))) }
+        VERSION                      | { it.withGradleVersion(VERSION) }
     }
 
     def "distributions are not stored in the test kit dir"() {
         given:
         requireIsolatedTestKitDir = true
 
-        def version = "2.7"
         buildFile << '''task v << {
             file("gradleVersion.txt").text = gradle.gradleVersion
             file("gradleHomeDir.txt").text = gradle.gradleHomeDir.canonicalPath
@@ -72,11 +73,11 @@ class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTe
 
         when:
         runner('v')
-            .withGradleVersion(version)
+            .withGradleVersion(VERSION)
             .build()
 
         then:
-        file("gradleVersion.txt").text == version
+        file("gradleVersion.txt").text == VERSION
 
         and:
         // Note: AbstractGradleRunnerIntegTest configures the test env to use this gradle user home dir
@@ -84,7 +85,7 @@ class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTe
 
         and:
         testKitDir.eachFileRecurse {
-            assert !it.name.contains("gradle-$version-bin.zip")
+            assert !it.name.contains("gradle-$VERSION-bin.zip")
         }
     }
 
