@@ -17,6 +17,7 @@ package org.gradle.jvm.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.jvm.JvmComponentSpec;
+import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 /**
@@ -26,4 +27,8 @@ import org.gradle.platform.base.test.TestSuiteSpec;
  */
 @Incubating
 public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
+    /**
+     * The set of dependencies applicable to the entire test suite.
+     */
+    DependencySpecContainer getDependencies();
 }

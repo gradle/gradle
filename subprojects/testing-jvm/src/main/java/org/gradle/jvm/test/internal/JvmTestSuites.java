@@ -17,9 +17,17 @@
 package org.gradle.jvm.test.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
@@ -27,12 +35,15 @@ import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.*;
+import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,6 +101,37 @@ public class JvmTestSuites {
         });
     }
 
+    public static void createJvmTestSuiteTasks(final ModelMap<Task> tasks,
+                                                final JvmTestSuiteBinarySpec binary,
+                                                final JvmAssembly jvmAssembly,
+                                                final ServiceRegistry registry,
+                                                final ModelSchemaStore schemaStore,
+                                                final File buildDir) {
+        tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
+            @Override
+            public void execute(final Test test) {
+                test.dependsOn(jvmAssembly);
+                test.setTestClassesDir(binary.getClassesDir());
+                String testedComponentName = binary.getTestSuite().getTestedComponent();
+                JvmComponentSpec testedComponent = testedComponentName != null ? getTestedComponent(registry, testedComponentName) : null;
+                test.setClasspath(runtimeClasspathForTestBinary(binary, testedComponent, registry, schemaStore));
+                configureReports(test);
+            }
+
+            private void configureReports(Test test) {
+                // todo: improve configuration of reports
+                TestTaskReports reports = test.getReports();
+                File reportsDirectory = new File(buildDir, "reports");
+                File htmlDir = new File(reportsDirectory, "tests");
+                File xmlDir = new File(buildDir, "test-results");
+                File binDir = new File(xmlDir, "binary");
+                reports.getHtml().setDestination(htmlDir);
+                reports.getJunitXml().setDestination(xmlDir);
+                test.setBinResultsDir(binDir);
+            }
+        });
+    }
+
     public static Collection<JvmBinarySpec> testedBinariesOf(ServiceRegistry registry, JvmTestSuiteSpec testSuite) {
         return testedBinariesWithType(registry, JvmBinarySpec.class, testSuite);
     }
@@ -129,5 +171,18 @@ public class JvmTestSuites {
         return Collections.singletonList(platformResolver.resolve(JavaPlatform.class, defaultPlatformRequirement));
     }
 
+    private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
+        return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
+    }
+
+    private static JvmTestSuiteRuntimeClasspath runtimeClasspathForTestBinary(JvmTestSuiteBinarySpec test,
+                                                                              JvmComponentSpec testedComponent,
+                                                                              ServiceRegistry serviceRegistry,
+                                                                              ModelSchemaStore schemaStore) {
+        ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+        RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        return new JvmTestSuiteRuntimeClasspath(test, testedComponent, "test suite", dependencyResolver, resolutionAwareRepositories, schemaStore);
+    }
 
 }
