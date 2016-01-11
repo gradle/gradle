@@ -4,27 +4,25 @@ This feature allows a developer to work in a single IDE session on multiple proj
 
 A typical workflow for a developer that has to work on 2 independent projects would be to make a change to project A, publish its artifact and build project B with the changed dependency. For developers this workflow is cumbersome and time-consuming. This feature allows a developer to work on multiple projects in a single IDE session that would normally be independent.
 
-## 'Gradle Workspace'
+## 'Gradle Composite'
 
-The defined stories introduce the concept of a ‘Gradle workspace’ to the tooling API. This is simply a collection of Gradle projects that the IDE user is working on. These projects may come from different Gradle builds.
+The defined stories introduce the concept of a ‘Gradle composite build’ to the tooling API. This is simply a collection of Gradle projects that the IDE user is working on. These projects may come from different Gradle builds.
 
-A tooling API client will be able to define a workspace and query it in the same way that a `ProjectConnection` can be queried. While the projects contained in a workspace may come from separate Gradle builds, the workspace will present as if it were a single, unified Gradle build containing all the projects in the workspace.
+A tooling API client will be able to define a composite and query it in a similar way to how a `ProjectConnection` can be queried. While the projects contained in a composite may come from separate Gradle builds, where possible the composite will present as if it were a single, unified Gradle build containing all of the projects for each participating Gradle build.
 
-This will provide the developer with a view of all the projects in the workspace, so that the developer searches or uses or makes changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle will not operate on a composite build, since these actions are not (yet) workspace-aware.
+This will provide the developer with a view of all the projects in the composite, so that the developer can search for usages or make changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle (such as task execution) will not operate on a composite build, as these actions will not (yet) be composite-aware.
 
-Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or from the command-line. This would be an additional feature.
-
-In scope are changes to Buildship to use the workspace. Out of scope are changes to IDEA.
+In scope are changes to Buildship to define and use a composite build. Out of scope are changes to IDEA.
 
 ## Project substitution
 
 Where possible, binary dependencies will be replaced with source dependencies between IDE modules.
 
-So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same workspace, however, application A would have a source dependency on library B.
+So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same composite, however, application A would have a source dependency on library B.
 
 ## Stories
 
-### Story - Tooling API provides EclipseProject model for a workspace where all projects come from the same Gradle build.
+### Story - Tooling API provides EclipseProject model for a composite containing a single Gradle build.
 
 Introduce `EclipseWorkspace` to the Tooling API. This represents a collection of eclipse projects based on the Gradle builds that the IDE user is working on. For this story, all Gradle projects for an `EclipseWorkspace` will be sourced from a single Gradle build. As such, this story merely provides a convenience for obtaining a flattened collection of `EclipseProject` instances for a single Gradle build.
 
@@ -104,9 +102,9 @@ TBD
 
 TBD
 
-### Story - Tooling API provides EclipseProject model for a workspace containing projects for multiple Gradle builds
+### Story - Tooling API provides EclipseProject model for a composite containing multiple Gradle builds
 
-This story will enhance the implementation of `EclipseWorkspace` to support multiple `ProjectConnection` instances being added to the workspace. The set of `EclipseProject` instances will be exactly the union of those returned by creating a separate `GradleComposite` per `ProjectConnection`. No name deduplication or substitution will occur.
+This story will enhance the implementation of `EclipseWorkspace` to support multiple `ProjectConnection` instances being added to the composite. The set of `EclipseProject` instances will be exactly the union of those returned by creating a separate `GradleComposite` per `ProjectConnection`. No name deduplication or substitution will occur.
 
 ##### API
 
@@ -146,13 +144,13 @@ TBD
 
 TBD
 
-### Story - Eclipse model for a workspace does not include duplicate project names
+### Story - `EclipseWorkspace` model for a composite does not include duplicate eclipse project names
 
-Selected projects in a workspace might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are uniquely identified.
+Individual projects in a composite might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are uniquely identified.
 
 ##### Implementation
 
-- If a workspace encounters two projects with the same project name, an algorithm will de-duplicate the project names. De-duped eclipse project names are only logic references to the original projects. The actual project name stays unchanged.
+- If an `EclipseWorkspace` would include two projects with the same project name, an algorithm will de-duplicate the Eclipse project names. De-duped eclipse project names are only logic references to the original projects. The actual project name stays unchanged.
 - Gradle core implements a similar algorithm for the IDE plugins. This implementation will be reused (shared).
 
 ##### Test cases
@@ -164,9 +162,9 @@ should be rendered in Eclipse's project view section.
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names
 
-### Story - Eclipse model for a workspace uses source dependency instead of binary dependency between the projects of that workspace.
+### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
 
-If a workspace contains a projectA and projectB, where projectA has a binary (external) dependeny on projectB, then the `EclipseProject` model for projectA should contain a reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
+If a composite contains a projectA and projectB, where projectA has a binary (external) dependeny on projectB, then the `EclipseProject` model for projectA should contain a reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
 
 The algorithm for which projects will substitute in for which external dependencies will initially be deliberately simplistic:
  - Dependencies specifying classifier, extension or artifacts will not be substituted
@@ -176,22 +174,21 @@ The algorithm for which projects will substitute in for which external dependenc
 ##### Implementation
 
 - For the initial story, dependency substitution will be performed within the Tooling API client: the remote Gradle processes will simply provide the separate EclipseProject model for each connected build, and will have no involvement in the substitution.
+- To determine the external modules that can be substituted, we will need a way to determine the `GradlePublication` associated with an `EclipseProject`, if any.
 
 ##### Test cases
 
-- Projects that are part of a workspace can be built together based on established project dependencies.
+- Projects that are part of a composite can be built together based on established project dependencies.
 - When the coordinates of a substituted module dependency are changed, Buildship can refresh and recieve the updated model:
     - If coordinates don't match up anymore, Buildship will depend on the module dependency.
     - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
     - Eclipse project synchronization is initiated.
-- Closing and re-opening Buildship will re-establish a workspace.
+- Closing and re-opening Buildship will re-establish a composite.
 
 More TBD
 
 ## Open issues
 
-- Out-of-scope for this feature would be the ability to run builds using the workspace definition from the IDE or the command-line.
+- Out-of-scope for this feature would be the ability to run builds using the composite definition from the IDE or the command-line.
 the command-line.
-- The [concept of workspace exists in Eclipse](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.user/concepts/cworkset.htm?cp=0_2_1_6) which could be used to define a [custom extension point](http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_ui_workingSets.html?cp=2_1_1_202).
- However, investigation is needed if and how can we use them.
 
