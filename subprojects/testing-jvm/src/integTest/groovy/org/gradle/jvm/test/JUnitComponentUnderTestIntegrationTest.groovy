@@ -56,7 +56,11 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         succeeds ':myTestGreeterJarBinaryTest'
 
         then:
-        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':compileMyTestGreeterJarBinaryMyTestJava', ':myTestGreeterJarBinaryTest'
+
+        and:
+        notExecuted 'greeterApiJar' // API jar of the component under test doesn't need to be built
+        notExecuted 'createGreeterJar' // runtime jar of the component under test doesn't need to be built
     }
 
     def "can test a JVM library that declares an API dependency"() {
@@ -71,7 +75,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         succeeds ':myTestSuperGreeterJarBinaryTest'
 
         then:
-        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':compileSuperGreeterJarSuperGreeterJava', ':myTestSuperGreeterJarBinaryTest'
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':greeterApiJar', ':compileSuperGreeterJarSuperGreeterJava', ':createGreeterJar', ':compileMyTestSuperGreeterJarBinaryMyTestJava', ':myTestSuperGreeterJarBinaryTest'
     }
 
     private void greeterLibrary() {
