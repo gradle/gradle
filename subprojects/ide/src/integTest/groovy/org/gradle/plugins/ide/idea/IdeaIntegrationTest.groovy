@@ -15,6 +15,7 @@
  */
 
 package org.gradle.plugins.ide.idea
+
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
@@ -363,6 +364,43 @@ idea.project {
 """)
 
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"])
+    }
+
+    @Test
+    void noBytecodeLevelSettingForPerDefault() {
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+rootProject.name = "root"
+include 'subprojectA'
+include 'subprojectB'
+include 'subprojectC'
+"""
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.6'
+}
+
+idea {
+    project {
+        jdkName = "1.6"
+    }
+}
+
+"""
+
+        //when:
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then:
+        def ipr = parseFile([:], "root.ipr")
+
+        def compilerConfig =  ipr.component.find { it.@name == "CompilerConfiguration" }
+        assert compilerConfig.size() == 1
+        assert compilerConfig.bytecodeTargetLevel.size() == 0
     }
 
     private void assertHasExpectedContents(String path) {
