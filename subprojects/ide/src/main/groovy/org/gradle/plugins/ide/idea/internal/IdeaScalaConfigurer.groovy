@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.internal
 
+import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.file.FileCollection
@@ -22,27 +23,27 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.*
+import org.gradle.util.VersionNumber
 
 class IdeaScalaConfigurer {
     // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
-    private static final int IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = 14;
+    private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
 
     private final Project rootProject
-    private final int ideaTargetVersion
 
-    IdeaScalaConfigurer(Project rootProject, int ideaTargetVersion) {
+    IdeaScalaConfigurer(Project rootProject) {
         this.rootProject = rootProject
-        this.ideaTargetVersion = ideaTargetVersion
     }
 
     void configure() {
         rootProject.gradle.projectsEvaluated {
+            def ideaTargetVersion = findIdeaTargetVersion()
             def scalaProjects = findProjectsApplyingIdeaAndScalaPlugins()
             def scalaCompilerLibrary
             rootProject.ideaProject.doFirst {
                 if (scalaProjects.size() > 0) {
                     def scalaProject = findScalaProjectWithHighestLibraryVersion(scalaProjects)
-                    if (this.ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
+                    if (ideaTargetVersion != null && ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
                         scalaCompilerLibrary = declareScalaFacetOnRootProject(scalaProject)
                     } else {
                         declareScalaSdkOnRootProject(scalaProject)
@@ -52,7 +53,7 @@ class IdeaScalaConfigurer {
 
             rootProject.configure(scalaProjects) { Project project ->
                 idea.module.iml.withXml { XmlProvider xmlProvider ->
-                    if (this.ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
+                    if (ideaTargetVersion != null && ideaTargetVersion < IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED) {
                         declareScalaFacet(scalaCompilerLibrary, xmlProvider.asNode())
                     } else {
                         declareScalaSdk(xmlProvider.asNode())
@@ -180,6 +181,20 @@ class IdeaScalaConfigurer {
         rootProject.allprojects.findAll {
             it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(ScalaBasePlugin)
         }
+    }
+
+    private VersionNumber findIdeaTargetVersion() {
+        def targetVersion = null
+        def targetVersionString = rootProject.extensions.getByType(IdeaModel).targetVersion
+
+        if (targetVersionString != null) {
+            targetVersion = VersionNumber.parse(targetVersionString)
+            if (targetVersion == VersionNumber.UNKNOWN) {
+                throw new GradleScriptException("String '$targetVersionString' is not a valid value for IdeaModel.targetVersion.")
+            }
+        }
+
+        return targetVersion
     }
 
     private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {

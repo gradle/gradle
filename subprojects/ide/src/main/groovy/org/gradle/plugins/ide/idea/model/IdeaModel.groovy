@@ -95,8 +95,6 @@ class IdeaModel {
 
     /**
      * Configures the target IDEA version.
-     * <p>
-     * For example see docs.
      */
-    int targetVersion = 15
+    String targetVersion
 }

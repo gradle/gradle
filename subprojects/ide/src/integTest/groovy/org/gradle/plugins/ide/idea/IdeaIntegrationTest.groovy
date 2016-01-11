@@ -108,7 +108,7 @@ apply plugin: 'idea'
 
     @Test
     void addsScalaFacetAndCompilerLibraries() {
-        executer.withTasks('idea').withArgument('-PideaTargetVersion=13').run()
+        executer.withTasks('idea').run()
 
         hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0'], [], [], [])
         hasScalaFacet('project1/project1.iml', 'scala-compiler-2.10.0')

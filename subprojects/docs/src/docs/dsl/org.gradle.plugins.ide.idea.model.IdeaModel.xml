@@ -31,6 +31,9 @@
             <tr>
                 <td>workspace</td>
             </tr>
+            <tr>
+                <td>targetVersion</td>
+            </tr>
         </table>
     </section>
     <section>
