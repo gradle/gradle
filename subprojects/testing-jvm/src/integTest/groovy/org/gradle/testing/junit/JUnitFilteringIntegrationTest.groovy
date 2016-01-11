@@ -76,4 +76,55 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         result.assertTestClassesExecuted("ParameterizedFoo")
         result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
     }
+
+    def "passing a suite argument to --tests runs all tests in the suite"() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:${version}' }
+            test { useJUnit() }
+        """
+        file("src/test/java/FooTest.java") << """
+            import org.junit.Test;
+            public class FooTest {
+                @Test
+                public void testFoo() { }
+            }
+        """
+        file("src/test/java/FooServerTest.java") << """
+            import org.junit.Test;
+            public class FooServerTest {
+                @Test
+                public void testFooServer() { }
+            }
+        """
+        file("src/test/java/BarTest.java") << """
+            import org.junit.Test;
+            public class BarTest {
+                @Test
+                public void testBar() { }
+            }
+        """
+        file("src/test/java/AllFooTests.java") << """
+            import org.junit.runner.RunWith;
+            import org.junit.runners.Suite;
+            import org.junit.runners.Suite.SuiteClasses;
+            @RunWith(Suite.class)
+            @SuiteClasses({FooTest.class, FooServerTest.class})
+            public class AllFooTests {
+            }
+        """
+
+        when:
+        run("test", "--tests", "*AllFooTests")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+    }
 }
