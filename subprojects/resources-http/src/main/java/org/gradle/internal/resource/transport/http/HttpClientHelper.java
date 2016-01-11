@@ -127,7 +127,7 @@ public class HttpClientHelper implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         if (client != null) {
             client.close();
         }
