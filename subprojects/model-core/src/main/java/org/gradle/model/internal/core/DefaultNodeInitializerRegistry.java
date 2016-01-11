@@ -84,10 +84,10 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         }
     }
 
-    private NodeInitializer extractNodeInitializer(NodeInitializerContext<?> context) {
-        ModelSchema<?> schema = schemaStore.getSchema(context.getModelType());
+    private <T> NodeInitializer extractNodeInitializer(NodeInitializerContext<T> context) {
+        ModelSchema<T> schema = schemaStore.getSchema(context.getModelType());
         for (NodeInitializerExtractionStrategy extractor : allStrategies) {
-            NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
+            NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema, context);
             if (nodeInitializer != null) {
                 return nodeInitializer;
             }

@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.StructNodeInitializer;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
@@ -39,7 +40,7 @@ public class ManagedImplStructNodeInitializerExtractionStrategy implements NodeI
     }
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerContext<T> context) {
         if (!(schema instanceof ManagedImplStructSchema)) {
             return null;
         }

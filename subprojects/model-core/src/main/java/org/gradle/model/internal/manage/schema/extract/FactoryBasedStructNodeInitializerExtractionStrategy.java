@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.FactoryBasedStructNodeInitializer;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
@@ -43,7 +44,7 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
     }
 
     @Override
-    public <S> NodeInitializer extractNodeInitializer(ModelSchema<S> schema) {
+    public <S> NodeInitializer extractNodeInitializer(ModelSchema<S> schema, NodeInitializerContext<S> context) {
         if (!instanceFactory.getBaseInterface().isAssignableFrom(schema.getType())) {
             return null;
         }

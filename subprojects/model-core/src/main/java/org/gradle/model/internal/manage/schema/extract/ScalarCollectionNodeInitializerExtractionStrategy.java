@@ -40,23 +40,27 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
     );
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
         if (TYPES.contains(rawCollectionType) && (schema.getElementTypeSchema() instanceof ScalarValueSchema)) {
+            Optional<NodeInitializerContext.PropertyContext> propertyContext = context.getPropertyContextOptional();
+            boolean writable = !propertyContext.isPresent() || propertyContext.get().isWritable();
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
                     ScalarCollectionModelProjection.get(
                         ModelTypes.list(schema.getElementType()),
-                        new ListViewFactory<E>(schema.getElementType())
+                        new ListViewFactory<E>(schema.getElementType()),
+                        writable
                     )
                 );
             } else {
                 return new ProjectionOnlyNodeInitializer(
                     ScalarCollectionModelProjection.get(
                         ModelTypes.set(schema.getElementType()),
-                        new SetViewFactory<E>(schema.getElementType())
+                        new SetViewFactory<E>(schema.getElementType()),
+                        writable
                     )
                 );
             }
@@ -71,19 +75,26 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {
 
-        public static <E, U extends Collection<E>> ScalarCollectionModelProjection<U> get(ModelType<U> type, ModelViewFactory<U> viewFactory) {
-            return new ScalarCollectionModelProjection<U>(type, viewFactory);
+        private final boolean writable;
+
+        public static <E, U extends Collection<E>> ScalarCollectionModelProjection<U> get(ModelType<U> type, ModelViewFactory<U> viewFactory, boolean writable) {
+            return new ScalarCollectionModelProjection<U>(type, viewFactory, writable);
         }
 
-        public ScalarCollectionModelProjection(ModelType<E> type, ModelViewFactory<E> viewFactory) {
+        public ScalarCollectionModelProjection(ModelType<E> type, ModelViewFactory<E> viewFactory, boolean writable) {
             super(type, viewFactory);
+            this.writable = writable;
         }
 
         @Override
         public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
             Collection<?> values = ScalarCollectionSchema.get(modelNodeInternal);
             if (values == null) {
-                return Optional.of("null");
+                if (writable) {
+                    return Optional.of("null");
+                } else {
+                    return Optional.of("[]");
+                }
             }
             return Optional.of(values.toString());
         }
@@ -116,7 +127,6 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
             ListViewFactory<?> that = (ListViewFactory<?>) o;
             return elementType.equals(that.elementType);
-
         }
 
         @Override
@@ -151,7 +161,6 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
             ListViewFactory<?> that = (ListViewFactory<?>) o;
             return elementType.equals(that.elementType);
-
         }
 
         @Override

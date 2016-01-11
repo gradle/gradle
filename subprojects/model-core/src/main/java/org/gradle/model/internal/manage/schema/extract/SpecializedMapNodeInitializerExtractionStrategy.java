@@ -29,12 +29,12 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
     };
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
-        return super.extractNodeInitializer(schema);
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerContext<T> context) {
+        return super.extractNodeInitializer(schema, context);
     }
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (schema instanceof SpecializedMapSchema) {
             return new SpecializedMapNodeInitializer<T, E>((SpecializedMapSchema<T, E>) schema);
         }

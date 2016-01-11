@@ -41,7 +41,7 @@ public class NodeInitializerContext<T> {
     }
 
     public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
-        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
+        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 
     public ModelType<T> getModelType() {
@@ -73,15 +73,17 @@ public class NodeInitializerContext<T> {
         return Objects.hashCode(modelType);
     }
 
-    static class PropertyContext {
+    public static class PropertyContext {
         private final String name;
         private final ModelType<?> type;
+        private final boolean writable;
         private final boolean declaredAsHavingUnmanagedType;
         private final ModelType<?> declaringType;
 
-        private PropertyContext(String name, ModelType<?> type, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
+        private PropertyContext(String name, ModelType<?> type, boolean writable, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
             this.name = name;
             this.type = type;
+            this.writable = writable;
             this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
             this.declaringType = declaringType;
         }
@@ -92,6 +94,10 @@ public class NodeInitializerContext<T> {
 
         public ModelType<?> getType() {
             return type;
+        }
+
+        public boolean isWritable() {
+            return writable;
         }
 
         public boolean isDeclaredAsHavingUnmanagedType() {

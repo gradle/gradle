@@ -64,7 +64,6 @@ model {
     container(Container) {
         labels.add 'bug'
         labels.add 'blocker'
-        values = []
     }
 }
 '''
@@ -75,9 +74,9 @@ model {
         ModelReportOutput.from(output).hasNodeStructure({
             model {
                 container {
-                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
+                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
                     labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
-                    values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
+                    values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
                 }
                 tasks {
                     buildEnvironment(nodeValue: "task ':buildEnvironment'")

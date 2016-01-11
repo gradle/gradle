@@ -34,7 +34,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     }
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             return new ModelMapNodeInitializer<T, E>(schema);
         }
