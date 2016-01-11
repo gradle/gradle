@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resource.s3.maven
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Server

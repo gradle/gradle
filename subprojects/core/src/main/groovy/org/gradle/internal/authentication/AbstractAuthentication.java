@@ -66,9 +66,4 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     public String toString() {
         return String.format("'%s'(%s)", getName(), getType().getSimpleName());
     }
-
-    @Override
-    public boolean requiresCredentials() {
-        return true;
-    }
 }

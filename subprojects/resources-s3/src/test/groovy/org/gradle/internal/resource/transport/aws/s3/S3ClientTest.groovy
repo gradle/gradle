@@ -39,7 +39,7 @@ class S3ClientTest extends Specification {
     def "Should upload to s3"() {
         given:
         AmazonS3Client amazonS3Client = Mock()
-        S3Client client = S3Client.of(amazonS3Client, s3ConnectionProperties)
+        S3Client client = new S3Client(amazonS3Client, s3ConnectionProperties)
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
         when:
@@ -54,7 +54,7 @@ class S3ClientTest extends Specification {
     }
 
     def "should extract file name from s3 listing"() {
-        S3Client s3Client = S3Client.of(Mock(AmazonS3Client), s3ConnectionProperties)
+        S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
 
         expect:
         s3Client.extractResourceName(listing) == expected
@@ -71,7 +71,7 @@ class S3ClientTest extends Specification {
 
     def "should resolve resource names from an AWS objectlisting"() {
         setup:
-        S3Client s3Client = S3Client.of(Mock(AmazonS3Client), s3ConnectionProperties)
+        S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
         ObjectListing objectListing = Mock()
         S3ObjectSummary objectSummary = Mock()
         objectSummary.getKey() >> '/SNAPSHOT/some.jar'
@@ -89,7 +89,7 @@ class S3ClientTest extends Specification {
 
     def "should make batch call when more than one object listing exists"() {
         def amazonS3Client = Mock(AmazonS3Client)
-        S3Client s3Client = S3Client.of(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         def uri = new URI("s3://mybucket.com.au/maven/release/")
         ObjectListing firstListing = Mock()
         firstListing.isTruncated() >> true
@@ -112,7 +112,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> someEndpoint
 
         when:
-        S3Client s3Client = S3Client.of(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
         s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
@@ -126,7 +126,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.absent()
         s3Properties.getMaxErrorRetryCount() >> Optional.absent()
         when:
-        S3Client s3Client = S3Client.of(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
         s3Client.amazonS3Client.clientConfiguration.proxyHost == 'localhost'
@@ -146,7 +146,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> endpointOverride
         when:
 
-        S3Client s3Client = S3Client.of(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
         then:
         s3Client.amazonS3Client.clientConfiguration.proxyHost == null
         s3Client.amazonS3Client.clientConfiguration.proxyPort == -1
@@ -162,7 +162,7 @@ class S3ClientTest extends Specification {
     def "should include uri when meta-data not found"() {
         AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = S3Client.of(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
         amazonS3Client.getObject(_) >> { throw amazonS3Exception }
 
@@ -176,7 +176,7 @@ class S3ClientTest extends Specification {
     def "should include uri when file not found"() {
         AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = S3Client.of(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
         amazonS3Client.getObject(_) >> { throw amazonS3Exception }
 
@@ -190,7 +190,7 @@ class S3ClientTest extends Specification {
     def "should include uri when upload fails"() {
         AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
-        S3Client s3Client = S3Client.of(amazonS3Client, s3ConnectionProperties)
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
         amazonS3Client.putObject(*_) >> { throw amazonS3Exception }
 
