@@ -489,7 +489,7 @@ When using the [plugin development plugin](https://docs.gradle.org/current/userg
 * Do we want to auto-generate a sample functional test case class and method based on JUnit that demonstrates the use of test-kit?
 * Should we fully integrated with the Eclipse and IDEA plugin?
 
-## Story: Automatic integration of Jacoco plugin
+## Story: Integration with Jacoco plugin
 
 If the user applies the Jacoco plugin, the plugin development plugin should properly configure it to allow for generation of code coverage metrics. This functionality has been
 requested on the [Gradle forum](https://discuss.gradle.org/t/gradle-plugins-integration-tests-code-coverage-with-jacoco-plugin/12403).
