@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.test
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def "can test a JVM library"() {
@@ -78,6 +80,32 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':greeterApiJar', ':compileSuperGreeterJarSuperGreeterJava', ':createGreeterJar', ':compileMyTestSuperGreeterJarBinaryMyTestJava', ':myTestSuperGreeterJarBinaryTest'
     }
 
+    def "can test a JVM library that declares an API"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        greeterWithPrivateAPI()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+        privateApiGreeterTestCase()
+
+        when:
+        succeeds ':myTestGreeterJarBinaryTest'
+
+        then:
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':compileMyTestGreeterJarBinaryMyTestJava', ':myTestGreeterJarBinaryTest'
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('com.acme.GreeterTest', 'com.acme.internal.UtilsTest')
+        result.testClass('com.acme.GreeterTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestsExecuted('testGreeting')
+        result.testClass('com.acme.internal.UtilsTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestsExecuted('testGreetingPrefix')
+    }
+
     private void greeterLibrary() {
         buildFile << '''
             model {
@@ -91,6 +119,34 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
                 public String greet(String name) {
                     return "Hello, " + name + "!";
                 }
+            }
+        '''
+    }
+
+    private void greeterWithPrivateAPI() {
+        buildFile << '''
+            model {
+                components {
+                    greeter {
+                        api {
+                            exports 'com.acme'
+                        }
+                    }
+                }
+            }
+        '''
+        file('src/greeter/java/com/acme/Greeter.java').write '''package com.acme;
+            import com.acme.internal.Utils;
+
+            public class Greeter {
+                public String greet(String name) {
+                    return Utils.GREETER_PREFIX + name + "!";
+                }
+            }
+        '''
+        file('src/greeter/java/com/acme/internal/Utils.java') << '''package com.acme.internal;
+            public class Utils {
+                public static String GREETER_PREFIX = "Hello, ";
             }
         '''
     }
@@ -157,6 +213,21 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
                 public void testGreeting() {
                     Greeter greeter = new Greeter();
                     assertEquals("Hello, Amanda!", greeter.greet("Amanda"));
+                }
+            }
+        '''
+    }
+
+    private void privateApiGreeterTestCase() {
+        file('src/myTest/java/com/acme/internal/UtilsTest.java') << '''package com.acme.internal;
+            import org.junit.Test;
+
+            import static org.junit.Assert.*;
+
+            public class UtilsTest {
+                @Test
+                public void testGreetingPrefix() {
+                    assertEquals("Hello, ", Utils.GREETER_PREFIX);
                 }
             }
         '''
