@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,36 @@ package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
 
-class WildcardPrefixPatternStepTest extends Specification {
+class HasPrefixAndSuffixPatternStepTest extends Specification {
     def "matches name case sensitive"() {
-        def step = new WildcardPrefixPatternStep(".java", true)
+        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", true)
 
         expect:
-        step.matches("thing.java")
-        step.matches(".java")
-        !step.matches("thing.JAVA")
-        !step.matches("thing.jav")
-        !step.matches("thing.c")
+        step.matches("pre-suf")
+        step.matches("presufsuf")
+        step.matches("presuf")
+        !step.matches("")
+        !step.matches("pre")
+        !step.matches("pre-su")
+        !step.matches("pre-s")
+        !step.matches("suf")
+        !step.matches("re-suf")
+        !step.matches("e-suf")
+        !step.matches("Pre-Suf")
         !step.matches("")
         !step.matches("something else")
     }
 
     def "matches name case insensitive"() {
-        def step = new WildcardPrefixPatternStep(".java", false)
+        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", false)
 
         expect:
-        step.matches("thing.java")
-        step.matches(".java")
-        step.matches("thing.JAVA")
-        !step.matches("thing.jav")
-        !step.matches("thing.c")
+        step.matches("pre-suf")
+        step.matches("PRE-SUF")
+        step.matches("Pre-Suf")
+        !step.matches("PRE")
+        !step.matches("SUF")
+        !step.matches("PRSU")
         !step.matches("")
         !step.matches("something else")
     }

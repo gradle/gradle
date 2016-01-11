@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 package org.gradle.api.internal.file.pattern;
 
-/**
- * A pattern step for a pattern segment a the common case with a '*' prefix on the pattern. e.g. '*.java'
- */
-public class WildcardPrefixPatternStep implements PatternStep {
-    private final String suffix;
-    private final boolean caseSensitive;
-    private final int suffixLength;
+public class HasPrefixAndSuffixPatternStep implements PatternStep {
+    private final HasPrefixPatternStep prefixMatch;
+    private final HasSuffixPatternStep suffixMatch;
 
-    public WildcardPrefixPatternStep(String suffix, boolean caseSensitive) {
-        this.suffix = suffix;
-        suffixLength = suffix.length();
-        this.caseSensitive = caseSensitive;
+    public HasPrefixAndSuffixPatternStep(String prefix, String suffix, boolean caseSensitive) {
+        prefixMatch = new HasPrefixPatternStep(prefix, caseSensitive);
+        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive);
     }
 
+    @Override
     public boolean matches(String candidate) {
-        return candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
+        return prefixMatch.matches(candidate) && suffixMatch.matches(candidate);
     }
 }
