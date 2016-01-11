@@ -151,7 +151,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_)
+        1 * waiter.wait(_) >> {
+            []
+        }
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -160,7 +162,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_)
+        1 * waiter.wait(_) >> {
+            []
+        }
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -170,6 +174,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         and:
         1 * waiter.wait(_) >> {
             cancellationToken.cancel()
+            []
         }
     }
 

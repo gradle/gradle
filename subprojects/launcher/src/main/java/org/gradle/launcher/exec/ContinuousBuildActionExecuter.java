@@ -32,10 +32,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileSystemChangeWaiter;
-import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
@@ -44,6 +41,8 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
+
+import java.util.List;
 
 public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
@@ -128,12 +127,16 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                         @Override
                         public void execute(BuildCancellationToken cancellationToken) {
-                            waiter.wait(new Runnable() {
+                            List<FileWatcherEvent> changeEvents = waiter.wait(new Runnable() {
                                 @Override
                                 public void run() {
                                     logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
                                 }
                             });
+                            if (!cancellationToken.isCancellationRequested()) {
+                                ChangeReporter reporter = new ChangeReporter(logger);
+                                reporter.reportChanges(changeEvents);
+                            }
                         }
                     });
                 }

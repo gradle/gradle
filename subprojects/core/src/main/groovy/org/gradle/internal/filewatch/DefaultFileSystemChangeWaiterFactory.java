@@ -16,12 +16,16 @@
 
 package org.gradle.internal.filewatch;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,6 +61,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final FileWatcher watcher;
         private final Action<Throwable> onError;
         private boolean watching;
+        private final List<FileWatcherEvent> receivedEvents = Collections.synchronizedList(new ArrayList<FileWatcherEvent>());
 
         private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
@@ -74,6 +79,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                     @Override
                     public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
                         if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+                            receivedEvents.add(event);
                             signal(lock, condition, new Runnable() {
                                 @Override
                                 public void run() {
@@ -98,7 +104,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             }
         }
 
-        public void wait(Runnable notifier) {
+        public List<FileWatcherEvent> wait(Runnable notifier) {
             Runnable cancellationHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -107,7 +113,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             };
             try {
                 if (cancellationToken.isCancellationRequested()) {
-                    return;
+                    return Collections.emptyList();
                 }
                 cancellationToken.addCallback(cancellationHandler);
                 notifier.run();
@@ -131,6 +137,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 cancellationToken.removeCallback(cancellationHandler);
                 watcher.stop();
             }
+            return ImmutableList.copyOf(receivedEvents);
         }
 
         @Override
