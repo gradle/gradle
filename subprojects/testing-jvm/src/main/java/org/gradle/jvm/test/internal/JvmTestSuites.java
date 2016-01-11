@@ -50,7 +50,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Functions for creation and configuration of native test suites.
+ * Functions for creation and configuration of JVM test suites.
  */
 public class JvmTestSuites {
 
