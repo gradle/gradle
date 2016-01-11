@@ -229,7 +229,7 @@
                         </td>
                         <td>2.9</td>
                         <td>Inspecting the build's text output when run in debug mode, using
-                            <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/>.
+                                <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/>.
                         </td>
                     </tr>
                 </table>

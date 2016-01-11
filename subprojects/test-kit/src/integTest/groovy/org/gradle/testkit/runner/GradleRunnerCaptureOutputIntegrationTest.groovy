@@ -55,8 +55,8 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
 
         // isn't empty if version < 2.8
         if (isCompatibleVersion('2.8')) {
-            stdStreams.stdOut.empty
-            stdStreams.stdErr.empty
+            assert stdStreams.stdOut.empty
+            assert stdStreams.stdErr.empty
         }
     }
 
@@ -76,8 +76,8 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
 
         // prints out System.out twice for version < 2.3
         if (isCompatibleVersion('2.3')) {
-            stdStreams.stdOut.findAll(OUT).size() == 1
-            stdStreams.stdOut.findAll(ERR).size() == 1
+            assert stdStreams.stdOut.findAll(OUT).size() == 1
+            assert stdStreams.stdOut.findAll(ERR).size() == 1
         }
     }
 
