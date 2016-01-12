@@ -17,22 +17,10 @@
 package org.gradle.jvm.test
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
-
-    def "can test a JVM library"() {
-        given:
-        applyJUnitPlugin()
-        greeterLibrary()
-        myTestSuiteSpec('greeter')
-        greeterTestCase()
-
-        when:
-        succeeds ':myTestGreeterJarBinaryTest'
-
-        then:
-        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
-    }
 
     def "reasonable error message when component under test does not exist"() {
         given:
@@ -106,6 +94,85 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             .assertTestsExecuted('testGreetingPrefix')
     }
 
+    def "tests are not re-executed when sources of components under test haven't changed"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        succeeds ':myTestGreeterJarBinaryTest'
+
+        then:
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('com.acme.GreeterTest')
+        result.testClass('com.acme.GreeterTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestsExecuted('testGreeting')
+
+        when:
+        succeeds ':myTestGreeterJarBinaryTest'
+
+        then:
+        skipped ':myTestGreeterJarBinaryTest'
+
+    }
+
+    def "updating sources of the component under test should re-execute the tests"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        succeeds ':myTestGreeterJarBinaryTest'
+
+        then:
+        executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
+
+        when:
+        file('src/greeter/java/com/acme/Greeter.java').write '''package com.acme;
+            public class Greeter {
+                public String greet(String name) {
+                    return "Hello, " + name;
+                }
+            }
+        '''
+
+        then:
+        fails ':myTestGreeterJarBinaryTest'
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('com.acme.GreeterTest')
+        result.testClass('com.acme.GreeterTest')
+            .assertTestCount(1, 1, 0)
+            .assertTestsExecuted('testGreeting')
+    }
+
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "one test suite binary is created for each variant of component under test"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        greeterWithVariants()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        succeeds ':myTestGreeterJava6JarBinary'
+
+        then:
+        executedAndNotSkipped ':myTestGreeterJava6JarBinary', ':compileGreeterJava6JarGreeterJava'
+
+        when:
+        succeeds ':myTestGreeterJava7JarBinary'
+
+        then:
+        executedAndNotSkipped ':myTestGreeterJava7JarBinary', ':compileGreeterJava7JarGreeterJava'
+    }
+
     private void greeterLibrary() {
         buildFile << '''
             model {
@@ -165,6 +232,19 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             }
         '''
         file('src/greeter/resources/greeter.properties') << 'prefix=Hello, '
+    }
+
+    private void greeterWithVariants() {
+        buildFile << '''
+            model {
+                components {
+                    greeter {
+                        targetPlatform 'java6'
+                        targetPlatform 'java7'
+                    }
+                }
+            }
+        '''
     }
 
     private void greeterLibraryWithExternalDependency() {
