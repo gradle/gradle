@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Incubating
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -51,19 +52,24 @@ class Project extends XmlPersistableConfigurationObject {
     Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
 
     private final PathFactory pathFactory
+    private List<IdeaModule> modules
 
     Project(XmlTransformer xmlTransformer, pathFactory) {
         super(xmlTransformer)
         this.pathFactory = pathFactory
     }
 
-    void configure(Collection<Path> modulePaths, String jdkName, IdeaLanguageLevel languageLevel,
+    void configure(List<IdeaModule> modules, String jdkName, IdeaLanguageLevel languageLevel,
                    Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
         if (jdkName) {
             jdk = new Jdk(jdkName, languageLevel)
         }
+
+
+        def modulePaths = modules.collect { pathFactory.relativePath('PROJECT_DIR', it.outputFile) }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
+        this.modules = modules
         // overwrite rather than append libraries
         this.projectLibraries = projectLibraries
         this.vcs = vcs
@@ -75,13 +81,13 @@ class Project extends XmlPersistableConfigurationObject {
             this.modulePaths.add(pathFactory.path(module.@fileurl, module.@filepath))
         }
 
-        findWildcardResourcePatterns().entry.each { entry ->
+        findCompilerConfiguration().wildcardResourcePatterns.entry.each { entry ->
             this.wildcards.add(entry.@name)
         }
         def jdkValues = findProjectRootManager().attributes()
 
         jdk = new Jdk(Boolean.parseBoolean(jdkValues.'assert-keyword'), Boolean.parseBoolean(jdkValues.'jdk-15'),
-                jdkValues.languageLevel, jdkValues.'project-jdk-name')
+            jdkValues.languageLevel, jdkValues.'project-jdk-name')
 
         loadProjectLibraries()
     }
@@ -100,7 +106,7 @@ class Project extends XmlPersistableConfigurationObject {
                 }
             }
         }
-        findWildcardResourcePatterns().replaceNode {
+        findCompilerConfiguration().wildcardResourcePatterns.replaceNode {
             wildcardResourcePatterns {
                 this.wildcards.each { wildcard ->
                     entry(name: wildcard)
@@ -111,6 +117,19 @@ class Project extends XmlPersistableConfigurationObject {
         findProjectRootManager().@'assert-jdk-15' = jdk.jdk15
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
+
+        def moduleBytecodeLevels = modules.findAll { it.project.plugins.hasPlugin(JavaBasePlugin) }.collect {bytecode:it.project.targetCompatibility}
+        def groupedModuleBytecodeLevels = moduleBytecodeLevels.groupBy { it }
+        if(groupedModuleBytecodeLevels.size() == 1 ){
+            if(!groupedModuleBytecodeLevels.containsKey(org.gradle.api.JavaVersion.toVersion(jdk.projectJdkName))){
+                def compilerConfiguration = findCompilerConfiguration()
+                if (!compilerConfiguration.bytecodeTargetLevel) {
+                    compilerConfiguration.appendNode('bytecodeTargetLevel')
+                }
+                compilerConfiguration.bytecodeTargetLevel.@'target' = groupedModuleBytecodeLevels.iterator().next().key
+            }
+        }
+
 
         if (vcs) {
             findVcsDirectoryMappings().@vcs = vcs
@@ -123,8 +142,8 @@ class Project extends XmlPersistableConfigurationObject {
         xml.component.find { it.@name == 'ProjectRootManager' }
     }
 
-    private findWildcardResourcePatterns() {
-        xml.component.find { it.@name == 'CompilerConfiguration' }.wildcardResourcePatterns
+    private findCompilerConfiguration() {
+        xml.component.find { it.@name == 'CompilerConfiguration' }
     }
 
     private findVcsDirectoryMappings() {

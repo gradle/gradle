@@ -20,9 +20,10 @@ import org.gradle.internal.xml.XmlTransformer
 import spock.lang.Specification
 
 class ProjectTest extends Specification {
-    final PathFactory pathFactory = new PathFactory()
+    final PathFactory pathFactory = new PathFactory().addPathVariable("PROJECT_DIR", new File("root"))
     final customModules = [path('file://$PROJECT_DIR$/gradle-idea-plugin.iml')]
     final customWildcards = ["?*.gradle", "?*.grails"] as Set
+
     Project project = new Project(new XmlTransformer(), pathFactory)
 
     def loadFromReader() {
@@ -35,15 +36,30 @@ class ProjectTest extends Specification {
         project.jdk == new Jdk(true, false, null, "1.4")
     }
 
+    def calculatesModulePaths() {
+        given:
+        def ideaModule = Mock(IdeaModule)
+        _ * ideaModule.getOutputFile() >> new File("root/other.iml")
+
+        when:
+        project.configure([ideaModule], "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [], '')
+
+        then:
+        project.modulePaths as Set == [path('file://$PROJECT_DIR$/other.iml')] as Set
+
+    }
+
     def customJdkAndWildcards_shouldBeMerged() {
-        def modules = [path('file://$PROJECT_DIR$/other.iml')]
+        def ideaModule = Mock(IdeaModule)
+        _ * ideaModule.getOutputFile() >> new File("root/other.iml")
+        def modules = [ideaModule]
 
         when:
         project.load(customProjectReader)
         project.configure(modules, "1.6", new IdeaLanguageLevel("JDK_1_5"), ['?*.groovy'], [], '')
 
         then:
-        project.modulePaths as Set == (customModules + modules) as Set
+        project.modulePaths as Set == (customModules + [path('file://$PROJECT_DIR$/other.iml')]) as Set
         project.wildcards == customWildcards + ['?*.groovy'] as Set
         project.jdk == new Jdk("1.6", new IdeaLanguageLevel(JavaVersion.VERSION_1_5))
     }
