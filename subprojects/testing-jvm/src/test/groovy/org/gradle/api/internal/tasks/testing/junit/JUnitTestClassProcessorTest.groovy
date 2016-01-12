@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.tasks.testing.junit
-
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.TrueTimeProvider
@@ -292,6 +291,40 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "executes all tests within a JUnit 3 suite when the suite class name matches"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*ATestClassWithSuiteMethod"] as Set))
+
+        //Run tests in ATestClassWithSuiteMethod only
+        when: process(ATestClassWithSuiteMethod, ATestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 4 && it.className == ATestSuite.name }, { it.parentId == null })
+        then: 1 * processor.completed(4, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "executes all tests within a suite when the suite class name matches"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*ATestSuite"] as Set))
+
+        //Run tests in ATestSuite only
+        when: process(ATestClassWithSuiteMethod, ATestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
         0 * processor._
     }
 }

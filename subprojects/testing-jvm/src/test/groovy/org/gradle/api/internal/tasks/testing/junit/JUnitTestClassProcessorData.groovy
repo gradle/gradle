@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import org.junit.runners.Suite
 
 import static org.junit.Assume.assumeTrue
 
@@ -290,4 +291,9 @@ public class ATestClassWithSeveralMethods {
 public class ATestClassWithSlowMethods {
     @Test public void pass() {}
     @Test public void passSlowly() {}
+}
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses([ATestClass.class, ATestClass.class])
+public class ATestSuite {
 }
