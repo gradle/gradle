@@ -23,9 +23,12 @@
         </para>
     </note>
     <para>
-        This chapter describes how to extend the Gradle software model just like how the
-        <link linkend="java_software">Java</link>, <link linkend="play_plugin">Play Framework</link>
-        and <link linkend="native_software">Native</link> support do.
+        One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains.
+        The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via
+        richly typed DSLs.
+        The following chapter describes how the model and the corresponding DSLs can be extended to support domains like
+        <link linkend="java_software">Java</link>, <link linkend="play_plugin">Play Framework</link> or
+        <link linkend="native_software">native software development</link>.
         Before reading this you should be familiar with the Gradle software model
         <link linkend='software_model'>rule based configuration</link> and
         <link linkend='software_model_concepts'>concepts</link>.
@@ -89,8 +92,12 @@
         <para>
             To declare a custom component type one must extend
             <apilink class="org.gradle.platform.base.ComponentSpec"/>.
+        </para>
+        <para>
             <apilink class="org.gradle.platform.base.LibrarySpec"/> and
             <apilink class="org.gradle.platform.base.ApplicationSpec"/> can also be extended in this manner.
+            As of today theses are no-op extensions of <literal>ComponentSpec</literal> used to describe a software
+            model better by distinguishing libraries and applications components.
         </para>
         <sample id="component-declaration" title="Declare a custom component"
                 dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
@@ -127,7 +134,7 @@
     <section>
         <title>Source sets</title>
         <para>
-            To declare a custom binary type one must extend
+            To declare a custom source set type one must extend
             <apilink class="org.gradle.language.base.LanguageSourceSet"/>.
         </para>
         <sample id="markdown-lang-declaration" title="Declare a custom source set"
