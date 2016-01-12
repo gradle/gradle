@@ -76,6 +76,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
+    private boolean relaxedTaskNames;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -133,6 +134,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.initScripts = new ArrayList<File>(initScripts);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
+        p.relaxedTaskNames = relaxedTaskNames;
         return p;
     }
 
@@ -160,6 +162,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
+        p.relaxedTaskNames = relaxedTaskNames;
         return p;
     }
 
@@ -674,6 +677,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             + ", parallelProjectExecution=" + parallelProjectExecution
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + maxWorkerCount
+            + ", relaxedTaskNames=" + relaxedTaskNames
             + '}';
     }
 
@@ -699,4 +703,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.continuous = enabled;
     }
 
+    @Incubating
+    public boolean isRelaxedTaskNames() {
+        return relaxedTaskNames;
+    }
+
+    @Incubating
+    public void setRelaxedTaskNames(boolean enabled) {
+        this.relaxedTaskNames = enabled;
+    }
 }
