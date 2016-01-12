@@ -17,7 +17,9 @@
 package org.gradle.jvm.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
 
 /**
@@ -27,8 +29,16 @@ import org.gradle.platform.base.test.TestSuiteBinarySpec;
  */
 @Incubating
 public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec {
+
+    interface JvmTestSuiteTasks extends BinaryTasksCollection {
+        Test getTest();
+    }
+
     @Override
     JvmTestSuiteSpec getTestSuite();
 
     JvmBinarySpec getTestedBinary();
+
+    @Override
+    JvmTestSuiteTasks getTasks();
 }

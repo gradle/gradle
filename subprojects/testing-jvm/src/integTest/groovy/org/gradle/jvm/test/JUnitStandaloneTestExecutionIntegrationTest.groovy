@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.test
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 import spock.lang.Unroll
@@ -250,6 +251,25 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
         then:
         result.assertTasksExecuted ':assemble' // only
+    }
+
+    // for now the build task of a test suite does nothing
+    @NotYetImplemented
+    def "building the test suite binary does not run test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        failingTestCase()
+
+        when:
+        succeeds 'myTestBinary'
+
+        then:
+        result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinary' // only
     }
 
     def "should fail if a library attempts to depend on a test suite"() {

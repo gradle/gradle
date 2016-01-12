@@ -18,7 +18,9 @@ package org.gradle.jvm.plugins;
 import com.beust.jcommander.internal.Lists;
 import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.internal.*;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithDependencies;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.*;
@@ -85,15 +87,17 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
         }
 
-        @BinaryTasks
-        void createTestSuiteTask(final ModelMap<Task> tasks,
-                                 final JUnitTestSuiteBinarySpec binary,
-                                 final @Path("buildDir") File buildDir,
-                                 final ServiceRegistry registry,
-                                 final ModelSchemaStore schemaStore) {
+        @Mutate
+        public void createTestSuiteTasks(final ModelMap<Task> tasks,
+                                  final ModelMap<JUnitTestSuiteBinarySpec> binaries,
+                                  final @Path("buildDir") File buildDir,
+                                  final ServiceRegistry registry,
+                                  final ModelSchemaStore schemaStore) {
+            for (JUnitTestSuiteBinarySpec binary : binaries) {
+                final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+                JvmTestSuites.createJvmTestSuiteTasks(tasks, binary, jvmAssembly, registry, schemaStore, buildDir);
+            }
 
-            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-            JvmTestSuites.createJvmTestSuiteTasks(tasks, binary, jvmAssembly, registry, schemaStore, buildDir);
         }
 
         /**

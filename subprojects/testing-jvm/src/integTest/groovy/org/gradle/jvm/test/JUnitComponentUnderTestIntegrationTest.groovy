@@ -128,7 +128,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         greeterTestCase()
 
         when:
-        succeeds ':myTestGreeterJarBinary'
+        succeeds ':myTestGreeterJarBinaryTest'
 
         then:
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'
@@ -175,16 +175,16 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         greeterTestCase()
 
         when:
-        succeeds ':myTestGreeterJava6JarBinary'
+        succeeds ':myTestGreeterJava6JarBinaryTest'
 
         then:
-        executedAndNotSkipped ':myTestGreeterJava6JarBinary', ':compileGreeterJava6JarGreeterJava'
+        executedAndNotSkipped ':myTestGreeterJava6JarBinaryTest', ':compileGreeterJava6JarGreeterJava'
 
         when:
-        succeeds ':myTestGreeterJava7JarBinary'
+        succeeds ':myTestGreeterJava7JarBinaryTest'
 
         then:
-        executedAndNotSkipped ':myTestGreeterJava7JarBinary', ':compileGreeterJava7JarGreeterJava'
+        executedAndNotSkipped ':myTestGreeterJava7JarBinaryTest', ':compileGreeterJava7JarGreeterJava'
     }
 
     private void greeterLibrary() {

@@ -17,13 +17,17 @@
 package org.gradle.jvm.test.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmBinarySpec;
 import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
+import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.Variant;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.util.Collection;
 
@@ -31,6 +35,12 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     private String junitVersion;
     private Collection<DependencySpec> componentLevelDependencies = Lists.newLinkedList();
     private JvmBinarySpec testedBinary;
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
+    @Override
+    public JvmTestSuiteBinarySpec.JvmTestSuiteTasks getTasks() {
+        return tasks;
+    }
 
     @Override
     public JUnitTestSuiteSpec getTestSuite() {
@@ -71,5 +81,17 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     @Override
     public void setTestedBinary(JvmBinarySpec testedBinary) {
         this.testedBinary = testedBinary;
+    }
+
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements JvmTestSuiteBinarySpec.JvmTestSuiteTasks {
+        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public Test getTest() {
+            return findSingleTaskWithType(Test.class);
+        }
+
     }
 }

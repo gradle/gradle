@@ -119,6 +119,7 @@ public class JvmTestSuites {
                 JvmComponentSpec testedComponent = testedComponentName != null ? getTestedComponent(registry, testedComponentName) : null;
                 test.setClasspath(runtimeClasspathForTestBinary(binary, testedComponent, registry, schemaStore));
                 configureReports(test);
+                binary.getTasks().add(test);
             }
 
             private void configureReports(Test test) {
