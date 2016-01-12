@@ -124,7 +124,6 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         then:
         result.assertCurrentVersionHasNotRegressed()
 
-
         where:
         cardinality                       | maxTimeRegression | maxMemoryRegression
         SourceUpdateCardinality.ONE_FILE  | millis(500)       | mbytes(5)
