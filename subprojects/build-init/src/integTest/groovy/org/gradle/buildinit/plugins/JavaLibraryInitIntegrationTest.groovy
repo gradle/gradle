@@ -96,9 +96,6 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains(TESTNG_JAVA6_WARNING)
-
-        and:
-        fails("build")
     }
 
     def "setupProjectLayout is skipped when java sources detected"() {
