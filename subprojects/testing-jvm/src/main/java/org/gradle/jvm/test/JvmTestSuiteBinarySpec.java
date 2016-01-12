@@ -30,6 +30,9 @@ import org.gradle.platform.base.test.TestSuiteBinarySpec;
 @Incubating
 public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec {
 
+    /**
+     * Provides direct access to important build tasks of JVM test suites.
+     */
     interface JvmTestSuiteTasks extends BinaryTasksCollection {
         Test getTest();
     }
