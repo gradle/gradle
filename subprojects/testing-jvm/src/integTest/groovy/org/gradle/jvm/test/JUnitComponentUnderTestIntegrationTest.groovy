@@ -151,6 +151,20 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             .assertTestsExecuted('testGreeting')
     }
 
+    def "tests should be listed when calling tasks"() {
+        given:
+        applyJUnitPlugin()
+        greeterLibrary()
+        myTestSuiteSpec('greeter')
+        greeterTestCase()
+
+        when:
+        succeeds 'tasks'
+
+        then:
+        outputContains 'myTestGreeterJarBinaryTest - Runs tests for the Test \'myTest:greeterJarBinary\'.'
+    }
+
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "one test suite binary is created for each variant of component under test"() {
         given:

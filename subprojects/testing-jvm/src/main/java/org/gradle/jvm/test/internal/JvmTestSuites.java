@@ -33,6 +33,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -110,6 +111,8 @@ public class JvmTestSuites {
         tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
             @Override
             public void execute(final Test test) {
+                test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                test.setDescription(String.format("Runs tests for the %s.", binary.getDisplayName()));
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDir(binary.getClassesDir());
                 String testedComponentName = binary.getTestSuite().getTestedComponent();
