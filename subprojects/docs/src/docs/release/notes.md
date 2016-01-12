@@ -273,6 +273,10 @@ Now you need to create it explicitly:
 
 This breaking change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
 
+### Change to default ruleset name for PMD Plugin
+
+The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. This matches the value for the default version of PMD used by Gradle (5.2.3). Gradle will still convert 'java-basic' to 'basic' when a pre-5.0 version of PMD is used, so this change will only effect code that depends directly on the value provided by the `PmdExtension`.
+
 ### Software model changes
 
 - Deprecated `CollectionBuilder` interface removed.
