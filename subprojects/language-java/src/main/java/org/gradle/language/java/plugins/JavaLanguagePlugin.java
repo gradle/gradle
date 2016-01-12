@@ -67,7 +67,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     }
 
     public static void registerPlatformJavaCompileConfig(LanguageTransformContainer languages, final PlatformJavaCompileConfig configurer) {
-        languages.withType(JavaLanguagePlugin.Java.class).all(new Action<Java>() {
+        languages.withType(JavaLanguagePlugin.Java.class, new Action<Java>() {
             @Override
             public void execute(JavaLanguagePlugin.Java java) {
                 java.registerPlatformJavaCompileConfig(configurer);
