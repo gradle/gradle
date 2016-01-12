@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 /**
@@ -23,14 +24,14 @@ import org.gradle.model.internal.type.ModelType;
  */
 public class ManagedProperty<T> {
     private final String name;
-    private final ModelType<T> type;
+    private final ModelSchema<T> schema;
     private final boolean writable;
     private final boolean declaredAsHavingUnmanagedType;
     private final boolean internal;
 
-    public ManagedProperty(String name, ModelType<T> type, boolean writable, boolean declaredAsHavingUnmanagedType, boolean internal) {
+    public ManagedProperty(String name, ModelSchema<T> schema, boolean writable, boolean declaredAsHavingUnmanagedType, boolean internal) {
         this.name = name;
-        this.type = type;
+        this.schema = schema;
         this.writable = writable;
         this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
         this.internal = internal;
@@ -41,7 +42,11 @@ public class ManagedProperty<T> {
     }
 
     public ModelType<T> getType() {
-        return type;
+        return schema.getType();
+    }
+
+    public ModelSchema<T> getSchema() {
+        return schema;
     }
 
     public boolean isInternal() {

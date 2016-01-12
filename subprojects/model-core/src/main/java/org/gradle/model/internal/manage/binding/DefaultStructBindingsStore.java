@@ -412,7 +412,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
         validateManagedProperty(extractionContext, propertyName, propertySchema, writable, declaredAsUnmanaged);
 
-        return new ManagedProperty<T>(propertyName, propertySchema.getType(), writable, declaredAsUnmanaged, internal);
+        return new ManagedProperty<T>(propertyName, propertySchema, writable, declaredAsUnmanaged, internal);
     }
 
     private static void validateManagedProperty(StructBindingExtractionContext<?> extractionContext, String propertyName, ModelSchema<?> propertySchema, boolean writable, boolean isDeclaredAsHavingUnmanagedType) {

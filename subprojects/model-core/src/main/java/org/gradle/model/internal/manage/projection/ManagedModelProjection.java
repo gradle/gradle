@@ -27,6 +27,7 @@ import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.binding.ManagedProperty;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -118,14 +119,14 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         return propertyViews.get(name);
                     }
 
-                    ModelProperty<?> property = schema.getProperty(name);
+                    ManagedProperty<?> property = bindings.getManagedProperty(name);
 
                     Object value = doGet(property, name);
                     propertyViews.put(name, value);
                     return value;
                 }
 
-                private <T> T doGet(ModelProperty<T> property, String propertyName) {
+                private <T> T doGet(ManagedProperty<T> property, String propertyName) {
                     ModelType<T> propertyType = property.getType();
 
                     // TODO we are relying on the registration having established these links, we should be checking
@@ -161,13 +162,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
-                    ModelProperty<?> property = schema.getProperty(name);
+                    ManagedProperty<?> property = bindings.getManagedProperty(name);
 
                     value = doSet(name, value, property);
                     propertyViews.put(name, value);
                 }
 
-                private <T> Object doSet(String name, Object value, ModelProperty<T> property) {
+                private <T> Object doSet(String name, Object value, ManagedProperty<T> property) {
                     ModelSchema<T> propertySchema = property.getSchema();
 
                     // TODO we are relying on the registration having established these links, we should be checking
