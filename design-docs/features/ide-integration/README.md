@@ -7,6 +7,7 @@ One goal of this overall feature is to make it possible to import Gradle project
 ## Features
 
 - [Expose source and target platforms of JVM language projects](source-and-target-jvm)
-- [Developer uses projects from multiple Gradle builds from IDE](ide-multiple-build)
-- [Developer uses subset of a multi-project Gradle build from IDE](ide-subset-build)
-- [Provide smooth upgrade from STS Gradle to Buildship](upgrade-to-buildship)
+- [Developer defines and uses projects from a composite Gradle build within IDE](model-composite-build)
+- [Developer uses a subset of projects from a multi-project Gradle build within IDE](model-subset-build)
+- [Developer executes tasks from a composite Gradle build within IDE](execute-tasks-in-composite)
+- [Provide smooth upgrade path from STS Gradle to Buildship](migration-from-sts-to-buildship)
