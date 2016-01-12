@@ -40,6 +40,7 @@ abstract public class CompositeSpec<T> implements Spec<T> {
         this.specs = copy.toArray(new Spec[copy.size()]);
     }
 
+    // Not public. Evaluation of these specs is a major hot spot for large builds, so use an array for iteration
     Spec<? super T>[] getSpecsArray() {
         return specs;
     }
@@ -58,16 +59,11 @@ abstract public class CompositeSpec<T> implements Spec<T> {
         }
 
         CompositeSpec that = (CompositeSpec) o;
-
-        if (specs != null ? !Arrays.equals(specs, that.specs) : that.specs != null) {
-            return false;
-        }
-
-        return true;
+        return Arrays.equals(specs, that.specs);
     }
 
     @Override
     public int hashCode() {
-        return specs != null ? Arrays.hashCode(specs) : 0;
+        return Arrays.hashCode(specs);
     }
 }

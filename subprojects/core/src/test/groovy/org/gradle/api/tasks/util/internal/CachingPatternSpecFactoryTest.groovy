@@ -57,7 +57,7 @@ class CachingPatternSpecFactoryTest extends Specification {
         then:
         !spec.isSatisfiedBy(fileTreeElement)
         expect:
-        spec.specs[0].specs[0].is(includeSpecClosure)
+        spec.specs[0].is(includeSpecClosure)
         spec.specs[1].sourceSpec.specs[1].is(excludeSpecClosure)
     }
 
@@ -69,12 +69,8 @@ class CachingPatternSpecFactoryTest extends Specification {
         expect:
         spec instanceof AndSpec
         spec.specs.size() == 2
-        spec.specs[0] instanceof OrSpec
-        spec.specs[0].specs.size() == 1
-        spec.specs[0].specs[0] instanceof CachingPatternSpecFactory.CachingSpec
+        spec.specs[0] instanceof CachingPatternSpecFactory.CachingSpec
         spec.specs[1] instanceof NotSpec
-        spec.specs[1].sourceSpec instanceof OrSpec
-        spec.specs[1].sourceSpec.specs.size() == 1
-        spec.specs[1].sourceSpec.specs[0] instanceof CachingPatternSpecFactory.CachingSpec
+        spec.specs[1].sourceSpec instanceof CachingPatternSpecFactory.CachingSpec
     }
 }

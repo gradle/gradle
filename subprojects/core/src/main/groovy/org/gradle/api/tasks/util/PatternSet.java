@@ -146,7 +146,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         public Spec<FileTreeElement> getAsSpec() {
-            return Specs.and(super.getAsSpec(), other.getAsSpec());
+            return Specs.intersect(super.getAsSpec(), other.getAsSpec());
         }
 
         public Object addToAntBuilder(Object node, String childNodeName) {

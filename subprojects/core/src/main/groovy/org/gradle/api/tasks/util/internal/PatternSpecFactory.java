@@ -34,7 +34,7 @@ public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
-        return Specs.and(createIncludeSpec(patternSet), Specs.not(createExcludeSpec(patternSet)));
+        return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
     }
 
     public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
@@ -46,7 +46,7 @@ public class PatternSpecFactory {
 
         allIncludeSpecs.addAll(patternSet.getIncludeSpecs());
 
-        return Specs.or(true, allIncludeSpecs);
+        return Specs.union(allIncludeSpecs);
     }
 
     public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
@@ -63,17 +63,20 @@ public class PatternSpecFactory {
 
         allExcludeSpecs.addAll(patternSet.getExcludeSpecs());
 
-        return Specs.or(false, allExcludeSpecs);
+        return allExcludeSpecs.isEmpty() ? Specs.<FileTreeElement>satisfyNone() : Specs.union(allExcludeSpecs);
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
-        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>(patterns.size());
+        if (patterns.isEmpty()) {
+            return include ? Specs.<FileTreeElement>satisfyAll() : Specs.<FileTreeElement>satisfyNone();
+        }
 
+        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>(patterns.size());
         for (String pattern : patterns) {
             Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
             matchers.add(new RelativePathSpec(patternMatcher));
         }
 
-        return Specs.or(include, matchers);
+        return Specs.union(matchers);
     }
 }

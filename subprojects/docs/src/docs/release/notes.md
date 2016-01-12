@@ -293,6 +293,12 @@ Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target
 for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
 for an overview of known TestKit limitations.
 
+### API Classes
+
+- `Specs.or()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.union()` instead.
+- `Specs.and()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.intersect()` instead.
+- `Specs.not()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.negate()` instead.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

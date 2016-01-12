@@ -21,7 +21,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -32,8 +31,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultDirectoryWalker implements DirectoryWalker {
-    private final StringInterner relativePathStringInterner = new StringInterner();
-
     @Override
     public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix) {
         File[] children = file.listFiles();
@@ -48,7 +45,7 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
             boolean isFile = child.isFile();
-            RelativePath childPath = path.append(isFile, relativePathStringInterner.intern(child.getName()));
+            RelativePath childPath = path.append(isFile, child.getName());
             FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
             if (DirectoryFileTree.isAllowed(details, spec)) {
                 if (isFile) {

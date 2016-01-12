@@ -50,7 +50,7 @@ abstract public class TaskReportContainer<T extends Report> extends DefaultRepor
         }
     };
 
-    private static final Spec<Report> IS_FILE_OUTPUT_TYPE = Specs.not(IS_DIRECTORY_OUTPUT_TYPE);
+    private static final Spec<Report> IS_FILE_OUTPUT_TYPE = Specs.negate(IS_DIRECTORY_OUTPUT_TYPE);
 
     public TaskReportContainer(Class<? extends T> type, final Task task) {
         super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class));

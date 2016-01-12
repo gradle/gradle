@@ -24,8 +24,8 @@ import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -172,8 +172,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
-        return eachFile(
-                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), action));
+        return eachFile(new MatchingCopyAction(Specs.negate(matcher), action));
     }
 
     public CopySpec include(String... includes) {

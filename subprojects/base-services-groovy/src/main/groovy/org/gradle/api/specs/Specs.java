@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -47,31 +49,161 @@ public class Specs {
         return Cast.uncheckedCast(SATISFIES_NONE);
     }
 
-    //TODO SF rename for consistency with Actions.toAction
     public static <T> Spec<T> convertClosureToSpec(final Closure closure) {
         return new ClosureSpec<T>(closure);
     }
 
+    /**
+     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     *
+     * @deprecated Use {@link #intersect(Spec[])} instead.
+     */
+    @Deprecated
     public static <T> AndSpec<T> and(Spec<? super T>... specs) {
         return new AndSpec<T>(specs);
     }
 
+    /**
+     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     *
+     * @deprecated Use {@link #intersect(Collection)} instead.
+     */
+    @Deprecated
     public static <T> AndSpec<T> and(Collection<? extends Spec<? super T>> specs) {
         return new AndSpec<T>(specs);
     }
 
+    /**
+     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     */
+    public static <T> Spec<T> intersect(Spec<? super T>... specs) {
+        if (specs.length == 0) {
+            return satisfyAll();
+        }
+        if (specs.length == 1) {
+            return Cast.uncheckedCast(specs[0]);
+        }
+        return doIntersect(Arrays.asList(specs));
+    }
+
+    /**
+     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     */
+    public static <T> Spec<T> intersect(Collection<? extends Spec<? super T>> specs) {
+        if (specs.size() == 0) {
+            return satisfyAll();
+        }
+        return doIntersect(specs);
+    }
+
+    private static <T> Spec<T> doIntersect(Collection<? extends Spec<? super T>> specs) {
+        List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
+        for (Spec<? super T> spec : specs) {
+            if (spec == SATISFIES_NONE) {
+                return satisfyNone();
+            }
+            if (spec != SATISFIES_ALL) {
+                filtered.add(spec);
+            }
+        }
+        if (filtered.size() == 0) {
+            return satisfyAll();
+        }
+        if (filtered.size() == 1) {
+            return Cast.uncheckedCast(filtered.get(0));
+        }
+        return new AndSpec<T>(filtered);
+    }
+
+    /**
+     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     *
+     * @deprecated Use {@link #union(Spec[])} instead.
+     */
+    @Deprecated
     public static <T> OrSpec<T> or(Spec<? super T>... specs) {
         return new OrSpec<T>(specs);
     }
 
+    /**
+     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     *
+     * @deprecated Use {@link #union(Collection)} instead.
+     */
+    @Deprecated
     public static <T> OrSpec<T> or(Collection<? extends Spec<? super T>> specs) {
         return new OrSpec<T>(specs);
     }
 
+    /**
+     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     */
+    public static <T> Spec<T> union(Spec<? super T>... specs) {
+        if (specs.length == 0) {
+            return satisfyAll();
+        }
+        if (specs.length == 1) {
+            return Cast.uncheckedCast(specs[0]);
+        }
+        return doUnion(Arrays.asList(specs));
+    }
+
+    /**
+     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     */
+    public static <T> Spec<T> union(Collection<? extends Spec<? super T>> specs) {
+        if (specs.size() == 0) {
+            return satisfyAll();
+        }
+        return doUnion(specs);
+    }
+
+    private static <T> Spec<T> doUnion(Collection<? extends Spec<? super T>> specs) {
+        List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
+        for (Spec<? super T> spec : specs) {
+            if (spec == SATISFIES_ALL) {
+                return satisfyAll();
+            }
+            if (spec != SATISFIES_NONE) {
+                filtered.add(spec);
+            }
+        }
+        if (filtered.size() == 0) {
+            return satisfyNone();
+        }
+        if (filtered.size() == 1) {
+            return Cast.uncheckedCast(filtered.get(0));
+        }
+
+        return new OrSpec<T>(filtered);
+    }
+
+    /**
+     * @deprecated Use {@link #negate(Spec)} instead.
+     */
+    @Deprecated
     public static <T> NotSpec<T> not(Spec<? super T> spec) {
         return new NotSpec<T>(spec);
     }
 
+    public static <T> Spec<T> negate(Spec<? super T> spec) {
+        if (spec == SATISFIES_ALL) {
+            return satisfyNone();
+        }
+        if (spec == SATISFIES_NONE) {
+            return satisfyAll();
+        }
+        if (spec instanceof NotSpec) {
+            NotSpec<? super T> notSpec = (NotSpec<? super T>) spec;
+            return Cast.uncheckedCast(notSpec.getSourceSpec());
+        }
+        return new NotSpec<T>(spec);
+    }
+
+    /**
+     * @deprecated Use {@link #union(Collection)} instead.
+     */
+    @Deprecated
     public static <T> Spec<T> or(boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
         if (specs.isEmpty()) {
             return defaultWhenNoSpecs ? Specs.<T>satisfyAll() : Specs.<T>satisfyNone();
