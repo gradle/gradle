@@ -16,13 +16,20 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK;
 import static org.gradle.buildinit.plugins.internal.BuildInitModifier.TESTNG;
 
 public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+
+    public static final String TESTNG_JAVA6_WARNING = "Latest version of TestNG is not compatible with Java 6. Change the version of TestNG in generated build script manually or upgrade Java.";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaLibraryProjectInitDescriptor.class);
 
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
@@ -33,6 +40,9 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
 
     @Override
     public void generate(BuildInitModifier modifier) {
+        if (modifier == TESTNG && JavaVersion.current().isJava6()) {
+            LOGGER.warn(TESTNG_JAVA6_WARNING);
+        }
         globalSettingsDescriptor.generate(modifier);
         templateOperationFactory.newTemplateOperation()
             .withTemplate(gradleBuildTemplate(modifier))
