@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import org.junit.runners.Parameterized
 import org.junit.runners.Suite
 
 import static org.junit.Assume.assumeTrue
@@ -296,4 +297,17 @@ public class ATestClassWithSlowMethods {
 @RunWith(Suite.class)
 @Suite.SuiteClasses([ATestClass.class, ATestClass.class])
 public class ATestSuite {
+}
+
+@RunWith(Parameterized.class)
+public class AParameterizedTest {
+    @Parameterized.Parameters
+    public static Object[] data() {
+        return [1, 3]
+    }
+
+    public AParameterizedTest(Integer parameter) {}
+
+    @Test public void helpfulTest() {}
+    @Test public void unhelpfulTest() {}
 }

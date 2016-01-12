@@ -22,6 +22,7 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.messaging.actor.TestActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -325,6 +326,39 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(4, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
+        0 * processor._
+    }
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be run with a class-level filter"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[0]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[0]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 5 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(5, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "parameterized tests can be filtered by method name"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.helpfulTest*"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[0]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 }
