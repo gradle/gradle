@@ -28,6 +28,16 @@ class ProjectLibrary {
     String name
 
     /**
+     * The type of the library.
+     */
+    String type
+
+    /**
+     * A set of Jar files containing compiler classes.
+     */
+    Set<File> compilerClasspath = [] as LinkedHashSet
+
+    /**
      * A set of Jar files or directories containing compiled code.
      */
     Set<File> classes = [] as LinkedHashSet
@@ -42,10 +52,13 @@ class ProjectLibrary {
      */
     Set<File> sources = [] as LinkedHashSet
 
-    Node addToNode(Node parentNode, PathFactory pathFactory) {
+    void addToNode(Node parentNode, PathFactory pathFactory) {
         def builder = new NodeBuilder()
 
         def attributes = [name: name]
+        if (type != null) {
+            attributes << [type: type]
+        }
 
         def library = builder.library(attributes) {
             CLASSES {
@@ -65,9 +78,16 @@ class ProjectLibrary {
             }
         }
 
-        parentNode.append(library)
+        if (compilerClasspath.size() > 0) {
+            def properties = library.appendNode("properties")
+            def compilerClasspathNode = properties.appendNode("compiler-classpath")
 
-        return library;
+            for (file in compilerClasspath) {
+                compilerClasspathNode.appendNode("root", [url: pathFactory.path(file, true)])
+            }
+        }
+
+        parentNode.append(library)
     }
 
     boolean equals(Object obj) {
@@ -92,6 +112,12 @@ class ProjectLibrary {
         if (sources != that.sources) {
             return false
         }
+        if (compilerClasspath != that.compilerClasspath) {
+            return false
+        }
+        if (type != that.type) {
+            return false
+        }
 
         return true
     }
@@ -99,6 +125,8 @@ class ProjectLibrary {
     int hashCode() {
         int result
         result = name.hashCode()
+        result = 31 * result + (type != null ? type.hashCode() : 0)
+        result = 31 * result + compilerClasspath.hashCode()
         result = 31 * result + classes.hashCode()
         result = 31 * result + javadoc.hashCode()
         result = 31 * result + sources.hashCode()

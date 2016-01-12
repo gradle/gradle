@@ -44,19 +44,6 @@ class Path {
         this.canonicalUrl = canonicalUrl
     }
 
-    String urlWithSchema(String schema) {
-        if (schema == "file") {
-            if (url.startsWith("jar")) {
-                return url.replace("jar:", "file:").replace("!/", "")
-            }
-        } else if (schema == "jar") {
-            if (url.startsWith("file")) {
-                return url.replace("file:", "jar:").concat("!/")
-            }
-        }
-        return schema + ":" + url.substring(url.indexOf(":") + 1)
-    }
-
     boolean equals(o) {
         if (this.is(o)) {
             return true

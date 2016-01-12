@@ -122,7 +122,7 @@ class IdeaScalaConfigurer {
 
     private void declareScalaSdkOnRootProject(Project scalaProject) {
         def scalaClasspath = resolveScalaClasspath(scalaProject)
-        def library = createRootProjectLibrary("scala-sdk", "Scala", scalaClasspath)
+        def library = createScalaSdkLibrary("scala-sdk", scalaClasspath)
         addLibraryToRootProjectLibraries(library)
     }
 
@@ -201,7 +201,7 @@ class IdeaScalaConfigurer {
         new ProjectLibrary(name: name, classes: jars as Set)
     }
 
-    private RootProjectLibrary createRootProjectLibrary(String name, String type, Iterable<File> jars) {
-        new RootProjectLibrary(name: name, type: type, compilerClasses: jars as Set)
+    private ProjectLibrary createScalaSdkLibrary(String name, Iterable<File> jars) {
+        new ProjectLibrary(name: name, type: 'Scala', compilerClasspath: jars as Set)
     }
 }
