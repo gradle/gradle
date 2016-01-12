@@ -49,4 +49,9 @@ public class DefaultJUnitTestSuiteSpec extends BaseTestSuiteSpec implements JUni
     public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
         return inputTypes;
     }
+
+    @Override
+    protected String getTypeName() {
+        return "JUnit test suite";
+    }
 }

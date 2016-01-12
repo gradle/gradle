@@ -32,7 +32,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         fails 'components'
 
         then:
-        failure.assertHasCause "Component 'greeter' declared under test 'JUnitTestSuiteSpec 'myTest'' does not exist"
+        failure.assertHasCause "Component 'greeter' declared under JUnit test suite 'myTest' does not exist"
     }
 
     def "can test a JVM library that declares an external dependency"() {
@@ -162,7 +162,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         succeeds 'tasks'
 
         then:
-        outputContains 'myTestGreeterJarBinaryTest - Runs tests for the Test \'myTest:greeterJarBinary\'.'
+        outputContains 'myTestGreeterJarBinaryTest - Runs test suite \'myTest:greeterJarBinary\'.'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.test.internal;
 
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -112,7 +113,7 @@ public class JvmTestSuites {
             @Override
             public void execute(final Test test) {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                test.setDescription(String.format("Runs tests for the %s.", binary.getDisplayName()));
+                test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDir(binary.getClassesDir());
                 String testedComponentName = binary.getTestSuite().getTestedComponent();
@@ -144,7 +145,7 @@ public class JvmTestSuites {
         String testedComponent = testSuite.getTestedComponent();
         JvmComponentSpec spec = getTestedComponent(registry, testedComponent);
         if (spec == null) {
-            throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));
+            throw new InvalidModelException(String.format("Component '%s' declared under %s does not exist", testedComponent, testSuite.getDisplayName()));
         }
         return spec.getBinaries().withType(type).values();
     }

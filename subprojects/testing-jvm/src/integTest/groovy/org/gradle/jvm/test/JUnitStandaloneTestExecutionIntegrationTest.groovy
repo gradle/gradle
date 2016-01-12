@@ -37,7 +37,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         noExceptionThrown()
 
         and:
-        outputContains "Test 'myTest:binary'"
+        outputContains "Test suite 'myTest:binary'"
         outputContains "build using task: :myTestBinary"
     }
 
@@ -55,7 +55,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         fails ':myTestBinaryTest'
 
         then:
-        failure.assertHasDescription "Could not resolve all dependencies for 'Test 'myTest:binary'' source set 'Java source 'myTest:java''"
+        failure.assertHasDescription "Could not resolve all dependencies for 'Test suite 'myTest:binary'' source set 'Java source 'myTest:java''"
         failure.assertHasCause "Cannot resolve external dependency junit:junit:4.12 because no repositories are defined."
     }
 

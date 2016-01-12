@@ -54,7 +54,7 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
 
     @Override
     protected String getTypeName() {
-        return "Test";
+        return "Test suite";
     }
 
     @Override

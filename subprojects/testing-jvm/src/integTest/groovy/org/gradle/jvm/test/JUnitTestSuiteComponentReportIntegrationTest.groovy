@@ -46,8 +46,8 @@ model {
 
         then:
         outputMatches output, """
-JUnitTestSuiteSpec 'test'
--------------------------
+JUnit test suite 'test'
+-----------------------
 
 Source sets
     Java source 'test:java'
@@ -56,7 +56,7 @@ Source sets
         srcDir: src/test/resources
 
 Binaries
-    Test 'test:binary'
+    Test suite 'test:binary'
         build using task: :testBinary
         target platform: $currentJava
         tool chain: $currentJdk
@@ -95,8 +95,8 @@ model {
 
         then:
         outputMatches output, """
-JUnitTestSuiteSpec 'functionalTest'
------------------------------------
+JUnit test suite 'functionalTest'
+---------------------------------
 
 Source sets
     Java source 'functionalTest:java'
@@ -105,15 +105,15 @@ Source sets
         srcDir: src/functionalTest/resources
 
 Binaries
-    Test 'functionalTest:binary'
+    Test suite 'functionalTest:binary'
         build using task: :functionalTestBinary
         target platform: $currentJava
         tool chain: $currentJdk
         classes dir: build/classes/functionalTest/binary
         resources dir: build/resources/functionalTest/binary
 
-JUnitTestSuiteSpec 'unitTest'
------------------------------
+JUnit test suite 'unitTest'
+---------------------------
 
 Source sets
     Java source 'unitTest:java'
@@ -122,7 +122,7 @@ Source sets
         srcDir: src/unitTest/resources
 
 Binaries
-    Test 'unitTest:binary'
+    Test suite 'unitTest:binary'
         build using task: :unitTestBinary
         target platform: $currentJava
         tool chain: $currentJdk
