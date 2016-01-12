@@ -256,10 +256,10 @@ language levels for each module in a project.
 
 ##### Implementation
 
-- if all java modules have same value for `project.targetCompatibility`
-    - when differs from `org.gradle.plugins.ide.idea.model.IdeaProject.jdkName` set project bytecode level explicitly in .ipr file
-- if java modules have different value for `project.targetCompatibility`
-    -  For any module where `project.targetCompatibility` doesn't match `IdeaProject.jdkName`, specify the 'bytecode level' for that module in the .ipr file.
+- ~~if all java modules have same value for `project.targetCompatibility`~~
+    - ~~when differs from `org.gradle.plugins.ide.idea.model.IdeaProject.jdkName` set project bytecode level explicitly in .ipr file~~
+- ~~if java modules have different value for `project.targetCompatibility`~~
+    -  ~~For any module where `project.targetCompatibility` doesn't match `IdeaProject.jdkName`, specify the 'bytecode level' for that module in the .ipr file.~~
 
 ##### Test coverage
 
@@ -267,9 +267,10 @@ language levels for each module in a project.
     - ~~`CompilerConfiguration` component in `.ipr` does not contain `bytecodeTargetLevel` entry.~~
 - ~~Multiproject build with module target compatibility (`1.7`) and jdkName set to (`1.8`)~~
     - ~~`CompilerConfiguration` component in `.ipr` file has entry  `<bytecodeTargetLevel target="1.7" />`~~
-- Multiproject build with mix of different target compatibility levels (SubA `1.6`, SubB `1.7`, SubC no java project)
-    - `CompilerConfiguration` component in `.ipr` does not contain default `bytecodeTargetLevel target`entry.
-    - `CompilerConfiguration` component in `.ipr` contains entry per module
-        - `<module name="SubA" target="1.6" />`
-        - `<module name="SubB" target="1.7" />`
-    - no `CompilerConfiguration` module entry for SubC
+- ~~Multiproject build with mix of different target compatibility levels (SubA `1.6`, SubB `1.7`, SubC `1.8`, SubD no java project and jdkName set to `1.8`)~~
+    - ~~`CompilerConfiguration` component in `.ipr` does not contain default `bytecodeTargetLevel target`entry.~~
+    - ~~`CompilerConfiguration` component in `.ipr` contains entry per module~~
+        - ~~`<module name="SubA" target="1.6" />`~~
+        - ~~`<module name="SubB" target="1.7" />`~~
+    - ~~no `CompilerConfiguration` module entry for SubC~~
+    - ~~no `CompilerConfiguration` module entry for SubD~~
