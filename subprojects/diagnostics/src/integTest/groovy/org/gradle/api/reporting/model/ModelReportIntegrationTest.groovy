@@ -71,28 +71,13 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure({
-            model {
-                container {
-                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
-                    labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
-                    values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
-                }
-                tasks {
-                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
-                    components(nodeValue: "task ':components'")
-                    dependencies(nodeValue: "task ':dependencies'")
-                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
-                    help(nodeValue: "task ':help'")
-                    init(nodeValue: "task ':init'")
-                    model(nodeValue: "task ':model'")
-                    projects(nodeValue: "task ':projects'")
-                    properties(nodeValue: "task ':properties'")
-                    tasks(nodeValue: "task ':tasks'")
-                    wrapper()
-                }
+        ModelReportOutput.from(output).hasNodeStructure {
+            container {
+                ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
+                labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
+                values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
             }
-        })
+        }
     }
 
     def "display unset primitive and null scalar values"() {
@@ -146,44 +131,28 @@ model {
         run 'model'
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure({
-            model {
-                container {
+        ModelReportOutput.from(output).hasNodeStructure {
+            container {
 
-                    primitiveBoolean(nodeValue: 'false')
-                    primitiveByte(nodeValue: '0')
-                    primitiveChar(nodeValue: '\u0000' as char)
-                    primitiveDouble(nodeValue: '0.0')
-                    primitiveFloat(nodeValue: '0.0')
-                    primitiveInt(nodeValue: '0')
-                    primitiveLong(nodeValue: '0')
-                    primitiveShort(nodeValue: '0')
+                primitiveBoolean(nodeValue: 'false')
+                primitiveByte(nodeValue: '0')
+                primitiveChar(nodeValue: '\u0000' as char)
+                primitiveDouble(nodeValue: '0.0')
+                primitiveFloat(nodeValue: '0.0')
+                primitiveInt(nodeValue: '0')
+                primitiveLong(nodeValue: '0')
+                primitiveShort(nodeValue: '0')
 
-                    scalarBoolean(nodeValue: 'null')
-                    scalarByte(nodeValue: 'null')
-                    scalarChar(nodeValue: 'null')
-                    scalarDouble(nodeValue: 'null')
-                    scalarFloat(nodeValue: 'null')
-                    scalarInt(nodeValue: 'null')
-                    scalarLong(nodeValue: 'null')
-                    scalarShort(nodeValue: 'null')
-
-                }
-                tasks {
-                    buildEnvironment()
-                    components()
-                    dependencies()
-                    dependencyInsight()
-                    help()
-                    init()
-                    model()
-                    projects()
-                    properties()
-                    tasks()
-                    wrapper()
-                }
+                scalarBoolean(nodeValue: 'null')
+                scalarByte(nodeValue: 'null')
+                scalarChar(nodeValue: 'null')
+                scalarDouble(nodeValue: 'null')
+                scalarFloat(nodeValue: 'null')
+                scalarInt(nodeValue: 'null')
+                scalarLong(nodeValue: 'null')
+                scalarShort(nodeValue: 'null')
             }
-        })
+        }
     }
 
     def "displays basic values of a simple model graph with values"() {
@@ -221,40 +190,24 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure({
-            model {
-                nullCredentials {
-                    password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
-                    username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
-                }
-
-                numbers {
-                    threshold(nodeValue: "0.8")
-                    value(nodeValue: "5")
-                }
-                primaryCredentials {
-                    password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
-                    username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
-                }
-                tasks {
-                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
-                    components(nodeValue: "task ':components'")
-                    dependencies(nodeValue: "task ':dependencies'")
-                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
-                    help(nodeValue: "task ':help'")
-                    init(nodeValue: "task ':init'")
-                    model(nodeValue: "task ':model'")
-                    projects(nodeValue: "task ':projects'")
-                    properties(nodeValue: "task ':properties'")
-                    tasks(nodeValue: "task ':tasks'")
-                    wrapper()
-                }
-                unsetNumbers {
-                    threshold(nodeValue: '0.0')
-                    value(nodeValue: 'null')
-                }
+        ModelReportOutput.from(output).hasNodeStructure {
+            nullCredentials {
+                password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
+                username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
             }
-        })
+            numbers {
+                threshold(nodeValue: "0.8")
+                value(nodeValue: "5")
+            }
+            primaryCredentials {
+                password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
+                username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
+            }
+            unsetNumbers {
+                threshold(nodeValue: '0.0')
+                value(nodeValue: 'null')
+            }
+        }
     }
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
