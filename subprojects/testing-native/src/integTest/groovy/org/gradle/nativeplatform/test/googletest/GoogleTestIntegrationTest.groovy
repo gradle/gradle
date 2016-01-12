@@ -70,6 +70,11 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing 'hello'
+        }
+    }
 }
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
@@ -184,7 +189,8 @@ model {
         }
     }
     testSuites {
-        helloTest {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing 'hello'
             binaries.all {
                 lib library: "googleTest", linkage: "static"
             }
@@ -305,6 +311,11 @@ model {
                     }
                 }
             }
+        }
+    }
+    testSuites {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing 'hello'
         }
     }
 }

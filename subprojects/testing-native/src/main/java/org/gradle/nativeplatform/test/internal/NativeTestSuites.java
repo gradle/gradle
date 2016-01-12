@@ -31,6 +31,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.executableFileFor;
 import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.installationDirFor;
@@ -82,6 +83,9 @@ public class NativeTestSuites {
 
     public static <S> Collection<S> testedBinariesWithType(ModelMap<NativeComponentSpec> nativeComponents, Class<S> type, NativeTestSuiteSpec testSuite) {
         String testedComponent = testSuite.getTestedComponent();
+        if (testedComponent == null) {
+            return Collections.emptyList();
+        }
         NativeComponentSpec spec = nativeComponents.get(testedComponent);
         if (spec == null) {
             throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));

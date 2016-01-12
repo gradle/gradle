@@ -20,6 +20,34 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class CUnitComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     @RequiresInstalledToolChain
+    def "fails with a reasonable error if component under test is not specified"() {
+        given:
+        buildFile << """
+plugins {
+    id 'c'
+    id 'cunit'
+}
+
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        someExe(NativeExecutableSpec)
+    }
+    testSuites {
+        someExeTest(CUnitTestSuiteSpec)
+    }
+}
+"""
+        when:
+        fails "components"
+
+        then:
+        errorOutput.contains "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing 'myComponent'`."
+    }
+
+    @RequiresInstalledToolChain
     def "shows details of native C executable with test suite"() {
         given:
         buildFile << """
@@ -34,6 +62,11 @@ model {
     }
     components {
         someExe(NativeExecutableSpec)
+    }
+    testSuites {
+        someExeTest(CUnitTestSuiteSpec) {
+            testing 'someExe'
+        }
     }
 }
 """

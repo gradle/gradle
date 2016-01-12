@@ -29,6 +29,11 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        operatorsTest(GoogleTestTestSuiteSpec) {
+            testing 'operators'
+        }
+    }
 }
 // START SNIPPET configure-test-binary
 model {

@@ -69,6 +69,11 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        helloTest(CUnitTestSuiteSpec) {
+            testing 'hello'
+        }
+    }
     binaries {
         withType(CUnitTestSuiteBinarySpec) {
             lib library: "cunit", linkage: "static"
@@ -169,7 +174,8 @@ model {
         }
     }
     testSuites {
-        helloTest {
+        helloTest(CUnitTestSuiteSpec) {
+            testing 'hello'
             binaries.all {
                 lib library: "cunit", linkage: "static"
             }
@@ -201,6 +207,14 @@ model {
     components {
         nativeComponentOne(NativeLibrarySpec)
         nativeComponentTwo(NativeLibrarySpec)
+    }
+    testSuites {
+        nativeComponentOneTest(CUnitTestSuiteSpec) {
+            testing 'nativeComponentOne'
+        }
+        nativeComponentTwoTest(CUnitTestSuiteSpec) {
+            testing 'nativeComponentTwo'
+        }
     }
 }
 """
@@ -335,6 +349,11 @@ model {
                     }
                 }
             }
+        }
+    }
+    testSuites {
+        helloTest(CUnitTestSuiteSpec) {
+            testing 'hello'
         }
     }
     binaries {

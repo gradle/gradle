@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -25,16 +24,22 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
-import org.gradle.model.*;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
+import org.gradle.nativeplatform.test.internal.NativeTestSuitesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
@@ -45,26 +50,21 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class GoogleTestPlugin implements Plugin<Project> {
 
+    private final ModelRegistry modelRegistry;
+
+    @Inject
+    public GoogleTestPlugin(ModelRegistry modelRegistry) {
+        this.modelRegistry = modelRegistry;
+    }
+
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CppLangPlugin.class);
+        NativeTestSuitesRules.apply(modelRegistry, GoogleTestTestSuiteSpec.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Defaults
-        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
-            for (final NativeComponentSpec component : components.values()) {
-                final String suiteName = String.format("%sTest", component.getName());
-                testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
-                    @Override
-                    public void execute(GoogleTestTestSuiteSpec testSuite) {
-                        // TODO Cedric: remove automatic test suite creation altogether
-                        testSuite.testing(component.getName());
-                    }
-                });
-            }
-        }
 
         @ComponentType
         public void registerGoogleTestSuiteSpecTest(ComponentTypeBuilder<GoogleTestTestSuiteSpec> builder) {

@@ -128,7 +128,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         greeterTestCase()
 
         when:
-        succeeds ':myTestGreeterJarBinaryTest'
+        succeeds ':myTestGreeterJarBinary'
 
         then:
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':myTestGreeterJarBinaryTest'

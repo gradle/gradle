@@ -35,6 +35,11 @@ model {
     components {
         someExe(NativeExecutableSpec)
     }
+    testSuites {
+        someExeTest(GoogleTestTestSuiteSpec) {
+            testing 'someExe'
+        }
+    }
 }
 """
         when:

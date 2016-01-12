@@ -243,6 +243,36 @@ For tar files, Gradle will automatically switch to using `.tgz` or `.tbz2` when 
 
 Previously, you could directly set the `archiveName`.  `version`, `appendix` and `classifier` are still ignored when determining the archive name.
 
+### Changes to native unit testing
+
+When the CUnit plugin or the Google Test plugin is applied, test suites for components are no longer created automatically. Before, when you had a native component `hello` and that a testing plugin was applied, a corresponding `helloTest` test suite was automatically created:
+
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                targetPlatform "x86"
+            }
+        }
+    }
+
+Now you need to create it explicitly:
+
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                targetPlatform "x86"
+            }
+        }
+
+        testSuites {
+            helloTest(CUnitTestSuiteSpec) {
+                testing 'hello'
+            }
+        }
+    }
+
+This breaking change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
+
 ### Software model changes
 
 - Deprecated `CollectionBuilder` interface removed.

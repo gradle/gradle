@@ -27,16 +27,19 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.*;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
+import org.gradle.nativeplatform.test.internal.NativeTestSuitesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
@@ -47,30 +50,23 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class CUnitPlugin implements Plugin<Project> {
 
+    private final ModelRegistry modelRegistry;
+
+    @Inject
+    public CUnitPlugin(ModelRegistry modelRegistry) {
+        this.modelRegistry = modelRegistry;
+    }
+
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CLangPlugin.class);
+        NativeTestSuitesRules.apply(modelRegistry, CUnitTestSuiteSpec.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
-
-        // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
-        @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
-            for (final NativeComponentSpec component : components.values()) {
-                final String suiteName = String.format("%sTest", component.getName());
-                testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
-                    @Override
-                    public void execute(CUnitTestSuiteSpec testSuite) {
-                        // TODO Cedric: remove automatic test suite declaration altogether
-                        testSuite.testing(component.getName());
-                    }
-                });
-            }
-        }
 
         @ComponentType
         public void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
