@@ -170,16 +170,16 @@ model {
 
                 }
                 tasks {
-                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
-                    components(nodeValue: "task ':components'")
-                    dependencies(nodeValue: "task ':dependencies'")
-                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
-                    help(nodeValue: "task ':help'")
-                    init(nodeValue: "task ':init'")
-                    model(nodeValue: "task ':model'")
-                    projects(nodeValue: "task ':projects'")
-                    properties(nodeValue: "task ':properties'")
-                    tasks(nodeValue: "task ':tasks'")
+                    buildEnvironment()
+                    components()
+                    dependencies()
+                    dependencyInsight()
+                    help()
+                    init()
+                    model()
+                    projects()
+                    properties()
+                    tasks()
                     wrapper()
                 }
             }
