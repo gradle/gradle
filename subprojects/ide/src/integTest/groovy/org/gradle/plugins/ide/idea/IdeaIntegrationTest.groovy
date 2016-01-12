@@ -418,12 +418,12 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.6'
+    targetCompatibility = '1.7'
 }
 
 idea {
     project {
-        jdkName = "1.7"
+        jdkName = "1.8"
     }
 }
 
@@ -438,7 +438,7 @@ idea {
         def compilerConfig =  ipr.component.find { it.@name == "CompilerConfiguration" }
         assert compilerConfig.size() == 1
         assert compilerConfig.bytecodeTargetLevel.size() == 1
-        assert compilerConfig.bytecodeTargetLevel.@target == "1.6"
+        assert compilerConfig.bytecodeTargetLevel.@target == "1.7"
     }
 
 
