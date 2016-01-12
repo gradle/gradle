@@ -303,7 +303,7 @@ We would like to thank the following community members for making contributions 
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
 * [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
-* [Martin Steiger](https://github.com/msteiger) - Eclipse and Idea tasks warn on missing dependencies
+* [Martin Steiger](https://github.com/msteiger) - Eclipse and Idea tasks warn on unresolvable dependencies
 * [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
 * [Chris Purcell](https://github.com/cjp39) - Documentation improvements
 * [Ryan Niehaus](https://github.com/ryanniehaus) - InstallExecutable task uses target platform operating system
