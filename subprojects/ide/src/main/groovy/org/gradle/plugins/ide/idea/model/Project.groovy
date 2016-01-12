@@ -119,22 +119,22 @@ class Project extends XmlPersistableConfigurationObject {
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
 
-        def moduleBytecodeLevels = modules.findAll { it.project.plugins.hasPlugin(JavaBasePlugin) }
+        configureBytecodeLevel()
 
+        if (vcs) {
+            findVcsDirectoryMappings().@vcs = vcs
+        }
+
+        storeProjectLibraries()
+    }
+
+    private void configureBytecodeLevel() {
+        def moduleBytecodeLevels = modules.findAll { it.project.plugins.hasPlugin(JavaBasePlugin) }
         def groupedModuleBytecodeLevels = moduleBytecodeLevels.groupBy { it.project.targetCompatibility }
         if (groupedModuleBytecodeLevels.size() == 1 && !groupedModuleBytecodeLevels.containsKey(JavaVersion.toVersion(jdk.projectJdkName))) {
-            def compilerConfiguration = findCompilerConfiguration()
-            if (!compilerConfiguration.bytecodeTargetLevel) {
-                compilerConfiguration.appendNode('bytecodeTargetLevel')
-            }
-            compilerConfiguration.bytecodeTargetLevel.@'target' = groupedModuleBytecodeLevels.iterator().next().key
+            findBytecodeLevelConfiguration().@'target' = groupedModuleBytecodeLevels.iterator().next().key
         } else if (groupedModuleBytecodeLevels.size() > 1) {
-            def compilerConfiguration = findCompilerConfiguration()
-            if (!compilerConfiguration.bytecodeTargetLevel) {
-                compilerConfiguration.appendNode('bytecodeTargetLevel')
-            }
-            def bytecodeTargetLevelNode = compilerConfiguration.find { it.name() == 'bytecodeTargetLevel' }
-
+            def bytecodeTargetLevelNode = findBytecodeLevelConfiguration()
             groupedModuleBytecodeLevels.each { JavaVersion moduleTargetCompatibility, modules ->
                 if (!JavaVersion.toVersion(jdk.projectJdkName).equals(moduleTargetCompatibility)) {
                     for (IdeaModule module : modules) {
@@ -145,12 +145,6 @@ class Project extends XmlPersistableConfigurationObject {
                 }
             }
         }
-
-        if (vcs) {
-            findVcsDirectoryMappings().@vcs = vcs
-        }
-
-        storeProjectLibraries()
     }
 
     private findProjectRootManager() {
@@ -159,6 +153,14 @@ class Project extends XmlPersistableConfigurationObject {
 
     private findCompilerConfiguration() {
         xml.component.find { it.@name == 'CompilerConfiguration' }
+    }
+
+    private findBytecodeLevelConfiguration() {
+        def compilerConfiguration = findCompilerConfiguration()
+        if (!compilerConfiguration.bytecodeTargetLevel) {
+            compilerConfiguration.appendNode('bytecodeTargetLevel')
+        }
+        compilerConfiguration.find { it.name() == 'bytecodeTargetLevel' }
     }
 
     private findVcsDirectoryMappings() {
