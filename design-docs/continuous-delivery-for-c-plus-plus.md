@@ -319,18 +319,22 @@ and test multiple versions of Visual Studio.  To avoid having different agents w
 test all installed versions of VisualStudio as part of a full platformTest build type.
 
 ### Implementation
-- Add a "VisualStudioLocator.locateAllVisualStudioVersions()" method which returns a list of search results.  Search results should be sorted
- from highest version to lowest.
+- Add a "VisualStudioLocator.locateAllVisualStudioVersions()" method which returns a list of search results, one for each version of VS installed.
+Search results should be sorted from highest version to lowest.
 - Rename "VisualStudioLocator.locateVisualStudioInstalls()" to "locateDefaultVisualStudioInstall()" to better reflect its function.
 - Change AvailableToolChains.getToolChains() to use VisualStudioLocator.locateAllVisualStudioVersions() and add a tool chain for each
 installation of Visual Studio found.
 - Change AvailableToolChains.InstalledVisualCpp to accept a version number as part of the constructor and add the version to the toolchain name.
+- Introduce a "highest tested Visual Studio version" in AvailableToolChains such that a version will be considered "unavailable" if it is above
+that version.  This allows us to install a version of Visual Studio without actually including it in the versions we test in the case where
+there are breaking changes between versions and we are not ready to test with that version yet.
 
 ### Tests
-- locateAllVisualStudioVersions returns all VS versions in the registry.
-- locateAllVisualStudioVersions returns versions sorted from highest to lowest.
-- locateAllVisualStudioVersions returns a List containing an InstallNotFound searchResult if no installs are located.
-- AvailableToolChains.getToolChains returns tool chains for all available VS versions.
+- locateAllVisualStudioVersions() returns all VS versions in the registry.
+- locateAllVisualStudioVersions() returns versions sorted from highest to lowest.
+- locateAllVisualStudioVersions() returns a List containing an InstallNotFound searchResult if no installs are located.
+- AvailableToolChains.getToolChains() returns tool chains for all available VS versions.
+- AvailableToolChains.getToolChain(ToolChainRequirement) should return the highest version of VS that meets a requirement
 
 ### Open issues
 - Testing multiple versions of Windows SDK and UCRT is out of scope for this story (i.e. the highest available version will always be used).
