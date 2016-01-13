@@ -183,13 +183,21 @@ class IdeaModule {
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *
-     * configurations {*   provided
+     * configurations {
+     *   provided
      *   provided.extendsFrom(compile)
-     *}*
-     * dependencies {*   //provided "some.interesting:dependency:1.0"
-     *}*
-     * idea {*   module {*     scopes.PROVIDED.plus += [ configurations.provided ]
-     *}*}* </pre>
+     * }
+     *
+     * dependencies {
+     *   //provided "some.interesting:dependency:1.0"
+     * }
+     *
+     * idea {
+     *   module {
+     *     scopes.PROVIDED.plus += [ configurations.provided ]
+     *   }
+     * }
+     * </pre>
      */
     Map<String, Map<String, Collection<Configuration>>> scopes = [:]
 
@@ -270,24 +278,18 @@ class IdeaModule {
     /**
      * The module specific language Level to use for this module.
      * If {@code sourceCompatibility} is different to the idea project languageLevel,
-     * return module specific language level derived from projects sourceCompatibility
-     *
+     * the module specific language level derived from projects sourceCompatibility
      * Otherwise return {@code null}.
-     * value of java version is used for this module
-     * <p>
-     * For example see docs for {@link IdeaModule}
      */
-
     IdeaLanguageLevel getLanguageLevel() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
             def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
-            if (project.rootProject.plugins.hasPlugin(IdeaPlugin)) {
-                if (moduleLanguageLevel != project.rootProject.idea.project.languageLevel) {
-                    return moduleLanguageLevel;
-                }
-                return null;
+            def rootProject = project.rootProject
+            if (!rootProject.plugins.hasPlugin(IdeaPlugin) || moduleLanguageLevel != rootProject.idea.project.languageLevel) {
+                return moduleLanguageLevel;
             }
         }
+        return null;
     }
 
     /**

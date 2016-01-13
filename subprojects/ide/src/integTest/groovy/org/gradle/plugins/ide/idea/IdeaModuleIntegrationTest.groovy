@@ -586,6 +586,22 @@ configure(project(':child2')){
     }
 
     @Test
+    void "module languagelevel always exposed when no idea root project found"() {
+        runTask "idea", "include ':child1', ':child2'", """
+
+subprojects {
+    apply plugin:'java'
+    apply plugin: 'idea'
+    sourceCompatibility = 1.6
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == "JDK_1_6"
+        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_6"
+    }
+
+
+    @Test
     @Issue("GRADLE-1945")
     void unresolvedDependenciesAreLogged() {
         //given
