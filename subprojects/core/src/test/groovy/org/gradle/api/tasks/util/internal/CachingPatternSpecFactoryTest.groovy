@@ -19,11 +19,9 @@ package org.gradle.api.tasks.util.internal
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.NotSpec
-import org.gradle.api.specs.OrSpec
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
-
 
 class CachingPatternSpecFactoryTest extends Specification {
     def "check that Spec<FileTreeElement> instances added to include/exclude aren't cached"() {
