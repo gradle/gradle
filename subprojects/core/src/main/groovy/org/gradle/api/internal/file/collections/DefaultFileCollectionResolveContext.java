@@ -22,7 +22,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -42,10 +41,6 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private List<Object> addTo = queue;
     private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
     private final Converter<? extends FileTreeInternal> fileTreeConverter;
-
-    public DefaultFileCollectionResolveContext() {
-        this(new IdentityFileResolver());
-    }
 
     public DefaultFileCollectionResolveContext(FileResolver fileResolver) {
         this(fileResolver, new FileCollectionConverter(), new FileTreeConverter(fileResolver.getPatternSetFactory()));

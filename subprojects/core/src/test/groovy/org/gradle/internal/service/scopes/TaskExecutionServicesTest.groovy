@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
 import org.gradle.api.invocation.Gradle
@@ -51,6 +52,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(Instantiator) >> Mock(Instantiator)
         _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
+        _ * parent.get(FileResolver) >> Mock(FileResolver)
         _ * parent.get(StringInterner) >> new StringInterner()
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder

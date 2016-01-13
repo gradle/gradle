@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.*
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
@@ -73,8 +74,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner)
-        FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver())
+        FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver())
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess, stringInterner)
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         inputFilesSnapshotter.registerSerializers(serializerRegistry);

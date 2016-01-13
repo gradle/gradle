@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 
@@ -27,8 +28,8 @@ import java.io.File;
 import java.util.List;
 
 public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
-    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
-        super(snapshotter, cacheAccess, stringInterner);
+    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
+        super(snapshotter, cacheAccess, stringInterner, fileResolver);
     }
 
     @Override
