@@ -322,7 +322,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 int idx = 6;
                 char c;
                 while ((c = name.charAt(idx)) == '.' || Character.isLowerCase(c)) {
-                    idx++;
+                    if (++idx == name.length()) {
+                        break;
+                    }
                 }
                 if (c == '$') {
                     return null;
