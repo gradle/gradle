@@ -94,7 +94,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     public DirectoryFileTree filter(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
-        patternSet.copyFrom(patterns);
+        patternSet.copyFrom((PatternSet) patterns);
         return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory);
     }
 

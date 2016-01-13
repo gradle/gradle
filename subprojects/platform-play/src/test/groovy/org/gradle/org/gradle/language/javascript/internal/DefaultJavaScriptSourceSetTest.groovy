@@ -16,7 +16,6 @@
 
 package org.gradle.org.gradle.language.javascript.internal
 
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.language.javascript.JavaScriptSourceSet
@@ -24,10 +23,8 @@ import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet
 import spock.lang.Specification
 
 class DefaultJavaScriptSourceSetTest extends Specification {
-    def fileResolver = [getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-
     def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, "javascriptX", "playX", fileResolver)
+        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, "javascriptX", "playX", TestFiles.resolver())
 
         expect:
         sourceSet.displayName == "JavaScript source 'playX:javascriptX'"

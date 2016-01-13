@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultGroovySourceSetTest {
-    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
+    private final FileResolver fileResolver = TestFiles.currentDirResolver()
     private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", fileResolver)
 
     @Before

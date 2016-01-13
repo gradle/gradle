@@ -33,7 +33,7 @@ class DefaultScalaSourceSetTest {
         NativeServicesTestFixture.initialize()
     }
 
-    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
+    private final FileResolver fileResolver = TestFiles.currentDirResolver()
     private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", fileResolver)
 
     @Test

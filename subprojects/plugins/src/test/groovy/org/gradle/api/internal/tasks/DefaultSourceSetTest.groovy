@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest {
-    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
+    private final FileResolver fileResolver = TestFiles.currentDirResolver()
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
 
     private DefaultSourceSet sourceSet(String name) {
@@ -144,9 +144,9 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.output.files, isEmpty())
 
         sourceSet.output.classesDir = new File('classes')
-        assertThat(sourceSet.output.files, equalTo([new File('classes')] as Set))
+        assertThat(sourceSet.output.files, equalTo([new File('classes').canonicalFile] as Set))
         sourceSet.output.classesDir = new File('other-classes')
-        assertThat(sourceSet.output.files, equalTo([new File('other-classes')] as Set))
+        assertThat(sourceSet.output.files, equalTo([new File('other-classes').canonicalFile] as Set))
     }
 
     @Test

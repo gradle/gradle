@@ -30,7 +30,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
-import org.gradle.api.tasks.util.internal.InternalPatternSet;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
@@ -267,11 +267,6 @@ public class GlobalScopeServices {
     }
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
-        return new Factory<PatternSet>() {
-            @Override
-            public PatternSet create() {
-                return new InternalPatternSet(patternSpecFactory);
-            }
-        };
+        return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 }

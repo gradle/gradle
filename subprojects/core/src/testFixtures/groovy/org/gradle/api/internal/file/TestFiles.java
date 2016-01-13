@@ -49,6 +49,9 @@ public class TestFiles {
         return FILE_LOOKUP.getFileResolver(baseDir);
     }
 
+    public static FileResolver currentDirResolver() {
+        return resolver(new File(".").getAbsoluteFile());
+    }
 
     public static Factory<PatternSet> getPatternSetFactory() {
         return resolver().getPatternSetFactory();
