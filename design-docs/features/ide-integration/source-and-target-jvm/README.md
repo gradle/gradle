@@ -201,7 +201,6 @@ language levels for each module in a project.
 
 - ~~move EclipseJavaSourceSettings.getTargetRuntime() into JavaSourceSettings~~
 - ~~move EclipseJavaSourceSettings.getTargetBytecodeLevel() into JavaSourceSettings~~
-- ~~remove `EclipseJavaSourceSettings`~~
 - ~~for each module set `IdeaModuleJavaSourceSettings.targetRuntime` to current runtime in use and `IdeaModuleJavaSourceSettings.targetRuntimeInherited = true`~~
 - ~~set `IdeaProjectJavaSourceSettings.targetRuntime` to current runtime~~
 - ~~for each module set `IdeaModuleJavaSourceSettings.targetBytecodeLevel` to `JavaConvention.targetCompatibilityLevel`~~
