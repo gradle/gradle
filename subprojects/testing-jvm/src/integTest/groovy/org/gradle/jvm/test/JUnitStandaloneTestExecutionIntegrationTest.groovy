@@ -253,6 +253,29 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         result.assertTasksExecuted ':assemble' // only
     }
 
+    def "check executes the test suite"() {
+        given:
+        applyJUnitPlugin()
+
+        and:
+        testSuiteComponent()
+
+        and:
+        failingTestCase()
+
+        when:
+        fails 'check'
+
+        then:
+        result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest' // only
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('MyTest')
+        result.testClass('MyTest')
+            .assertTestCount(1, 1, 0)
+    }
+
     // for now the build task of a test suite does nothing
     @NotYetImplemented
     def "building the test suite binary does not run test suite"() {

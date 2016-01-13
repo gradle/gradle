@@ -27,10 +27,7 @@ import org.gradle.jvm.test.internal.*;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
@@ -87,17 +84,19 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
         }
 
-        @Mutate
-        public void createTestSuiteTasks(final ModelMap<Task> tasks,
+        @Defaults
+        public void createTestSuiteTasks(
                                   final ModelMap<JUnitTestSuiteBinarySpec> binaries,
                                   final @Path("buildDir") File buildDir,
                                   final ServiceRegistry registry,
                                   final ModelSchemaStore schemaStore) {
-            for (JUnitTestSuiteBinarySpec binary : binaries) {
-                final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-                JvmTestSuites.createJvmTestSuiteTasks(tasks, binary, jvmAssembly, registry, schemaStore, buildDir);
-            }
-
+            binaries.afterEach(new Action<JUnitTestSuiteBinarySpec>() {
+                @Override
+                public void execute(JUnitTestSuiteBinarySpec binary) {
+                    final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+                    JvmTestSuites.createJvmTestSuiteTasks(binary, jvmAssembly, registry, schemaStore, buildDir);
+                }
+            });
         }
 
         /**
@@ -119,6 +118,11 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
                 }
             });
+        }
+
+        @Mutate
+        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<JUnitTestSuiteBinarySpec> binaries) {
+            JvmTestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
         }
 
         private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {

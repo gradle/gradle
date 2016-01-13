@@ -103,13 +103,12 @@ public class JvmTestSuites {
         });
     }
 
-    public static void createJvmTestSuiteTasks(final ModelMap<Task> tasks,
-                                                final JvmTestSuiteBinarySpec binary,
-                                                final JvmAssembly jvmAssembly,
-                                                final ServiceRegistry registry,
-                                                final ModelSchemaStore schemaStore,
-                                                final File buildDir) {
-        tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
+    public static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
+                                               final JvmAssembly jvmAssembly,
+                                               final ServiceRegistry registry,
+                                               final ModelSchemaStore schemaStore,
+                                               final File buildDir) {
+        binary.getTasks().create(testTaskNameFor(binary), Test.class, new Action<Test>() {
             @Override
             public void execute(final Test test) {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
@@ -120,7 +119,6 @@ public class JvmTestSuites {
                 JvmComponentSpec testedComponent = testedComponentName != null ? getTestedComponent(registry, testedComponentName) : null;
                 test.setClasspath(runtimeClasspathForTestBinary(binary, testedComponent, registry, schemaStore));
                 configureReports(test);
-                binary.getTasks().add(test);
             }
 
             private void configureReports(Test test) {
@@ -158,6 +156,12 @@ public class JvmTestSuites {
             return null;
         }
         return jvmComponentSpec;
+    }
+
+    public static void attachBinariesToCheckLifecycle(Task checkTask, ModelMap<? extends JvmTestSuiteBinarySpec> binaries) {
+        for (JvmTestSuiteBinarySpec testBinary : binaries) {
+            checkTask.dependsOn(testBinary.getTasks().getTest());
+        }
     }
 
     private static BinaryNamingScheme namingSchemeFor(JvmTestSuiteSpec testSuiteSpec, JvmBinarySpec testedBinary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
