@@ -15,16 +15,18 @@
  */
 package org.gradle.plugins.ide.idea.internal
 
+import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.FilePath
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.gradle.plugins.ide.idea.model.ProjectLibrary
+import org.gradle.plugins.ide.idea.model.*
+import org.gradle.util.VersionNumber
 
 class IdeaScalaConfigurer {
+    // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
+    private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
+
     private final Project rootProject
 
     IdeaScalaConfigurer(Project rootProject) {
@@ -33,23 +35,30 @@ class IdeaScalaConfigurer {
 
     void configure() {
         rootProject.gradle.projectsEvaluated {
+            def ideaTargetVersion = findIdeaTargetVersion()
+            def useScalaSdk = ideaTargetVersion == null || ideaTargetVersion >= IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED
             def scalaProjects = findProjectsApplyingIdeaAndScalaPlugins()
             Map<String, ProjectLibrary> scalaCompilerLibraries = [:]
-
             rootProject.ideaProject.doFirst {
-                scalaCompilerLibraries = resolveScalaCompilerLibraries(scalaProjects)
-                declareUniqueProjectLibraries(scalaCompilerLibraries.values() as Set)
+                if (scalaProjects.size() > 0) {
+                    scalaCompilerLibraries = resolveScalaCompilerLibraries(scalaProjects, useScalaSdk)
+                    declareUniqueProjectLibraries(scalaCompilerLibraries.values() as Set)
+                }
             }
 
-            rootProject.configure(scalaProjects) { org.gradle.api.Project prj ->
+            rootProject.configure(scalaProjects) { Project project ->
                 idea.module.iml.withXml { XmlProvider xmlProvider ->
-                    declareScalaFacet(scalaCompilerLibraries[prj.path], xmlProvider.asNode())
+                    if (useScalaSdk) {
+                        declareScalaSdk(scalaCompilerLibraries[project.path], xmlProvider.asNode())
+                    } else {
+                        declareScalaFacet(scalaCompilerLibraries[project.path], xmlProvider.asNode())
+                    }
                 }
             }
         }
     }
 
-    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects) {
+    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, boolean useScalaSdk) {
         def scalaCompilerLibraries = [:]
 
         for (scalaProject in scalaProjects) {
@@ -65,8 +74,8 @@ class IdeaScalaConfigurer {
             def scalaClasspath = runtime.inferScalaClasspath(files)
             def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
             def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
-            def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
-            def duplicate = scalaCompilerLibraries.values().find { it.classes == library.classes }
+            def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", scalaClasspath) : createProjectLibrary("scala-compiler-$version", scalaClasspath)
+            def duplicate = scalaCompilerLibraries.values().find { it == library }
             scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
         }
 
@@ -83,6 +92,18 @@ class IdeaScalaConfigurer {
                 newLibrary.name = "$originalName-${suffix++}"
             }
             existingLibraries << newLibrary
+        }
+    }
+
+    private void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
+        def newModuleRootManager = iml.component.find { it.@name == "NewModuleRootManager" }
+        if (!newModuleRootManager) {
+            newModuleRootManager = iml.appendNode("component", [name: "NewModuleRootManager"])
+        }
+
+        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == scalaSdkLibrary.name }
+        if (!sdkLibrary) {
+            newModuleRootManager.appendNode("orderEntry", [type: "library", name: scalaSdkLibrary.name, level: "project"])
         }
     }
 
@@ -122,7 +143,25 @@ class IdeaScalaConfigurer {
         }
     }
 
+    private VersionNumber findIdeaTargetVersion() {
+        def targetVersion = null
+        def targetVersionString = rootProject.extensions.getByType(IdeaModel).targetVersion
+
+        if (targetVersionString != null) {
+            targetVersion = VersionNumber.parse(targetVersionString)
+            if (targetVersion == VersionNumber.UNKNOWN) {
+                throw new GradleScriptException("String '$targetVersionString' is not a valid value for IdeaModel.targetVersion.")
+            }
+        }
+
+        return targetVersion
+    }
+
     private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {
         new ProjectLibrary(name: name, classes: jars as Set)
+    }
+
+    private ProjectLibrary createScalaSdkLibrary(String name, Iterable<File> jars) {
+        new ProjectLibrary(name: name, type: 'Scala', compilerClasspath: jars as Set)
     }
 }

@@ -29,6 +29,16 @@ class PathFactory {
      * Creates a path for the given file.
      */
     FilePath path(File file) {
+        return path(file, false)
+    }
+
+    /**
+     * Creates a path for the given file.
+     *
+     * @param file The file to generate a path for
+     * @param useFileScheme Whether 'file://' prefixed URI should be used even for JAR files
+     */
+    FilePath path(File file, boolean useFileScheme) {
         Map match = null
         for (variable in variables) {
             if (file.absolutePath == variable.dir.absolutePath) {
@@ -48,7 +58,7 @@ class PathFactory {
 
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         def relPath = file.absolutePath.replace(File.separator, '/')
-        def url = relativePathToURI(relPath)
+        def url = relativePathToURI(relPath, useFileScheme)
         return new FilePath(file, url, url, relPath)
     }
 
@@ -101,10 +111,14 @@ class PathFactory {
     }
 
     private static String relativePathToURI(String relpath) {
-        if (relpath.endsWith('.jar')) {
-            return 'jar://' + relpath + '!/';
+        return relativePathToURI(relpath, false)
+    }
+
+    private static String relativePathToURI(String relpath, boolean useFileScheme) {
+        if (relpath.endsWith('.jar') && !useFileScheme) {
+            return 'jar://' + relpath + '!/'
         } else {
-            return 'file://' + relpath;
+            return 'file://' + relpath
         }
     }
 

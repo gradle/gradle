@@ -92,4 +92,9 @@ class IdeaModel {
         assert pathVariables != null
         module.pathVariables.putAll pathVariables
     }
+
+    /**
+     * Configures the target IDEA version.
+     */
+    String targetVersion
 }
