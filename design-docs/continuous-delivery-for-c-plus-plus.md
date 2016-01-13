@@ -313,6 +313,29 @@ from the same sources that link against different implementation libraries.
         }
     }
 
+## Story: Support testing of multiple VisualStudio versions
+Currently, the native test infrastructure selects the newest version of VisualStudio installed for testing.  We want to be able to support
+and test multiple versions of Visual Studio.  To avoid having different agents with different VisualStudio installs, we want to be able to
+test all installed versions of VisualStudio as part of a full platformTest build type.
+
+### Implementation
+- Add a "VisualStudioLocator.locateAllVisualStudioVersions()" method which returns a list of search results.  Search results should be sorted
+ from highest version to lowest.
+- Rename "VisualStudioLocator.locateVisualStudioInstalls()" to "locateDefaultVisualStudioInstall()" to better reflect its function.
+- Change AvailableToolChains.getToolChains() to use VisualStudioLocator.locateAllVisualStudioVersions() and add a tool chain for each
+installation of Visual Studio found.
+- Change AvailableToolChains.InstalledVisualCpp to accept a version number as part of the constructor and add the version to the toolchain name.
+
+### Tests
+- locateAllVisualStudioVersions returns all VS versions in the registry.
+- locateAllVisualStudioVersions returns versions sorted from highest to lowest.
+- locateAllVisualStudioVersions returns a List containing an InstallNotFound searchResult if no installs are located.
+- AvailableToolChains.getToolChains returns tool chains for all available VS versions.
+
+### Open issues
+- Testing multiple versions of Windows SDK and UCRT is out of scope for this story (i.e. the highest available version will always be used).
+- Testing multiple versions of mingw or cygwin is out of scope for this story.
+
 # Later milestones
 
 ## Story: Improved GCC platform targeting
