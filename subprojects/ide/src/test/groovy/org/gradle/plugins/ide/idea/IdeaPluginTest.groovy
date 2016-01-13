@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
@@ -28,6 +29,7 @@ import spock.lang.Specification
 class IdeaPluginTest extends Specification {
     private final DefaultProject project = TestUtil.createRootProject()
     private final DefaultProject childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final DefaultProject anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
 
     def "adds 'ideaProject' task to root project"() {
         when:
@@ -38,7 +40,7 @@ class IdeaPluginTest extends Specification {
         GenerateIdeaProject ideaProjectTask = project.ideaProject
         ideaProjectTask instanceof GenerateIdeaProject
         ideaProjectTask.outputFile == new File(project.projectDir, project.name + ".ipr")
-        ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module]
+        ideaProjectTask.ideaProject.modules == [project.idea.module, childProject.idea.module, anotherChildProject.idea.module]
         ideaProjectTask.ideaProject.jdkName == JavaVersion.current().toString()
         ideaProjectTask.ideaProject.languageLevel.level == "JDK_1_6"
 
@@ -52,6 +54,7 @@ class IdeaPluginTest extends Specification {
 
         then:
         project.idea.project.wildcards == ['!?*.java', '!?*.groovy'] as Set
+        project.idea.project.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
     }
 
     def "adds 'ideaWorkspace' task to root project"() {
@@ -149,6 +152,24 @@ class IdeaPluginTest extends Specification {
         !parentIdeaModule.taskDependencies.getDependencies(parentIdeaModule).contains(parentIdeaProject)
     }
 
+    def "project language level set to highest module sourceCompatibility"() {
+        when:
+        applyPluginToProjects()
+        project.apply(plugin: JavaPlugin)
+        childProject.apply(plugin: JavaPlugin)
+        anotherChildProject.apply(plugin: JavaPlugin)
+
+
+        and:
+        project.sourceCompatibility = JavaVersion.VERSION_1_5
+        childProject.sourceCompatibility = JavaVersion.VERSION_1_6
+        anotherChildProject.sourceCompatibility = JavaVersion.VERSION_1_7
+
+        then:
+        project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
+
+    }
+
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
         GenerateIdeaModule ideaModuleTask = project.ideaModule
         assert ideaModuleTask instanceof GenerateIdeaModule
@@ -164,5 +185,6 @@ class IdeaPluginTest extends Specification {
     private applyPluginToProjects() {
         project.apply plugin: IdeaPlugin
         childProject.apply plugin: IdeaPlugin
+        anotherChildProject.apply plugin: IdeaPlugin
     }
 }
