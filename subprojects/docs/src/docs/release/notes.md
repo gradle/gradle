@@ -10,6 +10,16 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
+
+Beginning with IntelliJ IDEA version 14 Scala projects are no longer configured using a project facet and instead use a
+[Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be
+generated. Using the 'idea' plugin in conjunction with Scala projects for newer IDEA version would cause errors due to the Scala facet being unrecognized. The 'idea' plugin
+now by default creates a Scala SDK project library as well as adds this library to all Scala modules. More information can be found in the
+[user guide](https://docs.gradle.org/current/userguide/scala_plugin.html#sec:intellij_idea_integration).
+
+This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -36,17 +46,21 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to 'idea' plugin Scala projects
+
+Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targeting versions 14 and newer. Users of IDEA versions older than 14 will need to update
+their build scripts to specify that metadata should be generated for an earlier IDEA version.
+
+    idea {
+        targetVersion = '13'
+    }
+
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+[Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

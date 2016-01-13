@@ -395,7 +395,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:intellij_idea_integration">
         <title>IntelliJ IDEA Integration</title>
         <para>
             When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically,
