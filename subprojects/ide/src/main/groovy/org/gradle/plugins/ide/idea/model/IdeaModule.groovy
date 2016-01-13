@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
@@ -132,7 +134,7 @@ import org.gradle.util.ConfigureUtil
  */
 class IdeaModule {
 
-   /**
+    /**
      * Configures module name, that is the name of the *.iml file.
      * <p>
      * It's <b>optional</b> because the task should configure it correctly for you.
@@ -181,21 +183,13 @@ class IdeaModule {
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *
-     * configurations {
-     *   provided
+     * configurations {*   provided
      *   provided.extendsFrom(compile)
-     * }
-     *
-     * dependencies {
-     *   //provided "some.interesting:dependency:1.0"
-     * }
-     *
-     * idea {
-     *   module {
-     *     scopes.PROVIDED.plus += [ configurations.provided ]
-     *   }
-     * }
-     * </pre>
+     *}*
+     * dependencies {*   //provided "some.interesting:dependency:1.0"
+     *}*
+     * idea {*   module {*     scopes.PROVIDED.plus += [ configurations.provided ]
+     *}*}* </pre>
      */
     Map<String, Map<String, Collection<Configuration>>> scopes = [:]
 
@@ -274,7 +268,30 @@ class IdeaModule {
     String jdkName
 
     /**
-     * See {@link #iml(Closure) }
+     * The module specific language Level to use for this module.
+     * If {@code sourceCompatibility} is different to the idea project languageLevel,
+     * return module specific language level derived from projects sourceCompatibility
+     *
+     * Otherwise return {@code null}.
+     * value of java version is used for this module
+     * <p>
+     * For example see docs for {@link IdeaModule}
+     */
+
+    IdeaLanguageLevel getLanguageLevel() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
+            if (project.rootProject.plugins.hasPlugin(IdeaPlugin)) {
+                if (moduleLanguageLevel != project.rootProject.idea.project.languageLevel) {
+                    return moduleLanguageLevel;
+                }
+                return null;
+            }
+        }
+    }
+
+    /**
+     * See {@link #iml(Closure)}
      */
     final IdeaModuleIml iml
 
@@ -300,7 +317,7 @@ class IdeaModule {
     }
 
     void setOutputFile(File newOutputFile) {
-        setName(newOutputFile.name.replaceFirst(/\.iml$/,""))
+        setName(newOutputFile.name.replaceFirst(/\.iml$/, ""))
         iml.generateTo = newOutputFile.parentFile
     }
 
@@ -352,7 +369,7 @@ class IdeaModule {
         Set<Dependency> dependencies = resolveDependencies()
 
         xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
-                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
+            getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName(), getLanguageLevel()?.level)
 
         iml.whenMerged.execute(xmlModule)
     }

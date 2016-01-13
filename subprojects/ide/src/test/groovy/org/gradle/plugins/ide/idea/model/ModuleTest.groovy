@@ -59,6 +59,7 @@ class ModuleTest extends Specification {
         def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
         def constructorJavaVersion = JavaVersion.VERSION_1_6.toString()
+        def constructorLanguageLevel = JavaVersion.VERSION_1_6.toString()
         def constructorTestOutputDir = path('someTestOut')
         def constructorModuleDependencies = [
                 customDependencies[0],
@@ -67,7 +68,7 @@ class ModuleTest extends Specification {
         when:
         module.load(customModuleReader)
         module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorGeneratedSourceFolders, constructorExcludeFolders,
-                constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion)
+                constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion, constructorLanguageLevel)
 
         then:
         module.sourceFolders == customSourceFolders + constructorSourceFolders
@@ -83,7 +84,7 @@ class ModuleTest extends Specification {
     def "configures default java version"() {
         when:
         module.configure(null, [] as Set, [] as Set, [] as Set, [] as Set,
-                true, null, null, [] as Set, null)
+                true, null, null, [] as Set, null, null)
 
         then:
         module.jdkName == Module.INHERITED
@@ -107,7 +108,7 @@ class ModuleTest extends Specification {
 
         when:
         module.loadDefaults()
-        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null)
+        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null, null)
         def xml = toXmlReader
         def newModule = new Module(xmlTransformer, pathFactory)
         newModule.load(xml)

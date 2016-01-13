@@ -25,6 +25,13 @@ class IdeaModuleFixture {
         this.iml = iml
     }
 
+    String getLanguageLevel() {
+        if(iml.component.@LANGUAGE_LEVEL.size() != 0){
+            return iml.component.@LANGUAGE_LEVEL
+        }
+        return null
+    }
+
     ImlDependencies getDependencies() {
         new ImlDependencies(iml.component.orderEntry.collect { it ->
             if (it.@type == 'module-library') {

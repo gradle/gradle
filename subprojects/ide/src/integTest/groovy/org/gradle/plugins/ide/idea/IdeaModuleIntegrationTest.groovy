@@ -566,6 +566,26 @@ dependencies {
     }
 
     @Test
+    void "specific module languagelevel is exposed"() {
+        runTask "idea", "include ':child1', ':child2'", """
+
+allprojects {
+    apply plugin:'idea'
+    apply plugin:'java'
+
+    sourceCompatibility = 1.6
+}
+
+configure(project(':child2')){
+    sourceCompatibility = 1.5
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == null
+        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_5"
+    }
+
+    @Test
     @Issue("GRADLE-1945")
     void unresolvedDependenciesAreLogged() {
         //given
