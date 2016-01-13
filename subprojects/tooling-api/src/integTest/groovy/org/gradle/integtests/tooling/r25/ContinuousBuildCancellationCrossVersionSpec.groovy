@@ -31,15 +31,25 @@ class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildTooling
     def "client can cancel during execution of a continuous build"() {
         given:
         buildFile << """
-            gradle.taskGraph.whenReady { new URL('${cyclicBarrierHttpServer.uri}').text }
-        """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
 
+def cancellationToken = services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback {
+    latch.countDown()
+}
+
+gradle.taskGraph.whenReady {
+    new URL('${cyclicBarrierHttpServer.uri}').text
+    latch.await()
+}
+"""
         when:
         runBuild {
-            cyclicBarrierHttpServer.waitFor()
+            cyclicBarrierHttpServer.sync()
             cancel()
-            sleep(500) // give time for cancellation to get delivered
-            cyclicBarrierHttpServer.release()
         }
 
         then:
