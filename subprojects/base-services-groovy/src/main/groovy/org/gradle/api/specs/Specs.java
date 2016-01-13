@@ -179,6 +179,8 @@ public class Specs {
     }
 
     /**
+     * Returns a spec that selects everything that is not selected by the given spec.
+     *
      * @deprecated Use {@link #negate(Spec)} instead.
      */
     @Deprecated
@@ -186,6 +188,9 @@ public class Specs {
         return new NotSpec<T>(spec);
     }
 
+    /**
+     * Returns a spec that selects everything that is not selected by the given spec.
+     */
     public static <T> Spec<T> negate(Spec<? super T> spec) {
         if (spec == SATISFIES_ALL) {
             return satisfyNone();
@@ -201,6 +206,8 @@ public class Specs {
     }
 
     /**
+     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     *
      * @deprecated Use {@link #union(Collection)} instead.
      */
     @Deprecated
