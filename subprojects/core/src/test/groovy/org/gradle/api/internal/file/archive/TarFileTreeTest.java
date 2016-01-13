@@ -43,7 +43,7 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir, fileSystem());
+    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir, fileSystem(), fileSystem());
 
     @Test
     public void displayName() {
@@ -68,7 +68,7 @@ public class TarFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tgzTo(tgz);
 
-        TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tgz)), expandDir, fileSystem());
+        TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tgz)), expandDir, fileSystem(), fileSystem());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -82,7 +82,7 @@ public class TarFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tbzTo(tbz2);
 
-        TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tbz2)), expandDir, fileSystem());
+        TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tbz2)), expandDir, fileSystem(), fileSystem());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));

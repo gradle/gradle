@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -55,7 +56,7 @@ public class DefaultDirectoryWalkerTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private FileVisitor visitor;
     private Factory<DirectoryWalker> directoryWalkerFactory = new Factory<DirectoryWalker>() {
-        DirectoryWalker directoryWalker = new DefaultDirectoryWalker();
+        DirectoryWalker directoryWalker = new DefaultDirectoryWalker(TestFiles.fileSystem());
 
         @Override
         public DirectoryWalker create() {

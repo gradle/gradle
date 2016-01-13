@@ -19,15 +19,12 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
-import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
-    private final static FileSystem DEFAULT_FILESYSTEM = FileSystems.getDefault();
     private final AtomicBoolean stop;
     private final boolean isDirectory;
     private final long size;
@@ -49,8 +46,8 @@ public class DefaultFileVisitDetails extends DefaultFileTreeElement implements F
         this.size = size;
     }
 
-    public DefaultFileVisitDetails(File file) {
-        this(file, new RelativePath(!file.isDirectory(), file.getName()), new AtomicBoolean(), DEFAULT_FILESYSTEM, DEFAULT_FILESYSTEM);
+    public DefaultFileVisitDetails(File file, Chmod chmod, Stat stat) {
+        this(file, new RelativePath(!file.isDirectory(), file.getName()), new AtomicBoolean(), chmod, stat);
     }
 
     @Override

@@ -31,8 +31,14 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultDirectoryWalker implements DirectoryWalker {
+    private final FileSystem fileSystem;
+
+    public DefaultDirectoryWalker(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
+
     @Override
-    public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix) {
+    public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
         File[] children = file.listFiles();
         if (children == null) {
             if (file.isDirectory() && !file.canRead()) {
@@ -60,11 +66,11 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
             FileVisitDetails dir = dirs.get(i);
             if (postfix) {
-                walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, fileSystem, postfix);
+                walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, postfix);
                 visitor.visitDir(dir);
             } else {
                 visitor.visitDir(dir);
-                walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, fileSystem, postfix);
+                walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag, postfix);
             }
         }
     }

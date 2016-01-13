@@ -23,13 +23,17 @@ import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.File;
 import java.util.List;
 
 public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
-    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
+    private final FileSystem fileSystem;
+
+    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
+        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter 
     private void visitFiles(MinimalFileSet input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles) {
         for (File file : input.getFiles()) {
             if (file.exists()) {
-                allFileVisitDetails.add(new DefaultFileVisitDetails(file));
+                allFileVisitDetails.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
                 missingFiles.add(file);
             }

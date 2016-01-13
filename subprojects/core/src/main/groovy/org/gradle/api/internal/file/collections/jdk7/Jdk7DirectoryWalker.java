@@ -36,12 +36,18 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Jdk7DirectoryWalker implements DirectoryWalker {
+    private final FileSystem fileSystem;
+
+    public Jdk7DirectoryWalker(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
+
     static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
     }
 
     @Override
-    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<FileTreeElement> spec, final AtomicBoolean stopFlag, final FileSystem fileSystem, final boolean postfix) {
+    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
         final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {

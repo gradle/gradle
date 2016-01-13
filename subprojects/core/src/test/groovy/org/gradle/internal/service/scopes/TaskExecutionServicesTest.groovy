@@ -28,6 +28,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.reflect.Instantiator
@@ -53,6 +54,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(FileResolver) >> Mock(FileResolver)
+        _ * parent.get(FileSystem) >> Mock(FileSystem)
         _ * parent.get(StringInterner) >> new StringInterner()
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
