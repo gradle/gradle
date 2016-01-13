@@ -167,7 +167,6 @@ class IdeaPluginTest extends Specification {
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
-
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {

@@ -146,16 +146,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureForJavaPlugin(Project project) {
         project.plugins.withType(JavaPlugin) {
-//            configureIdeaProjectForJava(project)
             configureIdeaModuleForJava(project)
-        }
-    }
-
-    private configureIdeaProjectForJava(Project project) {
-        if (isRoot(project)) {
-            project.idea.project.conventionMapping.languageLevel = {
-                new IdeaLanguageLevel(project.sourceCompatibility)
-            }
         }
     }
 
