@@ -16,7 +16,6 @@
 
 package org.gradle.model.managed
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -268,7 +267,6 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 - Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
 
-    @NotYetImplemented
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "non-mutative non-abstract methods implemented as default interface methods are not allowed"() {
         when:
@@ -301,7 +299,8 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         fails "tasks"
 
         and:
-        failure.assertHasCause("Invalid managed model type Person: only paired getter/setter methods are supported (invalid methods: void Person#foo())")
+        failure.assertHasCause """Type Person is not a valid managed type:
+- Method foo() is not a valid method: Default interface methods are only supported for getters and setters."""
     }
 
     def "two views of the same element are equal"() {
