@@ -83,7 +83,7 @@ class ProjectLibrary {
             def compilerClasspathNode = properties.appendNode("compiler-classpath")
 
             for (file in compilerClasspath) {
-                compilerClasspathNode.appendNode("root", [url: pathFactory.path(file, true)])
+                compilerClasspathNode.appendNode("root", [url: pathFactory.path(file, true).url])
             }
         }
 

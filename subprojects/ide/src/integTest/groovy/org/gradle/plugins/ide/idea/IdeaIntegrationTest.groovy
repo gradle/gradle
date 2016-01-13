@@ -100,10 +100,11 @@ apply plugin: 'idea'
     void addsScalaSdkAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
-        hasProjectLibrary('root.ipr', 'scala-sdk', [], [], [], ['scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0'])
-        hasScalaSdk('project1/project1.iml')
-        hasScalaSdk('project2/project2.iml')
-        hasScalaSdk('project3/project3.iml')
+        hasProjectLibrary('root.ipr', 'scala-sdk-2.10.0', [], [], [], ['scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0'])
+        hasProjectLibrary('root.ipr', 'scala-sdk-2.9.2', [], [], [], ['scala-library-2.9.2', 'scala-compiler-2.9.2'])
+        hasScalaSdk('project1/project1.iml', '2.9.2')
+        hasScalaSdk('project2/project2.iml', '2.10.0')
+        hasScalaSdk('project3/project3.iml', '2.9.2')
     }
 
     @Test
@@ -111,9 +112,10 @@ apply plugin: 'idea'
         executer.withTasks('idea').run()
 
         hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0'], [], [], [])
-        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.10.0')
+        hasProjectLibrary('root.ipr', 'scala-compiler-2.9.2', ['scala-library-2.9.2', 'scala-compiler-2.9.2'], [], [], [])
+        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.9.2')
         hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
-        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.10.0')
+        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.9.2')
     }
 
     @Test
@@ -429,12 +431,12 @@ idea.project {
         }
     }
 
-    private void hasScalaSdk(String imlFileName) {
+    private void hasScalaSdk(String imlFileName, String version) {
         def module = new XmlSlurper().parse(file(imlFileName))
         def newModuleRootManager = module.component.find { it.@name == "NewModuleRootManager" }
         assert newModuleRootManager
 
-        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk"}
+        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk-$version"}
         assert sdkLibrary
         assert sdkLibrary.@type == "library"
         assert sdkLibrary.@level == "project"
