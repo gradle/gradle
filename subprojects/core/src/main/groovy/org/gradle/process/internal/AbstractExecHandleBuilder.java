@@ -16,7 +16,7 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.StreamsForwarder;
@@ -39,7 +39,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
 
-    public AbstractExecHandleBuilder(FileResolver fileResolver) {
+    public AbstractExecHandleBuilder(PathToFileResolver fileResolver) {
         super(fileResolver);
         standardOutput = SafeStreams.systemOut();
         errorOutput = SafeStreams.systemErr();

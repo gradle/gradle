@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -27,14 +28,10 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 
-public interface FileResolver extends RelativeFilePathResolver {
-    File resolve(Object path);
-
+public interface FileResolver extends RelativeFilePathResolver, PathToFileResolver {
     ReadableResourceInternal resolveResource(Object path);
 
     File resolve(Object path, PathValidation validation);
-
-    Factory<File> resolveLater(Object path);
 
     FileCollectionInternal resolveFiles(Object... paths);
 

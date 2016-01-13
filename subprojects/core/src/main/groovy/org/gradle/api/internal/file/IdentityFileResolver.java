@@ -32,10 +32,6 @@ public class IdentityFileResolver extends AbstractFileResolver {
         this(FileSystems.getDefault(), PatternSets.getNonCachingPatternSetFactory());
     }
 
-    public IdentityFileResolver(Factory<PatternSet> patternSetFactory) {
-        this(FileSystems.getDefault(), patternSetFactory);
-    }
-
     public IdentityFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         super(fileSystem, patternSetFactory);
     }

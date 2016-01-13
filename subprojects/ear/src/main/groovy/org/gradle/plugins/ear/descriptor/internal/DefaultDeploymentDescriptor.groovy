@@ -16,19 +16,18 @@
 package org.gradle.plugins.ear.descriptor.internal
 
 import groovy.xml.QName
-
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.xml.XmlTransformer
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.EarWebModule
-import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotRecognizedException
 
 import javax.inject.Inject
 
@@ -49,12 +48,12 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     Set<? extends EarModule> modules = new LinkedHashSet<EarModule>()
     Set<? extends EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>()
     Map<String, String> moduleTypeMappings = new HashMap<String, String>()
-    private FileResolver fileResolver
+    private PathToFileResolver fileResolver
     final XmlTransformer transformer = new XmlTransformer()
     private final Instantiator instantiator
 
     @Inject
-    public DefaultDeploymentDescriptor(FileResolver fileResolver, Instantiator instantiator) {
+    public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, Instantiator instantiator) {
         this.instantiator = instantiator
         this.fileResolver = fileResolver
     }

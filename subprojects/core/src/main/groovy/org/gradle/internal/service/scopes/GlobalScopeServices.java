@@ -197,8 +197,8 @@ public class GlobalScopeServices {
         );
     }
 
-    FileResolver createFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
-        return new IdentityFileResolver(fileSystem, patternSetFactory);
+    FileResolver createFileResolver(FileLookup lookup) {
+        return lookup.getFileResolver();
     }
 
     FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
@@ -263,11 +263,7 @@ public class GlobalScopeServices {
     }
 
     PatternSpecFactory createPatternSpecFactory(GradleBuildEnvironment environment) {
-        if (environment.isLongLivingProcess()) {
-            return new CachingPatternSpecFactory();
-        } else {
-            return new PatternSpecFactory();
-        }
+        return new CachingPatternSpecFactory();
     }
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {

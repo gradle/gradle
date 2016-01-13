@@ -18,9 +18,9 @@ package org.gradle.internal.typeconversion;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -165,7 +165,7 @@ public class DefaultTypeConverter implements TypeConverter {
         protected abstract void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super T> result);
     }
 
-    public DefaultTypeConverter(final FileResolver fileResolver) {
+    public DefaultTypeConverter(final PathToFileResolver fileResolver) {
         registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
             public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
                 result.converted(fileResolver.resolve(notation));

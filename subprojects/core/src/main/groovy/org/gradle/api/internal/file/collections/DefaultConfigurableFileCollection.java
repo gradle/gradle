@@ -18,10 +18,10 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
@@ -34,14 +34,14 @@ import java.util.Set;
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
     private final Set<Object> files;
     private final String displayName;
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
-    public DefaultConfigurableFileCollection(FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this("file collection", fileResolver, taskResolver, files);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<Object>(Arrays.asList(files));

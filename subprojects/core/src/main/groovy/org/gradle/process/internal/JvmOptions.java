@@ -18,8 +18,8 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -60,7 +60,7 @@ public class JvmOptions {
     private boolean assertionsEnabled;
     private boolean debug;
 
-    public JvmOptions(FileResolver resolver) {
+    public JvmOptions(PathToFileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());

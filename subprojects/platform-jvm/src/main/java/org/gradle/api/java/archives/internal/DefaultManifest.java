@@ -22,11 +22,11 @@ import org.apache.tools.ant.taskdefs.Manifest.Attribute;
 import org.apache.tools.ant.taskdefs.Manifest.Section;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.*;
@@ -39,14 +39,14 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
 
     private Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
 
-    private FileResolver fileResolver;
+    private PathToFileResolver fileResolver;
 
-    public DefaultManifest(FileResolver fileResolver) {
+    public DefaultManifest(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         init();
     }
 
-    public DefaultManifest(Object manifestPath, FileResolver fileResolver) {
+    public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         read(manifestPath);
     }

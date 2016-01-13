@@ -17,18 +17,18 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final CopySpecInternal delegate;
 
     private Object destinationDir;
 
-    public DestinationRootCopySpec(FileResolver fileResolver, CopySpecInternal delegate) {
+    public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate) {
         this.fileResolver = fileResolver;
         this.delegate = delegate;
     }

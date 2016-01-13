@@ -44,9 +44,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private final Set<String> excludes = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
-
-
-    boolean caseSensitive = true;
+    private boolean caseSensitive = true;
 
     public PatternSet() {
         this(PatternSpecFactory.INSTANCE);

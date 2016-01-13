@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package org.gradle.internal.file;
 
+import org.gradle.internal.Factory;
+
+import java.io.File;
+
 /**
- * Resolves a path object relative to some base directory.
+ * Resolves some path object to a `File`. May or may not be able to resolve relative paths.
  */
-public interface RelativeFilePathResolver {
-    String resolveAsRelativePath(Object path);
+public interface PathToFileResolver {
+    File resolve(Object path);
+
+    Factory<File> resolveLater(Object path);
 }

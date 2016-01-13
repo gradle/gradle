@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final List<Object> source = new ArrayList<Object>();
     private final String name;
     private final String displayName;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final PatternSet patterns;
     private final PatternSet filter;
 

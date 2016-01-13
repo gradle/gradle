@@ -17,18 +17,18 @@
 package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle
 import org.gradle.buildinit.plugins.internal.maven.MavenConversionException
 import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.util.SingleMessageLogger
 
 class PomProjectInitDescriptor implements ProjectInitDescriptor {
 
     private final MavenSettingsProvider settingsProvider
-    private final FileResolver fileResolver
+    private final PathToFileResolver fileResolver
 
-    PomProjectInitDescriptor(FileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
+    PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
         this.fileResolver = fileResolver
         this.settingsProvider = mavenSettingsProvider
     }

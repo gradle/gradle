@@ -71,12 +71,12 @@ public class PatternSpecFactory {
             return include ? Specs.<FileTreeElement>satisfyAll() : Specs.<FileTreeElement>satisfyNone();
         }
 
-        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>(patterns.size());
+        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>(patterns.size());
         for (String pattern : patterns) {
             Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
-            matchers.add(new RelativePathSpec(patternMatcher));
+            matchers.add(patternMatcher);
         }
 
-        return Specs.union(matchers);
+        return new RelativePathSpec(Specs.union(matchers));
     }
 }

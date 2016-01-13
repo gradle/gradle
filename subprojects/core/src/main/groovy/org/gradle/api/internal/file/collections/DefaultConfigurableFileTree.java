@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -40,7 +41,7 @@ import java.util.Set;
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private PatternSet patternSet;
     private Object dir;
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final FileCopier fileCopier;
     private final DefaultTaskDependency buildDependency;
 

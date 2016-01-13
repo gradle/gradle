@@ -15,16 +15,17 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
 import org.gradle.api.Action
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.ide.visualstudio.TextConfigFile
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.api.internal.AbstractBuildableModelElement
-import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
@@ -33,7 +34,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
     private final SolutionFile solutionFile
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(DefaultVisualStudioProject rootProject, FileResolver fileResolver,
+    DefaultVisualStudioSolution(DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         this.rootProject = rootProject
         this.name = rootProject.name
@@ -87,10 +88,10 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
 
     static class SolutionFile implements TextConfigFile {
         private final List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
-        private final FileResolver fileResolver
+        private final PathToFileResolver fileResolver
         private Object location
 
-        SolutionFile(FileResolver fileResolver, String defaultLocation) {
+        SolutionFile(PathToFileResolver fileResolver, String defaultLocation) {
             this.fileResolver = fileResolver
             this.location = defaultLocation
         }
