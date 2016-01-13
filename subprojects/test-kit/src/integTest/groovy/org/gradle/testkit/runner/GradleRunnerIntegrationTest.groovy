@@ -44,7 +44,7 @@ import java.lang.annotation.Annotation
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
 
 @RunWith(Runner)
-class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
+abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
 
