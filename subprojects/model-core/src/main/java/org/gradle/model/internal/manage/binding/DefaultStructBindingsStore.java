@@ -98,6 +98,9 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
         if (!(publicSchema instanceof RuleSourceSchema)) {
             validateTypeHierarchy(extractionContext, publicType);
+            for (ModelType<?> internalViewType : internalViewTypes) {
+                validateTypeHierarchy(extractionContext, internalViewType);
+            }
         }
 
         Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = Maps.newTreeMap();
@@ -143,7 +146,13 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
 
         ensureNoInstanceScopedFields(problems, typeClass);
-        ensureNoProtectedOrPrivateMethods(problems, typeClass);
+
+        // sort for determinism
+        Method[] methods = typeClass.getDeclaredMethods();
+        Arrays.sort(methods, Ordering.usingToString());
+
+        ensureNoProtectedOrPrivateMethods(problems, methods);
+        ensureNoDefaultMethods(problems, typeClass, methods);
     }
 
     private static Constructor<?> findCustomConstructor(Class<?> typeClass) {
@@ -166,16 +175,30 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         }
     }
 
-    private static void ensureNoProtectedOrPrivateMethods(StructBindingValidationProblemCollector problems, Class<?> typeClass) {
-        // sort for determinism
-        Method[] methods = typeClass.getDeclaredMethods();
-        Arrays.sort(methods, Ordering.usingToString());
-        for (Method method : methods) {
-            int modifiers = method.getModifiers();
-            if (!method.isSynthetic() && !Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)) {
-                problems.add(method, "Protected and private methods are not supported.");
+    private static void ensureNoProtectedOrPrivateMethods(StructBindingValidationProblemCollector problems, Method[] declaredMethods) {
+        for (Method declaredMethod : declaredMethods) {
+            int modifiers = declaredMethod.getModifiers();
+            if (!declaredMethod.isSynthetic() && !Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)) {
+                problems.add(declaredMethod, "Protected and private methods are not supported.");
             }
         }
+    }
+
+    private static void ensureNoDefaultMethods(StructBindingValidationProblemCollector problems, Class<?> typeClass, Method[] declaredMethods) {
+        if (!typeClass.isInterface()) {
+            return;
+        }
+        for (Method declaredMethod : declaredMethods) {
+            if (isDefaultInterfaceMethod(declaredMethod) && PropertyAccessorType.of(declaredMethod) == null) {
+                problems.add(declaredMethod, "Default interface methods are only supported for getters and setters.");
+            }
+        }
+    }
+
+    // Copied from Method.isDefault()
+    private static boolean isDefaultInterfaceMethod(Method method) {
+        // Default methods are public non-abstract instance methods declared in an interface.
+        return (method.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC;
     }
 
     private <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
