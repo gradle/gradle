@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.*;
-import org.gradle.api.internal.cache.HeapProportionalSizer;
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -45,10 +45,10 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             DEFAULT_CAP_SIZES.put("compilationState", 1000);
         }
 
-        final HeapProportionalSizer sizer;
+        final HeapProportionalCacheSizer sizer;
 
         CacheCapSizer(int maxHeapMB) {
-            this.sizer = maxHeapMB > 0 ? new HeapProportionalSizer(maxHeapMB) : new HeapProportionalSizer();
+            this.sizer = maxHeapMB > 0 ? new HeapProportionalCacheSizer(maxHeapMB) : new HeapProportionalCacheSizer();
         }
 
         CacheCapSizer() {
@@ -58,7 +58,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         public Map<String, Integer> calculateCaps() {
             Map<String, Integer> capSizes = new HashMap<String, Integer>();
             for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
-                capSizes.put(entry.getKey(), sizer.scaleValue(entry.getValue(), 100));
+                capSizes.put(entry.getKey(), sizer.scaleCacheSize(entry.getValue()));
             }
             return capSizes;
         }
