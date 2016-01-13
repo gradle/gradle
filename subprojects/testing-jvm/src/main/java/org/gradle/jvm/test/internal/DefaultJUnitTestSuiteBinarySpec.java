@@ -17,25 +17,40 @@
 package org.gradle.jvm.test.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.jvm.internal.DefaultJvmBinarySpec;
-import org.gradle.jvm.internal.WithDependencies;
-import org.gradle.jvm.internal.WithJvmAssembly;
+import org.gradle.jvm.internal.*;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
+import org.gradle.language.base.DependentSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
+import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
+import org.gradle.model.ModelMap;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.Variant;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
+import org.gradle.platform.base.internal.DefaultLibraryBinaryDependencySpec;
 
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implements JUnitTestSuiteBinarySpecInternal, WithJvmAssembly, WithDependencies {
     private String junitVersion;
-    private Collection<DependencySpec> componentLevelDependencies = Lists.newLinkedList();
+    private Collection<DependencySpec> binaryLevelDependencies = Lists.newLinkedList();
     private JvmBinarySpec testedBinary;
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
+    private ModelSchemaStore schemaStore;
+    private ArtifactDependencyResolver artifactDependencyResolver;
+    private List<ResolutionAwareRepository> remoteRepositories;
 
     @Override
     public JvmTestSuiteBinarySpec.JvmTestSuiteTasks getTasks() {
@@ -70,17 +85,73 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
 
     @Override
     public void setDependencies(Collection<DependencySpec> dependencies) {
-        this.componentLevelDependencies = dependencies;
+        this.binaryLevelDependencies = dependencies;
     }
 
     @Override
     public Collection<DependencySpec> getDependencies() {
-        return componentLevelDependencies;
+        return binaryLevelDependencies;
     }
 
     @Override
     public void setTestedBinary(JvmBinarySpec testedBinary) {
         this.testedBinary = testedBinary;
+    }
+
+    @Override
+    public DependencyResolvingClasspath getRuntimeClasspath() {
+        return new DependencyResolvingClasspath(this,
+            getDisplayName(),
+            artifactDependencyResolver,
+            remoteRepositories,
+            createResolveContext());
+    }
+
+    @Override
+    public void setArtifactDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver) {
+        this.artifactDependencyResolver = artifactDependencyResolver;
+    }
+
+    @Override
+    public void setModelSchemaStore(ModelSchemaStore schemaStore) {
+        this.schemaStore = schemaStore;
+    }
+
+    @Override
+    public void setRepositories(List<ResolutionAwareRepository> repositories) {
+        this.remoteRepositories = repositories;
+    }
+
+    private LocalComponentResolveContext createResolveContext() {
+        // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
+        // from the resolving metadata instead of the resolved metadata
+        LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(getId().getProjectPath(), getId().getLibraryName() + "Test", getId().getVariant());
+        return new LocalComponentResolveContext(thisId,
+            DefaultVariantsMetaData.extractFrom(this, schemaStore),
+            runtimeDependencies(),
+            UsageKind.RUNTIME,
+            getDisplayName());
+    }
+
+    private List<DependencySpec> runtimeDependencies() {
+        List<DependencySpec> dependencies = Lists.newArrayList(binaryLevelDependencies);
+        dependencies.add(DefaultLibraryBinaryDependencySpec.of(getId()));
+        if (testedBinary != null) {
+            JvmBinarySpecInternal binary = (JvmBinarySpecInternal) testedBinary;
+            LibraryBinaryIdentifier id = binary.getId();
+            dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+        }
+        addSourceSetSpecificDependencies(dependencies, getSources());
+        addSourceSetSpecificDependencies(dependencies, getTestSuite().getSources());
+        return dependencies;
+    }
+
+    private void addSourceSetSpecificDependencies(List<DependencySpec> dependencies, ModelMap<LanguageSourceSet> sources) {
+        for (LanguageSourceSet sourceSet : sources) {
+            if (sourceSet instanceof DependentSourceSet) {
+                dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
+            }
+        }
     }
 
     static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements JvmTestSuiteBinarySpec.JvmTestSuiteTasks {

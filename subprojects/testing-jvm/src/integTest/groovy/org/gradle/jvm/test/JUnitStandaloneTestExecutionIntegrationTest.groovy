@@ -295,6 +295,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinary' // only
     }
 
+    @NotYetImplemented
     def "should fail if a library attempts to depend on a test suite"() {
         given:
         applyJUnitPlugin()
@@ -327,6 +328,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Project ':' does not contain library 'myTest'. Did you want to use 'myLib'?"
     }
 
+    @NotYetImplemented
     def "should fail if a library attempts to depend on a project that only declares a test suite"() {
         given:
         applyJUnitPlugin()

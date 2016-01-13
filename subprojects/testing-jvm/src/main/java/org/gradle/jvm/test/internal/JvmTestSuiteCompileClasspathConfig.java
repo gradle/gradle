@@ -26,7 +26,7 @@ import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
-import org.gradle.jvm.internal.BaseDependencyResolvingClasspath;
+import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
@@ -66,7 +66,7 @@ public class JvmTestSuiteCompileClasspathConfig implements JavaLanguagePlugin.Pl
                 RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
                 List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 JvmComponentSpec testedComponent = JvmTestSuites.getTestedComponent(serviceRegistry, testSuiteBinary.getTestSuite().getTestedComponent());
-                BaseDependencyResolvingClasspath transitiveCompileClasspath = new BaseDependencyResolvingClasspath(
+                DependencyResolvingClasspath transitiveCompileClasspath = new DependencyResolvingClasspath(
                     (BinarySpecInternal) testedBinary,
                     "test suite",
                     dependencyResolver,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,36 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.component;
+package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
- * Criteria for selecting a library instance that is built as part of the current build.
- *
+ * A dependency onto a specific binary of a library published by a project.
  */
 @Incubating
-public interface LibraryComponentSelector extends ComponentSelector {
+public interface LibraryBinaryDependencySpec extends DependencySpec {
+
     /**
-     * Return the project path of the selected library.
+     * Returns the project path of the project this dependency refers to.
      *
-     * @return the project path of the library
+     * @return the project path
      */
     String getProjectPath();
 
     /**
-     * Return the library name of the selected library.
-     * If the library name is null then it is expected to find a single library defined in same project
-     * as the requesting component or dependency resolution will fail.
-     * If not <code>null</code> then the name will never be empty.
+     * Returns the name of the library this dependency refers to. If null, it should be assumed that the project
+     * defines a single library.
      *
      * @return the library name
      */
-    @Nullable
     String getLibraryName();
 
-    @Nullable
+    /**
+     * Returns the variant of this binary.
+     *
+     * @return the library variant
+     */
     String getVariant();
-
 }

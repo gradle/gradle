@@ -139,13 +139,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return first(assembly.getClassDirectories());
         }
 
-        private static DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
+        private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
             Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
             RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
             List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            return new DependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
+            return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
         }
 
         private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
@@ -210,7 +210,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 
-                DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
+                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
                 compile.setClasspath(classpath);
 
                 for (PlatformJavaCompileConfig configurer : platformJavaConfigurers) {

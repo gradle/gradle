@@ -94,7 +94,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec binary) {
                     final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-                    JvmTestSuites.createJvmTestSuiteTasks(binary, jvmAssembly, registry, schemaStore, buildDir);
+                    JvmTestSuites.createJvmTestSuiteTasks(binary, jvmAssembly, buildDir);
                 }
             });
         }
@@ -107,11 +107,20 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                           ServiceRegistry registry,
                                           PlatformResolvers platformResolver,
                                           JUnitTestSuiteSpec testSuite,
-                                          JavaToolChainRegistry toolChains) {
+                                          JavaToolChainRegistry toolChains,
+                                          ModelSchemaStore modelSchemaStore) {
             final String jUnitVersion = testSuite.getJUnitVersion();
             final DependencySpecContainer dependencies = testSuite.getDependencies();
             addJUnitDependencyTo(dependencies, jUnitVersion);
-            JvmTestSuites.createJvmTestSuiteBinaries(testBinaries, registry, testSuite, JUnitTestSuiteBinarySpec.class, toolChains, platformResolver, new Action<JUnitTestSuiteBinarySpec>() {
+            JvmTestSuites.createJvmTestSuiteBinaries(
+                testBinaries,
+                registry,
+                testSuite,
+                JUnitTestSuiteBinarySpec.class,
+                toolChains,
+                platformResolver,
+                modelSchemaStore,
+                new Action<JUnitTestSuiteBinarySpec>() {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);

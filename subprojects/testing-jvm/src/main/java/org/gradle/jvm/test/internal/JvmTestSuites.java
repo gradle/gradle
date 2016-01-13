@@ -65,25 +65,28 @@ public class JvmTestSuites {
         Class<T> testSuiteBinaryClass,
         JavaToolChainRegistry toolChains,
         PlatformResolvers platformResolver,
+        ModelSchemaStore modelSchemaStore,
         Action<? super T> configureAction) {
         String testedComponent = testSuite.getTestedComponent();
         if (testedComponent == null) {
             // standalone test suite
-            createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, null, toolChains, platformResolver, configureAction);
+            createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, null, toolChains, platformResolver, registry, modelSchemaStore, configureAction);
         } else {
             // component under test
             for (final JvmBinarySpec testedBinary : testedBinariesOf(registry, testSuite)) {
-                createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, testedBinary, toolChains, platformResolver, configureAction);
+                createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, testedBinary, toolChains, platformResolver, registry, modelSchemaStore, configureAction);
             }
         }
     }
 
-    private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(ModelMap<BinarySpec> testBinaries,
+    private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(final ModelMap<BinarySpec> testBinaries,
                                                                                     Class<T> testSuiteBinaryClass,
                                                                                     JvmTestSuiteSpec testSuite,
                                                                                     final JvmBinarySpec testedBinary,
                                                                                     final JavaToolChainRegistry toolChains,
                                                                                     PlatformResolvers platformResolver,
+                                                                                    final ServiceRegistry serviceRegistry,
+                                                                                    final ModelSchemaStore modelSchemaStore,
                                                                                     final Action<? super T> configureAction) {
 
         final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
@@ -98,15 +101,23 @@ public class JvmTestSuites {
                 testBinary.setTargetPlatform(platform);
                 testBinary.setToolChain(toolChains.getForPlatform(platform));
                 testBinary.setTestedBinary(testedBinary);
+                injectDependencyResolutionServices(testBinary);
                 configureAction.execute(binary);
+            }
+
+            private void injectDependencyResolutionServices(JvmTestSuiteBinarySpecInternal testBinary) {
+                ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+                RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+                List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+                testBinary.setArtifactDependencyResolver(dependencyResolver);
+                testBinary.setRepositories(resolutionAwareRepositories);
+                testBinary.setModelSchemaStore(modelSchemaStore);
             }
         });
     }
 
     public static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
                                                final JvmAssembly jvmAssembly,
-                                               final ServiceRegistry registry,
-                                               final ModelSchemaStore schemaStore,
                                                final File buildDir) {
         binary.getTasks().create(testTaskNameFor(binary), Test.class, new Action<Test>() {
             @Override
@@ -115,9 +126,7 @@ public class JvmTestSuites {
                 test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDir(binary.getClassesDir());
-                String testedComponentName = binary.getTestSuite().getTestedComponent();
-                JvmComponentSpec testedComponent = testedComponentName != null ? getTestedComponent(registry, testedComponentName) : null;
-                test.setClasspath(runtimeClasspathForTestBinary(binary, testedComponent, registry, schemaStore));
+                test.setClasspath(binary.getRuntimeClasspath());
                 configureReports(test);
             }
 
@@ -182,16 +191,6 @@ public class JvmTestSuites {
 
     private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
         return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
-    }
-
-    private static JvmTestSuiteRuntimeClasspath runtimeClasspathForTestBinary(JvmTestSuiteBinarySpec test,
-                                                                              JvmComponentSpec testedComponent,
-                                                                              ServiceRegistry serviceRegistry,
-                                                                              ModelSchemaStore schemaStore) {
-        ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
-        RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
-        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        return new JvmTestSuiteRuntimeClasspath(test, testedComponent, "test suite", dependencyResolver, resolutionAwareRepositories, schemaStore);
     }
 
 }
