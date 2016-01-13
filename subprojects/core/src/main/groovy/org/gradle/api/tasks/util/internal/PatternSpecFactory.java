@@ -63,7 +63,11 @@ public class PatternSpecFactory {
 
         allExcludeSpecs.addAll(patternSet.getExcludeSpecs());
 
-        return allExcludeSpecs.isEmpty() ? Specs.<FileTreeElement>satisfyNone() : Specs.union(allExcludeSpecs);
+        if (allExcludeSpecs.isEmpty()) {
+            return Specs.satisfyNone();
+        } else {
+            return Specs.union(allExcludeSpecs);
+        }
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
