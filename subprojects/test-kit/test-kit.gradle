@@ -10,8 +10,6 @@ dependencies {
 strictCompile()
 useTestFixtures()
 
-classpathManifest.input = null
-
 configurations.runtime {
     artifacts.clear()
 }
@@ -37,7 +35,6 @@ task jar(type: JarJarJar) {
     rule('org.gradle.tooling.**', '@0')
     rule('org.gradle.api.Nullable', '@0')
     rule('org.gradle.api.Incubating', '@0')
-    rule('org.gradle.internal.classpath.**', '@0')
     rule('org.gradle.**', "${shadedPackage}.@0")
 
     rule('org.**', "${shadedPackage}.@0")
