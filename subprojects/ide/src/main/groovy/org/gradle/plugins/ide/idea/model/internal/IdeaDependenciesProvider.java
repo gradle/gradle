@@ -95,7 +95,38 @@ public class IdeaDependenciesProvider {
     }
 
     public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(IdeaModule ideaModule) {
-        return dependenciesExtractor.unresolvedExternalDependencies(ideaConfigurations(ideaModule), Collections.<Configuration>emptyList());
+        Set<UnresolvedIdeRepoFileDependency> usedUnresolvedDependencies = Sets.newTreeSet(new Comparator<UnresolvedIdeRepoFileDependency>() {
+            @Override
+            public int compare(UnresolvedIdeRepoFileDependency left, UnresolvedIdeRepoFileDependency right) {
+                return left.getDisplayName().compareTo(right.getDisplayName());
+            }
+        });
+
+        for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
+            Map<String, Collection<Configuration>> plusMinusConfigurations = ideaModule.getScopes().get(scope.name());
+            if (plusMinusConfigurations == null) {
+                if (shouldProcessScope(scope, ideaModule.getScopes())) {
+                    plusMinusConfigurations = Collections.emptyMap();
+                } else {
+                    continue;
+                }
+            }
+            List<Configuration> plusConfigurations = plusMinusConfigurations.containsKey("plus")
+                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("plus"))
+                : Lists.<Configuration>newArrayList();
+            List<Configuration> minusConfigurations = plusMinusConfigurations.containsKey("minus")
+                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("minus"))
+                : Lists.<Configuration>newArrayList();
+            for (IdeaScopeMappingRule scopeMappingRule : scopeMappings.get(scope)) {
+                for(Configuration configuration: ideaModule.getProject().getConfigurations()) {
+                    if (scopeMappingRule.configurationNames.contains(configuration.getName())) {
+                        plusConfigurations.add(configuration);
+                    }
+                }
+            }
+            usedUnresolvedDependencies.addAll(dependenciesExtractor.unresolvedExternalDependencies(plusConfigurations, minusConfigurations));
+        }
+        return usedUnresolvedDependencies;
     }
 
     private Set<Dependency> provideFromScopeRuleMappings(IdeaModule ideaModule) {
