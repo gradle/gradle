@@ -186,6 +186,14 @@ If you don't want the conventions to be automatically applied, you can opt-out a
 
 The `cunit` plugin is built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
 
+## Improved native header detection
+
+In Gradle 2.10, compilation tasks for native languages were not considered out of date when a header file was added earlier in the include search path after a file with the same name had been found in a previous execution.
+
+It's recommended that header files are included with a "namespace" to avoid naming conflicts.  For example, if you have a header "logger.h", you should put the header in a subdirectory and include it as "subdirectory/logger.h" instead.
+
+See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -223,7 +231,7 @@ Gradle uses the Apache HttpComponents HttpClient library internally for features
 from version 4.2.2 to 4.4.1. As part of this upgrade, certain system properties are no longer taken into account when creating clients used for resolving and
 publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored.
 
-For more information regarding changes introduced in HttpClient 4.4.1 please 
+For more information regarding changes introduced in HttpClient 4.4.1 please
 see the HttpClient [release notes](http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.4.x.txt).
 
 ### Scala plugin no longer adds 'scalaConsole' tasks
