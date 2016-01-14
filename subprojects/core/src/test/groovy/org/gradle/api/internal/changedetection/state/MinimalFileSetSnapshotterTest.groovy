@@ -20,12 +20,11 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.cache.internal.MapBackedInMemoryStore
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-@UsesNativeServices
 class MinimalFileSetSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -35,8 +34,9 @@ class MinimalFileSetSnapshotterTest extends Specification {
 
     TaskArtifactStateCacheAccess cacheAccess = Mock()
     FileResolver fileResolver = Mock()
+    FileSystem fileSystem = Mock()
 
-    def minimalFileSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, fileResolver)
+    def minimalFileSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, fileResolver, fileSystem)
 
     def snapshot
 
