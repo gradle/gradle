@@ -16,8 +16,8 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
@@ -79,27 +79,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
-        for (File includeFile : compilation.getIncludeCandidates()) {
-            ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(includeFile);
-        }
+        final IncrementalTaskInputsInternal taskInputs = (IncrementalTaskInputsInternal) spec.getIncrementalInputs();
 
-        if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
-            for (final File includeRoot : spec.getIncludeRoots()) {
-                logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
-                new DirectoryFileTree(includeRoot).visit(new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
-                        // ignore
-                    }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        ((IncrementalTaskInputsInternal)spec.getIncrementalInputs()).newInput(fileDetails.getFile());
-                    }
-                });
-            }
-        }
+        handleDiscoveredInputs(spec, compilation, taskInputs);
 
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
@@ -116,6 +98,25 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         });
 
         return workResult;
+    }
+
+    protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
+        for (File includeFile : compilation.getIncludeCandidates()) {
+            taskInputs.newInput(includeFile);
+        }
+
+        if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
+            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
+            for (final File includeRoot : spec.getIncludeRoots()) {
+                logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
+                new DirectoryFileTree(includeRoot).visit(new EmptyFileVisitor() {
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        taskInputs.newInput(fileDetails.getFile());
+                    }
+                });
+            }
+        }
     }
 
     private Map<File, SourceIncludes> mapIncludes(Collection<File> files, final CompilationState compilationState) {
