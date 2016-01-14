@@ -20,6 +20,19 @@ now by default creates a Scala SDK project library as well as adds this library 
 
 This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
 
+### Software model improvements
+
+#### Fine grained application of rules
+
+TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
+
+This kind of method is annotated with `@Rules`. The first parameter defines a `RuleSource` type to apply, and the second parameter defines the target element to apply the rules to.
+
+Two new annotations have been added:
+
+- `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
+- `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
