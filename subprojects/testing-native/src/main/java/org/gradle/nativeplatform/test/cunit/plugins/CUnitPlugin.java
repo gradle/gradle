@@ -122,7 +122,7 @@ public class CUnitPlugin implements Plugin<Project> {
         @ComponentBinaries
         public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries, ModelMap<NativeComponentSpec> nativeComponents, CUnitTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                             LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(nativeComponents, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
     }
 

@@ -89,7 +89,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries, ModelMap<NativeComponentSpec> nativeComponents,
                                                  GoogleTestTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
                                                  LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(nativeComponents, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
+            createNativeTestSuiteBinaries(testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
    }
 

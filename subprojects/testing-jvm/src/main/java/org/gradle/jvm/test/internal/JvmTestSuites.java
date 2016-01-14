@@ -38,18 +38,13 @@ import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,9 +54,7 @@ import java.util.List;
  */
 public class JvmTestSuites {
 
-    private static final ModelType<JvmComponentSpec> JVM_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(JvmComponentSpec.class);
-
-    public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
+     public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
         ModelMap<BinarySpec> testBinaries,
         ServiceRegistry registry,
         JvmTestSuiteSpec testSuite,
@@ -70,7 +63,7 @@ public class JvmTestSuites {
         PlatformResolvers platformResolver,
         ModelSchemaStore modelSchemaStore,
         Action<? super T> configureAction) {
-        String testedComponent = testSuite.getTestedComponent();
+        JvmComponentSpec testedComponent = testSuite.getTestedComponent();
         if (testedComponent == null) {
             // standalone test suite
             createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, null, toolChains, platformResolver, registry, modelSchemaStore, configureAction);
@@ -162,26 +155,12 @@ public class JvmTestSuites {
     }
 
     public static Collection<JvmBinarySpec> testedBinariesOf(ServiceRegistry registry, JvmTestSuiteSpec testSuite) {
-        return testedBinariesWithType(registry, JvmBinarySpec.class, testSuite);
+        return testedBinariesWithType(JvmBinarySpec.class, testSuite);
     }
 
-    public static <S> Collection<S> testedBinariesWithType(ServiceRegistry registry, Class<S> type, JvmTestSuiteSpec testSuite) {
-        String testedComponent = testSuite.getTestedComponent();
-        JvmComponentSpec spec = getTestedComponent(registry, testedComponent);
-        if (spec == null) {
-            throw new InvalidModelException(String.format("Component '%s' declared under %s does not exist", testedComponent, testSuite.getDisplayName()));
-        }
+    public static <S> Collection<S> testedBinariesWithType(Class<S> type, JvmTestSuiteSpec testSuite) {
+        JvmComponentSpec spec = testSuite.getTestedComponent();
         return spec.getBinaries().withType(type).values();
-    }
-
-    public static JvmComponentSpec getTestedComponent(ServiceRegistry registry, String testedComponent) {
-        ModelRegistry model = registry.get(ModelRegistry.class);
-        ModelPath path = ModelPath.path(Arrays.asList("components", testedComponent));
-        JvmComponentSpec jvmComponentSpec = model.find(path, JVM_COMPONENT_SPEC_MODEL_TYPE);
-        if (jvmComponentSpec ==null) {
-            return null;
-        }
-        return jvmComponentSpec;
     }
 
     public static void attachBinariesToCheckLifecycle(Task checkTask, ModelMap<? extends JvmTestSuiteBinarySpec> binaries) {

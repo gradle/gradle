@@ -44,7 +44,7 @@ model {
         fails "components"
 
         then:
-        errorOutput.contains "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing 'myComponent'`."
+        errorOutput.contains "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing \$.components.myComponent`."
     }
 
     @RequiresInstalledToolChain
@@ -65,7 +65,7 @@ model {
     }
     testSuites {
         someExeTest(CUnitTestSuiteSpec) {
-            testing 'someExe'
+            testing \$.components.someExe
         }
     }
 }

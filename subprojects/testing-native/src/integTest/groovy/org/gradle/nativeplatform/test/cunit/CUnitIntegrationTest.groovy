@@ -71,7 +71,7 @@ model {
     }
     testSuites {
         helloTest(CUnitTestSuiteSpec) {
-            testing 'hello'
+            testing \$.components.hello
         }
     }
     binaries {
@@ -175,7 +175,7 @@ model {
     }
     testSuites {
         helloTest(CUnitTestSuiteSpec) {
-            testing 'hello'
+            testing \$.components.hello
             binaries.all {
                 lib library: "cunit", linkage: "static"
             }
@@ -210,10 +210,10 @@ model {
     }
     testSuites {
         nativeComponentOneTest(CUnitTestSuiteSpec) {
-            testing 'nativeComponentOne'
+            testing \$.components.nativeComponentOne
         }
         nativeComponentTwoTest(CUnitTestSuiteSpec) {
-            testing 'nativeComponentTwo'
+            testing \$.components.nativeComponentTwo
         }
     }
 }
@@ -353,7 +353,7 @@ model {
     }
     testSuites {
         helloTest(CUnitTestSuiteSpec) {
-            testing 'hello'
+            testing \$.components.hello
         }
     }
     binaries {

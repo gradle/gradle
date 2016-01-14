@@ -22,19 +22,6 @@ import org.gradle.util.TestPrecondition
 
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
-    def "reasonable error message when component under test does not exist"() {
-        given:
-        applyJUnitPlugin()
-        myTestSuiteSpec('greeter')
-        greeterTestCase()
-
-        when:
-        fails 'components'
-
-        then:
-        failure.assertHasCause "Component 'greeter' declared under JUnit test suite 'myTest' does not exist"
-    }
-
     def "can test a JVM library that declares an external dependency"() {
         given:
         applyJUnitPlugin()

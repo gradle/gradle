@@ -255,7 +255,7 @@ Now you need to create it explicitly:
 
         testSuites {
             helloTest(CUnitTestSuiteSpec) {
-                testing 'hello'
+                testing $.components.hello
             }
         }
     }

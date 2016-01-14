@@ -37,7 +37,7 @@ model {
     }
     testSuites {
         someExeTest(GoogleTestTestSuiteSpec) {
-            testing 'someExe'
+            testing \$.components.someExe
         }
     }
 }

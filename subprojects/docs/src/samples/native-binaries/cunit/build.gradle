@@ -31,7 +31,7 @@ model {
     }
     testSuites {
         operatorsTest(CUnitTestSuiteSpec) {
-            testing 'operators'
+            testing $.components.operators
         }
     }
 }

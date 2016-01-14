@@ -16,10 +16,8 @@
 package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.model.RuleSource;
-import org.gradle.model.Validate;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
-import org.gradle.platform.base.InvalidModelException;
 
 import static org.gradle.model.internal.core.ModelNodes.withType;
 import static org.gradle.model.internal.core.NodePredicate.allDescendants;
@@ -31,11 +29,4 @@ public class NativeTestSuitesRules extends RuleSource {
         registry.getRoot().applyTo(allDescendants(withType(testSuiteClass)), NativeTestSuitesRules.class);
     }
 
-    @Validate
-    void validateTestSuite(NativeTestSuiteSpec testSuiteSpec) {
-        if (testSuiteSpec.getTestedComponent() == null) {
-            throw new InvalidModelException(
-                String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing 'myComponent'`.", testSuiteSpec.getName()));
-        }
-    }
 }

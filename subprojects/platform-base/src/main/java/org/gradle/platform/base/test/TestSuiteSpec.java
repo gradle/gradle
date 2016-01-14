@@ -27,12 +27,12 @@ public interface TestSuiteSpec extends ComponentSpec {
     /**
      * The tested component.
      */
-    String getTestedComponent();
+    ComponentSpec getTestedComponent();
 
     /**
      * Sets the tested component. The name of this method is not a regular
      * setter just because of DSL.
      * @param testedComponent the component under test
      */
-    void testing(String testedComponent);
+    void testing(ComponentSpec testedComponent);
 }

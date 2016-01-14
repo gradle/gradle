@@ -27,9 +27,9 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             interface CustomTestSuite extends TestSuiteSpec {}
             class DefaultCustomTestSuite extends BaseComponentSpec implements CustomTestSuite {
-                String testedComponent
+                ComponentSpec testedComponent
 
-                void testing(String component) { this.testedComponent = component }
+                void testing(ComponentSpec component) { this.testedComponent = component }
             }
 
             interface CustomLanguageSourceSet extends LanguageSourceSet {
