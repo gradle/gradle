@@ -16,9 +16,12 @@
 
 package org.gradle.language.twirl;
 
+import org.gradle.api.Incubating;
+
 /**
  * Represents the available sets of default imports that can be used when compiling Twirl templates.
  */
+@Incubating
 public enum TwirlImports {
     SCALA, JAVA
 }
