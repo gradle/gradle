@@ -17,7 +17,5 @@
 /**
  * Tasks that add support for Scala language.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.language.scala.tasks;
-
-import org.gradle.api.Incubating;

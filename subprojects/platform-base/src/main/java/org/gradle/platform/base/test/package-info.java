@@ -17,7 +17,5 @@
 /**
  * General purpose types for test suite support.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.platform.base.test;
-
-import org.gradle.api.Incubating;

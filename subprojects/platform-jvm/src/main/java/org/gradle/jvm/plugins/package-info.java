@@ -17,7 +17,5 @@
 /**
  * Base plugins that add support for JVM runtime.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.jvm.plugins;
-
-import org.gradle.api.Incubating;

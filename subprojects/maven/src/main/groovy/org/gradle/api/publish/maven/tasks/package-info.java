@@ -19,7 +19,5 @@
  *
  * @since 1.4
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.api.publish.maven.tasks;
-
-import org.gradle.api.Incubating;

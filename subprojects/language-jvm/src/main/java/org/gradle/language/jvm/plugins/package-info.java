@@ -17,7 +17,5 @@
 /**
  * Base plugins that add language support for JVM resources.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.language.jvm.plugins;
-
-import org.gradle.api.Incubating;

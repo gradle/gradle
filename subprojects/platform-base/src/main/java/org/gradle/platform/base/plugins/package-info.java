@@ -17,7 +17,5 @@
 /**
  * Base plugins for software model support.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.platform.base.plugins;
-
-import org.gradle.api.Incubating;
