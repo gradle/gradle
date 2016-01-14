@@ -27,6 +27,10 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import java.io.File;
 import java.util.List;
 
+/**
+ * A minimal file set snapshotter is different from the default file collection snapshotter in that it doesn't depend
+ * on the files in the file collection to exist.  Missing files are turned into MissingFileSnapshots.
+ */
 public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
     public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
