@@ -98,7 +98,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return result;
     }
 
-    public PatternSet copyFrom(PatternSet from) {
+    public PatternSet copyFrom(PatternFilterable sourcePattern) {
+        return doCopyFrom((PatternSet) sourcePattern);
+    }
+
+    protected PatternSet doCopyFrom(PatternSet from) {
         includes.clear();
         excludes.clear();
         includeSpecs.clear();
