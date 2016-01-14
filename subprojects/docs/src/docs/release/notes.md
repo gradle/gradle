@@ -265,6 +265,8 @@ To tweak the name of the Java runtime to use, the name can be configured via
 
 In Gradle 2.10, this method returned an empty Eclipse-specific subtype of `JavaSourceSettings`: `EclipseJavaSourceSettings`. This method now returns the core base type instead.
 
+The interface `EclipseJavaSourceSettings` has been removed.
+
 ### SourceTask adds injected getPatternSetFactory method
 
 An injected getPatternSetFactory method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
@@ -299,6 +301,8 @@ The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. Thi
 
 - Deprecated `CollectionBuilder` interface removed.
 - Deprecated `ManagedSet` interface removed.
+- Interface `JvmBinaryTasks` removed, replaced with `JarBinarySpec.TasksCollection`, for consistency with the native binaries.
+- Method `JvmBinarySpec.getTasks()` removed, replaced with `JarBinarySpec.getTasks()`.
 - The `assemble` task now builds only those binaries for components defined in `components`. It does not build binaries for test suites defined in `testSuites`.
 - The `LanguageBasePlugin` has been split into two separate plugins: `LanguageBasePlugin` and `BinaryBasePlugin`.
 - The `LanguageBasePlugin` no longer applies the full component model.
