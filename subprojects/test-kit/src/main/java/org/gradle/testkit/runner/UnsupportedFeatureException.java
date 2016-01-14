@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -26,6 +27,7 @@ import org.gradle.util.GradleVersion;
  * @see GradleRunner#withGradleInstallation(java.io.File)
  * @see GradleRunner#withGradleDistribution(java.net.URI)
  */
+@Incubating
 public class UnsupportedFeatureException extends RuntimeException {
     public UnsupportedFeatureException(String feature, GradleVersion targetGradleVersion, GradleVersion minSupportedGradleVersion) {
         super(String.format("The version of Gradle you are using (%s) does not %s. Support for this is available in Gradle %s and all later versions.",
