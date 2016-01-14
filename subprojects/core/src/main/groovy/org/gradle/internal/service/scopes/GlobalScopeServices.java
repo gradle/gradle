@@ -24,6 +24,8 @@ import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.*;
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.api.logging.Logger;
@@ -203,6 +205,14 @@ public class GlobalScopeServices {
 
     FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         return new DefaultFileLookup(fileSystem, patternSetFactory);
+    }
+
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory() {
+        return new DefaultDirectoryFileTreeFactory();
+    }
+
+    SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver) {
+        return new DefaultSourceDirectorySetFactory(fileResolver);
     }
 
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {

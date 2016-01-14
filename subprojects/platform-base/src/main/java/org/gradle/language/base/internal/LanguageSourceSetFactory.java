@@ -19,7 +19,7 @@ package org.gradle.language.base.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
@@ -40,11 +40,11 @@ import java.util.Set;
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
     private final List<LanguageRegistration<?>> languageRegistrations = Lists.newArrayList();
-    private final FileResolver fileResolver;
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-    public LanguageSourceSetFactory(String displayName, FileResolver fileResolver) {
+    public LanguageSourceSetFactory(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
         super(displayName, LanguageSourceSet.class, BaseLanguageSourceSet.class);
-        this.fileResolver = fileResolver;
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
     public <T extends LanguageSourceSet, V extends LanguageSourceSet> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
@@ -54,7 +54,7 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
             registration.withImplementation(Cast.<ModelType<? extends T>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<T>() {
                 @Override
                 public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                    return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver));
+                    return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), sourceDirectorySetFactory));
                 }
             });
         }

@@ -20,8 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
@@ -41,7 +40,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     private Task generatorTask;
 
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
-    protected FileResolver fileResolver;
+    protected SourceDirectorySetFactory sourceDirectorySetFactory;
 
     public String getName() {
         return name;
@@ -93,8 +92,8 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, FileResolver fileResolver) {
-        nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), fileResolver));
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), sourceDirectorySetFactory));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(type);
@@ -119,8 +118,8 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         this.parentName = info.parentName;
         this.typeName = info.typeName;
         this.fullName = info.parentName + StringUtils.capitalize(name);
-        this.source = new DefaultSourceDirectorySet("source", info.fileResolver);
-        this.fileResolver = info.fileResolver;
+        this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
+        this.source = sourceDirectorySetFactory.create("source");
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -128,13 +127,13 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         final String name;
         final String parentName;
         final String typeName;
-        final FileResolver fileResolver;
+        final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-        private SourceSetInfo(String name, String parentName, String typeName, FileResolver fileResolver) {
+        private SourceSetInfo(String name, String parentName, String typeName, SourceDirectorySetFactory sourceDirectorySetFactory) {
             this.name = name;
             this.parentName = parentName;
             this.typeName = typeName;
-            this.fileResolver = fileResolver;
+            this.sourceDirectorySetFactory = sourceDirectorySetFactory;
         }
     }
 }

@@ -22,7 +22,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
@@ -121,10 +121,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     @Override
-    public void addGeneratedScala(LanguageSourceSet input, FileResolver fileResolver) {
+    public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
         String lssName = String.format("%sScalaSources", input.getName());
         // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
-        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), fileResolver);
+        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
         generatedScalaSources.builtBy();
         generatedScala.put(input, generatedScalaSources);
     }
@@ -135,9 +135,9 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     @Override
-    public void addGeneratedJavaScript(LanguageSourceSet input, FileResolver fileResolver) {
+    public void addGeneratedJavaScript(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
         String lssName = String.format("%sJavaScript", input.getName());
-        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, lssName, getName(), fileResolver);
+        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
         javaScript.builtBy();
         generatedJavaScript.put(input, javaScript);
     }

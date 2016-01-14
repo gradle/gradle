@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -59,12 +59,12 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @Mutate
     void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
-        final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+        final SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
         binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
                 for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(RoutesSourceSet.class)) {
-                    playApplicationBinarySpec.addGeneratedScala(languageSourceSet, fileResolver);
+                    playApplicationBinarySpec.addGeneratedScala(languageSourceSet, sourceDirectorySetFactory);
                 }
             }
         });

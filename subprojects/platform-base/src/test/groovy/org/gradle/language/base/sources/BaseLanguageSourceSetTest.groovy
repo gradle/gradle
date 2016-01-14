@@ -16,16 +16,13 @@
 
 package org.gradle.language.base.sources
 
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.LanguageSourceSet
 import spock.lang.Specification
 
 class BaseLanguageSourceSetTest extends Specification {
-    def fileResolver = [getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-
     def "has useful display names"() {
-        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, TestSourceSetImpl, "test", "parent", fileResolver)
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, TestSourceSetImpl, "test", "parent", TestFiles.sourceDirectorySetFactory())
 
         expect:
         sourceSet.name == "test"

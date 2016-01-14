@@ -49,6 +49,13 @@ public class TestFiles {
         return FILE_LOOKUP.getFileResolver(baseDir);
     }
 
+    public static SourceDirectorySetFactory sourceDirectorySetFactory() {
+        return new DefaultSourceDirectorySetFactory(resolver());
+    }
+
+    public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
+        return new DefaultSourceDirectorySetFactory(resolver(baseDir));
+    }
 
     public static Factory<PatternSet> getPatternSetFactory() {
         return resolver().getPatternSetFactory();

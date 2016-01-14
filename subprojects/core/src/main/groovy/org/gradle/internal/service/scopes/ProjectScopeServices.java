@@ -96,6 +96,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
     }
 
+    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver) {
+        return new DefaultSourceDirectorySetFactory(fileResolver);
+    }
+
     protected LoggingManagerInternal createLoggingManager() {
         return getFactory(LoggingManagerInternal.class).create();
     }

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -39,7 +39,8 @@ import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.internal.*;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.ScalaSourceCode;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.TwirlCompile;
@@ -64,12 +65,12 @@ public class PlayTwirlPlugin extends RuleSource {
 
     @Mutate
     void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
-        final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+        final SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
         binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
                 for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(TwirlSourceSet.class)) {
-                    playApplicationBinarySpec.addGeneratedScala(languageSourceSet, fileResolver);
+                    playApplicationBinarySpec.addGeneratedScala(languageSourceSet, sourceDirectorySetFactory);
                 }
             }
         });

@@ -17,7 +17,7 @@
 package org.gradle.play.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -92,12 +92,12 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
 
         @Mutate
         void createGeneratedJavaScriptSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            final SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
             binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
                     for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getInputs().withType(CoffeeScriptSourceSet.class)) {
-                        playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, fileResolver);
+                        playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, sourceDirectorySetFactory);
                     }
                 }
             });

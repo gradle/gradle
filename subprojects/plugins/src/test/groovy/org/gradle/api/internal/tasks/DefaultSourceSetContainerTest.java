@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class DefaultSourceSetContainerTest {
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE);
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestFiles.sourceDirectorySetFactory());
 
     @Test
     public void createsASourceSet() {

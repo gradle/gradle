@@ -16,10 +16,11 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 import static org.gradle.util.Matchers.isEmpty
@@ -27,8 +28,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultGroovySourceSetTest {
-    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", fileResolver)
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
 
     @Before
     void before() {
@@ -53,6 +54,6 @@ class DefaultGroovySourceSetTest {
     @Test
     public void canConfigureGroovySource() {
         sourceSet.groovy { srcDir 'src/groovy' }
-        assertThat(sourceSet.groovy.srcDirs, equalTo([new File('src/groovy').canonicalFile] as Set))
+        assertThat(sourceSet.groovy.srcDirs, equalTo([tmpDir.file("src/groovy")] as Set))
     }
 }

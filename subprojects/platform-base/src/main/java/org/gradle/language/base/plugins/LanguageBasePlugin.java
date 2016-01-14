@@ -18,7 +18,7 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -56,7 +56,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Hidden
         @Model
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
-            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(FileResolver.class));
+            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(SourceDirectorySetFactory.class));
         }
 
         @LanguageType
