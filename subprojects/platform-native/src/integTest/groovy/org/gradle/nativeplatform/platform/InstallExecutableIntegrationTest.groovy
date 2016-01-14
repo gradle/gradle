@@ -46,7 +46,7 @@ model {
         testApp.writeSources(file("src/main"))
     }
 
-    def "can install for a different os than the current one"() {
+    def "can create installation for a different os than the current one"() {
         String installOS
         if (os.windows) {
             installOS = "linux"
