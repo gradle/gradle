@@ -230,6 +230,13 @@ Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tas
 removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you
 can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
 
+### Idea Plugin language level configuration
+
+For the idea project language level used in the generated `*.ipr` file, the `sourceCompatibility` from all modules are taken into account and the highest value is taken as project language level.
+If no java project is found the default value `1.6` is used.
+
+A value for `sourceCompatibility` in a project that differs from the project language level is taken into account as Idea module specific language level and used in the generated `*.iml` file.
+
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
 The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of
