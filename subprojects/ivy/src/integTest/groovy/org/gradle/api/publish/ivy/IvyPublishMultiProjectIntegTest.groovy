@@ -164,7 +164,65 @@ project(":project2") {
         project1.parsedIvy.assertDependsOn("org.gradle.test:project2:1.0@runtime")
     }
 
+    def "ivy-publish plugin publishes project dependency excludes in descriptor"() {
+        given:
+        settingsFile << """
+include 'project1', 'project2'
+"""
 
+        buildFile << """
+allprojects {
+    group = 'org.gradle.test'
+    version = '1.0'
+}
+
+project(':project1') {
+    apply plugin: 'java'
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        compile 'commons-logging:commons-logging:1.2'
+    }
+}
+
+project(':project2') {
+    apply plugin: "java"
+    apply plugin: "ivy-publish"
+
+    version = '2.0'
+
+    dependencies {
+        compile project(":project1"), {
+            exclude group: 'commons-logging', module: 'commons-logging'
+        }
+    }
+
+    publishing {
+        repositories {
+            ivy { url "${ivyRepo.uri}" }
+        }
+        publications {
+            ivy(IvyPublication) {
+                from components.java
+            }
+        }
+    }
+}
+"""
+
+        when:
+        run "publish"
+
+        then:
+        project2.assertPublishedAsJavaModule()
+        def dependency = project2.parsedIvy.expectDependency("org.gradle.test:project1:1.0")
+        dependency.exclusions.size() == 1
+        dependency.exclusions[0].org == 'commons-logging'
+        dependency.exclusions[0].module == 'commons-logging'
+    }
 
     private void createBuildScripts(String append = "") {
         settingsFile << """
