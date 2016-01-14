@@ -54,7 +54,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
         standardError.toString().findAll(ERR).size() == 1
 
         // isn't empty if version < 2.8
-        if (isCompatibleVersion('2.8')) {
+        if (isCompatibleVersion('2.8') && !crossVersion) {
             assert stdStreams.stdOut.empty
             assert stdStreams.stdErr.empty
         }

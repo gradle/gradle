@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.artifacts.component.*;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -38,7 +35,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString());
+            return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
@@ -64,13 +61,14 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             encoder.writeByte(Implementation.LIBRARY.getId());
             encoder.writeString(libraryComponentSelector.getProjectPath());
             encoder.writeNullableString(libraryComponentSelector.getLibraryName());
+            encoder.writeNullableString(libraryComponentSelector.getVariant());
         } else {
             throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }
     }
 
     private static enum Implementation {
-        MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3);
+        MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3), BINARY((byte) 4);
 
         private final byte id;
 

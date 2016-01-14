@@ -16,6 +16,17 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+
+import java.util.regex.Pattern
+
+import static org.gradle.internal.filewatch.ChangeReporter.SHOW_INDIVIDUAL_CHANGES_LIMIT
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.junit.Assert.assertThat
+
 // Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
@@ -66,18 +77,18 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
 
         when:
         succeeds("d")
-        (1..3).each { file("$changingInput/input${it}.txt").text = 'New input file' }
+        (1..SHOW_INDIVIDUAL_CHANGES_LIMIT).each { file("$changingInput/input${it}.txt").text = 'New input file' }
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..3).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
+        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
 
         where:
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    def "should report the absolute file path of the first 3 changes and report the number of other changes when more that 3 files are added to the input directory of each task"(changingInput) {
+    def "should report the absolute file path of the first SHOW_INDIVIDUAL_CHANGES_LIMIT changes and report the number of other changes when more that 3 files are added to the input directory of each task"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -88,12 +99,31 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..3).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
+        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
 
         where:
         changingInput << ['a', 'b', 'c', 'd']
     }
 
+    private void assertOutputContainsRegexp(ExecutionResult result, String... patternParts) {
+        assertOutputContainsRegexp(result, Pattern.compile(normaliseLineSeparators(patternParts.join(''))))
+    }
+
+    private void assertOutputContainsRegexp(ExecutionResult result, Pattern pattern) {
+        assertThat("Output doesn't match pattern", result.getOutput(), matchesRegexpFind(pattern));
+    }
+
+    private static Matcher matchesRegexpFind(final Pattern pattern) {
+        return new BaseMatcher() {
+            public boolean matches(Object o) {
+                return pattern.matcher((CharSequence) o).find();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("a CharSequence that contains regexp ").appendValue(pattern);
+            }
+        };
+    }
 
     def "should report the changes when files are removed"(changingInput, changesCount) {
         given:
@@ -109,12 +139,12 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d',it)}.txt").absolutePath }.join('\n') +
-            (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
-            '\nChange detected, executing build...')
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d', it)}.txt").absolutePath }.join('\n')),
+            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
+            '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, 3, 11]].combinations()
+        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
     }
 
     def "should report the changes when files are modified"(changingInput, changesCount) {
@@ -131,12 +161,12 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'modified: ' + file("$changingInput/input${String.format('%02d',it)}.txt").absolutePath }.join('\n') +
-            (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
-            '\nChange detected, executing build...')
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'modified: ' + file("$changingInput/input${String.format('%02d', it)}.txt").absolutePath }.join('\n')),
+            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
+            '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, 3, 11]].combinations()
+        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
     }
 
     def "should report the changes when directories are added"(changingInput, changesCount) {
@@ -152,12 +182,12 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'new directory: ' + file("$changingInput/input${String.format('%02d',it)}Directory").absolutePath }.join('\n') +
-            (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
-            '\nChange detected, executing build...')
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'new directory: ' + file("$changingInput/input${String.format('%02d', it)}Directory").absolutePath }.join('\n')),
+            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}) more changes" : ''),
+            '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, 3, 11]].combinations()
+        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
     }
 
 
@@ -175,12 +205,12 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d',it)}Directory").absolutePath }.join('\n') +
-            (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
-            '\nChange detected, executing build...')
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d', it)}Directory").absolutePath }.join('\n')),
+            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand ${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2} more changes" : ''),
+            '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, 3, 11]].combinations()
+        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
     }
 
 
@@ -210,6 +240,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains("\nand 33 more changes\nChange detected, executing build...")
+        assertOutputContainsRegexp(result, '\nand ', '(33|40)', ' more changes\nChange detected, executing build', Pattern.quote('...'))
     }
 }

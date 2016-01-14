@@ -17,7 +17,5 @@
 /**
  * Types for the JVM testing plugin.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.jvm.test;
-
-import org.gradle.api.Incubating;

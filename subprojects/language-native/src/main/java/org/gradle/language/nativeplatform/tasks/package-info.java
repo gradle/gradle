@@ -17,4 +17,5 @@
 /**
  * Base classes for native language compile tasks.
  */
+@org.gradle.api.Incubating
 package org.gradle.language.nativeplatform.tasks;

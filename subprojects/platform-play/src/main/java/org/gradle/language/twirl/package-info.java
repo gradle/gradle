@@ -17,4 +17,5 @@
 /**
  * Language support classes for twirl
  */
+@org.gradle.api.Incubating
 package org.gradle.language.twirl;

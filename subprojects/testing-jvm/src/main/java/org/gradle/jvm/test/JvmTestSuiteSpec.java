@@ -31,4 +31,6 @@ public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
      * The set of dependencies applicable to the entire test suite.
      */
     DependencySpecContainer getDependencies();
+
+    JvmComponentSpec getTestedComponent();
 }

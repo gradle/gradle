@@ -32,4 +32,22 @@ class IdeaLanguageLevel {
         }
         level = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK")
     }
+
+    boolean equals(o) {
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.class) {
+            return false
+        }
+        IdeaLanguageLevel that = (IdeaLanguageLevel) o
+        if (level != that.level) {
+            return false
+        }
+        return true
+    }
+
+    int hashCode() {
+        return (level != null ? level.hashCode() : 0)
+    }
 }

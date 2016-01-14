@@ -17,7 +17,5 @@
 /**
  * Component types for Ivy modules.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.ivy;
-
-import org.gradle.api.Incubating;

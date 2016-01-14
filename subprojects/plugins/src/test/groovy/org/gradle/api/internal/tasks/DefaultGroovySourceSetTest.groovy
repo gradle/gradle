@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultGroovySourceSetTest {
+
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
 

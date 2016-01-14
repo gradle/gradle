@@ -16,11 +16,13 @@
 
 package org.gradle.language.base;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.DependencySpecContainer;
 
 /**
  * A source set that can have dependencies on other Libraries.
  */
+@Incubating
 public interface DependentSourceSet extends LanguageSourceSet {
     DependencySpecContainer getDependencies();
 }

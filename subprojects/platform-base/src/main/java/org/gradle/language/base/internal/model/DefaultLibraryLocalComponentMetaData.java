@@ -35,6 +35,7 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
 
@@ -56,10 +57,14 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         Map<UsageKind, Iterable<DependencySpec>> dependencies,
         String defaultProject) {
         DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(componentId, buildDependencies);
+        addDependenciesToMetaData(dependencies, metadata, defaultProject);
+        return metadata;
+    }
+
+    private static void addDependenciesToMetaData(Map<UsageKind, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetaData metadata, String defaultProject) {
         for (Map.Entry<UsageKind, Iterable<DependencySpec>> entry : dependencies.entrySet()) {
             addDependenciesToMetadata(metadata, defaultProject, entry.getValue(), entry.getKey());
         }
-        return metadata;
     }
 
     public static DefaultLibraryLocalComponentMetaData newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, UsageKind usage, Iterable<DependencySpec> dependencies) {
@@ -105,7 +110,8 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
     private void addDependency(DependencySpec dependency, String defaultProject, String usageConfigurationName) {
         DependencyMetaData metadata = dependency instanceof ModuleDependencySpec
             ? moduleDependencyMetadata((ModuleDependencySpec) dependency, usageConfigurationName)
-            : projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject, usageConfigurationName);
+            : dependency instanceof ProjectDependencySpec ? projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject, usageConfigurationName)
+            : binaryDependencyMetadata((LibraryBinaryDependencySpec) dependency, usageConfigurationName);
         addDependency(metadata);
     }
 
@@ -124,9 +130,16 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
             projectPath = defaultProject;
         }
         String libraryName = projectDependency.getLibraryName();
-        // currently we use "null" as variant value, because there's only one variant: API
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
         DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(projectPath), nullToEmpty(libraryName), getId().getVersion());
+        return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
+    }
+
+    private DependencyMetaData binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
+        String projectPath = binarySpec.getProjectPath();
+        String libraryName = binarySpec.getLibraryName();
+        ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
+        DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(projectPath, libraryName, getId().getVersion());
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 

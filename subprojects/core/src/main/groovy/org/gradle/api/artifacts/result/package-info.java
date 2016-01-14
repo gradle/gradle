@@ -17,4 +17,5 @@
 /**
  * Classes that compose the resolution result
  */
+@org.gradle.api.Incubating
 package org.gradle.api.artifacts.result;

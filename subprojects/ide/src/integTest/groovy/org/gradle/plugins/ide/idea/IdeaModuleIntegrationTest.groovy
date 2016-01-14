@@ -566,10 +566,96 @@ dependencies {
     }
 
     @Test
+    void "global sourceCompatibility results in project language level"() {
+        // when
+        runTask "idea", "include ':child1', ':child2', ':child3'", """
+
+allprojects {
+    apply plugin:'idea'
+    apply plugin:'java'
+
+    sourceCompatibility = "1.7"
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == null
+        assert parseIml("child2/child2.iml").languageLevel == null
+        assert parseIml("child3/child3.iml").languageLevel == null
+    }
+
+    @Test
+    void "specific module languagelevel is exposed with derived language level"() {
+        runTask "idea", "include ':child1', ':child2'", """
+
+allprojects {
+    apply plugin:'idea'
+    apply plugin:'java'
+
+    sourceCompatibility = 1.6
+}
+
+configure(project(':child2')){
+    sourceCompatibility = 1.5
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == null
+        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_5"
+    }
+
+    @Test
+    void "specific module languagelevel is exposed with explicit language level"() {
+        // when
+        runTask "idea", "include ':child1', ':child2', ':child3'", """
+
+allprojects {
+    apply plugin:'idea'
+    apply plugin:'java'
+
+    sourceCompatibility = "1.6"
+}
+
+idea {
+    project {
+        languageLevel = 1.7
+    }
+}
+
+configure(project(':child2')){
+    sourceCompatibility = 1.5
+}
+
+
+configure(project(':child3')){
+    sourceCompatibility = 1.7
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == "JDK_1_6"
+        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_5"
+        assert parseIml("child3/child3.iml").languageLevel == null
+    }
+
+    @Test
+    void "module languagelevel always exposed when no idea root project found"() {
+        runTask "idea", "include ':child1', ':child2'", """
+
+subprojects {
+    apply plugin:'java'
+    apply plugin: 'idea'
+    sourceCompatibility = 1.7
+}
+"""
+        //then
+        assert parseIml("child1/child1.iml").languageLevel == "JDK_1_7"
+        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_7"
+    }
+
+    @Test
     @Issue("GRADLE-1945")
     void unresolvedDependenciesAreLogged() {
         //given
-        def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
+        def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
         module.artifact(classifier: 'sources')
         module.artifact(classifier: 'javadoc')
         module.publish()
@@ -589,11 +675,11 @@ configurations {
 }
 
 dependencies {
-    myPlusConfig group: 'myGroup', name: 'myCustomName', version: '1.0'
-    myPlusConfig group: 'myGroup', name: 'myOtherCustomName', version: '1.0'
-    myMinusConfig group: 'myGroup', name: 'myOtherCustomName', version: '1.0'
-    runtime  group: 'myGroup', name: 'myRuntimeName', version: '1.0'
-    compile  group: 'coolGroup', name: 'niceArtifact', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
 
     idea {
         module {
@@ -604,9 +690,8 @@ dependencies {
 }
 """
         String expected = """:ideaModule
-Could not resolve: myGroup:myOtherCustomName:1.0 (configuration ':myPlusConfig')
-Could not resolve: myGroup:myCustomName:1.0 (configuration ':myPlusConfig')
-Could not resolve: myGroup:myRuntimeName:1.0 (configuration ':testRuntime')
+Could not resolve: myGroup:missing-artifact:1.0
+Could not resolve: myGroup:missing-extra-artifact:1.0
 :ideaProject
 :ideaWorkspace
 :idea

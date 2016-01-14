@@ -17,6 +17,7 @@
 package org.gradle.play.plugins;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -31,6 +32,7 @@ import java.io.File;
 /**
  * Conventional locations and names for play plugins.
  */
+@Incubating
 public class PlayPluginConfigurations {
     public static final String PLATFORM_CONFIGURATION = "playPlatform";
     public static final String COMPILE_CONFIGURATION = "play";

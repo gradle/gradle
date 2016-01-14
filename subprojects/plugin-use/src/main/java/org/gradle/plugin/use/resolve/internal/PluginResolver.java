@@ -16,14 +16,12 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 /**
  * A repository of plugins.
  */
-@Incubating
 public interface PluginResolver {
 
     void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;

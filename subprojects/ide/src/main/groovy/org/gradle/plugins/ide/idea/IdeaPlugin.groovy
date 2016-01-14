@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
@@ -125,7 +126,11 @@ class IdeaPlugin extends IdePlugin {
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
-                ideaProject.conventionMapping.languageLevel = { new IdeaLanguageLevel(JavaVersion.VERSION_1_6) }
+                ideaProject.conventionMapping.languageLevel = {
+                    List<JavaVersion> allSourceLanguageLevels = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect { it.sourceCompatibility }
+                    JavaVersion ideaProjectJavaVersion = allSourceLanguageLevels.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allSourceLanguageLevels)
+                    new IdeaLanguageLevel(ideaProjectJavaVersion)
+                }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
                     project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
@@ -141,16 +146,7 @@ class IdeaPlugin extends IdePlugin {
 
     private configureForJavaPlugin(Project project) {
         project.plugins.withType(JavaPlugin) {
-            configureIdeaProjectForJava(project)
             configureIdeaModuleForJava(project)
-        }
-    }
-
-    private configureIdeaProjectForJava(Project project) {
-        if (isRoot(project)) {
-            project.idea.project.conventionMapping.languageLevel = {
-                new IdeaLanguageLevel(project.sourceCompatibility)
-            }
         }
     }
 

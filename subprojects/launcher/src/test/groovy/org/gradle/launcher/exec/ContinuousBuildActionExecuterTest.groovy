@@ -108,7 +108,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
     }
@@ -121,7 +121,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         waiter.isWatching() >> false
-        0 * waiter.wait(_)
+        0 * waiter.wait(_,_)
     }
 
     def "throws exception if last build fails in continous mode"() {
@@ -134,7 +134,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
         thrown(ReportedException)
@@ -151,9 +151,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_) >> {
-            []
-        }
+        1 * waiter.wait(_,_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -162,9 +160,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_) >> {
-            []
-        }
+        1 * waiter.wait(_,_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -172,9 +168,8 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
-            []
         }
     }
 
@@ -218,7 +213,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        waiter.wait(_) >> {
+        waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
         noExceptionThrown()
@@ -242,7 +237,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        waiter.wait(_) >> {
+        waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
         1 * sessionService.stop()

@@ -5,6 +5,7 @@ allprojects {
 }
 
 idea.project.jdkName = '1.6'
+idea.project.languageLevel = '1.6'
 
 subprojects {
     apply plugin: 'java'

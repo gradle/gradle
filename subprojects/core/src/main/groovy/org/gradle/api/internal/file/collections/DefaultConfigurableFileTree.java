@@ -39,8 +39,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
-    private PatternSet patternSet;
     private Object dir;
+    private final PatternSet patternSet;
     private final PathToFileResolver resolver;
     private final FileCopier fileCopier;
     private final DefaultTaskDependency buildDependency;

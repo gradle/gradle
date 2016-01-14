@@ -19,4 +19,5 @@
  *
  * @see org.gradle.testkit.runner.GradleRunner
  */
+@org.gradle.api.Incubating
 package org.gradle.testkit.runner;

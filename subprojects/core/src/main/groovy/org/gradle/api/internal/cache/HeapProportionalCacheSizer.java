@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.cache;
 
-public class HeapProportionalSizer {
+public class HeapProportionalCacheSizer {
     private static final int DEFAULT_SIZES_MAX_HEAP_MB = 910; // when -Xmx1024m, Runtime.maxMemory() returns about 910
     private static final int ASSUMED_USED_HEAP = 150; // assume that Gradle itself uses about 150MB heap
 
@@ -25,12 +25,12 @@ public class HeapProportionalSizer {
     private final int maxHeapMB;
     private final double sizingRatio;
 
-    public HeapProportionalSizer(int maxHeapMB) {
+    public HeapProportionalCacheSizer(int maxHeapMB) {
         this.maxHeapMB = maxHeapMB;
-        this.sizingRatio = calculateRatio();
+        this.sizingRatio = calculateRatioToDefaultAvailableHeap();
     }
 
-    public HeapProportionalSizer() {
+    public HeapProportionalCacheSizer() {
         this(calculateMaxHeapMB());
     }
 
@@ -38,15 +38,18 @@ public class HeapProportionalSizer {
         return (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
     }
 
-    private double calculateRatio() {
-        return Math.max((double) (maxHeapMB - ASSUMED_USED_HEAP) / (double) (DEFAULT_SIZES_MAX_HEAP_MB - ASSUMED_USED_HEAP), MIN_RATIO);
+    private double calculateRatioToDefaultAvailableHeap() {
+        double defaultAvailableHeapSpace = DEFAULT_SIZES_MAX_HEAP_MB - ASSUMED_USED_HEAP;
+        double availableHeapSpace = maxHeapMB - ASSUMED_USED_HEAP;
+        double ratioToDefaultAvailableHeap = availableHeapSpace / defaultAvailableHeapSpace;
+        return Math.max(ratioToDefaultAvailableHeap, MIN_RATIO);
     }
 
-    public int scaleValue(int referenceValue) {
-        return scaleValue(referenceValue, 100);
+    public int scaleCacheSize(int referenceValue) {
+        return scaleCacheSize(referenceValue, 100);
     }
 
-    public int scaleValue(int referenceValue, int granularity) {
+    private int scaleCacheSize(int referenceValue, int granularity) {
         if (referenceValue < granularity) {
             throw new IllegalArgumentException("reference value must be larger than granularity");
         }

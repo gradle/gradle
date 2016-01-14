@@ -19,7 +19,5 @@
  *
  * @since 2.7
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.authentication.http;
-
-import org.gradle.api.Incubating;

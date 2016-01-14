@@ -840,7 +840,7 @@ model {
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
-        failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JarBinarySpec")
+        failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JvmBinarySpec")
     }
 
     def "successfully selects a JVM library if no library name is provided and 2 components are available"() {

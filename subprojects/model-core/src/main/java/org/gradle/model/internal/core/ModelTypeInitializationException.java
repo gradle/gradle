@@ -23,7 +23,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
@@ -36,7 +35,6 @@ import java.util.Set;
 /**
  * Thrown when a NodeInitializer can not be found for a given type or when the type is not managed and can not be constructed.
  */
-@Incubating
 public class ModelTypeInitializationException extends GradleException {
 
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";

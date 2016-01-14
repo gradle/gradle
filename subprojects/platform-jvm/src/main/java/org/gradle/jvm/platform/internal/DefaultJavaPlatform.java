@@ -16,14 +16,12 @@
 
 package org.gradle.jvm.platform.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.platform.JavaPlatform;
 
 /**
  * Default implementation of JvmPlatform
  */
-@Incubating
 public class DefaultJavaPlatform implements JavaPlatform {
     private final String name;
     private JavaVersion targetCompatibility;

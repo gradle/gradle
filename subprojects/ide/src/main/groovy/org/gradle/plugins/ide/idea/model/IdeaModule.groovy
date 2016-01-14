@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
@@ -132,7 +134,7 @@ import org.gradle.util.ConfigureUtil
  */
 class IdeaModule {
 
-   /**
+    /**
      * Configures module name, that is the name of the *.iml file.
      * <p>
      * It's <b>optional</b> because the task should configure it correctly for you.
@@ -274,7 +276,24 @@ class IdeaModule {
     String jdkName
 
     /**
-     * See {@link #iml(Closure) }
+     * The module specific language Level to use for this module.
+     * If {@code sourceCompatibility} is different to the idea project languageLevel,
+     * the module specific language level derived from projects sourceCompatibility
+     * Otherwise return {@code null}.
+     */
+    IdeaLanguageLevel getLanguageLevel() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
+            def rootProject = project.rootProject
+            if (!rootProject.plugins.hasPlugin(IdeaPlugin) || moduleLanguageLevel != rootProject.idea.project.languageLevel) {
+                return moduleLanguageLevel;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * See {@link #iml(Closure)}
      */
     final IdeaModuleIml iml
 
@@ -300,7 +319,7 @@ class IdeaModule {
     }
 
     void setOutputFile(File newOutputFile) {
-        setName(newOutputFile.name.replaceFirst(/\.iml$/,""))
+        setName(newOutputFile.name.replaceFirst(/\.iml$/, ""))
         iml.generateTo = newOutputFile.parentFile
     }
 
@@ -352,7 +371,7 @@ class IdeaModule {
         Set<Dependency> dependencies = resolveDependencies()
 
         xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
-                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
+            getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName(), getLanguageLevel()?.level)
 
         iml.whenMerged.execute(xmlModule)
     }

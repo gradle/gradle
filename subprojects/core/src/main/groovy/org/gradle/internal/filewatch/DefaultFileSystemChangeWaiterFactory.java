@@ -16,16 +16,12 @@
 
 package org.gradle.internal.filewatch;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,7 +57,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final FileWatcher watcher;
         private final Action<Throwable> onError;
         private boolean watching;
-        private final List<FileWatcherEvent> receivedEvents = Collections.synchronizedList(new ArrayList<FileWatcherEvent>());
+        private volatile FileWatcherEventListener eventListener;
 
         private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
@@ -79,7 +75,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                     @Override
                     public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
                         if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
-                            receivedEvents.add(event);
+                            FileWatcherEventListener listener = eventListener;
+                            if (listener != null) {
+                                listener.onChange(event);
+                            }
                             signal(lock, condition, new Runnable() {
                                 @Override
                                 public void run() {
@@ -104,7 +103,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             }
         }
 
-        public List<FileWatcherEvent> wait(Runnable notifier) {
+        public void wait(Runnable notifier, FileWatcherEventListener eventListener) {
             Runnable cancellationHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -112,8 +111,9 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 }
             };
             try {
+                this.eventListener = eventListener;
                 if (cancellationToken.isCancellationRequested()) {
-                    return Collections.emptyList();
+                    return;
                 }
                 cancellationToken.addCallback(cancellationHandler);
                 notifier.run();
@@ -134,10 +134,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             } catch (Throwable e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
+                this.eventListener = null;
                 cancellationToken.removeCallback(cancellationHandler);
                 watcher.stop();
             }
-            return ImmutableList.copyOf(receivedEvents);
         }
 
         private boolean shouldKeepWaitingForQuietPeriod(long lastChangeAtValue) {

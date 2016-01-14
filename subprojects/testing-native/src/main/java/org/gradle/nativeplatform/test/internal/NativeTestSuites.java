@@ -28,10 +28,10 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 
 import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.executableFileFor;
 import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.installationDirFor;
@@ -41,11 +41,10 @@ import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.ins
  */
 public class NativeTestSuites {
 
-    public static void createNativeTestSuiteBinaries(ModelMap<NativeComponentSpec> nativeComponents,
-                                                     NativeTestSuiteSpec testSuite,
+    public static void createNativeTestSuiteBinaries(NativeTestSuiteSpec testSuite,
                                                      final Class<? extends NativeTestSuiteBinarySpec> testSuiteBinaryClass,
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
-        for (final NativeBinarySpec testedBinary : testedBinariesOf(nativeComponents, testSuite)) {
+        for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
                 // TODO:DAZ For now, we only create test suites for static library variants
                 continue;
@@ -77,18 +76,14 @@ public class NativeTestSuites {
         });
     }
 
-    public static Collection<NativeBinarySpec> testedBinariesOf(ModelMap<NativeComponentSpec> nativeComponents, NativeTestSuiteSpec testSuite) {
-        return testedBinariesWithType(nativeComponents, NativeBinarySpec.class, testSuite);
+    public static Collection<NativeBinarySpec> testedBinariesOf(NativeTestSuiteSpec testSuite) {
+        return testedBinariesWithType(NativeBinarySpec.class, testSuite);
     }
 
-    public static <S> Collection<S> testedBinariesWithType(ModelMap<NativeComponentSpec> nativeComponents, Class<S> type, NativeTestSuiteSpec testSuite) {
-        String testedComponent = testSuite.getTestedComponent();
-        if (testedComponent == null) {
-            return Collections.emptyList();
-        }
-        NativeComponentSpec spec = nativeComponents.get(testedComponent);
+    public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
+        NativeComponentSpec spec = testSuite.getTestedComponent();
         if (spec == null) {
-            throw new InvalidModelException(String.format("Component '%s' declared under test '%s' does not exist", testedComponent, testSuite.getDisplayName()));
+            throw new InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
         }
         return spec.getBinaries().withType(type).values();
     }
@@ -100,4 +95,15 @@ public class NativeTestSuites {
             .withRole("executable", true);
     }
 
+    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
+        for (final NativeComponentSpec component : components.values()) {
+            final String suiteName = String.format("%sTest", component.getName());
+            testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {
+                @Override
+                public void execute(S testSuite) {
+                    testSuite.testing(component);
+                }
+            });
+        }
+    }
 }

@@ -19,18 +19,15 @@ import com.beust.jcommander.internal.Lists;
 import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
-import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
-import org.gradle.jvm.test.internal.*;
+import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
+import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
+import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
+import org.gradle.jvm.test.internal.JvmTestSuites;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
-import org.gradle.language.java.plugins.JavaLanguagePlugin;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
@@ -72,11 +69,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class PluginRules extends RuleSource {
 
-        @Mutate
-        public void registerCompileClasspathConfigurer(LanguageTransformContainer languages, final ServiceRegistry serviceRegistry, final ModelSchemaStore schemaStore) {
-            JavaLanguagePlugin.registerPlatformJavaCompileConfig(languages, new JvmTestSuiteCompileClasspathConfig(serviceRegistry, schemaStore));
-        }
-
         @ComponentType
         public void register(ComponentTypeBuilder<JUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteSpec.class);
@@ -87,17 +79,19 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
         }
 
-        @Mutate
-        public void createTestSuiteTasks(final ModelMap<Task> tasks,
+        @Defaults
+        public void createTestSuiteTasks(
                                   final ModelMap<JUnitTestSuiteBinarySpec> binaries,
                                   final @Path("buildDir") File buildDir,
                                   final ServiceRegistry registry,
                                   final ModelSchemaStore schemaStore) {
-            for (JUnitTestSuiteBinarySpec binary : binaries) {
-                final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-                JvmTestSuites.createJvmTestSuiteTasks(tasks, binary, jvmAssembly, registry, schemaStore, buildDir);
-            }
-
+            binaries.afterEach(new Action<JUnitTestSuiteBinarySpec>() {
+                @Override
+                public void execute(JUnitTestSuiteBinarySpec binary) {
+                    final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+                    JvmTestSuites.createJvmTestSuiteTasks(binary, jvmAssembly, buildDir);
+                }
+            });
         }
 
         /**
@@ -108,11 +102,20 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                           ServiceRegistry registry,
                                           PlatformResolvers platformResolver,
                                           JUnitTestSuiteSpec testSuite,
-                                          JavaToolChainRegistry toolChains) {
+                                          JavaToolChainRegistry toolChains,
+                                          ModelSchemaStore modelSchemaStore) {
             final String jUnitVersion = testSuite.getJUnitVersion();
             final DependencySpecContainer dependencies = testSuite.getDependencies();
             addJUnitDependencyTo(dependencies, jUnitVersion);
-            JvmTestSuites.createJvmTestSuiteBinaries(testBinaries, registry, testSuite, JUnitTestSuiteBinarySpec.class, toolChains, platformResolver, new Action<JUnitTestSuiteBinarySpec>() {
+            JvmTestSuites.createJvmTestSuiteBinaries(
+                testBinaries,
+                registry,
+                testSuite,
+                JUnitTestSuiteBinarySpec.class,
+                toolChains,
+                platformResolver,
+                modelSchemaStore,
+                new Action<JUnitTestSuiteBinarySpec>() {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
                     jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
@@ -121,8 +124,13 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             });
         }
 
+        @Mutate
+        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<JUnitTestSuiteBinarySpec> binaries) {
+            JvmTestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
+        }
+
         private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {
-            ((WithDependencies) binary).setDependencies(Lists.newArrayList(dependencies.getDependencies()));
+            binary.setDependencies(Lists.newArrayList(dependencies.getDependencies()));
         }
 
         private void addJUnitDependencyTo(DependencySpecContainer dependencies, String jUnitVersion) {

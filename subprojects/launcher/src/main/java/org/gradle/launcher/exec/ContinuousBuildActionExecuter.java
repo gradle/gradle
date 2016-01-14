@@ -42,8 +42,6 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
-import java.util.List;
-
 public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
@@ -127,15 +125,15 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                         @Override
                         public void execute(BuildCancellationToken cancellationToken) {
-                            List<FileWatcherEvent> changeEvents = waiter.wait(new Runnable() {
+                            ChangeReporter reporter = new ChangeReporter();
+                            waiter.wait(new Runnable() {
                                 @Override
                                 public void run() {
                                     logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(actionParameters));
                                 }
-                            });
+                            }, reporter);
                             if (!cancellationToken.isCancellationRequested()) {
-                                ChangeReporter reporter = new ChangeReporter(logger);
-                                reporter.reportChanges(changeEvents);
+                                reporter.reportChanges(logger);
                             }
                         }
                     });

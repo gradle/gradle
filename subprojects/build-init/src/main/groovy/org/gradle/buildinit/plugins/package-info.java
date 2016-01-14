@@ -17,4 +17,5 @@
 /**
  * Build init plugins.
  */
+@org.gradle.api.Incubating
 package org.gradle.buildinit.plugins;

@@ -38,7 +38,7 @@ import java.util.Set;
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
-    protected PatternSpecFactory patternSpecFactory;
+    private final PatternSpecFactory patternSpecFactory;
 
     private final Set<String> includes = Sets.newLinkedHashSet();
     private final Set<String> excludes = Sets.newLinkedHashSet();
@@ -103,8 +103,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     protected PatternSet doCopyFrom(PatternSet from) {
-        patternSpecFactory = from.patternSpecFactory;
-
         includes.clear();
         excludes.clear();
         includeSpecs.clear();

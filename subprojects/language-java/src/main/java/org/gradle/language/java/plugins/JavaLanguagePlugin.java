@@ -17,7 +17,6 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -59,34 +58,12 @@ import static org.gradle.util.CollectionUtils.first;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
  */
+@Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
-    }
-
-    public static void registerPlatformJavaCompileConfig(LanguageTransformContainer languages, final PlatformJavaCompileConfig configurer) {
-        languages.withType(JavaLanguagePlugin.Java.class, new Action<Java>() {
-            @Override
-            public void execute(JavaLanguagePlugin.Java java) {
-                java.registerPlatformJavaCompileConfig(configurer);
-            }
-        });
-    }
-
-    /**
-     * Interface for additional configuration to be done by plugins after the Java compile
-     * task has been configured.
-     */
-    public interface PlatformJavaCompileConfig {
-        /**
-         * Configures the generated {@link PlatformJavaCompile} tasks.
-         * @param spec the binary for which this compile task has been created
-         * @param sourceSet the source set for which this compile task has been created
-         * @param javaCompile the generated compile task
-         */
-        void configureJavaCompile(BinarySpec spec, JavaSourceSet sourceSet, PlatformJavaCompile javaCompile);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -109,14 +86,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
      */
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         private final JavaSourceTransformTaskConfig config;
-        private final List<PlatformJavaCompileConfig> platformJavaConfigurers = Lists.newLinkedList();
 
         public Java(ModelSchemaStore schemaStore) {
-            this.config = new JavaSourceTransformTaskConfig(schemaStore, platformJavaConfigurers);
-        }
-
-        public void registerPlatformJavaCompileConfig(PlatformJavaCompileConfig configurer) {
-            platformJavaConfigurers.add(configurer);
+            this.config = new JavaSourceTransformTaskConfig(schemaStore);
         }
 
         public Class<JavaSourceSet> getSourceSetType() {
@@ -139,13 +111,13 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return first(assembly.getClassDirectories());
         }
 
-        private static DependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
+        private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore) {
             Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
             ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
             RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
             List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            return new DependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
+            return new SourceSetDependencyResolvingClasspath((BinarySpecInternal) binary, javaSourceSet, dependencies, dependencyResolver, schemaStore, resolutionAwareRepositories);
         }
 
         private static Iterable<DependencySpec> compileDependencies(BinarySpec binary, DependentSourceSet sourceSet) {
@@ -176,11 +148,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {
 
             private final ModelSchemaStore schemaStore;
-            private final List<PlatformJavaCompileConfig> platformJavaConfigurers;
 
-            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, List<PlatformJavaCompileConfig> platformJavaConfigurers) {
+            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore) {
                 this.schemaStore = schemaStore;
-                this.platformJavaConfigurers = platformJavaConfigurers;
             }
 
             public String getTaskPrefix() {
@@ -210,12 +180,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 
-                DependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
+                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore);
                 compile.setClasspath(classpath);
 
-                for (PlatformJavaCompileConfig configurer : platformJavaConfigurers) {
-                    configurer.configureJavaCompile(binary, javaSourceSet, compile);
-                }
             }
         }
     }

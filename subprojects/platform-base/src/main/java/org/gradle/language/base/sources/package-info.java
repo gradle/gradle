@@ -18,7 +18,5 @@
 /**
  * General purpose types for language sources support.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.language.base.sources;
-
-import org.gradle.api.Incubating;

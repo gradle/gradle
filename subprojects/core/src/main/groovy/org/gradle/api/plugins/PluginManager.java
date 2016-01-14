@@ -46,7 +46,6 @@ public interface PluginManager {
      * @param pluginId the ID of the plugin to apply
      * @since 2.3
      */
-    @Incubating
     void apply(String pluginId);
 
     /**
@@ -63,7 +62,6 @@ public interface PluginManager {
      * @param type the plugin class to apply
      * @since 2.3
      */
-    @Incubating
     void apply(Class<?> type);
 
     /**
@@ -80,7 +78,6 @@ public interface PluginManager {
      * @since 2.3
      */
     @Nullable
-    @Incubating
     AppliedPlugin findPlugin(String id);
 
     /**
@@ -90,7 +87,6 @@ public interface PluginManager {
      * @return {@code true} if the plugin has been applied
      * @since 2.3
      */
-    @Incubating
     boolean hasPlugin(String id);
 
     /**
@@ -105,7 +101,6 @@ public interface PluginManager {
      * @param action the action to execute if/when the plugin is applied
      * @since 2.3
      */
-    @Incubating
     void withPlugin(String id, Action<? super AppliedPlugin> action);
 
 }

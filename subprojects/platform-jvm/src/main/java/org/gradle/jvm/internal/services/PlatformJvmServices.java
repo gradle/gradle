@@ -27,7 +27,7 @@ import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -81,9 +81,9 @@ public class PlatformJvmServices implements PluginServiceRegistry {
             final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
             VariantsMetaData variants = ((LocalComponentResolveContext) context).getVariants();
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
-            LocalLibraryDependencyResolver<JarBinarySpec> delegate =
-                    new LocalLibraryDependencyResolver<JarBinarySpec>(
-                            JarBinarySpec.class,
+            LocalLibraryDependencyResolver<JvmBinarySpec> delegate =
+                    new LocalLibraryDependencyResolver<JvmBinarySpec>(
+                            JvmBinarySpec.class,
                             projectModelResolver,
                             registry.getAll(VariantAxisCompatibilityFactory.class),
                             variants,

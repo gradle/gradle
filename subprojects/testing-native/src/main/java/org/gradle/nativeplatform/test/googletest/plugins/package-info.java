@@ -17,4 +17,5 @@
 /**
  * Plugins for Google Test testing.
  */
+@org.gradle.api.Incubating
 package org.gradle.nativeplatform.test.googletest.plugins;

@@ -82,20 +82,20 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         succeeds ':myTestBinaryTest'
 
         then:
-        executedAndNotSkipped ':createMyUtilsJar', ':myTestBinaryTest'
+        executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
 
         when:
         succeeds ':myTestBinaryTest'
 
         then:
-        skipped ':createMyUtilsJar', ':myTestBinaryTest'
+        skipped ':myUtilsApiJar', ':myTestBinaryTest'
 
         when:
         updateUtilsLibrary()
 
         then:
         succeeds ':myTestBinaryTest'
-        executedAndNotSkipped ':createMyUtilsJar', ':myTestBinaryTest'
+        executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
     }
 
     def changeTestSource() {

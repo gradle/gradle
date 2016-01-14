@@ -119,7 +119,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#projectPath,#libraryName)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant)
         LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(projectPath2, libraryName2, variant)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 

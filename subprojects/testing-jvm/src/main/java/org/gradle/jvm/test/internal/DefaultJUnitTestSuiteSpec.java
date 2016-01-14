@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm.test.internal;
 
+import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
@@ -53,5 +54,10 @@ public class DefaultJUnitTestSuiteSpec extends BaseTestSuiteSpec implements JUni
     @Override
     protected String getTypeName() {
         return "JUnit test suite";
+    }
+
+    @Override
+    public JvmComponentSpec getTestedComponent() {
+        return (JvmComponentSpec) super.getTestedComponent();
     }
 }

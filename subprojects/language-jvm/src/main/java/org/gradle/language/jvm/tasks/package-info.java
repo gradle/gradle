@@ -17,7 +17,5 @@
 /**
  * Tasks for support for JVM languages.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.language.jvm.tasks;
-
-import org.gradle.api.Incubating;
