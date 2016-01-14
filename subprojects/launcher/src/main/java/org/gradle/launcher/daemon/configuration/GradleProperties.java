@@ -31,9 +31,11 @@ public class GradleProperties {
     public static final String CONFIGURE_ON_DEMAND_PROPERTY = "org.gradle.configureondemand";
     public static final String PARALLEL_PROPERTY = "org.gradle.parallel";
     public static final String WORKERS_PROPERTY = "org.gradle.workers.max";
+    public static final String RELAXED_TASK_NAMES_PROPERTY = "org.gradle.relaxedtasknames";
 
     public static final Set<String> ALL = newHashSet(IDLE_TIMEOUT_PROPERTY, DAEMON_BASE_DIR_PROPERTY, JVM_ARGS_PROPERTY,
-            JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY, PARALLEL_PROPERTY, WORKERS_PROPERTY);
+            JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY,
+            PARALLEL_PROPERTY, WORKERS_PROPERTY, RELAXED_TASK_NAMES_PROPERTY);
 
     public static boolean isTrue(Object propertyValue) {
         return propertyValue != null && propertyValue.toString().equalsIgnoreCase("true");

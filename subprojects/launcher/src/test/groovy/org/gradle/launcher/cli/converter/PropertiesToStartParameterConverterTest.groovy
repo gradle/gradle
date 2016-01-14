@@ -32,6 +32,7 @@ class PropertiesToStartParameterConverterTest extends Specification {
         converter.convert([(PARALLEL_PROPERTY): "false"], new StartParameter()).parallelThreadCount == 0
         converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "TRUE"], new StartParameter()).configureOnDemand
         !converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "xxx"], new StartParameter()).configureOnDemand
+        converter.convert([(RELAXED_TASK_NAMES_PROPERTY): "true"], new StartParameter()).relaxedTaskNames
     }
 
     def invalidMaxWorkersProperty() {
