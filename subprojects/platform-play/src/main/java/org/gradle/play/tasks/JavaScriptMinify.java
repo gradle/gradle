@@ -67,7 +67,6 @@ public class JavaScriptMinify extends SourceTask {
      *
      * @return The tool chain.
      */
-    @Incubating
     @Inject
     public PlayToolChain getToolChain() {
         throw new UnsupportedOperationException();

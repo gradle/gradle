@@ -163,7 +163,6 @@ public class TwirlCompile extends SourceTask {
      *
      * @return The tool chain.
      */
-    @Incubating
     @Inject
     public PlayToolChain getToolChain() {
         // Implementation is generated
@@ -175,7 +174,6 @@ public class TwirlCompile extends SourceTask {
      *
      * @param toolChain The tool chain.
      */
-    @Incubating
     public void setToolChain(PlayToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
