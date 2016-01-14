@@ -17,4 +17,5 @@
 /**
  * Classes that provide meta-data about software components.
  */
+@org.gradle.api.Incubating
 package org.gradle.api.artifacts.component;

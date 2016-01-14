@@ -17,4 +17,5 @@
 /**
  * The main interfaces and classes of the distribution plugin.
  */
+@org.gradle.api.Incubating
 package org.gradle.api.distribution;

@@ -17,4 +17,5 @@
 /**
  * Task classes used for the Play Framework support in Gradle.
  */
+@org.gradle.api.Incubating
 package org.gradle.play.tasks;

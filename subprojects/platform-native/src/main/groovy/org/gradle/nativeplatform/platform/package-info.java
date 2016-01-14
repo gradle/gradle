@@ -17,4 +17,5 @@
 /**
  * Classes that allow defining a native binary platform.
  */
+@org.gradle.api.Incubating
 package org.gradle.nativeplatform.platform;
