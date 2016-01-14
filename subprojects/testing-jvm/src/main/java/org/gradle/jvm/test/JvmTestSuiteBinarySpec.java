@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
+import org.gradle.jvm.internal.WithDependencies;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
 
@@ -29,7 +30,7 @@ import org.gradle.platform.base.test.TestSuiteBinarySpec;
  * @since 2.11
  */
 @Incubating
-public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec {
+public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySpec, WithDependencies {
 
     /**
      * Provides direct access to important build tasks of JVM test suites.

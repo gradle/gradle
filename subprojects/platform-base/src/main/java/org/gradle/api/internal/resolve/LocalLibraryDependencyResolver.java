@@ -116,7 +116,9 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
             BinarySpecInternal binary = (BinarySpecInternal) binarySpec;
             LibraryBinaryIdentifier id = binary.getId();
             if (Objects.equal(variant, id.getVariant())) {
-                LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(binary, selectorProjectPath);
+                // TODO:Cedric This is not quite right. We assume that if we are asking for a specific binary, then we resolve to the assembly instead
+                // of the jar, but it should be somehow parametrized
+                LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(binary, selectorProjectPath, true);
                 result.resolved(metaData);
             }
         }
@@ -132,7 +134,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
             result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, compatibleBinaries)));
         } else {
             BinarySpec selectedBinary = compatibleBinaries.iterator().next();
-            LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath);
+            LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, selectorProjectPath, false);
             result.resolved(metaData);
         }
     }

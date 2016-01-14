@@ -19,6 +19,7 @@ package org.gradle.jvm.test.internal;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -28,6 +29,7 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -41,6 +43,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
@@ -81,7 +84,7 @@ public class JvmTestSuites {
 
     private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(final ModelMap<BinarySpec> testBinaries,
                                                                                     Class<T> testSuiteBinaryClass,
-                                                                                    JvmTestSuiteSpec testSuite,
+                                                                                    final JvmTestSuiteSpec testSuite,
                                                                                     final JvmBinarySpec testedBinary,
                                                                                     final JavaToolChainRegistry toolChains,
                                                                                     PlatformResolvers platformResolver,
@@ -103,6 +106,7 @@ public class JvmTestSuites {
                 testBinary.setTestedBinary(testedBinary);
                 injectDependencyResolutionServices(testBinary);
                 configureAction.execute(binary);
+                configureCompileClasspath(testBinary);
             }
 
             private void injectDependencyResolutionServices(JvmTestSuiteBinarySpecInternal testBinary) {
@@ -113,6 +117,19 @@ public class JvmTestSuites {
                 testBinary.setRepositories(resolutionAwareRepositories);
                 testBinary.setModelSchemaStore(modelSchemaStore);
             }
+
+            private void configureCompileClasspath(JvmTestSuiteBinarySpecInternal testSuiteBinary) {
+                Collection<DependencySpec> dependencies = testSuiteBinary.getDependencies();
+                if (testedBinary != null) {
+                    BinarySpecInternal binary = (BinarySpecInternal) testedBinary;
+                    LibraryBinaryIdentifier id = binary.getId();
+                    dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+                    if (testedBinary instanceof JarBinarySpecInternal) {
+                        dependencies.addAll(((JarBinarySpecInternal) testedBinary).getApiDependencies());
+                    }
+                }
+            }
+
         });
     }
 

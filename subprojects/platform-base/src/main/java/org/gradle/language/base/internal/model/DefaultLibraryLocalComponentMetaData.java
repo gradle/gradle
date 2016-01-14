@@ -57,10 +57,14 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         Map<UsageKind, Iterable<DependencySpec>> dependencies,
         String defaultProject) {
         DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(componentId, buildDependencies);
+        addDependenciesToMetaData(dependencies, metadata, defaultProject);
+        return metadata;
+    }
+
+    private static void addDependenciesToMetaData(Map<UsageKind, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetaData metadata, String defaultProject) {
         for (Map.Entry<UsageKind, Iterable<DependencySpec>> entry : dependencies.entrySet()) {
             addDependenciesToMetadata(metadata, defaultProject, entry.getValue(), entry.getKey());
         }
-        return metadata;
     }
 
     public static DefaultLibraryLocalComponentMetaData newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, UsageKind usage, Iterable<DependencySpec> dependencies) {
