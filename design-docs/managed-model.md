@@ -373,8 +373,8 @@ If we take the `getCCompiler()` example above, and try to set such a property fr
             cCompiler 'clang'
             CCompiler = 'clang'
             // And both of theses statements fail:
-            cCompiler 'clang'   // Groovy: unexpected token '4.12'
-            CCompiler = 'clang' // Groovy: missing property
+            CCompiler 'clang'   // Groovy: unexpected token '4.12'
+            cCompiler = 'clang' // Groovy: No such property
         }
     }
 
