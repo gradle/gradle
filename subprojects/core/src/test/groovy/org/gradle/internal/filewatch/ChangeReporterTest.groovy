@@ -27,9 +27,10 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('/a/b/c1')), new FileWatcherEvent(CREATE, new File('/a/b/c2')), new FileWatcherEvent(CREATE, new File('/a/b/c3'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges(events)
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
         then:
         1 * logger.formatln("%s: %s", "new file", events[0].file.absolutePath)
         then:
@@ -42,17 +43,21 @@ class ChangeReporterTest extends Specification {
 
     def "should report number of additional changes when there are more than 3 changes"() {
         given:
-        def events = (1..100).collect { new FileWatcherEvent(CREATE, new File("/a/b/c${it}")) }
+        def events = (1..100).collect {
+            def file = new File("/a/b/c${it}")
+            [new FileWatcherEvent(CREATE, file), new FileWatcherEvent(MODIFY, file)]
+        }.flatten()
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges(events)
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
         then:
         1 * logger.formatln("%s: %s", "new file", events[0].file.absolutePath)
         then:
-        1 * logger.formatln("%s: %s", "new file", events[1].file.absolutePath)
-        then:
         1 * logger.formatln("%s: %s", "new file", events[2].file.absolutePath)
+        then:
+        1 * logger.formatln("%s: %s", "new file", events[4].file.absolutePath)
         then:
         1 * logger.formatln('and %d more changes', 97)
         and:
@@ -61,9 +66,9 @@ class ChangeReporterTest extends Specification {
 
     def "should not log anything when an empty list is given as input"() {
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges([])
+        changeReporter.reportChanges(logger)
         then:
         0 * logger._
     }
@@ -72,9 +77,10 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(DELETE, new File('a'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges(events)
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
         then:
         1 * logger.formatln("%s: %s", "deleted", events[0].file.absolutePath)
         and:
@@ -85,9 +91,10 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(MODIFY, new File('a'))]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges(events)
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
         then:
         1 * logger.formatln("%s: %s", "new file", events[0].file.absolutePath)
         and:
@@ -98,9 +105,10 @@ class ChangeReporterTest extends Specification {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(UNDEFINED, null), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(UNDEFINED, null)]
         def logger = Mock(StyledTextOutput)
-        def changeReporter = new ChangeReporter(logger)
+        def changeReporter = new ChangeReporter()
         when:
-        changeReporter.reportChanges(events)
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
         then:
         1 * logger.formatln("%s: %s", "new file", events[0].file.absolutePath)
         and:

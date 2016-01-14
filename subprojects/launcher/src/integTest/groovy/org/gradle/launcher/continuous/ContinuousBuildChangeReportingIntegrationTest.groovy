@@ -176,7 +176,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         def result = succeeds()
         sendEOT()
         result.assertOutputContains((1..(Math.min(3, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d',it)}Directory").absolutePath }.join('\n') +
-            (changesCount > 3 ? "\nand ${changesCount-3} more changes" : '') +
+            (changesCount > 3 ? "\nand ${(changesCount-3) * 2} more changes" : '') +
             '\nChange detected, executing build...')
 
         where:

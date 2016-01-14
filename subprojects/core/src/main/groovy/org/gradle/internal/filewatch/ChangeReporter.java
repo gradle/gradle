@@ -20,39 +20,52 @@ import com.google.common.collect.Maps;
 import org.gradle.logging.StyledTextOutput;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
-public class ChangeReporter {
+import static org.gradle.internal.filewatch.FileWatcherEvent.Type.*;
+
+public class ChangeReporter implements FileWatcherEventListener {
     public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
-    private final StyledTextOutput logger;
+    private final Map<File, FileWatcherEvent.Type> aggregatedEvents = Maps.newLinkedHashMap();
+    private int moreChangesCount;
 
-    public ChangeReporter(StyledTextOutput logger) {
-        this.logger = logger;
-    }
-
-    private void logOutput(String message, Object... objects) {
+    private void logOutput(StyledTextOutput logger, String message, Object... objects) {
         logger.formatln(message, objects);
     }
 
-    public void reportChanges(List<FileWatcherEvent> fileWatchEvents) {
-        Map<File, FileWatcherEvent.Type> aggregatedEvents = aggregateEvents(fileWatchEvents);
-        int counter = 0;
-        for (Map.Entry<File, FileWatcherEvent.Type> entry : aggregatedEvents.entrySet()) {
-            FileWatcherEvent.Type changeType = entry.getValue();
-            File file = entry.getKey();
-            counter++;
-            if (counter <= SHOW_INDIVIDUAL_CHANGES_LIMIT) {
-                showIndividualChange(file, changeType);
-            } else {
-                int moreChanges = aggregatedEvents.size() - SHOW_INDIVIDUAL_CHANGES_LIMIT;
-                logOutput("and %d more changes", moreChanges);
-                break;
-            }
+    @Override
+    public void onChange(FileWatcherEvent event) {
+        if (event.getType() == UNDEFINED) {
+            return;
+        }
+
+        File file = event.getFile();
+        FileWatcherEvent.Type existingType = aggregatedEvents.get(file);
+
+        if (existingType == event.getType()
+            || existingType == CREATE && event.getType() == MODIFY) {
+            return;
+        }
+
+        if (aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
+            aggregatedEvents.put(file, event.getType());
+        } else if (event.getType() != CREATE || event.getFile().isDirectory()) { // ignore file create events in change count calculation since creation also causes a modification event
+            moreChangesCount++;
         }
     }
 
-    private void showIndividualChange(File file, FileWatcherEvent.Type changeType) {
+    public void reportChanges(StyledTextOutput logger) {
+        for (Map.Entry<File, FileWatcherEvent.Type> entry : aggregatedEvents.entrySet()) {
+            FileWatcherEvent.Type changeType = entry.getValue();
+            File file = entry.getKey();
+            showIndividualChange(logger, file, changeType);
+        }
+        if (moreChangesCount > 0) {
+            logOutput(logger, "and %d more changes", moreChangesCount);
+        }
+    }
+
+    private void showIndividualChange(StyledTextOutput logger, File file, FileWatcherEvent.Type changeType) {
         String changeDescription;
         switch (changeType) {
             case CREATE:
@@ -65,26 +78,6 @@ public class ChangeReporter {
             default:
                 changeDescription = "modified";
         }
-        logOutput("%s: %s", changeDescription, file.getAbsolutePath());
-    }
-
-    private Map<File, FileWatcherEvent.Type> aggregateEvents(List<FileWatcherEvent> fileWatchEvents) {
-        Map<File, FileWatcherEvent.Type> aggregatedEvents = Maps.newLinkedHashMap();
-        for (FileWatcherEvent event : fileWatchEvents) {
-            if (event.getType() == FileWatcherEvent.Type.UNDEFINED) {
-                continue;
-            }
-
-            File file = event.getFile();
-            FileWatcherEvent.Type existingType = aggregatedEvents.get(file);
-
-            if (existingType == event.getType()
-                || existingType == FileWatcherEvent.Type.CREATE && event.getType() == FileWatcherEvent.Type.MODIFY) {
-                continue;
-            }
-
-            aggregatedEvents.put(file, event.getType());
-        }
-        return aggregatedEvents;
+        logOutput(logger, "%s: %s", changeDescription, file.getAbsolutePath());
     }
 }

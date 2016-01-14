@@ -33,6 +33,11 @@ import java.util.concurrent.atomic.AtomicReference
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider testDirectory
+    ChangeReporter reporter
+
+    def setup() {
+        reporter = Mock(ChangeReporter)
+    }
 
     def "can wait for filesystem change"() {
         when:
@@ -43,9 +48,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
@@ -71,9 +76,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
@@ -109,9 +114,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         start {
             try {
                 w.watch(f)
-                w.wait {
+                w.wait({
                     instant.notified
-                }
+                }, reporter)
             } catch (Exception e) {
                 instant.done
             }
@@ -142,9 +147,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
