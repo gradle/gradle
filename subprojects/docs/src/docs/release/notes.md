@@ -251,6 +251,10 @@ To tweak the name of the Java runtime to use, the name can be configured via
         }
     }
 
+### Changed return type for `EclipseProject.getJavaSourceSettings()`
+
+In Gradle 2.10, this method returned an empty Eclipse-specific subtype of `JavaSourceSettings`: `EclipseJavaSourceSettings`. This method now returns the core base type instead.
+
 ### SourceTask adds injected getPatternSetFactory method
 
 An injected getPatternSetFactory method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
