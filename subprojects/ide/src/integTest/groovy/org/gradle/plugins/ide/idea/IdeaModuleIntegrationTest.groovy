@@ -604,7 +604,7 @@ configure(project(':child2')){
     }
 
     @Test
-    void "specific module languagelevel is exposed with explicit language level"() {
+    void "use project language level when explicitly set"() {
         // when
         runTask "idea", "include ':child1', ':child2', ':child3'", """
 
@@ -631,8 +631,8 @@ configure(project(':child3')){
 }
 """
         //then
-        assert parseIml("child1/child1.iml").languageLevel == "JDK_1_6"
-        assert parseIml("child2/child2.iml").languageLevel == "JDK_1_5"
+        assert parseIml("child1/child1.iml").languageLevel == null
+        assert parseIml("child2/child2.iml").languageLevel == null
         assert parseIml("child3/child3.iml").languageLevel == null
     }
 
