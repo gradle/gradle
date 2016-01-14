@@ -17,10 +17,7 @@
 package org.gradle.language.java.plugins;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -61,6 +58,7 @@ import static org.gradle.util.CollectionUtils.first;
  * Plugin for compiling Java code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}. Registers "java"
  * language support with the {@link JavaSourceSet}.
  */
+@Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
 
     public void apply(Project project) {

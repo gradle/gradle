@@ -17,10 +17,12 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
 /**
  * Thrown when a component model is declared in an invalid way.
  */
+@Incubating
 public class InvalidModelException extends GradleException {
     public InvalidModelException(String message) {
         super(message);
