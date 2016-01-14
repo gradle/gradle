@@ -29,7 +29,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 public interface JavaSourceAware {
 
     /**
-     * Returns the settings for Java sources or {@code null} if not a Java element.
+     * Returns the settings for this element, or {@code null} if this element is not a Java element.
      *
      * @return The source settings.
      * @throws UnsupportedMethodException For Gradle versions where this method is not supported.
