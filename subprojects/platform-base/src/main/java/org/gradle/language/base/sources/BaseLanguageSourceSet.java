@@ -17,6 +17,7 @@
 package org.gradle.language.base.sources;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
@@ -31,6 +32,7 @@ import org.gradle.platform.base.ModelInstantiationException;
 /**
  * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
  */
+@Incubating
 public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private String name;
     private String fullName;
