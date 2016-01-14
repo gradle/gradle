@@ -348,6 +348,28 @@ apply plugin: "idea"
     }
 
     @Test
+    void hasDefaultProjectLanguageLevelIfNoJavaPluginApplied() {
+        //given
+        file('build.gradle') << '''
+apply plugin: "idea"
+'''
+        file('settings.gradle') << 'rootProject.name = "root"'
+
+        //when
+        executer.withTasks('idea').run()
+
+        //then
+        assertProjectLanguageLevel("root.ipr", "JDK_1_6")
+    }
+
+    void assertProjectLanguageLevel(String iprFileName, String javaVersion) {
+        def project = new XmlSlurper().parse(file(iprFileName))
+        def projectRootMngr = project.component.find { it.@name == "ProjectRootManager" }
+        assert projectRootMngr
+        assert projectRootMngr.@languageLevel == javaVersion
+    }
+
+    @Test
     void canAddProjectLibraries() {
         runTask("idea", """
 apply plugin: 'idea'
