@@ -16,10 +16,10 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
-
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
@@ -117,8 +117,19 @@ class IdeaProject {
      */
     IdeaLanguageLevel languageLevel
 
+    /**
+     * marker for tracking explicit configured languageLevel
+     */
+    private boolean explicitConfiguredLanguageLevel
+
+    @PackageScope
+    boolean getExplicitConfiguredLanguageLevel() {
+        return explicitConfiguredLanguageLevel
+    }
+
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
+        this.explicitConfiguredLanguageLevel = true
     }
 
     /**
