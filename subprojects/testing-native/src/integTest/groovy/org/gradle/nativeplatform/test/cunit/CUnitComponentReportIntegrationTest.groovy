@@ -25,7 +25,7 @@ class CUnitComponentReportIntegrationTest extends AbstractNativeComponentReportI
         buildFile << """
 plugins {
     id 'c'
-    id 'cunit'
+    id 'cunit-test-suite'
 }
 
 model {
@@ -53,7 +53,7 @@ model {
         buildFile << """
 plugins {
     id 'c'
-    id 'cunit'
+    id 'cunit-test-suite'
 }
 
 model {

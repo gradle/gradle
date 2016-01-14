@@ -148,6 +148,44 @@ specify that Java default imports should be used when compiling a Twirl source s
         }
     }
 
+### Changes to native unit testing
+
+When the CUnit plugin or the Google Test plugin is applied, test suites for components are no longer created automatically. If you a native component `hello` and that a testing plugin was applied, a corresponding `helloTest` test suite was automatically created:
+
+    plugins {
+        id 'cunit'
+    }
+
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                targetPlatform "x86"
+            }
+        }
+    }
+
+If you don't want the conventions to be automatically applied, you can opt-out and only apply the base testing plugin, in which case you are expected to provide the component under test explicitly:
+
+    plugins {
+        id 'cunit-test-suite'
+    }
+
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                targetPlatform "x86"
+            }
+        }
+
+        testSuites {
+            helloTest(CUnitTestSuiteSpec) {
+                testing $.components.hello
+            }
+        }
+    }
+
+The `cunit` plugin is built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -231,36 +269,6 @@ If you would like to have a different archive name (by default, `playBinary.zip`
 For tar files, Gradle will automatically switch to using `.tgz` or `.tbz2` when the `compression` property is changed.
 
 Previously, you could directly set the `archiveName`.  `version`, `appendix` and `classifier` are still ignored when determining the archive name.
-
-### Changes to native unit testing
-
-When the CUnit plugin or the Google Test plugin is applied, test suites for components are no longer created automatically. Before, when you had a native component `hello` and that a testing plugin was applied, a corresponding `helloTest` test suite was automatically created:
-
-    model {
-        components {
-            hello(NativeLibrarySpec) {
-                targetPlatform "x86"
-            }
-        }
-    }
-
-Now you need to create it explicitly:
-
-    model {
-        components {
-            hello(NativeLibrarySpec) {
-                targetPlatform "x86"
-            }
-        }
-
-        testSuites {
-            helloTest(CUnitTestSuiteSpec) {
-                testing $.components.hello
-            }
-        }
-    }
-
-This breaking change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
 
 ### Change to default ruleset name for PMD Plugin
 

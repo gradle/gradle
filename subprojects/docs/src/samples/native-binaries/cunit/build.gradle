@@ -1,6 +1,6 @@
 // START SNIPPET complete-example
 apply plugin: "c"
-apply plugin: "cunit"
+apply plugin: 'cunit-test-suite'
 
 model {
     flavors {

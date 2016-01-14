@@ -39,7 +39,7 @@ class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def setup() {
         buildFile << """
-apply plugin: "google-test"
+apply plugin: 'google-test-test-suite'
 
 model {
     repositories {

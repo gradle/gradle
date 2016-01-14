@@ -1,6 +1,6 @@
 // START SNIPPET complete-example
 apply plugin: "cpp"
-apply plugin: "google-test"
+apply plugin: 'google-test-test-suite'
 
 model {
     flavors {

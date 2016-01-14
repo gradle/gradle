@@ -25,7 +25,7 @@ class TestingNativeComponentReportIntegrationTest extends AbstractNativeComponen
         buildFile << """
 plugins {
     id 'cpp'
-    id 'google-test'
+    id 'google-test-test-suite'
 }
 
 model {

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.ModelMap;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
@@ -27,6 +28,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.test.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
@@ -93,4 +95,15 @@ public class NativeTestSuites {
             .withRole("executable", true);
     }
 
+    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
+        for (final NativeComponentSpec component : components.values()) {
+            final String suiteName = String.format("%sTest", component.getName());
+            testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {
+                @Override
+                public void execute(S testSuite) {
+                    testSuite.testing(component);
+                }
+            });
+        }
+    }
 }

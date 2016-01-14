@@ -38,7 +38,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         buildFile << """
-apply plugin: "cunit"
+apply plugin: 'cunit-test-suite'
 
 model {
     repositories {
