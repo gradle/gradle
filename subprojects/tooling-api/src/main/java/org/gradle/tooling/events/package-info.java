@@ -17,4 +17,5 @@
 /**
  * The interfaces and classes related to registering for event notifications and listening to dispatched events.
  */
+@org.gradle.api.Incubating
 package org.gradle.tooling.events;
