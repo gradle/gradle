@@ -311,6 +311,12 @@ Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target
 for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
 for an overview of known TestKit limitations.
 
+### File details are read eagerly when creating a `FileVisitDetails`
+
+Prior to Gradle 2.10, most implementations would delegate calls to `FileVisitDetails.getLastModified()` and `FileVisitDetails.getSize()` to the actual visited file. Gradle 2.10 introduced an optimisation where these values were read eagerly for some implementations of `FileVisitDetails` on some Java versions.
+
+In Gradle 2.11, this behaviour is consistent across all Java versions and operating systems. The values for `lastModified` and `size` are determined eagerly when visiting a File tree. This provides a more consistent, reliable API and permits Gradle to make optimizations when reading these values.
+
 ### API Classes
 
 - `Specs.or()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.union()` instead.
