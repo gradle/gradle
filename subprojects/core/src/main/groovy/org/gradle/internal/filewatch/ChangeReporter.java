@@ -47,7 +47,7 @@ public class ChangeReporter implements FileWatcherEventListener {
             return;
         }
 
-        if (aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
+        if (existingType != null || aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
             aggregatedEvents.put(file, event.getType());
         } else if (event.getType() != CREATE || event.getFile().isDirectory()) { // ignore file create events in change count calculation since creation also causes a modification event
             moreChangesCount++;

@@ -87,6 +87,26 @@ class ChangeReporterTest extends Specification {
         0 * logger._
     }
 
+    def "should update the event type of the first 3 events if it changes"() {
+        given:
+        def events = (1..100).collect {
+            def file = new File("${it}")
+            [new FileWatcherEvent(CREATE, file), new FileWatcherEvent(MODIFY, file)]
+        }.flatten()
+        events << new FileWatcherEvent(DELETE, events[0].file)
+        def logger = Mock(StyledTextOutput)
+        def changeReporter = new ChangeReporter()
+        when:
+        events.each { changeReporter.onChange(it) }
+        changeReporter.reportChanges(logger)
+        then:
+        1 * logger.formatln("%s: %s", "deleted", events[0].file.absolutePath)
+        1 * logger.formatln("%s: %s", "new file", events[2].file.absolutePath)
+        1 * logger.formatln("%s: %s", "new file", events[4].file.absolutePath)
+        1 * logger.formatln('and %d more changes', 97)
+        0 * logger._
+    }
+
     def "should report as created and ignore modification events"() {
         given:
         def events = [new FileWatcherEvent(CREATE, new File('a')), new FileWatcherEvent(MODIFY, new File('a')), new FileWatcherEvent(MODIFY, new File('a'))]
