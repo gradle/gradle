@@ -223,8 +223,12 @@ language levels for each module in a project.
 * set idea project language level to
 ** 1.6 if no idea module in the multiproject builds is a java project
 ** to the highest `sourceCompatibility` level found in any project with idea + javabase plugin applied.
-* set language level in generated `.iml` file if `project.sourceCompatibility` differs from root projects ``org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`
-** done by setting e.g. `LANGUAGE_LEVEL="JDK_1_6"`
+* introduce read only `languageLevel` property in `org.gradle.plugins.ide.idea.model.IdeaModule`
+* module specific language level derived from `project.sourceCompatibility`
+** set module specific language level if root project does not apply idea plugin
+** set module specific language level if `project.sourceCompatibility` differs from root projects ``org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`
+** set module specific language level to null if `project.sourceCompatibility` equals `org.gradle.plugins.ide.idea.model.IdeaProject.getLanguageLevel()`
+* module specific language level != null is respected in generated `*.iml` file setting `LANGUAGE_LEVEL` attribute on NewModuleRootManager elemenet (e.g. `LANGUAGE_LEVEL="JDK_1_6"`)
 
 ##### Test coverage
 
