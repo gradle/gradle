@@ -33,7 +33,7 @@ import spock.lang.Issue
 @Issue("GRADLE-3370")
 @IgnoreIf({GradleContextualExecuter.parallel})
 // these tests are always parallel
-class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {\
+class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     private static final int MAX_PARALLEL_COMPILERS = 4
     def compileTasks = []
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
