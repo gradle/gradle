@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.Incubating;
 
 import java.io.Serializable;
 
@@ -25,7 +24,6 @@ import java.io.Serializable;
  * Represents an identifier containing a tuple of namespace and name for use when
  * consuming/producing namespaced elements in descriptors.
  */
-@Incubating
 public class NamespaceId implements Serializable {
     private String namespace;
     private String name;
