@@ -221,7 +221,9 @@ published modules to change. If consuming projects depend on the excluded depend
 
 Gradle uses the Apache HttpComponents HttpClient library internally for features like dependency resolution and publication. This library has been updated
 from version 4.2.2 to 4.4.1. As part of this upgrade, certain system properties are no longer taken into account when creating clients used for resolving and
-publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored. For more information
+publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored.
+
+For more information regarding changes introduced in HttpClient 4.4.1 please 
 see the HttpClient [release notes](http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.4.x.txt).
 
 ### Scala plugin no longer adds 'scalaConsole' tasks
