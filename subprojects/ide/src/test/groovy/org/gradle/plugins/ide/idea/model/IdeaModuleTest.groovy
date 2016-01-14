@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.idea
+package org.gradle.plugins.ide.idea.model
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
