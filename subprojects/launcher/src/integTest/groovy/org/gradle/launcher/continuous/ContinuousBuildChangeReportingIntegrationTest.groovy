@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -28,6 +29,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 import static org.junit.Assert.assertThat
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
+@Ignore
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
         buildFile << """
