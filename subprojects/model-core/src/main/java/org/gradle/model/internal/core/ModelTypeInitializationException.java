@@ -36,7 +36,6 @@ import java.util.Set;
 /**
  * Thrown when a NodeInitializer can not be found for a given type or when the type is not managed and can not be constructed.
  */
-@Incubating
 public class ModelTypeInitializationException extends GradleException {
 
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
