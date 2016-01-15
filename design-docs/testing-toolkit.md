@@ -637,7 +637,7 @@ have to be published instead.
     dependencies {
         compile gradleApi()
         compile gradleTestKit()
-        compile «fat TAPI jar for the same Gradle version"
+        compile <fat TAPI jar for the same Gradle version>
     }
 
 * The Gradle runtime always uses the relocated external dependencies bundled with their corresponding JARs.
