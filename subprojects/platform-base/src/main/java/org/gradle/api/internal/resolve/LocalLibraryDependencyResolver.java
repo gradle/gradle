@@ -98,9 +98,9 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         ComponentSpec selectedLibrary = resolutionResult.getSelectedLibrary();
         if (selectedLibrary != null) {
             if (variant == null) {
-                selectBinaryVariant(result, selectedLibrary, selector, selectorProjectPath, libraryName);
+                selectMatchingVariant(result, selectedLibrary, selector, selectorProjectPath, libraryName);
             } else {
-                selectSpecificVariant(result, selectedLibrary, selectorProjectPath, variant);
+                selectExplicitlyProvidedVariant(result, selectedLibrary, selectorProjectPath, variant);
             }
         }
         if (!result.hasResult()) {
@@ -110,7 +110,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         }
     }
 
-    private void selectSpecificVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, String selectorProjectPath, String variant) {
+    private void selectExplicitlyProvidedVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, String selectorProjectPath, String variant) {
         Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
         for (BinarySpec binarySpec : allBinaries) {
             BinarySpecInternal binary = (BinarySpecInternal) binarySpec;
@@ -124,7 +124,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         }
     }
 
-    private void selectBinaryVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, LibraryComponentSelector selector, String selectorProjectPath, String libraryName) {
+    private void selectMatchingVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, LibraryComponentSelector selector, String selectorProjectPath, String libraryName) {
         Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
         Collection<? extends BinarySpec> compatibleBinaries = matcher.filterBinaries(variantsMetaData, allBinaries);
         if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
