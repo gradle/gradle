@@ -31,7 +31,7 @@ Declaring a standalone test suite can be done like this:
     model {
         testSuites {
             mySuite(JUnitTestSuiteSpec) {
-                junitVersion '4.12'
+                jUnitVersion '4.12'
             }
         }
     }
@@ -44,7 +44,7 @@ Whereas you can declare a test suite aimed at testing another JVM component this
         }
         testSuites {
             mySuite(JUnitTestSuiteSpec) {
-                junitVersion '4.12'
+                jUnitVersion '4.12'
                 testing $.components.myLib
             }
         }
