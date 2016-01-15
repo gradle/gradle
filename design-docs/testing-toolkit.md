@@ -652,6 +652,26 @@ have to be published instead.
 
 # Milestone 4
 
+## Story: Optimizations for cross-version compatibility tests
+
+In a previous story, support for cross-version compatibility tests have been put in place. The goal of this story to audit the existing tests and improve the test coverage.
+
+### Implementation
+
+* _Reducing the number of tests:_ We should audit the tests and try and remove ones that aren’t adding enough value. There are a lot of tests that fairly closely overlap.
+We can get the number (and build time) down by collapsing some of these tests.
+* _Improving the coverage by removing arbitrary restrictions on tests:_ A lot of tests are reading from the output, or inspecting the task list unnecessarily.
+This limits them to running with recent versions of Gradle. We should confine such tests to explicit tests for those features, so more of the tests can run on older versions.
+* _Increase test coverage of a specific Gradle versions_ used to test a scenario by removing some of the constrains explained in the previous two points.
+This work would change how we apply the range of test executions for a test class (e.g. Gradle 2.5, latest release and version under development). Instead of creation test
+executions on the class level, this needs to be done on the level of a test method. The approach would require a different implementation than `AbstractMultiTestRunner`.
+
+### Test coverage
+
+* The number of tests is reduced.
+* Optimally test execution time is shorter.
+* Specific test methods can be tested against earlier versions of Gradle.
+
 ## Story: Integration with Jacoco plugin
 
 If the user applies the Jacoco plugin, the plugin development plugin should properly configure it to allow for generation of code coverage metrics. This functionality has been
