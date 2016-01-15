@@ -168,27 +168,21 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         given:
         def inputFiles = (1..11).collect { inputDir.file("input${it}.txt") }
         inputFiles.each { it.text = 'Input file' }
-        int expectedMoreChangesCount = 7
-        if (OperatingSystem.current().isWindows()) {
-            expectedMoreChangesCount = 8
-        }
+        def newfile1 = inputDir.file("input12.txt")
+        def newfile2 = inputDir.file("input13.txt")
+        int expectedMoreChangesCount = 1
 
         when:
         succeeds("theTask")
-        inputDir.file("input12.txt").text = 'New Input file'
-        inputFiles.eachWithIndex { TestFile file, int i ->
-            if (i % 2 == 0) {
-                file.text = 'Modified file'
-            } else if (i == 1 || i == 7) {
-                file.delete()
-            }
-        }
-        inputDir.file("input13.txt").text = 'New Input file'
+        newfile1.text = 'New Input file'
+        inputFiles[2].text = 'Modified file'
+        inputFiles[7].delete()
+        newfile2.text = 'New Input file'
 
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, null, expectedMoreChangesCount)
+        assertReportsChanges(result, [new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7])], expectedMoreChangesCount)
     }
 
     @TupleConstructor
