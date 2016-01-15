@@ -610,7 +610,7 @@ The user will still need to call the method `GradlePluginClasspathLoader.getGene
 * IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
 * Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
 
-## Story:
+## Story: Isolate external dependencies used by Gradle runtime from user classpath
 
 This story continues the work that was done in milestone 2: "Test kit does not require any of the Gradle runtime". It solves the problem in a broader scope by providing fat JARs
 for TestKit, the Tooling API and Gradle API. External dependencies (required by Gradle) bundled within the fat JAR are relocated to avoid version conflicts with libraries used
