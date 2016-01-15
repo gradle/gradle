@@ -77,8 +77,6 @@ dependencies {
     void unresolvedDependenciesAreLogged() {
         //given
         def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
-        module.artifact(classifier: 'sources')
-        module.artifact(classifier: 'javadoc')
         module.publish()
 
         //when
