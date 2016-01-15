@@ -16,21 +16,17 @@
 
 package org.gradle.launcher.continuous
 
+import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.BaseMatcher
-import org.hamcrest.Description
-import org.hamcrest.Matcher
-
-import java.util.regex.Pattern
 
 import static org.gradle.internal.filewatch.ChangeReporter.SHOW_INDIVIDUAL_CHANGES_LIMIT
-import static org.gradle.util.TextUtil.normaliseLineSeparators
-import static org.junit.Assert.assertThat
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     TestFile inputDir
+    private static int LIMIT = SHOW_INDIVIDUAL_CHANGES_LIMIT
 
     def setup() {
         buildFile << """
@@ -43,155 +39,147 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
     }
 
     def "should report the absolute file path of the file added when 1 file is added to the input directory"() {
+        given:
+        def inputFile = inputDir.file("input.txt")
         when:
         succeeds("theTask")
-        inputDir.file("input.txt").text = 'New input file'
+        inputFile.text = 'New input file'
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains('new file: ' + inputDir.file("input.txt").absolutePath + '\nChange detected, executing build...')
+        assertReportsChanges(result, [new ChangeEntry('new file', inputFile)])
     }
 
     def "should report the absolute file path of the file added when 3 files are added to the input directory"() {
+        given:
+        def inputFiles = (1..LIMIT).collect { inputDir.file("input${it}.txt") }
         when:
         succeeds("theTask")
-        (1..SHOW_INDIVIDUAL_CHANGES_LIMIT).each { inputDir.file("input${it}.txt").text = 'New input file' }
+        inputFiles.each { it.text = 'New input file' }
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + inputDir.file("input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
+        assertReportsChanges(result, inputFiles.collect { new ChangeEntry('new file', it) })
     }
 
-    def "should report the absolute file path of the first SHOW_INDIVIDUAL_CHANGES_LIMIT changes and report the number of other changes when more that 3 files are added to the input directory of each task"() {
+    def "should report the absolute file path of the first 3 changes and report the number of other changes when more that 3 files are added to the input directory of each task"() {
+        given:
+        def inputFiles = (1..9).collect { inputDir.file("input${it}.txt") }
         when:
         succeeds("theTask")
-        (1..9).each { inputDir.file("input${it}.txt").text = 'New input file' }
+        inputFiles.each { it.text = 'New input file' }
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect {
-            'new file: ' + inputDir.file("input${it}.txt").absolutePath
-        }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
-    }
-
-    private void assertOutputContainsRegexp(ExecutionResult result, String... patternParts) {
-        assertOutputContainsRegexp(result, Pattern.compile(normaliseLineSeparators(patternParts.join(''))))
-    }
-
-    private void assertOutputContainsRegexp(ExecutionResult result, Pattern pattern) {
-        assertThat("Output doesn't match pattern", result.getOutput(), matchesRegexpFind(pattern));
-    }
-
-    private static Matcher matchesRegexpFind(final Pattern pattern) {
-        return new BaseMatcher() {
-            public boolean matches(Object o) {
-                return pattern.matcher((CharSequence) o).find();
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("a CharSequence that contains regexp ").appendValue(pattern);
-            }
-        };
+        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('new file', it) }, 6)
     }
 
     def "should report the changes when files are removed"(changesCount) {
         given:
-        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = "Input file" }
+        def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
+        inputFiles.each { it.text = 'New input file' }
+        def acceptedMoreChanges
+        if (changesCount > LIMIT) {
+            int expectedMoreChangesCount = changesCount - LIMIT
+            if (OperatingSystem.current().isWindows()) {
+                expectedMoreChangesCount *= 2
+            }
+            acceptedMoreChanges = [expectedMoreChangesCount, expectedMoreChangesCount + 1]
+        }
 
         when:
         succeeds("theTask")
-        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}.txt").delete() }
+        inputFiles.each { it.delete() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
-            'deleted: ' + inputDir.file("input${String.format('%02d', it)}.txt").absolutePath
-        }.join('\n')),
-            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
-            '\nChange detected, executing build', Pattern.quote('...'))
+        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('deleted', it) }, acceptedMoreChanges)
 
         where:
-        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
+        changesCount << [1, LIMIT, 11]
     }
 
     def "should report the changes when files are modified"(changesCount) {
         given:
-        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = "Input file" }
+        def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
+        inputFiles.each { it.text = 'New input file' }
+        def acceptedMoreChanges
+        if (changesCount > LIMIT) {
+            int expectedMoreChangesCount = changesCount - LIMIT
+            acceptedMoreChanges = [expectedMoreChangesCount, expectedMoreChangesCount + 1]
+        }
 
         when:
         succeeds("theTask")
-        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}.txt").text = 'File modified' }
+        inputFiles.each { it.text = 'File modified' }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
-            'modified: ' + inputDir.file("input${String.format('%02d', it)}.txt").absolutePath
-        }.join('\n')),
-            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
-            '\nChange detected, executing build', Pattern.quote('...'))
+        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('modified', it) }, acceptedMoreChanges)
 
         where:
-        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
+        changesCount << [1, LIMIT, 11]
     }
 
     def "should report the changes when directories are added"(changesCount) {
+        given:
+        def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
+        int expectedMoreChangesCount = changesCount - LIMIT
+
         when:
         succeeds("theTask")
-        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}Directory").mkdir() }
+        inputDirectories.each { it.mkdir() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
-            'new directory: ' + inputDir.file("input${String.format('%02d', it)}Directory").absolutePath
-        }.join('\n')),
-            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}) more changes" : ''),
-            '\nChange detected, executing build', Pattern.quote('...'))
+        assertReportsChanges(result, inputDirectories.take(LIMIT).collect { new ChangeEntry('new directory', it) }, expectedMoreChangesCount)
 
         where:
-        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
+        changesCount << [1, LIMIT, 11]
     }
 
 
     def "should report the changes when directories are deleted"(changesCount) {
         given:
-        (1..11).each { inputDir.file("input${String.format('%02d', it)}Directory").createDir() }
+        def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory").createDir() }
+        int expectedMoreChangesCount = (changesCount - LIMIT) * 2
 
         when:
         succeeds("theTask")
-        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}Directory").delete() }
+        inputDirectories.each { it.delete() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
-            'deleted: ' + inputDir.file("input${String.format('%02d', it)}Directory").absolutePath
-        }.join('\n')),
-            (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand ${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2} more changes" : ''),
-            '\nChange detected, executing build', Pattern.quote('...'))
+        assertReportsChanges(result, inputDirectories.take(LIMIT).collect { new ChangeEntry('deleted', it) }, expectedMoreChangesCount)
 
         where:
-        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
+        changesCount << [1, LIMIT, 11]
     }
 
 
     def "should report the changes when multiple changes are made at once"() {
         given:
-        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = 'Input file' }
+        def inputFiles = (1..11).collect { inputDir.file("input${it}.txt") }
+        inputFiles.each { it.text = 'Input file' }
+        int expectedMoreChangesCount = 7
+        if (OperatingSystem.current().isWindows()) {
+            expectedMoreChangesCount = 8
+        }
 
         when:
         succeeds("theTask")
         inputDir.file("input12.txt").text = 'New Input file'
-        (1..11).each {
-            def file = inputDir.file("input${String.format('%02d', it)}.txt")
-            if (it % 2 == 0) {
+        inputFiles.eachWithIndex { TestFile file, int i ->
+            if (i % 2 == 0) {
                 file.text = 'Modified file'
-            } else if (it == 1 || it == 7) {
+            } else if (i == 1 || i == 7) {
                 file.delete()
             }
         }
@@ -200,6 +188,58 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, '\nand ', '(6|10)', ' more changes\nChange detected, executing build', Pattern.quote('...'))
+        assertReportsChanges(result, null, expectedMoreChangesCount)
+    }
+
+    @TupleConstructor
+    static class ChangeEntry {
+        String type
+        File file
+    }
+
+    private void assertReportsChanges(ExecutionResult result, List<ChangeEntry> entries) {
+        assertReportsChanges(result, entries, null)
+    }
+
+    private void assertReportsChanges(ExecutionResult result, List<ChangeEntry> entries, Integer moreChanges) {
+        assertReportsChanges(result, entries, moreChanges > 0 ? [moreChanges] : null)
+    }
+
+    private void assertReportsChanges(ExecutionResult result, List<ChangeEntry> entries, List<Integer> acceptedMoreChanges) {
+        String changeReportOutput
+        result.output.with {
+            int pos = it.indexOf('Change detected, executing build...')
+            if (pos > -1) {
+                changeReportOutput = it.substring(0, pos)
+            }
+        }
+        assert changeReportOutput != null: 'No change report output.'
+
+        List<String> actualLines = changeReportOutput.readLines()
+        int actualMoreChanges = 0
+        (actualLines.last() =~ /and (\d+) more changes/).find { line, matchedChangeCount ->
+            actualLines.remove(actualLines.size() - 1)
+            actualMoreChanges = matchedChangeCount as int
+        }
+
+        if (entries != null) {
+            List<String> expectedLines = entries.collect { "${it.type}: ${it.file.absolutePath}".toString() }
+            assert expectedLines == actualLines
+        }
+
+        if (actualMoreChanges > 0 || acceptedMoreChanges) {
+            assert actualMoreChanges != 0: "Expecting 'more changes' line, but it wasn't found"
+            assert acceptedMoreChanges: "Not expecting a 'more changes' line"
+
+            if (acceptedMoreChanges.size() == 1) {
+                def expectedMoreChanges = acceptedMoreChanges.first()
+                assert expectedMoreChanges == actualMoreChanges
+            } else {
+                boolean moreChangesMatches = acceptedMoreChanges.any {
+                    it == actualMoreChanges
+                }
+                assert moreChangesMatches: "'more changes' doesn't match, actualMoreChanges ${actualMoreChanges} , acceptedMoreChanges ${acceptedMoreChanges}"
+            }
+        }
     }
 }
