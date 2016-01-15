@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
@@ -49,12 +51,16 @@ public class TestFiles {
         return FILE_LOOKUP.getFileResolver(baseDir);
     }
 
+    public static DirectoryFileTreeFactory directoryFileTreeFactory() {
+        return new DefaultDirectoryFileTreeFactory();
+    }
+
     public static SourceDirectorySetFactory sourceDirectorySetFactory() {
-        return new DefaultSourceDirectorySetFactory(resolver());
+        return new DefaultSourceDirectorySetFactory(resolver(), new DefaultDirectoryFileTreeFactory());
     }
 
     public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
-        return new DefaultSourceDirectorySetFactory(resolver(baseDir));
+        return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory());
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {

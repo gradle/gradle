@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.*;
@@ -96,8 +97,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
     }
 
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver) {
-        return new DefaultSourceDirectorySetFactory(fileResolver);
+    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory);
     }
 
     protected LoggingManagerInternal createLoggingManager() {
@@ -108,8 +109,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations() {
-        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class), get(FileLookup.class));
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory);
     }
 
     protected ExecActionFactory createExecActionFactory() {

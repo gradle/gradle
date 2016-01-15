@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -36,19 +37,21 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final String name;
     private final String displayName;
     private final PathToFileResolver fileResolver;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSet patterns;
     private final PatternSet filter;
 
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver) {
+    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
     }
 
-    public DefaultSourceDirectorySet(String name, FileResolver fileResolver) {
-        this(name, name, fileResolver);
+    public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this(name, name, fileResolver, directoryFileTreeFactory);
     }
 
     public String getName() {
@@ -147,7 +150,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 if (srcDir.exists() && !srcDir.isDirectory()) {
                     throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                 }
-                result.add(new DirectoryFileTree(srcDir, patterns));
+                result.add(directoryFileTreeFactory.create(srcDir, patterns));
             }
         }
         return result;

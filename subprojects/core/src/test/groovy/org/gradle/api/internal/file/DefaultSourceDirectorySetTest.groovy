@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,18 +34,12 @@ import static org.hamcrest.Matchers.equalTo
 public class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory
-    private FileResolver resolver
+    private FileResolver resolver = TestFiles.resolver(testDir)
+    private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     private DefaultSourceDirectorySet set
 
     public void setup() {
-        resolver = Mock(FileResolver) {
-            resolve(_) >> { args ->
-                def src = args[0]
-                src instanceof File ? src : new File(testDir, src as String)
-            }
-            getPatternSetFactory() >> TestFiles.getPatternSetFactory()
-        }
-        set = new DefaultSourceDirectorySet('<display-name>', resolver)
+        set = new DefaultSourceDirectorySet('<display-name>', resolver, directoryFileTreeFactory)
     }
 
     public void addsResolvedSourceDirectory() {
@@ -64,7 +59,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     }
 
     public void addsNestedDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -75,7 +70,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     }
 
     public void settingSourceDirsReplacesExistingContent() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
         nested.srcDir 'ignore me'
         set.srcDir 'ignore me as well'
         set.source nested
@@ -121,7 +116,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     }
 
     public void convertsNestedDirectorySetsToDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -135,7 +130,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     }
 
     public void removesDuplicateDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver)
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:

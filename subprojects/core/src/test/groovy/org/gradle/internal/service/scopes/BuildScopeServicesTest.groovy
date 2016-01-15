@@ -24,6 +24,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
@@ -71,6 +72,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         sessionServices.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         sessionServices.get(FileResolver) >> Stub(FileResolver)
+        sessionServices.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         sessionServices.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
         sessionServices.get(DocumentationRegistry) >> new DocumentationRegistry()
         sessionServices.get(FileLookup) >> Stub(FileLookup)

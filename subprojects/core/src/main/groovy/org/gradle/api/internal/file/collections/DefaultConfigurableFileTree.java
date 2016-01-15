@@ -44,14 +44,16 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final PathToFileResolver resolver;
     private final FileCopier fileCopier;
     private final DefaultTaskDependency buildDependency;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver, fileCopier);
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver, fileCopier, directoryFileTreeFactory);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.resolver = resolver;
         this.fileCopier = fileCopier;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
         patternSet = resolver.getPatternSetFactory().create();
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
@@ -152,7 +154,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     public void visitContents(FileCollectionResolveContext context) {
         File dir = getDir();
-        context.add(new DirectoryFileTree(dir, patternSet));
+        context.add(directoryFileTreeFactory.create(dir, patternSet));
     }
 
     @Override

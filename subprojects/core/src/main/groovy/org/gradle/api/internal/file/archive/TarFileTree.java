@@ -26,10 +26,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.file.collections.SingletonFileTree;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.hash.HashUtil;
@@ -47,13 +44,15 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private final ReadableResourceInternal resource;
     private final Chmod chmod;
     private final Stat stat;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
 
-    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, Stat stat) {
+    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, Stat stat, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
         this.stat = stat;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
         String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
@@ -63,7 +62,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public DirectoryFileTree getMirror() {
-        return new DirectoryFileTree(tmpDir);
+        return directoryFileTreeFactory.create(tmpDir);
     }
 
     public void visit(FileVisitor visitor) {

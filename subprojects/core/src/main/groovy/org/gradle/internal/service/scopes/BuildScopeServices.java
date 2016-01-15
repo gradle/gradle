@@ -31,6 +31,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -225,6 +226,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ScriptHandlerFactory.class),
             get(PluginRequestApplicator.class),
             get(FileLookup.class),
+            get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class)
         );

@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -49,6 +50,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final FileLookup fileLookup;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
@@ -60,6 +62,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
                                       FileLookup fileLookup,
+                                      DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector) {
         this.scriptCompilerFactory = scriptCompilerFactory;
@@ -68,6 +71,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.fileLookup = fileLookup;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
     }
@@ -108,6 +112,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
             services.add(FileLookup.class, fileLookup);
+            services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
 
             final ScriptTarget scriptTarget = wrap(target);
