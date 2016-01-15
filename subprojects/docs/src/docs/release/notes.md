@@ -22,21 +22,36 @@ This version of Gradle further optimizes on avoiding recompiling consuming libra
 
 This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
 
-#### Standalone JUnit test suite execution
+#### JUnit test suite execution
 
-It is now possible to declare a JUnit test suite as a software component. This incubating feature is however limited to standalone tests because the test suite doesn't yet have a component under test: it is possible to depend on a local library, but not *testing* a local library. This is the first step in providing first class support for test suites in the Java software model.
+It is now possible to declare a JUnit test suite as a software component, both as a standalone component or with a component under test.
 
-Declaring a test suite can be done like this:
+Declaring a standalone test suite can be done like this:
 
     model {
-        components {
+        testSuites {
             mySuite(JUnitTestSuiteSpec) {
                 junitVersion '4.12'
             }
         }
     }
 
-Then the suite can be executed running the `:mySuiteTest` task.
+Whereas you can declare a test suite aimed at testing another JVM component this way:
+
+    model {
+        components {
+            myLib(JvmLibrarySpec)
+        }
+        testSuites {
+            mySuite(JUnitTestSuiteSpec) {
+                junitVersion '4.12'
+                testing $.components.myLib
+            }
+        }
+    }
+
+
+Then the suite can be executed running the `:mySuiteTest` task. More information about declaring test suites can be found in the [userguide](userguide/java_software.html).
 
 ### Model rule improvements
 

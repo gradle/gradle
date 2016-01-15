@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-plugin
 plugins {
     id 'jvm-component'
     id 'java-lang'
     id 'junit-test-suite'
 }
 
+// START SNIPPET model
 model {
+    components {
+        main(JvmLibrarySpec)
+    }
     testSuites {
         test(JUnitTestSuiteSpec) {
             jUnitVersion '4.12'
+            testing $.components.main
         }
     }
 }
-// END SNIPPET use-plugin
+// END SNIPPET model
 
 repositories {
     jcenter()
 }
-
-// START SNIPPET configure-resources
-model {
-    tasks.processTestBinaryTestResources {
-        // uncomment lines
-        filter { String line ->
-            line.replaceAll('<!-- (.+?) -->', '$1')
-        }
-    }
-}
-// END SNIPPET configure-resources

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,16 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-plugin
-plugins {
-    id 'jvm-component'
-    id 'java-lang'
-    id 'junit-test-suite'
-}
+package org.gradle;
 
-model {
-    testSuites {
-        test(JUnitTestSuiteSpec) {
-            jUnitVersion '4.12'
-        }
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class SmartAppTest {
+    @Test
+    public void myTestMethod() {
+        SmartApp app = new SmartApp();
+        assertEquals(84.0d, app.smartComputation(2), 0.d);
     }
 }
-// END SNIPPET use-plugin
-
-repositories {
-    jcenter()
-}
-
-// START SNIPPET configure-resources
-model {
-    tasks.processTestBinaryTestResources {
-        // uncomment lines
-        filter { String line ->
-            line.replaceAll('<!-- (.+?) -->', '$1')
-        }
-    }
-}
-// END SNIPPET configure-resources

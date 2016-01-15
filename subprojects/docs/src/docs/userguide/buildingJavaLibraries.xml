@@ -446,9 +446,6 @@
 
     <section>
         <title>Testing Java libraries</title>
-        <note>
-            <para>This feature is currently under heavy development and will improve with each Gradle release. In particular it is not yet possible to test another component: only standalone tests are supported.</para>
-        </note>
         <section>
             <title>Standalone JUnit test suites</title>
             <para>The Java software model supports defining standalone JUnit test suites as components of the model. Standalone test suite are components that are self contained, in the sense that there is no component under test: everything being tested must belong to the test suite sources.</para>
@@ -469,6 +466,14 @@
                 <sourcefile file="build.gradle" snippet="configure-resources"/>
             </sample>
         </section>
-
+        <section>
+            <title>Testing JVM libraries with JUnit</title>
+            <para>It is likely that you will want to test another JVM component. The Java software model supports it exactly like standalone test suites, by just declaring an additional component under test:</para>
+            <sample id="testing-junit-component-under-test" dir="javaLibraryPlugin/testing-junit-component-under-test" title="Declaring a component under test">
+                <sourcefile file="build.gradle" snippet="model"/>
+                <output args="testMainJarBinaryTest" ignoreExtraLines="true" outputFile="junit-component-under-test.out"/>
+            </sample>
+            <para>Note that the syntax to choose the component under test is a reference (<literal>$.</literal>). You can select any <literal>JvmComponentSpec</literal> as the component under test. It's also worth noting that when you declare a component under test, a test suite is created for each binary of the component under test (for example, if the component under test has a Java 7 and Java 8 version, 2 different test suite binaries would be automatically created).</para>
+        </section>
     </section>
 </chapter>
