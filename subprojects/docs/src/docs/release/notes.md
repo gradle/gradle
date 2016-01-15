@@ -106,11 +106,11 @@ Example:
 
 It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
 
-    gradle init --type java-library --with spock
+    gradle init --type java-library --test-framework spock
 
 or
 
-    gradle init --type java-library --with testng
+    gradle init --type java-library --test-framework testng
 
 This feature was contributed by [Dylan Cali](https://github.com/calid).
 

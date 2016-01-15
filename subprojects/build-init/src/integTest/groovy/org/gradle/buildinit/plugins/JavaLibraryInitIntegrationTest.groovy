@@ -54,7 +54,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     def "creates sample source using spock instead of junit"() {
         when:
-        succeeds('init', '--type', 'java-library', '--with', 'spock')
+        succeeds('init', '--type', 'java-library', '--test-framework', 'spock')
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -73,7 +73,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Requires(JDK7_OR_LATER)
     def "creates sample source using testng instead of junit"() {
         when:
-        succeeds('init', '--type', 'java-library', '--with', 'testng')
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -92,7 +92,7 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
     @Requires(JDK6)
     def "prints a warning when testng is used with java 6"() {
         when:
-        succeeds('init', '--type', 'java-library', '--with', 'testng')
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
 
         then:
         result.output.contains(TESTNG_JAVA6_WARNING)

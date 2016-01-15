@@ -23,8 +23,8 @@ import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.NONE
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.NONE
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
 
 class InitBuildSpec extends Specification {
 
@@ -69,7 +69,7 @@ class InitBuildSpec extends Specification {
         supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
         projectSetupDescriptor.supports(SPOCK) >> true
         init.type = "java-library"
-        init.with = "spock"
+        init.testFramework = "spock"
 
         when:
         init.setupProjectLayout()
@@ -78,31 +78,31 @@ class InitBuildSpec extends Specification {
         1 * projectSetupDescriptor.generate(SPOCK)
     }
 
-    def "should throw exception if requested modifier is not supported"() {
+    def "should throw exception if requested test framework is not supported"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        init.with = "unknown"
+        init.testFramework = "unknown"
 
         when:
         init.setupProjectLayout()
 
         then:
         GradleException e = thrown()
-        e.message == "The requested init modifier 'unknown' is not supported."
+        e.message == "The requested test framework 'unknown' is not supported."
     }
 
-    def "should throw exception if requested modifier is not supported for the specified type"() {
+    def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
         projectSetupDescriptor.supports(SPOCK) >> false
-        init.with = "spock"
+        init.testFramework = "spock"
 
         when:
         init.setupProjectLayout()
 
         then:
         GradleException e = thrown()
-        e.message == "The requested init modifier 'spock' is not supported in 'basic' setup type"
+        e.message == "The requested test framework 'spock' is not supported in 'basic' setup type"
     }
 
     private void supportedType(String type, ProjectInitDescriptor projectSetupDescriptor) {

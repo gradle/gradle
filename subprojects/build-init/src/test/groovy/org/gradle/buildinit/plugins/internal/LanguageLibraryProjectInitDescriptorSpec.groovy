@@ -81,12 +81,12 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
-        void generate(BuildInitModifier modifier) {
+        void generate(BuildInitTestFramework testFramework) {
 
         }
 
         @Override
-        boolean supports(BuildInitModifier modifier) {
+        boolean supports(BuildInitTestFramework testFramework) {
             return false
         }
     }

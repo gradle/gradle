@@ -30,7 +30,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     }
 
     @Override
-    public void generate(BuildInitModifier modifier) {
+    public void generate(BuildInitTestFramework testFramework) {
         templateOperationBuilder.newTemplateOperation()
             .withTemplate("settings.gradle.template")
             .withTarget("settings.gradle")
@@ -40,7 +40,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     }
 
     @Override
-    public boolean supports(BuildInitModifier modifier) {
+    public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }
 }

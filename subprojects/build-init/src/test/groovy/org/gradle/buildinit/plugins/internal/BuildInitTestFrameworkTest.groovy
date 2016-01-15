@@ -19,36 +19,36 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.GradleException
 import spock.lang.Specification
 
-class BuildInitModifierTest extends Specification {
+class BuildInitTestFrameworkTest extends Specification {
 
-    def "should convert valid modifier from string"() {
+    def "should convert valid test framework from string"() {
         when:
-        def result = BuildInitModifier.fromName("spock")
+        def result = BuildInitTestFramework.fromName("spock")
 
         then:
-        result == BuildInitModifier.SPOCK
+        result == BuildInitTestFramework.SPOCK
     }
 
-    def "should convert null to none modifier"() {
+    def "should convert null to none"() {
         when:
-        def result = BuildInitModifier.fromName(null)
+        def result = BuildInitTestFramework.fromName(null)
 
         then:
-        result == BuildInitModifier.NONE
+        result == BuildInitTestFramework.NONE
     }
 
-    def "should throw exception for unknown modifier"() {
+    def "should throw exception for unknown test framework"() {
         when:
-        BuildInitModifier.fromName("unknown")
+        BuildInitTestFramework.fromName("unknown")
 
         then:
         GradleException e = thrown()
-        e.message == "The requested init modifier 'unknown' is not supported."
+        e.message == "The requested test framework 'unknown' is not supported."
     }
 
-    def "should list all supported modifiers"() {
+    def "should list all supported test frameworks"() {
         when:
-        def result = BuildInitModifier.listSupported();
+        def result = BuildInitTestFramework.listSupported();
 
         then:
         result.size() == 2

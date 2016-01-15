@@ -101,13 +101,6 @@
             If the type could not be inferred, the type “<literal>basic</literal>” will be used.
         </para>
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
-        <para>
-            Different build setup types may support different setup <firstterm>modifiers</firstterm>.  The modifier is specified by supplying a
-            <literal>--with</literal> argument value.
-            For example you can use the "<literal>spock</literal>" modifier to create a Java library
-            that uses the Spock testing framework instead of JUnit.
-            Just execute: <literal>gradle init --type java-library --with spock</literal>
-        </para>
     </section>
     <section>
         <title>Build init types</title>
@@ -169,11 +162,12 @@
                 <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
             </itemizedlist>
             <para>
-                Supported setup modifiers:
+                Alternative test framework can be specified by supplying a <literal>--test-framework</literal> argument value.
+                To use a different test framework, execute one of the following commands:
             </para>
             <itemizedlist>
-                <listitem><literal>--with spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit</listitem>
-                <listitem><literal>--with testng</literal>: Uses <ulink url="http://testng.org/doc/index.html">TestNG</ulink> for testing instead of JUnit</listitem>
+                <listitem><literal>gradle init --type java-library --test-framework spock</literal>: Uses <ulink url="http://code.google.com/p/spock/">Spock</ulink> for testing instead of JUnit</listitem>
+                <listitem><literal>gradle init --type java-library --test-framework testng</literal>: Uses <ulink url="http://testng.org/doc/index.html">TestNG</ulink> for testing instead of JUnit</listitem>
             </itemizedlist>
         </section>
         <section>

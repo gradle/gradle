@@ -22,8 +22,8 @@ import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK;
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.TESTNG;
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK;
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG;
 
 public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -39,13 +39,13 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
     }
 
     @Override
-    public void generate(BuildInitModifier modifier) {
-        if (modifier == TESTNG && JavaVersion.current().isJava6()) {
+    public void generate(BuildInitTestFramework testFramework) {
+        if (testFramework == TESTNG && JavaVersion.current().isJava6()) {
             LOGGER.warn(TESTNG_JAVA6_WARNING);
         }
-        globalSettingsDescriptor.generate(modifier);
+        globalSettingsDescriptor.generate(testFramework);
         templateOperationFactory.newTemplateOperation()
-            .withTemplate(gradleBuildTemplate(modifier))
+            .withTemplate(gradleBuildTemplate(testFramework))
             .withTarget("build.gradle")
             .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
             .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
@@ -55,11 +55,11 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
             .withBindings(GUtil.map("testngVersion", libraryVersionProvider.getVersion("testng")))
             .create().generate();
         TemplateOperation javalibraryTemplateOperation = fromClazzTemplate("javalibrary/Library.java.template", "main");
-        whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(modifier)).generate();
+        whenNoSourcesAvailable(javalibraryTemplateOperation, testTemplateOperation(testFramework)).generate();
     }
 
-    private String gradleBuildTemplate(BuildInitModifier modifier) {
-        switch (modifier) {
+    private String gradleBuildTemplate(BuildInitTestFramework testFramework) {
+        switch (testFramework) {
             case SPOCK:
                 return "javalibrary/spock-build.gradle.template";
             case TESTNG:
@@ -69,8 +69,8 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
         }
     }
 
-    private TemplateOperation testTemplateOperation(BuildInitModifier modifier) {
-        switch (modifier) {
+    private TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
+        switch (testFramework) {
             case SPOCK:
                 return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy");
             case TESTNG:
@@ -81,7 +81,7 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
     }
 
     @Override
-    public boolean supports(BuildInitModifier modifier) {
-        return modifier == SPOCK || modifier == TESTNG;
+    public boolean supports(BuildInitTestFramework testFramework) {
+        return testFramework == SPOCK || testFramework == TESTNG;
     }
 }

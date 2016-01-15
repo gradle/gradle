@@ -34,7 +34,7 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    void generate(BuildInitModifier modifier) {
+    void generate(BuildInitTestFramework testFramework) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion")
         def pom = fileResolver.resolve("pom.xml")
         try {
@@ -47,7 +47,7 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    boolean supports(BuildInitModifier modifier) {
+    boolean supports(BuildInitTestFramework testFramework) {
         return false
     }
 }

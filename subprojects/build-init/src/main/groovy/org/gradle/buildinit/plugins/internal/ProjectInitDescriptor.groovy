@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins.internal
 
 interface ProjectInitDescriptor {
 
-    void generate(BuildInitModifier modifier)
+    void generate(BuildInitTestFramework testFramework)
 
-    boolean supports(BuildInitModifier modifier)
+    boolean supports(BuildInitTestFramework testFramework)
 }
