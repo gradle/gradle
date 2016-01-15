@@ -220,3 +220,4 @@ The returned `IdeaProject` will have module names de-duplicated and binary depen
 - How will transitive dependencies be handled? The whole composite needs to be taken into account for resolution, so we can no longer delegate to the individual `ProjectConnection`s. What if the Gradle version building the composite does not match the Gradle version of one of the composed projects?
 - What if the user wants to opt out of the workspace concept for a project?
 - There might be non-Gradle projects in the workspace that conflict with names in the Gradle projects. How will we pass this information to the deduping algorithm?
+- Malformed projects now affect the whole workspace. Should we try to synchronize as much as possible or not synchronize at all if the model for one project cannot be retrieved?
