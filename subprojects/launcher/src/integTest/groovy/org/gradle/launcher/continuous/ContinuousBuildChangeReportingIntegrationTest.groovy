@@ -26,7 +26,7 @@ import static org.gradle.internal.filewatch.ChangeReporter.SHOW_INDIVIDUAL_CHANG
 // Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     TestFile inputDir
-    private static int LIMIT = SHOW_INDIVIDUAL_CHANGES_LIMIT
+    private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
 
     def setup() {
         buildFile << """
@@ -53,7 +53,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
 
     def "should report the absolute file path of the file added when 3 files are added to the input directory"() {
         given:
-        def inputFiles = (1..LIMIT).collect { inputDir.file("input${it}.txt") }
+        def inputFiles = (1..changesLimit).collect { inputDir.file("input${it}.txt") }
         when:
         succeeds("theTask")
         inputFiles.each { it.text = 'New input file' }
@@ -74,7 +74,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('new file', it) }, 6)
+        assertReportsChanges(result, inputFiles.take(changesLimit).collect { new ChangeEntry('new file', it) }, 6)
     }
 
     def "should report the changes when files are removed"(changesCount) {
@@ -82,8 +82,8 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
         inputFiles.each { it.text = 'New input file' }
         def acceptedMoreChanges
-        if (changesCount > LIMIT) {
-            int expectedMoreChangesCount = changesCount - LIMIT
+        if (changesCount > changesLimit) {
+            int expectedMoreChangesCount = changesCount - changesLimit
             if (OperatingSystem.current().isWindows()) {
                 expectedMoreChangesCount *= 2
             }
@@ -97,10 +97,10 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('deleted', it) }, acceptedMoreChanges)
+        assertReportsChanges(result, inputFiles.take(changesLimit).collect { new ChangeEntry('deleted', it) }, acceptedMoreChanges)
 
         where:
-        changesCount << [1, LIMIT, 11]
+        changesCount << [1, changesLimit, 11]
     }
 
     def "should report the changes when files are modified"(changesCount) {
@@ -108,8 +108,8 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
         inputFiles.each { it.text = 'New input file' }
         def acceptedMoreChanges
-        if (changesCount > LIMIT) {
-            int expectedMoreChangesCount = changesCount - LIMIT
+        if (changesCount > changesLimit) {
+            int expectedMoreChangesCount = changesCount - changesLimit
             acceptedMoreChanges = [expectedMoreChangesCount, expectedMoreChangesCount + 1]
         }
 
@@ -120,16 +120,16 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, inputFiles.take(LIMIT).collect { new ChangeEntry('modified', it) }, acceptedMoreChanges)
+        assertReportsChanges(result, inputFiles.take(changesLimit).collect { new ChangeEntry('modified', it) }, acceptedMoreChanges)
 
         where:
-        changesCount << [1, LIMIT, 11]
+        changesCount << [1, changesLimit, 11]
     }
 
     def "should report the changes when directories are added"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
-        int expectedMoreChangesCount = changesCount - LIMIT
+        int expectedMoreChangesCount = changesCount - changesLimit
 
         when:
         succeeds("theTask")
@@ -138,17 +138,17 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, inputDirectories.take(LIMIT).collect { new ChangeEntry('new directory', it) }, expectedMoreChangesCount)
+        assertReportsChanges(result, inputDirectories.take(changesLimit).collect { new ChangeEntry('new directory', it) }, expectedMoreChangesCount)
 
         where:
-        changesCount << [1, LIMIT, 11]
+        changesCount << [1, changesLimit, 11]
     }
 
 
     def "should report the changes when directories are deleted"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory").createDir() }
-        int expectedMoreChangesCount = (changesCount - LIMIT) * 2
+        int expectedMoreChangesCount = (changesCount - changesLimit) * 2
 
         when:
         succeeds("theTask")
@@ -157,10 +157,10 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         then:
         def result = succeeds()
         sendEOT()
-        assertReportsChanges(result, inputDirectories.take(LIMIT).collect { new ChangeEntry('deleted', it) }, expectedMoreChangesCount)
+        assertReportsChanges(result, inputDirectories.take(changesLimit).collect { new ChangeEntry('deleted', it) }, expectedMoreChangesCount)
 
         where:
-        changesCount << [1, LIMIT, 11]
+        changesCount << [1, changesLimit, 11]
     }
 
 
