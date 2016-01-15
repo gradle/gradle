@@ -17,10 +17,10 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
-import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -29,82 +29,52 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 import static org.junit.Assert.assertThat
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
-@Ignore
 class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    TestFile inputDir
+
     def setup() {
         buildFile << """
-            task a {
-              inputs.dir "a"
+            task theTask {
+              inputs.dir "inputDir"
               doLast {}
             }
-            task b {
-              dependsOn "a"
-              inputs.dir "b"
-              doLast {}
-            }
-            task c {
-              dependsOn "b"
-              inputs.dir "c"
-              doLast {}
-            }
-            task d {
-              dependsOn "c"
-              inputs.dir "d"
-              doLast {}
-            }
-
         """
+        inputDir = file("inputDir").createDir()
     }
 
-    def "should report the absolute file path of the file added when 1 file is added to the input directory of each task "(changingInput) {
-        given:
-        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
-
+    def "should report the absolute file path of the file added when 1 file is added to the input directory"() {
         when:
-        succeeds("d")
-        file("$changingInput/input.txt").text = 'New input file'
+        succeeds("theTask")
+        inputDir.file("input.txt").text = 'New input file'
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains('new file: ' + file("$changingInput/input.txt").absolutePath + '\nChange detected, executing build...')
-
-        where:
-        changingInput << ['a', 'b', 'c', 'd']
+        result.assertOutputContains('new file: ' + inputDir.file("input.txt").absolutePath + '\nChange detected, executing build...')
     }
 
-    def "should report the absolute file path of the file added when 3 files are added to the input directory of each task "(changingInput) {
-        given:
-        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
-
+    def "should report the absolute file path of the file added when 3 files are added to the input directory"() {
         when:
-        succeeds("d")
-        (1..SHOW_INDIVIDUAL_CHANGES_LIMIT).each { file("$changingInput/input${it}.txt").text = 'New input file' }
+        succeeds("theTask")
+        (1..SHOW_INDIVIDUAL_CHANGES_LIMIT).each { inputDir.file("input${it}.txt").text = 'New input file' }
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
-
-        where:
-        changingInput << ['a', 'b', 'c', 'd']
+        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + inputDir.file("input${it}.txt").absolutePath }.join('\n') + '\nChange detected, executing build...')
     }
 
-    def "should report the absolute file path of the first SHOW_INDIVIDUAL_CHANGES_LIMIT changes and report the number of other changes when more that 3 files are added to the input directory of each task"(changingInput) {
-        given:
-        ['a', 'b', 'c', 'd'].each { file(it).createDir() }
-
+    def "should report the absolute file path of the first SHOW_INDIVIDUAL_CHANGES_LIMIT changes and report the number of other changes when more that 3 files are added to the input directory of each task"() {
         when:
-        succeeds("d")
-        (1..9).each { file("$changingInput/input${it}.txt").text = 'New input file' }
+        succeeds("theTask")
+        (1..9).each { inputDir.file("input${it}.txt").text = 'New input file' }
 
         then:
         def result = succeeds()
         sendEOT()
-        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect { 'new file: ' + file("$changingInput/input${it}.txt").absolutePath }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
-
-        where:
-        changingInput << ['a', 'b', 'c', 'd']
+        result.assertOutputContains((1..SHOW_INDIVIDUAL_CHANGES_LIMIT).collect {
+            'new file: ' + inputDir.file("input${it}.txt").absolutePath
+        }.join('\n') + '\nand 6 more changes\nChange detected, executing build...')
     }
 
     private void assertOutputContainsRegexp(ExecutionResult result, String... patternParts) {
@@ -127,121 +97,109 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         };
     }
 
-    def "should report the changes when files are removed"(changingInput, changesCount) {
+    def "should report the changes when files are removed"(changesCount) {
         given:
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-            (1..11).each { dir.file("input${String.format('%02d',it)}.txt").text = "Input file" }
-        }
+        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = "Input file" }
 
         when:
-        succeeds("d")
-        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}.txt").delete() }
+        succeeds("theTask")
+        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}.txt").delete() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d', it)}.txt").absolutePath }.join('\n')),
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
+            'deleted: ' + inputDir.file("input${String.format('%02d', it)}.txt").absolutePath
+        }.join('\n')),
             (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
             '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
+        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
     }
 
-    def "should report the changes when files are modified"(changingInput, changesCount) {
+    def "should report the changes when files are modified"(changesCount) {
         given:
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-            (1..11).each { dir.file("input${String.format('%02d',it)}.txt").text = "Input file" }
-        }
+        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = "Input file" }
 
         when:
-        succeeds("d")
-        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}.txt").text = 'File modified' }
+        succeeds("theTask")
+        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}.txt").text = 'File modified' }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'modified: ' + file("$changingInput/input${String.format('%02d', it)}.txt").absolutePath }.join('\n')),
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
+            'modified: ' + inputDir.file("input${String.format('%02d', it)}.txt").absolutePath
+        }.join('\n')),
             (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT + 1}) more changes" : ''),
             '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
+        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
     }
 
-    def "should report the changes when directories are added"(changingInput, changesCount) {
-        given:
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-        }
-
+    def "should report the changes when directories are added"(changesCount) {
         when:
-        succeeds("d")
-        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}Directory").mkdir() }
+        succeeds("theTask")
+        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}Directory").mkdir() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'new directory: ' + file("$changingInput/input${String.format('%02d', it)}Directory").absolutePath }.join('\n')),
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
+            'new directory: ' + inputDir.file("input${String.format('%02d', it)}Directory").absolutePath
+        }.join('\n')),
             (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand (${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2}|${changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT}) more changes" : ''),
             '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
+        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
     }
 
 
-    def "should report the changes when directories are deleted"(changingInput, changesCount) {
+    def "should report the changes when directories are deleted"(changesCount) {
         given:
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-            (1..11).each { dir.file("input${String.format('%02d',it)}Directory").createDir() }
-        }
+        (1..11).each { inputDir.file("input${String.format('%02d', it)}Directory").createDir() }
 
         when:
-        succeeds("d")
-        (1..changesCount).each { file("$changingInput/input${String.format('%02d', it)}Directory").delete() }
+        succeeds("theTask")
+        (1..changesCount).each { inputDir.file("input${String.format('%02d', it)}Directory").delete() }
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect { 'deleted: ' + file("$changingInput/input${String.format('%02d', it)}Directory").absolutePath }.join('\n')),
+        assertOutputContainsRegexp(result, Pattern.quote((1..(Math.min(SHOW_INDIVIDUAL_CHANGES_LIMIT, changesCount))).collect {
+            'deleted: ' + inputDir.file("input${String.format('%02d', it)}Directory").absolutePath
+        }.join('\n')),
             (changesCount > SHOW_INDIVIDUAL_CHANGES_LIMIT ? "\nand ${(changesCount - SHOW_INDIVIDUAL_CHANGES_LIMIT) * 2} more changes" : ''),
             '\nChange detected, executing build', Pattern.quote('...'))
 
         where:
-        [changingInput, changesCount] << [['a', 'b', 'c', 'd'], [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]].combinations()
+        changesCount << [1, SHOW_INDIVIDUAL_CHANGES_LIMIT, 11]
     }
 
 
     def "should report the changes when multiple changes are made at once"() {
         given:
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-            (1..11).each { dir.file("input${String.format('%02d',it)}.txt").text = 'Input file' }
-        }
+        (1..11).each { inputDir.file("input${String.format('%02d', it)}.txt").text = 'Input file' }
 
         when:
-        succeeds("d")
-        ['a', 'b', 'c', 'd'].each {
-            def dir = file(it).createDir()
-            dir.file("input12.txt").text = 'New Input file'
-            (1..11).each {
-                def file = dir.file("input${String.format('%02d', it)}.txt")
-                if (it % 2 == 0) {
-                    file.text = 'Modified file'
-                } else if(it == 1 || it == 7) {
-                    file.delete()
-                }
+        succeeds("theTask")
+        inputDir.file("input12.txt").text = 'New Input file'
+        (1..11).each {
+            def file = inputDir.file("input${String.format('%02d', it)}.txt")
+            if (it % 2 == 0) {
+                file.text = 'Modified file'
+            } else if (it == 1 || it == 7) {
+                file.delete()
             }
-            dir.file("input13.txt").text = 'New Input file'
         }
+        inputDir.file("input13.txt").text = 'New Input file'
 
         then:
         def result = succeeds()
         sendEOT()
-        assertOutputContainsRegexp(result, '\nand ', '(33|40)', ' more changes\nChange detected, executing build', Pattern.quote('...'))
+        assertOutputContainsRegexp(result, '\nand ', '(6|10)', ' more changes\nChange detected, executing build', Pattern.quote('...'))
     }
 }
