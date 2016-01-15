@@ -27,6 +27,6 @@ public interface JUnitTestSuiteBinarySpec extends JvmTestSuiteBinarySpec {
     @Override
     JUnitTestSuiteSpec getTestSuite();
 
-    String getJUnitVersion();
-    void setJUnitVersion(String version);
+    String getjUnitVersion();
+    void setjUnitVersion(String version);
 }

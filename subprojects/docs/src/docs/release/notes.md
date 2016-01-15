@@ -325,6 +325,7 @@ The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. Thi
 - The `LanguageBasePlugin` no longer applies the full component model.
 - The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`.
 - The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`.
+- Property names extraction now follows the JavaBean specification and allows getters like `getcCompiler()` to produce a `cCompiler` property.
 
 ### TestKit indicates compatibility for target Gradle version
 

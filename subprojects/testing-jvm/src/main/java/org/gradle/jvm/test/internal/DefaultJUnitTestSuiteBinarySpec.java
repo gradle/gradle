@@ -74,12 +74,12 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
 
     @Override
     @Variant
-    public String getJUnitVersion() {
+    public String getjUnitVersion() {
         return junitVersion;
     }
 
     @Override
-    public void setJUnitVersion(String version) {
+    public void setjUnitVersion(String version) {
         this.junitVersion = version;
     }
 

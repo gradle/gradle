@@ -26,9 +26,9 @@ public class JUnitTestSuiteRules extends RuleSource {
 
     @Validate
     void validateJUnitVersion(JUnitTestSuiteSpec jUnitTestSuiteSpec) {
-        if (jUnitTestSuiteSpec.getJUnitVersion() == null) {
+        if (jUnitTestSuiteSpec.getjUnitVersion() == null) {
             throw new InvalidModelException(
-                String.format("Test suite '%s' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example.", jUnitTestSuiteSpec.getName()));
+                String.format("Test suite '%s' doesn't declare JUnit version. Please specify it with `jUnitVersion = '4.12'` for example.", jUnitTestSuiteSpec.getName()));
         }
     }
 }

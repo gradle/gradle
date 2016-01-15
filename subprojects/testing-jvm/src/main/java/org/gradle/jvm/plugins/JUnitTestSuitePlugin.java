@@ -105,7 +105,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                           JUnitTestSuiteSpec testSuite,
                                           JavaToolChainRegistry toolChains,
                                           ModelSchemaStore modelSchemaStore) {
-            final String jUnitVersion = testSuite.getJUnitVersion();
+            final String jUnitVersion = testSuite.getjUnitVersion();
             final DependencySpecContainer dependencies = testSuite.getDependencies();
             addJUnitDependencyTo(dependencies, jUnitVersion);
             JvmTestSuites.createJvmTestSuiteBinaries(
@@ -119,7 +119,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                 new Action<JUnitTestSuiteBinarySpec>() {
                 @Override
                 public void execute(JUnitTestSuiteBinarySpec jUnitTestSuiteBinarySpec) {
-                    jUnitTestSuiteBinarySpec.setJUnitVersion(jUnitVersion);
+                    jUnitTestSuiteBinarySpec.setjUnitVersion(jUnitVersion);
                     setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
                 }
             });

@@ -31,7 +31,7 @@ public class JUnitTestSuiteBinaryRenderer extends JvmTestSuiteBinaryRenderer<JUn
 
     @Override
     protected void renderDetails(JUnitTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        builder.item("JUnit version", binary.getJUnitVersion());
+        builder.item("JUnit version", binary.getjUnitVersion());
         super.renderDetails(binary, builder);
     }
 }

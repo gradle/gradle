@@ -16,9 +16,9 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.model.internal.type.ModelType;
 
+import java.beans.Introspector;
 import java.lang.reflect.Method;
 
 /**
@@ -58,7 +58,7 @@ public enum PropertyAccessorType {
 
     public String propertyNameFor(String methodName) {
         String methodNamePrefixRemoved = methodName.substring(prefixLength);
-        return StringUtils.uncapitalize(methodNamePrefixRemoved);
+        return Introspector.decapitalize(methodNamePrefixRemoved);
     }
 
     abstract public ModelType<?> propertyTypeFor(Method method);
@@ -113,18 +113,21 @@ public enum PropertyAccessorType {
     }
 
     private static boolean isGetGetterName(String methodName) {
-        return methodName.startsWith("get") && !"get".equals(methodName) && isNthCharUpperCase(methodName, 4);
+        return methodName.startsWith("get") && !"get".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 4);
     }
 
     private static boolean isIsGetterName(String methodName) {
-        return methodName.startsWith("is") && !"is".equals(methodName) && isNthCharUpperCase(methodName, 3);
+        return methodName.startsWith("is") && !"is".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 3);
     }
 
     public static boolean isSetterName(String methodName) {
-        return methodName.startsWith("set") && !"set".equals(methodName) && isNthCharUpperCase(methodName, 4);
+        return methodName.startsWith("set") && !"set".equals(methodName) && hasAtMostOneFirstLowerCaseCharStartingFrom(methodName, 4);
     }
 
-    private static boolean isNthCharUpperCase(String methodName, int position) {
-        return Character.isUpperCase(methodName.charAt(position - 1));
+    private static boolean hasAtMostOneFirstLowerCaseCharStartingFrom(String methodName, int position) {
+        if (Character.isUpperCase(methodName.charAt(position - 1))) {
+            return true;
+        }
+        return Character.isUpperCase(methodName.charAt(position));
     }
 }

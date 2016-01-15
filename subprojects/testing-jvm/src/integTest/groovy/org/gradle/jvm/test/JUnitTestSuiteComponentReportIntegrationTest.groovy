@@ -41,7 +41,7 @@ class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentRepo
         model {
             testSuites {
                 test(JUnitTestSuiteSpec) {
-                    JUnitVersion = 4.12
+                    jUnitVersion = 4.12
                 }
             }
         }
@@ -79,10 +79,10 @@ Binaries
 model {
     testSuites {
         unitTest(JUnitTestSuiteSpec) {
-            JUnitVersion = 4.12
+            jUnitVersion = 4.12
         }
         functionalTest(JUnitTestSuiteSpec) {
-            JUnitVersion = 4.12
+            jUnitVersion = 4.12
         }
     }
 }
@@ -142,7 +142,7 @@ Binaries
             }
             testSuites {
                 unitTest(JUnitTestSuiteSpec) {
-                    JUnitVersion = 4.12
+                    jUnitVersion = 4.12
                     testing $.components.main
                 }
             }
@@ -208,7 +208,7 @@ Binaries
             }
             testSuites {
                 unitTest(JUnitTestSuiteSpec) {
-                    JUnitVersion = 4.12
+                    jUnitVersion = 4.12
                     testing $.components.main
                 }
             }

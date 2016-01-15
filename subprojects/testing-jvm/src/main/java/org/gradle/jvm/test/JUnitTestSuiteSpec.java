@@ -24,6 +24,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JUnitTestSuiteSpec extends JvmTestSuiteSpec {
-    String getJUnitVersion();
-    void setJUnitVersion(String junitVersion);
+    String getjUnitVersion();
+    void setjUnitVersion(String junitVersion);
 }
