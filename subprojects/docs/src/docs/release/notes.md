@@ -165,7 +165,7 @@ specify that Java default imports should be used when compiling a Twirl source s
 
 ### Changes to native unit testing
 
-When the CUnit plugin or the Google Test plugin is applied, test suites for components are no longer created automatically. If you a native component `hello` and that a testing plugin was applied, a corresponding `helloTest` test suite was automatically created:
+By convention, when the CUnit plugin or the Google Test plugin is applied, test suites for components are created automatically. It means that if you have a native component `hello`, a corresponding `helloTest` test suite is automatically created:
 
     plugins {
         id 'cunit'
@@ -179,7 +179,7 @@ When the CUnit plugin or the Google Test plugin is applied, test suites for comp
         }
     }
 
-If you don't want the conventions to be automatically applied, you can opt-out and only apply the base testing plugin, in which case you are expected to provide the component under test explicitly:
+If you don't want the conventions to be automatically applied, you can opt-out and only apply the base test suite plugin, in which case you are required to provide the component under test explicitly:
 
     plugins {
         id 'cunit-test-suite'
