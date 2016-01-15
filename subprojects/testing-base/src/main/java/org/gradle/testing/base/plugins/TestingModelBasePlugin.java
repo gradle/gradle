@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.*;
 import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -67,7 +68,10 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         @Mutate
         void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<TestSuiteBinarySpec> binaries) {
             for (TestSuiteBinarySpec testBinary : binaries) {
-                checkTask.dependsOn(((TestSuiteTaskCollection)testBinary.getTasks()).getRun());
+                BinaryTasksCollection tasks = testBinary.getTasks();
+                if (tasks instanceof TestSuiteTaskCollection) {
+                    checkTask.dependsOn(((TestSuiteTaskCollection) tasks).getRun());
+                }
             }
         }
     }
