@@ -22,12 +22,12 @@ import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
-import org.gradle.buildinit.plugins.internal.BuildInitModifier
+import org.gradle.buildinit.plugins.internal.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.NONE
+import static BuildInitTestFramework.NONE
 
 /**
  * Generates a Gradle project structure.
@@ -35,7 +35,7 @@ import static org.gradle.buildinit.plugins.internal.BuildInitModifier.NONE
 @Incubating
 class InitBuild extends DefaultTask {
     private String type
-    private String with
+    private String testFramework
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
@@ -50,12 +50,12 @@ class InitBuild extends DefaultTask {
     }
 
     /**
-     * Modifier options that influence how a type of build is created
+     * Alternative test framework to be used in the generated project.
      *
-     * This property can be set via command-line option '--with'
+     * This property can be set via command-line option '--test-framework'
      */
-    String getWith() {
-        with
+    String getTestFramework() {
+        testFramework
     }
 
     ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -68,16 +68,16 @@ class InitBuild extends DefaultTask {
     @TaskAction
     void setupProjectLayout() {
         def type = getType()
-        def modifier = BuildInitModifier.fromName(getWith())
+        def testFramework = BuildInitTestFramework.fromName(getTestFramework())
         def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
             throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
         ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type)
-        if (modifier != NONE && !initDescriptor.supports(modifier)) {
-            throw new GradleException("The requested init modifier '" + modifier.getId() + "' is not supported in '" + type + "' setup type");
+        if (testFramework != NONE && !initDescriptor.supports(testFramework)) {
+            throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }
-        initDescriptor.generate(modifier)
+        initDescriptor.generate(testFramework)
     }
 
     @Option(option = "type", description = "Set type of build to create.")
@@ -90,13 +90,13 @@ class InitBuild extends DefaultTask {
         return getProjectLayoutRegistry().getSupportedTypes();
     }
 
-    @Option(option = "with", description = "Set modifiers for how a type of build is created.")
-    public void setWith(String with) {
-        this.with = with
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
+    public void setTestFramework(String with) {
+        this.testFramework = with
     }
 
-    @OptionValues("with")
-    List<String> getAvailableModifiers() {
-        return BuildInitModifier.listSupported();
+    @OptionValues("test-framework")
+    List<String> getAvailableTestFrameworks() {
+        return BuildInitTestFramework.listSupported();
     }
 }

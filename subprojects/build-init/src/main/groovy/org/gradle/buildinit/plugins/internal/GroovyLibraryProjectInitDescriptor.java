@@ -28,8 +28,8 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(BuildInitModifier modifier) {
-        globalSettingsDescriptor.generate(modifier);
+    public void generate(BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(testFramework);
         templateOperationFactory.newTemplateOperation()
             .withTemplate("groovylibrary/build.gradle.template")
             .withTarget("build.gradle")
@@ -44,7 +44,7 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public boolean supports(BuildInitModifier modifier) {
+    public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }
 }

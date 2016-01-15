@@ -27,8 +27,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(BuildInitModifier modifier) {
-        globalSettingsDescriptor.generate(modifier);
+    public void generate(BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(testFramework);
         templateOperationFactory.newTemplateOperation()
             .withTemplate("scalalibrary/build.gradle.template")
             .withTarget("build.gradle")
@@ -47,7 +47,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public boolean supports(BuildInitModifier modifier) {
+    public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }
 }

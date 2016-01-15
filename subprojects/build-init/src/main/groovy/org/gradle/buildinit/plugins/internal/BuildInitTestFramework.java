@@ -21,29 +21,29 @@ import org.gradle.api.GradleException;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum BuildInitModifier {
+public enum BuildInitTestFramework {
 
     NONE,
     SPOCK,
     TESTNG;
 
-    public static BuildInitModifier fromName(String name) {
+    public static BuildInitTestFramework fromName(String name) {
         if (name == null) {
             return NONE;
         }
-        for (BuildInitModifier modifier : values()) {
-            if (modifier.getId().equals(name)) {
-                return modifier;
+        for (BuildInitTestFramework testFramework : values()) {
+            if (testFramework.getId().equals(name)) {
+                return testFramework;
             }
         }
-        throw new GradleException("The requested init modifier '" + name + "' is not supported.");
+        throw new GradleException("The requested test framework '" + name + "' is not supported.");
     }
 
     public static List<String> listSupported() {
         List<String> result = new ArrayList<String>();
-        for (BuildInitModifier modifier : values()) {
-            if (modifier != NONE) {
-                result.add(modifier.getId());
+        for (BuildInitTestFramework testFramework : values()) {
+            if (testFramework != NONE) {
+                result.add(testFramework.getId());
             }
         }
         return result;

@@ -23,8 +23,8 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.SPOCK
-import static org.gradle.buildinit.plugins.internal.BuildInitModifier.TESTNG
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG
 import static org.gradle.buildinit.plugins.internal.BuildInitTypeIds.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
@@ -163,20 +163,20 @@ include 'child'
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
     }
 
-    def "gives decent error message when using unknown init-modifier"() {
+    def "gives decent error message when using unknown test framework"() {
         when:
-        fails('init', '--type', 'basic', '--with', 'fakemodifier')
+        fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested init modifier 'fakemodifier' is not supported.")
+        failure.assertHasCause("The requested test framework 'fake' is not supported.")
     }
 
-    def "gives decent error message when init-modifier is not supported by specific type"() {
+    def "gives decent error message when test framework is not supported by specific type"() {
         when:
-        fails('init', '--type', 'basic', '--with', 'spock')
+        fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested init modifier 'spock' is not supported in 'basic' setup type")
+        failure.assertHasCause("The requested test framework 'spock' is not supported in 'basic' setup type")
     }
 
     def "displays all build types and modifiers in help command output"() {
