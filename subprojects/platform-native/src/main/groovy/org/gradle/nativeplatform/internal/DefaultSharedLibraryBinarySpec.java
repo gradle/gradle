@@ -56,11 +56,11 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     public FileCollection getLinkFiles() {
-        return new SharedLibraryLinkOutputs();
+        return getFileCollectionFactory().create(new SharedLibraryLinkOutputs());
     }
 
     public FileCollection getRuntimeFiles() {
-        return new SharedLibraryRuntimeOutputs();
+        return getFileCollectionFactory().create(new SharedLibraryRuntimeOutputs());
     }
 
     @Override

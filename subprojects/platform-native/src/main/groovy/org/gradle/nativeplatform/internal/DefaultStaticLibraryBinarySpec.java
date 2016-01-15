@@ -53,7 +53,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     public FileCollection getLinkFiles() {
-        return new StaticLibraryLinkOutputs();
+        return getFileCollectionFactory().create(new StaticLibraryLinkOutputs());
     }
 
     public FileCollection getRuntimeFiles() {

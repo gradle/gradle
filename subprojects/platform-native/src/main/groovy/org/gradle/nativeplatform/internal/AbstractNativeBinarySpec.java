@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -65,6 +66,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private BuildType buildType;
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
+    private FileCollectionFactory fileCollectionFactory;
 
     @Override
     public String getDisplayName() {
@@ -184,6 +186,15 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    protected FileCollectionFactory getFileCollectionFactory() {
+        return fileCollectionFactory;
+    }
+
+    @Override
+    public void setFileCollectionFactory(FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override

@@ -211,10 +211,6 @@ public class GlobalScopeServices {
         return new DefaultDirectoryFileTreeFactory();
     }
 
-    SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory);
-    }
-
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);

@@ -55,6 +55,10 @@ public class TestFiles {
         return new DefaultDirectoryFileTreeFactory();
     }
 
+    public static FileCollectionFactory fileCollectionFactory() {
+        return new DefaultFileCollectionFactory();
+    }
+
     public static SourceDirectorySetFactory sourceDirectorySetFactory() {
         return new DefaultSourceDirectorySetFactory(resolver(), new DefaultDirectoryFileTreeFactory());
     }

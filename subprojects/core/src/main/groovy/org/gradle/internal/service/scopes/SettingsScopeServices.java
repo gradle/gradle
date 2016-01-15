@@ -19,10 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
-import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.plugins.*;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
@@ -42,10 +39,6 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
 
     protected FileResolver createFileResolver() {
         return new BaseDirFileResolver(get(FileSystem.class), settings.getSettingsDir(), getFactory(PatternSet.class));
-    }
-
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory);
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {

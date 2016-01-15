@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -47,6 +48,8 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     void setPlatformToolProvider(PlatformToolProvider toolProvider);
 
     void setResolver(NativeDependencyResolver resolver);
+
+    void setFileCollectionFactory(FileCollectionFactory fileCollectionFactory);
 
     File getPrimaryOutput();
 

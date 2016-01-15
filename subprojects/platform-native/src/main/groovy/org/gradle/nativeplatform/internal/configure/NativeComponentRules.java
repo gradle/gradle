@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.Defaults;
@@ -67,8 +68,9 @@ public class NativeComponentRules extends RuleSource {
     ) {
         final NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
         final NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
+        final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
 
-        createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver);
+        createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver, fileCollectionFactory);
     }
 
     static void createBinariesImpl(
@@ -77,7 +79,8 @@ public class NativeComponentRules extends RuleSource {
         Set<? extends BuildType> buildTypes,
         Set<? extends Flavor> flavors,
         NativePlatforms nativePlatforms,
-        NativeDependencyResolver nativeDependencyResolver
+        NativeDependencyResolver nativeDependencyResolver,
+        FileCollectionFactory fileCollectionFactory
     ) {
         if (!(nativeComponent instanceof TargetedNativeComponentInternal)) {
             return;
@@ -94,7 +97,8 @@ public class NativeComponentRules extends RuleSource {
                 namingScheme,
                 buildTypes,
                 flavors,
-                nativeDependencyResolver
+                nativeDependencyResolver,
+                fileCollectionFactory
             );
         }
     }
@@ -119,7 +123,8 @@ public class NativeComponentRules extends RuleSource {
         BinaryNamingScheme namingScheme,
         Set<? extends BuildType> allBuildTypes,
         Set<? extends Flavor> allFlavors,
-        NativeDependencyResolver nativeDependencyResolver
+        NativeDependencyResolver nativeDependencyResolver,
+        FileCollectionFactory fileCollectionFactory
     ) {
         Set<BuildType> targetBuildTypes = ((TargetedNativeComponentInternal) projectNativeComponent).chooseBuildTypes(allBuildTypes);
         for (BuildType buildType : targetBuildTypes) {
@@ -130,7 +135,8 @@ public class NativeComponentRules extends RuleSource {
                 buildType,
                 namingSchemeWithBuildType,
                 allFlavors,
-                nativeDependencyResolver
+                nativeDependencyResolver,
+                fileCollectionFactory
             );
         }
     }
@@ -141,7 +147,8 @@ public class NativeComponentRules extends RuleSource {
         BuildType buildType,
         BinaryNamingScheme namingScheme,
         Set<? extends Flavor> allFlavors,
-        NativeDependencyResolver nativeDependencyResolver
+        NativeDependencyResolver nativeDependencyResolver,
+        FileCollectionFactory fileCollectionFactory
     ) {
         Set<Flavor> targetFlavors = ((TargetedNativeComponentInternal) projectNativeComponent).chooseFlavors(allFlavors);
         for (Flavor flavor : targetFlavors) {
@@ -150,6 +157,7 @@ public class NativeComponentRules extends RuleSource {
                 projectNativeComponent,
                 projectNativeComponent.getBinaries().withType(NativeBinarySpec.class),
                 nativeDependencyResolver,
+                fileCollectionFactory,
                 namingSchemeWithFlavor,
                 platform,
                 buildType,

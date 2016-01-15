@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Named
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.MutableModelNode
@@ -73,7 +74,7 @@ class NativeComponentRulesTest extends Specification {
 
     def "does not use variant dimension names for single valued dimensions"() {
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [platformRequirement]
@@ -86,7 +87,7 @@ class NativeComponentRulesTest extends Specification {
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [platformRequirement]
@@ -103,7 +104,7 @@ class NativeComponentRulesTest extends Specification {
         def platform2 = createStub(NativePlatformInternal, "platform2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1"), requirement("platform2")]
@@ -123,7 +124,7 @@ class NativeComponentRulesTest extends Specification {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType, buildType2].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType, buildType2].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1")]
@@ -140,7 +141,7 @@ class NativeComponentRulesTest extends Specification {
         final Flavor flavor2 = createStub(Flavor, "flavor2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor, flavor2].toSet(), nativePlatforms, nativeDependencyResolver)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor, flavor2].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1")]
