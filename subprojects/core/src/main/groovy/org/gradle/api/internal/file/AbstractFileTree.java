@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.collections.FilteredFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -27,7 +26,10 @@ import org.gradle.internal.Cast;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
@@ -116,7 +118,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         visit(visitor);
     }
 
-    private static class FilteredFileTreeImpl extends AbstractFileTree implements FilteredFileTree {
+    private static class FilteredFileTreeImpl extends AbstractFileTree {
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
 
@@ -162,11 +164,5 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public void visitTreeOrBackingFile(FileVisitor visitor) {
             fileTree.visitTreeOrBackingFile(visitor);
         }
-
-        @Override
-        public Spec<FileTreeElement> getFilter() {
-            return spec;
-        }
     }
-
 }
