@@ -19,12 +19,14 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
-import org.gradle.model.*;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
@@ -34,7 +36,6 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinariesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.testing.base.internal.TestSuites;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -90,11 +91,5 @@ public class GoogleTestPlugin implements Plugin<Project> {
                                                  final ITaskFactory taskFactory) {
             createNativeTestSuiteBinaries(binaries, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
-
-        @Mutate
-        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<GoogleTestTestSuiteBinarySpec> binaries) {
-            TestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
-        }
-   }
-
+    }
 }

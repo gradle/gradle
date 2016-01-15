@@ -19,16 +19,17 @@ package org.gradle.testing.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.test.TestSuiteBinarySpec;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.testing.base.TestSuiteTaskCollection;
 import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 
 /**
@@ -61,6 +62,13 @@ public class TestingModelBasePlugin implements Plugin<Project> {
                     binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
+        }
+    }
+
+    @Mutate
+    void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<TestSuiteBinarySpec> binaries) {
+        for (TestSuiteBinarySpec testBinary : binaries) {
+            checkTask.dependsOn(((TestSuiteTaskCollection)testBinary.getTasks()).getRun());
         }
     }
 }

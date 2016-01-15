@@ -16,7 +16,10 @@
 package org.gradle.jvm.plugins;
 
 import com.beust.jcommander.internal.Lists;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
@@ -27,12 +30,14 @@ import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
 import org.gradle.jvm.test.internal.JvmTestSuites;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.PlatformResolvers;
-import org.gradle.testing.base.internal.TestSuites;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 import javax.inject.Inject;
@@ -123,11 +128,6 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                     setDependenciesOf(jUnitTestSuiteBinarySpec, dependencies);
                 }
             });
-        }
-
-        @Mutate
-        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<JUnitTestSuiteBinarySpec> binaries) {
-            TestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
         }
 
         private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {

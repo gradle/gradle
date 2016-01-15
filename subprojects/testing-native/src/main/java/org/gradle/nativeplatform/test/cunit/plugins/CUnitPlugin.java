@@ -16,7 +16,10 @@
 
 package org.gradle.nativeplatform.test.cunit.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,7 +36,6 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinariesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.testing.base.internal.TestSuites;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -122,11 +124,6 @@ public class CUnitPlugin implements Plugin<Project> {
                                             final ServiceRegistry serviceRegistry,
                                             final ITaskFactory taskFactory) {
             createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
-        }
-
-        @Mutate
-        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<CUnitTestSuiteBinarySpec> binaries) {
-            TestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
         }
     }
 
