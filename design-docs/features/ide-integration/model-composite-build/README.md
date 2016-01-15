@@ -80,6 +80,7 @@ On completion of this story, it will be possible to convert Buildship to use thi
 - The only model type that can be requested for a `CompositeBuild` is `EclipseWorkspace`
     - On request for an `EclipseWorkspace`, the `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects for the Gradle build.
     - The instance of `EclipseWorkspace` will be constructed directly by the `CompositeBuild` instance, by traversing the hierarchy of the `EclipseProject` obtained.
+    - the `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display then in a hierarchical layout
     - A delegating implementation of `ModelBuilder` will be required
 
 ##### Test cases
@@ -92,15 +93,15 @@ By switching to use the new `EclipseWorkspace` model from the Tooling API, Build
 
 ##### API
 
-The API for this story is unchanged.
+The `ToolingClient` will be expanded to provide methods for managing and querying a composite.
 
 ##### Implementation
 
-TBD
+ The `ModelRepository` (the abstraction that Buildship works with) will use the new methods on the `ToolingClient`to ask for the `EclipseWorkspace` instead of asking for individual `EclipseProject`s. Buildship itself can remain completely unchanged as a result.
 
 ##### Test cases
 
-TBD
+For this story, the user facing behavior should remain the same, so the existing test cases of Buildship will be enough.
 
 ### Story - Tooling API provides EclipseProject model for a composite containing multiple Gradle builds
 
@@ -138,11 +139,18 @@ If implemented correctly, the development of project name deduplication and proj
 
 ##### Implementation
 
-TBD
+The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of a new `CompositeModelRepository` which queries the composite returned by the `ToolingClient`. Buildship will announce the addition and removal of root projects to the `CompositeModelRepository`
+
+Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is swapping the names of two projects (A->B, B->A). This might be solved by assigning temporary names to all projects before the synchronization.
 
 ##### Test cases
 
-TBD
+- adding two projects to the workspace -> both are part of the composite afterwards
+- removing a project from the workspace -> no longer contained in the composite
+- renaming a project in Gradle (e.g. in settings.gradle) -> the project is renamed in Eclipse
+- refreshing/adding/removing a project -> all other projects are refreshed as well
+- trying to rename a project that is physically contained in the workspace location -> inform the user that this is not possible.
+- swapping the names of two projects in Gradle -> the corresponding Eclipse projects swap names
 
 ### Story - `EclipseWorkspace` model for a composite does not include duplicate eclipse project names
 
@@ -154,7 +162,8 @@ Individual projects in a composite might have the same project name. This story 
 - Gradle core implements a similar algorithm for the IDE plugins. This implementation will be reused. The current implementation would have to be refactored and moved to an internal package in the tooling-api subproject. The de-duplication implementation should use Tooling API's HierarchicalElement interface to access the name and hierarchy of projects. The ide subproject already depends on tooling-api and it's easy to adapt the current code to use the HierarchicalElement interface in de-duplication so that the implementation can be shared.
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current ModuleNameDeduper implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider rewriting the implementation.
-  
+- Ideally, project names remain stable, i.e. deduping renames newly added projects in favor of renaming previously imported projects
+
 ##### Test cases
 
 - If the names of all imported projects are unique, de-duping doesn't have to kick in.
@@ -186,7 +195,6 @@ The algorithm for which projects will substitute in for which external dependenc
     - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
     - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a composite.
-
 More TBD
 
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
@@ -209,5 +217,5 @@ The returned `IdeaProject` will have module names de-duplicated and binary depen
 ## Open issues
 
 - Out-of-scope for this feature would be the ability to run builds using the composite definition from the IDE or the command-line.
-the command-line.
-
+- How will transitive dependencies be handled? The whole composite needs to be taken into account for resolution, so we can no longer delegate to the individual `ProjectConnection`s. What if the Gradle version building the composite does not match the Gradle version of one of the composed projects?
+- What if the user wants to opt out of the workspace concept for a project?
