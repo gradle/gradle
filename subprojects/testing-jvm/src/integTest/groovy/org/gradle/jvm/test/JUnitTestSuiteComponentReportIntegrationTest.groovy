@@ -188,7 +188,7 @@ Binaries
         run using task: :unitTestMainJarBinaryTest
         target platform: $currentJava
         JUnit version: 4.12
-        binary under test: Test suite 'unitTest:mainJarBinary'
+        binary under test: Jar 'main:jar'
         tool chain: $currentJdk
         classes dir: build/classes/unitTest/mainJarBinary
         resources dir: build/resources/unitTest/mainJarBinary
@@ -262,7 +262,7 @@ Binaries
         run using task: :unitTestMainJava6JarBinaryTest
         target platform: Java SE 6
         JUnit version: 4.12
-        binary under test: Test suite 'unitTest:mainJava6JarBinary'
+        binary under test: Jar 'main:java6Jar'
         tool chain: $currentJdk
         classes dir: build/classes/unitTest/mainJava6JarBinary
         resources dir: build/resources/unitTest/mainJava6JarBinary
@@ -271,7 +271,7 @@ Binaries
         run using task: :unitTestMainJava7JarBinaryTest
         target platform: Java SE 7
         JUnit version: 4.12
-        binary under test: Test suite 'unitTest:mainJava7JarBinary'
+        binary under test: Jar 'main:java7Jar'
         tool chain: $currentJdk
         classes dir: build/classes/unitTest/mainJava7JarBinary
         resources dir: build/resources/unitTest/mainJava7JarBinary

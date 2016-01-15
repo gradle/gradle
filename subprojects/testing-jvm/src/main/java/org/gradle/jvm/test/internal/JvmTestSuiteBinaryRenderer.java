@@ -37,7 +37,7 @@ public abstract class JvmTestSuiteBinaryRenderer<T extends JvmTestSuiteBinarySpe
     @Override
     protected void renderDetails(T binary, TextReportBuilder builder) {
         if (binary.getTestedBinary() != null) {
-            builder.item("binary under test", binary.getDisplayName());
+            builder.item("binary under test", binary.getTestedBinary().getDisplayName());
         }
         super.renderDetails(binary, builder);
     }
