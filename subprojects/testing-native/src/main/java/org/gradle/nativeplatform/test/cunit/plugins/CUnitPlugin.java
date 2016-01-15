@@ -16,28 +16,24 @@
 
 package org.gradle.nativeplatform.test.cunit.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.*;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
-import org.gradle.nativeplatform.test.internal.NativeTestSuitesRules;
+import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinariesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.testing.base.internal.TestSuites;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,7 +56,7 @@ public class CUnitPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CLangPlugin.class);
-        NativeTestSuitesRules.apply(modelRegistry, CUnitTestSuiteSpec.class);
+        NativeTestSuiteBinariesRules.apply(modelRegistry, CUnitTestSuiteBinarySpec.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -120,9 +116,17 @@ public class CUnitPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries, ModelMap<NativeComponentSpec> nativeComponents, CUnitTestSuiteSpec testSuite, @Path("buildDir") final File buildDir,
-                                            LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries,
+                                            CUnitTestSuiteSpec testSuite,
+                                            @Path("buildDir") final File buildDir,
+                                            final ServiceRegistry serviceRegistry,
+                                            final ITaskFactory taskFactory) {
+            createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+        }
+
+        @Mutate
+        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<CUnitTestSuiteBinarySpec> binaries) {
+            TestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
         }
     }
 

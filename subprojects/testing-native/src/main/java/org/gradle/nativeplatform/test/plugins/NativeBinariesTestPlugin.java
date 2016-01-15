@@ -16,25 +16,21 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
-import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 /**
@@ -57,8 +53,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void attachTestedBinarySourcesToTestBinaries(ModelMap<BinarySpec> binaries) {
-            binaries.withType(NativeTestSuiteBinarySpecInternal.class).afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
+        void attachTestedBinarySourcesToTestBinaries(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
+            binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
                 @Override
                 public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
                     BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
@@ -66,38 +62,6 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                         testSource.lib(testedBinary.getInputs());
                     }
                     testSuiteBinary.getInputs().addAll(testedBinary.getInputs());
-                }
-            });
-        }
-
-        @Mutate
-        public void createTestTasks(final TaskContainer tasks, ModelMap<NativeTestSuiteBinarySpec> binaries) {
-            for (NativeTestSuiteBinarySpec testBinary : binaries) {
-                NativeBinarySpecInternal binary = (NativeBinarySpecInternal) testBinary;
-                final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-
-                RunTestExecutable runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable.class);
-                final Project project = runTask.getProject();
-                runTask.setDescription(String.format("Runs the %s", binary));
-
-                final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
-                runTask.getInputs().files(installTask.getOutputs().getFiles());
-                runTask.setExecutable(installTask.getRunScript().getPath());
-                runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
-
-                testBinary.getTasks().add(runTask);
-            }
-        }
-
-        @Mutate
-        void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final ModelMap<NativeTestSuiteBinarySpec> binaries) {
-            // TODO - binaries aren't an input to this rule, they're an input to the action
-            tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
-                @Override
-                public void execute(Task checkTask) {
-                    for (NativeTestSuiteBinarySpec testBinary : binaries) {
-                        checkTask.dependsOn(testBinary.getTasks().getRun());
-                    }
                 }
             });
         }

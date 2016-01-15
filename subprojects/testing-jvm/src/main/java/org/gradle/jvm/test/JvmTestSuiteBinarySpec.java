@@ -21,8 +21,8 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.WithDependencies;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
+import org.gradle.testing.base.TestSuiteTaskCollection;
 
 /**
  * Base type of JVM test suite binaries.
@@ -35,8 +35,8 @@ public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySp
     /**
      * Provides direct access to important build tasks of JVM test suites.
      */
-    interface JvmTestSuiteTasks extends BinaryTasksCollection {
-        Test getTest();
+    interface JvmTestSuiteTasks extends TestSuiteTaskCollection {
+        Test getRun();
     }
 
     @Override

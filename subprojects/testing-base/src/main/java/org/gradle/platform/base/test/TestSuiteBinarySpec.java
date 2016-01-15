@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,16 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.BinarySpec;
 
 /**
- * A component representing a suite of tests that will be executed together.
+ * A binary which runs a suite of tests.
  */
 @Incubating
-public interface TestSuiteSpec extends ComponentSpec {
+public interface TestSuiteBinarySpec extends BinarySpec {
     /**
-     * The tested component.
+     * Returns the test suite that this binary belongs to.
      */
-    ComponentSpec getTestedComponent();
+    TestSuiteSpec getTestSuite();
 
-    /**
-     * Sets the tested component. The name of this method is not a regular
-     * setter just because of DSL.
-     * @param testedComponent the component under test
-     */
-    void testing(ComponentSpec testedComponent);
 }

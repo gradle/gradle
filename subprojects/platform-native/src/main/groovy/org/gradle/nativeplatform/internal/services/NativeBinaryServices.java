@@ -21,7 +21,6 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolverServices;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
@@ -32,7 +31,6 @@ public class NativeBinaryServices implements PluginServiceRegistry {
         registration.add(SharedLibraryBinaryRenderer.class);
         registration.add(StaticLibraryBinaryRenderer.class);
         registration.add(NativeExecutableBinaryRenderer.class);
-        registration.add(NativeTestSuiteBinaryRenderer.class);
         registration.add(NativePlatforms.class);
         registration.add(NativePlatformResolver.class);
     }

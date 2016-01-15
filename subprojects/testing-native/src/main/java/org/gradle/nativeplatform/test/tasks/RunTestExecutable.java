@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativeplatform.test.tasks;
 
-package org.gradle.nativeplatform.test.tasks
-import org.gradle.api.GradleException
-import org.gradle.api.Incubating
-import org.gradle.api.tasks.AbstractExecTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.ParallelizableTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.logging.ConsoleRenderer
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.*;
+import org.gradle.logging.ConsoleRenderer;
+
+import java.io.File;
+
 /**
  * Runs a compiled and installed test executable.
  */
@@ -30,19 +29,18 @@ import org.gradle.logging.ConsoleRenderer
 @SuppressWarnings("unchecked")
 @ParallelizableTask
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
-    public RunTestExecutable() {
-        super(RunTestExecutable.class);
-    }
-
     /**
      * The directory where the results should be generated.
      */
-    @OutputDirectory File outputDir
-
+    private File outputDir;
     /**
      * Should the build continue if a test fails, or should the build break?
      */
-    @Input boolean ignoreFailures
+    private boolean ignoreFailures;
+
+    public RunTestExecutable() {
+        super(RunTestExecutable.class);
+    }
 
     @TaskAction
     @Override
@@ -56,6 +54,7 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
         } catch (Exception e) {
             handleTestFailures(e);
         }
+
     }
 
     private void handleTestFailures(Exception e) {
@@ -68,5 +67,29 @@ public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> {
         } else {
             throw new GradleException(message, e);
         }
+
     }
+
+    @OutputDirectory
+    public File getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
+    }
+
+    @Input
+    public boolean getIgnoreFailures() {
+        return ignoreFailures;
+    }
+
+    public boolean isIgnoreFailures() {
+        return ignoreFailures;
+    }
+
+    public void setIgnoreFailures(boolean ignoreFailures) {
+        this.ignoreFailures = ignoreFailures;
+    }
+
 }

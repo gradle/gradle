@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.NativeInstallationSpec;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.test.TestSuiteBinarySpec;
+import org.gradle.testing.base.TestSuiteTaskCollection;
 
 import java.io.File;
 
@@ -35,7 +35,7 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     /**
      * Provides access to key tasks used for building the binary.
      */
-    interface TasksCollection extends BinaryTasksCollection {
+    interface TasksCollection extends TestSuiteTaskCollection {
         /**
          * The link task.
          */
@@ -46,10 +46,6 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
          */
         Task getInstall();
 
-        /**
-         * The run task.
-         */
-        Task getRun();
     }
 
     /**

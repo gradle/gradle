@@ -160,7 +160,7 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
         }
 
         @Override
-        public Test getTest() {
+        public Test getRun() {
             return findSingleTaskWithType(Test.class);
         }
 

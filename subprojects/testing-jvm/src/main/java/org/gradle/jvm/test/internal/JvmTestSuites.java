@@ -18,7 +18,6 @@ package org.gradle.jvm.test.internal;
 
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -161,12 +160,6 @@ public class JvmTestSuites {
     public static <S> Collection<S> testedBinariesWithType(Class<S> type, JvmTestSuiteSpec testSuite) {
         JvmComponentSpec spec = testSuite.getTestedComponent();
         return spec.getBinaries().withType(type).values();
-    }
-
-    public static void attachBinariesToCheckLifecycle(Task checkTask, ModelMap<? extends JvmTestSuiteBinarySpec> binaries) {
-        for (JvmTestSuiteBinarySpec testBinary : binaries) {
-            checkTask.dependsOn(testBinary.getTasks().getTest());
-        }
     }
 
     private static BinaryNamingScheme namingSchemeFor(JvmTestSuiteSpec testSuiteSpec, JvmBinarySpec testedBinary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {

@@ -32,6 +32,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.testing.base.internal.TestSuites;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 import javax.inject.Inject;
@@ -126,7 +127,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @Mutate
         void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<JUnitTestSuiteBinarySpec> binaries) {
-            JvmTestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
+            TestSuites.attachBinariesToCheckLifecycle(checkTask, binaries);
         }
 
         private void setDependenciesOf(JUnitTestSuiteBinarySpec binary, DependencySpecContainer dependencies) {
