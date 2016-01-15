@@ -174,11 +174,13 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir()));
         if (javaPluginConvention != null) {
-            JavaVersion moduleSourceLanguageLevel = javaPluginConvention.getSourceCompatibility();
+            final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
+            JavaVersion moduleSourceLanguageLevel = ideaModuleLanguageLevel == null
+                ? projectSourceLanguageLevel
+                : convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
             JavaVersion moduleTargetLanguageLevel = javaPluginConvention.getTargetCompatibility();
-            boolean sourceLanguageLevelInherited = projectSourceLanguageLevel.equals(moduleSourceLanguageLevel);
             defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
-                .setSourceLanguageLevelInherited(sourceLanguageLevelInherited)
+                .setSourceLanguageLevelInherited(moduleSourceLanguageLevel.equals(projectSourceLanguageLevel))
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)
                 .setTargetRuntime(javaRuntime)
