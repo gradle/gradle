@@ -260,7 +260,9 @@ can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) 
 For the idea project language level used in the generated `*.ipr` file, the `sourceCompatibility` from all modules are taken into account and the highest value is taken as project language level.
 If no java project is found the default value `1.6` is used.
 
-A value for `sourceCompatibility` in a project that differs from the project language level is taken into account as Idea module specific language level and used in the generated `*.iml` file.
+A value for `sourceCompatibility` in a project that differs from this calculated idea project language level is taken into account as Idea module specific language level and used in the generated `*.iml` file.
+
+With having `idea.project.languageLevel` explicitly configured, no `sourceCompatiblity` level is taken into account and only the idea project language level in the `*.ipr` file is used.
 
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
