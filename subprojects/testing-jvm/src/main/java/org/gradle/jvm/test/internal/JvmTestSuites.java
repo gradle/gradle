@@ -53,7 +53,7 @@ import java.util.List;
  */
 public class JvmTestSuites {
 
-     public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
+    public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
         ModelMap<BinarySpec> testBinaries,
         ServiceRegistry registry,
         JvmTestSuiteSpec testSuite,
@@ -85,7 +85,7 @@ public class JvmTestSuites {
                                                                                     final Action<? super T> configureAction) {
 
         final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
-        final JavaPlatform platform = javaPlatforms.get(0);
+        final JavaPlatform platform = testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
         final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, testedBinary, javaPlatforms, platform);
 
         testBinaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<T>() {
@@ -168,7 +168,7 @@ public class JvmTestSuites {
             .withRole("assembly", true)
             .withVariantDimension(platform, selectedPlatforms);
         if (testedBinary != null) {
-            return namingScheme.withVariantDimension(((BinarySpecInternal)testedBinary).getProjectScopedName());
+            return namingScheme.withVariantDimension(((BinarySpecInternal) testedBinary).getProjectScopedName());
         }
         return namingScheme;
     }
