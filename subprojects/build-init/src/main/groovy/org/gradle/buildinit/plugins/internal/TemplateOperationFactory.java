@@ -93,6 +93,9 @@ public class TemplateOperationFactory {
             final Set<Map.Entry<String, String>> entries = bindings.entrySet();
             Map wrappedBindings = new HashMap(entries.size());
             for (Map.Entry<String, String> entry : entries) {
+                if (entry.getValue() == null) {
+                    throw new IllegalArgumentException("Null value provided for binding '" + entry.getKey() + "'.");
+                }
                 wrappedBindings.put(entry.getKey(), new TemplateValue(entry.getValue()));
             }
             return new SimpleTemplateOperation(templateUrl, target, wrappedBindings);
