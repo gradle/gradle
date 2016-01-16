@@ -23,8 +23,11 @@ class PropertyAccessorTypeTest extends Specification {
     @Unroll
     def "method names #getGetterName, #isGetterName and #setterName extract to property name '#propertyName'"() {
         expect:
+        PropertyAccessorType.isGetGetterName(getGetterName)
         PropertyAccessorType.GET_GETTER.propertyNameFor(getGetterName) == propertyName
+        PropertyAccessorType.isIsGetterName(isGetterName)
         PropertyAccessorType.IS_GETTER.propertyNameFor(isGetterName) == propertyName
+        PropertyAccessorType.isSetterName(setterName)
         PropertyAccessorType.SETTER.propertyNameFor(setterName) == propertyName
 
         where:
@@ -35,10 +38,12 @@ class PropertyAccessorTypeTest extends Specification {
         "getCCompiler"   | "isCCompiler"   | "setCCompiler"   | "CCompiler"
         "getCppCompiler" | "isCppCompiler" | "setCppCompiler" | "cppCompiler"
         "getCPPCompiler" | "isCPPCompiler" | "setCPPCompiler" | "CPPCompiler"
+        "getA"           | "isA"           | "setA"           | "a"
+        "getb"           | "isb"           | "setb"           | "b"
     }
 
     static class Bean {
-        private String myurl, myURL, mycCompiler, myCCompilerField, mycppCompilerField, myCPPCompilerField
+        private String myurl, myURL, mycCompiler, myCCompilerField, mycppCompilerField, myCPPCompilerField, mya, myb
         String getUrl() { myurl }
         void setUrl(String value) { myurl = value }
         String getURL() { myURL }
@@ -51,6 +56,10 @@ class PropertyAccessorTypeTest extends Specification {
         void setCppCompiler(String value) { mycppCompilerField = value }
         String getCPPCompiler() { myCPPCompilerField }
         void setCPPCompiler(String value) { myCPPCompilerField = value }
+        String getA() { mya }
+        void setA(String value) { mya = value }
+        String getb() { myb }
+        void setb(String value) { myb = value }
     }
 
     def "property extraction is on par with groovy properties"() {
@@ -65,6 +74,8 @@ class PropertyAccessorTypeTest extends Specification {
         bean.CCompiler = 'upper-case first char'
         bean.cppCompiler = 'cppCompiler'
         bean.CPPCompiler = 'CPPCompiler'
+        bean.a = 'some a'
+        bean.b = 'some b'
 
         then:
         // Exercise getters
@@ -74,6 +85,8 @@ class PropertyAccessorTypeTest extends Specification {
         bean.CCompiler == 'upper-case first char' && bean.getCCompiler() == bean.CCompiler
         bean.cppCompiler == 'cppCompiler' && bean.getCppCompiler() == bean.cppCompiler
         bean.CPPCompiler == 'CPPCompiler' && bean.getCPPCompiler() == bean.CPPCompiler
+        bean.a == 'some a' && bean.getA() == bean.a
+        bean.b == 'some b' && bean.getb() == bean.b
     }
 
     static class DeviantBean {

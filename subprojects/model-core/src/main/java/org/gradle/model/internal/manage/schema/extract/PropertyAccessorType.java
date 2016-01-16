@@ -125,7 +125,7 @@ public enum PropertyAccessorType {
     }
 
     private static boolean hasAtMostOneFirstLowerCaseCharStartingFrom(String methodName, int position) {
-        if (Character.isUpperCase(methodName.charAt(position - 1))) {
+        if (methodName.length() <= position || Character.isUpperCase(methodName.charAt(position - 1))) {
             return true;
         }
         return Character.isUpperCase(methodName.charAt(position));
