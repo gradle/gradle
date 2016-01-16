@@ -319,14 +319,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 return null;
             }
             if (name.startsWith("java.") || name.startsWith("groovy.") || name.startsWith("org.gradle")) {
-                int idx = 6;
-                char c;
-                while ((c = name.charAt(idx)) == '.' || Character.isLowerCase(c)) {
-                    if (++idx == name.length()) {
-                        break;
-                    }
-                }
-                if (c == '$') {
+                if (hasDollarBeforeUpperCaseCharacter(name)) {
                     return null;
                 }
                 if (name.indexOf("org.gradle", 1) > 0) {
@@ -335,6 +328,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
             }
             return super.findClassNode(name, compilationUnit);
+        }
+
+        private boolean hasDollarBeforeUpperCaseCharacter(String name) {
+            for (int idx = 6; idx < name.length(); idx++) {
+                char c = name.charAt(idx);
+                if (c != '.' && !Character.isLowerCase(c)) {
+                    return c == '$';
+                }
+            }
+            return false;
         }
     }
 

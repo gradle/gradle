@@ -22,7 +22,7 @@ plugins {
 }
 
 model {
-    components {
+    testSuites {
         test(JUnitTestSuiteSpec) {
             jUnitVersion '4.12'
         }

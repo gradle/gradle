@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-/**
- * General purpose types for test suite support.
- */
-@org.gradle.api.Incubating
-package org.gradle.platform.base.test;
+package org.gradle;
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class SmartAppTest {
+    @Test
+    public void myTestMethod() {
+        SmartApp app = new SmartApp();
+        assertEquals(84.0d, app.smartComputation(2), 0.d);
+    }
+}

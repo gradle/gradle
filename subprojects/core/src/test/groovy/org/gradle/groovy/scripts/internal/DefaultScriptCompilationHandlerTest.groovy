@@ -367,7 +367,7 @@ println 'hi'
 
     @Issue('GRADLE-3382')
     def testCompileToDirWithUnknownClass() {
-        ScriptSource source = new StringScriptSource("script.gradle", "void method(file foo) {}")
+        ScriptSource source = new StringScriptSource("script.gradle", "new unknownclass()")
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -375,7 +375,7 @@ println 'hi'
         then:
         ScriptCompilationException e = thrown()
         e.lineNumber == 1
-        e.cause.message.contains("script.gradle: 1: unable to resolve class file")
+        e.cause.message.contains("script.gradle: 1: unable to resolve class unknownclass")
 
         and:
         checkScriptCacheEmpty()

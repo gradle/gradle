@@ -18,7 +18,6 @@ package org.gradle.jvm.test.internal;
 
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -54,7 +53,7 @@ import java.util.List;
  */
 public class JvmTestSuites {
 
-     public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
+    public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
         ModelMap<BinarySpec> testBinaries,
         ServiceRegistry registry,
         JvmTestSuiteSpec testSuite,
@@ -86,7 +85,7 @@ public class JvmTestSuites {
                                                                                     final Action<? super T> configureAction) {
 
         final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
-        final JavaPlatform platform = javaPlatforms.get(0);
+        final JavaPlatform platform = testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
         final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, testedBinary, javaPlatforms, platform);
 
         testBinaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<T>() {
@@ -163,19 +162,13 @@ public class JvmTestSuites {
         return spec.getBinaries().withType(type).values();
     }
 
-    public static void attachBinariesToCheckLifecycle(Task checkTask, ModelMap<? extends JvmTestSuiteBinarySpec> binaries) {
-        for (JvmTestSuiteBinarySpec testBinary : binaries) {
-            checkTask.dependsOn(testBinary.getTasks().getTest());
-        }
-    }
-
     private static BinaryNamingScheme namingSchemeFor(JvmTestSuiteSpec testSuiteSpec, JvmBinarySpec testedBinary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
         BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(testSuiteSpec.getName())
             .withBinaryType("binary") // not a 'Jar', not a 'test'
             .withRole("assembly", true)
             .withVariantDimension(platform, selectedPlatforms);
         if (testedBinary != null) {
-            return namingScheme.withVariantDimension(((BinarySpecInternal)testedBinary).getProjectScopedName());
+            return namingScheme.withVariantDimension(((BinarySpecInternal) testedBinary).getProjectScopedName());
         }
         return namingScheme;
     }

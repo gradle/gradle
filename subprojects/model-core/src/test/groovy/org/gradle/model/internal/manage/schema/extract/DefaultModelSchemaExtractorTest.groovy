@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -160,8 +159,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         void setcCompiler(String cCompiler)
     }
 
-    @NotYetImplemented
-    def "single char first camel-case part getters extraction is javabeans compliant"() {
+    def "extraction of single char first camel-case part getter like getcCompiler() is javabeans compliant"() {
         when:
         def schema = store.getSchema(HasSingleCharFirstPartGetter)
 
@@ -178,8 +176,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         void setCFlags(String cflags)
     }
 
-    @NotYetImplemented
-    def "double uppercase char first getters extraction is javabeans compliant"() {
+    def "extraction of double uppercase char first getter like getCFlags() is javabeans compliant"() {
         when:
         def schema = store.getSchema(HasDoubleCapsStartingGetter)
 
@@ -196,8 +193,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         void setURL(String url)
     }
 
-    @NotYetImplemented
-    def "full caps getters extraction is javabeans compliant"() {
+    def "extraction of full caps getter like getURL() is javabeans compliant"() {
         when:
         def schema = store.getSchema(HasFullCapsGetter)
 

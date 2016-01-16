@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.test;
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+    id 'junit-test-suite'
+}
 
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.BinarySpec;
+// START SNIPPET model
+model {
+    components {
+        main(JvmLibrarySpec)
+    }
+    testSuites {
+        test(JUnitTestSuiteSpec) {
+            jUnitVersion '4.12'
+            testing $.components.main
+        }
+    }
+}
+// END SNIPPET model
 
-/**
- * A binary which runs a suite of tests.
- */
-@Incubating
-public interface TestSuiteBinarySpec extends BinarySpec {
-    /**
-     * Returns the test suite that this binary belongs to.
-     */
-    TestSuiteSpec getTestSuite();
+repositories {
+    jcenter()
 }

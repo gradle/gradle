@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.test;
+package org.gradle.testing.base;
 
-import org.gradle.api.Incubating;
-import org.gradle.model.ModelMap;
+import org.gradle.api.Task;
+import org.gradle.platform.base.BinaryTasksCollection;
 
 /**
- * A container of {@link TestSuiteSpec} instances.
+ * Provides access to key tasks used by a test suite.
  */
-@Incubating
-public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
+public interface TestSuiteTaskCollection extends BinaryTasksCollection {
+    /**
+     * The run task.
+     */
+    Task getRun();
 }

@@ -32,12 +32,12 @@ public class DefaultJUnitTestSuiteSpec extends BaseTestSuiteSpec implements JUni
     private final Set<Class<? extends TransformationFileType>> inputTypes = defaultJvmComponentInputTypes();
 
     @Override
-    public String getJUnitVersion() {
+    public String getjUnitVersion() {
         return junitVersion;
     }
 
     @Override
-    public void setJUnitVersion(String junitVersion) {
+    public void setjUnitVersion(String junitVersion) {
         this.junitVersion = junitVersion;
     }
 
