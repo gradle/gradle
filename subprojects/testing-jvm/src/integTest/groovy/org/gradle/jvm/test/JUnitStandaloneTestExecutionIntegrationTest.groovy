@@ -77,7 +77,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         fails 'components'
 
         then:
-        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion = '4.12'` for example."
+        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
 
         where:
         container << ['testSuites', 'components']
@@ -107,7 +107,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         fails 'components'
 
         then:
-        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion = '4.12'` for example."
+        failure.assertHasCause "Test suite 'myTest' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example."
 
         where:
         container << ['testSuites', 'components']
@@ -432,7 +432,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
             model {
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         sources {
                             resources {
                                 source.srcDirs 'src/test-resources'
@@ -500,7 +500,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                 }
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         binaries.all {
                             sources {
                                 alternate(JavaSourceSet) {
@@ -565,7 +565,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                 }
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                 dependencies {
@@ -665,7 +665,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                 }
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         dependencies {
                             sources {
                                 java {
@@ -755,9 +755,9 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     private enum SourceSetConfiguration {
-        NONE('no source set is declared', false, false, '{ jUnitVersion = "4.12" }'),
+        NONE('no source set is declared', false, false, '{ jUnitVersion "4.12" }'),
         EXPLICIT_NO_DEPS('an explicit source set configuration is used', false, false, '''{
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                source.srcDirs 'src/myTest/java'
@@ -765,7 +765,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                         }
                     }'''),
         LIBRARY_DEP('a dependency onto a local library', true, false, '''{
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                 dependencies {
@@ -775,7 +775,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                         }
                     }'''),
         EXTERNAL_DEP('a dependency onto an external library', false, true, '''{
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         sources {
                             java {
                                 dependencies {
@@ -785,7 +785,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
                         }
                     }'''),
         SUITE_WIDE_EXTERNAL_DEP('a suite-wide dependency onto an external library', false, true, '''{
-                        jUnitVersion = '4.12'
+                        jUnitVersion '4.12'
                         dependencies {
                             module 'org.apache.commons:commons-lang3:3.4'
                         }
