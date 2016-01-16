@@ -24,7 +24,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
@@ -176,24 +175,24 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             this.snapshots = snapshots;
         }
 
-        public FileCollection getFiles() {
+        public List<File> getFiles() {
             List<File> files = new ArrayList<File>();
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 if (entry.getValue() instanceof FileHashSnapshot) {
                     files.add(new File(entry.getKey()));
                 }
             }
-            return new SimpleFileCollection(files);
+            return files;
         }
 
-        public FileCollection getAllFiles() {
+        public List<File> getAllFiles() {
             List<File> files = Lists.newArrayList();
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 if (!(entry.getValue() instanceof DirSnapshot)) {
                     files.add(new File(entry.getKey()));
                 }
             }
-            return new SimpleFileCollection(files);
+            return files;
         }
 
         public FilesSnapshotSet getSnapshot() {

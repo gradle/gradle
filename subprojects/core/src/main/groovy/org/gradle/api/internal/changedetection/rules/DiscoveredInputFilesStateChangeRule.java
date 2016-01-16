@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
@@ -32,7 +32,15 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DiscoveredInputFilesStateChangeRule {
-    public static DiscoveredTaskStateChanges create(final TaskExecution previousExecution, final TaskExecution currentExecution, final FileCollectionSnapshotter inputFilesSnapshotter) {
+    private final FileCollectionSnapshotter inputFilesSnapshotter;
+    private final FileCollectionFactory fileCollectionFactory;
+
+    public DiscoveredInputFilesStateChangeRule(FileCollectionSnapshotter inputFilesSnapshotter, FileCollectionFactory fileCollectionFactory) {
+        this.inputFilesSnapshotter = inputFilesSnapshotter;
+        this.fileCollectionFactory = fileCollectionFactory;
+    }
+
+    public DiscoveredTaskStateChanges create(final TaskExecution previousExecution, final TaskExecution currentExecution) {
         return new DiscoveredTaskStateChanges() {
             private final Collection<File> discoveredFiles = Sets.newHashSet();
 
@@ -42,7 +50,7 @@ public class DiscoveredInputFilesStateChangeRule {
                 }
 
                 Iterables.addAll(discoveredFiles, previousExecution.getDiscoveredInputFilesSnapshot().getAllFiles());
-                final FileCollectionSnapshot discoveredFileSnapshot = inputFilesSnapshotter.snapshot(new SimpleFileCollection(discoveredFiles));
+                final FileCollectionSnapshot discoveredFileSnapshot = inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
 
                 return new AbstractIterator<TaskStateChange>() {
                     final FileCollectionSnapshot.ChangeIterator<String> changeIterator = discoveredFileSnapshot.iterateChangesSince(previousExecution.getDiscoveredInputFilesSnapshot());
@@ -65,8 +73,7 @@ public class DiscoveredInputFilesStateChangeRule {
             }
 
             public void snapshotAfterTask() {
-
-                currentExecution.setDiscoveredInputFilesSnapshot(inputFilesSnapshotter.snapshot(new SimpleFileCollection(discoveredFiles)));
+                currentExecution.setDiscoveredInputFilesSnapshot(inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredFiles)));
             }
         };
     }

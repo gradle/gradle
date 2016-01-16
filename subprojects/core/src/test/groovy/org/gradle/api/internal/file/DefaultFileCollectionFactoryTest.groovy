@@ -24,7 +24,7 @@ import spock.lang.Specification
 class DefaultFileCollectionFactoryTest extends Specification {
     def factory = new DefaultFileCollectionFactory()
 
-    def "lazily queries contents of collection"() {
+    def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
         def file = new File("a")
 
@@ -43,7 +43,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         0 * contents._
     }
 
-    def "lazily queries dependencies of collection"() {
+    def "lazily queries dependencies of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
         def builtBy = Mock(TaskDependency)
         def task = Stub(Task)
@@ -61,5 +61,29 @@ class DefaultFileCollectionFactoryTest extends Specification {
         tasks == [task] as Set
         1 * builtBy.getDependencies(_) >> [task]
         0 * _
+    }
+
+    def "constructs an empty collection"() {
+        expect:
+        def collection = factory.empty("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "some collection"
+    }
+
+    def "constructs an collection with fixed contents"() {
+        def file1 = new File("a")
+        def file2 = new File("b")
+
+        expect:
+        def collection1 = factory.fixed("some collection", file1, file2)
+        collection1.files == [file1, file2] as Set
+        collection1.buildDependencies.getDependencies(null).empty
+        collection1.toString() == "some collection"
+
+        def collection2 = factory.fixed("some collection", [file1, file2])
+        collection2.files == [file1, file2] as Set
+        collection2.buildDependencies.getDependencies(null).empty
+        collection2.toString() == "some collection"
     }
 }

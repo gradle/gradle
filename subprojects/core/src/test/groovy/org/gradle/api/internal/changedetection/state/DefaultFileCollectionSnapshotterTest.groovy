@@ -24,11 +24,9 @@ import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-@UsesNativeServices
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
@@ -64,7 +62,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist))
 
         then:
-        snapshot.files.files as List == [file]
+        snapshot.files as List == [file]
     }
 
     def notifiesListenerWhenFileAdded() {
