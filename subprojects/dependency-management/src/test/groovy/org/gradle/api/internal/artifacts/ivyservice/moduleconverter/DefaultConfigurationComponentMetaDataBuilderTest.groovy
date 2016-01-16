@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -112,8 +113,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         stub.getExtendsFrom() >> WrapUtil.toSet(extendsFromConfigurations)
         stub.getHierarchy() >> WrapUtil.toSet(extendsFromConfigurations)
         stub.getAllDependencies() >> new DefaultDependencySet("foo", WrapUtil.toDomainObjectSet(Dependency.class))
-        stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class))
-        stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class))
+        stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
+        stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         return stub;
     }
 

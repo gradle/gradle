@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
@@ -33,11 +34,9 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def module = Mock(MavenProjectIdentity)
@@ -322,7 +321,7 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver)
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory())
         publication.setPomFile(new SimpleFileCollection(pomFile))
         return publication;
     }

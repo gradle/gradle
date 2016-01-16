@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -72,6 +73,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ProjectFinder projectFinder;
     private final ResolutionStrategyInternal resolutionStrategy;
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
+    private final FileCollectionFactory fileCollectionFactory;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -107,7 +109,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ResolutionStrategyInternal resolutionStrategy,
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
-                                ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder) {
+                                ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
+                                FileCollectionFactory fileCollectionFactory) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -118,6 +121,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
+        this.fileCollectionFactory = fileCollectionFactory;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -131,9 +135,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
+        artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts, fileCollectionFactory);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
+        allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
     }
@@ -494,7 +498,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

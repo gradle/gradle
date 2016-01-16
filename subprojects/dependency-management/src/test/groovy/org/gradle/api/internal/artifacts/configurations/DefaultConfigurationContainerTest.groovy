@@ -25,6 +25,7 @@ import org.gradle.api.internal.MissingMethodException
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.reflect.DirectInstantiator
@@ -46,10 +47,12 @@ class DefaultConfigurationContainerTest {
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private ProjectAccessListener projectAccessListener = context.mock(ProjectAccessListener.class)
+    private ProjectFinder projectFinder = context.mock(ProjectFinder)
+    private ConfigurationComponentMetaDataBuilder metaDataBuilder = context.mock(ConfigurationComponentMetaDataBuilder)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, projectAccessListener, context.mock(ProjectFinder), context.mock(ConfigurationComponentMetaDataBuilder))
+            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory())
 
     @Before
     public void setup() {

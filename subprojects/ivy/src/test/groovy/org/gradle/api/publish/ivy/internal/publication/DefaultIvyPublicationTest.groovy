@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
@@ -33,11 +34,9 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
 class DefaultIvyPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
@@ -260,7 +259,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver)
+        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver, TestFiles.fileCollectionFactory())
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }
