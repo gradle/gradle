@@ -325,7 +325,11 @@ The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. Thi
 - The `LanguageBasePlugin` no longer applies the full component model.
 - The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`.
 - The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`.
-- Property names extraction now follows the JavaBean specification and allows getters like `getcCompiler()` to produce a `cCompiler` property.
+- Model properties now follow the JavaBean specification and thus are on par with Groovy.
+  This means that all properties are now addressable with coherent names in the DSL and by model path.
+  Properties with getters like `getcCompiler()` are now allowed and addressable via `cCompiler`.
+  Properties with getters like `getCFlags()` are now addressable via `cFlags` instead of the erroneous `CFlags`.
+  Properties with getters like `getURL()` are now addressable via `URL` instead of the erroneous `uRL`.
 
 ### TestKit indicates compatibility for target Gradle version
 
