@@ -256,7 +256,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file not set for prebuilt library 'hello'.")
+        failure.assertHasDescription("Static library file not set for prebuilt static library 'hello:osx_x86-64DebugDefaultStatic'.")
     }
 
     def "produces reasonable error message when prebuilt library output file does not exist"() {
@@ -289,7 +289,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt library 'hello'.")
+        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:osx_x86-64DebugDefaultStatic'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist"() {

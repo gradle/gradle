@@ -66,10 +66,6 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
             return Collections.emptySet();
         }
 
-        public final String getDisplayName() {
-            return AbstractNativeLibraryBinarySpec.this.getDisplayName();
-        }
-
         public final TaskDependency getBuildDependencies() {
             if (hasOutputs()) {
                 return AbstractNativeLibraryBinarySpec.this.getBuildDependencies();
@@ -84,7 +80,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
 
     private class HeaderFileSet implements MinimalFileSet, Buildable {
         public String getDisplayName() {
-            return String.format("Headers for %s", AbstractNativeLibraryBinarySpec.this.getDisplayName());
+            return "Headers for " + AbstractNativeLibraryBinarySpec.this.getDisplayName();
         }
 
         public Set<File> getFiles() {

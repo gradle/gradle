@@ -84,6 +84,11 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
     private class SharedLibraryLinkOutputs extends LibraryOutputs {
         @Override
+        public String getDisplayName() {
+            return "Link files for " + DefaultSharedLibraryBinarySpec.this.getDisplayName();
+        }
+
+        @Override
         protected boolean hasOutputs() {
             return hasSources() && !isResourceOnly();
         }
@@ -119,6 +124,11 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     private class SharedLibraryRuntimeOutputs extends LibraryOutputs {
+        @Override
+        public String getDisplayName() {
+            return "Runtime files for " + DefaultSharedLibraryBinarySpec.this.getDisplayName();
+        }
+
         @Override
         protected boolean hasOutputs() {
             return hasSources();

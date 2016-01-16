@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -106,7 +107,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
-            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
+            FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
+            Action<PrebuiltLibrary> initializer = new PrebuiltLibraryInitializer(instantiator, fileCollectionFactory, nativePlatforms, platforms.withType(NativePlatform.class), buildTypes, flavors);
             return new DefaultRepositories(instantiator, sourceDirectorySetFactory, initializer);
         }
 

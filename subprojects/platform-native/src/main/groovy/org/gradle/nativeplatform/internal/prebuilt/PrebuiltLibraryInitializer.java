@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
@@ -34,14 +35,19 @@ import java.util.Set;
 // TODO:DAZ We shouldn't be instantiating all binary instances: instead should be instantiating required binary instance when resolving
 public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Instantiator instantiator;
+    private final FileCollectionFactory fileCollectionFactory;
     private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
     public PrebuiltLibraryInitializer(Instantiator instantiator,
+                                      FileCollectionFactory fileCollectionFactory,
                                       NativePlatforms nativePlatforms,
-                                      Collection<? extends NativePlatform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                      Collection<? extends NativePlatform> allPlatforms,
+                                      Collection<? extends BuildType> allBuildTypes,
+                                      Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.allPlatforms.addAll(allPlatforms);
         this.allPlatforms.addAll(nativePlatforms.defaultPlatformDefinitions());
         this.allBuildTypes.addAll(allBuildTypes);
@@ -52,26 +58,26 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
         for (NativePlatform platform : allPlatforms) {
             for (BuildType buildType : allBuildTypes) {
                 for (Flavor flavor : allFlavors) {
-                    createNativeBinaries(prebuiltLibrary, platform, buildType, flavor);
+                    createNativeBinaries(prebuiltLibrary, platform, buildType, flavor, fileCollectionFactory);
                 }
             }
         }
     }
 
-    public void createNativeBinaries(PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
-        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, library, platform, buildType, flavor);
-        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, library, platform, buildType, flavor);
+    public void createNativeBinaries(PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, "shared", library, platform, buildType, flavor, fileCollectionFactory);
+        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, "static", library, platform, buildType, flavor, fileCollectionFactory);
     }
 
-    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
-        String name = getName(type, library, platform, buildType, flavor);
-        T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor);
+    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        String name = getName(typeName, library, platform, buildType, flavor);
+        T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor, fileCollectionFactory);
         library.getBinaries().add(nativeBinary);
     }
 
-    private <T extends NativeLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
+    private <T extends NativeLibraryBinary> String getName(String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
         BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(library.getName())
-                .withBinaryType(type.getSimpleName())
+                .withBinaryType(typeName)
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())
                 .withVariantDimension(flavor.getName());
