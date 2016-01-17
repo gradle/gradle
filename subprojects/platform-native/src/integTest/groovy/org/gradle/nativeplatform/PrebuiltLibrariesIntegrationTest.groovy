@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -256,7 +257,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file not set for prebuilt static library 'hello:osx_x86-64DebugDefaultStatic'.")
+        failure.assertHasDescription("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
     def "produces reasonable error message when prebuilt library output file does not exist"() {
@@ -289,7 +290,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:osx_x86-64DebugDefaultStatic'.")
+        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist"() {
