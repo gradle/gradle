@@ -104,7 +104,7 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
     def "renames projects based on their project path"() {
         expect:
-        renameForProject(":", "file.jar") == "root-file.jar"
+        renameForProject(":", "file.jar") == "file.jar"
         renameForProject(":subproject", "file.jar") == "subproject-file.jar"
         renameForProject(":subproject:deeper", "file.jar") == "subproject.deeper-file.jar"
         renameForProject(":subproject:deeper:deepest", "file.jar") == "subproject.deeper.deepest-file.jar"
@@ -115,16 +115,6 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         renameForModule("", "file.jar") == "file.jar"
         renameForModule("com", "file.jar") == "com-file.jar"
         renameForModule("com.example", "file.jar") == "com.example-file.jar"
-    }
-
-    def "does not rename jar files where name equals project path"() {
-        expect:
-        renameForProject(":", "root.jar") == "root.jar"
-        renameForProject(":subproject", "subproject.jar") == "subproject.jar"
-        renameForProject(":subproject:deeper", "subproject.deeper.jar") == "subproject.deeper.jar"
-
-        renameForModule("group", "group.jar") == "group.jar"
-        renameForModule("org.group", "org.group.jar") == "org.group.jar"
     }
 
     private String renameForProject(String projectPath, String fileName) {

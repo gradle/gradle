@@ -327,7 +327,7 @@ public class PlayDistributionPlugin extends RuleSource {
         }
 
         private static String maybePrefix(String prefix, File file) {
-            if (!GUtil.isTrue(prefix) || getBaseName(file).equals(prefix)) {
+            if (!GUtil.isTrue(prefix)) {
                 return file.getName();
             }
             return String.format("%s-%s", prefix, file.getName());
@@ -335,19 +335,13 @@ public class PlayDistributionPlugin extends RuleSource {
 
         private static String projectPathToSafeFileName(String projectPath) {
             if (projectPath.equals(":")) {
-                projectPath = "root";
-            } else {
-                projectPath = projectPath.replaceAll(":", ".").substring(1);
+                return null;
             }
-            return projectPath;
+            return projectPath.replaceAll(":", ".").substring(1);
         }
 
         private static boolean shouldBeRenamed(File file) {
             return hasExtension(file, ".jar");
-        }
-
-        private static String getBaseName(File file) {
-            return file.getName().substring(0, file.getName().length() - 4);
         }
     }
 }
