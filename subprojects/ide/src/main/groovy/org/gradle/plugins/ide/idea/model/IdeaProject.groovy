@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
@@ -118,18 +117,14 @@ class IdeaProject {
     IdeaLanguageLevel languageLevel
 
     /**
-     * marker for tracking explicit configured languageLevel
+     * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
      */
-    private boolean explicitConfiguredLanguageLevel
-
-    @PackageScope
-    boolean getExplicitConfiguredLanguageLevel() {
-        return explicitConfiguredLanguageLevel
-    }
+    protected boolean hasUserSpecifiedLanguageLevel
 
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
-        this.explicitConfiguredLanguageLevel = true
+        this.hasUserSpecifiedLanguageLevel = true
     }
 
     /**

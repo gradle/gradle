@@ -283,23 +283,23 @@ class IdeaModule {
      */
     IdeaLanguageLevel getLanguageLevel() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            def rootProject = project.rootProject
             def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
-            if (useModuleLanguageLevel(rootProject, moduleLanguageLevel)) {
+            if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
                 return moduleLanguageLevel;
             }
         }
         return null;
     }
 
-    private boolean useModuleLanguageLevel(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+    private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
         if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
             return true
         }
-        if(rootProject.idea.project.explicitConfiguredLanguageLevel){
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedLanguageLevel){
             return false;
         }
-        return moduleLanguageLevel != rootProject.idea.project.languageLevel
+        return moduleLanguageLevel != ideaProject.languageLevel
     }
 
     /**
