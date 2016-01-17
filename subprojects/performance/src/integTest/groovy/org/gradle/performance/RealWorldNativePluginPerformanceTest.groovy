@@ -38,7 +38,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = [ '2.10', 'last' ]
+        runner.targetVersions = [ '2.10', '2.11', 'last' ]
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
@@ -123,9 +123,9 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
         buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "medium"  | 'source file change'    | millis(200)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "medium"  | 'header file change'    | millis(5000)               | 'modules/project1/src/src50_h.h'  | this.&changeHeader
-        "medium"  | 'recompile all sources' | millis(5000)               | 'common.gradle'                   | this.&changeArgs
+        "medium"  | 'source file change'    | millis(300)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
+        "medium"  | 'header file change'    | millis(300)                | 'modules/project1/src/src50_h.h'  | this.&changeHeader
+        "medium"  | 'recompile all sources' | millis(1500)               | 'common.gradle'                   | this.&changeArgs
     }
 
     void changeCSource(File file, String originalContent) {

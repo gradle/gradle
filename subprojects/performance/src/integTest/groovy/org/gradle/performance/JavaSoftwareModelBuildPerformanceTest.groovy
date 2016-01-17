@@ -75,8 +75,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(4000)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
     }
 
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
@@ -100,8 +100,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2000)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
     }
 
     @Unroll("Checking overhead of API stubbing when #cardinality.description")
