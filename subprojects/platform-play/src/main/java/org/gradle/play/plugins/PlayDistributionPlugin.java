@@ -150,7 +150,7 @@ public class PlayDistributionPlugin extends RuleSource {
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
             libSpec.from(configurations.getPlayRun().getAllArtifacts());
-            libSpec.eachFile(new RenameArtifactFiles(configurations.getPlayRun()));
+            libSpec.eachFile(new PrefixArtifactFileNames(configurations.getPlayRun()));
 
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
@@ -248,17 +248,17 @@ public class PlayDistributionPlugin extends RuleSource {
                         playConfiguration.getAllArtifacts(),
                         Collections.singleton(assetsJarFile)
                     ),
-                    new RenameArtifactFiles(playConfiguration)
+                    new PrefixArtifactFileNames(playConfiguration)
                 )
             );
         }
     }
 
-    static class RenameArtifactFiles implements Action<FileCopyDetails>, Function<File, String> {
+    static class PrefixArtifactFileNames implements Action<FileCopyDetails>, Function<File, String> {
         private final PlayPluginConfigurations.PlayConfiguration configuration;
         ImmutableMap<File, String> renames;
 
-        RenameArtifactFiles(PlayPluginConfigurations.PlayConfiguration configuration) {
+        PrefixArtifactFileNames(PlayPluginConfigurations.PlayConfiguration configuration) {
             this.configuration = configuration;
         }
 
@@ -310,25 +310,30 @@ public class PlayDistributionPlugin extends RuleSource {
         }
 
         static String renameForProject(ProjectComponentIdentifier id, File file) {
+            String fileName = file.getName();
             if (shouldBeRenamed(file)) {
                 String projectPath = id.getProjectPath();
                 projectPath = projectPathToSafeFileName(projectPath);
-                return String.format("%s-%s", projectPath, file.getName());
+                return maybePrefix(projectPath, file);
             }
-            return file.getName();
+            return fileName;
         }
 
         static String renameForModule(ModuleComponentIdentifier id, File file) {
             if (shouldBeRenamed(file)) {
-                String group = id.getGroup();
-                if (GUtil.isTrue(group)) {
-                    return String.format("%s-%s", group, file.getName());
-                }
+                return maybePrefix(id.getGroup(), file);
             }
             return file.getName();
         }
 
-        static String projectPathToSafeFileName(String projectPath) {
+        private static String maybePrefix(String prefix, File file) {
+            if (!GUtil.isTrue(prefix) || getBaseName(file).equals(prefix)) {
+                return file.getName();
+            }
+            return String.format("%s-%s", prefix, file.getName());
+        }
+
+        private static String projectPathToSafeFileName(String projectPath) {
             if (projectPath.equals(":")) {
                 projectPath = "root";
             } else {
@@ -337,8 +342,12 @@ public class PlayDistributionPlugin extends RuleSource {
             return projectPath;
         }
 
-        static boolean shouldBeRenamed(File file) {
+        private static boolean shouldBeRenamed(File file) {
             return hasExtension(file, ".jar");
+        }
+
+        private static String getBaseName(File file) {
+            return file.getName().substring(0, file.getName().length() - 4);
         }
     }
 }
