@@ -2,14 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
-
-<!--
-### Example new and noteworthy
--->
-
 ### Java software model
 
 #### Compile avoidance
@@ -122,6 +114,16 @@ build script on project or external module dependencies will be included in the 
 This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
 
 ### IDE integration improvements
+
+### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
+
+The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
+
+This behavior has been improved, so that the generated IDEA project will have a 'Language Level' matching the highest `sourceCompatibility` value for all imported subprojects. For a multi-project Gradle build that contains a mix of `sourceCompatibility` values, the generated IDEA module for a sub-project will include an override for the appropriate 'Language Level' where it does not match that of the overall generated IDEA project.
+
+If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatiblity` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
+
+The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
 
 #### Tooling API exposes source language level on Idea model
 
@@ -254,15 +256,6 @@ see the HttpClient [release notes](http://www.apache.org/dist/httpcomponents/htt
 Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been
 removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you
 can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
-
-### Idea Plugin language level configuration
-
-For the idea project language level used in the generated `*.ipr` file, the `sourceCompatibility` from all modules are taken into account and the highest value is taken as project language level.
-If no java project is found the default value `1.6` is used.
-
-A value for `sourceCompatibility` in a project that differs from this calculated idea project language level is taken into account as Idea module specific language level and used in the generated `*.iml` file.
-
-With having `idea.project.languageLevel` explicitly configured, no `sourceCompatiblity` level is taken into account and only the idea project language level in the `*.ipr` file is used.
 
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
