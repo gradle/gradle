@@ -93,9 +93,7 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
                 ideaProject.conventionMapping.languageLevel = {
-                    List<JavaVersion> allProjectJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect { it.sourceCompatibility }
-                    JavaVersion maxJavaVersion = allProjectJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allProjectJavaVersions)
-                    new IdeaLanguageLevel(maxJavaVersion)
+                    new IdeaLanguageLevel(getIdeaProjectJavaVersion())
                 }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
@@ -146,6 +144,12 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
+            module.conventionMapping.languageLevel = {
+                if (project.sourceCompatibility == getIdeaProjectJavaVersion()) {
+                    return null
+                }
+                new IdeaLanguageLevel(project.sourceCompatibility)
+            }
             module.scopes = [:]
             module.scopes = [
                     PROVIDED: [plus: [], minus: []],
@@ -163,6 +167,14 @@ class IdeaPlugin extends IdePlugin {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
         }
+    }
+
+    private JavaVersion getIdeaProjectJavaVersion() {
+        if (!project.rootProject.plugins.hasPlugin(IdeaPlugin)) {
+            return null
+        }
+        List<JavaVersion> allJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect { it.sourceCompatibility }
+        return allJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allJavaVersions)
     }
 
     private void configureForScalaPlugin() {

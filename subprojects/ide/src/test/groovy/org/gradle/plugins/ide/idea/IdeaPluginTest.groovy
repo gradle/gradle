@@ -152,13 +152,12 @@ class IdeaPluginTest extends Specification {
         !parentIdeaModule.taskDependencies.getDependencies(parentIdeaModule).contains(parentIdeaProject)
     }
 
-    def "project language level set to highest module sourceCompatibility"() {
+    def "project and module language level set based on highest module sourceCompatibility"() {
         when:
         applyPluginToProjects()
         project.apply(plugin: JavaPlugin)
         childProject.apply(plugin: JavaPlugin)
         anotherChildProject.apply(plugin: JavaPlugin)
-
 
         and:
         project.sourceCompatibility = JavaVersion.VERSION_1_5
@@ -167,6 +166,26 @@ class IdeaPluginTest extends Specification {
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
+
+        project.idea.module.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_5).level
+        childProject.idea.module.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
+        anotherChildProject.idea.module.languageLevel == null
+    }
+
+    def "module language level set based on module sourceCompatibility when root project does not apply idea plugin"() {
+        when:
+        childProject.apply plugin: IdeaPlugin
+        childProject.apply(plugin: JavaPlugin)
+        anotherChildProject.apply(plugin: IdeaPlugin)
+        anotherChildProject.apply(plugin: JavaPlugin)
+
+        and:
+        childProject.sourceCompatibility = JavaVersion.VERSION_1_6
+        anotherChildProject.sourceCompatibility = JavaVersion.VERSION_1_7
+
+        then:
+        childProject.idea.module.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
+        anotherChildProject.idea.module.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {

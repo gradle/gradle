@@ -109,22 +109,27 @@ class IdeaProject {
     String jdkName
 
     /**
-     * The java language level of the project.
-     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * The default Java language Level to use for this project.
      * <p>
-     * See the examples in the docs for {@link IdeaProject}.
+     * This is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
+     * Idea modules of this Idea project.
      */
     IdeaLanguageLevel languageLevel
 
     /**
-     * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
-     * and is not part of the IdeaProject API.
+     * Sets java language level of the project.
+     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}.
+     * <p>
+     * When explicitly set, this setting overrides any calculated values for Idea project and Idea module.
      */
-    protected boolean hasUserSpecifiedLanguageLevel
-
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
-        this.hasUserSpecifiedLanguageLevel = true
+        // A user-configured project language level takes precedence over any calculated values
+        for (IdeaModule module : getModules()) {
+            module.setLanguageLevel(null)
+        }
     }
 
     /**
