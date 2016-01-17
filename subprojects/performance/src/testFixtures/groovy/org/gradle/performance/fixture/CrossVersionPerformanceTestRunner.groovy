@@ -52,7 +52,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
-        assert testId
+        if (testId == null) {
+            throw new IllegalStateException("Test id has not been provided")
+        }
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -72,10 +74,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def releasedVersions = releasedDistributions.all*.version.version
         def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        allVersions.remove(currentBaseVersion)
+        def allVersions = targetVersions.findAll { it != 'last' }.unique()
+
+        // Always include the most recent final release
+        allVersions.add(mostRecentFinalRelease)
 
         // A target version may be something that is yet unreleased, so filter that out
+        allVersions.remove(currentBaseVersion)
         allVersions.removeAll { !releasedVersions.contains(it) }
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
