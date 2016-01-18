@@ -102,6 +102,7 @@ contains all projects of the hierarchy (including the root project) with type `E
 (e.g. name, path, classpath and project dependencies).
 - If the `ProjectConnection` points to a subproject of a multi-project build hierarchy, the requested `EclipseWorkspace` model determines the root project and traverses the whole hierarchy.
 The `EclipseWorkspace` contains all `EclipseProject` of that hierarchy.
+- If a composite contains at least two projects with the same name at the time of building it, an `IllegalStateException` is thrown.
 
 ##### Open issues
 
@@ -126,7 +127,8 @@ For this story, the user facing behavior should remain the same, so the existing
 
 ### Story - Tooling API provides EclipseProject model for a composite containing multiple Gradle builds
 
-This story will enhance the implementation of `EclipseWorkspace` to support multiple `ProjectConnection` instances being added to the composite. The set of `EclipseProject` instances will be exactly the union of those returned by creating a separate `GradleComposite` per `ProjectConnection`. No name deduplication or substitution will occur.
+This story will enhance the implementation of `EclipseWorkspace` to support multiple `ProjectConnection` instances being added to the composite. The set of `EclipseProject`
+instances will be exactly the union of those returned by creating a separate `GradleComposite` per `ProjectConnection`. No name deduplication or substitution will occur.
 
 ##### API
 
@@ -135,20 +137,23 @@ The API for this story is unchanged. Example usage is demonstrated below:
 ```
     ProjectConnection connection1 = GradleConnector.newConnector().forProjectDirectory(new File("myProject1")).connect();
     ProjectConnection connection2 = GradleConnector.newConnector().forProjectDirectory(new File("myProject2")).connect();
-    GradleComposite composite = GradleCompositeBuilder.newComposite().withParticipant(connection1).withParticipant(connection2).build()
-    EclipseWorkspace eclipseWorkspace = composite.model(EclipseWorkspace.class)
+    GradleComposite composite = GradleCompositeBuilder.newComposite().withParticipant(connection1).withParticipant(connection2).build();
+    EclipseWorkspace eclipseWorkspace = composite.model(EclipseWorkspace.class);
 ```
 
 ##### Implementation
 
-- Extends the delegating `ModelBuilder` implementation to perform a separate model request on each project connection, and to aggregate the full set of `EclipseProject` instances for these projects.
+- Extends the delegating `ModelBuilder` implementation to perform a separate model request on each project connection, and to aggregate the full set of `EclipseProject` instances
+for these projects.
 
 ##### Test cases
 
 - Adding a second `ProjectConnection` instance for the same project is a no-op.
 - Adding a second `ProjectConnection` instance for a project within the same Gradle build is a no-op.
-
-More TBD
+- A composite can be built for `ProjectConnection`s that resolve to
+    - multiple single project builds
+    - multiple multi-project builds
+    - a combination of both
 
 ### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for multiple imported Gradle builds
 
