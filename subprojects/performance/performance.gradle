@@ -103,11 +103,6 @@ task multiGroovyScala(type: JvmProjectGeneratorTask, description: 'Generates a m
     scalaProject = true
 }
 
-task largeMulti(type: JvmProjectGeneratorTask, description: 'Generates a large multi-project build') {
-    projects = 800
-    sourceFiles = 100
-}
-
 task lotDependencies(type: JvmProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph') {
     projects = 5
     sourceFiles = 100
