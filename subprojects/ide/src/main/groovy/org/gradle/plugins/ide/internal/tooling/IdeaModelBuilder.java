@@ -161,7 +161,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
 
         Project project = ideaModule.getProject();
         JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
-        JavaVersion projectSourceLanguageLevel = ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
             .setName(ideaModule.getName())
@@ -174,12 +173,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTestOutputDir(ideaModule.getTestOutputDir()));
         if (javaPluginConvention != null) {
             final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
-            JavaVersion moduleSourceLanguageLevel = ideaModuleLanguageLevel == null
-                ? projectSourceLanguageLevel
-                : convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
+            JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
             JavaVersion moduleTargetLanguageLevel = javaPluginConvention.getTargetCompatibility();
             defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings()
-                .setSourceLanguageLevelInherited(moduleSourceLanguageLevel.equals(projectSourceLanguageLevel))
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)
                 .setTargetRuntime(javaRuntime)
@@ -207,6 +203,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     }
 
     private JavaVersion convertIdeaLanguageLevelToJavaVersion(IdeaLanguageLevel ideaLanguageLevel) {
+        if (ideaLanguageLevel == null) {
+            return null;
+        }
         String languageLevel = ideaLanguageLevel.getLevel();
         return JavaVersion.valueOf(languageLevel.replaceFirst("JDK", "VERSION"));
     }

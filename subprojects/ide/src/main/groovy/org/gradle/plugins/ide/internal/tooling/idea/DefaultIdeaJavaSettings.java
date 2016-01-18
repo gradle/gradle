@@ -26,7 +26,6 @@ public class DefaultIdeaJavaSettings implements Serializable {
     private JavaVersion targetBytecodeLevel;
     private DefaultJavaRuntime targetRuntime;
 
-    private boolean sourceLanguageLevelInherited;
     private boolean targetBytecodeLevelInherited;
     private boolean targetRuntimeInherited;
 
@@ -58,11 +57,6 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return targetRuntime;
     }
 
-    public DefaultIdeaJavaSettings setSourceLanguageLevelInherited(boolean sourceLanguageLevelInherited) {
-        this.sourceLanguageLevelInherited = sourceLanguageLevelInherited;
-        return this;
-    }
-
     public DefaultIdeaJavaSettings setTargetBytecodeLevelInherited(boolean targetBytecodeLevelInherited) {
         this.targetBytecodeLevelInherited = targetBytecodeLevelInherited;
         return this;
@@ -71,10 +65,6 @@ public class DefaultIdeaJavaSettings implements Serializable {
     public DefaultIdeaJavaSettings setTargetRuntimeInherited(boolean targetRuntimeInherited) {
         this.targetRuntimeInherited = targetRuntimeInherited;
         return this;
-    }
-
-    public boolean isSourceLanguageLevelInherited() {
-        return sourceLanguageLevelInherited;
     }
 
     public boolean isTargetBytecodeLevelInherited() {

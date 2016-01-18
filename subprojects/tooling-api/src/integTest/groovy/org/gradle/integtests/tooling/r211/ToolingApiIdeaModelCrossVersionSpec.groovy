@@ -132,13 +132,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
+        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        !ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == null // inherited
     }
 
     def "explicit idea project language level overrules sourceCompatiblity settings"() {
@@ -172,13 +170,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava7()
+        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == null
     }
 
     @TargetGradleVersion(">=1.0-milestone-8")

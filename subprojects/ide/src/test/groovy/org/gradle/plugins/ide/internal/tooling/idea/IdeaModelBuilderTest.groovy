@@ -93,16 +93,18 @@ class IdeaModelBuilderTest extends Specification {
     def "module source language level matches sourceCompatibility for java projects"() {
         given:
         root.plugins.apply(JavaPlugin)
-        root.sourceCompatibility = sourceCompatibility
+        child1.plugins.apply(JavaPlugin)
+        root.sourceCompatibility = '1.9'
+        child1.sourceCompatibility = sourceCompatibility
 
         when:
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel.toString() == sourceCompatibility
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel.toString() == sourceCompatibility
 
         where:
-        sourceCompatibility << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9']
+        sourceCompatibility << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8']
     }
 
     def "module language level is not inherited for non equal project and module language level"() {
@@ -117,7 +119,6 @@ class IdeaModelBuilderTest extends Specification {
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        !ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
     }
 
     def "explicit project language level results in inherited module language level"() {
@@ -135,14 +136,9 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == null
     }
 
     def "can handle multi project builds where no projects are Java projects"() {
@@ -168,12 +164,9 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
         ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        !ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == null
     }
 
     def "can handle multi project builds where only some projects are java projects"() {
@@ -188,10 +181,8 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_4
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_4
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
         ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.isSourceLanguageLevelInherited()
-        !ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.isSourceLanguageLevelInherited()
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 

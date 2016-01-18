@@ -31,7 +31,7 @@ public interface IdeaJavaSettings {
     /**
      * Returns the Java source language level.
      *
-     * @return The source language level. Never returns {@code null}.
+     * @return The source language level, or {@code null} if this value should be inherited.
      */
     JavaVersion getSourceLanguageLevel();
 
@@ -48,13 +48,6 @@ public interface IdeaJavaSettings {
      * @return The target Java runtime. Never returns {@code null}.
      */
     JavaRuntime getTargetRuntime();
-
-    /**
-     * Returns {@code true} if the module language level is inherited from the project source settings.
-     *
-     * @return whether the language level is inherited
-     */
-    boolean isSourceLanguageLevelInherited();
 
     /**
      * Returns {@code true} if the bytecode level is inherited from the project settings.
