@@ -182,7 +182,9 @@ IDE providers use these new introduced methods to determine the target runtime a
 
 ### Continuous build improvements
 
-[Continuous build](userguide/continuous_build.html) will now trigger a rebuild when an input file is changed during build execution.
+When introduced in Gradle 2.5, [continuous build](userguide/continuous_build.html) only observed changes that occurred after a build had completed. Continuous build will now trigger a rebuild when an input file is changed during build execution.
+
+Following a build, if changes were detected, Gradle will report a list of file changes and begin execution of a new build. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build. You can diagnose this sort of problem by looking at the list of files that changed and which task has those files as inputs.
 
 ### Support for controlling test executing order in TestNG
 
