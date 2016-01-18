@@ -117,6 +117,12 @@ class IdeaProject {
     IdeaLanguageLevel languageLevel
 
     /**
+     * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     */
+    protected boolean hasUserSpecifiedLanguageLevel
+
+    /**
      * Sets java language level of the project.
      * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
      * <p>
@@ -126,10 +132,7 @@ class IdeaProject {
      */
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
-        // A user-configured project language level takes precedence over any calculated values
-        for (IdeaModule module : getModules()) {
-            module.setLanguageLevel(null)
-        }
+        this.hasUserSpecifiedLanguageLevel = true
     }
 
     /**

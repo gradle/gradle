@@ -16,13 +16,15 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
+
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin .
  * <p>
@@ -273,8 +275,6 @@ class IdeaModule {
      */
     String jdkName
 
-    private IdeaLanguageLevel languageLevel
-
     /**
      * The module specific language Level to use for this module. When {@code null}, the module will inherit the
      * language level from the idea project.
@@ -282,13 +282,25 @@ class IdeaModule {
      * Idea project and module language levels are based on the {@code sourceCompatibility} settings for each Gradle project,
      * unless the {@link IdeaProject#languageLevel} is explicitly set.
      */
-    public IdeaLanguageLevel getLanguageLevel() {
-        return this.languageLevel
+    IdeaLanguageLevel getLanguageLevel() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
+            if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
+                return moduleLanguageLevel;
+            }
+        }
+        return null;
     }
 
-    @PackageScope // Not part of the public API
-    void setLanguageLevel(IdeaLanguageLevel languageLevel) {
-        this.languageLevel = languageLevel
+    private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
+            return true
+        }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedLanguageLevel){
+            return false;
+        }
+        return moduleLanguageLevel != ideaProject.languageLevel
     }
 
     /**
