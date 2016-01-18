@@ -23,20 +23,16 @@ import java.io.Serializable;
 
 public class DefaultIdeaJavaSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;
-    private JavaVersion targetBytecodeLevel;
+    private JavaVersion targetBytecodeVersion;
     private DefaultJavaRuntime targetRuntime;
-
-    private boolean targetBytecodeLevelInherited;
-    private boolean targetRuntimeInherited;
-
 
     public DefaultIdeaJavaSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
         return this;
     }
 
-    public DefaultIdeaJavaSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
-        this.targetBytecodeLevel = targetBytecodeLevel;
+    public DefaultIdeaJavaSettings setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
+        this.targetBytecodeVersion = targetBytecodeVersion;
         return this;
     }
 
@@ -49,29 +45,11 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return sourceLanguageLevel;
     }
 
-    public JavaVersion getTargetBytecodeLevel() {
-        return targetBytecodeLevel;
+    public JavaVersion getTargetBytecodeVersion() {
+        return targetBytecodeVersion;
     }
 
     public DefaultJavaRuntime getJavaSDK() {
         return targetRuntime;
-    }
-
-    public DefaultIdeaJavaSettings setTargetBytecodeLevelInherited(boolean targetBytecodeLevelInherited) {
-        this.targetBytecodeLevelInherited = targetBytecodeLevelInherited;
-        return this;
-    }
-
-    public DefaultIdeaJavaSettings setJavaSDKInherited(boolean targetRuntimeInherited) {
-        this.targetRuntimeInherited = targetRuntimeInherited;
-        return this;
-    }
-
-    public boolean isTargetBytecodeLevelInherited() {
-        return targetBytecodeLevelInherited;
-    }
-
-    public boolean isJavaSDKInherited() {
-        return targetRuntimeInherited;
     }
 }

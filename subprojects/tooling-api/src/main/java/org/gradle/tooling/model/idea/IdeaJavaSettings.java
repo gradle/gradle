@@ -40,7 +40,7 @@ public interface IdeaJavaSettings {
      *
      * @return The target bytecode language level. Never returns {@code null}.
      */
-    JavaVersion getTargetBytecodeLevel();
+    JavaVersion getTargetBytecodeVersion();
 
     /**
      * Returns the java sdk.
@@ -48,18 +48,4 @@ public interface IdeaJavaSettings {
      * @return The java sdk runtime. Never returns {@code null}.
      */
     JavaRuntime getJavaSDK();
-
-    /**
-     * Returns {@code true} if the bytecode level is inherited from the project settings.
-     *
-     * @return whether the target bytecode level is inherited
-     */
-    boolean isTargetBytecodeLevelInherited();
-
-    /**
-     * Returns {@code true} if the target runtime setting for the idea module is inherited from the project source settings.
-     *
-     * @return whether the target runtime is inherited
-     */
-    boolean isJavaSDKInherited();
 }

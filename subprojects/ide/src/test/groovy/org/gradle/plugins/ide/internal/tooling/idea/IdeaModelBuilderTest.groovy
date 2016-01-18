@@ -195,17 +195,9 @@ class IdeaModelBuilderTest extends Specification {
         then:
         ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
         ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.javaSDKInherited == true
-
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.javaSDKInherited == true
-
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.javaSDKInherited == true
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.javaSDK == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.javaSDK == null
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.javaSDK == null
     }
 
     def "synched module bytecode level marked as inherited"() {

@@ -49,10 +49,6 @@ public class CompatibilityIdeaProjectMapping {
         public CompatibilityJavaRuntime getJavaSDK() {
             return new CompatibilityJavaRuntime();
         }
-
-        public boolean isJavaSDKInherited() {
-            return true;
-        }
     }
 
     public static class CompatibilityJavaRuntime implements Serializable {
