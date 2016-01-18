@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
@@ -120,7 +121,16 @@ class IdeaProject {
      * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
      */
-    protected boolean hasUserSpecifiedLanguageLevel
+    private boolean hasUserSpecifiedLanguageLevel
+
+    /**
+     * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     * */
+    @PackageScope
+    boolean  getHasUserSpecifiedLanguageLevel() {
+        return hasUserSpecifiedLanguageLevel
+    }
 
     /**
      * Sets java language level of the project.
