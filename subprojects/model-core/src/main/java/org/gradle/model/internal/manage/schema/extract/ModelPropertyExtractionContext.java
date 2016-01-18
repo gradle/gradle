@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasGetter;
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasSetter;
+
 public class ModelPropertyExtractionContext {
 
     private final String propertyName;
@@ -41,11 +44,11 @@ public class ModelPropertyExtractionContext {
     }
 
     public boolean isReadable() {
-        return accessors.containsKey(PropertyAccessorType.IS_GETTER) || accessors.containsKey(PropertyAccessorType.GET_GETTER);
+        return hasGetter(accessors.keySet());
     }
 
     public boolean isWritable() {
-        return accessors.containsKey(PropertyAccessorType.SETTER);
+        return hasSetter(accessors.keySet());
     }
 
     public void addAccessor(PropertyAccessorExtractionContext accessor) {

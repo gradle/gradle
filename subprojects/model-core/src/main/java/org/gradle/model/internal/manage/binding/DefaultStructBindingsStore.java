@@ -208,9 +208,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings = propertyEntry.getValue();
 
             if (isManagedProperty(extractionContext, propertyName, accessorBindings)) {
-                boolean foundGetter = accessorBindings.containsKey(GET_GETTER) || accessorBindings.containsKey(IS_GETTER);
-                boolean foundSetter = accessorBindings.containsKey(SETTER);
-                if (foundSetter && !foundGetter) {
+                if (hasSetter(accessorBindings.keySet()) && !hasGetter(accessorBindings.keySet())) {
                     extractionContext.add(propertyName, "it must both have an abstract getter and a setter");
                     continue;
                 }
