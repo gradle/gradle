@@ -40,7 +40,7 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return this;
     }
 
-    public DefaultIdeaJavaSettings setTargetRuntime(DefaultJavaRuntime targetRuntime) {
+    public DefaultIdeaJavaSettings setJavaSDK(DefaultJavaRuntime targetRuntime) {
         this.targetRuntime = targetRuntime;
         return this;
     }
@@ -53,7 +53,7 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return targetBytecodeLevel;
     }
 
-    public DefaultJavaRuntime getTargetRuntime() {
+    public DefaultJavaRuntime getJavaSDK() {
         return targetRuntime;
     }
 
@@ -62,7 +62,7 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return this;
     }
 
-    public DefaultIdeaJavaSettings setTargetRuntimeInherited(boolean targetRuntimeInherited) {
+    public DefaultIdeaJavaSettings setJavaSDKInherited(boolean targetRuntimeInherited) {
         this.targetRuntimeInherited = targetRuntimeInherited;
         return this;
     }
@@ -71,7 +71,7 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return targetBytecodeLevelInherited;
     }
 
-    public boolean isTargetRuntimeInherited() {
+    public boolean isJavaSDKInherited() {
         return targetRuntimeInherited;
     }
 }

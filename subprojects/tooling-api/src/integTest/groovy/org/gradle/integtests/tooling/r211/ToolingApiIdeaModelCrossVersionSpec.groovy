@@ -183,8 +183,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
     }
 
     def "can query target runtime for idea modules"() {
@@ -203,24 +203,24 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
 
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntimeInherited == true
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.javaSDKInherited == true
 
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntimeInherited == true
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.javaSDKInherited == true
 
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntimeInherited == true
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.javaSDKInherited == true
 
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntimeInherited == true
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.javaSDK.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.javaSDKInherited == true
     }
 
     def "can query target bytecode level for idea project and modules"() {

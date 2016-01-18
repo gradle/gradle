@@ -46,11 +46,11 @@ public class CompatibilityIdeaProjectMapping {
             return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
         }
 
-        public CompatibilityJavaRuntime getTargetRuntime() {
+        public CompatibilityJavaRuntime getJavaSDK() {
             return new CompatibilityJavaRuntime();
         }
 
-        public boolean isTargetRuntimeInherited() {
+        public boolean isJavaSDKInherited() {
             return true;
         }
     }

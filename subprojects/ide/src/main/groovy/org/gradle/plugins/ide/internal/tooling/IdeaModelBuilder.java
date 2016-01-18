@@ -76,7 +76,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
             .setJavaSourceSettings(new DefaultIdeaJavaSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
-                .setTargetRuntime(javaRuntime));
+                .setJavaSDK(javaRuntime));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
@@ -160,7 +160,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         Project project = ideaModule.getProject();
-        JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
             .setName(ideaModule.getName())
@@ -171,6 +170,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir()));
+        JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPluginConvention != null) {
             final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
             JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
@@ -178,8 +178,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings()
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)
-                .setTargetRuntime(javaRuntime)
-                .setTargetRuntimeInherited(true));
+                .setJavaSDK(javaRuntime)
+                .setJavaSDKInherited(true));
         }
 
         modules.put(ideaModule.getName(), defaultIdeaModule);
