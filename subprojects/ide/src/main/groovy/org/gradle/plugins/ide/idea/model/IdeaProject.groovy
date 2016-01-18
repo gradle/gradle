@@ -15,10 +15,12 @@
  */
 
 package org.gradle.plugins.ide.idea.model
-
 import groovy.transform.PackageScope
 import org.gradle.api.Incubating
+import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
@@ -117,6 +119,21 @@ class IdeaProject {
      */
     IdeaLanguageLevel languageLevel
 
+
+    /**
+     * The default target bytecode version to use for this project.
+     * <p>
+     * This is calculated as the maximum {@code targetCompatibility} value for all Java projects that form the
+     * Idea modules of this Idea project.
+     */
+    JavaVersion getTargetBytecodeVersion() {
+        List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
+            it.targetCompatibility
+        }
+        JavaVersion maxBytecodeVersion = allTargetCompatibilities.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allTargetCompatibilities)
+        return maxBytecodeVersion;
+    }
+
     /**
      * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
@@ -200,7 +217,15 @@ class IdeaProject {
 
     PathFactory pathFactory
 
-    IdeaProject(XmlFileContentMerger ipr) {
+    /**
+     * An owner of this IDEA project.
+     * <p>
+     * If IdeaProject requires some information from gradle this field should not be used for this purpose.
+     */
+    final org.gradle.api.Project project
+
+    IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
+        this.project = project
         this.ipr = ipr
     }
 

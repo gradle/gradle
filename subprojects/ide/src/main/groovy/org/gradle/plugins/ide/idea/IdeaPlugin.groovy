@@ -55,7 +55,6 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
-
         hookDeduplicationToTheRoot(project)
     }
 
@@ -86,17 +85,19 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = instantiator.newInstance(IdeaProject, ipr)
+                ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
 
                 model.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
                 ideaProject.conventionMapping.languageLevel = {
-                    List<JavaVersion> allProjectJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect { it.sourceCompatibility }
-                    JavaVersion maxJavaVersion = allProjectJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allProjectJavaVersions)
-                    new IdeaLanguageLevel(maxJavaVersion)
+                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor {it.sourceCompatibility}
+                    new IdeaLanguageLevel(maxSourceCompatibility)
                 }
+//                ideaProject.conventionMapping.targetBytecodeVersion = {
+//                    return getMaxJavaModuleCompatibilityVersionFor {it.targetCompatibility}
+//                }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
                     project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
@@ -108,6 +109,12 @@ class IdeaPlugin extends IdePlugin {
             }
             addWorker(task)
         }
+    }
+
+    private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Closure collectClosure) {
+        List<JavaVersion> allProjectJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect(collectClosure)
+        JavaVersion maxJavaVersion = allProjectJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allProjectJavaVersions)
+        maxJavaVersion
     }
 
     private configureIdeaModule(Project project) {

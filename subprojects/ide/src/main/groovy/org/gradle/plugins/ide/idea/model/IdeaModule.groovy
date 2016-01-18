@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Incubating
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.api.plugins.JavaBasePlugin
@@ -290,6 +291,23 @@ class IdeaModule {
             }
         }
         return null;
+    }
+
+    JavaVersion getTargetBytecodeVersion() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            JavaVersion moduleTargetBytecodeLevel = project.targetCompatibility
+            if (includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel)) {
+                return moduleTargetBytecodeLevel;
+            }
+        }
+        return null;
+    }
+
+    private boolean includeModuleBytecodeLevelOverride(org.gradle.api.Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
+            return true
+        }
+        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
     }
 
     private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
