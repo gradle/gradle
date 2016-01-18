@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import com.google.common.base.Preconditions;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
@@ -27,7 +28,7 @@ public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
     private final String propertyName;
 
     public ManagedPropertyMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, String propertyName, PropertyAccessorType accessorType) {
-        super(source, accessorType);
+        super(source, Preconditions.checkNotNull(accessorType));
         this.propertyName = propertyName;
     }
 
@@ -36,11 +37,15 @@ public class ManagedPropertyMethodBinding extends AbstractStructMethodBinding {
     }
 
     public ModelType<?> getDeclaredPropertyType() {
-        return getAccessorType().propertyTypeFor(getSource().getMethod());
+        PropertyAccessorType accessorType = getAccessorType();
+        assert accessorType != null;
+        return accessorType.propertyTypeFor(getViewMethod().getMethod());
     }
 
     @Override
     public String toString() {
-        return getSource() + "/" + getAccessorType().name();
+        PropertyAccessorType accessorType = getAccessorType();
+        assert accessorType != null;
+        return getViewMethod() + "/" + accessorType.name();
     }
 }

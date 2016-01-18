@@ -20,20 +20,20 @@ import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
 public abstract class AbstractDelegationBinding extends AbstractStructMethodBinding implements StructMethodImplementationBinding {
-    private final WeaklyTypeReferencingMethod<?, ?> target;
+    private final WeaklyTypeReferencingMethod<?, ?> implementorMethod;
 
-    public AbstractDelegationBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> target, PropertyAccessorType accessorType) {
+    public AbstractDelegationBinding(WeaklyTypeReferencingMethod<?, ?> source, WeaklyTypeReferencingMethod<?, ?> implementorMethod, PropertyAccessorType accessorType) {
         super(source, accessorType);
-        this.target = target;
+        this.implementorMethod = implementorMethod;
     }
 
     @Override
-    public WeaklyTypeReferencingMethod<?, ?> getImplementor() {
-        return target;
+    public WeaklyTypeReferencingMethod<?, ?> getImplementorMethod() {
+        return implementorMethod;
     }
 
     @Override
     public String toString() {
-        return getSource() + " -> " + target;
+        return getViewMethod() + " -> " + implementorMethod;
     }
 }

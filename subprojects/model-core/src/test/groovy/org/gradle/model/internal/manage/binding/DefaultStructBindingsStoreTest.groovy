@@ -49,7 +49,7 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.delegateSchema == null
         bindings.managedProperties.values()*.name as List == ["z"]
         bindings.methodBindings*.getClass() == [ManagedPropertyMethodBinding, ManagedPropertyMethodBinding]
-        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.viewMethod*.name == ["getZ", "setZ"]
     }
 
     static abstract class TypeWithImplementedProperty {
@@ -63,7 +63,7 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.declaredViewSchemas*.type*.rawClass as List == [TypeWithImplementedProperty]
         bindings.delegateSchema == null
         bindings.managedProperties.isEmpty()
-        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.viewMethod*.name == ["getZ", "setZ"]
         bindings.methodBindings*.getClass() == [DirectMethodBinding, DirectMethodBinding]
     }
 
@@ -77,7 +77,7 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.declaredViewSchemas*.type*.rawClass as List == [TypeWithAbstractProperty]
         bindings.delegateSchema.type.rawClass == DelegateTypeWithImplementedProperty
         bindings.managedProperties.isEmpty()
-        bindings.methodBindings*.source*.name == ["getZ", "setZ"]
+        bindings.methodBindings*.viewMethod*.name == ["getZ", "setZ"]
         bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
     }
 
@@ -259,10 +259,10 @@ class DefaultStructBindingsStoreTest extends Specification {
         bindings.delegateSchema.type.rawClass == OverloadingIntegerImpl
         bindings.managedProperties.isEmpty()
         bindings.methodBindings*.getClass() == [DelegateMethodBinding, DelegateMethodBinding]
-        bindings.methodBindings*.source*.name == ["getValue", "getValue"]
-        bindings.methodBindings*.source*.method*.returnType == [Number, Integer]
-        bindings.methodBindings*.implementor*.name == ["getValue", "getValue"]
-        bindings.methodBindings*.implementor*.method*.returnType == [Integer, Integer]
+        bindings.methodBindings*.viewMethod*.name == ["getValue", "getValue"]
+        bindings.methodBindings*.viewMethod*.method*.returnType == [Number, Integer]
+        bindings.methodBindings*.implementorMethod*.name == ["getValue", "getValue"]
+        bindings.methodBindings*.implementorMethod*.method*.returnType == [Integer, Integer]
     }
 
     static enum MyEnum {

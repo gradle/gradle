@@ -244,7 +244,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Set<WeaklyTypeReferencingMethod<?, ?>> implMethods = Sets.newLinkedHashSet();
         for (StructMethodBinding binding : bindings) {
             if (binding instanceof StructMethodImplementationBinding) {
-                implMethods.add(((StructMethodImplementationBinding) binding).getImplementor());
+                implMethods.add(((StructMethodImplementationBinding) binding).getImplementorMethod());
             }
         }
         switch (implMethods.size()) {
@@ -263,7 +263,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         Collection<StructMethodBinding> isGetter = accessorBindings.get(IS_GETTER);
         for (StructMethodBinding isGetterBinding : isGetter) {
             if (!((ManagedPropertyMethodBinding) isGetterBinding).getDeclaredPropertyType().equals(ModelType.of(Boolean.TYPE))) {
-                WeaklyTypeReferencingMethod<?, ?> isGetterMethod = isGetterBinding.getSource();
+                WeaklyTypeReferencingMethod<?, ?> isGetterMethod = isGetterBinding.getViewMethod();
                 extractionContext.add(isGetterMethod, String.format("it should either return 'boolean', or its name should be '%s()'",
                     "get" + isGetterMethod.getName().substring(2)));
             }
@@ -288,7 +288,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             ManagedPropertyMethodBinding propertySetterBinding = (ManagedPropertyMethodBinding) setterBinding;
             ModelType<?> declaredSetterType = propertySetterBinding.getDeclaredPropertyType();
             if (!declaredSetterType.equals(propertyType)) {
-                extractionContext.add(setterBinding.getSource(), String.format("it should take parameter with type '%s'",
+                extractionContext.add(setterBinding.getViewMethod(), String.format("it should take parameter with type '%s'",
                     propertyType.getDisplayName()));
             }
         }
@@ -474,7 +474,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
     private static boolean isDeclaredAsHavingUnmanagedType(Collection<StructMethodBinding> accessorBindings) {
         for (StructMethodBinding accessorBinding : accessorBindings) {
-            if (accessorBinding.getSource().getMethod().isAnnotationPresent(Unmanaged.class)) {
+            if (accessorBinding.getViewMethod().getMethod().isAnnotationPresent(Unmanaged.class)) {
                 return true;
             }
         }

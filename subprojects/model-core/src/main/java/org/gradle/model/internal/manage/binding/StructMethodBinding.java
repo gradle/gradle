@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.binding;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 
@@ -23,6 +24,11 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
  * Binds a method declared in a views to its actual implementation.
  */
 public interface StructMethodBinding {
-    WeaklyTypeReferencingMethod<?, ?> getSource();
+    WeaklyTypeReferencingMethod<?, ?> getViewMethod();
+
+    /**
+     * Returns the property accessor type of this method, or {@code null} if the method is not a property accessor.
+     */
+    @Nullable
     PropertyAccessorType getAccessorType();
 }
