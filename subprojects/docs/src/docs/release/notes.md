@@ -1,3 +1,22 @@
+The Gradle team is pleased to bring you Gradle 2.11. This release delivers significant improvements to the new [software model](userguide/software_model.html), together with a number of bug fixes and smaller improvements.
+
+The software model is the future of Gradle. Native and Play plugins already leverage it and we are working intensively on using it also for Java support.
+In this release, new Java plugins started to support testing with JUnit and became smarter in compile avoidance.
+Support for developing plugins with the new software model also got better.
+
+Starting with this release, [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and Intellij IDEA in regard to integration with Gradle.
+Gradle own [IDEA plugin](userguide/idea_plugin.html) used to generate Intellij IDEA configuration files has also been improved to detect project language level in a smarter way.
+
+[Continuous build](userguide/continuous_build.html) got better in this release by taking into account changes happening during build execution.
+
+A Gradle release would not be complete without contributions from the wonderful Gradle community.
+This release includes several improvements and fixes from community pull requests including support for:
+
+* Controlling TestNG executing order in [Java plugin](userguide/java_plugin.html)
+* Different test frameworks in [Build Init Plugin](userguide/build_init_plugin.html)
+* Configuring Twirl source sets to use Java default imports in [Play plugin](userguide/play_plugin.html)
+* Exclude information in [Ivy publishing](userguide/publishing_ivy.html)
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
