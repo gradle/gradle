@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
@@ -35,11 +36,13 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
@@ -155,7 +158,8 @@ public class JvmTestSuiteRules extends RuleSource {
                 List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
                 testBinary.setArtifactDependencyResolver(dependencyResolver);
                 testBinary.setRepositories(resolutionAwareRepositories);
-                testBinary.setModelSchemaStore(modelSchemaStore);
+                ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
+                testBinary.setVariantsMetaData(DefaultVariantsMetaData.extractFrom(testBinary, schema));
             }
 
             private void configureCompileClasspath(JvmTestSuiteBinarySpecInternal testSuiteBinary) {

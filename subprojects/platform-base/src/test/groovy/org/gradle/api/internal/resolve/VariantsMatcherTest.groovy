@@ -39,7 +39,7 @@ class VariantsMatcherTest extends Specification {
 
         def factories = [DefaultVariantAxisCompatibilityFactory.of(MyPlatform, new MySelector())]
         def matcher = new VariantsMatcher(factories, CustomSpecBase, schemaStore)
-        def reference = DefaultVariantsMetaData.extractFrom(spec, schemaStore)
+        def reference = DefaultVariantsMetaData.extractFrom(spec, schemaStore.getSchema(((BinarySpecInternal)spec).publicType))
 
         when: "we filter binaries based on requirements"
         def filtered = matcher.filterBinaries(reference, binaries)
@@ -96,7 +96,7 @@ class VariantsMatcherTest extends Specification {
             })
         ]
         def matcher = new VariantsMatcher(factories, CustomSpecBase, schemaStore)
-        def reference = DefaultVariantsMetaData.extractFrom(spec, schemaStore)
+        def reference = DefaultVariantsMetaData.extractFrom(spec, schemaStore.getSchema(((BinarySpecInternal)spec).publicType))
 
         when: "we filter binaries based on requirements"
         def filtered = matcher.filterBinaries(reference, binaries)

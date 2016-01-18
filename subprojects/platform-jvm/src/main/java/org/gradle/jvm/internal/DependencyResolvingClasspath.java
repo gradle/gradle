@@ -37,7 +37,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -116,8 +116,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
     }
 
-    protected static VariantsMetaData variantsMetaDataFrom(BinarySpec binary, ModelSchemaStore schemaStore) {
-        return DefaultVariantsMetaData.extractFrom(binary, schemaStore);
+    protected static VariantsMetaData variantsMetaDataFrom(BinarySpec binary, ModelSchema<?> binarySchema) {
+        return DefaultVariantsMetaData.extractFrom(binary, binarySchema);
     }
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {

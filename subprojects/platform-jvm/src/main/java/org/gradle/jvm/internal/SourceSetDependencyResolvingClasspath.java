@@ -19,8 +19,8 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -33,13 +33,13 @@ public class SourceSetDependencyResolvingClasspath extends DependencyResolvingCl
             LanguageSourceSet sourceSet,
             Iterable<DependencySpec> dependencies,
             ArtifactDependencyResolver dependencyResolver,
-            ModelSchemaStore schemaStore,
+            VariantsMetaData binaryVariants,
             List<ResolutionAwareRepository> remoteRepositories) {
         super(binarySpec,
             String.format("source set '%s'", sourceSet.getDisplayName()),
             dependencyResolver,
             remoteRepositories,
-            new LocalComponentResolveContext(binarySpec.getId(), variantsMetaDataFrom(binarySpec, schemaStore), dependencies, UsageKind.API, sourceSet.getDisplayName()));
+            new LocalComponentResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName()));
     }
 
 }
