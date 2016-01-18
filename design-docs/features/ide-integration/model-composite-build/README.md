@@ -183,7 +183,6 @@ Individual projects in a composite might have the same project name. This story 
 - Gradle core implements a similar algorithm for the IDE plugins. This implementation will be reused. The current implementation would have to be refactored and moved to an internal package in the tooling-api subproject. The de-duplication implementation should use Tooling API's HierarchicalElement interface to access the name and hierarchy of projects. The ide subproject already depends on tooling-api and it's easy to adapt the current code to use the HierarchicalElement interface in de-duplication so that the implementation can be shared.
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current ModuleNameDeduper implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider rewriting the implementation.
-- Ideally, project names remain stable, i.e. deduping renames newly added projects in favor of renaming previously imported projects
 
 ##### Test cases
 
@@ -198,6 +197,7 @@ should be rendered in Eclipse's project view section.
 #### Open issues
 
 - The eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates. This isn't specific to the composite build and should be solved for ordinary builds as well.
+- Project names should remain stable, i.e. deduping renames newly added projects in favor of renaming previously imported projects. This should be handled when de-duping is used in refreshing an previously imported project.
 
 
 ### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
