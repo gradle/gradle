@@ -84,10 +84,18 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.11")
-    def "older Gradle version throws exception when querying idea project java bytecode version"() {
-        when:
+    def "older Gradle version throws exception when querying idea project java bytecode version or jdk"() {
+        given:
         def ideaProject = loadIdeaProjectModel()
+
+        when:
         ideaProject.javaLanguageSettings.getTargetBytecodeVersion()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        ideaProject.javaLanguageSettings.getJavaSDK()
 
         then:
         thrown(UnsupportedMethodException)
@@ -187,7 +195,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "can query java sdk for idea project"() {
         when:
         def ideaProject = loadIdeaProjectModel()

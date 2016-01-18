@@ -48,6 +48,7 @@ public interface IdeaJavaLanguageSettings {
      * Returns the java sdk.
      *
      * @return The java sdk runtime.or {@code null} if this value should be inherited.
+     * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
      */
-    JavaRuntime getJavaSDK();
+    JavaRuntime getJavaSDK() throws UnsupportedMethodException;
 }
