@@ -25,7 +25,6 @@ import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -75,7 +74,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setName(projectModel.getName())
             .setJdkName(projectModel.getJdkName())
             .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
-            .setJavaSourceSettings(new DefaultJavaSourceSettings()
+            .setJavaSourceSettings(new DefaultIdeaJavaSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
                 .setTargetRuntime(javaRuntime));
 
@@ -98,7 +97,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         final Set<JavaVersion> moduleBytecodeVersions = toSet(compact(collect(ideaModules, new Transformer<JavaVersion, DefaultIdeaModule>() {
             @Override
             public JavaVersion transform(DefaultIdeaModule defaultIdeaModule) {
-                final DefaultIdeaModuleJavaSourceSettings javaSourceSettings = defaultIdeaModule.getJavaSourceSettings();
+                final DefaultIdeaJavaSettings javaSourceSettings = defaultIdeaModule.getJavaSourceSettings();
                 return javaSourceSettings == null ? null : javaSourceSettings.getTargetBytecodeLevel();
             }
         })));
@@ -116,7 +115,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     }
 
     private boolean moduleTargetByteIsMaxBytecodeLevel(JavaVersion maxBytecodeLevel, DefaultIdeaModule ideaModule) {
-        final DefaultIdeaModuleJavaSourceSettings moduleJavaSourceSettings = ideaModule.getJavaSourceSettings();
+        final DefaultIdeaJavaSettings moduleJavaSourceSettings = ideaModule.getJavaSourceSettings();
         if(moduleJavaSourceSettings == null) {
             return false;
         }
@@ -179,7 +178,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 ? projectSourceLanguageLevel
                 : convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
             JavaVersion moduleTargetLanguageLevel = javaPluginConvention.getTargetCompatibility();
-            defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
+            defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings()
                 .setSourceLanguageLevelInherited(moduleSourceLanguageLevel.equals(projectSourceLanguageLevel))
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeLevel(moduleTargetLanguageLevel)

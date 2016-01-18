@@ -20,25 +20,23 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
-import org.gradle.tooling.model.java.JavaSourceAware;
-import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
  * Represents the information about the IDEA project.
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
+public interface IdeaProject extends HierarchicalElement {
 
     /**
-     * {@inheritDoc}
+     * Returns the Java settings for this element, or {@code null} if this element is not a Java element.
      *
      * @return the JavaSourceSettings within the current project, never null.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
     @Incubating
-    JavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
+    IdeaJavaSettings getJavaSourceSettings() throws UnsupportedMethodException;
 
     /**
      * Returns the name of the JDK.

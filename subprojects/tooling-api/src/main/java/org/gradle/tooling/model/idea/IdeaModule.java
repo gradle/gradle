@@ -19,22 +19,23 @@ package org.gradle.tooling.model.idea;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.*;
-import org.gradle.tooling.model.java.JavaSourceAware;
 
 /**
  * Represents information about the IDEA module.
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaModule extends HierarchicalElement, HasGradleProject, JavaSourceAware {
+public interface IdeaModule extends HierarchicalElement, HasGradleProject {
 
     /**
-     * {@inheritDoc}
+     * Returns the Java settings for this element, or {@code null} if this element is not a Java element.
+     *
+     * @return The source settings.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
     @Nullable @Incubating
-    IdeaModuleJavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
+    IdeaJavaSettings getJavaSourceSettings() throws UnsupportedMethodException;
 
     /**
      * All content roots. Most idea modules have a single content root.

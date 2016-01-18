@@ -17,7 +17,8 @@
 package org.gradle.tooling.model.idea;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.java.JavaSourceSettings;
+import org.gradle.api.JavaVersion;
+import org.gradle.tooling.model.java.JavaRuntime;
 
 /**
  * Describes Java source settings for an IDEA module.
@@ -25,7 +26,28 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
  * @since 2.11
  */
 @Incubating
-public interface IdeaModuleJavaSourceSettings extends JavaSourceSettings {
+public interface IdeaJavaSettings {
+
+    /**
+     * Returns the Java source language level.
+     *
+     * @return The source language level. Never returns {@code null}.
+     */
+    JavaVersion getSourceLanguageLevel();
+
+    /**
+     * Returns the target bytecode level.
+     *
+     * @return The target bytecode language level. Never returns {@code null}.
+     */
+    JavaVersion getTargetBytecodeLevel();
+
+    /**
+     * Returns the target Java runtime.
+     *
+     * @return The target Java runtime. Never returns {@code null}.
+     */
+    JavaRuntime getTargetRuntime();
 
     /**
      * Returns {@code true} if the module language level is inherited from the project source settings.

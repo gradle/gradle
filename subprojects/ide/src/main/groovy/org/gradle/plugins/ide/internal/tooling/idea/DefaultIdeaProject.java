@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
@@ -29,7 +28,7 @@ public class DefaultIdeaProject implements Serializable {
     private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
-    private DefaultJavaSourceSettings javaSourceSettings;
+    private DefaultIdeaJavaSettings javaSourceSettings;
 
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
@@ -85,11 +84,11 @@ public class DefaultIdeaProject implements Serializable {
         return children;
     }
 
-    public DefaultJavaSourceSettings getJavaSourceSettings() {
+    public DefaultIdeaJavaSettings getJavaSourceSettings() {
         return javaSourceSettings;
     }
 
-    public DefaultIdeaProject setJavaSourceSettings(DefaultJavaSourceSettings javaSourceSettings) {
+    public DefaultIdeaProject setJavaSourceSettings(DefaultIdeaJavaSettings javaSourceSettings) {
         this.javaSourceSettings = javaSourceSettings;
         return this;
     }
