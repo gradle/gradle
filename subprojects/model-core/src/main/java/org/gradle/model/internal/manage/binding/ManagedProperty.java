@@ -19,7 +19,20 @@ package org.gradle.model.internal.manage.binding;
 import org.gradle.model.internal.type.ModelType;
 
 /**
- * A managed property of a struct.
+ * A managed property of a struct type.
+ *
+ * <p>Managed properties are properties whose values need to be stored in child-nodes. A
+ * managed property is detected when the view schemas declaring the struct declare a property with only abstract accessor
+ * methods. This means that accessors declaring the property in the views should all be abstract, and the delegate type (if any)
+ * should <em>not</em> provide an implementation for any of the property's accessor methods either.</p>
+ *
+ * <p>The managed property represents a property that is able to serve all its declaring view methods. For example, if the view
+ * types declaring the struct only specify the property via a getter, then the managed property will be read-only. However, if
+ * even one of the view types declare a setter for the property, it will be a read-write property. </p>
+ *
+ * <p>Different views can declare the same getter with different return types. In such a case the type of the managed property
+ * will be the most specific of those return types (provided there is a single type that is assignable to any of the other
+ * return types).</p>
  */
 public class ManagedProperty<T> {
     private final String name;

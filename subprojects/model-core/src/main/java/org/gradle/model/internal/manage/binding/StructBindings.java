@@ -49,6 +49,7 @@ import java.util.Set;
  *     <li>abstract property-accessor methods are implemented by a generated property (the value of the property stored in a child-node, see {@link ManagedPropertyMethodBinding})</li>
  * </ul>
  *
+ * @see ManagedProperty
  * @see org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator
  */
 public interface StructBindings<T> {
@@ -58,12 +59,18 @@ public interface StructBindings<T> {
     StructSchema<T> getPublicSchema();
 
     /**
-     * Returns schemas for both the public and internal views.
+     * Returns the view schemas used in declaring the struct. These schemas include the public view schema and any internal view schemas specified
+     * when declaring the struct.
      */
     Set<StructSchema<?>> getDeclaredViewSchemas();
 
     /**
-     * Returns all schemas that are implemented by this view.
+     * Returns all schemas that are implemented by this struct. These schemas include the public view schema, any internal view schemas specified
+     * when declaring the struct, together with all their super-type schemas. This is an exhaustive list of every type a node can be
+     * viewed as. In other words this is the full list of interfaces that a view proxy class generated for this struct type might implement.
+     *
+     * <p>Note: currently view proxies also implement any interfaces implemented by the delegate type. The set returned by this method
+     * includes schemas for all those interfaces as well, together with schemas for their super-interfaces.</p>
      */
     Set<StructSchema<?>> getImplementedViewSchemas();
 
@@ -74,7 +81,9 @@ public interface StructBindings<T> {
     StructSchema<?> getDelegateSchema();
 
     /**
-     * Returns the managed properties declared by the struct.
+     * Returns the managed properties inferred from the view and delegate schemas declaring this struct.
+     *
+     * @see ManagedProperty
      */
     Map<String, ManagedProperty<?>> getManagedProperties();
 
