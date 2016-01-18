@@ -49,6 +49,8 @@ Then the suite can be executed running the `:mySuiteTest` task. More information
 
 #### `@ComponentBinaries` works for elements of `testSuites`
 
+The `@ComponentBinaries` annotation can now be used to create binaries for any component type, regardless of its enclosing container. It means that it can be used to define binaries for components in `components`, like it used to, but also for those defined in `testSuites`, or any custom `ComponentSpec` container.
+
 ### Controlling test executing order in TestNG
 
 This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
