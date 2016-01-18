@@ -150,12 +150,7 @@ public class BuildExperimentRunner {
         final Runnable runner = session.runner(new GradleInvocationCustomizer() {
             @Override
             public GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
-                GradleInvocationSpec customizedInvocation = invocationSpec.withAdditionalArgs(createIterationInfoArguments(phase, iterationNumber, iterationMax));
-                if (experiment.getListener() != null) {
-                    GradleInvocationCustomizer customizer = experiment.getListener().createInvocationCustomizer(invocationInfo);
-                    customizedInvocation = customizer.customize(customizedInvocation);
-                }
-                return customizedInvocation;
+                return invocationSpec.withAdditionalArgs(createIterationInfoArguments(phase, iterationNumber, iterationMax));
             }
         });
 
