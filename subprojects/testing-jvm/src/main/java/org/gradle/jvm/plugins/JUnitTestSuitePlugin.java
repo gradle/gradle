@@ -25,6 +25,7 @@ import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
+import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
 import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
@@ -87,13 +88,13 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @Defaults
         public void createTestSuiteTasks(
-                                  final ModelMap<JUnitTestSuiteBinarySpec> binaries,
+                                  final ModelMap<JvmTestSuiteBinarySpec> binaries,
                                   final @Path("buildDir") File buildDir,
                                   final ServiceRegistry registry,
                                   final ModelSchemaStore schemaStore) {
-            binaries.afterEach(new Action<JUnitTestSuiteBinarySpec>() {
+            binaries.afterEach(new Action<JvmTestSuiteBinarySpec>() {
                 @Override
-                public void execute(JUnitTestSuiteBinarySpec binary) {
+                public void execute(JvmTestSuiteBinarySpec binary) {
                     final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
                     JvmTestSuites.createJvmTestSuiteTasks(binary, jvmAssembly, buildDir);
                 }
