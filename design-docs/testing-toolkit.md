@@ -620,6 +620,9 @@ by plugins. The solution will also fix [GRADLE-1715](https://issues.gradle.org/b
 
 * Create a fat jar for Gradle API, the Tooling API and TestKit.
 * The fat JAR will relocated all external dependencies to `org.gradle.jarjar`. All Gradle runtime classes (`org.gradle.**` will keep the package).
+* Do not relocate those classes that form part of the API, either provided by or required by Gradle.
+    * For the Tooling API, this means SLF4J.
+    * For Gradle core, this means Ant, Groovy, and SLF4J.
 * The fat Gradle API JAR will created in a new directory of the Gradle distribution e.g. `jarjar`. If the size of the Gradle distribution increases significantly, this JAR might
 have to be published instead.
 * The fat Tooling API JAR will not become part of the Gradle distribution. It will only be published.
