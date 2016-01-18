@@ -195,6 +195,11 @@ should be rendered in Eclipse's project view section.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names
 - When a project is removed from the workspace, another project can take it's name
 
+#### Open issues
+
+- The eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates. This isn't specific to the composite build and should be solved for ordinary builds as well.
+
+
 ### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
 
 If a composite contains a projectA and projectB, where projectA has a binary (external) dependeny on projectB, then the `EclipseProject` model for projectA should contain a reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
