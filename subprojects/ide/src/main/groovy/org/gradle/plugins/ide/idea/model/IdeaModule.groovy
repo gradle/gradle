@@ -283,6 +283,7 @@ class IdeaModule {
      * Idea project and module language levels are based on the {@code sourceCompatibility} settings for each Gradle project,
      * unless the {@link IdeaProject#languageLevel} is explicitly set.
      */
+    @Incubating
     IdeaLanguageLevel getLanguageLevel() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
             def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
@@ -293,6 +294,13 @@ class IdeaModule {
         return null;
     }
 
+    /**
+     * The module specific bytecode version to use for this module. When {@code null}, the module will inherit the
+     * bytecode version from the idea project.
+     * <p>
+     * Idea project and module byte code versions are based on the {@code targetCompatibility} settings for each Gradle project.
+     */
+    @Incubating
     JavaVersion getTargetBytecodeVersion() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
             JavaVersion moduleTargetBytecodeLevel = project.targetCompatibility

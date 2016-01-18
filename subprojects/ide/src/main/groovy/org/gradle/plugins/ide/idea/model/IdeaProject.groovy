@@ -126,6 +126,7 @@ class IdeaProject {
      * This is calculated as the maximum {@code targetCompatibility} value for all Java projects that form the
      * Idea modules of this Idea project.
      */
+    @Incubating
     JavaVersion getTargetBytecodeVersion() {
         List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
             it.targetCompatibility
