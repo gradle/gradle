@@ -21,17 +21,41 @@ This release includes several improvements and fixes from community pull request
 
 Here are the new features introduced in this Gradle release.
 
-### Improvements in Java software model
+### Software model improvements
 
-#### Improved compile avoidance
+#### Better support for developing plugins with the Software Model with managed source set types
 
-This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
+The `LanguageSourceSet` type can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` source sets without having to provide a default implementation.
 
-* a private method is added to `B`
-* a method body is changed in `B`
-* order of methods is changed in `B`
+Example:
 
-This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
+    @Managed
+    interface MarkdownSourceSet extends LanguageSourceSet {
+        boolean isGenerateIndex()
+        void setGenerateIndex(boolean generateIndex)
+        boolean isSmartQuotes()
+        void setSmartQuotes(boolean smartQuotes)
+    }
+    class RegisterMarkdown extends RuleSource {
+        @LanguageType
+        void registerMarkdown(LanguageTypeBuilder<MarkdownSourceSet> builder) {
+            builder.setLanguageName("Markdown")
+        }
+    }
+    apply plugin: 'language-base'
+    apply plugin: RegisterMarkdown
+
+    model {
+        md(MarkdownSourceSet) {
+            generateIndex = true
+        }
+    }
+
+#### `@ComponentBinaries` works for elements of `testSuites`
+
+The `@ComponentBinaries` annotation can now be used to create binaries for any component type, regardless of its enclosing container. It means that it can be used to define binaries for components in `components`, like it used to, but also for those defined in `testSuites`, or any custom `ComponentSpec` container.
+
+### Java software model improvements
 
 #### Testing support
 
@@ -65,129 +89,19 @@ Whereas you can declare a test suite aimed at testing another JVM component this
 
 Then the suite can be executed running the `:mySuiteTest` task. More information about declaring test suites can be found in the [userguide](userguide/java_software.html).
 
-### Model rule improvements
+#### Improved compile avoidance
 
-#### `@ComponentBinaries` works for elements of `testSuites`
+This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
 
-The `@ComponentBinaries` annotation can now be used to create binaries for any component type, regardless of its enclosing container. It means that it can be used to define binaries for components in `components`, like it used to, but also for those defined in `testSuites`, or any custom `ComponentSpec` container.
+* a private method is added to `B`
+* a method body is changed in `B`
+* order of methods is changed in `B`
 
-### Controlling test executing order in TestNG
+This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
 
-This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
+### Native software model improvements
 
-New options can be enabled in the useTestNG block:
-
-    test {
-        useTestNG {
-            preserveOrder true
-            groupByInstances true
-        }
-    }
-
-This feature was contributed by [Richard Bergoin](https://github.com/kenji21).
-
-### Better support for developing plugins with the Software Model
-
-#### Managed source set types
-
-The `LanguageSourceSet` type can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` source sets without having to provide a default implementation.
-
-Example:
-
-    @Managed
-    interface MarkdownSourceSet extends LanguageSourceSet {
-        boolean isGenerateIndex()
-        void setGenerateIndex(boolean generateIndex)
-        boolean isSmartQuotes()
-        void setSmartQuotes(boolean smartQuotes)
-    }
-    class RegisterMarkdown extends RuleSource {
-        @LanguageType
-        void registerMarkdown(LanguageTypeBuilder<MarkdownSourceSet> builder) {
-            builder.setLanguageName("Markdown")
-        }
-    }
-    apply plugin: 'language-base'
-    apply plugin: RegisterMarkdown
-
-    model {
-        md(MarkdownSourceSet) {
-            generateIndex = true
-        }
-    }
-
-### Support for different test frameworks for Java projects in Build Init Plugin
-
-It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
-
-    gradle init --type java-library --test-framework spock
-
-or
-
-    gradle init --type java-library --test-framework testng
-
-This feature was contributed by [Dylan Cali](https://github.com/calid).
-
-### Ivy Publishing Improvements
-
-The Ivy descriptor file generated by the ['ivy-publish'](userguide/publishing_ivy.html) plugin now includes dependency exclude information. Exclusions configured in your Gradle
-build script on project or external module dependencies will be included in the published _ivy.xml_ file.
-
-This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
-
-### IDE integration improvements
-
-#### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
-
-The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
-
-This behavior has been improved, so that the generated IDEA project will have a 'Language Level' matching the highest `sourceCompatibility` value for all imported subprojects. For a multi-project Gradle build that contains a mix of `sourceCompatibility` values, the generated IDEA module for a sub-project will include an override for the appropriate 'Language Level' where it does not match that of the overall generated IDEA project.
-
-If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatiblity` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
-
-The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
-
-#### Tooling API exposes source language level on Idea model
-
-The `IdeaProject` and the `IdeaModule` model now exposes the Java source language level via the
-<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
-
-#### Tooling API exposes java runtime and target bytecode level on IDE models
-
-The `IdeaProject` and the `IdeaModule` model now exposes the target java runtime and the target bytecode level via the
-<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-The target bytecode level for `IdeaModule` is derived from the
-<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
-convention property.
-
-The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a>
-property.
-
-IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
-
-### Continuous build reacts to changes during build execution
-
-[Continuous build](userguide/continuous_build.html) will now trigger a rebuild when an input file is changed during build execution.
-
-### Support for Twirl source sets to use Java default imports
-
-Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now
-specify that Java default imports should be used when compiling a Twirl source set.
-
-    model {
-        components {
-            play {
-                twirlTemplates {
-                    defaultImports = TwirlImports.JAVA
-                }
-            }
-        }
-    }
-
-### Changes to native unit testing
+#### Changes to native unit testing
 
 By convention, when the CUnit plugin or the Google Test plugin is applied, test suites for components are created automatically. It means that if you have a native component `hello`, a corresponding `helloTest` test suite is automatically created:
 
@@ -225,13 +139,99 @@ If you don't want the conventions to be automatically applied, you can opt-out a
 
 The `cunit` plugin is built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
 
-## Improved native header detection
+#### Improved native header detection
 
 In Gradle 2.10, compilation tasks for native languages were not considered out of date when a header file was added earlier in the include search path after a file with the same name had been found in a previous execution.
 
 It's recommended that header files are included with a "namespace" to avoid naming conflicts.  For example, if you have a header "logger.h", you should put the header in a subdirectory and include it as "subdirectory/logger.h" instead.
 
 See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details.
+
+### IDE integration improvements
+
+#### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
+
+The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
+
+This behavior has been improved, so that the generated IDEA project will have a 'Language Level' matching the highest `sourceCompatibility` value for all imported subprojects. For a multi-project Gradle build that contains a mix of `sourceCompatibility` values, the generated IDEA module for a sub-project will include an override for the appropriate 'Language Level' where it does not match that of the overall generated IDEA project.
+
+If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatiblity` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
+
+The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
+
+#### Tooling API exposes source language level on Idea model
+
+The `IdeaProject` and the `IdeaModule` model now exposes the Java source language level via the
+<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
+
+#### Tooling API exposes java runtime and target bytecode level on IDE models
+
+The `IdeaProject` and the `IdeaModule` model now exposes the target java runtime and the target bytecode level via the
+<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+The target bytecode level for `IdeaModule` is derived from the
+<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
+convention property.
+
+The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
+The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a>
+property.
+
+IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
+
+### Continuous build improvements
+
+[Continuous build](userguide/continuous_build.html) will now trigger a rebuild when an input file is changed during build execution.
+
+### Support for controlling test executing order in TestNG
+
+This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
+
+New options can be enabled in the useTestNG block:
+
+    test {
+        useTestNG {
+            preserveOrder true
+            groupByInstances true
+        }
+    }
+
+This feature was contributed by [Richard Bergoin](https://github.com/kenji21).
+
+### Support for different test frameworks for Java projects in Build Init Plugin
+
+It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
+
+    gradle init --type java-library --test-framework spock
+
+or
+
+    gradle init --type java-library --test-framework testng
+
+This feature was contributed by [Dylan Cali](https://github.com/calid).
+
+### Support for exclude information in Ivy publishing
+
+The Ivy descriptor file generated by the ['ivy-publish'](userguide/publishing_ivy.html) plugin now includes dependency exclude information. Exclusions configured in your Gradle
+build script on project or external module dependencies will be included in the published _ivy.xml_ file.
+
+This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
+
+### Support for Twirl source sets to use Java default imports
+
+Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now
+specify that Java default imports should be used when compiling a Twirl source set.
+
+    model {
+        components {
+            play {
+                twirlTemplates {
+                    defaultImports = TwirlImports.JAVA
+                }
+            }
+        }
+    }
 
 ## Fixed issues
 
