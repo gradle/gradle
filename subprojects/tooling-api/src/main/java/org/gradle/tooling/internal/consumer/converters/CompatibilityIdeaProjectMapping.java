@@ -31,14 +31,14 @@ public class CompatibilityIdeaProjectMapping {
         this.ideaProject = ideaProject;
     }
 
-    public CompatibilityIdeaProjectJavaSourceSettings getJavaSourceSettings() {
-        return new CompatibilityIdeaProjectJavaSourceSettings(ideaProject);
+    public CompatibilityIdeaProjectJavaLanguageSettings getJavaLanguageSettings() {
+        return new CompatibilityIdeaProjectJavaLanguageSettings(ideaProject);
     }
 
-    public static class CompatibilityIdeaProjectJavaSourceSettings implements Serializable {
+    public static class CompatibilityIdeaProjectJavaLanguageSettings implements Serializable {
         private final IdeaProject ideaProject;
 
-        public CompatibilityIdeaProjectJavaSourceSettings(IdeaProject ideaProject) {
+        public CompatibilityIdeaProjectJavaLanguageSettings(IdeaProject ideaProject) {
             this.ideaProject = ideaProject;
         }
 

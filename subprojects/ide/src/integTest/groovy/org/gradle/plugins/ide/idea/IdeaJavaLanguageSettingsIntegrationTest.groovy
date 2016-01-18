@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.junit.Rule
 
-class IdeaJavaSettingsIntegrationTest extends AbstractIdeIntegrationSpec {
+class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 

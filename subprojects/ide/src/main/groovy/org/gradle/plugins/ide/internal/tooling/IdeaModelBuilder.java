@@ -72,7 +72,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setName(projectModel.getName())
             .setJdkName(projectModel.getJdkName())
             .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
-            .setJavaSourceSettings(new DefaultIdeaJavaSettings()
+            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJavaSDK(javaRuntime));
@@ -143,7 +143,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
             JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
             JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
-            defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaJavaSettings()
+            defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
         }

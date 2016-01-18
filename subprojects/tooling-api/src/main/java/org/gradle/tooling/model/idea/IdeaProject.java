@@ -29,14 +29,14 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 public interface IdeaProject extends HierarchicalElement {
 
     /**
-     * Returns the Java settings for this element, or {@code null} if this element is not a Java element.
+     * Returns the Java language settings for this project.
      *
-     * @return the IdeaJavaSettings within the current project, never null.
+     * @return the Java language settings for the current project, never null.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
     @Incubating
-    IdeaJavaSettings getJavaSourceSettings() throws UnsupportedMethodException;
+    IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**
      * Returns the name of the JDK.
@@ -49,7 +49,7 @@ public interface IdeaProject extends HierarchicalElement {
     /**
      * Returns the language level to use within the current project.
      * <p>
-     * Note: To determine the project language level {@link IdeaModule#getJavaSourceSettings()}
+     * Note: To determine the project language level {@link IdeaModule#getJavaLanguageSettings()}
      * should be preferred.
      *
      * @return The language level to use within the current project.

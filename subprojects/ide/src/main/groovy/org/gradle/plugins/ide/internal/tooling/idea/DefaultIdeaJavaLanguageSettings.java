@@ -21,22 +21,22 @@ import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
 
 import java.io.Serializable;
 
-public class DefaultIdeaJavaSettings implements Serializable {
+public class DefaultIdeaJavaLanguageSettings implements Serializable {
     private JavaVersion languageLevel;
     private JavaVersion targetBytecodeVersion;
     private DefaultJavaRuntime targetRuntime;
 
-    public DefaultIdeaJavaSettings setSourceLanguageLevel(JavaVersion languageLevel) {
+    public DefaultIdeaJavaLanguageSettings setSourceLanguageLevel(JavaVersion languageLevel) {
         this.languageLevel = languageLevel;
         return this;
     }
 
-    public DefaultIdeaJavaSettings setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
+    public DefaultIdeaJavaLanguageSettings setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
         return this;
     }
 
-    public DefaultIdeaJavaSettings setJavaSDK(DefaultJavaRuntime targetRuntime) {
+    public DefaultIdeaJavaLanguageSettings setJavaSDK(DefaultJavaRuntime targetRuntime) {
         this.targetRuntime = targetRuntime;
         return this;
     }

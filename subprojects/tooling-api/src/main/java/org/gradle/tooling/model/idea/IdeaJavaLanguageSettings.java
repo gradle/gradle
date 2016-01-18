@@ -21,12 +21,12 @@ import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.java.JavaRuntime;
 
 /**
- * Describes Java source settings for an IDEA module.
+ * Describes Java language settings for an IDEA module.
  *
  * @since 2.11
  */
 @Incubating
-public interface IdeaJavaSettings {
+public interface IdeaJavaLanguageSettings {
 
     /**
      * Returns the Java language level.

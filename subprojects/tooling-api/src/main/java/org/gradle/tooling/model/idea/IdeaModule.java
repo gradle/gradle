@@ -28,14 +28,14 @@ import org.gradle.tooling.model.*;
 public interface IdeaModule extends HierarchicalElement, HasGradleProject {
 
     /**
-     * Returns the Java settings for this element, or {@code null} if this element is not a Java element.
+     * Returns the Java language settings for this element, or {@code null} if this element is not a Java element.
      *
-     * @return The source settings.
+     * @return The Java language settings.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
     @Nullable @Incubating
-    IdeaJavaSettings getJavaSourceSettings() throws UnsupportedMethodException;
+    IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**
      * All content roots. Most idea modules have a single content root.
