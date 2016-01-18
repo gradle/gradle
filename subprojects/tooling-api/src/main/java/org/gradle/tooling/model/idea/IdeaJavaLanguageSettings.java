@@ -18,6 +18,7 @@ package org.gradle.tooling.model.idea;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.java.JavaRuntime;
 
 /**
@@ -39,8 +40,9 @@ public interface IdeaJavaLanguageSettings {
      * Returns the target bytecode level.
      *
      * @return The target bytecode language level, or {@code null} if this value should be inherited.
+     * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
      */
-    JavaVersion getTargetBytecodeVersion();
+    JavaVersion getTargetBytecodeVersion() throws UnsupportedMethodException;
 
     /**
      * Returns the java sdk.

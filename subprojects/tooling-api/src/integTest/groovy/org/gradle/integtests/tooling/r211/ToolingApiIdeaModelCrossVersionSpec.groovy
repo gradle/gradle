@@ -83,6 +83,16 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle version throws exception when querying idea project java bytecode version"() {
+        when:
+        def ideaProject = loadIdeaProjectModel()
+        ideaProject.javaLanguageSettings.getTargetBytecodeVersion()
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
     def "java source settings are null for non java modules"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2'"

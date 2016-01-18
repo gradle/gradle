@@ -32,7 +32,7 @@ public interface IdeaProject extends HierarchicalElement {
      * Returns the Java language settings for this project.
      *
      * @return the Java language settings for the current project, never null.
-     * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
+     * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
      * @since 2.11
      */
     @Incubating
