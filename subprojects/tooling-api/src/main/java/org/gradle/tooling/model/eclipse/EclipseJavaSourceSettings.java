@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.java;
+package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.java.JavaRuntime;
 
 /**
- * Describes Java source settings for compiling and running some Java source code.
+ * Describes Eclipse Java source settings for compiling and running some Java source code.
  *
  * @since 2.10
  */
 @Incubating
-public interface JavaSourceSettings {
-
+public interface EclipseJavaSourceSettings {
     /**
      * Returns the Java source language level.
      *

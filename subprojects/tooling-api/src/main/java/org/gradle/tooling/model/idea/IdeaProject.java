@@ -31,7 +31,7 @@ public interface IdeaProject extends HierarchicalElement {
     /**
      * Returns the Java settings for this element, or {@code null} if this element is not a Java element.
      *
-     * @return the JavaSourceSettings within the current project, never null.
+     * @return the IdeaJavaSettings within the current project, never null.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
