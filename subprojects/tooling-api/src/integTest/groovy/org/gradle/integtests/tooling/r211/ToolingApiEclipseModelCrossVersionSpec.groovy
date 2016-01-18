@@ -54,7 +54,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         then:
         rootProject.javaSourceSettings.targetRuntime != null
         rootProject.javaSourceSettings.targetRuntime.javaVersion == JavaVersion.current()
-        rootProject.javaSourceSettings.targetRuntime.homeDirectory.toString() == rootProject.gradleProject.description
+        rootProject.javaSourceSettings.targetRuntime.javaHome.toString() == rootProject.gradleProject.description
     }
 
     def "target bytecode level respects explicit targetCompatibility configuration"() {

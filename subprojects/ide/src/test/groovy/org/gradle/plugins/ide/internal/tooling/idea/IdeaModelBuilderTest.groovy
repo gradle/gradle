@@ -193,11 +193,11 @@ class IdeaModelBuilderTest extends Specification {
         }
         def ideaProject = buildIdeaProjectModel()
         then:
-        ideaProject.javaLanguageSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.javaLanguageSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.javaSDK == null
-        ideaProject.modules.find { it.name == 'child1'}.javaLanguageSettings.javaSDK == null
-        ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings.javaSDK == null
+        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
+        ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child1'}.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings.jdk == null
     }
 
     def "synched module bytecode level marked as inherited"() {

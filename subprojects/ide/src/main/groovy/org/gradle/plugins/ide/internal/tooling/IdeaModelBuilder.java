@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -66,7 +66,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
 
         final Jvm currentJvm = Jvm.current();
-        final DefaultJavaRuntime javaRuntime = new DefaultJavaRuntime(currentJvm.getJavaHome(), currentJvm.getJavaVersion());
+        final DefaultJavaInstallation installedJdk = new DefaultJavaInstallation(currentJvm.getJavaHome(), currentJvm.getJavaVersion());
 
         DefaultIdeaProject out = new DefaultIdeaProject()
             .setName(projectModel.getName())
@@ -75,11 +75,11 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
-                .setJavaSDK(javaRuntime));
+                .setJdk(installedJdk));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out, rootGradleProject, javaRuntime);
+            appendModule(modules, module, out, rootGradleProject);
         }
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
@@ -120,7 +120,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, DefaultJavaRuntime javaRuntime) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))

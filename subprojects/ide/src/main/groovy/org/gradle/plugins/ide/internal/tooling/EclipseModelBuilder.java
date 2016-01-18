@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -145,7 +145,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             eclipseProject.setJavaSourceSettings(new DefaultJavaSourceSettings()
                 .setSourceLanguageLevel(jdt.getSourceCompatibility())
                 .setTargetBytecodeLevel(jdt.getTargetCompatibility())
-                .setTargetRuntime(new DefaultJavaRuntime(currentJvm.getJavaHome(), currentJvm.getJavaVersion()))
+                .setTargetRuntime(new DefaultJavaInstallation(currentJvm.getJavaHome(), currentJvm.getJavaVersion()))
             );
         }
 

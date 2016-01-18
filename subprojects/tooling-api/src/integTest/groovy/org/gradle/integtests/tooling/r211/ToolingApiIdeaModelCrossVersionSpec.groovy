@@ -95,7 +95,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
 
         when:
-        ideaProject.javaLanguageSettings.getJavaSDK()
+        ideaProject.javaLanguageSettings.getJdk()
 
         then:
         thrown(UnsupportedMethodException)
@@ -200,8 +200,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaLanguageSettings.javaSDK.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaLanguageSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
     }
 
     def "module java sdk overwrite always null"() {
@@ -220,13 +220,13 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaLanguageSettings.javaSDK.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaLanguageSettings.javaSDK.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
 
-        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.javaSDK == null
-        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.javaSDK == null
-        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.javaSDK == null
-        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.javaSDK == null
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.jdk == null
     }
 
     def "can query target bytecode version for idea project and modules"() {
