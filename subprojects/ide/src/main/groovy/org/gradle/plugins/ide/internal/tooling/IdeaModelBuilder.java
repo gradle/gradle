@@ -71,7 +71,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         DefaultIdeaProject out = new DefaultIdeaProject()
             .setName(projectModel.getName())
             .setJdkName(projectModel.getJdkName())
-            .setLanguageLevel(new DefaultIdeaLanguageLevel(projectSourceLanguageLevel))
+            .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
             .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)

@@ -16,41 +16,40 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
 
 public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable {
 
-    private final JavaVersion level;
+    private final String level;
 
-    public DefaultIdeaLanguageLevel(JavaVersion level) {
+    public DefaultIdeaLanguageLevel(String level) {
         this.level = level;
     }
 
     public boolean isJDK_1_4() {
-        return level == JavaVersion.VERSION_1_4;
+        return "JDK_1_4".equals(level);
     }
 
     public boolean isJDK_1_5() {
-        return level == JavaVersion.VERSION_1_5;
+        return "JDK_1_5".equals(level);
     }
 
     public boolean isJDK_1_6() {
-        return level == JavaVersion.VERSION_1_6;
+        return "JDK_1_6".equals(level);
     }
 
     public boolean isJDK_1_7() {
-        return level == JavaVersion.VERSION_1_7;
+        return "JDK_1_7".equals(level);
     }
 
     public boolean isJDK_1_8() {
-        return level == JavaVersion.VERSION_1_8;
+        return "JDK_1_8".equals(level);
     }
 
     public String getLevel() {
-        return level.toString();
+        return level;
     }
 
     @Override
@@ -68,11 +67,16 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
         }
 
         DefaultIdeaLanguageLevel that = (DefaultIdeaLanguageLevel) o;
-        return level == null ? that.level == null : level.equals(that.level);
+
+        if (level != null ? !level.equals(that.level) : that.level != null) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return level == null ? 0 : level.hashCode();
+        return level != null ? level.hashCode() : 0;
     }
 }
