@@ -154,6 +154,7 @@ for these projects.
     - multiple single project builds
     - multiple multi-project builds
     - a combination of both
+- An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 
 ### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for multiple imported Gradle builds
 
@@ -165,9 +166,12 @@ If implemented correctly, the development of project name deduplication and proj
 
 ##### Implementation
 
-The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of a new `CompositeModelRepository` which queries the composite returned by the `ToolingClient`. Buildship will announce the addition and removal of root projects to the `CompositeModelRepository`
+The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of a new `CompositeModelRepository` which queries
+the composite returned by the `ToolingClient`. Buildship will announce the addition and removal of root projects to the `CompositeModelRepository`
 
-Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is swapping the names of two projects (A->B, B->A). This might be solved by assigning temporary names to all projects before the synchronization.
+Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the
+same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is
+swapping the names of two projects (A->B, B->A). This might be solved by assigning temporary names to all projects before the synchronization.
 
 ##### Test cases
 
@@ -204,32 +208,40 @@ should be rendered in Eclipse's project view section.
 - The eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates. This isn't specific to the composite build and should be solved for ordinary builds as well.
 - Project names should remain stable, i.e. deduping renames newly added projects in favor of renaming previously imported projects. This should be handled when de-duping is used in refreshing an previously imported project.
 
-
 ### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
 
-If a composite contains a projectA and projectB, where projectA has a binary (external) dependeny on projectB, then the `EclipseProject` model for projectA should contain a reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
+If a composite contains a projectA and projectB, where projectA has a binary (external) dependency on projectB, then the `EclipseProject` model for projectA should contain a
+reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
 
-The algorithm for which projects will substitute in for which external dependencies will initially be deliberately simplistic:
+The algorithm for which projects will substitute for which external dependencies will initially be deliberately simplistic:
  - Dependencies specifying classifier, extension or artifacts will not be substituted
  - Substituted project must match the group and module of the dependency exactly
  - Version will not be considered for substitution
 
 ##### Implementation
 
-- For the initial story, dependency substitution will be performed within the Tooling API client: the remote Gradle processes will simply provide the separate EclipseProject model for each connected build, and will have no involvement in the substitution.
+- For the initial story, dependency substitution will be performed within the Tooling API client: the remote Gradle processes will simply provide the separate EclipseProject
+model for each connected build, and will have no involvement in the substitution.
 - To determine the external modules that can be substituted, we will need a way to determine the `GradlePublication` associated with an `EclipseProject`, if any.
+- The `GradlePublication`s for a project can be determined by querying the model `ProjectPublications`. If a matching coordinates are found, the substitution can only be performed
+if the model of the project registered a publication.
 
 ##### Test cases
 
-- Projects that are part of a composite can be built together based on established project dependencies.
-- When the coordinates of a substituted module dependency are changed, Buildship can refresh and recieve the updated model:
+- Projects that are part of a composite can be built together in the IDE based on established project dependencies.
+- When the coordinates of a substituted module dependency are changed, Buildship can refresh and receive the updated model:
     - If coordinates don't match up anymore, Buildship will depend on the module dependency.
     - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
     - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a composite.
-- Substituting a dependency for a project that has been renamed because of deduping
+- Substituting a dependency for a project that has been renamed because of de-duping
 - Substituting an unresolved dependency for a project in the workspace
-More TBD
+
+##### Open issues
+
+- Can an instance of `EclipseProject` be changed after querying for it so that no custom model is required?
+    - Removing matching external dependency via `eclipseProject.getClasspath().remove(...)`
+    - Adding matching project dependency via `eclipseProject.getProjectDependencies().add(...)`
 
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
 
