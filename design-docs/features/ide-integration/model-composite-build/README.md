@@ -172,6 +172,7 @@ should be rendered in Eclipse's project view section.
 - De-duping may be required for more that one duplicate project name.
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names
+- When a project is removed from the workspace, another project can take it's name
 
 ### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
 
@@ -195,6 +196,8 @@ The algorithm for which projects will substitute in for which external dependenc
     - If coordinates do match up, Buildship will re-establish the project dependency in the underlying model.
     - Eclipse project synchronization is initiated.
 - Closing and re-opening Buildship will re-establish a composite.
+- Substituting a dependency for a project that has been renamed because of deduping
+- Substituting an unresolved dependency for a project in the workspace
 More TBD
 
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
@@ -218,6 +221,8 @@ The returned `IdeaProject` will have module names de-duplicated and binary depen
 
 - Out-of-scope for this feature would be the ability to run builds using the composite definition from the IDE or the command-line.
 - How will transitive dependencies be handled? The whole composite needs to be taken into account for resolution, so we can no longer delegate to the individual `ProjectConnection`s. What if the Gradle version building the composite does not match the Gradle version of one of the composed projects?
-- What if the user wants to opt out of the workspace concept for a project?
 - There might be non-Gradle projects in the workspace that conflict with names in the Gradle projects. How will we pass this information to the deduping algorithm?
 - Malformed projects now affect the whole workspace. Should we try to synchronize as much as possible or not synchronize at all if the model for one project cannot be retrieved?
+- What about projects that depend on an older version of themselves? Or more generally, a set of projects that have a cycle when not taking versions into account? Using the current logic (which ignores versions), these would lead to cyclic project dependencies.
+- How will Buildship identify projects? Using rootDir + path allows moving projects without renaming. Using projectDir allows renaming projects without moving. Neither can handle both at the same time.
+- What if two projects could be substituted for the same external dependency? Unlikely, but the behavior should at least be stable (e.g. always use the first one)
