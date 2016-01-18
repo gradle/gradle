@@ -40,8 +40,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.javaSourceSettings.languageLevel == expectedSourceLanguageLevel
+        ideaProject.javaSourceSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         projectAppliesJavaPlugin | expectedSourceLanguageLevel
@@ -66,7 +66,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_3
         toJavaVersion(ideaProject.languageLevel) == JavaVersion.VERSION_1_3
 
         where:
@@ -74,7 +74,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.11")
-    def "older Gradle version throw exception when querying idea module source settings"() {
+    def "older Gradle version throw exception when querying idea module java settings"() {
         when:
         def ideaProject = loadIdeaProjectModel()
         ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings()
@@ -100,14 +100,14 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
 
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
+        ideaProject.javaSourceSettings.languageLevel.isJava5()
         // modules
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings == null
     }
 
-    def "can retrieve project and module source language level for multi project build"() {
+    def "can retrieve project and module language level for multi project build"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
@@ -132,11 +132,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_5
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == null // inherited
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.languageLevel == null // inherited
     }
 
     def "explicit idea project language level overrules sourceCompatiblity settings"() {
@@ -170,11 +170,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_7
         ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == null
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.languageLevel == null
     }
 
     @TargetGradleVersion(">=1.0-milestone-8")

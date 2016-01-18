@@ -22,12 +22,12 @@ import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
 import java.io.Serializable;
 
 public class DefaultIdeaJavaSettings implements Serializable {
-    private JavaVersion sourceLanguageLevel;
+    private JavaVersion languageLevel;
     private JavaVersion targetBytecodeVersion;
     private DefaultJavaRuntime targetRuntime;
 
-    public DefaultIdeaJavaSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
-        this.sourceLanguageLevel = sourceLanguageLevel;
+    public DefaultIdeaJavaSettings setSourceLanguageLevel(JavaVersion languageLevel) {
+        this.languageLevel = languageLevel;
         return this;
     }
 
@@ -41,8 +41,8 @@ public class DefaultIdeaJavaSettings implements Serializable {
         return this;
     }
 
-    public JavaVersion getSourceLanguageLevel() {
-        return sourceLanguageLevel;
+    public JavaVersion getLanguageLevel() {
+        return languageLevel;
     }
 
     public JavaVersion getTargetBytecodeVersion() {

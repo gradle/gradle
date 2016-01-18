@@ -42,7 +42,7 @@ public class CompatibilityIdeaProjectMapping {
             this.ideaProject = ideaProject;
         }
 
-        public JavaVersion getSourceLanguageLevel() {
+        public JavaVersion getLanguageLevel() {
             return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
         }
 

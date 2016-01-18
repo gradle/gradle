@@ -47,8 +47,8 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.javaSourceSettings.languageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
+        ideaProject.javaSourceSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
     }
 
     def "project source language level matches idea plugin language level for jvm projects with default configuration"() {
@@ -59,8 +59,8 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForJavaProjects
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.javaSourceSettings.languageLevel == defaultIdeaPluginLanguageLevelForJavaProjects
+        ideaProject.javaSourceSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
@@ -75,8 +75,8 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.toString() == sourceLanguageLevel
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.javaSourceSettings.languageLevel.toString() == sourceLanguageLevel
+        ideaProject.javaSourceSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         sourceLanguageLevel << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9']
@@ -101,7 +101,7 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel.toString() == sourceCompatibility
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.languageLevel.toString() == sourceCompatibility
 
         where:
         sourceCompatibility << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8']
@@ -117,8 +117,8 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_3
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_2
     }
 
     def "explicit project language level results in inherited module language level"() {
@@ -135,10 +135,10 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == null
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.languageLevel == null
     }
 
     def "can handle multi project builds where no projects are Java projects"() {
@@ -146,7 +146,7 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
+        ideaProject.javaSourceSettings.languageLevel == defaultIdeaPluginLanguageLevelForNonJavaProjects
         ideaProject.modules.find { it.name == 'root'}.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings == null
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
@@ -163,10 +163,10 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.sourceLanguageLevel == null
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_3
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.languageLevel == null
     }
 
     def "can handle multi project builds where only some projects are java projects"() {
@@ -180,9 +180,9 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_4
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.sourceLanguageLevel == null
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
+        ideaProject.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_4
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.languageLevel == JavaVersion.VERSION_1_3
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 
@@ -210,15 +210,10 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == true
-
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == true
-
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevelInherited == true
+        ideaProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeVersion == null
     }
 
     def "can have mixed bytecode level"() {
@@ -233,15 +228,10 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == false
-
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == false
-
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeLevelInherited == true
+        ideaProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings.targetBytecodeVersion == null
     }
 
     def "non jvm modules have no java sourceSettings applied"() {
@@ -255,14 +245,10 @@ class IdeaModelBuilderTest extends Specification {
         def ideaProject = buildIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
+        ideaProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
 
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
-        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeLevelInherited == false
-
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeLevelInherited == true
-
+        ideaProject.modules.find { it.name == 'root'}.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'child1'}.javaSourceSettings.targetBytecodeVersion == null
         ideaProject.modules.find { it.name == 'child2'}.javaSourceSettings == null
     }
 

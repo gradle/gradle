@@ -159,18 +159,18 @@ If a Gradle build script uses the DSL to explicitly specify `idea.project.langua
 
 The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
 
-#### Tooling API exposes source language level on Idea model
+#### Tooling API exposes language level on Idea model
 
-The `IdeaProject` and the `IdeaModule` model now exposes the Java source language level via the
+The `IdeaProject` and the `IdeaModule` model now exposes the Java language level via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the source language level of a Idea project and its associated Modules.
+IDE providers use this method to automatically determine the language level of a Idea project and its associated Modules.
 
 #### Tooling API exposes java runtime and target bytecode level on IDE models
 
-The `IdeaProject` and the `IdeaModule` model now exposes the target java runtime and the target bytecode level via the
+The `IdeaProject` and the `IdeaModule` model now exposes the java sdk and the target bytecode version via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-The target bytecode level for `IdeaModule` is derived from the
-<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibilityLevel">`targetCompatibilityLevel`</a>
+The target bytecode version for `IdeaModule` is derived from the
+<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibility">`targetCompatibility`</a>
 convention property.
 
 The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the

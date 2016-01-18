@@ -29,23 +29,23 @@ import org.gradle.tooling.model.java.JavaRuntime;
 public interface IdeaJavaSettings {
 
     /**
-     * Returns the Java source language level.
+     * Returns the Java language level.
      *
-     * @return The source language level, or {@code null} if this value should be inherited.
+     * @return The language level, or {@code null} if this value should be inherited.
      */
-    JavaVersion getSourceLanguageLevel();
+    JavaVersion getLanguageLevel();
 
     /**
      * Returns the target bytecode level.
      *
-     * @return The target bytecode language level. Never returns {@code null}.
+     * @return The target bytecode language level, or {@code null} if this value should be inherited.
      */
     JavaVersion getTargetBytecodeVersion();
 
     /**
      * Returns the java sdk.
      *
-     * @return The java sdk runtime. Never returns {@code null}.
+     * @return The java sdk runtime.or {@code null} if this value should be inherited.
      */
     JavaRuntime getJavaSDK();
 }
