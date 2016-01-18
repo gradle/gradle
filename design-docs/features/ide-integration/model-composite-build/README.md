@@ -193,7 +193,6 @@ should be rendered in Eclipse's project view section.
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names
-- When a project is removed from the workspace, another project can take it's name
 
 #### Open issues
 
