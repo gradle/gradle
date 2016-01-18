@@ -262,14 +262,14 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
     def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
         when:
-        def bFlag = testDirectory.file("bFlag")
+        def bFlag = file("bFlag")
         buildScript """
             task a {
                 inputs.files file("inputA")
                 doLast {}
             }
             task b {
-                def bFlag = file("${bFlag}")
+                def bFlag = file("bFlag")
                 inputs.files files({
                     if (!bFlag.exists()) {
                         return bFlag
