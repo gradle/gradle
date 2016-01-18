@@ -63,23 +63,47 @@ public class BuildExperimentRunner {
 
         session.prepare();
         try {
-            for (int i = 0; i < experiment.getWarmUpCount(); i++) {
+            int warmUpCount = warmupsForExperiment(experiment);
+            for (int i = 0; i < warmUpCount; i++) {
                 System.out.println();
                 System.out.println(String.format("Warm-up #%s", i + 1));
-                runOnce(session, experiment, new MeasuredOperationList(), projectDir, Phase.WARMUP, i + 1, experiment.getWarmUpCount());
+                runOnce(session, experiment, new MeasuredOperationList(), projectDir, Phase.WARMUP, i + 1, warmUpCount);
             }
             waitForMillis(experiment.getSleepAfterWarmUpMillis());
-            for (int i = 0; i < experiment.getInvocationCount(); i++) {
+            int invocationCount = invocationsForExperiment(experiment);
+            for (int i = 0; i < invocationCount; i++) {
                 if (i > 0) {
                     waitForMillis(experiment.getSleepAfterTestRoundMillis());
                 }
                 System.out.println();
                 System.out.println(String.format("Test run #%s", i + 1));
-                runOnce(session, experiment, results, projectDir, Phase.MEASUREMENT, i + 1, experiment.getInvocationCount());
+                runOnce(session, experiment, results, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
             }
         } finally {
             session.cleanup();
         }
+    }
+
+    private Integer invocationsForExperiment(BuildExperimentSpec experiment) {
+        if (experiment.getInvocationCount() != null) {
+            return experiment.getInvocationCount();
+        }
+        // Take more samples when using the daemon, as execution time tends to be spiky
+        if (experiment.getInvocation().getUseDaemon() || experiment.getInvocation().getUseToolingApi()) {
+            return 8;
+        }
+        return 5;
+    }
+
+    private int warmupsForExperiment(BuildExperimentSpec experiment) {
+        if (experiment.getWarmUpCount() != null) {
+            return experiment.getWarmUpCount();
+        }
+        // Use more invocations to warmup when using the daemon, to allow the JVM to warm things up
+        if (experiment.getInvocation().getUseDaemon() || experiment.getInvocation().getUseToolingApi()) {
+            return 3;
+        }
+        return 1;
     }
 
     // the JIT compiler seems to wait for idle period before compiling

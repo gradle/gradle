@@ -85,8 +85,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
-        println "Running performance tests for test project '$testProject', no. of runs: $runs"
-
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
