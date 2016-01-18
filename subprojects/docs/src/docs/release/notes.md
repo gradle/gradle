@@ -21,9 +21,9 @@ This release includes several improvements and fixes from community pull request
 
 Here are the new features introduced in this Gradle release.
 
-### Java software model
+### Improvements in Java software model
 
-#### Compile avoidance
+#### Improved compile avoidance
 
 This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
 
@@ -33,8 +33,9 @@ This version of Gradle further optimizes on avoiding recompiling consuming libra
 
 This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
 
-#### JUnit test suite execution
+#### Testing support
 
+In Gradle 2.10 testing was not supported yet when building Java libraries using the new software model.
 It is now possible to declare a JUnit test suite as a software component, both as a standalone component or with a component under test.
 
 Declaring a standalone test suite can be done like this:
@@ -115,7 +116,7 @@ Example:
         }
     }
 
-### Support for different testing frameworks for Java projects in Build Init Plugin
+### Support for different test frameworks for Java projects in Build Init Plugin
 
 It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
 
@@ -136,7 +137,7 @@ This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-k
 
 ### IDE integration improvements
 
-### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
+#### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
 
 The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
 
@@ -167,9 +168,9 @@ property.
 
 IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
 
-### Continuous build improvements
+### Continuous build reacts to changes during build execution
 
-Continuous build will now trigger a rebuild when an input file is changed during build execution.
+[Continuous build](userguide/continuous_build.html) will now trigger a rebuild when an input file is changed during build execution.
 
 ### Support for Twirl source sets to use Java default imports
 
@@ -232,29 +233,7 @@ It's recommended that header files are included with a "namespace" to avoid nami
 
 See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Fixed issues
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ## Potential breaking changes
 
