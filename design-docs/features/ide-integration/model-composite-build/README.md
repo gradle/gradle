@@ -39,7 +39,7 @@ an `EclipseWorkspace` model for a composite of Gradle builds. Converting Buildsh
          protected abstract GradleComposite build() { ... }
     }
 
-    interface GradleConnection {
+    public interface GradleConnection {
         // Extracted from ProjectConnection
         <T> T getModel(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
         <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
@@ -84,8 +84,8 @@ the new interface.
     - On request for an `EclipseWorkspace`, the `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects
     for the Gradle build.
     - The instance of `EclipseWorkspace` will be constructed directly by the `GradleComposite` instance, by traversing the hierarchy of the `EclipseProject` obtained.
-    - the `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display them in a hierarchical layout
-    - A delegating implementation of `ModelBuilder` will be required
+    - The `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display them in a hierarchical layout.
+    - A delegating implementation of `ModelBuilder` will be required.
 
 ##### Test cases
 
@@ -111,6 +111,7 @@ The `EclipseWorkspace` contains all `EclipseProject`s of that hierarchy.
 (a project identifier) that allows for determining a project and its path without loading up the model.
 - A Gradle workspace can only contain Gradle project. A future story will also need to address building a workspace with homogeneous project types (e.g. Maven, Ant or any other type of
 project that does not have access to the Gradle API).
+- Which Gradle distribution should be used for building a composite via the Tooling API?
 
 ### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for an imported Gradle build
 
@@ -159,6 +160,11 @@ for these projects.
     - a combination of both
 - An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 - An exception is thrown if any of the resolved `EclipseProject`s have the same name.
+- An exception is thrown if a dependency cycle is detected e.g. project A depends on B and B depends on A.
+
+##### Open issues
+
+- Which Gradle distribution should be used for building the composite e.g. if project A and B provide a wrapper with different versions?
 
 ### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for multiple imported Gradle builds
 
@@ -220,6 +226,7 @@ should be rendered in Eclipse's project view section.
 
 #### Open issues
 
+- Do we need to keep the original project name for a de-duped project for further process in Buildship e.g. visual hints original -> new?
 - The Eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates.
 This isn't specific to the composite build and should be solved for ordinary builds as well.
 - Project names should remain stable, i.e. de-duping renames newly added projects in favor of renaming previously imported projects. This should be handled when de-duping is used
@@ -261,6 +268,7 @@ if the model of the project registered a publication.
 - Can an instance of `EclipseProject` be changed after querying for it so that no custom model is required?
     - Removing matching external dependency via `EclipseProject.getClasspath().remove(...)`
     - Adding matching project dependency via `EclipseProject.getProjectDependencies().add(...)`
+- In Buildship show visual hints that a module was substituted e.g. icon, tooltip etc.
 
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
 
