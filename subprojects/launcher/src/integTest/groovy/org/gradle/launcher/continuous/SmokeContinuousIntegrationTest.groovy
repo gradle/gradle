@@ -241,6 +241,58 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         failureDescriptionContains("Could not determine the dependencies of task ':a'.")
     }
 
+    def "failure to determine inputs has a reasonable message when an earlier task succeeds"() {
+        when:
+        buildScript """
+            task a {
+                inputs.files file("inputA")
+                doLast {}
+            }
+            task b {
+                inputs.files files({ throw new Exception("boom") })
+                dependsOn a
+                doLast {}
+            }
+        """
+
+        then:
+        fails("b")
+        failureDescriptionContains("Could not determine the dependencies of task ':b'.")
+    }
+
+    def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
+        when:
+        def bFlag = testDirectory.file("bFlag")
+        buildScript """
+            task a {
+                inputs.files file("inputA")
+                doLast {}
+            }
+            task b {
+                def bFlag = file("${bFlag}")
+                inputs.files files({
+                    if (!bFlag.exists()) {
+                        return bFlag
+                    }
+
+                    throw new Exception("boom")
+                })
+                dependsOn a
+
+                doLast { }
+            }
+        """
+
+        then:
+        succeeds("b")
+
+        when:
+        bFlag.text = "b executed"
+        then:
+        fails()
+        failureDescriptionContains("Could not determine the dependencies of task ':b'.")
+    }
+
     def "ignores non source when source is empty"() {
         when:
         buildScript """
