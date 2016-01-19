@@ -20,6 +20,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
+import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "cannot add unregistered type to specialized model map"() {
@@ -123,5 +124,29 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
                 elem(type: 'java.util.List<java.lang.String>', creator: 'things { ... } @ build.gradle line 8, column 17 > create(elem)')
             }
         }
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3376")
+    def "reasonable error message when trying to create unknown type in ModelMap"() {
+        buildFile << """
+            @Managed interface Thing {}
+            interface UnknownThing {}
+
+            class Rules extends RuleSource {
+                @Model
+                void things(ModelMap<Thing> things) {}
+            }
+            apply plugin: Rules
+
+            model {
+                things {
+                    thing(UnknownThing)
+                }
+            }
+        """
+
+        expect:
+        fails "model"
+        failureHasCause "Cannot create 'things.thing' with type 'UnknownThing' as this is not a subtype of 'Thing'."
     }
 }
