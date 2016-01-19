@@ -17,11 +17,16 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.io.Serializable;
 
 public class CompatibilityIdeaProjectMapping {
+
+    // Added back in to get ToolingApiIdeModelCrossVersionSpec to pass: this field makes the Jvm internal type available
+    // to the Tooling API integration test when run in forking mode. Will seek a better solution.
+    private final JavaVersion unused = Jvm.current().getJavaVersion();
 
     private final IdeaProject ideaProject;
 
