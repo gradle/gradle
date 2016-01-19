@@ -42,6 +42,10 @@ class GradleInvocationSpec {
         this.useToolingApi = useToolingApi
     }
 
+    boolean getBuildWillRunInDaemon() {
+        return useDaemon || useToolingApi
+    }
+
     static Builder builder() {
         return new Builder()
     }
@@ -49,7 +53,7 @@ class GradleInvocationSpec {
     Builder withBuilder() {
         Builder builder = new Builder()
         builder.distribution(gradleDistribution)
-            .workingDirectory(workingDirectory)
+        builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
         builder.args.addAll(args)
         builder.gradleOptions.addAll(jvmOpts)
@@ -126,10 +130,6 @@ class GradleInvocationSpec {
         Builder useToolingApi(boolean flag) {
             this.useToolingApi = flag
             this
-        }
-
-        Builder disableDaemonLogging() {
-            gradleOpts("-Dorg.gradle.daemon.disable-output=true")
         }
 
         Builder disableParallelWorkers() {
