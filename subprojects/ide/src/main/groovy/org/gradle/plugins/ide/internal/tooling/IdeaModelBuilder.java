@@ -56,11 +56,11 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
-        root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
+        ideaPluginFor(root).makeSureModuleNamesAreUnique();
     }
 
     private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
-        IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
+        IdeaModel ideaModel = ideaPluginFor(project).getModel();
         IdeaProject projectModel = ideaModel.getProject();
         JavaVersion projectSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
         JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
@@ -85,9 +85,12 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             buildDependencies(modules, module);
         }
         final Collection<DefaultIdeaModule> ideaModules = modules.values();
-
         out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
         return out;
+    }
+
+    private IdeaPlugin ideaPluginFor(Project project) {
+        return project.getPlugins().getPlugin(IdeaPlugin.class);
     }
 
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
