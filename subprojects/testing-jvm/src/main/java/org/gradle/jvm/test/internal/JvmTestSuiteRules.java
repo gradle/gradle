@@ -68,18 +68,20 @@ public class JvmTestSuiteRules extends RuleSource {
                 test.dependsOn(jvmAssembly);
                 test.setTestClassesDir(binary.getClassesDir());
                 test.setClasspath(binary.getRuntimeClasspath());
-                configureReports(test);
+                configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
             }
 
-            private void configureReports(Test test) {
+            private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
                 // todo: improve configuration of reports
                 TestTaskReports reports = test.getReports();
                 File reportsDirectory = new File(buildDir, "reports");
-                File htmlDir = new File(reportsDirectory, "tests");
+                File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
+                File htmlDir = new File(reportsOutputDirectory, "tests");
                 File xmlDir = new File(buildDir, "test-results");
-                File binDir = new File(xmlDir, "binary");
+                File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
+                File binDir = new File(xmlDirOutputDirectory, "binary");
                 reports.getHtml().setDestination(htmlDir);
-                reports.getJunitXml().setDestination(xmlDir);
+                reports.getJunitXml().setDestination(xmlDirOutputDirectory);
                 test.setBinResultsDir(binDir);
             }
         });
