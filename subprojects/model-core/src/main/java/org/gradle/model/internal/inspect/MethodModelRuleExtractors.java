@@ -23,7 +23,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import java.util.List;
 
 @ThreadSafe
-abstract public class MethodModelRuleExtractors {
+public abstract class MethodModelRuleExtractors {
 
     public static List<MethodModelRuleExtractor> coreExtractors(ModelSchemaStore modelSchemaStore) {
         return ImmutableList.<MethodModelRuleExtractor>of(

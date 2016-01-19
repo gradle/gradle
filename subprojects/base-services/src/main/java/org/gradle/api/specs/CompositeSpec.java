@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @param <T> The target type for this Spec
  */
-abstract public class CompositeSpec<T> implements Spec<T> {
+public abstract class CompositeSpec<T> implements Spec<T> {
     private final Spec<? super T>[] specs;
 
     protected CompositeSpec(Spec<? super T>... specs) {

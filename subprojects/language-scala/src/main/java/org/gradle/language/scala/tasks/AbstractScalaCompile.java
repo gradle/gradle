@@ -43,7 +43,7 @@ import java.util.Set;
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
 @Incubating
-abstract public class AbstractScalaCompile extends AbstractCompile {
+public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();

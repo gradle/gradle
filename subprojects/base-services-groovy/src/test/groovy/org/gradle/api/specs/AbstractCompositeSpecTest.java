@@ -25,7 +25,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 
-abstract public class AbstractCompositeSpecTest {
+public abstract class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;
 

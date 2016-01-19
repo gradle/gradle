@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ThreadSafe
-abstract public class ModelRegistrations {
+public abstract class ModelRegistrations {
 
     public static <T> Builder serviceInstance(ModelReference<T> modelReference, T instance) {
         return bridgedInstance(modelReference, instance)

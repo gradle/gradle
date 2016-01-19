@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-abstract public class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
+public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
 
     private final TaskInternal task;
 

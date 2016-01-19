@@ -38,7 +38,7 @@ import java.io.InputStream;
  * 
  * @see DaemonClientServices
  */
-abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
+public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
     public DaemonClientServicesSupport(ServiceRegistry parent, InputStream buildStandardInput) {
