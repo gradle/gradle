@@ -17,8 +17,11 @@
 package org.gradle.jvm.test.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.internal.AbstractJvmBinaryRenderer;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
+import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import javax.inject.Inject;
@@ -36,8 +39,14 @@ public abstract class JvmTestSuiteBinaryRenderer<T extends JvmTestSuiteBinarySpe
 
     @Override
     protected void renderDetails(T binary, TextReportBuilder builder) {
-        if (binary.getTestedBinary() != null) {
-            builder.item("binary under test", binary.getTestedBinary().getDisplayName());
+        JvmTestSuiteSpec testSuite = binary.getTestSuite();
+        JvmComponentSpec testedComponent = testSuite.getTestedComponent();
+        if (testedComponent!=null) {
+            builder.item("component under test", testedComponent.getDisplayName());
+        }
+        JvmBinarySpec testedBinary = binary.getTestedBinary();
+        if (testedBinary != null) {
+            builder.item("binary under test", testedBinary.getDisplayName());
         }
         super.renderDetails(binary, builder);
     }
