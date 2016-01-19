@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling.java;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
 
 import java.io.Serializable;
 
-public class DefaultJavaSourceSettings implements Serializable {
+public class DefaultEclipseJavaSourceSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;
     private JavaVersion targetBytecodeLevel;
     private DefaultJavaInstallation targetRuntime;
 
-    public DefaultJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
+    public DefaultEclipseJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
         return this;
     }
 
-    public DefaultJavaSourceSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
+    public DefaultEclipseJavaSourceSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
         this.targetBytecodeLevel = targetBytecodeLevel;
         return this;
     }
 
-    public DefaultJavaSourceSettings setTargetRuntime(DefaultJavaInstallation targetRuntime) {
+    public DefaultEclipseJavaSourceSettings setTargetRuntime(DefaultJavaInstallation targetRuntime) {
         this.targetRuntime = targetRuntime;
         return this;
     }
