@@ -46,7 +46,6 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
 
         where:
         scenario  | tasks
-        "empty"   | ["help"]
         "full"    | ["clean", "assemble"]
         "partial" | [":project1:clean", ":project1:assemble"]
     }
