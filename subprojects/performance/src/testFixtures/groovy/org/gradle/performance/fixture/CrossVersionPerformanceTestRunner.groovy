@@ -65,11 +65,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
-            previousTestIds: previousTestIds,
+            previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
             testProject: testProject,
-            tasks: tasksToRun,
-            args: args,
-            gradleOpts: gradleOpts,
+            tasks: tasksToRun.collect { it.toString() },
+            args: args.collect { it.toString() },
+            gradleOpts: gradleOpts.collect { it.toString() },
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
