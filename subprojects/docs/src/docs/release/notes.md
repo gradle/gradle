@@ -4,17 +4,17 @@ The software model is the future of Gradle. Native and Play plugins already leve
 In this release, new Java plugins started to support testing with JUnit and became smarter in compile avoidance.
 Support for developing plugins with the new software model also got better.
 
-Starting with this release, [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and Intellij IDEA in regard to integration with Gradle.
-Gradle own [IDEA plugin](userguide/idea_plugin.html) used to generate Intellij IDEA configuration files has also been improved to detect project language level in a smarter way.
+Starting with this release, the [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and IntelliJ IDEA in regard to integration with Gradle.
+Gradle's own [IDEA plugin](userguide/idea_plugin.html) used to generate IntelliJ IDEA configuration files has also been improved to detect project language level in a smarter way.
 
 [Continuous build](userguide/continuous_build.html) got better in this release by taking into account changes happening during build execution.
 
 A Gradle release would not be complete without contributions from the wonderful Gradle community.
 This release includes several improvements and fixes from community pull requests including support for:
 
-* Controlling TestNG executing order in [Java plugin](userguide/java_plugin.html)
-* Different test frameworks in [Build Init Plugin](userguide/build_init_plugin.html)
-* Configuring Twirl source sets to use Java default imports in [Play plugin](userguide/play_plugin.html)
+* Controlling TestNG execution order in the [Java plugin](userguide/java_plugin.html)
+* Different test frameworks in the [Build Init plugin](userguide/build_init_plugin.html)
+* Configuring Twirl source sets to use Java default imports in the [Play plugin](userguide/play_plugin.html)
 * Exclude information in [Ivy publishing](userguide/publishing_ivy.html)
 
 ## New and noteworthy
@@ -149,7 +149,7 @@ See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details
 
 ### IDE integration improvements
 
-#### Idea Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
+#### IDEA Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
 
 The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
 
@@ -159,11 +159,11 @@ If a Gradle build script uses the DSL to explicitly specify `idea.project.langua
 
 The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
 
-#### Tooling API exposes language level on Idea model
+#### Tooling API exposes language level on IDEA model
 
 The `IdeaProject` and the `IdeaModule` model now exposes the Java language level via the
 <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the language level of a Idea project and its associated Modules.
+IDE providers use this method to automatically determine the language level of a IDEA project and its associated Modules.
 
 #### Tooling API exposes java runtime and target bytecode level on IDE models
 
@@ -186,7 +186,7 @@ When introduced in Gradle 2.5, [continuous build](userguide/continuous_build.htm
 
 Following a build, if changes were detected, Gradle will report a list of file changes and begin execution of a new build. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build. You can diagnose this sort of problem by looking at the list of files that changed and which task has those files as inputs.
 
-### Support for controlling test executing order in TestNG
+### Support for controlling test execution order in TestNG
 
 This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
 
@@ -201,9 +201,9 @@ New options can be enabled in the useTestNG block:
 
 This feature was contributed by [Richard Bergoin](https://github.com/kenji21).
 
-### Support for different test frameworks for Java projects in Build Init Plugin
+### Support for different test frameworks for Java projects in Build Init plugin
 
-It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init Plugin](userguide/build_init_plugin.html) by using the following command:
+It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init plugin](userguide/build_init_plugin.html) by using the following command:
 
     gradle init --type java-library --test-framework spock
 
@@ -348,7 +348,7 @@ In Gradle 2.11, this behaviour is consistent across all Java versions and operat
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dylan Cali](https://github.com/calid) - Add support for Spock and TestNG frameworks for Java projects in [Build Init Plugin](userguide/build_init_plugin.html)
+* [Dylan Cali](https://github.com/calid) - Add support for Spock and TestNG frameworks for Java projects in [Build Init plugin](userguide/build_init_plugin.html)
 * [Niklas Baudy](https://github.com/vanniktech) - PMD plugin code cleanup
 * [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
 * [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
@@ -358,7 +358,7 @@ We would like to thank the following community members for making contributions 
 * [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
 * [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
 * [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
-* [Martin Steiger](https://github.com/msteiger) - Eclipse and Idea tasks warn on unresolvable dependencies
+* [Martin Steiger](https://github.com/msteiger) - Eclipse and IDEA tasks warn on unresolvable dependencies
 * [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
 * [Chris Purcell](https://github.com/cjp39) - Documentation improvements
 * [Ryan Niehaus](https://github.com/ryanniehaus) - InstallExecutable task uses target platform operating system
