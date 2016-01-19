@@ -1,25 +1,27 @@
 The Gradle team is pleased to bring you Gradle 2.11. This release delivers significant improvements to the new [software model](userguide/software_model.html), together with improvements to IDE integration and continuous build.
 
-The software model is the future of Gradle. Support for native languages and Play Framework already build on top of the core software model, and we are working intensively to bring full Java support. With this release, the new Java plugins support testing with JUnit and became smarter in compile avoidance. While developing our Java support we continue to invest in the software model infrastructure, meaning that support for developing plugins with the new software model also got better.
+The software model is the future of Gradle. The core software model is the basis of the native language and Play framework support in Gradle, and we are working intensively to bring full Java support. With this release, the new Java plugins support testing with JUnit and do a better job in compile avoidance. As well as developing our Java support, we continue to invest in the software model infrastructure, so support for developing any plugin with the new software model also got better.
 
-Existing Java projects will also benefit from this release. Improved IDE integration means that developing a Gradle project in IntelliJ IDEA or Eclipse is even better, with fewer tweaks to the IDE configuration required. These improvements encompass both the generated project files and the [Tooling API](userguide/embedding.html) used by IDEs to import Gradle projects.
+Existing Java projects also benefit from Gradle 2.11. Improved IDE integration means that developing a Gradle project in IntelliJ IDEA or Eclipse is even better, with fewer tweaks to the IDE configuration required. These improvements encompass both the generated project files and the [Tooling API](userguide/embedding.html) used by IDEs to import Gradle projects.
 
-By detecting changes that occur during build execution, [Continuous build](userguide/continuous_build.html) has become more dependable. We encourage users to try out this cool feature, which enhances the development experience in Gradle.
+By detecting changes that occur during build execution, [Continuous build](userguide/continuous_build.html) has become more dependable. We encourage users to try out this cool feature, which can really enhance the development experience with Gradle.
 
-No Gradle release would be complete without contributions from the wonderful Gradle community. This release includes several improvements and fixes from community, including support for:
+No Gradle release would be complete without contributions from the wonderful Gradle community. In this release, these include:
 
 - Controlling TestNG execution order with the [Java plugin](userguide/java_plugin.html)
 - Specifying different test frameworks for a generated Java project using the [Build Init plugin](userguide/build_init_plugin.html)
 - Specifying the Java default imports for a Twirl source set when developing with the [Play plugin](userguide/play_plugin.html)
 - Publishing 'exclude' information to Ivy files using [ivy-publish](userguide/publishing_ivy.html)
 
+The full list of contributions is below.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Software model improvements
+### Better support for developing plugins with the Software Model
 
-#### Better support for developing plugins with the Software Model with managed source set types
+#### Plugins can use managed types for custom source set types
 
 The `LanguageSourceSet` type can now be extended via `@Managed` subtypes, allowing for declaration of `@Managed` source sets without having to provide a default implementation.
 
@@ -47,11 +49,11 @@ Example:
         }
     }
 
-#### `@ComponentBinaries` works for elements of `testSuites`
+#### A `@ComponentBinaries` rule can create binaries for any `ComponentSpec` instance
 
 The `@ComponentBinaries` annotation can now be used to create binaries for any component type, regardless of its enclosing container. It means that it can be used to define binaries for components in `components`, like it used to, but also for those defined in `testSuites`, or any custom `ComponentSpec` container.
 
-### Java software model improvements
+### Improved building and testing Java libraries with the Java software model
 
 #### Testing support
 
@@ -59,7 +61,7 @@ The Java software model now supports declaring a JUnit test suite as a software 
 
 In addition, the changes in the software model infrastructure should make it easy to add support for new test frameworks.
 
-#### Improved compile avoidance
+#### Better compile avoidance
 
 This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
 
@@ -69,23 +71,7 @@ This version of Gradle further optimizes on avoiding recompiling consuming libra
 
 This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
 
-### Native software model improvements
-
-#### Changes to native unit testing
-
-By convention, when the CUnit plugin or the Google Test plugin is applied, test suites for components are created automatically. If you don't want the conventions to be automatically applied, you can opt-out and only apply the base test suite plugin, in which case you are required to provide the component under test explicitly, using the `testing $.components.someComponent` reference syntax.
-
-The `cunit` plugin is now built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
-
-#### Improved native header detection
-
-In Gradle 2.10, compilation tasks for native languages were not considered out of date when a header file was added earlier in the include search path after a file with the same name had been found in a previous execution.
-
-It's recommended that header files are included with a "namespace" to avoid naming conflicts.  For example, if you have a header "logger.h", you should put the header in a subdirectory and include it as "subdirectory/logger.h" instead.
-
-See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details.
-
-### Improved support for developing Java projects in IntelliJ IDEA and Eclipse
+### Enhanced support for developing Java projects in IntelliJ IDEA and Eclipse
 
 Gradle supports IDE-centric development via both generated project files and direct IDE import using the Gradle Tooling API.
 
@@ -125,9 +111,11 @@ The <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseJavaSourceSettings.
 
 Look for improved support for importing Java projects in an upcoming release of <a href="http://projects.eclipse.org/projects/tools.buildship">Buildship</a>.
 
-### Continuous build improvements
+### Continuous build detects changes that occur during build execution
 
 When introduced in Gradle 2.5, [continuous build](userguide/continuous_build.html) only observed changes that occurred after a build had completed. Continuous build will now trigger a rebuild when an input file is changed during build execution.
+
+The rebuild is scheduled to start as soon as the currently executing build is complete. No attempt is made to cancel the currently executing build.
 
 Following a build, if changes were detected, Gradle will report a list of file changes and begin execution of a new build.
 
@@ -135,7 +123,7 @@ Following a build, if changes were detected, Gradle will report a list of file c
 
 This version of Gradle adds support for TestNG preserveOrder and groupByInstances options to control test order execution. More information about these features can be found in the [userguide](userguide/java_plugin.html#test_execution_order).
 
-New options can be enabled in the useTestNG block:
+New options can be enabled in the `useTestNG` block:
 
     test {
         useTestNG {
@@ -146,9 +134,9 @@ New options can be enabled in the useTestNG block:
 
 This feature was contributed by [Richard Bergoin](https://github.com/kenji21).
 
-### Support for different test frameworks for Java projects in Build Init plugin
+### Test framework can be specified when bootstrapping a Java project
 
-It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects in the [Build Init plugin](userguide/build_init_plugin.html) by using the following command:
+The [Build Init plugin](userguide/build_init_plugin.html) allows the bootstrapping of Gradle project via the built-in `init` task. It is now possible to use [Spock framework](https://code.google.com/p/spock/) or [TestNG](http://testng.org/doc/index.html) instead of JUnit for Java projects generated in this way. Specify the test framework as follows:
 
     gradle init --type java-library --test-framework spock
 
@@ -158,13 +146,13 @@ or
 
 This feature was contributed by [Dylan Cali](https://github.com/calid).
 
-### Support for exclude information in Ivy publishing
+### Published Ivy descriptor files include configured exclusions
 
 The Ivy descriptor file generated by the ['ivy-publish'](userguide/publishing_ivy.html) plugin now includes dependency exclude information. Exclusions configured in your Gradle build script on project or external module dependencies will be included in the published _ivy.xml_ file.
 
 This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
 
-### Support for Twirl source sets to use Java default imports
+### Configure Twirl source sets to use Java default imports
 
 Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now specify that Java default imports should be used when compiling a Twirl source set.
 
@@ -177,6 +165,14 @@ Previously, when compiling Twirl source sets, Gradle would assume that Scala def
             }
         }
     }
+
+### Separate convention plugins for native unit testing
+
+By convention, the [CUnit](userguide/native_software.html#native_binaries:cunit) and [Google Test](userguide/native_software.html#native_binaries:google_test) plugins will create and configure a test suite for each component automatically. It is now possible to opt-out of this conventional behaviour by applying the a base 'test-suite' plugin, with the component under test being specified explicitly using the `testing $.components.someComponent` reference syntax.
+
+The `cunit` plugin is now built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarly, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change allows finer-grained control over the creation of native test suites, addressing issues where Gradle proactively creates test suites for components it should not.
+
+With this change, the native software model and Java software model use the same pattern for defining test suites.
 
 ## Fixed issues
 
