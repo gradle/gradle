@@ -159,7 +159,12 @@ OmniEclipseWorkspace {
 
 ##### Test cases
 
-For this story, the user facing behavior should remain the same, so the existing test cases of Buildship will be enough.
+- executing a `CompositeModelRequest` with no `ProjectIdentifier` throws an `IllegalArgumentException`
+- a `CompositeModelRequest` can only request an `EclipseWorkspace`, requesting any other Model throws an `UnsupportedModelException`
+- executing a `CompositeModelRequest` for a single project returns an `OmniEclipseWorkspace` containing the corresponding `OmniEclipseGradleBuild`
+- executing a `CompositeModelRequest` for a multi-project build returns an `OmniEclipseWorkspace` containing all the `OmniEclipseGradleBuild`s contained in that project
+- executing a `CompositeModelRequest` for more than one root project throws an `IllegalArgumentException`
+- all Buildship tests must pass unaltered
 
 ### Story - Tooling API provides EclipseProject model for a composite containing multiple Gradle builds
 
@@ -212,6 +217,11 @@ The project synchronization methods will be changed to take an additional `Eclip
 
 ##### Test cases
 
+tooling-commons:
+- executing a `CompositeModelRequest` for a several multi-project build returns an `OmniEclipseWorkspace` containing the union of all the `OmniEclipseGradleBuild`s contained in those projects.
+- an exception is thrown if any of the `OmniGradleBuild`s cannot be obtained
+
+Buildship:
 - adding two projects to the workspace -> both are part of the composite afterwards
 - removing a project from the workspace -> no longer contained in the composite
 - refreshing/adding/removing a project -> all other projects are refreshed as well
