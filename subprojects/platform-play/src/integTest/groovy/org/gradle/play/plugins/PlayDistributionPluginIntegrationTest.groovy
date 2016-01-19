@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
@@ -40,37 +41,38 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @Issue("GRADLE-3386")
     def "uses unique names for jars in distribution"() {
         given:
         file("extralib.jar").text = "This is not a jar"
-        (1..2).each { subprojectIdx ->
-            def subprojectName = "sub${subprojectIdx}"
-            settingsFile << """
-                include '${subprojectName}:dependency'
-            """
-            def dependencyRoot = file("${subprojectName}/dependency")
-            def srcDir = dependencyRoot.file("src/main/java/${subprojectName}")
-            srcDir.mkdirs()
-            srcDir.file("Dependency.java") << """
-                package ${subprojectName};
-                public class Dependency {}"""
-            dependencyRoot.file("build.gradle") << """
-                apply plugin: 'java'
-                group = 'com.example.${subprojectName}'
-                version = "1.0"
-"""
-            buildFile << """
-                dependencies {
-                    playRun project(":${subprojectName}:dependency")
-                }
-"""
-        }
+
+        settingsFile << """
+            include 'sub1:dependency'
+            include 'sub2:dependency'
+            include 'dependency'
+        """
         buildFile << """
             dependencies {
                 playRun 'com.google.code.gson:gson:2.2.4'
                 playRun files('extralib.jar')
+                playRun project(":sub1:dependency")
+                playRun project(":sub2:dependency")
+                playRun project(":dependency")
+            }
+
+            subprojects {
+                apply plugin: 'java'
+                version = "1.0"
             }
 """
+        def srcFileContent = """
+            public class Dependency {}
+"""
+
+        file("sub1/dependency/src/main/java/Dependency.java") << srcFileContent
+        file("sub2/dependency/src/main/java/Dependency.java") << srcFileContent
+        file("other/src/main/java/Dependency.java") << srcFileContent
+
         when:
         succeeds "dist"
 
@@ -81,23 +83,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
             "playBinary/lib/extralib.jar",
             "playBinary/lib/com.google.code.gson-gson-2.2.4.jar",
             "playBinary/lib/sub1.dependency-dependency-1.0.jar",
-            "playBinary/lib/sub2.dependency-dependency-1.0.jar")
-
-        when:
-        file("sub1/dependency/build.gradle") << "version = '2.0'"
-        and:
-        succeeds "dist"
-        then:
-        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
-
-        archives().each { archive ->
-            archive.doesNotContainDescendants(
-                "playBinary/lib/sub1.dependency-dependency-1.0.jar"
-            ).containsDescendants(
-                "playBinary/lib/sub1.dependency-dependency-2.0.jar",
-                "playBinary/lib/sub2.dependency-dependency-1.0.jar"
-            )
-        }
+            "playBinary/lib/sub2.dependency-dependency-1.0.jar",
+            "playBinary/lib/dependency-dependency-1.0.jar"
+        )
     }
 
     def "builds a tgz when requested"() {

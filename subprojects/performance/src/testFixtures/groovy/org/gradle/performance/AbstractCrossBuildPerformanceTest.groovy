@@ -36,7 +36,6 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-            builder.invocationCount(5).warmUpCount(1)
             super.defaultSpec(builder)
             AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
         }

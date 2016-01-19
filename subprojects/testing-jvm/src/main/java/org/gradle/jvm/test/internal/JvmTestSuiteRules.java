@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.jvm.test.internal;
 
 import org.apache.commons.lang.WordUtils;
@@ -24,19 +23,26 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
@@ -48,82 +54,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Functions for creation and configuration of JVM test suites.
- */
-public class JvmTestSuites {
-
-    public static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinaries(
-        ModelMap<BinarySpec> testBinaries,
-        ServiceRegistry registry,
-        JvmTestSuiteSpec testSuite,
-        Class<T> testSuiteBinaryClass,
-        JavaToolChainRegistry toolChains,
-        PlatformResolvers platformResolver,
-        ModelSchemaStore modelSchemaStore,
-        Action<? super T> configureAction) {
-        JvmComponentSpec testedComponent = testSuite.getTestedComponent();
-        if (testedComponent == null) {
-            // standalone test suite
-            createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, null, toolChains, platformResolver, registry, modelSchemaStore, configureAction);
-        } else {
-            // component under test
-            for (final JvmBinarySpec testedBinary : testedBinariesOf(registry, testSuite)) {
-                createJvmTestSuiteBinary(testBinaries, testSuiteBinaryClass, testSuite, testedBinary, toolChains, platformResolver, registry, modelSchemaStore, configureAction);
-            }
-        }
-    }
-
-    private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(final ModelMap<BinarySpec> testBinaries,
-                                                                                    Class<T> testSuiteBinaryClass,
-                                                                                    final JvmTestSuiteSpec testSuite,
-                                                                                    final JvmBinarySpec testedBinary,
-                                                                                    final JavaToolChainRegistry toolChains,
-                                                                                    PlatformResolvers platformResolver,
-                                                                                    final ServiceRegistry serviceRegistry,
-                                                                                    final ModelSchemaStore modelSchemaStore,
-                                                                                    final Action<? super T> configureAction) {
-
-        final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
-        final JavaPlatform platform = testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
-        final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, testedBinary, javaPlatforms, platform);
-
-        testBinaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<T>() {
-            @Override
-            public void execute(T binary) {
-                JvmTestSuiteBinarySpecInternal testBinary = (JvmTestSuiteBinarySpecInternal) binary;
-                testBinary.setNamingScheme(namingScheme);
-                testBinary.setTargetPlatform(platform);
-                testBinary.setToolChain(toolChains.getForPlatform(platform));
-                testBinary.setTestedBinary(testedBinary);
-                injectDependencyResolutionServices(testBinary);
-                configureAction.execute(binary);
-                configureCompileClasspath(testBinary);
-            }
-
-            private void injectDependencyResolutionServices(JvmTestSuiteBinarySpecInternal testBinary) {
-                ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
-                RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
-                List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-                testBinary.setArtifactDependencyResolver(dependencyResolver);
-                testBinary.setRepositories(resolutionAwareRepositories);
-                testBinary.setModelSchemaStore(modelSchemaStore);
-            }
-
-            private void configureCompileClasspath(JvmTestSuiteBinarySpecInternal testSuiteBinary) {
-                Collection<DependencySpec> dependencies = testSuiteBinary.getDependencies();
-                if (testedBinary != null) {
-                    BinarySpecInternal binary = (BinarySpecInternal) testedBinary;
-                    LibraryBinaryIdentifier id = binary.getId();
-                    dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
-                    if (testedBinary instanceof JarBinarySpecInternal) {
-                        dependencies.addAll(((JarBinarySpecInternal) testedBinary).getApiDependencies());
-                    }
-                }
-            }
-
-        });
-    }
+@SuppressWarnings("unused")
+public class JvmTestSuiteRules extends RuleSource {
 
     public static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
                                                final JvmAssembly jvmAssembly,
@@ -153,7 +85,99 @@ public class JvmTestSuites {
         });
     }
 
-    public static Collection<JvmBinarySpec> testedBinariesOf(ServiceRegistry registry, JvmTestSuiteSpec testSuite) {
+    @Defaults
+    public void createTestSuiteTasks(
+        final ModelMap<JvmTestSuiteBinarySpec> binaries,
+        final @Path("buildDir") File buildDir) {
+        binaries.afterEach(new Action<JvmTestSuiteBinarySpec>() {
+            @Override
+            public void execute(JvmTestSuiteBinarySpec binary) {
+                final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+                createJvmTestSuiteTasks(binary, jvmAssembly, buildDir);
+            }
+        });
+    }
+
+    /**
+     * Create binaries for test suites.
+     * TODO: This should really be a @ComponentBinaries rule, but at this point we have no clue what the concrete binary type is,
+     * so everything has to be duplicated in specific plugins. See usages for example.
+     */
+    public static void createJvmTestSuiteBinaries(ModelMap<BinarySpec> testBinaries,
+                                                  ServiceRegistry registry,
+                                                  PlatformResolvers platformResolver,
+                                                  JvmTestSuiteSpec testSuite,
+                                                  JavaToolChainRegistry toolChains,
+                                                  ModelSchemaStore modelSchemaStore,
+                                                  Class<? extends JvmTestSuiteBinarySpec> testSuiteBinary) {
+        JvmComponentSpec testedComponent = testSuite.getTestedComponent();
+        if (testedComponent == null) {
+            // standalone test suite
+            createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, null, toolChains, platformResolver, registry, modelSchemaStore);
+        } else {
+            // component under test
+            for (final JvmBinarySpec testedBinary : testedBinariesOf(testSuite)) {
+                createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, testedBinary, toolChains, platformResolver, registry, modelSchemaStore);
+            }
+        }
+    }
+
+    private static <T extends JvmTestSuiteBinarySpec> void createJvmTestSuiteBinary(final ModelMap<BinarySpec> testBinaries,
+                                                                                    Class<T> testSuiteBinaryClass,
+                                                                                    final JvmTestSuiteSpec testSuite,
+                                                                                    final JvmBinarySpec testedBinary,
+                                                                                    final JavaToolChainRegistry toolChains,
+                                                                                    PlatformResolvers platformResolver,
+                                                                                    final ServiceRegistry serviceRegistry,
+                                                                                    final ModelSchemaStore modelSchemaStore) {
+
+        final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
+        final JavaPlatform platform = testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
+        final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, testedBinary, javaPlatforms, platform);
+
+        testBinaries.create(namingScheme.getBinaryName(), testSuiteBinaryClass, new Action<T>() {
+            @Override
+            public void execute(T binary) {
+                JvmTestSuiteBinarySpecInternal testBinary = (JvmTestSuiteBinarySpecInternal) binary;
+                testBinary.setNamingScheme(namingScheme);
+                testBinary.setTargetPlatform(platform);
+                testBinary.setToolChain(toolChains.getForPlatform(platform));
+                testBinary.setTestedBinary(testedBinary);
+                addTestSuiteDependencies(testBinary);
+                injectDependencyResolutionServices(testBinary);
+                configureCompileClasspath(testBinary);
+            }
+
+            private boolean addTestSuiteDependencies(JvmTestSuiteBinarySpecInternal testBinary) {
+                return testBinary.getDependencies().addAll(testSuite.getDependencies().getDependencies());
+            }
+
+            private void injectDependencyResolutionServices(JvmTestSuiteBinarySpecInternal testBinary) {
+                ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+                RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+                List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+                testBinary.setArtifactDependencyResolver(dependencyResolver);
+                testBinary.setRepositories(resolutionAwareRepositories);
+                ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
+                testBinary.setVariantsMetaData(DefaultVariantsMetaData.extractFrom(testBinary, schema));
+            }
+
+            private void configureCompileClasspath(JvmTestSuiteBinarySpecInternal testSuiteBinary) {
+                if (testedBinary != null) {
+                    Collection<DependencySpec> dependencies = testSuiteBinary.getDependencies();
+                    BinarySpecInternal binary = (BinarySpecInternal) testedBinary;
+                    LibraryBinaryIdentifier id = binary.getId();
+                    dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
+                    if (testedBinary instanceof JarBinarySpecInternal) {
+                        dependencies.addAll(((JarBinarySpecInternal) testedBinary).getApiDependencies());
+                    }
+                }
+            }
+
+        });
+    }
+
+    public static Collection<JvmBinarySpec> testedBinariesOf(JvmTestSuiteSpec testSuite) {
         return testedBinariesWithType(JvmBinarySpec.class, testSuite);
     }
 
@@ -181,5 +205,4 @@ public class JvmTestSuites {
     private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
         return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
     }
-
 }

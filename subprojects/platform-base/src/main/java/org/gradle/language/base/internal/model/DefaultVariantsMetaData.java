@@ -22,11 +22,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.VariantAspect;
 
 import java.util.Collections;
@@ -51,18 +49,17 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
         this.variantAxisTypes = variantAxisTypes;
     }
 
-    public static VariantsMetaData extractFrom(BinarySpec spec, ModelSchemaStore schemaStore) {
+    public static VariantsMetaData extractFrom(BinarySpec binarySpec, ModelSchema<?> binarySpecSchema) {
         Map<String, Object> variants = Maps.newLinkedHashMap();
         ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
-        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)spec).getPublicType());
-        if (schema instanceof StructSchema) {
-            VariantAspect variantAspect = ((StructSchema<?>) schema).getAspect(VariantAspect.class);
+        if (binarySpecSchema instanceof StructSchema) {
+            VariantAspect variantAspect = ((StructSchema<?>) binarySpecSchema).getAspect(VariantAspect.class);
             if (variantAspect != null) {
                 for (ModelProperty<?> property : variantAspect.getDimensions()) {
                     // note: it's not the role of this class to validate that the annotation is properly used, that
                     // is to say only on a getter returning String or a Named instance, so we trust the result of
                     // the call
-                    Object value = property.getPropertyValue(spec);
+                    Object value = property.getPropertyValue(binarySpec);
                     variants.put(property.getName(), value);
                     dimensionTypesBuilder.put(property.getName(), property.getType());
                 }

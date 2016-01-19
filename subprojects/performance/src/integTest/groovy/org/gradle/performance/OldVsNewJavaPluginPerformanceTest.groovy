@@ -61,9 +61,6 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
 
         where:
         scenario  | size     | tasks
-        "empty"   | "small"  | ["help"]
-        "empty"   | "medium" | ["help"]
-        "empty"   | "big"    | ["help"]
         "clean"   | "small"  | ["clean"]
         "clean"   | "medium" | ["clean"]
         "clean"   | "big"    | ["clean"]

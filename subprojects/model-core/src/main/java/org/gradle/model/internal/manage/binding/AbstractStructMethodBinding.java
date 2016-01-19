@@ -23,17 +23,16 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
  * Binds a method declared in views to its actual implementation.
  */
 public abstract class AbstractStructMethodBinding implements StructMethodBinding {
-    private final WeaklyTypeReferencingMethod<?, ?> source;
+    private final WeaklyTypeReferencingMethod<?, ?> viewMethod;
     private final PropertyAccessorType accessorType;
 
-    public AbstractStructMethodBinding(WeaklyTypeReferencingMethod<?, ?> source, PropertyAccessorType accessorType) {
-        this.source = source;
+    public AbstractStructMethodBinding(WeaklyTypeReferencingMethod<?, ?> viewMethod, PropertyAccessorType accessorType) {
+        this.viewMethod = viewMethod;
         this.accessorType = accessorType;
     }
 
-    @Override
-    public WeaklyTypeReferencingMethod<?, ?> getSource() {
-        return source;
+    public WeaklyTypeReferencingMethod<?, ?> getViewMethod() {
+        return viewMethod;
     }
 
     @Override

@@ -29,10 +29,9 @@ import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
+import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.Variant;
@@ -47,8 +46,7 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     private Collection<DependencySpec> binaryLevelDependencies = Lists.newLinkedList();
     private JvmBinarySpec testedBinary;
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
-
-    private ModelSchemaStore schemaStore;
+    private VariantsMetaData variantsMetaData;
     private ArtifactDependencyResolver artifactDependencyResolver;
     private List<ResolutionAwareRepository> remoteRepositories;
 
@@ -113,13 +111,13 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     }
 
     @Override
-    public void setModelSchemaStore(ModelSchemaStore schemaStore) {
-        this.schemaStore = schemaStore;
+    public void setRepositories(List<ResolutionAwareRepository> repositories) {
+        this.remoteRepositories = repositories;
     }
 
     @Override
-    public void setRepositories(List<ResolutionAwareRepository> repositories) {
-        this.remoteRepositories = repositories;
+    public void setVariantsMetaData(VariantsMetaData variantsMetaData) {
+        this.variantsMetaData = variantsMetaData;
     }
 
     private LocalComponentResolveContext createResolveContext() {
@@ -127,7 +125,7 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
         // from the resolving metadata instead of the resolved metadata
         LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(getId().getProjectPath(), getId().getLibraryName() + "Test", getId().getVariant());
         return new LocalComponentResolveContext(thisId,
-            DefaultVariantsMetaData.extractFrom(this, schemaStore),
+            variantsMetaData,
             runtimeDependencies(),
             UsageKind.RUNTIME,
             getDisplayName());

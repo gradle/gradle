@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, JavaPerformanceTest])
+@Category([JavaPerformanceTest])
 class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring up-to-date checking speed")
     def "build java software model project"() {
@@ -75,8 +74,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(4000)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
     }
 
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
@@ -100,8 +99,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
 
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(500)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2000)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
     }
 
     @Unroll("Checking overhead of API stubbing when #cardinality.description")

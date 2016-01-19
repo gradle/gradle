@@ -40,5 +40,5 @@ public interface JavaRuntime {
      *
      * @return The home directory. Never returns {@code null}.
      * */
-    File getHomeDirectory();
+    File getJavaHome();
 }

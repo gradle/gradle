@@ -21,13 +21,13 @@ import org.gradle.api.JavaVersion;
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultJavaRuntime implements Serializable {
+public class DefaultJavaInstallation implements Serializable {
 
-    private final File homeDirectory;
+    private final File javaHome;
     private final JavaVersion javaVersion;
 
-    public DefaultJavaRuntime(File homeDirectory, JavaVersion javaVersion) {
-        this.homeDirectory = homeDirectory;
+    public DefaultJavaInstallation(File javaHome, JavaVersion javaVersion) {
+        this.javaHome = javaHome;
         this.javaVersion = javaVersion;
     }
 
@@ -35,7 +35,7 @@ public class DefaultJavaRuntime implements Serializable {
         return javaVersion;
     }
 
-    public File getHomeDirectory() {
-        return homeDirectory;
+    public File getJavaHome() {
+        return javaHome;
     }
 }

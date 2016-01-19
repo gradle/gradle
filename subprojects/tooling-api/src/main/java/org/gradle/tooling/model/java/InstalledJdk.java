@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,28 @@
 package org.gradle.tooling.model.java;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.api.JavaVersion;
+
+import java.io.File;
 
 /**
- * An element which might have associated Java sources.
+ * Represents a Java Development Kit machine installation.
  *
- * @since 2.10
+ * @since 2.11
  */
 @Incubating
-public interface JavaSourceAware {
+public interface InstalledJdk {
+    /***
+     * The version of the Java installation.
+     *
+     * @return The Java version. Never returns {@code null}.
+     */
+    JavaVersion getJavaVersion();
 
     /**
-     * Returns the settings for this element, or {@code null} if this element is not a Java element.
+     * The home directory of the Java installation.
      *
-     * @return The source settings.
-     * @throws UnsupportedMethodException For Gradle versions where this method is not supported.
-     */
-    @Nullable
-    JavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
+     * @return The home directory. Never returns {@code null}.
+     * */
+    File getJavaHome();
 }

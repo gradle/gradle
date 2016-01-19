@@ -65,14 +65,15 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.current.size() == 4
         results.current.totalTime.average == Duration.seconds(10)
         results.current.totalMemoryUsed.average == DataAmount.kbytes(10)
-        results.baselineVersions*.version == ['1.0', '1.1']
+        results.baselineVersions*.version == ['1.0', '1.1', mostRecentRelease]
         results.baseline('1.0').results.size() == 4
         results.baseline('1.1').results.size() == 4
+        results.baseline(mostRecentRelease).results.size() == 4
         results.baselineVersions.every { it.maxExecutionTimeRegression == runner.maxExecutionTimeRegression }
         results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
         and:
-        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+        4 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
@@ -93,6 +94,11 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         then:
         results.baselineVersions*.version == ['1.0', mostRecentRelease]
+
+        and:
+        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
     }
 
     @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
@@ -106,11 +112,17 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         then:
         results.baselineVersions*.version == ['1.0', mostRecentRelease]
+
+        and:
+        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
     }
 
     def runner() {
         def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter)
         runner.testId = 'some-test'
+        runner.testProject = 'some-project'
         runner.testProjectLocator = testProjectLocator
         runner.current = currentGradle
         runner.runs = 1

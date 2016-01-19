@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -24,17 +23,10 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml
-import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace
-import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.idea.model.*
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -63,7 +55,6 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
-
         hookDeduplicationToTheRoot(project)
     }
 
@@ -88,6 +79,42 @@ class IdeaPlugin extends IdePlugin {
             }
             addWorker(task, false)
         }
+    }
+
+    private configureIdeaProject(Project project) {
+        if (isRoot(project)) {
+            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
+                def ipr = new XmlFileContentMerger(xmlTransformer)
+                ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
+
+                model.project = ideaProject
+
+                ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
+                ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
+                ideaProject.conventionMapping.languageLevel = {
+                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor {it.sourceCompatibility}
+                    new IdeaLanguageLevel(maxSourceCompatibility)
+                }
+//                ideaProject.conventionMapping.targetBytecodeVersion = {
+//                    return getMaxJavaModuleCompatibilityVersionFor {it.targetCompatibility}
+//                }
+                ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
+                ideaProject.conventionMapping.modules = {
+                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
+                }
+
+                ideaProject.conventionMapping.pathFactory = {
+                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
+                }
+            }
+            addWorker(task)
+        }
+    }
+
+    private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Closure collectClosure) {
+        List<JavaVersion> allProjectJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect(collectClosure)
+        JavaVersion maxJavaVersion = allProjectJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allProjectJavaVersions)
+        maxJavaVersion
     }
 
     private configureIdeaModule(Project project) {
@@ -116,34 +143,6 @@ class IdeaPlugin extends IdePlugin {
         addWorker(task)
     }
 
-    private configureIdeaProject(Project project) {
-        if (isRoot(project)) {
-            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
-                def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = instantiator.newInstance(IdeaProject, ipr)
-
-                model.project = ideaProject
-
-                ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
-                ideaProject.conventionMapping.languageLevel = {
-                    List<JavaVersion> allSourceLanguageLevels = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect { it.sourceCompatibility }
-                    JavaVersion ideaProjectJavaVersion = allSourceLanguageLevels.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allSourceLanguageLevels)
-                    new IdeaLanguageLevel(ideaProjectJavaVersion)
-                }
-                ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
-                ideaProject.conventionMapping.modules = {
-                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
-                }
-
-                ideaProject.conventionMapping.pathFactory = {
-                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
-                }
-            }
-            addWorker(task)
-        }
-    }
-
     private configureForJavaPlugin(Project project) {
         project.plugins.withType(JavaPlugin) {
             configureIdeaModuleForJava(project)
@@ -155,7 +154,6 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
             module.scopes = [:]
-            def configurations = project.configurations
             module.scopes = [
                     PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [], minus: []],

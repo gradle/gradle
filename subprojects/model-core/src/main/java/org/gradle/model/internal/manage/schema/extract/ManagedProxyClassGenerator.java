@@ -448,7 +448,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
 
         for (StructMethodBinding methodBinding :  bindings.getMethodBindings()) {
-            WeaklyTypeReferencingMethod<?, ?> weakViewMethod = methodBinding.getSource();
+            WeaklyTypeReferencingMethod<?, ?> weakViewMethod = methodBinding.getViewMethod();
             Method viewMethod = weakViewMethod.getMethod();
 
             // Don't generate method if it's not part of the view schema
@@ -475,7 +475,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 ManagedProperty<?> managedProperty = bindings.getManagedProperty(propertyBinding.getPropertyName());
                 String propertyName = managedProperty.getName();
                 Class<?> propertyClass = managedProperty.getType().getRawClass();
-                WeaklyTypeReferencingMethod<?, ?> propertyAccessor = propertyBinding.getSource();
+                WeaklyTypeReferencingMethod<?, ?> propertyAccessor = propertyBinding.getViewMethod();
                 switch (propertyBinding.getAccessorType()) {
                     case GET_GETTER:
                     case IS_GETTER:

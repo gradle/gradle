@@ -49,7 +49,7 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
         FileCopyDetails nonProjectFcd = Mock()
         nonProjectFcd.getFile() >> nonProjectFile
 
-        def renamer = new PlayDistributionPlugin.RenameArtifactFiles(null) {
+        def renamer = new PlayDistributionPlugin.PrefixArtifactFileNames(null) {
             Set<ResolvedArtifact> getResolvedArtifacts() {
                 return [projectArtifact, moduleArtifact, nonProjectArtifact] as Set
             }
@@ -91,38 +91,38 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
     def "only rename jar files"() {
         expect:
-        PlayDistributionPlugin.RenameArtifactFiles.shouldBeRenamed(new File("something.jar"))
-        PlayDistributionPlugin.RenameArtifactFiles.shouldBeRenamed(new File("this.is.a.jar.jar"))
-        !PlayDistributionPlugin.RenameArtifactFiles.shouldBeRenamed(new File("something.war"))
-        !PlayDistributionPlugin.RenameArtifactFiles.shouldBeRenamed(new File("something.txt"))
-        !PlayDistributionPlugin.RenameArtifactFiles.shouldBeRenamed(new File("something.zip"))
-    }
+        renameForProject(":sub", "something.jar") == "sub-something.jar"
+        renameForProject(":sub", "this.is.a.jar.jar") == "sub-this.is.a.jar.jar"
 
-    def "turns project path into friendly file name"() {
-        expect:
-        PlayDistributionPlugin.RenameArtifactFiles.projectPathToSafeFileName(":") == "root"
-        PlayDistributionPlugin.RenameArtifactFiles.projectPathToSafeFileName(":subproject") == "subproject"
-        PlayDistributionPlugin.RenameArtifactFiles.projectPathToSafeFileName(":subproject:deeper") == "subproject.deeper"
-        PlayDistributionPlugin.RenameArtifactFiles.projectPathToSafeFileName(":subproject:deeper:deepest") == "subproject.deeper.deepest"
+        renameForProject(":sub", "something.war") == "something.war"
+        renameForProject(":sub", "something.txt") == "something.txt"
+        renameForProject(":sub", "something.zip") == "something.zip"
+
+        renameForModule("group", "something.jar") == "group-something.jar"
+        renameForModule("group", "something.war") == "something.war"
     }
 
     def "renames projects based on their project path"() {
-        given:
-        def file = new File("file.jar")
         expect:
-        PlayDistributionPlugin.RenameArtifactFiles.renameForProject(projectId(":"), file) == "root-file.jar"
-        PlayDistributionPlugin.RenameArtifactFiles.renameForProject(projectId(":subproject"), file) == "subproject-file.jar"
-        PlayDistributionPlugin.RenameArtifactFiles.renameForProject(projectId(":subproject:deeper"), file) == "subproject.deeper-file.jar"
-        PlayDistributionPlugin.RenameArtifactFiles.renameForProject(projectId(":subproject:deeper:deepest"), file) == "subproject.deeper.deepest-file.jar"
+        renameForProject(":", "file.jar") == "file.jar"
+        renameForProject(":subproject", "file.jar") == "subproject-file.jar"
+        renameForProject(":subproject:deeper", "file.jar") == "subproject.deeper-file.jar"
+        renameForProject(":subproject:deeper:deepest", "file.jar") == "subproject.deeper.deepest-file.jar"
     }
 
     def "renames modules based on their group"() {
-        given:
-        def file = new File("file.jar")
         expect:
-        PlayDistributionPlugin.RenameArtifactFiles.renameForModule(moduleId(""), file) == "file.jar"
-        PlayDistributionPlugin.RenameArtifactFiles.renameForModule(moduleId("com"), file) == "com-file.jar"
-        PlayDistributionPlugin.RenameArtifactFiles.renameForModule(moduleId("com.example"), file) == "com.example-file.jar"
+        renameForModule("", "file.jar") == "file.jar"
+        renameForModule("com", "file.jar") == "com-file.jar"
+        renameForModule("com.example", "file.jar") == "com.example-file.jar"
+    }
+
+    private String renameForProject(String projectPath, String fileName) {
+        return PlayDistributionPlugin.PrefixArtifactFileNames.renameForProject(projectId(projectPath), new File(fileName))
+    }
+
+    private String renameForModule(String groupName, String fileName) {
+        return PlayDistributionPlugin.PrefixArtifactFileNames.renameForModule(moduleId(groupName), new File(fileName))
     }
 
     private ProjectComponentIdentifier projectId(String path) {

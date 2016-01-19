@@ -17,7 +17,10 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
-import org.gradle.performance.fixture.*
+import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.fixture.BuildReceiptPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.BuildReceiptsResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -54,19 +57,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
-            @Override
-            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-                builder.invocationCount(5).warmUpCount(1)
-                super.defaultSpec(builder)
-            }
-
-            @Override
-            protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-                super.finalizeSpec(builder)
-            }
-        }
-
+        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
     }
 
     def "build receipt plugin comparison"() {

@@ -40,8 +40,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
+        ideaProject.javaLanguageSettings.languageLevel == expectedSourceLanguageLevel
+        ideaProject.javaLanguageSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         projectAppliesJavaPlugin | expectedSourceLanguageLevel
@@ -66,7 +66,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_3
         toJavaVersion(ideaProject.languageLevel) == JavaVersion.VERSION_1_3
 
         where:
@@ -74,10 +74,28 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.11")
-    def "older Gradle version throw exception when querying idea module source settings"() {
+    def "older Gradle version throw exception when querying idea module java settings"() {
         when:
         def ideaProject = loadIdeaProjectModel()
-        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings()
+        ideaProject.modules.find { it.name == 'root' }.getJavaLanguageSettings()
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle version throws exception when querying idea project java bytecode version or jdk"() {
+        given:
+        def ideaProject = loadIdeaProjectModel()
+
+        when:
+        ideaProject.javaLanguageSettings.getTargetBytecodeVersion()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        ideaProject.javaLanguageSettings.getJdk()
 
         then:
         thrown(UnsupportedMethodException)
@@ -100,14 +118,14 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
 
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
+        ideaProject.javaLanguageSettings.languageLevel.isJava5()
         // modules
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings == null
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings == null
     }
 
-    def "can retrieve project and module source language level for multi project build"() {
+    def "can retrieve project and module language level for multi project build"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
@@ -132,13 +150,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        !ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null // inherited
     }
 
     def "explicit idea project language level overrules sourceCompatiblity settings"() {
@@ -172,26 +188,23 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava7()
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings == null
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
-    def "can query target runtime for idea project"() {
+    def "can query java sdk for idea project"() {
         when:
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
     }
 
-    def "can query target runtime for idea modules"() {
+    def "module java sdk overwrite always null"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
@@ -207,27 +220,16 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
+        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
 
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetRuntimeInherited == true
-
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetRuntimeInherited == true
-
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetRuntimeInherited == true
-
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.javaVersion == Jvm.current().javaVersion
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntime.homeDirectory == Jvm.current().javaHome
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetRuntimeInherited == true
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.jdk == null
     }
 
-    def "can query target bytecode level for idea project and modules"() {
+    def "can query target bytecode version for idea project and modules"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
@@ -243,20 +245,14 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-
-        and: "one global target bytecode level"
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevelInherited == true
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevelInherited == true
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevelInherited == true
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevelInherited == true
+        ideaProject.javaLanguageSettings.targetBytecodeVersion== JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.targetBytecodeVersion == null
     }
 
-    def "can have different target bytecode level among modules"() {
+    def "can have different target bytecode version among modules"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
         buildFile << """
@@ -285,18 +281,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_6
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_7
-        ideaProject.modules.find { it.name == 'child4' }.javaSourceSettings == null
-
-        and:
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.targetBytecodeLevelInherited == false
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.targetBytecodeLevelInherited == false
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.targetBytecodeLevelInherited == false
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.targetBytecodeLevelInherited == true
+        ideaProject.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child4' }.javaLanguageSettings == null
     }
 
     private IdeaProject loadIdeaProjectModel() {

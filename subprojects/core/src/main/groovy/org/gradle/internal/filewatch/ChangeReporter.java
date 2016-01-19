@@ -61,7 +61,7 @@ public class ChangeReporter implements FileWatcherEventListener {
             showIndividualChange(logger, file, changeType);
         }
         if (moreChangesCount > 0) {
-            logOutput(logger, "and %d more changes", moreChangesCount);
+            logOutput(logger, "and some more changes");
         }
     }
 

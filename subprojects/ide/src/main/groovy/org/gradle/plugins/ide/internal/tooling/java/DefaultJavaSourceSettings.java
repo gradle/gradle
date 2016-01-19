@@ -23,7 +23,7 @@ import java.io.Serializable;
 public class DefaultJavaSourceSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;
     private JavaVersion targetBytecodeLevel;
-    private DefaultJavaRuntime targetRuntime;
+    private DefaultJavaInstallation targetRuntime;
 
     public DefaultJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
@@ -35,7 +35,7 @@ public class DefaultJavaSourceSettings implements Serializable {
         return this;
     }
 
-    public DefaultJavaSourceSettings setTargetRuntime(DefaultJavaRuntime targetRuntime) {
+    public DefaultJavaSourceSettings setTargetRuntime(DefaultJavaInstallation targetRuntime) {
         this.targetRuntime = targetRuntime;
         return this;
     }
@@ -48,7 +48,7 @@ public class DefaultJavaSourceSettings implements Serializable {
         return targetBytecodeLevel;
     }
 
-    public DefaultJavaRuntime getTargetRuntime() {
+    public DefaultJavaInstallation getTargetRuntime() {
         return targetRuntime;
     }
 }

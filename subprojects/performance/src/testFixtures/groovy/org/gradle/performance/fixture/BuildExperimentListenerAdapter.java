@@ -20,11 +20,6 @@ import org.gradle.performance.measure.MeasuredOperation;
 
 public class BuildExperimentListenerAdapter implements BuildExperimentListener {
     @Override
-    public GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
-        return noOpCustomizer;
-    }
-
-    @Override
     public void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
 
     }
@@ -33,11 +28,4 @@ public class BuildExperimentListenerAdapter implements BuildExperimentListener {
     public void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
 
     }
-
-    private static GradleInvocationCustomizer noOpCustomizer = new GradleInvocationCustomizer() {
-        @Override
-        public GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
-            return invocationSpec;
-        }
-    };
 }

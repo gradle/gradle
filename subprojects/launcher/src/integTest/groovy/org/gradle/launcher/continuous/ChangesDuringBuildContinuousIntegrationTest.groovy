@@ -32,6 +32,7 @@ gradle.taskGraph.afterTask { Task task ->
        sleep(500) // attempt to workaround JDK-8145981
        file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
        file('changetrigged').text = 'done'
+       sleep(500) // attempt to workaround JDK-8145981
     }
 }
 """

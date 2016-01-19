@@ -38,7 +38,7 @@ class DefaultVariantsMetaDataTest extends Specification {
         spec.flavor >> flavor
         spec.buildType >> buildType
         spec.notVariantAxis >> notVariantAxis
-        def variants = DefaultVariantsMetaData.extractFrom(spec, schemaStore)
+        def variants = DefaultVariantsMetaData.extractFrom(spec, schemaStore.getSchema(((BinarySpecInternal)spec).getPublicType()))
 
         then:
         variants.nonNullVariantAxes == (nonNullVariantAxes as Set)

@@ -59,7 +59,7 @@ class ChangeReporterTest extends Specification {
         then:
         1 * logger.formatln("%s: %s", "new file", events[4].file.absolutePath)
         then:
-        1 * logger.formatln('and %d more changes', 97)
+        1 * logger.formatln('and some more changes')
         and:
         0 * logger._
     }
@@ -103,7 +103,7 @@ class ChangeReporterTest extends Specification {
         1 * logger.formatln("%s: %s", "deleted", events[0].file.absolutePath)
         1 * logger.formatln("%s: %s", "new file", events[2].file.absolutePath)
         1 * logger.formatln("%s: %s", "new file", events[4].file.absolutePath)
-        1 * logger.formatln('and %d more changes', 97)
+        1 * logger.formatln('and some more changes')
         0 * logger._
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.util.ConfigureUtil
@@ -84,11 +85,8 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
+    @Incubating
     String javaRuntimeName
-
-    void setJavaRuntimeName(String javaRuntimeName) {
-        this.javaRuntimeName = javaRuntimeName
-    }
 
     /**
      * Enables advanced configuration like affecting the way existing jdt file content

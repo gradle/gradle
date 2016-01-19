@@ -18,22 +18,18 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaRuntime;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
 import java.util.*;
-
-import static org.gradle.util.CollectionUtils.*;
 
 public class IdeaModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
@@ -67,60 +63,31 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
         JavaVersion projectSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
+        JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
 
         final Jvm currentJvm = Jvm.current();
-        final DefaultJavaRuntime javaRuntime = new DefaultJavaRuntime(currentJvm.getJavaHome(), currentJvm.getJavaVersion());
+        final DefaultJavaInstallation installedJdk = new DefaultJavaInstallation(currentJvm.getJavaHome(), currentJvm.getJavaVersion());
 
         DefaultIdeaProject out = new DefaultIdeaProject()
             .setName(projectModel.getName())
             .setJdkName(projectModel.getJdkName())
             .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
-            .setJavaSourceSettings(new DefaultJavaSourceSettings()
+            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
-                .setTargetRuntime(javaRuntime));
+                .setTargetBytecodeVersion(projectTargetBytecodeLevel)
+                .setJdk(installedJdk));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out, rootGradleProject, javaRuntime);
+            appendModule(modules, module, out, rootGradleProject);
         }
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
         }
         final Collection<DefaultIdeaModule> ideaModules = modules.values();
 
-        configureTargetBytecodeLevelInherited(out, ideaModules);
-
         out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
         return out;
-    }
-
-    private void configureTargetBytecodeLevelInherited(DefaultIdeaProject out, Collection<DefaultIdeaModule> ideaModules) {
-        final Set<JavaVersion> moduleBytecodeVersions = toSet(compact(collect(ideaModules, new Transformer<JavaVersion, DefaultIdeaModule>() {
-            @Override
-            public JavaVersion transform(DefaultIdeaModule defaultIdeaModule) {
-                final DefaultIdeaModuleJavaSourceSettings javaSourceSettings = defaultIdeaModule.getJavaSourceSettings();
-                return javaSourceSettings == null ? null : javaSourceSettings.getTargetBytecodeLevel();
-            }
-        })));
-
-        if (moduleBytecodeVersions.size() > 0) {
-            final JavaVersion maxBytecodeLevel = Collections.max(moduleBytecodeVersions);
-            out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
-            for (DefaultIdeaModule ideaModule : ideaModules) {
-                if (moduleTargetByteIsMaxBytecodeLevel(maxBytecodeLevel, ideaModule)) {
-                    ideaModule.getJavaSourceSettings().setTargetBytecodeLevelInherited(true);
-                }
-            }
-            out.getJavaSourceSettings().setTargetBytecodeLevel(maxBytecodeLevel);
-        }
-    }
-
-    private boolean moduleTargetByteIsMaxBytecodeLevel(JavaVersion maxBytecodeLevel, DefaultIdeaModule ideaModule) {
-        final DefaultIdeaModuleJavaSourceSettings moduleJavaSourceSettings = ideaModule.getJavaSourceSettings();
-        if(moduleJavaSourceSettings == null) {
-            return false;
-        }
-        return moduleJavaSourceSettings.getTargetBytecodeLevel() != null && moduleJavaSourceSettings.getTargetBytecodeLevel().equals(maxBytecodeLevel);
     }
 
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
@@ -153,7 +120,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject, DefaultJavaRuntime javaRuntime) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
@@ -161,8 +128,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
         Project project = ideaModule.getProject();
-        JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
-        JavaVersion projectSourceLanguageLevel = ideaProject.getJavaSourceSettings().getSourceLanguageLevel();
 
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
             .setName(ideaModule.getName())
@@ -173,18 +138,14 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir()));
+        JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPluginConvention != null) {
             final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
-            JavaVersion moduleSourceLanguageLevel = ideaModuleLanguageLevel == null
-                ? projectSourceLanguageLevel
-                : convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
-            JavaVersion moduleTargetLanguageLevel = javaPluginConvention.getTargetCompatibility();
-            defaultIdeaModule.setJavaSourceSettings(new DefaultIdeaModuleJavaSourceSettings()
-                .setSourceLanguageLevelInherited(moduleSourceLanguageLevel.equals(projectSourceLanguageLevel))
+            JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
+            JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
+            defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
-                .setTargetBytecodeLevel(moduleTargetLanguageLevel)
-                .setTargetRuntime(javaRuntime)
-                .setTargetRuntimeInherited(true));
+                .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
         }
 
         modules.put(ideaModule.getName(), defaultIdeaModule);
@@ -208,6 +169,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     }
 
     private JavaVersion convertIdeaLanguageLevelToJavaVersion(IdeaLanguageLevel ideaLanguageLevel) {
+        if (ideaLanguageLevel == null) {
+            return null;
+        }
         String languageLevel = ideaLanguageLevel.getLevel();
         return JavaVersion.valueOf(languageLevel.replaceFirst("JDK", "VERSION"));
     }

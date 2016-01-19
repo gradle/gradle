@@ -32,6 +32,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasSetter;
+
 @ThreadSafe
 public class ModelProperty<T> {
 
@@ -65,12 +67,8 @@ public class ModelProperty<T> {
         this.schema = schema;
     }
 
-    public boolean isReadable() {
-        return accessors.containsKey(PropertyAccessorType.IS_GETTER) || accessors.containsKey(PropertyAccessorType.GET_GETTER);
-    }
-
     public boolean isWritable() {
-        return accessors.containsKey(PropertyAccessorType.SETTER);
+        return hasSetter(accessors.keySet());
     }
 
     public Set<ModelType<?>> getDeclaredBy() {

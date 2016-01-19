@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.binding;
+package org.gradle.plugins.ide.idea
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import groovy.util.slurpersupport.GPathResult
 
-/**
- * Binds a method declared in a views to its actual implementation.
- */
-public interface StructMethodBinding {
-    WeaklyTypeReferencingMethod<?, ?> getViewMethod();
+class IdeaProjectFixture {
+    private GPathResult ipr
 
-    /**
-     * Returns the property accessor type of this method, or {@code null} if the method is not a property accessor.
-     */
-    @Nullable
-    PropertyAccessorType getAccessorType();
+    IdeaProjectFixture(GPathResult ipr) {
+        this.ipr = ipr
+    }
+
+    String getLanguageLevel() {
+        if(ipr.component.@languageLevel.size() != 0){
+            return ipr.component.@languageLevel
+        }
+        return null
+    }
+
+    String getJdkName() {
+        if (ipr.component."@project-jdk-name".size() != 0) {
+            return ipr.component."@project-jdk-name"
+        }
+        return null
+    }
 }

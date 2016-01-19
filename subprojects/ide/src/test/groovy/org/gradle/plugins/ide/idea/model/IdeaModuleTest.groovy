@@ -15,6 +15,8 @@
  */
 
 package org.gradle.plugins.ide.idea.model
+
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -90,4 +92,54 @@ class IdeaModuleTest extends Specification {
         expect:
         module.getLanguageLevel() == null
     }
+
+    def "target bytecode version is null for non java projects"() {
+        given:
+        rootProject.getPlugins().apply(JavaPlugin)
+        rootProject.getPlugins().apply(IdeaPlugin)
+        def iml = Mock(IdeaModuleIml)
+        def module = new org.gradle.plugins.ide.idea.model.IdeaModule(moduleProject, iml)
+        expect:
+        module.getTargetBytecodeVersion() == null
+    }
+
+    def "target bytecode version set if root has no idea plugin applied"() {
+        given:
+        rootProject.getPlugins().apply(JavaBasePlugin)
+        moduleProject.getPlugins().apply(JavaBasePlugin)
+        moduleProject.targetCompatibility = 1.7
+        rootProject.targetCompatibility = 1.7
+        def iml = Mock(IdeaModuleIml)
+        def module = new org.gradle.plugins.ide.idea.model.IdeaModule(moduleProject, iml)
+        expect:
+        module.getTargetBytecodeVersion() == JavaVersion.VERSION_1_7
+    }
+
+    def "target bytecode version set if differs from calculated idea project bytecode version"() {
+        given:
+        rootProject.getPlugins().apply(IdeaPlugin)
+        rootProject.getPlugins().apply(JavaPlugin)
+        moduleProject.getPlugins().apply(JavaPlugin)
+        moduleProject.targetCompatibility = 1.7
+        rootProject.targetCompatibility = 1.8
+
+        def iml = Mock(IdeaModuleIml)
+        def module = new org.gradle.plugins.ide.idea.model.IdeaModule(moduleProject, iml)
+        expect:
+        module.targetBytecodeVersion == JavaVersion.VERSION_1_7
+    }
+
+   def "target bytecode version is null if matching calculated idea project bytecode version"() {
+       given:
+       rootProject.getPlugins().apply(IdeaPlugin)
+       rootProject.getPlugins().apply(JavaPlugin)
+       moduleProject.getPlugins().apply(JavaPlugin)
+       moduleProject.targetCompatibility = 1.5
+       rootProject.targetCompatibility = 1.5
+
+       def iml = Mock(IdeaModuleIml)
+       def module = new org.gradle.plugins.ide.idea.model.IdeaModule(moduleProject, iml)
+       expect:
+       module.targetBytecodeVersion == null
+   }
 }

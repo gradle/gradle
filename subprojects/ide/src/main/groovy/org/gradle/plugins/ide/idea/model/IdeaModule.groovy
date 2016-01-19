@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Incubating
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.api.plugins.JavaBasePlugin
@@ -276,30 +277,56 @@ class IdeaModule {
     String jdkName
 
     /**
-     * The module specific language Level to use for this module.
-     * If {@code sourceCompatibility} is different to the idea project languageLevel,
-     * the module specific language level derived from projects sourceCompatibility
-     * Otherwise return {@code null}.
+     * The module specific language Level to use for this module. When {@code null}, the module will inherit the
+     * language level from the idea project.
+     * <p>
+     * Idea project and module language levels are based on the {@code sourceCompatibility} settings for each Gradle project,
+     * unless the {@link IdeaProject#languageLevel} is explicitly set.
      */
+    @Incubating
     IdeaLanguageLevel getLanguageLevel() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            def rootProject = project.rootProject
             def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
-            if (useModuleLanguageLevel(rootProject, moduleLanguageLevel)) {
+            if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
                 return moduleLanguageLevel;
             }
         }
         return null;
     }
 
-    private boolean useModuleLanguageLevel(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+    /**
+     * The module specific bytecode version to use for this module. When {@code null}, the module will inherit the
+     * bytecode version from the idea project.
+     * <p>
+     * Idea project and module byte code versions are based on the {@code targetCompatibility} settings for each Gradle project.
+     */
+    @Incubating
+    JavaVersion getTargetBytecodeVersion() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            JavaVersion moduleTargetBytecodeLevel = project.targetCompatibility
+            if (includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel)) {
+                return moduleTargetBytecodeLevel;
+            }
+        }
+        return null;
+    }
+
+    private boolean includeModuleBytecodeLevelOverride(org.gradle.api.Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
         if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
             return true
         }
-        if(rootProject.idea.project.explicitConfiguredLanguageLevel){
+        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
+    }
+
+    private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
+            return true
+        }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedLanguageLevel){
             return false;
         }
-        return moduleLanguageLevel != rootProject.idea.project.languageLevel
+        return moduleLanguageLevel != ideaProject.languageLevel
     }
 
     /**

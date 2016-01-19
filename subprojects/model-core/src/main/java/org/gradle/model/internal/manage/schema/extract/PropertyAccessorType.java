@@ -20,6 +20,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.beans.Introspector;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 /**
  * Distinguishes "get" getters, "is" getters and setters from non-property methods.
@@ -129,5 +130,13 @@ public enum PropertyAccessorType {
             return true;
         }
         return Character.isUpperCase(methodName.charAt(position));
+    }
+
+    public static boolean hasGetter(Collection<PropertyAccessorType> accessorTypes) {
+        return accessorTypes.contains(GET_GETTER) || accessorTypes.contains(IS_GETTER);
+    }
+
+    public static boolean hasSetter(Collection<PropertyAccessorType> accessorTypes) {
+        return accessorTypes.contains(SETTER);
     }
 }

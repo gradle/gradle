@@ -18,8 +18,6 @@ package org.gradle.tooling.model.eclipse;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.*;
-import org.gradle.tooling.model.java.JavaSourceAware;
-import org.gradle.tooling.model.java.JavaSourceSettings;
 
 /**
  * The complete model of an Eclipse project.
@@ -28,7 +26,7 @@ import org.gradle.tooling.model.java.JavaSourceSettings;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject, JavaSourceAware {
+public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
     /**
      * {@inheritDoc}
      */
@@ -44,7 +42,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * @throws UnsupportedMethodException For Gradle versions older than 2.10, where this method is not supported.
      */
     @Nullable @Incubating
-    JavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
+    EclipseJavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
 
     /**
      * The gradle project that is associated with this project.

@@ -2,7 +2,7 @@
 
 - [ ] Continuous build will trigger a rebuild when an input file is changed during build execution
 - [ ] Developer is able to easily determine the task/file that triggered a rebuild
- 
+
 ## Sub-Feature: Continuous build will trigger a rebuild when build configuration changes
 
 - [ ] Continuous build will trigger a rebuild when build script changes
@@ -101,7 +101,7 @@ Waiting for changes to input files of tasks... (ctrl-d to exit)
 new file: /full/path/to/file
 new file: /full/path/to/file2
 new file: /full/path/to/file3
-and 15 more changes
+and some more changes
 Change detected, executing build...
 ```
 
@@ -112,7 +112,7 @@ When a file has been added, it should not be listed in the modifications. Usuall
 Directories are handled as ordinary files in the reporting with the exception that modified directories aren't reported at all since a directory modification is usually caused by a file change in that directory and that file change is the actual reason for the change.
 
 #### Out of scope
- 
+
 It is possible that a continuous build keeps re-triggering new builds when the user isn't doing any changes. This happens when a task changes it's own inputs during execution or when a task changes the inputs of a task that has been executed in the build before it. Build users can use info or debug level logging in finding the problematic task in such problematic builds. It was decided that this story doesn't add any specific features to debug such problems.
 
 It's also out of scope to report the path of the task whose input file the changed file is. It was decided to leave that out of the scope of this story.
@@ -129,7 +129,7 @@ Main scenario:
 
 Test cases:
 
-- should report the absolute file path of the file added when 1 file is added to the input directory of each task (A, B, C, D). 
+- should report the absolute file path of the file added when 1 file is added to the input directory of each task (A, B, C, D).
 
 - should report the absolute file path of the files added when 3 files are added to the input directory of each task (A, B, C, D).
 
@@ -139,7 +139,7 @@ Variations:
 - vary the tests by removing 1, 3 or 11 files from an input directory
 - vary the tests by modifying 1, 3 or 11 files in the input directory
 - vary the tests by adding, removing and modifying 3 or 11 files in the input directory
-- vary the tests by adding new directories 
+- vary the tests by adding new directories
 - vary the tests by removing directories
 - vary the test by making changes in multiple task input directories (tasks A,B,C,D)
 
@@ -160,6 +160,6 @@ Special considerations:
 ### Story: Continuous build will trigger a rebuild when `settings.gradle` changes
 ### Story: Continuous build will trigger a rebuild when `gradle.properties` or `~/.gradle/gradle.properties` changes
 ### Story: Continuous build will trigger a rebuild when any file read as input by configuration script logic changes
-    
+
 
 
