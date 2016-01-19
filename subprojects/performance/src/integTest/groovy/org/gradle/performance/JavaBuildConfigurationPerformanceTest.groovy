@@ -25,10 +25,11 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, BasicPerformanceTest])
 class JavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' configuration")
-    def "configuration"() {
+    @Unroll("configure Java build - #testProject")
+    def "configure"() {
         given:
-        runner.testId = "configuration $testProject"
+        runner.testId = "configure Java build $testProject"
+        runner.previousTestIds = ["configuration $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
