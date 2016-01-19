@@ -150,7 +150,7 @@ The Gradle 'idea' plugin can generate configuration files allowing a Gradle buil
 
 This behavior has been improved, so that the generated IDEA project will have a 'Language Level' matching the highest `sourceCompatibility` value for all imported subprojects. For a multi-project Gradle build that contains a mix of `sourceCompatibility` values, the generated IDEA module for a sub-project will include an override for the appropriate 'Language Level' where it does not match that of the overall generated IDEA project.
 
-If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatiblity` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
+If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatibility` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
 
 The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
 
