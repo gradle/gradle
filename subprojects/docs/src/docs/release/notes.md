@@ -85,30 +85,45 @@ It's recommended that header files are included with a "namespace" to avoid nami
 
 See [GRADLE-3383](https://issues.gradle.org/browse/GRADLE-3383) for more details.
 
-### IDE integration improvements
+### Improved support for developing Java projects in IntelliJ IDEA and Eclipse
 
-#### IDEA Plugin uses `sourceCompatibility` for each subproject to determine module and project language level
+Gradle supports IDE-centric development via both generated project files and direct IDE import using the Gradle Tooling API.
 
-The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle would only consider the `sourceCompatibility` setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
+This release improves on this support for all Java projects built with Gradle, allowing the IDE view of a project to more closely model the Gradle configuration. Improvements to generated project files are available to try out immediately, while improvements to direct IDE import will require updates to IntelliJ IDEA and Buildship (Gradle support for Eclipse).
+
+#### Generated IDEA files include correct module and project Java language level
+
+The Gradle 'idea' plugin generates configuration files for a Gradle build to be opened and developed in IntelliJ IDEA. Previous versions of Gradle only considered the <a href="dsl/org.gradle.api.Project.html#org.gradle.api.Project:sourceCompatibility">`sourceCompatibility`</a> setting on the _root_ project to determine the 'IDEA Language Level': this setting on any subprojects was not considered.
 
 This behavior has been improved, so that the generated IDEA project will have a 'Language Level' matching the highest `sourceCompatibility` value for all imported subprojects. For a multi-project Gradle build that contains a mix of `sourceCompatibility` values, the generated IDEA module for a sub-project will include an override for the appropriate 'Language Level' where it does not match that of the overall generated IDEA project.
 
 If a Gradle build script uses the DSL to explicitly specify `idea.project.languageLevel`, the `sourceCompatibility` level is _not_ taken into account. In this case only the generated IDEA project will contain a value for 'Language Level', and no module-specific overrides will be generated.
 
-The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import.
+The generated values for 'Language Level' are used when creating the `.ipr` and `.iml` files for a Gradle project, as well as to populate the Tooling API model that is used by IntelliJ IDEA on Gradle project import (see below).
 
-#### Tooling API exposes language level on IDEA model
+#### Tooling API provides Java language settings for IntelliJ IDEA
 
-The `IdeaProject` and the `IdeaModule` model now exposes the Java language level via the <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. IDE providers use this method to automatically determine the language level of a IDEA project and its associated Modules.
+The Tooling API exposes `IdeaProject` and the `IdeaModule` models that are used when importing a Gradle build into IntelliJ IDEA. These models not include information on the Java language settings that represent the Gradle configuration for an imported build, and should allow an imported Gradle project in the IDE to more closely match the build configuration.
 
-#### Tooling API exposes java runtime and target bytecode level on IDE models
+Java language settings can be accessed via <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaLanguageSettings--">`IdeaProject.getJavaLanguageSettings()`</a> and <a href="javadoc/org/gradle/tooling/model/idea/IdeaModule.html#getJavaLanguageSettings--">`IdeaModule.getJavaLanguageSettings()`</a>.
 
-The `IdeaProject` and the `IdeaModule` model now exposes the java sdk and the target bytecode version via the <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. The target bytecode version for `IdeaModule` is derived from the <a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibility">`targetCompatibility`</a>
-convention property.
+#### Generated Eclipse `.classpath` files specify the Java runtime used
 
-The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a> property.
+The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java runtime version rather than using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults and uses the `targetCompatibility` convention property from the `java` plugin to determine the default java runtime name.
 
-IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
+To the name of the Java runtime to use can be configured via the `javaRuntimeName` property on the `EclipseJdt` model.
+
+    eclipse {
+        jdt {
+            javaRuntimeName = "JavaSE-1.8"
+        }
+    }
+
+#### Tooling API provides more Java language settings for Eclipse
+
+The <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseJavaSourceSettings.html">Java language settings</a> obtained for an `EclipseProject` from the Tooling API now include the target bytecode version and the build JDK for a Java project. These values can be used to better configure the Eclipse project created when when importing these projects into Eclipse. The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a> property, while the JDK value indicates the JDK used by Gradle to build the project.
+
+Look for improved support for importing Java projects in an upcoming release of <a href="http://projects.eclipse.org/projects/tools.buildship">Buildship</a>.
 
 ### Continuous build improvements
 
@@ -180,18 +195,6 @@ For more information regarding changes introduced in HttpClient 4.4.1 please see
 ### Scala plugin no longer adds 'scalaConsole' tasks
 
 Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
-
-### Eclipse Plugin adds explicit java target runtime to Classpath
-
-The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults and uses the `targetCompatibility` convention property to calculate the default java runtime name.
-
-To tweak the name of the Java runtime to use, the name can be configured via
-
-    eclipse {
-        jdt {
-            javaRuntimeName = "JavaSE-1.8"
-        }
-    }
 
 ### Non-stop cycle when using continuous build
 
