@@ -328,3 +328,9 @@ swapping the names of two projects (A->B, B->A). This might be solved by assigni
 - What about projects that depend on an older version of themselves? Or more generally, a set of projects that have a cycle when not taking versions into account? Using the current logic (which ignores versions), these would lead to cyclic project dependencies.
 - How will Buildship identify projects? Using rootDir + path allows moving projects without renaming. Using projectDir allows renaming projects without moving. Neither can handle both at the same time.
 - What if two projects could be substituted for the same external dependency? Unlikely, but the behavior should at least be stable (e.g. always use the first one)
+- The order of projects that the `EclipseWorkspace` returns should be stable (in the order the ProjectConnections were added)
+- Since this is a big change and we probably won't get all the details right in the first iteration, it should be an opt-in feature in Buildship
+- In the prototype the projects returned by the `EclipseWorkspace` are decorated (for de-duping and substitution),
+but their `getParent()` and `getChildren()` methods return undecorated projects.
+- There are a lot of details and test cases about the flattening, but it is not really helpful to Buildship.
+A `getRootProjects()` method would need less explanation and work just as well for Buildship
