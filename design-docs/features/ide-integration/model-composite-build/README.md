@@ -206,26 +206,15 @@ If implemented correctly, the development of project name deduplication and proj
 
 ##### Implementation
 
-The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of a new `CompositeModelRepository` which queries
-the composite returned by the `ToolingClient`. Buildship will announce the addition and removal of root projects to the `CompositeModelRepository`
+The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of the new `CompositeModelRepository` to query for the `EclipseWorkspace` model. If the set of Projects contained in the workspace change, the `ToolingClient` will rebuild the `GradleComposite` from scratch.
 
-Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the
-same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is
-swapping the names of two projects (A->B, B->A). This might be solved by assigning temporary names to all projects before the synchronization.
+The project synchronization methods will be changed to take an additional `EclipseWorkspace` argument. This especially affects the `ClasspathUpdater`, because to support the upcoming substitution story, it now needs to search for project dependencies across the whole workspace.
 
 ##### Test cases
 
 - adding two projects to the workspace -> both are part of the composite afterwards
 - removing a project from the workspace -> no longer contained in the composite
-- renaming a project in Gradle (e.g. in `settings.gradle`) -> the project is renamed in Eclipse
 - refreshing/adding/removing a project -> all other projects are refreshed as well
-- trying to rename a project that is physically contained in the workspace location -> inform the user that this is not possible.
-- swapping the names of two projects in Gradle -> the corresponding Eclipse projects swap names
-
-##### Open issues
-
-- The API as defined in earlier stories does not allow for removing projects. In those cases would be simply rebuild the whole composite from scratch?
-- Should we allow for renaming projects in this story? Maybe we can push this functionality into a new story as we'll also have to change the underlying model.
 
 ### Story - `EclipseWorkspace` model for a composite does not include duplicate eclipse project names
 
@@ -259,8 +248,7 @@ should be rendered in Eclipse's project view section.
 - Do we need to keep the original project name for a de-duped project for further process in Buildship e.g. visual hints original -> new?
 - The Eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates.
 This isn't specific to the composite build and should be solved for ordinary builds as well.
-- Project names should remain stable, i.e. de-duping renames newly added projects in favor of renaming previously imported projects. This should be handled when de-duping is used
-in refreshing an previously imported project.
+- Project names should remain stable, i.e. de-duping renames newly added projects in favor of renaming previously imported projects.
 
 ### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
 
@@ -315,6 +303,21 @@ The `IdeaProject` model can already provide an arbitrary set of imported Gradle 
     IdeaProject ideaWorkspace = composite.model(IdeaWorkspace.class);
 
 The returned `IdeaProject` will have module names de-duplicated and binary dependencies substituted, as per `EclipseWorkspace`.
+
+### Story - Buildship can rename projects when importing/refreshing
+
+This story was initially thought to be an integral part of name deduplication. However, it is not needed as long as the de-duper uses
+a stable algorithm, i.e. renames newly added projects instead of renaming existing projects.
+
+Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the
+same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is
+swapping the names of two projects (A->B, B->A). This might be solved by assigning temporary names to all projects before the synchronization.
+
+##### Test cases
+
+- renaming a project in Gradle (e.g. in `settings.gradle`) -> the project is renamed in Eclipse
+- trying to rename a project that is physically contained in the workspace location -> inform the user that this is not possible.
+- swapping the names of two projects in Gradle -> the corresponding Eclipse projects swap names
 
 ## Open issues
 
