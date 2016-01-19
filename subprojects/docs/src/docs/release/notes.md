@@ -55,34 +55,9 @@ The `@ComponentBinaries` annotation can now be used to create binaries for any c
 
 #### Testing support
 
-In Gradle 2.10 testing was not supported yet when building Java libraries using the new software model. It is now possible to declare a JUnit test suite as a software component, both as a standalone component or with a component under test.
+The Java software model now supports declaring a JUnit test suite as a software component, both as a standalone component or with a component under test. More information about declaring test suites can be found in the [userguide](userguide/java_software.html).
 
-Declaring a standalone test suite can be done like this:
-
-    model {
-        testSuites {
-            mySuite(JUnitTestSuiteSpec) {
-                jUnitVersion '4.12'
-            }
-        }
-    }
-
-Whereas you can declare a test suite aimed at testing another JVM component this way:
-
-    model {
-        components {
-            myLib(JvmLibrarySpec)
-        }
-        testSuites {
-            mySuite(JUnitTestSuiteSpec) {
-                jUnitVersion '4.12'
-                testing $.components.myLib
-            }
-        }
-    }
-
-
-Then the suite can be executed running the `:mySuiteTest` task. More information about declaring test suites can be found in the [userguide](userguide/java_software.html).
+In addition, the changes in the software model infrastructure should make it easy to add support for new test frameworks.
 
 #### Improved compile avoidance
 
@@ -98,41 +73,9 @@ This feature only works for local libraries, not external dependencies. More inf
 
 #### Changes to native unit testing
 
-By convention, when the CUnit plugin or the Google Test plugin is applied, test suites for components are created automatically. It means that if you have a native component `hello`, a corresponding `helloTest` test suite is automatically created:
+By convention, when the CUnit plugin or the Google Test plugin is applied, test suites for components are created automatically. If you don't want the conventions to be automatically applied, you can opt-out and only apply the base test suite plugin, in which case you are required to provide the component under test explicitly, using the `testing $.components.someComponent` reference syntax.
 
-    plugins {
-        id 'cunit'
-    }
-
-    model {
-        components {
-            hello(NativeLibrarySpec) {
-                targetPlatform "x86"
-            }
-        }
-    }
-
-If you don't want the conventions to be automatically applied, you can opt-out and only apply the base test suite plugin, in which case you are required to provide the component under test explicitly:
-
-    plugins {
-        id 'cunit-test-suite'
-    }
-
-    model {
-        components {
-            hello(NativeLibrarySpec) {
-                targetPlatform "x86"
-            }
-        }
-
-        testSuites {
-            helloTest(CUnitTestSuiteSpec) {
-                testing $.components.hello
-            }
-        }
-    }
-
-The `cunit` plugin is built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
+The `cunit` plugin is now built on top of the `cunit-test-suite` plugin and applies the convention of creating a test suite for each native component automatically. Similarily, the `google-test` plugin is built on top of the `google-test-test-suite` plugin. This change should fix the issues with Gradle proactively creating test suites for components it should not. The native software model now uses the same pattern as the Java software model to define test suites.
 
 #### Improved native header detection
 
