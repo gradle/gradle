@@ -114,7 +114,6 @@ public class ApiJar extends DefaultTask {
 
                 private void writeClasses(JarOutputStream jos) throws Exception {
                     for (File sourceFile : sourceFiles) {
-                        // TODO:RBO consider filtering the sources FileCollection directly
                         if (!isClassFile(sourceFile)) {
                             continue;
                         }
@@ -150,7 +149,6 @@ public class ApiJar extends DefaultTask {
     }
 
     private File[] sortedSourceFiles() {
-        // TODO:RBO investigate the possibility and performance implications of getting a sorted file list directly from FileCollection
         final File[] sourceFiles = (File[]) getInputs().getSourceFiles().asType(File[].class);
         Arrays.sort(sourceFiles);
         return sourceFiles;
