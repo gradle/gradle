@@ -22,7 +22,7 @@ So, for example, application A and library B might normally be built separately,
 
 ## Stories
 
-### Story - Tooling API provides EclipseProject model for a composite containing a single Gradle build.
+### Story - Tooling API provides EclipseWorkspace model for a composite containing a single Gradle build.
 
 Introduce `EclipseWorkspace` to the Tooling API. This represents a collection of eclipse projects based on the Gradle builds that the IDE user is working on.
 For this story, all Gradle projects for an `EclipseWorkspace` will be sourced from a single Gradle build. As such, this story merely provides a convenience for
