@@ -189,14 +189,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     apiJarTask.setDescription(String.format("Creates the API binary file for %s.", binary));
                     apiJarTask.setOutputFile(apiJarFile.getFile());
                     apiJarTask.setExportedPackages(exportedPackages);
-                    setInputsOf(apiJarTask, assembly);
+                    configureApiJarInputs(apiJarTask, assembly);
                     apiJarTask.dependsOn(assembly);
                     apiJarFile.setBuildTask(apiJarTask);
                 }
             });
         }
 
-        private void setInputsOf(ApiJar apiJarTask, JvmAssembly assembly) {
+        private void configureApiJarInputs(ApiJar apiJarTask, JvmAssembly assembly) {
             for (File classDir : assembly.getClassDirectories()) {
                 apiJarTask.getInputs().sourceDir(classDir);
             }
