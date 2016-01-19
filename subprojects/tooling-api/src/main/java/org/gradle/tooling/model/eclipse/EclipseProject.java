@@ -38,8 +38,11 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
     DomainObjectSet<? extends EclipseProject> getChildren();
 
     /**
-     * {@inheritDoc}
+     * Returns the Java source settings for this project.
+     *
+     * @return the settings for Java sources or {@code null} if not a Java element.
      * @throws UnsupportedMethodException For Gradle versions older than 2.10, where this method is not supported.
+     * @since 2.10
      */
     @Nullable @Incubating
     EclipseJavaSourceSettings getJavaSourceSettings() throws UnsupportedMethodException;
