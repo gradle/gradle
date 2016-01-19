@@ -44,6 +44,11 @@ Two new annotations have been added:
 - `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
 - `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
 
+### The "scala-library" build init type uses the Zinc compiler by default
+
+When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
+The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

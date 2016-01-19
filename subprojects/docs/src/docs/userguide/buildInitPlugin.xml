@@ -188,6 +188,7 @@
                 <listitem>Uses <ulink url="http://www.scalatest.org">ScalaTest</ulink> for testing</listitem>
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files</listitem>
+                <listitem>Uses the Zinc Scala compiler by default</listitem>
             </itemizedlist>
         </section>
         <section>
