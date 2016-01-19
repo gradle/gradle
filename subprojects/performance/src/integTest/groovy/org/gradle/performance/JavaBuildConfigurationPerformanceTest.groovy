@@ -45,6 +45,6 @@ class JavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPerforma
         "small"           | millis(1200)
         "multi"           | millis(1200)
         "lotDependencies" | millis(1000)
-        "bigNewJava"      | millis(1000)
+        "bigOldJava"      | millis(1000)
     }
 }
