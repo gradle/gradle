@@ -6,12 +6,12 @@ Existing Java projects also benefit from Gradle 2.11. Improved IDE integration m
 
 By detecting changes that occur during build execution, [Continuous build](userguide/continuous_build.html) has become more dependable. We encourage users to try out this cool feature, which can really enhance the development experience with Gradle.
 
-No Gradle release would be complete without contributions from the wonderful Gradle community. In this release, these include:
+No Gradle release would be complete without contributions from the wonderful Gradle community. In Gradle 2.11, these contributions include:
 
-- Controlling TestNG execution order with the [Java plugin](userguide/java_plugin.html)
-- Specifying different test frameworks for a generated Java project using the [Build Init plugin](userguide/build_init_plugin.html)
-- Specifying the Java default imports for a Twirl source set when developing with the [Play plugin](userguide/play_plugin.html)
-- Publishing 'exclude' information to Ivy files using [ivy-publish](userguide/publishing_ivy.html)
+- Controlling TestNG execution order with the [Java plugin](userguide/java_plugin.html).
+- Specifying different test frameworks for a generated Java project using the [Build Init plugin](userguide/build_init_plugin.html).
+- Specifying the Java default imports for a Twirl source set when developing with the [Play plugin](userguide/play_plugin.html).
+- Publishing 'exclude' information to Ivy files using the [ivy-publish plugin](userguide/publishing_ivy.html).
 
 The full list of contributions is below.
 
@@ -19,7 +19,7 @@ The full list of contributions is below.
 
 Here are the new features introduced in this Gradle release.
 
-### Better support for developing plugins with the Software Model
+### Better support for developing plugins with the software model
 
 #### Plugins can use managed types for custom source set types
 
@@ -174,6 +174,28 @@ The `cunit` plugin is now built on top of the `cunit-test-suite` plugin and appl
 
 With this change, the native software model and Java software model use the same pattern for defining test suites.
 
+### Changes to Play standalone distributions
+
+As a result of some user feedback, some changes have been made to the outputs resulting from the `stage` and `dist` task in the incubating Play framework plugins.
+
+#### Unique names for jar files within the `lib` directory
+
+When copying dependencies into the Play distribution's `lib` directory, we now rename all jar files to include `group` or `project path` information. This fixes an issue where a Play component depends on multiple projects having the same name.
+
+#### Tar distribution task
+
+The Gradle Play plugin now adds a `Tar` task to build standalone Play distributions (`createPlayBinaryTarDist`). A tar and zip distribution will be created when executing `dist`.
+
+The name of the `Zip` task to create standalone Play distributions is now `createPlayBinaryZipDist`.
+
+#### Name of distribution archives
+
+If you would like to have a different archive name (by default, `playBinary.zip` or `playBinary.tar`), you must configure the `baseName` property for the `Zip` or `Tar` tasks. When determining the final archive name, Gradle will concatenate the `baseName` and `extension`.
+
+For tar files, Gradle will automatically switch to using `.tgz` or `.tbz2` when the `compression` property is changed.
+
+Previously, it was possible to directly set the `archiveName` for the generated Zip. This property is now ignored. The `version`, `appendix` and `classifier` properties are still ignored when calculating the archive name.
+
 ## Fixed issues
 
 ## Deprecations
@@ -183,15 +205,13 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-### API Classes
-
 - `Specs.or()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.union()` instead.
 - `Specs.and()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.intersect()` instead.
 - `Specs.not()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.negate()` instead.
 
 ## Potential breaking changes
 
-### Excludes in published Ivy metadata
+### Exclusions now published in Ivy module descriptors
 
 Dependency exclusions are now added to the published ivy.xml when using the 'ivy-publish' plugin. This may result in dependencies being resolved by consuming projects of newly published modules to change. If consuming projects depend on the excluded dependencies you may have to explicitly add these dependencies to the consuming project.
 
@@ -203,43 +223,31 @@ For more information regarding changes introduced in HttpClient 4.4.1 please see
 
 ### Scala plugin no longer adds 'scalaConsole' tasks
 
-Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
+Adding the 'scala' plugin to your build will no longer create a 'scalaConsole' task to launch a Scala REPL from the Gradle build. This capability has been removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
 
-### Non-stop cycle when using continuous build
+### Possible unterminated build loop when using continuous build
 
-When started in continuous build, Gradle will begin watching changes to task inputs just before a task executes. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build.
+When a continuous build is running, Gradle will begin monitoring changes to a task inputs just before that task executes. If a task modifies its own inputs, or the inputs of a task that it depends on, this can lead to a build cycle where each build triggers another build.
 
-You can diagnose this sort of problem by looking at the list of files that changed at the end of the build and find the task that has those files as inputs.  Changing the logging level to [`--info`](current/userguide/logging.html#logLevelCommandLineOptions) can make it easier to identify which input files cause which tasks to become out-of-date.
+This problem can be diagnosed by inspecting the list of files reported when the next build is triggered.  Changing the logging level to [`--info`](current/userguide/logging.html#logLevelCommandLineOptions) can make it easier to identify which input files cause which tasks to become out-of-date.
 
-### SourceTask adds injected getPatternSetFactory method
+### Injected `getPatternSetFactory` method added to SourceTask
 
-An injected getPatternSetFactory method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
-
-### Changes to Play standalone distributions
-
-#### Names of dependency jars
-
-When copying dependencies into the Play distribution's `lib` directory, we now rename all jar files to include `group` or `project path` information.
-
-#### Tar distribution task
-
-The Gradle Play plugin now adds a `Tar` task to build standalone Play distributions (`createPlayBinaryTarDist`). A tar and zip distribution will be created when executing `dist`.
-
-#### Zip distribution task
-
-The name of the `Zip` task to create standalone Play distributions is now `createPlayBinaryZipDist`.
-
-#### Name of distribution archives
-
-If you would like to have a different archive name (by default, `playBinary.zip` or `playBinary.tar`), you must configure the `baseName` property for the `Zip` or `Tar` tasks. When determining the final archive name, Gradle will concatenate the `baseName` and `extension`.
-
-For tar files, Gradle will automatically switch to using `.tgz` or `.tbz2` when the `compression` property is changed.
-
-Previously, you could directly set the `archiveName`.  `version`, `appendix` and `classifier` are still ignored when determining the archive name.
+An injected `getPatternSetFactory()` method has been added to the `org.gradle.api.tasks.SourceTask` class. This is a possible breaking change for unit tests of tasks that extend the SourceTask class.
 
 ### Change to default ruleset name for PMD Plugin
 
 The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. This matches the value for the default version of PMD used by Gradle (5.2.3). Gradle will still convert 'java-basic' to 'basic' when a pre-5.0 version of PMD is used, so this change will only effect builds that use PMD 4.x and add additional rulesets to the list provided by the `PmdExtension`.
+
+### File details are read eagerly when creating a `FileVisitDetails`
+
+Prior to Gradle 2.10, most implementations would delegate calls to `FileVisitDetails.getLastModified()` and `FileVisitDetails.getSize()` to the actual visited file. Gradle 2.10 introduced an optimisation where these values were read eagerly for some implementations of `FileVisitDetails` on some Java versions.
+
+In Gradle 2.11, this behaviour is consistent across all Java versions and operating systems. The values for `lastModified` and `size` are determined eagerly when visiting a File tree. This provides a more consistent, reliable API and permits Gradle to make optimizations when reading these values.
+
+### TestKit indicates compatibility for target Gradle version
+
+Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility) for an overview of known TestKit limitations.
 
 ### Software model changes
 
@@ -253,26 +261,14 @@ The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. Thi
 - The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`.
 - The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`.
 - Model properties now follow the JavaBean specification and thus are on par with Groovy. This means that:
-  - Properties are now addressable with coherent names in the DSL and by model path.
-  - Properties with getters like `getcCompiler()` are now allowed and addressable via `cCompiler`.
-  - Properties with getters like `getCFlags()` are now addressable via `cFlags` instead of the erroneous `CFlags`.
-  - Properties with getters like `getURL()` are now addressable via `URL` instead of the erroneous `uRL`.
-
-### TestKit indicates compatibility for target Gradle version
-
-Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility) for an overview of known TestKit limitations.
-
-### File details are read eagerly when creating a `FileVisitDetails`
-
-Prior to Gradle 2.10, most implementations would delegate calls to `FileVisitDetails.getLastModified()` and `FileVisitDetails.getSize()` to the actual visited file. Gradle 2.10 introduced an optimisation where these values were read eagerly for some implementations of `FileVisitDetails` on some Java versions.
-
-In Gradle 2.11, this behaviour is consistent across all Java versions and operating systems. The values for `lastModified` and `size` are determined eagerly when visiting a File tree. This provides a more consistent, reliable API and permits Gradle to make optimizations when reading these values.
-
-### ApiJar task changes
-
-- The task has been improved to accept multiple files instead of a single directory as input and as a consequence the `runtimeClassesDir` property has been removed. Inputs should be configured via the usual `task.inputs` mechanism.
-- The separate output configuration properties `destinationDir` and `archiveName` have been consolidated into the single property `outputFile`.
-- The `apiClassesDir` property was no longer necessary and has been removed.
+    - Properties are now addressable with coherent names in the DSL and by model path.
+    - Properties with getters like `getcCompiler()` are now allowed and addressable via `cCompiler`.
+    - Properties with getters like `getCFlags()` are now addressable via `cFlags` instead of the erroneous `CFlags`.
+    - Properties with getters like `getURL()` are now addressable via `URL` instead of the erroneous `uRL`.
+- ApiJar task changes:
+    - The task has been improved to accept multiple files instead of a single directory as input and as a consequence the `runtimeClassesDir` property has been removed. Inputs should be configured via the usual `task.inputs` mechanism.
+    - The separate output configuration properties `destinationDir` and `archiveName` have been consolidated into the single `outputFile` property.
+    - The `apiClassesDir` property was no longer necessary and has been removed.
 
 ## External contributions
 
