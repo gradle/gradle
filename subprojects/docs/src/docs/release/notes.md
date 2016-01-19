@@ -1,16 +1,12 @@
 The Gradle team is pleased to bring you Gradle 2.11. This release delivers significant improvements to the new [software model](userguide/software_model.html), together with a number of bug fixes and smaller improvements.
 
-The software model is the future of Gradle. Native and Play plugins already leverage it and we are working intensively on using it also for Java support.
-In this release, new Java plugins started to support testing with JUnit and became smarter in compile avoidance.
-Support for developing plugins with the new software model also got better.
+The software model is the future of Gradle. Native and Play plugins already leverage it and we are working intensively on using it also for Java support. In this release, new Java plugins started to support testing with JUnit and became smarter in compile avoidance. Support for developing plugins with the new software model also got better.
 
-Starting with this release, the [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and IntelliJ IDEA in regard to integration with Gradle.
-Gradle's own [IDEA plugin](userguide/idea_plugin.html) used to generate IntelliJ IDEA configuration files has also been improved to detect project language level in a smarter way.
+Starting with this release, the [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and IntelliJ IDEA in regard to integration with Gradle. Gradle's own [IDEA plugin](userguide/idea_plugin.html) used to generate IntelliJ IDEA configuration files has also been improved to detect project language level in a smarter way.
 
 [Continuous build](userguide/continuous_build.html) got better in this release by taking into account changes happening during build execution.
 
-A Gradle release would not be complete without contributions from the wonderful Gradle community.
-This release includes several improvements and fixes from community pull requests including support for:
+A Gradle release would not be complete without contributions from the wonderful Gradle community. This release includes several improvements and fixes from community pull requests including support for:
 
 - Controlling TestNG execution order in the [Java plugin](userguide/java_plugin.html)
 - Different test frameworks in the [Build Init plugin](userguide/build_init_plugin.html)
@@ -59,8 +55,7 @@ The `@ComponentBinaries` annotation can now be used to create binaries for any c
 
 #### Testing support
 
-In Gradle 2.10 testing was not supported yet when building Java libraries using the new software model.
-It is now possible to declare a JUnit test suite as a software component, both as a standalone component or with a component under test.
+In Gradle 2.10 testing was not supported yet when building Java libraries using the new software model. It is now possible to declare a JUnit test suite as a software component, both as a standalone component or with a component under test.
 
 Declaring a standalone test suite can be done like this:
 
@@ -161,22 +156,14 @@ The generated values for 'Language Level' are used when creating the `.ipr` and 
 
 #### Tooling API exposes language level on IDEA model
 
-The `IdeaProject` and the `IdeaModule` model now exposes the Java language level via the
-<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-IDE providers use this method to automatically determine the language level of a IDEA project and its associated Modules.
+The `IdeaProject` and the `IdeaModule` model now exposes the Java language level via the <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. IDE providers use this method to automatically determine the language level of a IDEA project and its associated Modules.
 
 #### Tooling API exposes java runtime and target bytecode level on IDE models
 
-The `IdeaProject` and the `IdeaModule` model now exposes the java sdk and the target bytecode version via the
-<a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-The target bytecode version for `IdeaModule` is derived from the
-<a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibility">`targetCompatibility`</a>
+The `IdeaProject` and the `IdeaModule` model now exposes the java sdk and the target bytecode version via the <a href="javadoc/org/gradle/tooling/model/idea/IdeaProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. The target bytecode version for `IdeaModule` is derived from the <a href="groovydoc/org/gradle/api/plugins/JavaPluginConvention.html#getTargetCompatibility">`targetCompatibility`</a>
 convention property.
 
-The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the
-<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method.
-The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a>
-property.
+The `EclipseProject` model now exposes the target java runtime and the target bytecode level via the <a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getJavaSourceSettings">`getJavaSourceSettings()`</a> method. The target bytecode level is derived from the <a href="groovydoc/org/gradle/plugins/ide/eclipse/model/EclipseJdt.html#getTargetCompatibility">`eclipse.jdt.targetCompatibility`</a> property.
 
 IDE providers use these new introduced methods to determine the target runtime and bytecode level information.
 
@@ -215,15 +202,13 @@ This feature was contributed by [Dylan Cali](https://github.com/calid).
 
 ### Support for exclude information in Ivy publishing
 
-The Ivy descriptor file generated by the ['ivy-publish'](userguide/publishing_ivy.html) plugin now includes dependency exclude information. Exclusions configured in your Gradle
-build script on project or external module dependencies will be included in the published _ivy.xml_ file.
+The Ivy descriptor file generated by the ['ivy-publish'](userguide/publishing_ivy.html) plugin now includes dependency exclude information. Exclusions configured in your Gradle build script on project or external module dependencies will be included in the published _ivy.xml_ file.
 
 This feature was contributed by [Eike Kohnert](https://github.com/andrena-eike-kohnert).
 
 ### Support for Twirl source sets to use Java default imports
 
-Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now
-specify that Java default imports should be used when compiling a Twirl source set.
+Previously, when compiling Twirl source sets, Gradle would assume that Scala default imports should be used.  A developer can now specify that Java default imports should be used when compiling a Twirl source set.
 
     model {
         components {
@@ -241,29 +226,21 @@ specify that Java default imports should be used when compiling a Twirl source s
 
 ### Excludes in published Ivy metadata
 
-Dependency exclusions are now added to the published ivy.xml when using the 'ivy-publish' plugin. This may result in dependencies being resolved by consuming projects of newly
-published modules to change. If consuming projects depend on the excluded dependencies you may have to explicitly add these dependencies to the consuming project.
+Dependency exclusions are now added to the published ivy.xml when using the 'ivy-publish' plugin. This may result in dependencies being resolved by consuming projects of newly published modules to change. If consuming projects depend on the excluded dependencies you may have to explicitly add these dependencies to the consuming project.
 
 ### Update to HttpClient 4.4.1
 
-Gradle uses the Apache HttpComponents HttpClient library internally for features like dependency resolution and publication. This library has been updated
-from version 4.2.2 to 4.4.1. As part of this upgrade, certain system properties are no longer taken into account when creating clients used for resolving and
-publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored.
+Gradle uses the Apache HttpComponents HttpClient library internally for features like dependency resolution and publication. This library has been updated from version 4.2.2 to 4.4.1. As part of this upgrade, certain system properties are no longer taken into account when creating clients used for resolving and publishing dependencies from HTTP repositories. Specifically, the 'http.keepAlive' and 'http.maxConnections' system properties are now ignored.
 
-For more information regarding changes introduced in HttpClient 4.4.1 please
-see the HttpClient [release notes](http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.4.x.txt).
+For more information regarding changes introduced in HttpClient 4.4.1 please see the HttpClient [release notes](http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.4.x.txt).
 
 ### Scala plugin no longer adds 'scalaConsole' tasks
 
-Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been
-removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you
-can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
+Adding the 'scala' plugin to your build will no longer create 'scalaConsole' tasks which launch a Scala REPL from the Gradle build. This capability has been removed due to lack of documentation and support for running with the Gradle Daemon. If you wish to continue to have such a task as part of your build, you can explicitly configure a [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) task to do so.
 
 ### Eclipse Plugin adds explicit java target runtime to Classpath
 
-The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of
-using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults and uses the `targetCompatibility` convention property to
-calculate the default java runtime name.
+The `.classpath` file generated via `eclipseClasspath` task provided by the Eclipse Plugin now points to an explicit Java Runtime Version instead of using the default JRE configured in the Eclipse IDE. The naming convention follows the Eclipse defaults and uses the `targetCompatibility` convention property to calculate the default java runtime name.
 
 To tweak the name of the Java runtime to use, the name can be configured via
 
@@ -320,17 +297,15 @@ The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. Thi
 - The `LanguageBasePlugin` no longer applies the full component model.
 - The `@LanguageType` annotation implicitly applies only the `LanguageBasePlugin`.
 - The `@BinaryType` annotation implicitly applies only the `BinaryBasePlugin`.
-- Model properties now follow the JavaBean specification and thus are on par with Groovy.
-  This means that all properties are now addressable with coherent names in the DSL and by model path.
-  Properties with getters like `getcCompiler()` are now allowed and addressable via `cCompiler`.
-  Properties with getters like `getCFlags()` are now addressable via `cFlags` instead of the erroneous `CFlags`.
-  Properties with getters like `getURL()` are now addressable via `URL` instead of the erroneous `uRL`.
+- Model properties now follow the JavaBean specification and thus are on par with Groovy. This means that:
+  - Properties are now addressable with coherent names in the DSL and by model path.
+  - Properties with getters like `getcCompiler()` are now allowed and addressable via `cCompiler`.
+  - Properties with getters like `getCFlags()` are now addressable via `cFlags` instead of the erroneous `CFlags`.
+  - Properties with getters like `getURL()` are now addressable via `URL` instead of the erroneous `uRL`.
 
 ### TestKit indicates compatibility for target Gradle version
 
-Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit
-for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility)
-for an overview of known TestKit limitations.
+Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target Gradle distribution used to executed the build. There are known, functional limitations of TestKit for particular Gradle versions. If a certain feature is not supported, TestKit throws an exception. Please check the [user guide](userguide/test_kit.html#sub:test-kit-compatibility) for an overview of known TestKit limitations.
 
 ### File details are read eagerly when creating a `FileVisitDetails`
 
