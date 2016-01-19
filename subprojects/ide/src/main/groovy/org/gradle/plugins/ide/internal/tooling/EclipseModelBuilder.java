@@ -73,6 +73,27 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
 
+    private DefaultEclipseProject buildHierarchy(Project project) {
+        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
+        for (Project child : project.getChildProjects().values()) {
+            children.add(buildHierarchy(child));
+        }
+
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+        org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
+        String name = internalProject.getName();
+        String description = GUtil.elvis(internalProject.getComment(), null);
+        DefaultEclipseProject eclipseProject =
+            new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
+                .setGradleProject(rootGradleProject.findByPath(project.getPath()));
+
+        for (DefaultEclipseProject child : children) {
+            child.setParent(eclipseProject);
+        }
+        addProject(project, eclipseProject);
+        return eclipseProject;
+    }
+
     private void addProject(Project project, DefaultEclipseProject eclipseProject) {
         if (project == currentProject) {
             result = eclipseProject;
@@ -152,26 +173,5 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
-    }
-
-    private DefaultEclipseProject buildHierarchy(Project project) {
-        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
-        for (Project child : project.getChildProjects().values()) {
-            children.add(buildHierarchy(child));
-        }
-
-        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
-        org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
-        String name = internalProject.getName();
-        String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject =
-            new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
-                .setGradleProject(rootGradleProject.findByPath(project.getPath()));
-
-        for (DefaultEclipseProject child : children) {
-            child.setParent(eclipseProject);
-        }
-        addProject(project, eclipseProject);
-        return eclipseProject;
     }
 }
