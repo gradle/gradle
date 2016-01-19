@@ -233,7 +233,7 @@ Previously, you could directly set the `archiveName`.  `version`, `appendix` and
 
 ### Change to default ruleset name for PMD Plugin
 
-The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. This matches the value for the default version of PMD used by Gradle (5.2.3). Gradle will still convert 'java-basic' to 'basic' when a pre-5.0 version of PMD is used, so this change will only effect code that depends directly on the value provided by the `PmdExtension`.
+The value for `PmdExtension` is now `["java-basic"]` instead of `["basic"]`. This matches the value for the default version of PMD used by Gradle (5.2.3). Gradle will still convert 'java-basic' to 'basic' when a pre-5.0 version of PMD is used, so this change will only effect builds that use PMD 4.x and add additional rulesets to the list provided by the `PmdExtension`.
 
 ### Software model changes
 
