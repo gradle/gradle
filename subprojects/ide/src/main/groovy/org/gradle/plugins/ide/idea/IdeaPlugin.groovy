@@ -165,8 +165,8 @@ class IdeaPlugin extends IdePlugin {
             ]
             module.conventionMapping.singleEntryLibraries = {
                 [
-                        RUNTIME: project.sourceSets.main.output.dirs,
-                        TEST: project.sourceSets.test.output.dirs
+                    RUNTIME: project.sourceSets.main.output.dirs,
+                    TEST: project.sourceSets.test.output.dirs
                 ]
             }
             dependsOn {
