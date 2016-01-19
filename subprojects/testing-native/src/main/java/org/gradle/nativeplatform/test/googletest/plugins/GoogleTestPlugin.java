@@ -27,17 +27,14 @@ import org.gradle.model.Finalize;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinariesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
-import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
@@ -48,17 +45,9 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class GoogleTestPlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public GoogleTestPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CppLangPlugin.class);
-        NativeTestSuiteBinariesRules.apply(modelRegistry, GoogleTestTestSuiteBinarySpec.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

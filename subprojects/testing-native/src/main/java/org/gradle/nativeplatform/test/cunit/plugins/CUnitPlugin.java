@@ -26,18 +26,15 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.*;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinariesRules;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.test.TestSuiteContainer;
 
-import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNativeTestSuiteBinaries;
@@ -48,17 +45,9 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class CUnitPlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public CUnitPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CLangPlugin.class);
-        NativeTestSuiteBinariesRules.apply(modelRegistry, CUnitTestSuiteBinarySpec.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

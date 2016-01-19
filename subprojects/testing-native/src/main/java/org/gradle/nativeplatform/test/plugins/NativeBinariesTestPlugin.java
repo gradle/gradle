@@ -25,12 +25,15 @@ import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
+import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 /**
@@ -62,6 +65,23 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                         testSource.lib(testedBinary.getInputs());
                     }
                     testSuiteBinary.getInputs().addAll(testedBinary.getInputs());
+                }
+            });
+        }
+
+        @Defaults
+        void configureRunTask(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
+            binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
+                @Override
+                public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
+                    BinaryNamingScheme namingScheme = testSuiteBinary.getNamingScheme();
+                    NativeTestSuiteBinarySpec.TasksCollection tasks = testSuiteBinary.getTasks();
+                    InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
+                    RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
+                    runTask.getInputs().files(installTask.getOutputs().getFiles());
+                    runTask.setExecutable(installTask.getRunScript().getPath());
+                    Project project = runTask.getProject();
+                    runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
                 }
             });
         }
