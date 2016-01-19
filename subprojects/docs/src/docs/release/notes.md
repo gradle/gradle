@@ -114,7 +114,7 @@ IDE providers use these new introduced methods to determine the target runtime a
 
 When introduced in Gradle 2.5, [continuous build](userguide/continuous_build.html) only observed changes that occurred after a build had completed. Continuous build will now trigger a rebuild when an input file is changed during build execution.
 
-Following a build, if changes were detected, Gradle will report a list of file changes and begin execution of a new build. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build. You can diagnose this sort of problem by looking at the list of files that changed and which task has those files as inputs.
+Following a build, if changes were detected, Gradle will report a list of file changes and begin execution of a new build.
 
 ### Support for controlling test execution order in TestNG
 
@@ -198,6 +198,12 @@ To tweak the name of the Java runtime to use, the name can be configured via
 In Gradle 2.10, this method returned an empty Eclipse-specific subtype of `JavaSourceSettings`: `EclipseJavaSourceSettings`. This method now returns the core base type instead.
 
 The interface `EclipseJavaSourceSettings` has been removed.
+
+### Non-stop cycle when using continuous build
+
+When started in continuous build, Gradle will begin watching changes to task inputs just before a task executes. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build.
+
+You can diagnose this sort of problem by looking at the list of files that changed at the end of the build and find the task that has those files as inputs.  Changing the logging level to [`--info`](current/userguide/logging.html#logLevelCommandLineOptions) can make it easier to identify which input files cause which tasks to become out-of-date.
 
 ### SourceTask adds injected getPatternSetFactory method
 
