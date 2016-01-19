@@ -157,7 +157,6 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
-            module.scopes = [:]
             module.scopes = [
                     PROVIDED: [plus: [], minus: []],
                     COMPILE: [plus: [], minus: []],
