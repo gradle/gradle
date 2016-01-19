@@ -32,7 +32,7 @@ On completion of this story, it will be possible to convert Buildship to use thi
 an `EclipseWorkspace` model for a composite of Gradle builds. Converting Buildship is the subject of the next story.
 
 ##### API
-
+```
     public abstract class GradleCompositeBuilder {
          public static GradleCompositeBuilder newComposite() { ... }
          protected abstract GradleCompositeBuilder withParticipant(ProjectConnection participant) { ... }
@@ -71,7 +71,7 @@ an `EclipseWorkspace` model for a composite of Gradle builds. Converting Buildsh
     ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(new File("myProject")).connect();
     GradleComposite composite = GradleCompositeBuilder.newComposite().withParticipant(connection).build();
     EclipseWorkspace eclipseWorkspace = composite.model(EclipseWorkspace.class);
-
+```
 ##### Implementation
 
 - The `CompositeBuilder` provides a means to define a composite build via the Tooling API. Each `ProjectConnection` added to the composite specifies a Gradle build that
@@ -120,12 +120,42 @@ This change will enable Buildship to later take advantage of project substitutio
 
 ##### API
 
+Most of the changes will be made in the tooling-commons layer that Buildship uses.
+
 The `ToolingClient` will be expanded to provide methods for managing and querying a composite.
 
+```
+ToolingClient {
+  //existing methods...
+
+  public abstract <T> CompositeModelRequest<T> newCompositeModelRequest(Class<T> modelType);
+}
+
+interface CompositeModelRequest {
+  List<ProjectIdentifier> getProjects();
+}
+```
+
+A new `CompositeModelRepository` will be added in order to query composites from Buildship
+
+```
+CompositeModelRepository {
+  OmniEclipseWorkspace fetchEclipseWorkspace(TransientRequestAttributes requestAttributes, FetchStrategy fetchStrategy)
+}
+
+ModelRepositoryProvider {
+  //existing methods...
+
+  CompositeModelRepository getCompositeModelRepository(FixedRequestAttributes... projects)
+}
+
+OmniEclipseWorkspace {
+  Set<OmniEclipseGradleBuild> getGradleBuilds();
+}
+```
 ##### Implementation
 
- The `ModelRepository` (the abstraction that Buildship works with) will use the new methods on the `ToolingClient`to ask for the `EclipseWorkspace` instead of asking for
- individual `EclipseProject`s. Buildship itself can remain completely unchanged as a result.
+ Buildship will query for an `OmniEclipseWorkspace` containing exactly one root project instead of querying for that root project directly. The rest of the synchronization logic can remain unchanged.
 
 ##### Test cases
 
