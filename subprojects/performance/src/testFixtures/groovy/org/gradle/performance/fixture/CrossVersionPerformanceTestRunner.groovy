@@ -53,7 +53,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     CrossVersionPerformanceResults run() {
         if (testId == null) {
-            throw new IllegalStateException("Test id has not been provided")
+            throw new IllegalStateException("Test id has not been specified")
+        }
+        if (testProject == null) {
+            throw new IllegalStateException("Test project has not been specified")
+        }
+        if (targetVersions == null) {
+            throw new IllegalStateException("Target versions have not been specified")
         }
 
         def results = new CrossVersionPerformanceResults(

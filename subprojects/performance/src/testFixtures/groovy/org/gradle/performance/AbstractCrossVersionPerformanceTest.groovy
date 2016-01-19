@@ -39,7 +39,6 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     def setup() {
         runner.current = new UnderDevelopmentGradleDistribution()
-        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
         runner.maxExecutionTimeRegression = Duration.millis(500)
         runner.maxMemoryRegression = DataAmount.mbytes(25)
     }
