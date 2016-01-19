@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -54,19 +53,20 @@ class Project extends XmlPersistableConfigurationObject {
 
     private final PathFactory pathFactory
     private List<IdeaModule> modules
+    private JavaVersion bytecodeVersion
 
     Project(XmlTransformer xmlTransformer, pathFactory) {
         super(xmlTransformer)
         this.pathFactory = pathFactory
     }
 
-    void configure(List<IdeaModule> modules, String jdkName, IdeaLanguageLevel languageLevel,
+    void configure(List<IdeaModule> modules, String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
                    Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
         if (jdkName) {
             jdk = new Jdk(jdkName, languageLevel)
         }
 
-
+        this.bytecodeVersion = bytecodeVersion
         def modulePaths = modules.collect { pathFactory.relativePath('PROJECT_DIR', it.outputFile) }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
@@ -119,7 +119,7 @@ class Project extends XmlPersistableConfigurationObject {
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
 
-        configureBytecodeLevel()
+        configureBytecodeLevels()
 
         if (vcs) {
             findVcsDirectoryMappings().@vcs = vcs
@@ -128,21 +128,16 @@ class Project extends XmlPersistableConfigurationObject {
         storeProjectLibraries()
     }
 
-    private void configureBytecodeLevel() {
-        def moduleBytecodeLevels = modules.findAll { it.project.plugins.hasPlugin(JavaBasePlugin) }
-        def groupedModuleBytecodeLevels = moduleBytecodeLevels.groupBy { it.project.targetCompatibility }
-        if (groupedModuleBytecodeLevels.size() == 1 && !groupedModuleBytecodeLevels.containsKey(JavaVersion.toVersion(jdk.projectJdkName))) {
-            findBytecodeLevelConfiguration().@'target' = groupedModuleBytecodeLevels.iterator().next().key
-        } else if (groupedModuleBytecodeLevels.size() > 1) {
-            def bytecodeTargetLevelNode = findBytecodeLevelConfiguration()
-            groupedModuleBytecodeLevels.each { JavaVersion moduleTargetCompatibility, modules ->
-                if (!JavaVersion.toVersion(jdk.projectJdkName).equals(moduleTargetCompatibility)) {
-                    for (IdeaModule module : modules) {
-                        def moduleNode = bytecodeTargetLevelNode.appendNode('module')
-                        moduleNode.@'name' = module.name
-                        moduleNode.@'target' = moduleTargetCompatibility.toString()
-                    }
-                }
+    private void configureBytecodeLevels() {
+        if (bytecodeVersion != JavaVersion.toVersion(jdk.projectJdkName)) {
+            findBytecodeLevelConfiguration().@'target' = bytecodeVersion.toString()
+        }
+        for (IdeaModule module : modules) {
+            def moduleBytecodeVersionOverwrite = module.getTargetBytecodeVersion()
+            if (moduleBytecodeVersionOverwrite != null) {
+                def moduleNode = findBytecodeLevelConfiguration().appendNode('module')
+                moduleNode.@'name' = module.name
+                moduleNode.@'target' = moduleBytecodeVersionOverwrite.toString()
             }
         }
     }

@@ -194,6 +194,7 @@ idea {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
 
         then:
+        println file("root.ipr").text
         assert ipr.bytecodeTargetLevel.size() == 0
     }
 

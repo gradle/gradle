@@ -232,7 +232,7 @@ class IdeaProject {
 
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)
-        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getWildcards(), getProjectLibraries(), getVcs())
+        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs())
         ipr.whenMerged.execute(xmlProject)
     }
 }
