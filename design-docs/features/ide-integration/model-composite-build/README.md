@@ -215,6 +215,8 @@ The project synchronization methods will be changed to take an additional `Eclip
 - adding two projects to the workspace -> both are part of the composite afterwards
 - removing a project from the workspace -> no longer contained in the composite
 - refreshing/adding/removing a project -> all other projects are refreshed as well
+- all other Buildship tests must still pass, as this story should not change the user facing behavior
+- the model for one project cannot be built -> no project is synchronized
 
 ### Story - `EclipseWorkspace` model for a composite does not include duplicate eclipse project names
 
@@ -290,7 +292,7 @@ if the model of the project registered a publication.
 
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
 
-This story provides and API that will allow the IDEA developers to define and model a build composite for multiple imported Gradle builds. The provided feature will be the exact
+This story provides an API that will allow the IDEA developers to define and model a build composite for multiple imported Gradle builds. The provided feature will be the exact
 analogue of the `EclipseWorkspace` model provided for Buildship.
 
 ##### API
@@ -318,6 +320,8 @@ swapping the names of two projects (A->B, B->A). This might be solved by assigni
 - renaming a project in Gradle (e.g. in `settings.gradle`) -> the project is renamed in Eclipse
 - trying to rename a project that is physically contained in the workspace location -> inform the user that this is not possible.
 - swapping the names of two projects in Gradle -> the corresponding Eclipse projects swap names
+- importing an existing project which already has a .project file and a different name than the one assigned by the de-duper ->
+the projects name is changed to match the one assigned by the deduper
 
 ## Open issues
 
