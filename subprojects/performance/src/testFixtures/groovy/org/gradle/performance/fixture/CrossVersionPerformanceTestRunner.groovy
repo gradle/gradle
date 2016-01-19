@@ -80,7 +80,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def releasedVersions = releasedDistributions.all*.version.version
         def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.findAll { it != 'last' }.unique()
+        def allVersions = targetVersions.findAll { it != 'last' } as LinkedHashSet
 
         // Always include the most recent final release
         allVersions.add(mostRecentFinalRelease)

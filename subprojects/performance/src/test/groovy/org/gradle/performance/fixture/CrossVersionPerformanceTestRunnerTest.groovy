@@ -94,6 +94,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         then:
         results.baselineVersions*.version == ['1.0', mostRecentRelease]
+
+        and:
+        3 * experimentRunner.run(_, _)
     }
 
     @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
@@ -107,6 +110,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         then:
         results.baselineVersions*.version == ['1.0', mostRecentRelease]
+
+        and:
+        3 * experimentRunner.run(_, _)
     }
 
     def runner() {
