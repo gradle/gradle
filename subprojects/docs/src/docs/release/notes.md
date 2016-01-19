@@ -319,6 +319,12 @@ In Gradle 2.11, this behaviour is consistent across all Java versions and operat
 - `Specs.and()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.intersect()` instead.
 - `Specs.not()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.negate()` instead.
 
+### ApiJar task changes
+
+- The task has been improved to accept multiple files instead of a single directory as input and as a consequence the `runtimeClassesDir` property has been removed. Inputs should be configured via the usual `task.inputs` mechanism.
+- The separate output configuration properties `destinationDir` and `archiveName` have been consolidated into the single property `outputFile`.
+- The `apiClassesDir` property was no longer necessary and has been removed.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
