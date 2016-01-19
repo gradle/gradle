@@ -1,17 +1,17 @@
-The Gradle team is pleased to bring you Gradle 2.11. This release delivers significant improvements to the new [software model](userguide/software_model.html), together with a number of bug fixes and smaller improvements.
+The Gradle team is pleased to bring you Gradle 2.11. This release delivers significant improvements to the new [software model](userguide/software_model.html), together with improvements to IDE integration and continuous build.
 
-The software model is the future of Gradle. Native and Play plugins already leverage it and we are working intensively on using it also for Java support. In this release, new Java plugins started to support testing with JUnit and became smarter in compile avoidance. Support for developing plugins with the new software model also got better.
+The software model is the future of Gradle. Support for native languages and Play Framework already build on top of the core software model, and we are working intensively to bring full Java support. With this release, the new Java plugins support testing with JUnit and became smarter in compile avoidance. While developing our Java support we continue to invest in the software model infrastructure, meaning that support for developing plugins with the new software model also got better.
 
-Starting with this release, the [Tooling API](userguide/embedding.html) exposes more information that enables further improvements in Eclipse and IntelliJ IDEA in regard to integration with Gradle. Gradle's own [IDEA plugin](userguide/idea_plugin.html) used to generate IntelliJ IDEA configuration files has also been improved to detect project language level in a smarter way.
+Existing Java projects will also benefit from this release. Improved IDE integration means that developing a Gradle project in IntelliJ IDEA or Eclipse is even better, with fewer tweaks to the IDE configuration required. These improvements encompass both the generated project files and the [Tooling API](userguide/embedding.html) used by IDEs to import Gradle projects.
 
-[Continuous build](userguide/continuous_build.html) got better in this release by taking into account changes happening during build execution.
+By detecting changes that occur during build execution, [Continuous build](userguide/continuous_build.html) has become more dependable. We encourage users to try out this cool feature, which enhances the development experience in Gradle.
 
-A Gradle release would not be complete without contributions from the wonderful Gradle community. This release includes several improvements and fixes from community pull requests including support for:
+No Gradle release would be complete without contributions from the wonderful Gradle community. This release includes several improvements and fixes from community, including support for:
 
-- Controlling TestNG execution order in the [Java plugin](userguide/java_plugin.html)
-- Different test frameworks in the [Build Init plugin](userguide/build_init_plugin.html)
-- Configuring Twirl source sets to use Java default imports in the [Play plugin](userguide/play_plugin.html)
-- Exclude information in [Ivy publishing](userguide/publishing_ivy.html)
+- Controlling TestNG execution order with the [Java plugin](userguide/java_plugin.html)
+- Specifying different test frameworks for a generated Java project using the [Build Init plugin](userguide/build_init_plugin.html)
+- Specifying the Java default imports for a Twirl source set when developing with the [Play plugin](userguide/play_plugin.html)
+- Publishing 'exclude' information to Ivy files using [ivy-publish](userguide/publishing_ivy.html)
 
 ## New and noteworthy
 
