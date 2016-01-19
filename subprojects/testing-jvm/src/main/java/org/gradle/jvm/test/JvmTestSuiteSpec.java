@@ -32,5 +32,6 @@ public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
      */
     DependencySpecContainer getDependencies();
 
+    @Override
     JvmComponentSpec getTestedComponent();
 }
