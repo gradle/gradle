@@ -18,7 +18,7 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppPlugin
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestConventionPlugin
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

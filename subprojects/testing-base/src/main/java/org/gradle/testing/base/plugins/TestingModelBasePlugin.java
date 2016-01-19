@@ -27,16 +27,16 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.test.TestSuiteBinarySpec;
-import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.testing.base.TestSuiteBinarySpec;
+import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteSpec;
 import org.gradle.testing.base.TestSuiteTaskCollection;
 import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 
 /**
  * Base plugin for testing.
  *
- * - Adds a {@link org.gradle.platform.base.test.TestSuiteContainer} named {@code testSuites} to the model.
+ * - Adds a {@link org.gradle.testing.base.TestSuiteContainer} named {@code testSuites} to the model.
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
 @Incubating

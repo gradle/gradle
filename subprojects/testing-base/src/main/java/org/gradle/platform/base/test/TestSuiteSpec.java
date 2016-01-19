@@ -21,12 +21,18 @@ import org.gradle.platform.base.ComponentSpec;
 
 /**
  * A component representing a suite of tests that will be executed together.
+ * @deprecated Use {@link org.gradle.testing.base.TestSuiteSpec instead.}
  */
 @Incubating
-public interface TestSuiteSpec extends ComponentSpec {
+@Deprecated
+public interface TestSuiteSpec extends org.gradle.testing.base.TestSuiteSpec {
+
+    // DO NOT remove the methods below or you will break binary compatibility!
+
     /**
      * The tested component.
      */
+    @Override
     ComponentSpec getTestedComponent();
 
     /**
@@ -34,5 +40,6 @@ public interface TestSuiteSpec extends ComponentSpec {
      * setter just because of DSL.
      * @param testedComponent the component under test
      */
+    @Override
     void testing(ComponentSpec testedComponent);
 }

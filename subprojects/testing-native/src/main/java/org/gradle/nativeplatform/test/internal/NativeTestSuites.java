@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;

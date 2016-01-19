@@ -33,7 +33,7 @@ import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 

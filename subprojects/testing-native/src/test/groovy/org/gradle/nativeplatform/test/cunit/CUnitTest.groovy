@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.test.cunit
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

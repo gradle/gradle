@@ -18,7 +18,7 @@ package org.gradle.testing.base.internal;
 
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.testing.base.TestSuiteSpec;
 
 public class BaseTestSuiteSpec extends BaseComponentSpec implements TestSuiteSpec {
     private ComponentSpec testedComponent;

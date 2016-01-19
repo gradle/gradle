@@ -17,11 +17,12 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.model.ModelMap;
 
 /**
  * A container of {@link TestSuiteSpec} instances.
+ * @deprecated Use {@link org.gradle.testing.base.TestSuiteContainer} instead.
  */
 @Incubating
-public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
+@Deprecated
+public interface TestSuiteContainer extends org.gradle.testing.base.TestSuiteContainer {
 }

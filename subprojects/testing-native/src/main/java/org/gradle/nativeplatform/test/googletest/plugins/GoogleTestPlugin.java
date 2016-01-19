@@ -33,7 +33,7 @@ import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestS
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 

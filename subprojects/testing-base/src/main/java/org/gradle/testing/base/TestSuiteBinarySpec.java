@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.test;
+
+package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.jvm.JvmComponentSpec;
-import org.gradle.platform.base.DependencySpecContainer;
-import org.gradle.testing.base.TestSuiteSpec;
+import org.gradle.platform.base.BinarySpec;
 
 /**
- * Base type for all JVM test suites.
- *
- * @since 2.11
+ * A binary which runs a suite of tests.
  */
 @Incubating
-public interface JvmTestSuiteSpec extends TestSuiteSpec, JvmComponentSpec {
-    /**
-     * The set of dependencies applicable to the entire test suite.
-     */
-    DependencySpecContainer getDependencies();
+public interface TestSuiteBinarySpec extends BinarySpec {
 
-    JvmComponentSpec getTestedComponent();
+    /**
+     * Returns the test suite that this binary belongs to.
+     */
+    TestSuiteSpec getTestSuite();
+
 }

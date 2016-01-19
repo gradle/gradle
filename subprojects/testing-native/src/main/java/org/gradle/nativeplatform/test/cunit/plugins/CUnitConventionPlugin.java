@@ -25,7 +25,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuites;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 /**
  * A plugin that applies the {@link CUnitPlugin} and adds conventions on top of it.

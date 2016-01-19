@@ -34,8 +34,8 @@ package org.gradle.testing.base.plugins
 
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.platform.base.test.TestSuiteContainer
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.testing.base.TestSuiteContainer
+import org.gradle.testing.base.TestSuiteSpec
 
 class TestingModelBasePluginTest extends PlatformBaseSpecification {
     TestSuiteContainer realizeTestSuites() {

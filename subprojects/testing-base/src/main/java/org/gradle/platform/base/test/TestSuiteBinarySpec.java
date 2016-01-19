@@ -17,16 +17,19 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.BinarySpec;
 
 /**
  * A binary which runs a suite of tests.
+ * @deprecated Use {@link org.gradle.testing.base.TestSuiteBinarySpec} instead.
  */
 @Incubating
-public interface TestSuiteBinarySpec extends BinarySpec {
+@Deprecated
+public interface TestSuiteBinarySpec extends org.gradle.testing.base.TestSuiteBinarySpec {
+
     /**
      * Returns the test suite that this binary belongs to.
      */
+    // DO NOT REMOVE this method or you will break binary compatibility
     TestSuiteSpec getTestSuite();
 
 }

@@ -21,7 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.NativeInstallationSpec;
-import org.gradle.platform.base.test.TestSuiteBinarySpec;
+import org.gradle.testing.base.TestSuiteBinarySpec;
 import org.gradle.testing.base.TestSuiteTaskCollection;
 
 import java.io.File;
