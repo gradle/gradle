@@ -176,6 +176,19 @@ With this change, the native software model and Java software model use the same
 
 ## Fixed issues
 
+## Deprecations
+
+Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
+in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
+
+### API Classes
+
+- `Specs.or()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.union()` instead.
+- `Specs.and()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.intersect()` instead.
+- `Specs.not()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.negate()` instead.
+
 ## Potential breaking changes
 
 ### Excludes in published Ivy metadata
@@ -254,12 +267,6 @@ Gradle 2.9 exposes methods through the `GradleRunner` API for providing a target
 Prior to Gradle 2.10, most implementations would delegate calls to `FileVisitDetails.getLastModified()` and `FileVisitDetails.getSize()` to the actual visited file. Gradle 2.10 introduced an optimisation where these values were read eagerly for some implementations of `FileVisitDetails` on some Java versions.
 
 In Gradle 2.11, this behaviour is consistent across all Java versions and operating systems. The values for `lastModified` and `size` are determined eagerly when visiting a File tree. This provides a more consistent, reliable API and permits Gradle to make optimizations when reading these values.
-
-### API Classes
-
-- `Specs.or()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.union()` instead.
-- `Specs.and()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.intersect()` instead.
-- `Specs.not()` has been deprecated and will be removed in Gradle 3.0. You should use `Specs.negate()` instead.
 
 ### ApiJar task changes
 
