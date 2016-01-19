@@ -16,26 +16,27 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
-import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([JavaPerformanceTest])
+@Category([Experiment, JavaPerformanceTest])
 class JavaSoftwareModelConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("Project '#testProject' measuring configuration time")
-    def "configure java software model project"() {
+    @Unroll("configure software model project - #testProject")
+    def "configure software model project"() {
         given:
         runner.testId = "configure new java project $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['2.8', 'last']
+        runner.targetVersions = ['2.8', '2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = DataAmount.mbytes(150)
+        runner.maxMemoryRegression = mbytes(150)
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -48,6 +49,23 @@ class JavaSoftwareModelConfigurationPerformanceTest extends AbstractCrossVersion
         testProject               | maxExecutionTimeRegression
         "largeJavaSwModelProject" | millis(500)
         "bigNewJava"              | millis(500)
-        // TODO: these 2 template projects should be merged
+    }
+
+    def "configure java project"() {
+        given:
+        runner.testId = "configure java project bigOldJava"
+        runner.testProject = 'bigOldJava'
+        runner.tasksToRun = ['help']
+        runner.targetVersions = ['2.0', '2.4', '2.8', '2.10', '2.11', 'last']
+        runner.useDaemon = true
+        runner.maxExecutionTimeRegression = millis(500)
+        runner.maxMemoryRegression = mbytes(150)
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
     }
 }
