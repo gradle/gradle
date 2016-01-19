@@ -280,6 +280,42 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
+    def "tests can be renamed over time"() {
+        given:
+        def writeStore = new CrossVersionResultsStore(dbFile)
+
+        def results1 = crossVersionResults(testId: "previous 1")
+        results1.current << operation()
+        def results2 = crossVersionResults(testId: "previous 2")
+        results2.current << operation()
+        def results3 = crossVersionResults(testId: "current")
+        results3.previousTestIds = ["previous 1", "previous with none"]
+        results3.current << operation()
+
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        when:
+        def readStore = new CrossVersionResultsStore(dbFile)
+
+        then:
+        readStore.testNames == ["current", "previous 2"]
+
+        and:
+        def results = readStore.getTestResults("current")
+        results.results.size() == 2
+
+        and:
+        readStore.getTestResults("previous 1").results.empty
+        readStore.getTestResults("previous 2").results.size() == 1
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
     def "returns empty results for unknown id"() {
         given:
         def store = new CrossVersionResultsStore(dbFile)

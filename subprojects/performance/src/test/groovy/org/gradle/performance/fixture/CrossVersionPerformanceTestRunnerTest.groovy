@@ -38,6 +38,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         given:
         def runner = runner()
         runner.testId = 'some-test'
+        runner.previousTestIds = ['prev 1']
         runner.testProject = 'test1'
         runner.targetVersions = ['1.0', '1.1']
         runner.tasksToRun = ['clean', 'build']
@@ -54,6 +55,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         then:
         results.testId == 'some-test'
+        results.previousTestIds == ['prev 1']
         results.testProject == 'test1'
         results.tasks == ['clean', 'build']
         results.args == ['--arg1', '--arg2']

@@ -99,6 +99,16 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     } finally {
                         statement.close();
                     }
+                    for (String previousId : results.getPreviousTestIds()) {
+                        statement = connection.prepareStatement("update testExecution set testId = ? where testId = ?");
+                        try {
+                            statement.setString(1, results.getTestId());
+                            statement.setString(2, previousId);
+                            statement.execute();
+                        } finally {
+                            statement.close();
+                        }
+                    }
                     return null;
                 }
             });
@@ -271,6 +281,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 statement.execute("update testOperation set configurationTime = 0");
                 statement.execute("alter table testOperation alter column configurationTime set not null");
             }
+            statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
             statement.close();
             return null;
         }

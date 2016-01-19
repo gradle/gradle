@@ -28,6 +28,7 @@ abstract class ResultSpecification extends Specification {
     CrossVersionPerformanceResults crossVersionResults(Map<String, ?> options = [:]) {
         def results = new CrossVersionPerformanceResults()
         results.testId = "test-id"
+        results.previousTestIds = []
         results.testProject = "test-project"
         results.tasks = ["clean", "build"]
         results.args = []
