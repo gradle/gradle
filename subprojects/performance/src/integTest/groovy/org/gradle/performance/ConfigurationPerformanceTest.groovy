@@ -17,12 +17,13 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BasicPerformanceTest)
+@Category([Experiment, BasicPerformanceTest])
 class ConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' configuration")
     def "configuration"() {
@@ -44,6 +45,6 @@ class ConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "small"           | millis(1200)
         "multi"           | millis(1200)
         "lotDependencies" | millis(1000)
-        "manyProjects"    | millis(1500)
+        "bigNewJava"      | millis(1000)
     }
 }

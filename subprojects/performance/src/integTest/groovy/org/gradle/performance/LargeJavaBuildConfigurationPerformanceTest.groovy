@@ -27,8 +27,8 @@ import static org.gradle.performance.measure.Duration.millis
 @Category([Experiment, JavaPerformanceTest])
 class LargeJavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("configure software model project - #testProject")
-    def "configure software model project"() {
+    @Unroll("configure Java software model build - #testProject")
+    def "configure Java software model build"() {
         given:
         runner.testId = "configure new java project $testProject"
         runner.testProject = testProject
@@ -36,7 +36,7 @@ class LargeJavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPer
         runner.targetVersions = ['2.8', '2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = mbytes(150)
+        runner.maxMemoryRegression = mbytes(25)
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -49,17 +49,20 @@ class LargeJavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPer
         testProject               | maxExecutionTimeRegression
         "largeJavaSwModelProject" | millis(500)
         "bigNewJava"              | millis(500)
+        "mediumNewJava"           | millis(500)
+        "smallNewJava"            | millis(500)
     }
 
-    def "configure java project"() {
+    @Unroll("configure Java build - #testProject")
+    def "configure Java build"() {
         given:
-        runner.testId = "configure java project bigOldJava"
-        runner.testProject = 'bigOldJava'
+        runner.testId = "configure java project $testProject"
+        runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ['2.0', '2.4', '2.8', '2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.maxExecutionTimeRegression = millis(500)
-        runner.maxMemoryRegression = mbytes(150)
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(25)
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -67,5 +70,11 @@ class LargeJavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPer
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject     | maxExecutionTimeRegression
+        "bigOldJava"    | millis(500)
+        "mediumOldJava" | millis(500)
+        "smallOldJava"  | millis(500)
     }
 }
