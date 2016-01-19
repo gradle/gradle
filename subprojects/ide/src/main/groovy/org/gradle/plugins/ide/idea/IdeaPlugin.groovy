@@ -33,11 +33,15 @@ import javax.inject.Inject
  */
 class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator
-    IdeaModel model
+    private IdeaModel ideaModel
 
     @Inject
     IdeaPlugin(Instantiator instantiator) {
         this.instantiator = instantiator
+    }
+
+    public IdeaModel getModel() {
+        ideaModel
     }
 
     @Override protected String getLifecycleTaskName() {
@@ -48,7 +52,7 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        model = project.extensions.create("idea", IdeaModel)
+        ideaModel = project.extensions.create("idea", IdeaModel)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
@@ -74,7 +78,7 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) {
                 workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(xmlTransformer))
-                model.workspace = workspace
+                ideaModel.workspace = workspace
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
             addWorker(task, false)
@@ -87,7 +91,7 @@ class IdeaPlugin extends IdePlugin {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
                 ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
 
-                model.project = ideaProject
+                ideaModel.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
@@ -122,7 +126,7 @@ class IdeaPlugin extends IdePlugin {
             def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
             module = instantiator.newInstance(IdeaModule, project, iml)
 
-            model.module = module
+            ideaModel.module = module
 
             module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
             module.conventionMapping.name = { project.name }
