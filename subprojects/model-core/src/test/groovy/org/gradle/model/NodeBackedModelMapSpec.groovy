@@ -1208,6 +1208,38 @@ This element was created by testrule > create(item) and can be mutated as the fo
         registry.get("beans.sb1", SpecialBean).other == "other"
     }
 
+
+    def "can have map of List<String>"() {
+        def elementType = ModelTypes.list(ModelType.of(String))
+        def mmType = ModelTypes.modelMap(elementType)
+
+        registry.register("items") { builder ->
+            builder.withProjection(ModelMapModelProjection.managed(elementType, ChildNodeInitializerStrategyAccessors.fromPrivateData()))
+            builder.action(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(ModelReference.of("items"), new SimpleModelRuleDescriptor("add initializer"),
+                ModelReference.of(NodeInitializerRegistry.class),
+                new BiAction<MutableModelNode, NodeInitializerRegistry>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
+                        ChildNodeInitializerStrategy childStrategy = NodeBackedModelMap.createUsingRegistry(elementType, nodeInitializerRegistry);
+                        modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
+                    }
+                }
+            ))
+            builder.build()
+        }
+        .mutate {
+            it.path("items").type(mmType).action { map ->
+                map.create("elem")
+            }
+        }
+
+        when:
+        def items = registry.realize("items", mmType)
+
+        then:
+        items.keySet() as List == ["elem"]
+    }
+
     def mockDeferredModelAction() {
         def action = Mock(DeferredModelAction)
         def descriptor = new SimpleModelRuleDescriptor("action")

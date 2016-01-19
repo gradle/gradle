@@ -431,6 +431,10 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Override
     public <S> ModelMap<S> withType(Class<S> typeClass) {
         ModelType<S> type = ModelType.of(typeClass);
+        return withType(type);
+    }
+
+    public <S> ModelMap<S> withType(ModelType<S> type) {
         if (type.equals(elementType)) {
             return uncheckedCast(this);
         }

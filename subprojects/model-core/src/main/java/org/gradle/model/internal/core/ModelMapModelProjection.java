@@ -123,12 +123,12 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
         ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(targetType, sourceDescriptor, mutable, canReadChildren);
-        ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
+        NodeBackedModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
 
         return InstanceModelView.of(
             node.getPath(),
             ModelTypes.modelMap(itemType),
-            builder.withType(itemType.getConcreteClass()),
+            builder.withType(itemType),
             state.closer()
         );
     }
