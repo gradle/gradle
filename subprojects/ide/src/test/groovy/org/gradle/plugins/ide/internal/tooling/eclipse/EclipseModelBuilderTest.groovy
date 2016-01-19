@@ -137,13 +137,13 @@ class EclipseModelBuilderTest extends Specification {
         eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        type     | compatibilityProperty | languageLevelProperty | projectType | pluginType
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "java"      | JavaBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeLevel" | "java"      | JavaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "scala"     | ScalaBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeLevel" | "scala"     | ScalaBasePlugin
-        "source" | "sourceCompatibility" | "sourceLanguageLevel" | "groovy"    | GroovyBasePlugin
-        "target" | "targetCompatibility" | "targetBytecodeLevel" | "groovy"    | GroovyBasePlugin
+        type     | compatibilityProperty | languageLevelProperty   | projectType | pluginType
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "java"      | JavaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "java"      | JavaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "scala"     | ScalaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "scala"     | ScalaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "groovy"    | GroovyBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "groovy"    | GroovyBasePlugin
     }
 
     def "default language levels are set for JVM projects if compatibility is set to null"() {
@@ -158,7 +158,7 @@ class EclipseModelBuilderTest extends Specification {
 
         then:
         eclipseModel.javaSourceSettings.sourceLanguageLevel == org.gradle.api.JavaVersion.current()
-        eclipseModel.javaSourceSettings.targetBytecodeLevel == org.gradle.api.JavaVersion.current()
+        eclipseModel.javaSourceSettings.targetBytecodeVersion == org.gradle.api.JavaVersion.current()
 
         where:
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
@@ -180,7 +180,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetBytecodeLevel"
+        "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
     @Unroll
@@ -201,7 +201,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetBytecodeLevel"
+        "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
     @Unroll
@@ -226,7 +226,7 @@ class EclipseModelBuilderTest extends Specification {
         where:
         type     | compatibilityProperty | languageLevelProperty
         "source" | "sourceCompatibility" | "sourceLanguageLevel"
-        "target" | "targetCompatibility" | "targetBytecodeLevel"
+        "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
     private def createEclipseModelBuilder() {

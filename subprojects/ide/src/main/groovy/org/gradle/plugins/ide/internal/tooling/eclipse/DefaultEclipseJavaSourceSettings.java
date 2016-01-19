@@ -17,27 +17,27 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 
 import java.io.Serializable;
 
 public class DefaultEclipseJavaSourceSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;
-    private JavaVersion targetBytecodeLevel;
-    private DefaultJavaInstallation targetRuntime;
+    private JavaVersion targetBytecodeVersion;
+    private DefaultInstalledJdk jdk;
 
     public DefaultEclipseJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
         return this;
     }
 
-    public DefaultEclipseJavaSourceSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
-        this.targetBytecodeLevel = targetBytecodeLevel;
+    public DefaultEclipseJavaSourceSettings setTargetBytecodeVersion(JavaVersion targetBytecodeLevel) {
+        this.targetBytecodeVersion = targetBytecodeLevel;
         return this;
     }
 
-    public DefaultEclipseJavaSourceSettings setTargetRuntime(DefaultJavaInstallation targetRuntime) {
-        this.targetRuntime = targetRuntime;
+    public DefaultEclipseJavaSourceSettings setJdk(DefaultInstalledJdk targetRuntime) {
+        this.jdk = targetRuntime;
         return this;
     }
 
@@ -45,11 +45,11 @@ public class DefaultEclipseJavaSourceSettings implements Serializable {
         return sourceLanguageLevel;
     }
 
-    public JavaVersion getTargetBytecodeLevel() {
-        return targetBytecodeLevel;
+    public JavaVersion getTargetBytecodeVersion() {
+        return targetBytecodeVersion;
     }
 
-    public DefaultJavaInstallation getTargetRuntime() {
-        return targetRuntime;
+    public DefaultInstalledJdk getJdk() {
+        return jdk;
     }
 }
