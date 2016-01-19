@@ -46,6 +46,26 @@ class JavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPerforma
         "small"           | millis(1200)
         "multi"           | millis(1200)
         "lotDependencies" | millis(1000)
+    }
+
+    @Unroll("configure Java build - #testProject")
+    def "configure large Java build"() {
+        given:
+        runner.testId = "configure Java build $testProject"
+        runner.previousTestIds = ["configuration $testProject"]
+        runner.testProject = testProject
+        runner.tasksToRun = ['help']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.0', '2.2.1', '2.4', '2.8', 'last']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject       | maxExecutionTimeRegression
         "bigOldJava"      | millis(1000)
     }
 }
