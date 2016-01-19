@@ -22,10 +22,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
-import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
-import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
-import org.gradle.jvm.test.internal.JUnitTestSuiteRules;
-import org.gradle.jvm.test.internal.JvmTestSuiteRules;
+import org.gradle.jvm.test.internal.*;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
@@ -56,7 +53,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(TestingModelBasePlugin.class);
         project.getPluginManager().apply(JvmComponentPlugin.class);
-        project.getPluginManager().apply(JvmTestSuiteRules.class);
+        project.getPluginManager().apply(JvmTestSuiteBasePlugin.class);
         JUnitTestSuiteRules.apply(modelRegistry);
     }
 
@@ -71,6 +68,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         @BinaryType
         public void registerJUnitBinary(BinaryTypeBuilder<JUnitTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
+            builder.internalView(JvmTestSuiteBinarySpecInternal.class);
         }
 
         @ComponentBinaries

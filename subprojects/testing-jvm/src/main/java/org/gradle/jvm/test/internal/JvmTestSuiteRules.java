@@ -18,13 +18,8 @@ package org.gradle.jvm.test.internal;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
@@ -36,18 +31,15 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.*;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -57,9 +49,9 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class JvmTestSuiteRules extends RuleSource {
 
-    public static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
-                                               final JvmAssembly jvmAssembly,
-                                               final File buildDir) {
+    private static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
+                                                final JvmAssembly jvmAssembly,
+                                                final File buildDir) {
         binary.getTasks().create(testTaskNameFor(binary), Test.class, new Action<Test>() {
             @Override
             public void execute(final Test test) {
@@ -99,9 +91,8 @@ public class JvmTestSuiteRules extends RuleSource {
     }
 
     /**
-     * Create binaries for test suites.
-     * TODO: This should really be a @ComponentBinaries rule, but at this point we have no clue what the concrete binary type is,
-     * so everything has to be duplicated in specific plugins. See usages for example.
+     * Create binaries for test suites. TODO: This should really be a @ComponentBinaries rule, but at this point we have no clue what the concrete binary type is, so everything has to be duplicated in
+     * specific plugins. See usages for example.
      */
     public static void createJvmTestSuiteBinaries(ModelMap<BinarySpec> testBinaries,
                                                   ServiceRegistry registry,
@@ -144,7 +135,6 @@ public class JvmTestSuiteRules extends RuleSource {
                 testBinary.setToolChain(toolChains.getForPlatform(platform));
                 testBinary.setTestedBinary(testedBinary);
                 addTestSuiteDependencies(testBinary);
-                injectDependencyResolutionServices(testBinary);
                 configureCompileClasspath(testBinary);
             }
 
@@ -152,15 +142,6 @@ public class JvmTestSuiteRules extends RuleSource {
                 return testBinary.getDependencies().addAll(testSuite.getDependencies().getDependencies());
             }
 
-            private void injectDependencyResolutionServices(JvmTestSuiteBinarySpecInternal testBinary) {
-                ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
-                RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
-                List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-                testBinary.setArtifactDependencyResolver(dependencyResolver);
-                testBinary.setRepositories(resolutionAwareRepositories);
-                ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
-                testBinary.setVariantsMetaData(DefaultVariantsMetaData.extractFrom(testBinary, schema));
-            }
 
             private void configureCompileClasspath(JvmTestSuiteBinarySpecInternal testSuiteBinary) {
                 if (testedBinary != null) {

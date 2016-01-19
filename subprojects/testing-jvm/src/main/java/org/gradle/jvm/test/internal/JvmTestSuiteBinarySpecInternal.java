@@ -15,18 +15,12 @@
  */
 package org.gradle.jvm.test.internal;
 
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.jvm.internal.JvmBinarySpecInternal;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-
-import java.util.List;
 
 public interface JvmTestSuiteBinarySpecInternal extends JvmTestSuiteBinarySpec, JvmBinarySpecInternal {
     void setTestedBinary(JvmBinarySpec testedBinary);
-    void setVariantsMetaData(VariantsMetaData variantsMetaData);
-    void setArtifactDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver);
-    void setRepositories(List<ResolutionAwareRepository> repositories);
+    void setRuntimeClasspath(DependencyResolvingClasspath runtimeClasspath);
 }
