@@ -16,6 +16,7 @@
 
 package org.gradle.model
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
@@ -100,5 +101,27 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validate"
+    }
+
+
+    def "can create a ModelMap of List<String>"() {
+        buildFile << """
+            class Rules extends RuleSource {
+                @Model void things(ModelMap<List<String>> things) { }
+            }
+            apply plugin: Rules
+
+            model {
+                things { it.create("elem") }
+            }
+        """
+
+        expect:
+        succeeds "model"
+        ModelReportOutput.from(output).hasNodeStructure {
+            things {
+                elem(type: 'java.util.List<java.lang.String>', creator: 'things { ... } @ build.gradle line 8, column 17 > create(elem)')
+            }
+        }
     }
 }
