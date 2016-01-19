@@ -193,12 +193,6 @@ To tweak the name of the Java runtime to use, the name can be configured via
         }
     }
 
-### Changed return type for `EclipseProject.getJavaSourceSettings()`
-
-In Gradle 2.10, this method returned an empty Eclipse-specific subtype of `JavaSourceSettings`: `EclipseJavaSourceSettings`. This method now returns the core base type instead.
-
-The interface `EclipseJavaSourceSettings` has been removed.
-
 ### Non-stop cycle when using continuous build
 
 When started in continuous build, Gradle will begin watching changes to task inputs just before a task executes. If a task modifies its own inputs, this can lead to a build cycle where each build triggers another build.
