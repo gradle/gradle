@@ -10,7 +10,18 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
+### IDE integration improvements
+
+
+#### Idea Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
+
+The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA.
+Previous versions of Gradle did not consider any `targetCompatibility` settings for java projects.
+This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest targetCompatibility value for all imported subprojects.
+For a multi-project Gradle build that contains a mix of targetCompatibility values, the generated IDEA module for a sub-project will include an override for the appropriate 'module bytecode version' where it does not match that of the overall generated IDEA project.
+
+
+#### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
 
 Beginning with IntelliJ IDEA version 14 Scala projects are no longer configured using a project facet and instead use a
 [Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be
