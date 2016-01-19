@@ -26,7 +26,7 @@ class IdeaProjectFixture {
     }
 
     String getLanguageLevel() {
-        if(ipr.component.@languageLevel.size() != 0){
+        if (ipr.component.@languageLevel.size() != 0) {
             return ipr.component.@languageLevel
         }
         return null
@@ -38,4 +38,10 @@ class IdeaProjectFixture {
         }
         return null
     }
+
+    def getBytecodeTargetLevel() {
+        def compilerConfig = ipr.component.find { it.@name == "CompilerConfiguration" }
+        return compilerConfig.bytecodeTargetLevel
+    }
+
 }

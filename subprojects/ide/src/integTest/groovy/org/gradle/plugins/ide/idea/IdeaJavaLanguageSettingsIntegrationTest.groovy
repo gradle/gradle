@@ -164,6 +164,124 @@ subprojects {
         iml('child3').languageLevel == "JDK_1_7"
     }
 
+
+    def "no explicit bytecodeLevel for same java versions"() {
+        given:
+        settingsFile << """
+rootProject.name = "root"
+include 'subprojectA'
+include 'subprojectB'
+include 'subprojectC'
+"""
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.6'
+}
+
+idea {
+    project {
+        jdkName = "1.6"
+    }
+}
+
+"""
+
+        when:
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        then:
+        assert ipr.bytecodeTargetLevel.size() == 0
+    }
+
+    def "explicit project target level when module version differs from project java sdk"() {
+        given:
+        settingsFile << """
+rootProject.name = "root"
+include 'subprojectA'
+include 'subprojectB'
+include 'subprojectC'
+"""
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.7'
+}
+
+idea {
+    project {
+        jdkName = "1.8"
+    }
+}
+"""
+
+        when:
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        then:
+        assert ipr.bytecodeTargetLevel.size() == 1
+        assert ipr.bytecodeTargetLevel.@target == "1.7"
+    }
+
+    def "can have module specific bytecode version"() {
+        given:
+        settingsFile << """
+rootProject.name = "root"
+include 'subprojectA'
+include 'subprojectB'
+include 'subprojectC'
+include 'subprojectD'
+"""
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+configure(project(':subprojectA')) {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.6'
+}
+
+configure(project(':subprojectB')) {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.7'
+}
+
+configure(project(':subprojectC')) {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    targetCompatibility = '1.8'
+}
+
+configure(project(':subprojectD')) {
+    apply plugin: 'idea'
+}
+
+apply plugin:'idea'
+idea {
+    project {
+        jdkName = "1.8"
+    }
+}
+
+"""
+
+        when:
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        then:
+        assert ipr.bytecodeTargetLevel.size() == 1
+        assert ipr.bytecodeTargetLevel.module.size() == 2
+        assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.6"
+        assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
+    }
+
     def getIpr() {
         return parseIpr("root.ipr")
     }
