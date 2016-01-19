@@ -34,11 +34,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -115,11 +111,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' %s", binary.getDisplayName(), descriptor), notFound);
         }
     }
-
-    protected static VariantsMetaData variantsMetaDataFrom(BinarySpec binary, ModelSchema<?> binarySchema) {
-        return DefaultVariantsMetaData.extractFrom(binary, binarySchema);
-    }
-
+    
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
