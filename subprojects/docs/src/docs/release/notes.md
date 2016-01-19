@@ -12,10 +12,10 @@ Gradle's own [IDEA plugin](userguide/idea_plugin.html) used to generate IntelliJ
 A Gradle release would not be complete without contributions from the wonderful Gradle community.
 This release includes several improvements and fixes from community pull requests including support for:
 
-* Controlling TestNG execution order in the [Java plugin](userguide/java_plugin.html)
-* Different test frameworks in the [Build Init plugin](userguide/build_init_plugin.html)
-* Configuring Twirl source sets to use Java default imports in the [Play plugin](userguide/play_plugin.html)
-* Exclude information in [Ivy publishing](userguide/publishing_ivy.html)
+- Controlling TestNG execution order in the [Java plugin](userguide/java_plugin.html)
+- Different test frameworks in the [Build Init plugin](userguide/build_init_plugin.html)
+- Configuring Twirl source sets to use Java default imports in the [Play plugin](userguide/play_plugin.html)
+- Exclude information in [Ivy publishing](userguide/publishing_ivy.html)
 
 ## New and noteworthy
 
@@ -93,9 +93,9 @@ Then the suite can be executed running the `:mySuiteTest` task. More information
 
 This version of Gradle further optimizes on avoiding recompiling consuming libraries after non-ABI breaking changes. Since 2.9, if a library declares an API, Gradle creates a "[stubbed API jar](userguide/java_software.html)". This enables avoiding recompiling any consuming library if the application binary interface (ABI) of the library doesn't change. This version of Gradle extends this functionality to libraries that don't declare their APIs, speeding up builds with incremental changes in most Java projects, small or large. In particular, a library `A` that depend on a library `B` will not need to be recompiled in the following cases:
 
-* a private method is added to `B`
-* a method body is changed in `B`
-* order of methods is changed in `B`
+- a private method is added to `B`
+- a method body is changed in `B`
+- order of methods is changed in `B`
 
 This feature only works for local libraries, not external dependencies. More information about compile avoidance can be found in the [userguide](userguide/java_software.html).
 
@@ -348,20 +348,20 @@ In Gradle 2.11, this behaviour is consistent across all Java versions and operat
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Dylan Cali](https://github.com/calid) - Add support for Spock and TestNG frameworks for Java projects in [Build Init plugin](userguide/build_init_plugin.html)
-* [Niklas Baudy](https://github.com/vanniktech) - PMD plugin code cleanup
-* [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
-* [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
-* [Eike Kohnert](https://github.com/andrena-eike-kohnert) - Support for publishing dependency exclusions in Ivy descriptors
-* [Johnny Lim](https://github.com/izeye) - Documentation improvements
-* [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
-* [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
-* [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
-* [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
-* [Martin Steiger](https://github.com/msteiger) - Eclipse and IDEA tasks warn on unresolvable dependencies
-* [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
-* [Chris Purcell](https://github.com/cjp39) - Documentation improvements
-* [Ryan Niehaus](https://github.com/ryanniehaus) - InstallExecutable task uses target platform operating system
+- [Dylan Cali](https://github.com/calid) - Add support for Spock and TestNG frameworks for Java projects in [Build Init plugin](userguide/build_init_plugin.html)
+- [Niklas Baudy](https://github.com/vanniktech) - PMD plugin code cleanup
+- [Richard Bergoin](https://github.com/kenji21) - Test coverage for NTLM support
+- [Illya Gerasymchuk](https://github.com/iluxonchik) - Fix typos in Windows batch scripts
+- [Eike Kohnert](https://github.com/andrena-eike-kohnert) - Support for publishing dependency exclusions in Ivy descriptors
+- [Johnny Lim](https://github.com/izeye) - Documentation improvements
+- [Christopher O'Connell](https://github.com/lordoku) - Remove 'scalaConsole' task
+- [Tobias Riemenschneider](https://github.com/riemenschneider) - Add support for TestNG's preserveOrder and groupByInstances options
+- [Jochen Schalanda](https://github.com/joschi) - Support for configuring Twirl source sets to use Java default imports
+- [Sebastian Schuberth](https://github.com/sschuberth) - Simplify LoggingCommandLineConverter
+- [Martin Steiger](https://github.com/msteiger) - Eclipse and IDEA tasks warn on unresolvable dependencies
+- [Günther Grill](https://github.com/guenhter) - Internal service registry improvements
+- [Chris Purcell](https://github.com/cjp39) - Documentation improvements
+- [Ryan Niehaus](https://github.com/ryanniehaus) - InstallExecutable task uses target platform operating system
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
