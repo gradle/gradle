@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
@@ -200,8 +199,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaHome
     }
 
     def "module java sdk overwrite always null"() {
@@ -220,8 +219,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaLanguageSettings.jdk.javaVersion == Jvm.current().javaVersion
-        ideaProject.javaLanguageSettings.jdk.javaHome == Jvm.current().javaHome
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaHome
 
         ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.jdk == null
         ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.jdk == null

@@ -19,16 +19,23 @@ package org.gradle.model.internal.manage.schema.extract
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.beans.Introspector
+
 class PropertyAccessorTypeTest extends Specification {
     @Unroll
-    def "method names #getGetterName, #isGetterName and #setterName extract to property name '#propertyName'"() {
+    def "method names #getGetterName, #isGetterName and #setterName extract to property name '#propertyName' following the JavaBeans spec"() {
         expect:
         PropertyAccessorType.isGetGetterName(getGetterName)
         PropertyAccessorType.GET_GETTER.propertyNameFor(getGetterName) == propertyName
+        Introspector.decapitalize(getGetterName.substring(3)) == propertyName
+
         PropertyAccessorType.isIsGetterName(isGetterName)
         PropertyAccessorType.IS_GETTER.propertyNameFor(isGetterName) == propertyName
+        Introspector.decapitalize(isGetterName.substring(2)) == propertyName
+
         PropertyAccessorType.isSetterName(setterName)
         PropertyAccessorType.SETTER.propertyNameFor(setterName) == propertyName
+        Introspector.decapitalize(setterName.substring(3)) == propertyName
 
         where:
         getGetterName    | isGetterName    | setterName       | propertyName
