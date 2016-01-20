@@ -26,7 +26,7 @@ import static org.gradle.performance.measure.Duration.millis
 @Category([Experiment, BasicPerformanceTest])
 class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("configure Java build - #testProject")
-    def "configure"() {
+    def "configure Java build"() {
         given:
         runner.testId = "configure Java build $testProject"
         runner.previousTestIds = ["configuration $testProject"]

@@ -16,16 +16,17 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.Experiment
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BasicPerformanceTest)
+@Category([Experiment, JavaPerformanceTest])
 class JavaCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' clean build")
-    def "clean build"() {
+    @Unroll("clean build Java build - #testProject")
+    def "clean build Java build"() {
         given:
         runner.testId = "clean build $testProject"
         runner.testProject = testProject

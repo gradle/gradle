@@ -35,7 +35,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.9', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
@@ -54,30 +54,6 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 4
     }
 
-    @Unroll("Project '#testProject' measuring clean build when no API is declared")
-    def "clean build java software model project without API"() {
-        given:
-        runner.testId = "clean build java project $testProject which doesn't declare any API"
-        runner.testProject = testProject
-        runner.tasksToRun = ['clean', 'assemble']
-        runner.maxExecutionTimeRegression = maxTimeRegression
-        runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', '2.10', 'last']
-        runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
-    }
-
     @Unroll("Project '#testProject' measuring incremental build when no API is declared")
     def "incremental build java software model project without API"() {
         given:
@@ -88,7 +64,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
         runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)
 
         when:
@@ -113,7 +89,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
         def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
         runner.buildExperimentListener = updater
 
