@@ -556,8 +556,8 @@ by plugins. The solution will also fix [GRADLE-1715](https://issues.gradle.org/b
 have to be published instead.
 * The fat Tooling API JAR will not become part of the Gradle distribution. It will only be published.
 * The fat TestKit JAR will be part of the Gradle distribution under `lib/plugins`.
-* At runtime `gradleApi()` will reference the fat Gradle API JAR.
-* At runtime `gradleTestKit()` uses the fat JAR of the Tooling API as dependency.
+* At runtime `gradleApi()` will reference the fat Gradle API JAR in the distribution.
+* At runtime `gradleTestKit()` will reference the Tooling API JAR as module dependency from the distribution.
 * JARs of Gradle API, the Tooling API and TestKit will need to have the same version.
 
 ### Test Coverage
