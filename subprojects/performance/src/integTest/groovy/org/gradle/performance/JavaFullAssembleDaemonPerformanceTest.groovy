@@ -48,7 +48,7 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2500)      | mbytes(50)
         "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
     }
 

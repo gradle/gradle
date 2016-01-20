@@ -50,7 +50,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         testProject               | maxTimeRegression | maxMemoryRegression | parallelWorkers
         "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 0
         "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 4
-        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 0
+        "largeJavaSwModelProject" | millis(1500)      | mbytes(50)          | 0
         "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 4
     }
 
