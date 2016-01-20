@@ -50,13 +50,18 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
         "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2500)      | mbytes(50)
         "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
+        "bigNewJava"                                 | millis(1000)      | mbytes(50)
+        "mediumNewJava"                              | millis(1000)      | mbytes(50)
+        "smallNewJava"                               | millis(800)       | mbytes(5)
     }
 
     @Unroll("full assemble Java build - #testProject")
     def "full assemble Java build"() {
         given:
         runner.testId = "full assemble Java build $testProject (daemon)"
-        runner.previousTestIds = ["big project old java plugin full build"]
+        if (testProject == "bigOldJavaMoreSource") {
+            runner.previousTestIds = ["big project old java plugin full build"]
+        }
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ["clean", "assemble"]
@@ -74,5 +79,8 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject            | maxExecutionTimeRegression
         "bigOldJavaMoreSource" | millis(1000)
+        "bigOldJava"           | millis(1000)
+        "mediumOldJava"        | millis(1000)
+        "smallOldJava"         | millis(1000)
     }
 }
