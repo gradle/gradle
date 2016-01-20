@@ -146,6 +146,6 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "model"
-        failureHasCause "Attempt to read property 'UnknownThing' from a write only view of model element 'things' given to rule 'things { ... } @ build.gradle line 11, column 17things { ... } @ build.gradle line 11, column 17'"
+        failureHasCause "Attempt to read property 'UnknownThing' from a write only view of model element 'things' given to rule 'things { ... } @ build.gradle line 11, column 17"
     }
 }

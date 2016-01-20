@@ -50,7 +50,6 @@ public class WriteOnlyModelViewException extends GradleException {
         }
         result.append(" given to rule '");
         ruleDescriptor.describeTo(result);
-        result.append(ruleDescriptor);
         result.append("'");
         return result.toString();
     }
