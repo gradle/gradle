@@ -19,11 +19,10 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -65,9 +64,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         JavaVersion projectSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
         JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
 
-        final Jvm currentJvm = Jvm.current();
-        final DefaultJavaInstallation installedJdk = new DefaultJavaInstallation(currentJvm.getJavaHome(), currentJvm.getJavaVersion());
-
         DefaultIdeaProject out = new DefaultIdeaProject()
             .setName(projectModel.getName())
             .setJdkName(projectModel.getJdkName())
@@ -75,7 +71,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
                 .setSourceLanguageLevel(projectSourceLanguageLevel)
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
-                .setJdk(installedJdk));
+                .setJdk(DefaultInstalledJdk.current()));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {

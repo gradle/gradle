@@ -144,7 +144,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
             testCount++
             tests << 'testExternalDependency'
         };
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest')
         result.assertTestClassesExecuted('MyTest')
         def check = result.testClass('MyTest')
             .assertTestCount(testCount, 0, 0)
@@ -191,7 +191,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
             testCount++
             tests.testExternalDependency = 'org.junit.ComparisonFailure: expected:<[Hello World]> but was:<[oh noes!]>'
         };
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest')
         result.assertTestClassesExecuted('MyTest')
         def check = result.testClass('MyTest')
             .assertTestCount(testCount, testCount, 0)
@@ -270,7 +270,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest' // only
 
         and:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest')
         result.assertTestClassesExecuted('MyTest')
         result.testClass('MyTest')
             .assertTestCount(1, 1, 0)

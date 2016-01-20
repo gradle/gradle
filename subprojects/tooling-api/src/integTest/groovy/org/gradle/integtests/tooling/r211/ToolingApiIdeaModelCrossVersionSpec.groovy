@@ -195,12 +195,20 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can query java sdk for idea project"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+
+description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
+"""
         when:
         def ideaProject = loadIdeaProjectModel()
+        def gradleProject = ideaProject.modules.find({ it.name == 'root' }).gradleProject
 
         then:
+        ideaProject.javaLanguageSettings.jdk != null
         ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
-        ideaProject.javaLanguageSettings.jdk.javaHome
+        ideaProject.javaLanguageSettings.jdk.javaHome.toString() == gradleProject.description
     }
 
     def "module java sdk overwrite always null"() {

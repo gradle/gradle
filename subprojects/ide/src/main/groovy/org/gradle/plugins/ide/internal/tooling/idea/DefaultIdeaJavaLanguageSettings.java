@@ -17,14 +17,14 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 
 import java.io.Serializable;
 
 public class DefaultIdeaJavaLanguageSettings implements Serializable {
     private JavaVersion languageLevel;
     private JavaVersion targetBytecodeVersion;
-    private DefaultJavaInstallation jdk;
+    private DefaultInstalledJdk jdk;
 
     public DefaultIdeaJavaLanguageSettings setSourceLanguageLevel(JavaVersion languageLevel) {
         this.languageLevel = languageLevel;
@@ -36,7 +36,7 @@ public class DefaultIdeaJavaLanguageSettings implements Serializable {
         return this;
     }
 
-    public DefaultIdeaJavaLanguageSettings setJdk(DefaultJavaInstallation jdk) {
+    public DefaultIdeaJavaLanguageSettings setJdk(DefaultInstalledJdk jdk) {
         this.jdk = jdk;
         return this;
     }
@@ -49,7 +49,7 @@ public class DefaultIdeaJavaLanguageSettings implements Serializable {
         return targetBytecodeVersion;
     }
 
-    public DefaultJavaInstallation getJdk() {
+    public DefaultInstalledJdk getJdk() {
         return jdk;
     }
 }

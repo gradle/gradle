@@ -19,12 +19,10 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaInstallation;
-import org.gradle.plugins.ide.internal.tooling.java.DefaultJavaSourceSettings;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
@@ -162,11 +160,10 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setBuildCommands(buildCommands);
         EclipseJdt jdt = eclipseModel.getJdt();
         if (jdt != null) {
-            final Jvm currentJvm = Jvm.current();
-            eclipseProject.setJavaSourceSettings(new DefaultJavaSourceSettings()
+            eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings()
                 .setSourceLanguageLevel(jdt.getSourceCompatibility())
-                .setTargetBytecodeLevel(jdt.getTargetCompatibility())
-                .setTargetRuntime(new DefaultJavaInstallation(currentJvm.getJavaHome(), currentJvm.getJavaVersion()))
+                .setTargetBytecodeVersion(jdt.getTargetCompatibility())
+                .setJdk(DefaultInstalledJdk.current())
             );
         }
 

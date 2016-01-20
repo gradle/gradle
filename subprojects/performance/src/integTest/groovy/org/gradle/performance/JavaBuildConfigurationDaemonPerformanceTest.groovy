@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -23,13 +24,14 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([JavaPerformanceTest])
+@Category([Experiment, JavaPerformanceTest])
 class JavaBuildConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("configure Java software model build - #testProject")
     def "configure Java software model build"() {
         given:
-        runner.testId = "configure new java project $testProject"
+        runner.testId = "configure Java build $testProject (daemon)"
+        runner.previousTestIds = ["configure new java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ['2.8', '2.10', '2.11', 'last']
@@ -55,7 +57,8 @@ class JavaBuildConfigurationDaemonPerformanceTest extends AbstractCrossVersionPe
     @Unroll("configure Java build - #testProject")
     def "configure Java build"() {
         given:
-        runner.testId = "configure java project $testProject"
+        runner.testId = "configure Java build $testProject (daemon)"
+        runner.previousTestIds = ["configure java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ['2.0', '2.4', '2.8', '2.10', '2.11', 'last']

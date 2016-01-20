@@ -19,7 +19,7 @@ package org.gradle.tooling.model.eclipse;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
-import org.gradle.tooling.model.java.JavaRuntime;
+import org.gradle.tooling.model.java.InstalledJdk;
 
 /**
  * Describes Eclipse Java source settings for compiling and running some Java source code.
@@ -38,18 +38,18 @@ public interface EclipseJavaSourceSettings {
     /**
      * Returns the target bytecode level.
      *
-     * @return The target bytecode language level. Never returns {@code null}.
+     * @return The target bytecode language version. Never returns {@code null}.
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
-    JavaVersion getTargetBytecodeLevel() throws UnsupportedMethodException;
+    JavaVersion getTargetBytecodeVersion() throws UnsupportedMethodException;
 
     /**
-     * Returns the target Java runtime.
+     * Returns the JDK used for building.
      *
-     * @return The target Java runtime. Never returns {@code null}.
-     * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
+     * @return The JDK, or {@code null} if this value should be inherited.
+     * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
-    JavaRuntime getTargetRuntime() throws UnsupportedMethodException;
+    InstalledJdk getJdk() throws UnsupportedMethodException;
 }

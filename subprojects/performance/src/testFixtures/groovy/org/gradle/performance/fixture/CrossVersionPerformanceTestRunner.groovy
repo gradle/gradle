@@ -39,6 +39,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> tasksToRun = []
     List<String> args = []
     List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+    List<String> previousTestIds = []
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -58,16 +59,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (testProject == null) {
             throw new IllegalStateException("Test project has not been specified")
         }
-        if (targetVersions == null) {
+        if (!targetVersions) {
             throw new IllegalStateException("Target versions have not been specified")
         }
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
+            previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
             testProject: testProject,
-            tasks: tasksToRun,
-            args: args,
-            gradleOpts: gradleOpts,
+            tasks: tasksToRun.collect { it.toString() },
+            args: args.collect { it.toString() },
+            gradleOpts: gradleOpts.collect { it.toString() },
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),

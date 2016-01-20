@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling.java;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 
 import java.io.Serializable;
 
-public class DefaultJavaSourceSettings implements Serializable {
+public class DefaultEclipseJavaSourceSettings implements Serializable {
     private JavaVersion sourceLanguageLevel;
-    private JavaVersion targetBytecodeLevel;
-    private DefaultJavaInstallation targetRuntime;
+    private JavaVersion targetBytecodeVersion;
+    private DefaultInstalledJdk jdk;
 
-    public DefaultJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
+    public DefaultEclipseJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
         return this;
     }
 
-    public DefaultJavaSourceSettings setTargetBytecodeLevel(JavaVersion targetBytecodeLevel) {
-        this.targetBytecodeLevel = targetBytecodeLevel;
+    public DefaultEclipseJavaSourceSettings setTargetBytecodeVersion(JavaVersion targetBytecodeLevel) {
+        this.targetBytecodeVersion = targetBytecodeLevel;
         return this;
     }
 
-    public DefaultJavaSourceSettings setTargetRuntime(DefaultJavaInstallation targetRuntime) {
-        this.targetRuntime = targetRuntime;
+    public DefaultEclipseJavaSourceSettings setJdk(DefaultInstalledJdk targetRuntime) {
+        this.jdk = targetRuntime;
         return this;
     }
 
@@ -44,11 +45,11 @@ public class DefaultJavaSourceSettings implements Serializable {
         return sourceLanguageLevel;
     }
 
-    public JavaVersion getTargetBytecodeLevel() {
-        return targetBytecodeLevel;
+    public JavaVersion getTargetBytecodeVersion() {
+        return targetBytecodeVersion;
     }
 
-    public DefaultJavaInstallation getTargetRuntime() {
-        return targetRuntime;
+    public DefaultInstalledJdk getJdk() {
+        return jdk;
     }
 }
