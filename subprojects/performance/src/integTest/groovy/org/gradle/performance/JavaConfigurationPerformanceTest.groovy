@@ -17,13 +17,12 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
-import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, BasicPerformanceTest])
+@Category([BasicPerformanceTest])
 class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("configure Java build - #testProject")
     def "configure Java build"() {
