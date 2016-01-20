@@ -111,6 +111,7 @@ class StartParameterTest extends Specification {
         !parameter.rerunTasks
         !parameter.recompileScripts
         !parameter.refreshDependencies
+        !parameter.relaxedTaskNames
 
         assertThat(parameter, isSerializable())
     }

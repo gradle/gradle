@@ -16,6 +16,7 @@
 
 package org.gradle.execution
 
+import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -133,6 +134,50 @@ class TaskSelectorTest extends Specification {
         and:
         !filter.isSatisfiedBy(excluded)
         filter.isSatisfiedBy(notExcluded)
+    }
+
+    def "getSelection with exact name"() {
+        def taskA = task(rootProject, "taskA")
+        def taskASelectionResult = Stub(TaskSelectionResult) {
+            collectTasks(_) >> { it[0] << taskA }
+        }
+        when:
+        resolver.selectAll(_, _) >> ["taskA": taskASelectionResult, "otherTask": Stub(TaskSelectionResult)]
+        def selection = selector.getSelection("taskA")
+
+        then:
+
+        selection.getTasks().first() == taskA
+    }
+
+    def "getSelection with typo"() {
+        def taskA = task(rootProject, "taskA")
+        def taskASelectionResult = Stub(TaskSelectionResult) {
+            collectTasks(_) >> { it[0] << taskA }
+        }
+        when:
+        resolver.selectAll(_, _) >> ["taskA": taskASelectionResult, "otherTask": Stub(TaskSelectionResult)]
+        selector.getSelection("taksA")
+
+        then:
+        thrown(TaskSelectionException)
+    }
+
+    def "getSelection with typo and relaxedNames turned on"() {
+        def taskA = task(rootProject, "taskA")
+        def taskASelectionResult = Stub(TaskSelectionResult) {
+            collectTasks(_) >> { it[0] << taskA }
+        }
+        when:
+        resolver.selectAll(_, _) >> ["taskA": taskASelectionResult, "otherTask": Stub(TaskSelectionResult)]
+        gradle.getStartParameter() >> Stub(StartParameter) {
+            isRelaxedTaskNames() >> true
+        }
+        def selection = selector.getSelection("taksA")
+
+        then:
+
+        selection.getTasks().first() == taskA
     }
 
     def task(ProjectInternal project, String name) {

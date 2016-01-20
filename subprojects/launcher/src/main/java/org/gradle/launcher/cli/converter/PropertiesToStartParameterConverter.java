@@ -32,6 +32,11 @@ public class PropertiesToStartParameterConverter {
             startParameter.setParallelProjectExecutionEnabled(true);
         }
 
+        String relaxed = properties.get(GradleProperties.RELAXED_TASK_NAMES_PROPERTY);
+        if (isTrue(relaxed)) {
+            startParameter.setRelaxedTaskNames(true);
+        }
+
         String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
         if (workers != null) {
             try {

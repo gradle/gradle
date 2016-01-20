@@ -78,23 +78,29 @@ public class TaskSelector {
     private TaskSelection getSelection(String path, ProjectInternal project) {
         ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
         ProjectInternal targetProject = taskPath.getProject();
+        String targetProjectPath = targetProject.getPath();
         if (taskPath.isQualified()) {
             configurer.configure(targetProject);
         } else {
             configurer.configureHierarchy(targetProject);
         }
 
-        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), !taskPath.isQualified());
+        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), targetProject, !taskPath.isQualified());
         if (tasks != null) {
             // An exact match
-            return new TaskSelection(taskPath.getProject().getPath(), path, tasks);
+            return new TaskSelection(targetProjectPath, path, tasks);
         }
 
-        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(taskPath.getProject(), !taskPath.isQualified());
+        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject, !taskPath.isQualified());
         NameMatcher matcher = new NameMatcher();
         String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
         if (actualName != null) {
-            return new TaskSelection(taskPath.getProject().getPath(), taskPath.getPrefix() + actualName, tasksByName.get(actualName));
+            return new TaskSelection(targetProjectPath, taskPath.getPrefix() + actualName, tasksByName.get(actualName));
+        }
+
+        if (gradle.getStartParameter().isRelaxedTaskNames() && matcher.getCandidates().size() == 1) {
+            actualName = matcher.getCandidates().iterator().next();
+            return new TaskSelection(targetProjectPath, taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));

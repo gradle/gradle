@@ -53,6 +53,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
 
+    private static final String RELAXED_TASK_NAMES = "relaxed-task-names";
+    private static final String RELAXED_TASK_NAMES_SHORT_FLAG = "r";
+
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
@@ -88,6 +91,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
+        parser.option(RELAXED_TASK_NAMES, RELAXED_TASK_NAMES_SHORT_FLAG).hasDescription("Relaxes task name matching. Tasks are found even if command line has a typo.").incubating();
         parser.allowOneOf(MAX_WORKERS, PARALLEL_THREADS);
     }
 
@@ -199,6 +203,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CONTINUOUS)) {
             startParameter.setContinuous(true);
+        }
+
+        if (options.hasOption(RELAXED_TASK_NAMES)) {
+            startParameter.setRelaxedTaskNames(true);
         }
 
         return startParameter;
