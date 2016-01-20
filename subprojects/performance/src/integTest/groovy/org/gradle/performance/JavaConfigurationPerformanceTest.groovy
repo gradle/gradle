@@ -55,7 +55,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.targetVersions = ['2.0', '2.4', '2.8', '2.11', 'last']
 
         when:
         def result = runner.run()

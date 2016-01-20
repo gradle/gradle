@@ -60,7 +60,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.previousTestIds = ["configure java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['2.0', '2.4', '2.8', '2.10', '2.11', 'last']
+        runner.targetVersions = ['2.0', '2.4', '2.8', '2.11', 'last']
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(25)
