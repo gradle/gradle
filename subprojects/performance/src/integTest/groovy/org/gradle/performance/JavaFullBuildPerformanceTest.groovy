@@ -28,7 +28,8 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("full build Java build - #testProject")
     def "full build Java build"() {
         given:
-        runner.testId = "clean build $testProject"
+        runner.testId = "full build Java build $testProject"
+        runner.previousTestIds = ["clean build $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

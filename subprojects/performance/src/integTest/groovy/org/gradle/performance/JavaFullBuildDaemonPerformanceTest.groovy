@@ -30,7 +30,8 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
     @Unroll("full build Java build - #testProject")
     def "full build Java build"() {
         given:
-        runner.testId = "daemon clean build $testProject"
+        runner.testId = "full build Java build $testProject (daemon)"
+        runner.previousTestIds = ["daemon clean build $testProject"]
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']

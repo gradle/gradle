@@ -27,14 +27,15 @@ import static org.gradle.performance.measure.Duration.millis
 @Category([Experiment, JavaPerformanceTest])
 class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("#scenario build")
-    def "build"() {
+    @Unroll("partial assemble Java build - #testProject")
+    def "partial assemble"() {
         given:
-        runner.testId = "big project old java plugin $scenario build"
-        runner.testProject = "bigOldJavaMoreSource"
+        runner.testId = "partial assemble Java build $testProject (daemon)"
+        runner.previousTestIds = ["big project old java plugin partial build"]
+        runner.testProject = testProject
         runner.useDaemon = true
-        runner.tasksToRun = tasks
-        runner.maxExecutionTimeRegression = millis(1000) // std dev for these tests ~1 s
+        runner.tasksToRun = [":project1:clean", ":project1:assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
@@ -46,7 +47,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        scenario  | tasks
-        "partial" | [":project1:clean", ":project1:assemble"]
+        testProject            | maxExecutionTimeRegression
+        "bigOldJavaMoreSource" | millis(1000)
     }
 }

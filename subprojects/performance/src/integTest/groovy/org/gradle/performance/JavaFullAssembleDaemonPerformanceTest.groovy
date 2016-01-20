@@ -29,7 +29,8 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
     @Unroll("full assemble Java software model build - #testProject")
     def "full assemble Java software model build"() {
         given:
-        runner.testId = "clean build java project $testProject which doesn't declare any API"
+        runner.testId = "full assemble Java build $testProject (daemon)"
+        runner.previousTestIds = ["clean build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
@@ -51,14 +52,15 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
     }
 
-    @Unroll("#scenario build")
-    def "build"() {
+    @Unroll("full assemble Java build - #testProject")
+    def "full assemble Java build"() {
         given:
-        runner.testId = "big project old java plugin $scenario build"
-        runner.testProject = "bigOldJavaMoreSource"
+        runner.testId = "full assemble Java build $testProject (daemon)"
+        runner.previousTestIds = ["big project old java plugin full build"]
+        runner.testProject = testProject
         runner.useDaemon = true
-        runner.tasksToRun = tasks
-        runner.maxExecutionTimeRegression = millis(1000) // std dev for these tests ~1 s
+        runner.tasksToRun = ["clean", "assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
@@ -70,7 +72,7 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        scenario  | tasks
-        "full"    | ["clean", "assemble"]
+        testProject            | maxExecutionTimeRegression
+        "bigOldJavaMoreSource" | millis(1000)
     }
 }
