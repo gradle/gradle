@@ -221,8 +221,12 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     @Override
     public boolean containsKey(Object name) {
-        viewState.assertCanReadChildren();
-        return name instanceof String && modelNode.hasLink((String) name, elementFilter);
+        if (!(name instanceof String)) {
+            viewState.assertCanReadChildren();
+            return false;
+        }
+        viewState.assertCanReadChild((String) name);
+        return modelNode.hasLink((String) name, elementFilter);
     }
 
     @Override
@@ -324,7 +328,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Nullable
     @Override
     public T get(String name) {
-        viewState.assertCanReadChildren();
+        viewState.assertCanReadChild(name);
 
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);

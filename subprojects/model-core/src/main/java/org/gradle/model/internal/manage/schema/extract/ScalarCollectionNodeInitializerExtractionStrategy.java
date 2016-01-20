@@ -111,7 +111,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         @Override
         public ModelView<List<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<List<T>> listType = ModelTypes.list(elementType);
-            DefaultModelViewState state = new DefaultModelViewState(listType, ruleDescriptor, writable, !writable);
+            DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), listType, ruleDescriptor, writable, !writable);
             ListBackedCollection<T> list = new ListBackedCollection<T>(modelNode, state, elementType);
             return InstanceModelView.of(modelNode.getPath(), listType, list, state.closer());
         }
@@ -145,7 +145,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         @Override
         public ModelView<Set<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<Set<T>> setType = ModelTypes.set(elementType);
-            DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
+            DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), setType, ruleDescriptor, writable, !writable);
             SetBackedCollection<T> set = new SetBackedCollection<T>(modelNode, state, elementType);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }

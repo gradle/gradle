@@ -72,7 +72,7 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
-        DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
+        DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), publicType, ruleDescriptor, mutable, true);
         String description = publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
         P instance = DirectInstantiator.instantiate(viewImpl, description, elementType, ruleDescriptor, modelNode, state, creatorStrategy);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());

@@ -22,6 +22,8 @@ public interface ModelViewState {
 
     void assertCanReadChildren();
 
+    void assertCanReadChild(String name);
+
     boolean isCanMutate();
 
     boolean isCanReadChildren();
