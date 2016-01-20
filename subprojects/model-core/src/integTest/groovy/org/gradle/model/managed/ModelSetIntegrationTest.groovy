@@ -456,7 +456,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#people'")
     }
 
     def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
@@ -489,7 +489,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#readPeople'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#readPeople'")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
