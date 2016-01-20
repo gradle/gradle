@@ -20,41 +20,34 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InitScriptExecuterFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
 
 
-class ForkScalaCompileInDaemonModeFixture extends InitScriptExecuterFixture {
-    ForkScalaCompileInDaemonModeFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+class ZincScalaCompileFixture extends InitScriptExecuterFixture {
+    ZincScalaCompileFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
     @Override
     String initScriptContent() {
         return """
-allprojects {
-    tasks.withType(ScalaCompile) {
-        scalaCompileOptions.fork = true
-        scalaCompileOptions.useAnt = false
-        if(!JavaVersion.current().isJava8Compatible()) {
-            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-        }
-    }
-    tasks.withType(ScalaDoc) {
-        doFirst {
-            throw new GradleException("Can't execute scaladoc while testing with the daemon due to permgen exhaustion")
-        }
-    }
-}
-"""
+            allprojects {
+                allprojects {
+                    tasks.withType(ScalaCompile) {
+                        scalaCompileOptions.useAnt = false
+                    }
+                }
+                $disableScalaDocIfInDaemonMode
+            }
+        """
     }
 
-    @Override
-    Statement apply(Statement base, FrameworkMethod method, Object target) {
-        if (GradleContextualExecuter.isDaemon()) {
-            return super.apply(base, method, target)
-        } else {
-            return base;
-        }
+    static String getDisableScalaDocIfInDaemonMode() {
+        return !GradleContextualExecuter.isDaemon() ? "" : """
+            tasks.withType(ScalaDoc) {
+                doFirst {
+                    throw new GradleException("Can't execute scaladoc while testing with the daemon due to permgen exhaustion")
+                }
+            }
+        """
     }
 }
