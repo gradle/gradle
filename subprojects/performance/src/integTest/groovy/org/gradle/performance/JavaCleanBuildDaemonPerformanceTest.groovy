@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,26 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(BasicPerformanceTest)
-class CleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' clean build")
-    def "clean build"() {
+class JavaCleanBuildDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    @Unroll("Project '#testProject' build")
+    def "build"() {
         given:
-        runner.testId = "clean build $testProject"
+        runner.testId = "daemon clean build $testProject"
         runner.testProject = testProject
+        runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.maxExecutionTimeRegression = maxTimeReg
+        runner.maxMemoryRegression = maxMemReg
+        runner.targetVersions = ['1.0', '2.0', '2.8', '2.10', 'last']
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:SoftRefLRUPolicyMSPerMB=0"]
 
         when:
         def result = runner.run()
@@ -40,9 +45,8 @@ class CleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(1000)
-        "multi"           | millis(1300)
-        "lotDependencies" | millis(1000)
+        testProject | maxTimeReg   | maxMemReg
+        "small"     | millis(500)  | DataAmount.kbytes(1500)
+        "multi"     | millis(1000) | DataAmount.mbytes(10)
     }
 }

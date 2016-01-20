@@ -25,7 +25,7 @@ import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
-class JavaBuildConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("configure Java software model build - #testProject")
     def "configure Java software model build"() {

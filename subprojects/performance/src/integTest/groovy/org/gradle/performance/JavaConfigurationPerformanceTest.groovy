@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, BasicPerformanceTest])
-class JavaBuildConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("configure Java build - #testProject")
     def "configure"() {
         given:
