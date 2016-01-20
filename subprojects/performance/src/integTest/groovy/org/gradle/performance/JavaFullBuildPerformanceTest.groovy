@@ -24,9 +24,9 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
-class JavaCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("clean build Java build - #testProject")
-    def "clean build Java build"() {
+class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @Unroll("full build Java build - #testProject")
+    def "full build Java build"() {
         given:
         runner.testId = "clean build $testProject"
         runner.testProject = testProject

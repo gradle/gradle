@@ -26,34 +26,9 @@ import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
-class JavaCleanBuildDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("clean build Java software model build - #testProject")
-    def "clean build Java software model build"() {
-        given:
-        runner.testId = "clean build java project $testProject which doesn't declare any API"
-        runner.testProject = testProject
-        runner.tasksToRun = ['clean', 'assemble']
-        runner.maxExecutionTimeRegression = maxTimeRegression
-        runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', '2.10', 'last']
-        runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
-        "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
-    }
-
-    @Unroll("clean build Java build - #testProject")
-    def "clean build Java build"() {
+class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @Unroll("full build Java build - #testProject")
+    def "full build Java build"() {
         given:
         runner.testId = "daemon clean build $testProject"
         runner.testProject = testProject
