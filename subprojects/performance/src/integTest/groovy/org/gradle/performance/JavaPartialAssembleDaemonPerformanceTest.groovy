@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -23,8 +24,8 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(JavaPerformanceTest)
-class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerformanceTest {
+@Category([Experiment, JavaPerformanceTest])
+class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("#scenario build")
     def "build"() {
@@ -46,7 +47,6 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
 
         where:
         scenario  | tasks
-        "full"    | ["clean", "assemble"]
         "partial" | [":project1:clean", ":project1:assemble"]
     }
 }

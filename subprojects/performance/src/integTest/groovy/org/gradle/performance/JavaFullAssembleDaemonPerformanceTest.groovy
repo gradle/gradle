@@ -50,4 +50,27 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
         "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
     }
+
+    @Unroll("#scenario build")
+    def "build"() {
+        given:
+        runner.testId = "big project old java plugin $scenario build"
+        runner.testProject = "bigOldJavaMoreSource"
+        runner.useDaemon = true
+        runner.tasksToRun = tasks
+        runner.maxExecutionTimeRegression = millis(1000) // std dev for these tests ~1 s
+        runner.maxMemoryRegression = mbytes(50)
+        runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        scenario  | tasks
+        "full"    | ["clean", "assemble"]
+    }
 }
