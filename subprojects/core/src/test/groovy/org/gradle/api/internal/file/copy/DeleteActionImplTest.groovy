@@ -18,8 +18,16 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.nio.file.Files
+
+import static org.gradle.util.TestPrecondition.LINUX
+import static org.gradle.util.TestPrecondition.MAC_OS_X
+import static org.gradle.util.TestPrecondition.WINDOWS
 
 class DeleteActionImplTest extends Specification {
     @Rule
@@ -87,5 +95,28 @@ class DeleteActionImplTest extends Specification {
 
         then:
         !didWork
+    }
+
+    @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
+    def doesNotDeleteFilesInsideSymlinkDir() {
+        def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
+        def originalDir = keepTxt.parentFile
+        def link = new File(tmpDir.getTestDirectory(), "link")
+
+        when:
+        Files.createSymbolicLink(link.toPath(), originalDir.toPath())
+
+        then:
+        link.exists()
+
+        when:
+        boolean didWork = delete.delete(link)
+
+        then:
+        !link.exists()
+        originalDir.assertExists()
+        keepTxt.assertExists()
+        didWork
+
     }
 }

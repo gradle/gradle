@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
@@ -23,10 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class DeleteActionImpl implements DeleteAction {
     private static Logger logger = LoggerFactory.getLogger(DeleteActionImpl.class);
-    
+
     private FileResolver fileResolver;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
@@ -49,7 +53,7 @@ public class DeleteActionImpl implements DeleteAction {
     }
 
     private void doDelete(File file) {
-        if (file.isDirectory()) {
+        if (file.isDirectory() && !isSymlink(file)) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -64,7 +68,19 @@ public class DeleteActionImpl implements DeleteAction {
 
         if (!file.delete() && file.exists()) {
             handleFailedDelete(file);
+        }
+    }
 
+    private boolean isSymlink(File file) {
+        if(JavaVersion.current().isJava7Compatible()) {
+            return Files.isSymbolicLink(file.toPath());
+        } else {
+            try {
+                return FileUtils.isSymlink(file);
+            } catch (IOException e) {
+                logger.info("Unable to determine if {} is a symlink of not. Reason: {}", file.getAbsolutePath(), e.getMessage());
+                return false;
+            }
         }
     }
 
