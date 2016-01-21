@@ -91,7 +91,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
             Package[] parentPackages = GET_PACKAGES_METHOD.invoke(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
-        return packages.toArray(new Package[packages.size()]);
+        return packages.toArray(new Package[0]);
     }
 
     @Override

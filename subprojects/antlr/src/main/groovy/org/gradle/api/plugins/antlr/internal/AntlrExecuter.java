@@ -66,7 +66,7 @@ public class AntlrExecuter {
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.Tool", null);
-            String[] argArray = arguments.toArray(new String[arguments.size()]);
+            String[] argArray = arguments.toArray(new String[0]);
             if (inputDirectory != null) {
                 JavaReflectionUtil.method(backedObject, Void.class, "setInputDirectory", String.class).invoke(backedObject, inputDirectory.getAbsolutePath());
                 JavaReflectionUtil.method(backedObject, Void.class, "setForceRelativeOutput", boolean.class).invoke(backedObject, true);
@@ -154,7 +154,7 @@ public class AntlrExecuter {
         public abstract boolean available();
 
         protected static String[] toArray(List<String> strings) {
-            return strings.toArray(new String[strings.size()]);
+            return strings.toArray(new String[0]);
         }
 
     }

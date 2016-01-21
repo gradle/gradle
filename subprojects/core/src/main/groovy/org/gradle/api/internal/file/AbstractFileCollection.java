@@ -171,7 +171,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
         if (type.isAssignableFrom(File[].class)) {
             Set<File> files = getFiles();
-            return files.toArray(new File[files.size()]);
+            return files.toArray(new File[0]);
         }
         if (type.isAssignableFrom(File.class)) {
             return getSingleFile();

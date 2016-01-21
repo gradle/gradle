@@ -124,7 +124,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
         analyzer.setJar(getClassesDir());
 
-        analyzer.setClasspath(getClasspath().getFiles().toArray(new File[getClasspath().getFiles().size()]));
+        analyzer.setClasspath(getClasspath().getFiles().toArray(new File[0]));
     }
 
     public List<String> instructionValue(String instructionName) {

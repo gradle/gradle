@@ -60,7 +60,7 @@ public class ClassInspector {
             supers.add(superclass);
             superclass = superclass.getSuperclass();
         }
-        return supers.toArray(new Class<?>[supers.size()]);
+        return supers.toArray(new Class<?>[0]);
     }
 
     private static void inspectClass(Class<?> type, MutableClassDetails classDetails) {

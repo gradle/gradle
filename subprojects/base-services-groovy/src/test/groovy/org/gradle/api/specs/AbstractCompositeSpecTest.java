@@ -60,7 +60,7 @@ public abstract class AbstractCompositeSpecTest {
                 }
             });
         }
-        return result.toArray(new Spec[result.size()]);
+        return result.toArray(new Spec[0]);
     }
 
     @Test

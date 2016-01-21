@@ -272,7 +272,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         boolean newInputsBound = true;
         while (!unboundRules.isEmpty() && newInputsBound) {
             newInputsBound = false;
-            RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[unboundRules.size()]);
+            RuleBinder[] unboundBinders = unboundRules.toArray(new RuleBinder[0]);
             for (RuleBinder binder : unboundBinders) {
                 transitionTo(graph, new TryBindInputs(binder));
                 newInputsBound = newInputsBound || binder.isBound();

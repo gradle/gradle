@@ -104,7 +104,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
                 packages.add(p);
             }
         }
-        return packages.toArray(new Package[packages.size()]);
+        return packages.toArray(new Package[0]);
     }
 
     @Override
