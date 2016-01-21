@@ -76,7 +76,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
             @Model
             void createContainer(Container c) {
-                assert c.items == null
                 c.items = INITIAL
             }
 
@@ -120,7 +119,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
             @Model
             void createContainer(Container c) {
-                assert c.items == null
                 c.items = INITIAL
             }
 
@@ -164,7 +162,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
             @Model
             void createContainer(Container c) {
-                assert c.items == null
                 c.items = INITIAL
             }
 
@@ -208,7 +205,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
             @Model
             void createContainer(Container c) {
-                assert c.items == null
                 c.items = INITIAL
             }
 
@@ -257,7 +253,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
             @Mutate
             void tryToMutate(ModelMap<Task> map, Container c) {
-                c.items.add 'foo'
+                c.items.add 'bar'
             }
         }
 
