@@ -29,6 +29,7 @@ import static spock.util.matcher.HamcrestSupport.that
 
 class CheckstylePluginTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
+    private URL defaultConfigFile = ClassLoader.getSystemResource('google_checks.xml')
 
     def setup() {
         project.pluginManager.apply(CheckstylePlugin)
@@ -52,8 +53,8 @@ class CheckstylePluginTest extends Specification {
     def "configures checkstyle extension"() {
         expect:
         CheckstyleExtension extension = project.extensions.checkstyle
-        extension.configFile == project.file("config/checkstyle/checkstyle.xml")
-        extension.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
+        extension.configFile == project.file(defaultConfigFile)
+        extension.config.inputFiles.singleFile == project.file(defaultConfigFile)
         extension.configProperties == [:]
         extension.reportsDir == project.file("build/reports/checkstyle")
         !extension.ignoreFailures
@@ -80,8 +81,8 @@ class CheckstylePluginTest extends Specification {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert classpath == sourceSet.output
-            assert configFile == project.file("config/checkstyle/checkstyle.xml")
-            assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
+            assert configFile == project.file(defaultConfigFile)
+            assert config.inputFiles.singleFile == project.file(defaultConfigFile)
             assert configProperties == [:]
             assert reports.xml.destination == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("build/reports/checkstyle/${sourceSet.name}.html")
@@ -97,8 +98,8 @@ class CheckstylePluginTest extends Specification {
         task.description == null
         task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
-        task.configFile == project.file("config/checkstyle/checkstyle.xml")
-        task.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
+        task.configFile == project.file(defaultConfigFile)
+        task.config.inputFiles.singleFile == project.file(defaultConfigFile)
         task.configProperties == [:]
         task.reports.xml.destination == project.file("build/reports/checkstyle/custom.xml")
         task.reports.html.destination == project.file("build/reports/checkstyle/custom.html")

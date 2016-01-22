@@ -38,6 +38,10 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension.with {
             toolVersion = DEFAULT_CHECKSTYLE_VERSION
             config = project.resources.text.fromFile("config/checkstyle/checkstyle.xml")
+            if (!config.asFile().exists()) {
+                def res = CheckstylePlugin.getClassLoader().getResourceAsStream('google_checks.xml')
+                config = project.resources.text.fromString(res.text)
+            }
         }
 
         return extension
