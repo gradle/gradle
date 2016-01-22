@@ -52,8 +52,9 @@ public class NativeComponentRules extends RuleSource {
                     headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", component.getName()));
                 }
 
-                headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                headerSourceSet.getImplicitHeaders().include("**/*.h");
+                if (headerSourceSet.getImplicitHeaders().getSrcDirs().isEmpty()) {
+                    headerSourceSet.getImplicitHeaders().srcDir(String.format("src/%s/", component.getName()));
+                }
             }
         });
     }
