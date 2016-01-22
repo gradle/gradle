@@ -74,7 +74,7 @@ Binaries
         static library file: build/libs/someLib/static/libsomeLib.a
         source sets:
             C++ source 'someLib:moreCpp'
-                No source directories
+                srcDir: src/someLib/moreCpp
 """
     }
 

@@ -38,7 +38,7 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.Rules#components
+                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 42, column 5
                      ⤷ MyPlugin#mutateMyComponents
@@ -46,16 +46,15 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                       | Type:   	MyComponent
                       | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                       | Rules:
-                         ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
-                         ⤷ ComponentRules#applyDefaultSourceConventions
-                         ⤷ ComponentRules#initializeSourceSets
-                         ⤷ ComponentRules#inputRules
+                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
+                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
+                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ MyPlugin#mutateMyComponents > all()
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                           | Rules:
-                             ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
                     + publicData
                           | Type:   	java.lang.String
                           | Value:  	Some PUBLIC data
