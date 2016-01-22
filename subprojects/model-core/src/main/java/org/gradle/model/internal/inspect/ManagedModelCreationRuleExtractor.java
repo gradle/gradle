@@ -91,6 +91,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
         @Override
         protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
+            MethodRuleDefinition<R, S> ruleDefinition = getRuleDefinition();
             List<ModelReference<?>> bindings = ruleDefinition.getReferences();
             List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
             final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
@@ -113,7 +114,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             }
 
             registration.action(ModelActionRole.Initialize,
-                    context.contextualize(ruleDefinition, new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
+                    context.contextualize(new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
         }
 
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.MutableModelNode;
+public abstract class AbstractExtractedModelRule implements ExtractedModelRule {
+    private final MethodRuleDefinition<?, ?> ruleDefinition;
 
-import java.util.List;
+    public AbstractExtractedModelRule(MethodRuleDefinition<?, ?> ruleDefinition) {
+        this.ruleDefinition = ruleDefinition;
+    }
 
-public interface ExtractedModelRule {
-    void apply(MethodModelRuleApplicationContext context, MutableModelNode target);
-
-    List<? extends Class<?>> getRuleDependencies();
-
-    MethodRuleDefinition<?, ?> getRuleDefinition();
+    @Override
+    public MethodRuleDefinition<?, ?> getRuleDefinition() {
+        return ruleDefinition;
+    }
 }

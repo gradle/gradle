@@ -51,6 +51,11 @@ class ScopedRuleTest extends ProjectRegistrySpec {
                 List<? extends Class<?>> getRuleDependencies() {
                     return [ImperativePlugin]
                 }
+
+                @Override
+                MethodRuleDefinition<?, ?> getRuleDefinition() {
+                    return ruleDefinition
+                }
             }
         }
     }
