@@ -68,13 +68,16 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                         action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { rule.ruleDefinition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
                 }
             }
+            getScope() >> ModelPath.ROOT
         }
         def node = Stub(MutableModelNode)
         rule.apply(context, node)
     }
 
     void apply(ExtractedModelRule rule, MutableModelNode node) {
-        def context = Stub(MethodModelRuleApplicationContext)
+        def context = Stub(MethodModelRuleApplicationContext) {
+            getScope() >> ModelPath.ROOT
+        }
         rule.apply(context, node)
     }
 

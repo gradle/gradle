@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,9 +68,11 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
+            List<Annotation> targetAnnotations = ruleDefinition.getParameterAnnotations().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
-            context.getRegistry().configure(ModelActionRole.Defaults,
-                    context.contextualize(new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor)));
+            RuleSourceApplicationAction ruleAction = new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor);
+            ChildTraversalType childTraversal = ChildTraversalType.of(ruleDefinition, targetAnnotations);
+            RuleExtractorUtils.configureRuleAction(context, childTraversal, ModelActionRole.Defaults, ruleAction);
         }
 
         @Override

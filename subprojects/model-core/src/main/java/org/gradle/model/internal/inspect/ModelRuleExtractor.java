@@ -392,6 +392,11 @@ public class ModelRuleExtractor {
                     }
 
                     @Override
+                    public ModelPath getScope() {
+                        return targetPath;
+                    }
+
+                    @Override
                     public ModelAction contextualize(final MethodRuleAction action) {
                         final List<ModelReference<?>> inputs = withImplicitInputs(action.getInputs());
                         final ModelReference<?> mappedSubject = mapSubject(action.getSubject(), targetPath);
