@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -23,21 +24,22 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([JavaPerformanceTest])
-class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Checking overhead of API stubbing when #cardinality.description")
-    def "checks overhead of API stubbing when some files are updated"() {
+@Category([Experiment, JavaPerformanceTest])
+class JavaUpToDateFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @Unroll("Project '#testProject' measuring up-to-date checking speed")
+    def "up-to-date build Java build"() {
         given:
-        runner.testId = "overhead of API jar generation when ${cardinality.description}"
-        runner.testProject = 'tinyJavaSwApiJarStubbingWithoutApi'
-        runner.tasksToRun = ['project1:mainApiJar']
+        runner.testId = "build new java project $testProject" + (parallelWorkers ? " (parallel)" : "")
+        runner.testProject = testProject
+        runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.10', '2.11', 'last']
+        runner.targetVersions = ['2.9', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
-        def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
-        runner.buildExperimentListener = updater
+        if (parallelWorkers) {
+            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
+        }
 
         when:
         def result = runner.run()
@@ -46,8 +48,10 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        cardinality                       | maxTimeRegression | maxMemoryRegression
-        SourceUpdateCardinality.ONE_FILE  | millis(500)       | mbytes(5)
-        SourceUpdateCardinality.ALL_FILES | millis(1000)      | mbytes(10)
+        testProject               | maxTimeRegression | maxMemoryRegression | parallelWorkers
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 0
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)           | 4
+        "largeJavaSwModelProject" | millis(1500)      | mbytes(50)          | 0
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)          | 4
     }
 }

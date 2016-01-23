@@ -16,16 +16,16 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BasicPerformanceTest)
-class UpToDateBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+@Category(JavaPerformanceTest)
+class JavaUpToDateBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' up-to-date build")
-    def "build"() {
+    def "up-to-date Java build"() {
         given:
         runner.testId = "up-to-date build $testProject"
         runner.testProject = testProject
