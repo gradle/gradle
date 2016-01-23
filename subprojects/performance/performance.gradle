@@ -380,7 +380,7 @@ task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
