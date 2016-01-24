@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,17 @@ import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
 @Category([JavaPerformanceTest])
-class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
-
-    @Unroll("partial assemble Java software model build - #testProject")
-    def "partial assemble Java software model"() {
+class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @Unroll("clean Java software model build - #testProject")
+    def "clean Java software model build"() {
         given:
-        runner.testId = "partial assemble Java build $testProject (daemon)"
+        runner.testId = "clean Java build $testProject (daemon)"
         runner.testProject = testProject
-        runner.useDaemon = true
-        runner.tasksToRun = [":project1:clean", ":project1:assemble"]
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = mbytes(50)
+        runner.tasksToRun = ['clean']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.9', '2.10', '2.11', 'last']
+        runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -45,21 +44,20 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | maxExecutionTimeRegression
-        "bigNewJava"    | millis(1000)
-        "mediumNewJava" | millis(500)
+        testProject               | maxTimeRegression | maxMemoryRegression
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)
+        "bigNewJava"              | millis(1000)      | mbytes(50)
+        "mediumNewJava"           | millis(500)       | mbytes(50)
+        "smallNewJava"            | millis(500)       | mbytes(5)
     }
 
-    @Unroll("partial assemble Java build - #testProject")
-    def "partial assemble"() {
+    @Unroll("clean Java build - #testProject")
+    def "clean Java build"() {
         given:
-        runner.testId = "partial assemble Java build $testProject (daemon)"
-        if (testProject == "bigOldJavaMoreSource") {
-            runner.previousTestIds = ["big project old java plugin partial build"]
-        }
+        runner.testId = "clean Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.useDaemon = true
-        runner.tasksToRun = [":project1:clean", ":project1:assemble"]
+        runner.tasksToRun = ["clean"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
@@ -73,8 +71,8 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
 
         where:
         testProject            | maxExecutionTimeRegression
-        "bigOldJavaMoreSource" | millis(1000)
         "bigOldJava"           | millis(1000)
-        "mediumOldJava"        | millis(500)
+        "mediumOldJava"        | millis(1000)
+        "smallOldJava"         | millis(1000)
     }
 }
