@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.Lists;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
@@ -121,10 +123,14 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ModuleConflictResolver conflictResolver;
-        if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+        ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
+        if (conflictResolution instanceof StrictConflictResolution) {
             conflictResolver = new StrictConflictResolver();
         } else {
-            conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator));
+            conflictResolver = new LatestModuleConflictResolver(versionComparator);
+            if (conflictResolution instanceof LatestConflictResolution && ((LatestConflictResolution) conflictResolution).isProjectPriority()) {
+                conflictResolver = new ProjectDependencyForcingResolver(conflictResolver);
+            }
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
