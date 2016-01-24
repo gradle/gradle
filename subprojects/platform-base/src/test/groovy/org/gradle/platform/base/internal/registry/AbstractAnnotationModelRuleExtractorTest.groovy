@@ -60,12 +60,12 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
     void apply(ExtractedModelRule rule, ModelRegistry registry) {
         def context = Stub(MethodModelRuleApplicationContext) {
             getRegistry() >> registry
-            contextualize(_, _) >> { MethodRuleDefinition definition, MethodRuleAction action ->
+            contextualize(_) >> { MethodRuleAction action ->
                 Stub(ModelAction) {
                     getSubject() >> action.subject
                     getInputs() >> action.inputs
                     execute(_, _) >> { MutableModelNode node, List<ModelView<?>> inputs ->
-                        action.execute(new DefaultModelRuleInvoker(definition.method, { definition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
+                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { rule.ruleDefinition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
                 }
             }
         }

@@ -239,7 +239,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     private String[] toArray(List<String> list) {
-        return list == null ? null : list.toArray(new String[list.size()]);
+        return list == null ? null : list.toArray(new String[0]);
     }
 
     private List<String> toList(Object object) {

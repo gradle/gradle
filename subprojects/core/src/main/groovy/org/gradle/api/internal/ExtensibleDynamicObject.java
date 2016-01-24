@@ -92,13 +92,13 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
             addedParent = true;
             delegates.add(parent);
         }
-        setObjects(delegates.toArray(new DynamicObject[delegates.size()]));
+        setObjects(delegates.toArray(new DynamicObject[0]));
 
         if (addedParent) {
             delegates.remove(delegates.size() - 1);
         }
         delegates.add(extraPropertiesDynamicObject);
-        setObjectsForUpdate(delegates.toArray(new DynamicObject[delegates.size()]));
+        setObjectsForUpdate(delegates.toArray(new DynamicObject[0]));
     }
 
     protected String getDisplayName() {

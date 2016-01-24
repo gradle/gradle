@@ -104,8 +104,8 @@ public class IdeDependenciesExtractor {
         ArtifactResolutionQuery query = dependencyHandler.createArtifactResolutionQuery();
         query.forComponents(dependencies.keySet());
 
-        @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesArray = (Class<? extends Artifact>[]) new Class<?>[artifactTypes.size()];
-        query.withArtifacts(JvmLibrary.class, artifactTypes.toArray(artifactTypesArray));
+        @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesArray = (Class<? extends Artifact>[]) artifactTypes.toArray(new Class<?>[0]);
+        query.withArtifacts(JvmLibrary.class, artifactTypesArray);
         Set<ComponentArtifactsResult> componentResults = query.execute().getResolvedComponents();
         for (ComponentArtifactsResult componentResult : componentResults) {
             for (IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {

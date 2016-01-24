@@ -37,7 +37,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         for (Spec<? super T> spec : specs) {
             copy.add(spec);
         }
-        this.specs = copy.toArray(new Spec[copy.size()]);
+        this.specs = copy.toArray(new Spec[0]);
     }
 
     // Not public. Evaluation of these specs is a major hot spot for large builds, so use an array for iteration

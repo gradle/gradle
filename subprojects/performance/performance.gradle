@@ -380,7 +380,7 @@ task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
@@ -563,6 +563,7 @@ Pattern buildReceiptPattern = Pattern.compile(".*?build receipt.*?")
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
     inputs.files sourceSets.testFixtures.runtimeClasspath
+    inputs.dir file("${System.getProperty("user.home")}/.gradle-performance-test-data")
     outputs.dir reportDir
 
     doLast {

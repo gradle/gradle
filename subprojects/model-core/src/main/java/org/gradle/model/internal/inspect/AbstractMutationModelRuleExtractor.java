@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
 
@@ -40,20 +41,20 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
 
     protected abstract ModelActionRole getMutationType();
 
-    private static class ExtractedMutationRule<S> implements ExtractedModelRule {
+    private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
-        private final MethodRuleDefinition<?, S> ruleDefinition;
 
         public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+            super(ruleDefinition);
             this.mutationType = mutationType;
-            this.ruleDefinition = ruleDefinition;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+            MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
             context.getRegistry().configure(mutationType,
-                    context.contextualize(ruleDefinition,
-                            new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())));
+                    context.contextualize(
+                        new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())));
         }
 
         @Override

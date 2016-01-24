@@ -114,7 +114,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 Set<String> allInterfaces = new LinkedHashSet<String>(Arrays.asList(interfaces));
                 allInterfaces.add(mixInInterface.replace('.', '/'));
-                super.visit(version, access, name, signature, superName, allInterfaces.toArray(new String[allInterfaces.size()]));
+                super.visit(version, access, name, signature, superName, allInterfaces.toArray(new String[0]));
             }
         }
     }

@@ -75,7 +75,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
-        return dependencyDescriptor.getExcludeRules(configurations.toArray(new String[configurations.size()]));
+        return dependencyDescriptor.getExcludeRules(configurations.toArray(new String[0]));
     }
 
     public boolean isChanging() {
@@ -99,7 +99,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
-        String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[fromConfiguration.getHierarchy().size()]);
+        String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[0]);
         DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
         if (dependencyArtifacts.length == 0) {
             return Collections.emptySet();

@@ -24,4 +24,6 @@ public interface ExtractedModelRule {
     void apply(MethodModelRuleApplicationContext context, MutableModelNode target);
 
     List<? extends Class<?>> getRuleDependencies();
+
+    MethodRuleDefinition<?, ?> getRuleDefinition();
 }

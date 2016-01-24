@@ -156,7 +156,12 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<REGISTRY> subjectReference = ModelReference.of(getRegistryType());
             context.getRegistry().configure(ModelActionRole.Mutate,
-                    context.contextualize(ruleDefinition, new TypeRegistrationAction(subjectReference, ruleDefinition.getDescriptor())));
+                    context.contextualize(new TypeRegistrationAction(subjectReference, ruleDefinition.getDescriptor())));
+        }
+
+        @Override
+        public MethodRuleDefinition<?, ?> getRuleDefinition() {
+            return ruleDefinition;
         }
 
         protected abstract Class<REGISTRY> getRegistryType();

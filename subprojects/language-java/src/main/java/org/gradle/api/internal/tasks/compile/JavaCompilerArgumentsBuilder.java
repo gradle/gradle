@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.Lists;
+import com.google.common.base.Joiner;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 
@@ -189,7 +188,7 @@ public class JavaCompilerArgumentsBuilder {
         Iterable<File> classpath = spec.getClasspath();
         if (classpath != null && classpath.iterator().hasNext()) {
             args.add("-classpath");
-            args.add(toFileCollection(classpath).getAsPath());
+            args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
         }
     }
 
@@ -201,12 +200,5 @@ public class JavaCompilerArgumentsBuilder {
         for (File file : spec.getSource()) {
             args.add(file.getPath());
         }
-    }
-
-    private FileCollection toFileCollection(Iterable<File> classpath) {
-        if (classpath instanceof FileCollection) {
-            return (FileCollection) classpath;
-        }
-        return new SimpleFileCollection(Lists.newArrayList(classpath));
     }
 }

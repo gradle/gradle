@@ -96,19 +96,19 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private static class ExtractedBinaryTasksRule<T extends BinarySpec> implements ExtractedModelRule {
-        private final MethodRuleDefinition<?, ?> ruleDefinition;
+    private static class ExtractedBinaryTasksRule<T extends BinarySpec>  extends AbstractExtractedModelRule {
         private final ModelType<T> binaryType;
 
         public ExtractedBinaryTasksRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<T> binaryType) {
-            this.ruleDefinition = ruleDefinition;
+            super(ruleDefinition);
             this.binaryType = binaryType;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+            MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             final BinaryTaskRule<T> binaryTaskRule = new BinaryTaskRule<T>(binaryType, ruleDefinition);
-            final ModelAction binaryTaskAction = context.contextualize(ruleDefinition, binaryTaskRule);
+            final ModelAction binaryTaskAction = context.contextualize(binaryTaskRule);
             context.getRegistry().configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(
                     BINARIES_CONTAINER,
                     ruleDefinition.getDescriptor(),

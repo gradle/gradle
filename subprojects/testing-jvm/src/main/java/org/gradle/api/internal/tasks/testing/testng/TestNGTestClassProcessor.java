@@ -124,7 +124,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+            testNg.setTestClasses(testClasses.toArray(new Class[0]));
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
         testNg.run();

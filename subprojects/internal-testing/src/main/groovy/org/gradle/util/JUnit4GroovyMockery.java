@@ -94,7 +94,7 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                     try {
                         List<Object> subParams = params.subList(0, Math.min(invocation.getParametersAsArray().length,
                                 cl.getMaximumNumberOfParameters()));
-                        result = cl.call(subParams.toArray(new Object[subParams.size()]));
+                        result = cl.call(subParams.toArray(new Object[0]));
                     } catch (InvokerInvocationException e) {
                         throw e.getCause();
                     }

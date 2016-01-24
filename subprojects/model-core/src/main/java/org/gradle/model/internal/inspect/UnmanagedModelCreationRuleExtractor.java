@@ -91,12 +91,13 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
 
         @Override
         protected void buildRegistration(MethodModelRuleApplicationContext context, ModelRegistrations.Builder registration) {
+            MethodRuleDefinition<R, S> ruleDefinition = getRuleDefinition();
             ModelType<R> modelType = ruleDefinition.getReturnType();
             List<ModelReference<?>> inputs = ruleDefinition.getReferences();
             ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
             ModelReference<Object> subjectReference = ModelReference.of(modelPath);
             registration.action(ModelActionRole.Create,
-                    context.contextualize(ruleDefinition, new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
+                    context.contextualize(new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
             registration.withProjection(new UnmanagedModelProjection<R>(modelType));
         }
     }

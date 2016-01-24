@@ -18,15 +18,11 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
-import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
-import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -49,19 +45,11 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             boolean writable = !propertyContext.isPresent() || propertyContext.get().isWritable();
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.get(
-                        ModelTypes.list(schema.getElementType()),
-                        new ListViewFactory<E>(schema.getElementType()),
-                        writable
-                    )
+                    ScalarCollectionModelProjection.forList(schema.getElementType(), !writable)
                 );
             } else {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.get(
-                        ModelTypes.set(schema.getElementType()),
-                        new SetViewFactory<E>(schema.getElementType()),
-                        writable
-                    )
+                    ScalarCollectionModelProjection.forSet(schema.getElementType(), !writable)
                 );
             }
         }
@@ -73,143 +61,93 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         return ImmutableList.copyOf(TYPES);
     }
 
-    private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {
+    private abstract static class ScalarCollectionModelProjection<E, C extends Collection<E>> extends TypeCompatibilityModelProjectionSupport<C> {
 
-        private final boolean writable;
-
-        public static <E, U extends Collection<E>> ScalarCollectionModelProjection<U> get(ModelType<U> type, ModelViewFactory<U> viewFactory, boolean writable) {
-            return new ScalarCollectionModelProjection<U>(type, viewFactory, writable);
-        }
-
-        public ScalarCollectionModelProjection(ModelType<E> type, ModelViewFactory<E> viewFactory, boolean writable) {
-            super(type, viewFactory);
-            this.writable = writable;
+        public ScalarCollectionModelProjection(ModelType<C> type) {
+            super(type);
         }
 
         @Override
         public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-            Collection<?> values = ScalarCollectionSchema.get(modelNodeInternal);
+            Collection<?> values = modelNodeInternal.asImmutable(getType(), null).getInstance();
             if (values == null) {
-                if (writable) {
-                    return Optional.of("null");
-                } else {
-                    return Optional.of("[]");
-                }
+                return Optional.of("null");
             }
             return Optional.of(values.toString());
         }
-    }
-
-
-    public static class ListViewFactory<T> implements ModelViewFactory<List<T>> {
-        private final ModelType<T> elementType;
-
-        public ListViewFactory(ModelType<T> elementType) {
-            this.elementType = elementType;
-        }
 
         @Override
-        public ModelView<List<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-            ModelType<List<T>> listType = ModelTypes.list(elementType);
-            DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), listType, ruleDescriptor, writable, !writable);
-            ListBackedCollection<T> list = new ListBackedCollection<T>(modelNode, state, elementType);
-            return InstanceModelView.of(modelNode.getPath(), listType, list, state.closer());
+        protected abstract ScalarCollectionModelView<E, C> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean readOnly);
+
+        public static <E> ScalarCollectionModelProjection<E, List<E>> forList(final ModelType<E> elementType, final boolean readOnly) {
+            return new ScalarCollectionModelProjection<E, List<E>>(ModelTypes.list(elementType)) {
+                @Override
+                protected ScalarCollectionModelView<E, List<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+                    return new ListModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                }
+            };
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ListViewFactory<?> that = (ListViewFactory<?>) o;
-            return elementType.equals(that.elementType);
-        }
-
-        @Override
-        public int hashCode() {
-            return elementType.hashCode();
+        public static <E> ScalarCollectionModelProjection<E, Set<E>> forSet(final ModelType<E> elementType, final boolean readOnly) {
+            return new ScalarCollectionModelProjection<E, Set<E>>(ModelTypes.set(elementType)) {
+                @Override
+                protected ScalarCollectionModelView<E, Set<E>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+                    return new SetModelView<E>(modelNode.getPath(), elementType, modelNode, ruleDescriptor, readOnly, mutable);
+                }
+            };
         }
     }
 
-    public static class SetViewFactory<T> implements ModelViewFactory<Set<T>> {
-        private final ModelType<T> elementType;
+    private static class ListModelView<T> extends ScalarCollectionModelView<T, List<T>> {
 
-        public SetViewFactory(ModelType<T> elementType) {
-            this.elementType = elementType;
+        public ListModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean readOnly, boolean mutable) {
+            super(path, ModelTypes.list(elementType), elementType, modelNode, descriptor, readOnly, mutable);
         }
 
         @Override
-        public ModelView<Set<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-            ModelType<Set<T>> setType = ModelTypes.set(elementType);
-            DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), setType, ruleDescriptor, writable, !writable);
-            SetBackedCollection<T> set = new SetBackedCollection<T>(modelNode, state, elementType);
-            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
+        protected List<T> initialValue() {
+            return new LinkedList<T>();
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ListViewFactory<?> that = (ListViewFactory<?>) o;
-            return elementType.equals(that.elementType);
-        }
-
-        @Override
-        public int hashCode() {
-            return elementType.hashCode();
+        protected List<T> toMutationSafe(Collection<?> backingCollection) {
+            return new ListBackedCollection<T>(Cast.<List<T>>uncheckedCast(backingCollection), state, elementType);
         }
     }
 
-    private abstract static class NodeBackedCollection<T, C extends Collection<T>> implements Collection<T>, ManagedInstance {
-        private final MutableModelNode modelNode;
+    private static class SetModelView<T> extends ScalarCollectionModelView<T, Set<T>> {
+
+        public SetModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean readOnly, boolean mutable) {
+            super(path, ModelTypes.set(elementType), elementType, modelNode, descriptor, readOnly, mutable);
+        }
+
+        @Override
+        protected Set<T> initialValue() {
+            return new LinkedHashSet<T>();
+        }
+
+        @Override
+        protected Set<T> toMutationSafe(Collection<?> backingCollection) {
+            return new SetBackedCollection<T>(Cast.<Set<T>>uncheckedCast(backingCollection), state, elementType);
+        }
+    }
+
+    private abstract static class MutationSafeCollection<T> implements Collection<T> {
+        private final Collection<T> delegate;
         private final ModelViewState state;
         private final ModelType<T> elementType;
 
-        public NodeBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
-            this.modelNode = modelNode;
+        public MutationSafeCollection(Collection<T> delegate, ModelViewState state, ModelType<T> elementType) {
+            this.delegate = delegate;
             this.state = state;
             this.elementType = elementType;
         }
 
-        protected C getDelegate(boolean write) {
-            if (write) {
+        public Collection<T> getDelegate(boolean forMutation) {
+            if (forMutation) {
                 state.assertCanMutate();
             }
-            Collection<T> delegate = Cast.uncheckedCast(ScalarCollectionSchema.get(modelNode));
-            return initialValue(write, delegate);
-        }
-
-        protected abstract C createPrivateData(boolean mutable);
-
-        private C initialValue(boolean write, Collection<T> delegate) {
-            if (delegate == null) {
-                if (write) {
-                    delegate = createPrivateData(true);
-                    ScalarCollectionSchema.set(modelNode, delegate);
-                } else {
-                    delegate = createPrivateData(false);
-                }
-            }
-            return Cast.uncheckedCast(delegate);
-        }
-
-        @Override
-        public MutableModelNode getBackingNode() {
-            return modelNode;
-        }
-
-        @Override
-        public ModelType<?> getManagedType() {
-            return ModelType.of(this.getClass());
+            return delegate;
         }
 
         protected void validateElementType(Object o) {
@@ -327,63 +265,59 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
                 delegate.remove();
             }
         }
-    }
-
-    private static class ListBackedCollection<T> extends NodeBackedCollection<T, List<T>> implements List<T> {
-
-        public ListBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
-            super(modelNode, state, elementType);
-        }
 
         @Override
-        protected List<T> createPrivateData(boolean mutable) {
-            if (mutable) {
-                return Lists.newArrayList();
-            }
-            return Collections.emptyList();
+        public String toString() {
+            return delegate.toString();
+        }
+    }
+
+    private static class ListBackedCollection<T> extends MutationSafeCollection<T> implements List<T> {
+        public ListBackedCollection(List<T> delegate, ModelViewState state, ModelType<T> elementType) {
+            super(delegate, state, elementType);
         }
 
         @Override
         public void add(int index, T element) {
             validateElementType(element);
-            getDelegate(true).add(index, element);
+            ((List<T>)getDelegate(true)).add(index, element);
         }
 
 
         @Override
         public boolean addAll(int index, Collection<? extends T> c) {
             validateCollection(c);
-            return getDelegate(true).addAll(index, c);
+            return ((List<T>)getDelegate(true)).addAll(index, c);
         }
 
         @Override
         public T get(int index) {
-            return getDelegate(false).get(index);
+            return ((List<T>)getDelegate(false)).get(index);
         }
 
         @Override
         public int indexOf(Object o) {
-            return getDelegate(false).indexOf(o);
+            return ((List<T>)getDelegate(false)).indexOf(o);
         }
 
         @Override
         public int lastIndexOf(Object o) {
-            return getDelegate(false).lastIndexOf(o);
+            return ((List<T>)getDelegate(false)).lastIndexOf(o);
         }
 
         @Override
         public ListIterator<T> listIterator() {
-            return getDelegate(false).listIterator();
+            return ((List<T>)getDelegate(false)).listIterator();
         }
 
         @Override
         public ListIterator<T> listIterator(int index) {
-            return getDelegate(false).listIterator(index);
+            return ((List<T>)getDelegate(false)).listIterator(index);
         }
 
         @Override
         public T remove(int index) {
-            return getDelegate(true).remove(index);
+            return ((List<T>)getDelegate(true)).remove(index);
         }
 
         @Override
@@ -394,23 +328,15 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         @Override
         public T set(int index, T element) {
             validateElementType(element);
-            return getDelegate(true).set(index, element);
+            return ((List<T>)getDelegate(true)).set(index, element);
         }
     }
 
-    private static class SetBackedCollection<T> extends NodeBackedCollection<T, Set<T>> implements Set<T> {
+    private static class SetBackedCollection<T> extends MutationSafeCollection<T> implements Set<T> {
 
-        public SetBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
-            super(modelNode, state, elementType);
+        public SetBackedCollection(Set<T> delegate, ModelViewState state, ModelType<T> elementType) {
+            super(delegate, state, elementType);
         }
 
-        @Override
-        protected Set<T> createPrivateData(boolean mutable) {
-            if (mutable) {
-                return Sets.newLinkedHashSet();
-            } else {
-                return Collections.emptySet();
-            }
-        }
     }
 }

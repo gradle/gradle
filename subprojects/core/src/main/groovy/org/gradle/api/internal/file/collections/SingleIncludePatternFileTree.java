@@ -79,7 +79,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             patternSet.include(includePattern);
             patternSet.exclude(excludeSpec);
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet);
-            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), relativePath.toArray(new String[relativePath.size()])));
+            fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), relativePath.toArray(new String[0])));
         } else if (segment.contains("*") || segment.contains("?")) {
             PatternStep step = PatternStepFactory.getStep(segment, false);
             File[] children = file.listFiles();
@@ -111,14 +111,14 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     private void doVisitDirOrFile(FileVisitor visitor, File file, LinkedList<String> relativePath, int segmentIndex, AtomicBoolean stopFlag) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
-                RelativePath path = new RelativePath(true, relativePath.toArray(new String[relativePath.size()]));
+                RelativePath path = new RelativePath(true, relativePath.toArray(new String[0]));
                 FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
-            RelativePath path = new RelativePath(false, relativePath.toArray(new String[relativePath.size()]));
+            RelativePath path = new RelativePath(false, relativePath.toArray(new String[0]));
             FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);

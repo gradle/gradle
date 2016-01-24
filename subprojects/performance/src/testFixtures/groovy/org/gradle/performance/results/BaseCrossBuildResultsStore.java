@@ -108,7 +108,7 @@ public class BaseCrossBuildResultsStore implements ResultsStore, DataReporter<Cr
     }
 
     private String[] toArray(List<String> list) {
-        return list == null ? null : list.toArray(new String[list.size()]);
+        return list == null ? null : list.toArray(new String[0]);
     }
 
     public void close() {

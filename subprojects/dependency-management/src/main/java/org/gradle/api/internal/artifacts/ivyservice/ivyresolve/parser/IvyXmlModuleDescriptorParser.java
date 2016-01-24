@@ -336,7 +336,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
             }
 
-            String[] confs = (String[]) configsToAdd.toArray(new String[configsToAdd.size()]);
+            String[] confs = (String[]) configsToAdd.toArray(new String[0]);
             parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande);
         }
 

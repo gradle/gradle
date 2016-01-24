@@ -64,9 +64,6 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         "clean"   | "small"  | ["clean"]
         "clean"   | "medium" | ["clean"]
         "clean"   | "big"    | ["clean"]
-        "full"    | "small"  | ["clean", "assemble"]
-        "full"    | "medium" | ["clean", "assemble"]
-        "full"    | "big"    | ["clean", "assemble"]
         "partial" | "medium" | [":project1:clean", ":project1:assemble"]
         "partial" | "big"    | [":project1:clean", ":project1:assemble"]
     }

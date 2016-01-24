@@ -94,7 +94,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         if (dimensions.isEmpty()) {
             return "";
         }
-        return makeName(dimensions.toArray(new String[dimensions.size()]));
+        return makeName(dimensions.toArray(new String[0]));
     }
 
     public String getBaseName() {

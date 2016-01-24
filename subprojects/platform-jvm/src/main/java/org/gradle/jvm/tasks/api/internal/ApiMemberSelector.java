@@ -69,7 +69,7 @@ public class ApiMemberSelector extends ClassVisitor {
         for (MethodMember method : methods) {
             MethodVisitor mv = apiMemberAdapter.visitMethod(
                 method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
-                method.getExceptions().toArray(new String[method.getExceptions().size()]));
+                method.getExceptions().toArray(new String[0]));
             visitAnnotationMembers(mv, method.getAnnotations());
             visitAnnotationMembers(mv, method.getParameterAnnotations());
             mv.visitEnd();

@@ -48,7 +48,7 @@ public class DefaultImportsReader implements ImportsReader {
 
                 @Override
                 public String[] getResult() {
-                    return packages.toArray(new String[packages.size()]);
+                    return packages.toArray(new String[0]);
                 }
             });
         } catch (IOException e) {

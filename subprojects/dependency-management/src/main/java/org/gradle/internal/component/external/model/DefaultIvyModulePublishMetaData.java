@@ -58,7 +58,7 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
 
     @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
-        String[] superConfigs = extendsFrom.toArray(new String[extendsFrom.size()]);
+        String[] superConfigs = extendsFrom.toArray(new String[0]);
         Arrays.sort(superConfigs);
         Configuration.Visibility visibility = visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE;
         Configuration conf = new Configuration(name, visibility, description, superConfigs, transitive, null);

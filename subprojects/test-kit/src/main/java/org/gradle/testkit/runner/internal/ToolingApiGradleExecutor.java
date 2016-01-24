@@ -96,8 +96,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
-            launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
-            launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[parameters.getJvmArgs().size()]));
+            launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
+            launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
 
             launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 

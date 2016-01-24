@@ -53,23 +53,23 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
     }
 
-    private static class ExtractedRuleSourceDefinitionRule implements ExtractedModelRule {
-        private final MethodRuleDefinition<?, ?> ruleDefinition;
+    private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
 
         public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
-            this.ruleDefinition = ruleDefinition;
+            super(ruleDefinition);
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
         }
 
         @Override
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
+            MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
             context.getRegistry().configure(ModelActionRole.Defaults,
-                    context.contextualize(ruleDefinition, new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor)));
+                    context.contextualize(new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor)));
         }
 
         @Override

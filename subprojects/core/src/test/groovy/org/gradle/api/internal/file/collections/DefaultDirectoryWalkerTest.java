@@ -387,7 +387,7 @@ public class DefaultDirectoryWalkerTest {
                 child.setExpectations(expectations);
             }
             expectations.allowing(mock).listFiles();
-            expectations.will(expectations.returnValue(mockChildren.toArray(new File[mockChildren.size()])));
+            expectations.will(expectations.returnValue(mockChildren.toArray(new File[0])));
         }
     }
 
