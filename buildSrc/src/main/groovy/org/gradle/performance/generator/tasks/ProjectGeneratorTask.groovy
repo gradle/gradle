@@ -33,7 +33,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
-    boolean useSubProjectNumberInSourceFileNames = false
     List<String> additionalProjectFiles = []
     final List<TestProject> projects = []
     List<String> rootProjectTemplates = ['root-project']

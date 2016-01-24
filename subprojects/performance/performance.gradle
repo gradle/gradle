@@ -415,7 +415,6 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
            tinyJavaSwApiJarStubbingWithoutApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
-    useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
@@ -455,7 +454,6 @@ configure([smallJavaSwModelCompileAvoidanceWithApi,
     templateArgs.useApiDependencies = true
     numberOfExternalDependencies = 0
     createTestComponent = false
-    sourceFiles = 300
     dependencyGraph {
         size = 0
     }
