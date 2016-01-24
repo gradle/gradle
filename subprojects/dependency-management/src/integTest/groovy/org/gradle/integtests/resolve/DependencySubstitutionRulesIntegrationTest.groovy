@@ -842,6 +842,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org.utils", "api", '2.0').publish()
         settingsFile << 'include "api", "impl"'
 
+        def resulutionStrategySetting = disableProjectPriority ? 'disableProjectPriorityOnVersionConflict()' : ''
         buildFile << """
             $common
 
@@ -856,8 +857,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     conf "org.utils:api:2.0"
                 }
 
-                configurations.conf.resolutionStrategy.dependencySubstitution {
-                    substitute module("org.utils:api:1.5") with project(":api")
+                configurations.conf.resolutionStrategy{
+                    $resulutionStrategySetting
+                    dependencySubstitution {
+                        substitute module("org.utils:api:1.5") with project(":api")
+                    }
                 }
 
                 task check << {
@@ -882,14 +886,14 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
 """
-
         expect:
         succeeds "impl:check"
 
         where:
-        apiProjectVersion | winner                                | selectedByRule
-        "1.6"             | 'moduleId("org.utils", "api", "2.0")' | false
-        "3.0"             | 'projectId(":api")'                   | true
+        apiProjectVersion | winner                                | selectedByRule  | disableProjectPriority
+        "1.6"             | 'moduleId("org.utils", "api", "2.0")' | false           | true
+        "1.6"             | 'projectId(":api")'                   | true            | false
+        "3.0"             | 'projectId(":api")'                   | true            | false
     }
 
     void "can blacklist a version"()
