@@ -26,8 +26,8 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
 class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Up-to-date assemble Java build - #testProject")
-    def "up-to-date assemble Java build"() {
+    @Unroll("Up-to-date assemble Java software model build - #testProject")
+    def "up-to-date assemble Java software model build"() {
         given:
         runner.testId = "up-to-date assemble Java build $testProject (daemon)"
         runner.testProject = testProject
@@ -45,9 +45,14 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject               | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelProject" | millis(200)       | mbytes(5)
-        "largeJavaSwModelProject" | millis(1500)      | mbytes(50)
+        testProject                                  | maxTimeRegression | maxMemoryRegression
+        "smallJavaSwModelProject"                    | millis(200)       | mbytes(5)
+        "largeJavaSwModelProject"                    | millis(1500)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(200)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1500)      | mbytes(50)
+        "bigNewJava"                                 | millis(500)       | mbytes(50)
+        "mediumNewJava"                              | millis(500)       | mbytes(50)
+        "smallNewJava"                               | millis(200)       | mbytes(5)
     }
 
     @Unroll("Up-to-date parallel assemble Java build - #testProject")
