@@ -26,18 +26,17 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
 class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring incremental build when no API is declared")
+    @Unroll("Up-to-date assemble Java build - #testProject")
     def "up-to-date assemble Java build"() {
         given:
-        runner.testId = "incremental build java project $testProject which doesn't declare any API"
+        runner.testId = "up-to-date assemble Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.10', '2.11', 'last']
+        runner.targetVersions = ['2.9', '2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
-        runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)
 
         when:
         def result = runner.run()
@@ -46,8 +45,33 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                                  | maxTimeRegression | maxMemoryRegression
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1200)      | mbytes(50)
+        testProject               | maxTimeRegression | maxMemoryRegression
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)
+        "largeJavaSwModelProject" | millis(1500)      | mbytes(50)
+    }
+
+    @Unroll("Up-to-date parallel assemble Java build - #testProject")
+    def "up-to-date parallel assemble Java build"() {
+        given:
+        runner.testId = "up-to-date assemble Java build $testProject (daemon, parallel)"
+        runner.testProject = testProject
+        runner.tasksToRun = ['assemble']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
+        runner.targetVersions = ['2.9', '2.10', '2.11', 'last']
+        runner.useDaemon = true
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.args += ["--parallel", "--max-workers=4"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject               | maxTimeRegression | maxMemoryRegression
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)
     }
 }
