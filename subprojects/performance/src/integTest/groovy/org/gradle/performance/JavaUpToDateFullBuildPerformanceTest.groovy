@@ -24,10 +24,11 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category(JavaPerformanceTest)
 class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' up-to-date build")
-    def "up-to-date Java build"() {
+    @Unroll("Up-to-date full build - #testProject")
+    def "up-to-date full build Java build"() {
         given:
-        runner.testId = "up-to-date build $testProject"
+        runner.testId = "up-to-date full build Java build $testProject"
+        runner.previousTestIds = ["up-to-date build $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

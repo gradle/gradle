@@ -26,10 +26,11 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category([Experiment, JavaPerformanceTest])
 class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring incremental build when no API is declared")
-    def "up-to-date assemble Java build"() {
+    @Unroll("incremental full assemble Java build - #testProject")
+    def "incremental full assemble Java build"() {
         given:
-        runner.testId = "incremental build java project $testProject which doesn't declare any API"
+        runner.testId = "incremental full assemble Java build $testProject (daemon)"
+        runner.previousTestIds = ["incremental build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression

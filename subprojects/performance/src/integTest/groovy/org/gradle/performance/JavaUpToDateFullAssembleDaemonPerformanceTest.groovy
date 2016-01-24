@@ -29,7 +29,7 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
     @Unroll("Up-to-date assemble Java software model build - #testProject")
     def "up-to-date assemble Java software model build"() {
         given:
-        runner.testId = "up-to-date assemble Java build $testProject (daemon)"
+        runner.testId = "up-to-date full assemble Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
@@ -55,10 +55,10 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         "smallNewJava"                               | millis(200)       | mbytes(5)
     }
 
-    @Unroll("Up-to-date parallel assemble Java build - #testProject")
-    def "up-to-date parallel assemble Java build"() {
+    @Unroll("Up-to-date parallel full assemble Java build - #testProject")
+    def "up-to-date parallel full assemble Java build"() {
         given:
-        runner.testId = "up-to-date assemble Java build $testProject (daemon, parallel)"
+        runner.testId = "up-to-date full assemble Java build $testProject (daemon, parallel)"
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
