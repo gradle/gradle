@@ -20,7 +20,6 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
@@ -47,7 +46,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
 
         where:
         testProject | maxTimeReg   | maxMemReg
-        "small"     | millis(500)  | kbytes(1500)
+        "small"     | millis(500)  | mbytes(3)
         "multi"     | millis(1000) | mbytes(10)
     }
 }

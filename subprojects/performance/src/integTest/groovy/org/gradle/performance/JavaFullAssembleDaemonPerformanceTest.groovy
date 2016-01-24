@@ -47,9 +47,9 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject                                  | maxTimeRegression | maxMemoryRegression
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(2500)      | mbytes(50)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(3000)      | mbytes(50)
         "smallJavaSwModelProject"                    | millis(800)       | mbytes(5)
-        "largeJavaSwModelProject"                    | millis(1200)      | mbytes(50)
+        "largeJavaSwModelProject"                    | millis(5000)      | mbytes(50)
         "bigNewJava"                                 | millis(1000)      | mbytes(50)
         "mediumNewJava"                              | millis(1000)      | mbytes(50)
         "smallNewJava"                               | millis(800)       | mbytes(5)
@@ -68,7 +68,7 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
 
         when:
         def result = runner.run()
