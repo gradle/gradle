@@ -6,7 +6,6 @@
 - With the existing `ProjectConnection` API, aggregation must be done on the client side or a model type must be a `HierarchicalElement` (only works for multi-project builds).
 - It will only support retrieving models for `EclipseProject`.  Later stories add support for `ProjectPublications`, and eventually any model type should be able to be aggregated from a composite build.
 - TAPI clients must use >= Gradle 2.12. Participant projects can be mixed, but not all features of a composite build may be supported.
-- 
 
 ### API
 
