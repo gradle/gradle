@@ -33,3 +33,4 @@ Existing test coverage for `<T> Set<ModelResult<T>> getModels(Class<T> modelType
 
 ### Open issues
 - Provide way to specify composite build Gradle distribution
+- Plan unit test coverage required for possible Tooling API consumer infrastructure changes
