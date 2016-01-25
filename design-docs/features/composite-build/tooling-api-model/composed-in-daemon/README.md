@@ -13,3 +13,4 @@
 ### Documentation
 
 ### Open issues
+- Provide way to specify composite build Gradle distribution

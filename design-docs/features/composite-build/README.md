@@ -81,3 +81,4 @@ After this milestone, a Build author can define a homogeneous composite and use 
 
 - Model/task support for heterogeneous composites (different versions of Gradle)
 - Model/task support for older Gradle versions
+- Support for composite builds in Gradle TestKit
