@@ -2,7 +2,11 @@
 
 At this stage, this is a scratchpad of ideas for how "composite build" might be developed in Gradle. Later this feature and the related stories will be more fully fleshed out.
 
-## Milestone: Tooling client defines composite and requests `EclipseProject` model for each included project
+### Milestone: Tooling client defines composite build and requests IDE model
+
+After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` model for each included project.
+
+#### Stories
 
 - [ ] Tooling client declares "composite" with one multi-project participant and requests tooling model for each included project
     - Implement `CompositeBuildConnection` on top of existing Tooling API client
@@ -17,9 +21,13 @@ At this stage, this is a scratchpad of ideas for how "composite build" might be 
 - [ ] Tooling client declares composite including multiple builds, and tooling models are produced by a single daemon instance
     - New remote Tooling API protocol, permitting the creation of each `ProjectConnection` in a daemon instance
 
-## Milestone: Tooling client defines homogeneous composite and IDE models have external dependencies replaced with project dependencies
+### Milestone: IDE model for composite build includes dependency substitution
 
-Tooling client defines a homogeneous composite (all participants have same Gradle version) and:
+After this milestone, a Tooling client can define a _homogeneous_ composite build (one where all participants have same Gradle version), and the `EclipseProject` model returned will have external dependencies replaced with project dependencies. 
+
+#### Stories: 
+
+Tooling client defines a homogeneous composite and:
 
 - [ ] IDE models have external dependencies directly replaced with dependencies on composite project publications
     - Naive implementation of dependency substitution: metadata is not considered
@@ -30,7 +38,11 @@ Tooling client defines a homogeneous composite (all participants have same Gradl
     - Provide a "Composite Context" (containing all project publication information) when requesting `EclipseProject` model from each build
     - Likely remove the use of Tooling API to communicate with each participant
 
-## Milestone: Tooling client defines homogeneous composite and executes tasks where external dependencies are replaced with project dependencies
+### Milestone: Tooling client can execute tasks in composite build
+
+After this milestone, a Tooling client can define a homogeneous composite build, and execute tasks for projects within the composite. When performing dependency resolution for tasks, external dependencies will be replaced with appropriate project dependencies.
+
+#### Stories:
 
 Tooling client defines a composite and:
 
@@ -38,13 +50,14 @@ Tooling client defines a composite and:
 - [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
 - [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
 
-## Milestone: Build author defines a homogeneous composite and uses command line to executes tasks for a project within the composite
+### Milestone: Command-line execution of tasks in composite build
+
+After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
 
 ## Later
 
 - Model/task support for heterogeneous composites (different versions of Gradle)
 - Model/task support for older Gradle versions
-
 
 ## Questions
 
