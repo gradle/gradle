@@ -55,7 +55,7 @@ To support Eclipse import, only a constrained composite connection API is requir
 
 - Fail with `IllegalStateException` if no participants are added to the composite when connecting.
 - Fail with `UnsupportedOperationException` if composite build is created with >1 participant when connecting.
-- Fail with `UnsupportedOperationException` if composite build participant is using < Gradle 2.12 when retrieving model.
+- Fail with `UnsupportedVersionException` if composite build participant is using < Gradle 2.12 when retrieving model.
 - Fail with `IllegalStateException` after connecting to a `CompositeBuildConnection`, closing the connection and trying to retrieve a model.
 - Errors from trying to retrieve models (getModels) is propagated to caller.
 - Errors from closing underlying ProjectConnection propagate to caller.
