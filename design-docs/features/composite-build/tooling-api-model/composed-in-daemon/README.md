@@ -13,15 +13,17 @@ Other model related methods of the designed `CompositeBuildConnection` interface
 
 ### Implementation notes
 
-The implementation involves a client part and a server part.
-On the client part, the idea is to extend the current Tooling API client and reuse the infrastructure used for `ProjectConnection` and share most of it for `CompositeBuildConnection`.
+The implementation involves a client part ("consumer") and a server part ("provider").
+On the consumer side, the idea is to extend the current Tooling API client and reuse the infrastructure used for `ProjectConnection` and share most of it for `CompositeBuildConnection`.
 Optimally this means the the underlying `ConsumerConnection` infrastructure could be reused and shared.
-The `getModels` API method uses a different pattern that is currently used in Tooling API client. Supporting this requires changes to the client side infrastructure and possibly also in the serialization protocol used in the daemon connection.
+The `getModels` API method uses a different pattern that is currently used in Tooling API client. Supporting this requires changes to the consumer side infrastructure and possibly also in the serialization protocol used in the daemon/provider connection.
 
-The story doesn't use parameters for model requests so that doesn't have to be solved as part of this story. It might be worth preparing for changes in the infrastructure for methods like `<T> T getModel(ProjectIdentity id, Class<T> modelType)`.
+Later stories will require the possibility to use parameters for model requests. An example of such model is `<T> T getModel(ProjectIdentity id, Class<T> modelType)`. This story doesn't require that behaviour, but it might be beneficial to start preparing for that change in the implementation.
 
-The daemon execution part is in the launcher module. That module already depends on tooling-api and core modules. The execution of composite build models need composite build specific `BuildAction` classes that are executed by composite build specific `BuildActionRunner` implementation classes.
+The provider side and daemon execution implementation is in the launcher module.
+The execution of composite build models need composite build specific `BuildAction` classes that are executed by composite build specific `BuildActionRunner` implementation classes.
 This story needs `CompositeBuildModelAction` and `CompositeBuildModelActionRunner` classes that should reside in the `laucher` module.
+That module already depends on tooling-api and core modules. Therefore using the tooling api for accessing participant projects should be possible.
 
 ### Test coverage
 
