@@ -31,5 +31,5 @@
 ### Open issues
 - Should we immediately try to connect to all projects in a composite when connecting to the composite?
     - Check that any features will work?
-    - Check that all Gradle versions are the same? (initially)
     - Check that all participants are actually Gradle projects?
+    - Are there any overlapping projects?

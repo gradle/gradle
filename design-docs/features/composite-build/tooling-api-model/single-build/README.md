@@ -18,7 +18,13 @@ To support Eclipse import, only a constrained composite connection API is requir
         CompositeBuildConnection connect() throws GradleConnectionException;
     }
 
-    interface CompositeParticipant {
+    interface CompositeParticipant extends GradleDistributionAware {
+    }
+
+    interface GradleDistributionAware {
+        void useInstallation(File gradleHome);
+        void useGradleVersion(String gradleVersion);
+        void useDistribution(URI location);
     }
 
     interface CompositeBuildConnection {
@@ -32,7 +38,8 @@ To support Eclipse import, only a constrained composite connection API is requir
 
     // Usage:
     CompositeBuildConnector composite = CompositeBuildConnector.newComposite()
-    composite.addParticipant(new File("path/to/somewhere"))
+    CompositeParticipant participant = composite.addParticipant(new File("path/to/somewhere"))
+    participant.useGradleVersion(new File("path/to/gradles"))
     CompositeBuildConnection connection = composite.connect()
 
     Set<ModelResult<EclipseProject>> results = connection.getModels(EclipseProject.class)
@@ -64,6 +71,9 @@ To support Eclipse import, only a constrained composite connection API is requir
     - a single ProjectConnection is used.
     - a single project returns a single `EclipseProject`
     - a multi-project build returns a `EclipseProject` for each project in a flatten set (does not rely on hierarchy)
+- Changing the participants Gradle distribution is reflected in the `ProjectConnection`
+- Participant project directory is used as the project directory for the `ProjectConnection`
+
 
 ### Documentation
 
