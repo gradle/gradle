@@ -2,30 +2,53 @@
 
 At this stage, this is a scratchpad of ideas for how "composite build" might be developed in Gradle. Later this feature and the related stories will be more fully fleshed out.
 
-### Milestone: Tooling client defines composite build and requests IDE model
+#### 'Gradle Composite'
+
+The defined stories introduce the concept of a ‘Gradle composite build’. A composite build is a lightweight assembly of Gradle projects that a developer is working on. These projects may come from different Gradle builds, but when assembled into a composite Gradle is able to coordinate these projects so that they appear in some way as a single build unit.
+
+#### Independent models
+
+Gradle builds within a composite will be configured independently, and will have no direct access to the configuration model of other builds within the composite. This will permit these builds to be configured lazily and in parallel.
+
+#### Project substitution
+
+Where possible, external dependencies will be replaced with project dependencies within a composite. In this way, a composite build will perform similarly to a multi-project build containing all of the projects.
+
+So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same composite, however, application A would have a source dependency on library B.
+
+#### Composite builds in the IDE
+
+A tooling API client will be able to define a composite and query it in a similar way to how a `ProjectConnection` can be queried. While the projects contained in a composite may come from separate Gradle builds, where possible the composite will present as if it were a single, unified Gradle build containing all of the projects for each participating Gradle build.
+
+This will provide the developer with a view of all the projects in the composite, so that the developer can search for usages or make changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle (such as task execution) will not operate on a composite build, as these actions will not (yet) be composite-aware.
+
+#### Composite builds from the command-line
+
+A command-line client will be able to point to a composite build definition, and execute tasks for the composite as a whole.
+
+## Milestones
+
+### Milestone: Tooling client defines composite and requests IDE model for each included project
 
 After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` model for each included project.
 
-#### Stories
+##### Stories
 
-- [ ] Tooling client declares "composite" with one multi-project participant and requests tooling model for each included project
-    - Implement `CompositeBuildConnection` on top of existing Tooling API client
-    - Create `ProjectConnection` instance for the participant
-    - Delegating all `getModels()` calls to the `ProjectConnection`
-        - Optimize for `EclipseProject`: open a single connection and traverse hierarchy
-        - Fail for any other model type
-    - Create a `ModelResult` for each `EclipseProject` instance
-- [ ] Tooling client declares composite with multiple builds, and requests tooling model for each included project
-    - Client will provide connection information for multiple builds (root project)
-    - Delegate `getModels()` calls to each `ProjectConnection` and aggregate results
-- [ ] Tooling client declares composite including multiple builds, and tooling models are produced by a single daemon instance
-    - New remote Tooling API protocol, permitting the creation of each `ProjectConnection` in a daemon instance
+- [ ] [Tooling client provides model for "composite" with one multi-project participant](tooling-api-model/single-build)
+- [ ] [Tooling client provides model for composite containing multiple participants](tooling-api-model/multiple-builds)
+- [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
+
+##### Open Questions
+
+- Is `GradleConnection` or `GradleBuildConnection` a better name than `CompositeBuildConnection`?
+    - This API will be useful to connect an individual Gradle build (single project or multi-project)
+    - Implementation _may_ be different for a single-build connection: no need to have a separate daemon process involved
 
 ### Milestone: IDE model for composite build includes dependency substitution
 
-After this milestone, a Tooling client can define a _homogeneous_ composite build (one where all participants have same Gradle version), and the `EclipseProject` model returned will have external dependencies replaced with project dependencies. 
+After this milestone, a Tooling client can define a _homogeneous_ composite build (one where all participants have same Gradle version), and the `EclipseProject` model returned will have external dependencies replaced with project dependencies.
 
-#### Stories: 
+##### Stories:
 
 Tooling client defines a homogeneous composite and:
 
@@ -42,7 +65,7 @@ Tooling client defines a homogeneous composite and:
 
 After this milestone, a Tooling client can define a homogeneous composite build, and execute tasks for projects within the composite. When performing dependency resolution for tasks, external dependencies will be replaced with appropriate project dependencies.
 
-#### Stories:
+##### Stories:
 
 Tooling client defines a composite and:
 
@@ -58,9 +81,3 @@ After this milestone, a Build author can define a homogeneous composite and use 
 
 - Model/task support for heterogeneous composites (different versions of Gradle)
 - Model/task support for older Gradle versions
-
-## Questions
-
-- Is `GradleConnection` or `GradleBuildConnection` a better name than `CompositeBuildConnection`?
-    - This API will be useful to connect an individual Gradle build (single project or multi-project)
-    - Implementation _may_ be different for a single-build connection: no need to have a separate daemon process involved
