@@ -1,16 +1,16 @@
 ## Composite build
 
-At this stage, this is a scratchpad of ideas for how "composite build" might be developed in Gradle. Later this feature and the related stories will be more fully fleshed out.
+This feature spec introduces the concept of a ‘Gradle composite build’. A composite build is a lightweight assembly of Gradle projects that a developer is working on. These projects may come from different Gradle builds, but when assembled into a composite Gradle is able to coordinate these projects so that they appear in some way as a single build unit.
 
-#### 'Gradle Composite'
+#### Composite build participants
 
-The defined stories introduce the concept of a ‘Gradle composite build’. A composite build is a lightweight assembly of Gradle projects that a developer is working on. These projects may come from different Gradle builds, but when assembled into a composite Gradle is able to coordinate these projects so that they appear in some way as a single build unit.
+Each separate Gradle build that provides projects for a composite build is a _build participant_. Each build participant has a version of Gradle that is used for building. A composite build is defined as _homogeneous_ if every participant is built with the same Gradle version.
 
-#### Independent models
+#### Independent configuration models
 
 Gradle builds within a composite will be configured independently, and will have no direct access to the configuration model of other builds within the composite. This will permit these builds to be configured lazily and in parallel.
 
-#### Project substitution
+#### Project dependency substitution
 
 Where possible, external dependencies will be replaced with project dependencies within a composite. In this way, a composite build will perform similarly to a multi-project build containing all of the projects.
 
@@ -28,7 +28,7 @@ A command-line client will be able to point to a composite build definition, and
 
 ## Milestones
 
-### Milestone: Tooling client defines composite and requests IDE model for each included project
+### Milestone: Tooling client can define composite and request IDE models
 
 After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` model for each included project.
 
@@ -44,7 +44,7 @@ After this milestone, a Tooling client can define a composite build, and request
     - This API will be useful to connect an individual Gradle build (single project or multi-project)
     - Implementation _may_ be different for a single-build connection: no need to have a separate daemon process involved
 
-### Milestone: IDE model for composite build includes dependency substitution
+### Milestone: IDE models for composite build include dependency substitution
 
 After this milestone, a Tooling client can define a _homogeneous_ composite build (one where all participants have same Gradle version), and the `EclipseProject` model returned will have external dependencies replaced with project dependencies.
 
@@ -61,7 +61,7 @@ Tooling client defines a homogeneous composite and:
     - Provide a "Composite Context" (containing all project publication information) when requesting `EclipseProject` model from each build
     - Likely remove the use of Tooling API to communicate with each participant
 
-### Milestone: Tooling client can execute tasks in composite build
+### Milestone: Tooling client can define composite and execute tasks
 
 After this milestone, a Tooling client can define a homogeneous composite build, and execute tasks for projects within the composite. When performing dependency resolution for tasks, external dependencies will be replaced with appropriate project dependencies.
 
@@ -73,7 +73,7 @@ Tooling client defines a composite and:
 - [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
 - [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
 
-### Milestone: Command-line execution of tasks in composite build
+### Milestone: Command-line user can execute tasks in composite build
 
 After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
 
