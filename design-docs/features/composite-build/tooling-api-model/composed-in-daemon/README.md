@@ -15,7 +15,7 @@ Other model related methods of the designed `CompositeBuildConnection` interface
 
 The implementation involves a client part ("consumer") and a server part ("provider").
 On the consumer side, the idea is to extend the current Tooling API client and reuse the infrastructure used for `ProjectConnection` and share most of it for `CompositeBuildConnection`.
-Optimally this means the the underlying `ConsumerConnection` infrastructure could be reused and shared.
+Optimally the underlying `ConsumerConnection` infrastructure could be reused and shared.
 The `getModels` API method uses a different pattern that is currently used in Tooling API client. Supporting this requires changes to the consumer side infrastructure and possibly also in the serialization protocol used in the daemon/provider connection.
 
 Later stories will require the possibility to use parameters for model requests. An example of such model is `<T> T getModel(ProjectIdentity id, Class<T> modelType)`. This story doesn't require that behaviour, but it might be beneficial to start preparing for that change in the implementation.
