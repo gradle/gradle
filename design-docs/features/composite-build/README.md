@@ -1,36 +1,52 @@
-### Composite build
+## Composite build
 
-At this stage, this is a scratchpad of ideas for how "composite build" might be developed in Gradle. Later this feature will be better described, and the following ideas could be translated into actual stories to be implemented.
+At this stage, this is a scratchpad of ideas for how "composite build" might be developed in Gradle. Later this feature and the related stories will be more fully fleshed out.
 
-### Story ideas
+## Milestone: Tooling client defines composite and requests `EclipseProject` model for each included project
 
-- Implement `CompositeBuildConnection` on top of existing Tooling API infrastructure : new client-side mechanism only
-    - Adding `CompositeBuildConnector`
-    - Creating `ProjectConnection` instances for each participant
-    - Delegating all `getModels()` calls to each `ProjectConnection` : only can cope with `EclipseProject`
-        - Fail for any request other than `EclipseProject`
-    - Flatten set of `EclipseProject` instances and create a `ProjectIdentity` for each
-    - Real code in the Tooling API in Gradle
+- [ ] Tooling client declares "composite" with one multi-project participant and requests tooling model for each included project
+    - Implement `CompositeBuildConnection` on top of existing Tooling API client
+    - Create `ProjectConnection` instance for the participant
+    - Delegating all `getModels()` calls to the `ProjectConnection`
+        - Optimize for `EclipseProject`: open a single connection and traverse hierarchy
+        - Fail for any other model type
+    - Create a `ModelResult` for each `EclipseProject` instance
+- [ ] Tooling client declares composite with multiple builds, and requests tooling model for each included project
+    - Client will provide connection information for multiple builds (root project)
+    - Delegate `getModels()` calls to each `ProjectConnection` and aggregate results
+- [ ] Tooling client declares composite including multiple builds, and tooling models are produced by a single daemon instance
+    - New remote Tooling API protocol, permitting the creation of each `ProjectConnection` in a daemon instance
 
-- Implement naive dependency substitution in client-only `CompositeBuildConnection`
-    - Get the ProjectPublications instances for every `EclipseProject` in the composite
-        - Create a `ProjectConnection` for each subproject, and ask for the model
+## Milestone: Tooling client defines homogeneous composite and IDE models have external dependencies replaced with project dependencies
+
+Tooling client defines a homogeneous composite (all participants have same Gradle version) and:
+
+- [ ] IDE models have external dependencies directly replaced with dependencies on composite project publications
+    - Naive implementation of dependency substitution: metadata is not considered
+    - Retrieve the `ProjectPublications` instance for every `EclipseProject` in the composite
     - Adapt the returned set of `EclipseProject` instances by replacing Classpath entries with project dependencies
+- [ ] IDE models are resolved with project dependencies substituted for external dependencies
+    - Implement real dependency substitution for composite build (all participants must have the same Gradle version)
+    - Provide a "Composite Context" (containing all project publication information) when requesting `EclipseProject` model from each build
+    - Likely remove the use of Tooling API to communicate with each participant
 
-- Implement `CompositeBuildConnection` where the aggregation occurs in a daemon process
-    - Remoting the existing client-side `CompositeBuildConnection` implementation
-    - Move the client-side implementation into the daemon request handler
+## Milestone: Tooling client defines homogeneous composite and executes tasks where external dependencies are replaced with project dependencies
 
-- Implement real dependency substitution for composite build with a single Gradle version
-    - Removing the use of ToolingAPI to communicate with each participant
-    - Provide the "Composite Context" (containing all project publication information) when requesting `EclipseProject` model from each build
+Tooling client defines a composite and:
 
-- Implement real dependency substitution for composite build with a different Gradle versions
-    - Would need to be able to supply the "Composite context" to a remote build invocation (via TAPI?)
+- [ ] Executes `dependencies` task for project, demonstrating appropriate dependency substitution
+- [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
+- [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
 
-- Implement `EclipseProject` deduplication
+## Milestone: Build author defines a homogeneous composite and uses command line to executes tasks for a project within the composite
 
-### Questions
+## Later
+
+- Model/task support for heterogeneous composites (different versions of Gradle)
+- Model/task support for older Gradle versions
+
+
+## Questions
 
 - Is `GradleConnection` or `GradleBuildConnection` a better name than `CompositeBuildConnection`?
     - This API will be useful to connect an individual Gradle build (single project or multi-project)

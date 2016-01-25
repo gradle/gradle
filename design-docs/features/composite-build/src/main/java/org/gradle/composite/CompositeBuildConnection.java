@@ -28,18 +28,19 @@ import java.util.Set;
  * Provides access to models for all projects within that build.
  */
 public interface CompositeBuildConnection {
+    // This is all that's strictly required for Eclipse dependency substitution:
+    <T> Set<ModelResult<T>> getModels(Class<T> modelType);
+
+    // These are candidates for future usability of the composite connection
     List<ProjectIdentity> getProjects();
 
-    // Direct pass-through to ProjectConnection
-    ProjectConnection project(ProjectIdentity id);
-
     // Model methods targeting a single project
+    ProjectConnection project(ProjectIdentity id);
     <T> T getModel(ProjectIdentity id, Class<T> modelType);
-    <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
+    <T> void getModel(ProjectIdentity id, Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
     <T> ModelBuilder<T> model(ProjectIdentity id, Class<T> modelType);
 
     // Model methods to get model for all projects
-    <T> Set<ModelResult<T>> getModels(Class<T> modelType);
     <T> void getModels(Class<T> modelType, CompositeResultHandler<T> handler) throws IllegalStateException;
     <T> CompositeModelBuilder<T> models(Class<T> modelType);
 }
