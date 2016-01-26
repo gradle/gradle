@@ -20,16 +20,18 @@ metadata or include them in such a way as they are non-transitive and ignored by
         compileOnly 'javax.servlet:servlet-api:2.5'
     }
 
-When using the 'war' plugin, 'compileOnly' behaves similarly to 'providedCompile'. Compile only dependencies should not be included in the packaged WAR file. Additionally,
-dependencies added to 'providedCompile' should be included in 'compileOnly' but not 'compile'.
+When using the 'war' plugin, 'compileOnly' behaves similarly to 'providedCompile'. Compile only dependencies should not be included in the packaged WAR file.
+
+A source set's compile classpath will no longer be accurately described by `configurations.compile`. For getting the compile classpath of a given source set
+`SourceSet.getCompileClasspath()` should be used instead. Additionally, the resolved graph of dependencies used at compile time should be accessible via
+`SourceSet.getCompileDependencies()`.
 
 ### Implementation
 
 * Introduce a new configuration for each `SourceSet` named 'compileOnly'.
 * The 'compileOnly' configuration should extend from 'compile'. The 'runtime' configuration will continue to extend from 'compile'.
 * `SourceSet.compileClasspath` should now become `configurations.compileOnly`.
-* When applying the 'java' plugin, `configurations.testCompileOnly` should extend `configurations.compileOnly`.
-* When applying the 'war' plugin, `configurations.compileOnly` (not `configurations.compile`) should extend `configurations.providedCompile`.
+* Add method `getCompileDependencies()` to `SourceSet` which returns a `ResolutionResult` representing resolve dependency graph for compile time dependencies.
 * Compile only dependencies should be visible to IDEs.
     * For IntelliJ this means mapping to 'provided' scope
     * For Eclipse this means not exporting 'compileOnly' dependencies
@@ -41,12 +43,12 @@ dependencies added to 'providedCompile' should be included in 'compileOnly' but 
 * Can compile source against a 'compileOnly' dependency
 * A 'compileOnly' dependency is not available on runtime classpath
 * Compile classpath, include 'compileOnly' dependencies, are queryable via `SourceSet.compileClasspath`
+* Compile dependency graph is queryable via `SourceSet.compileDependencies`
 * Conflicts between 'compile' and 'compileOnly' dependencies are resolved the same as conflicts between 'compile' and 'runtime'
 * Declaring a dependency on a project with 'compileOnly' dependencies does not include 'compileOnly' dependencies
-* When using 'java' plugin, 'main' sourceset 'compileOnly' dependencies are available on the test compile classpath
-* When using 'java' plugin, 'main' sourceset 'compielOnly' dependencies are *not* available on the test runtime classpath
+* When using 'java' plugin, 'main' sourceset 'compileOnly' dependencies are *not* available on the test compile classpath
 * When using 'war' plugin, 'compileOnly' dependencies are not included in WAR file.
-* When using 'war' plugin, a dependency included in both 'providedCompile' and 'compile' is included in the WAR file.
+* 'compileOnly' dependencies should not be included in EAR (using 'ear' plugin) or application distribution (using 'application' plugin)
 * 'compileOnly' dependencies mapped to 'provided' scope in IDEA model
 * The 'eclipse' plugin includes 'compileOnly' dependencies on project classpath
 * The 'eclipse' plugin does not include 'compileOnly' dependencies on dependent projects' classpath
