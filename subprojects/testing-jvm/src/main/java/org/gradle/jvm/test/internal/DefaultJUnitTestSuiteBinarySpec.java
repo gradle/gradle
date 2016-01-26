@@ -27,7 +27,6 @@ import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.Variant;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.util.Collection;
@@ -60,7 +59,6 @@ public class DefaultJUnitTestSuiteBinarySpec extends DefaultJvmBinarySpec implem
     }
 
     @Override
-    @Variant
     public String getjUnitVersion() {
         return junitVersion;
     }
