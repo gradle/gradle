@@ -17,8 +17,14 @@
 package org.gradle.platform.base.internal.toolchain;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class ArgWriter implements ArgCollector {
@@ -31,6 +37,9 @@ public class ArgWriter implements ArgCollector {
         this.backslashEscape = backslashEscape;
     }
 
+    /**
+     * Double quotes around args containing whitespace, backslash chars are escaped using double backslash, platform line separators.
+     */
     public static ArgWriter unixStyle(PrintWriter writer) {
         return new ArgWriter(writer, true);
     }
@@ -43,6 +52,9 @@ public class ArgWriter implements ArgCollector {
         };
     }
 
+    /**
+     * Double quotes around args containing whitespace, platform line separators.
+     */
     public static ArgWriter windowsStyle(PrintWriter writer) {
         return new ArgWriter(writer, false);
     }
@@ -51,6 +63,33 @@ public class ArgWriter implements ArgCollector {
         return new Transformer<ArgWriter, PrintWriter>() {
             public ArgWriter transform(PrintWriter original) {
                 return windowsStyle(original);
+            }
+        };
+    }
+
+    /**
+     * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
+     */
+    public static Transformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final Transformer<ArgWriter, PrintWriter> argWriterFactory) {
+        return new Transformer<List<String>, List<String>>() {
+            @Override
+            public List<String> transform(List<String> args) {
+                if (args.isEmpty()) {
+                    return args;
+                }
+                GFileUtils.mkdirs(argsFile.getParentFile());
+                try {
+                    PrintWriter writer = new PrintWriter(argsFile);
+                    try {
+                        ArgWriter argWriter = argWriterFactory.transform(writer);
+                        argWriter.args(args);
+                    } finally {
+                        writer.close();
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
+                }
+                return Collections.singletonList(String.format("@%s", argsFile.getAbsolutePath()));
             }
         };
     }

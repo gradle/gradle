@@ -16,11 +16,14 @@
 
 package org.gradle.platform.base.internal.toolchain
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ArgWriterTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tmpDir
     final StringWriter writer = new StringWriter()
     final PrintWriter printWriter = new PrintWriter(writer, true)
     final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)
@@ -75,4 +78,21 @@ class ArgWriterTest extends Specification {
         writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
     }
 
+    def "generates args file using system encoding"() {
+        def argsFile = tmpDir.file("options.txt")
+        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+
+        expect:
+        generator.transform(["a", "\u0302", "a b c"]) == ["@${argsFile.absolutePath}"]
+        argsFile.text == toPlatformLineSeparators('a\n\u0302\n"a b c"\n')
+    }
+
+    def "does not generate args file for empty args"() {
+        def argsFile = tmpDir.file("options.txt")
+        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+
+        expect:
+        generator.transform([]) == []
+        !argsFile.file
+    }
 }
