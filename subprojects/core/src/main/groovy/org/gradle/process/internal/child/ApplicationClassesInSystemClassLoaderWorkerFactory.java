@@ -24,7 +24,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.messaging.remote.Address;
-import org.gradle.process.JavaExecSpec;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
@@ -59,27 +59,16 @@ import java.util.Set;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
-    private final Object workerId;
-    private final String displayName;
-    private final WorkerProcessBuilder processBuilder;
-    private final List<URL> implementationClassPath;
-    private final Address serverAddress;
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
 
-    public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
-                                                              List<URL> implementationClassPath, Address serverAddress,
-                                                              ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
-        this.workerId = workerId;
-        this.displayName = displayName;
-        this.processBuilder = processBuilder;
-        this.implementationClassPath = implementationClassPath;
-        this.serverAddress = serverAddress;
+    public ApplicationClassesInSystemClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public void prepareJavaCommand(JavaExecSpec execSpec) {
+    @Override
+    public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
         LogLevel logLevel = processBuilder.getLogLevel();
@@ -93,7 +82,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
-            writeOptionsFile(workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
+            writeOptionsFile(displayName, workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
             execSpec.jvmArgs("@" + optionsFile.getPath());
         } else {
             // Use a dummy security manager
@@ -101,7 +90,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
         }
 
-        ActionExecutionWorker worker = create();
+        ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress, processBuilder.getGradleUserHomeDir());
 
         // Serialize configuration for the worker process to it stdin
 
@@ -149,7 +138,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
     }
 
-    private void writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
+    private void writeOptionsFile(String displayName, Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(optionsFile));
             try {
@@ -171,9 +160,4 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             throw new GradleException(String.format("Could not generate options file for %s.", displayName), e);
         }
     }
-
-    private ActionExecutionWorker create() {
-        return new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress, processBuilder.getGradleUserHomeDir());
-    }
-
 }

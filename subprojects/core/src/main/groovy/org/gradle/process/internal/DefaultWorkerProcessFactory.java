@@ -43,22 +43,22 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
-    private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
-    private final TemporaryFileProvider temporaryFileProvider;
+    private ApplicationClassesInSystemClassLoaderWorkerFactory systemClassLoaderWorkerFactory;
+    private ApplicationClassesInIsolatedClassLoaderWorkerFactory isolatedClassLoaderWorkerFactory;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
                                        IdGenerator<?> idGenerator, File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
-        this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
-        this.temporaryFileProvider = temporaryFileProvider;
+        isolatedClassLoaderWorkerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(classPathRegistry);
+        systemClassLoaderWorkerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
     }
 
     public WorkerProcessBuilder create() {
@@ -94,11 +94,9 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
 
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry, temporaryFileProvider);
+                workerFactory = systemClassLoaderWorkerFactory;
             } else {
-                workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry);
+                workerFactory = isolatedClassLoaderWorkerFactory;
             }
 
             LOGGER.debug("Creating {}", displayName);
@@ -106,8 +104,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             JavaExecHandleBuilder javaCommand = getJavaCommand();
-            workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
+
+            workerFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand);
+
             javaCommand.args("'" + displayName + "'");
             ExecHandle execHandle = javaCommand.build();
 
