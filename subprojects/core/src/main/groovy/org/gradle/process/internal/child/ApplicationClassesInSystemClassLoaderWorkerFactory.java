@@ -16,25 +16,23 @@
 
 package org.gradle.process.internal.child;
 
-import org.gradle.api.GradleException;
+import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.process.ArgWriter;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
-import org.gradle.util.TextUtil;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -84,8 +82,8 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
-            writeOptionsFile(displayName, workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
-            execSpec.jvmArgs("@" + optionsFile.getPath());
+            List<String> jvmArgs = writeOptionsFile(workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
+            execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager
             execSpec.classpath(workerMainClassPath.getAsFiles());
@@ -140,26 +138,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
     }
 
-    private void writeOptionsFile(String displayName, Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(optionsFile));
-            try {
-                writer.append("-cp '");
-                for (File file : workerMainClassPath) {
-                    writer.append(file.getPath());
-                    writer.append(File.pathSeparatorChar);
-                }
-                for (File file : applicationClasspath) {
-                    writer.append(file.getPath());
-                    writer.append(File.pathSeparatorChar);
-                }
-                writer.append("'");
-                writer.append(TextUtil.getPlatformLineSeparator());
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw new GradleException(String.format("Could not generate options file for %s.", displayName), e);
-        }
+    private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
+        List<File> classpath = new ArrayList<File>(workerMainClassPath.size() + applicationClasspath.size());
+        classpath.addAll(workerMainClassPath);
+        classpath.addAll(applicationClasspath);
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
     }
 }
