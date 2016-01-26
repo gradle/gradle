@@ -125,31 +125,22 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
-            playApplications.withType(PlayPlatformAwareComponentSpecInternal.class).afterEach(new Action<PlayPlatformAwareComponentSpecInternal>() {
-                public void execute(PlayPlatformAwareComponentSpecInternal playApplication) {
-                    if (playApplication.getTargetPlatforms().size() > 1) {
-                        throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
-                    }
-                }
-            });
+        void failOnMultipleTargetPlatforms(@Each PlayPlatformAwareComponentSpecInternal playApplication) {
+            if (playApplication.getTargetPlatforms().size() > 1) {
+                throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+            }
         }
 
         @Validate
-        void failIfInjectedRouterIsUsedWithOldVersion(ModelMap<PlayApplicationBinarySpec> playApplicationBinaries) {
-            playApplicationBinaries.afterEach(new Action<PlayApplicationBinarySpec>() {
-                @Override
-                public void execute(PlayApplicationBinarySpec playApplicationBinary) {
-                    if (playApplicationBinary.getApplication().getInjectedRoutesGenerator()) {
-                        final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
-                        VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
-                        VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
-                        if (playVersion.compareTo(minSupportedVersion) < 0) {
-                            throw new GradleException("Injected routers are only supported in Play 2.4 or newer.");
-                        }
-                    }
+        void failIfInjectedRouterIsUsedWithOldVersion(@Each PlayApplicationBinarySpec playApplicationBinary) {
+            if (playApplicationBinary.getApplication().getInjectedRoutesGenerator()) {
+                final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
+                VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
+                VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
+                if (playVersion.compareTo(minSupportedVersion) < 0) {
+                    throw new GradleException("Injected routers are only supported in Play 2.4 or newer.");
                 }
-            });
+            }
         }
 
         @ComponentBinaries
@@ -189,6 +180,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
+        // TODO:LPTR This should be like @Finalize void generatedSourcesAreInputs(@Each PlayApplicationBinarySpecInternal binary)
         void generatedSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
             binaries.afterEach(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
