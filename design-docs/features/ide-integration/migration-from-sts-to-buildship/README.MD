@@ -32,5 +32,7 @@ It should reference the relevant points from the [STS plugin documentation](http
      - If the user does not check the option, then the dialog will continue to be rendered upon startup
 - User can directly click on the link in the dialog and a browser will be opened
 
+Note: Eclipse provides an API to install-uninstall bundles in the current runtime. We'll make use of this feature to provide integration tests verifying how Buildship behaves when STS is installed.
+
 ## Open issues
 
