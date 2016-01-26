@@ -15,12 +15,13 @@ To support Eclipse import, only a constrained composite connection API is requir
     }
 
     interface GradleBuild extends GradleDistributionAware {
+        GradleBuild useGradleUserHomeDir(File gradleUserHomeDir); // TODO: May not be needed
     }
 
     interface GradleDistributionAware {
-        void useInstallation(File gradleHome);
-        void useGradleVersion(String gradleVersion);
-        void useDistribution(URI location);
+        GradleBuild useInstallation(File gradleHome);
+        GradleBuild useGradleVersion(String gradleVersion);
+        GradleBuild useDistribution(URI location);
     }
 
     interface GradleConnection {
@@ -38,14 +39,30 @@ To support Eclipse import, only a constrained composite connection API is requir
 
     // Usage:
     GradleConnection.Builder builder = GradleConnector.newGradleConnection()
-    GradleBuild projectBuild1 = builder.addBuild(new File("path/to/project-build-1"))
-    projectBuild1.useGradleVersion(new File("path/to/gradles"))
+    builder.addBuild(new File("path/to/root")) // use Gradle version specified by build
+    builder.addBuild(new File("...")).useGradleVersion("2.0") // use specific version
+
     GradleConnection connection = builder.build()
 
     Set<EclipseProject> projects = connection.getModels(EclipseProject.class)
     for (EclipseProject project : projects) {
         // do something with EclipseProject model
     }
+
+    ModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
+    Set<EclipseProject> projects = modelBuilder.get()
+
+    modelBuilder.get(new ResultHandler<Set<EclipseProject>>() {
+        @Override
+        public void onComplete(Set<EclipseProject> result) {
+            // handle complete result set
+        }
+
+        @Override
+        public void onFailure(GradleConnectionException failure) {
+            // handle failures
+        }
+    })
 
 ### Implementation notes
 
@@ -57,6 +74,11 @@ To support Eclipse import, only a constrained composite connection API is requir
 - Gather all `EclipseProject`s into result Set
 - After closing a `GradleConnection`, `GradleConnection` methods throw IllegalStateException (like `ProjectConnection.getModel`)
 - All `ModelBuilder` methods are delegates to the underlying `ProjectConnection`
+- Validate participant projects are a "valid" composite before retrieving model
+    - >1 participants
+    - All using >= Gradle 1.0
+    - Participants are not "overlapping" (subprojects of one another)
+    - Participants are actually Gradle builds
 
 ### Test coverage
 
@@ -69,10 +91,18 @@ To support Eclipse import, only a constrained composite connection API is requir
 - When retrieving `EclipseProject`:
     - a single ProjectConnection is used.
     - a single project returns a single `EclipseProject`
-    - a multi-project build returns a `EclipseProject` for each project in a flatten set (does not rely on hierarchy)
+    - a multi-project build returns a `EclipseProject` for each Gradle project in a Set
 - Changing the participants Gradle distribution is reflected in the `ProjectConnection`
 - Participant project directory is used as the project directory for the `ProjectConnection`
-- Fail if participants are <Gradle 1.0
+- Participant gradleUserHome is used as the gradle user home for the `ProjectConnection`
+- Fail if participant is not a Gradle build (what does this look like for existing integration tests?)
+- Cross-version tests:
+    - Fail if participants are <Gradle 1.0
+    - Test retrieving `EclipseProject` from all supported Gradle versions
+- After making a successful model request, on a subsequent model request:
+    - Changing the set of sub-projects changes the number of `EclipseProject`s that are returned
+    - Removing the project directory is causes a failure
+    - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
 
 ### Documentation
 

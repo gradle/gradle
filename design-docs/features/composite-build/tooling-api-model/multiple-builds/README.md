@@ -35,6 +35,10 @@
 - Check that a consumer can cancel an operation
 - Check that all `ModelBuilder` methods are forwarded to each underlying build's `ModelBuilder` when configuring a build specific `ModelBuilder`
 - Check that retrieving a model fails on the first `ProjectConnection` failure
+- Fail if participant is a subproject of another participant.
+- After a successful model request, on a subsequent request:
+    - Making one participant a subproject of another causes the request to fail
+
 
 ### Documentation
 
