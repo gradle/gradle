@@ -9,6 +9,7 @@
 ### API
 
 To support Eclipse import, only a constrained composite connection API is required.
+
     GradleConnector { // existing class
         static GradleConnection.Builder newGradleConnection()
     }
@@ -22,8 +23,8 @@ To support Eclipse import, only a constrained composite connection API is requir
         void useDistribution(URI location);
     }
 
-    interface GradleConnection {    
-        interface Builder { 
+    interface GradleConnection {
+        interface Builder {
             GradleBuild addBuild(File rootProjectDirectory);
             GradleConnection build() throws GradleConnectionException;
         }
@@ -65,7 +66,7 @@ To support Eclipse import, only a constrained composite connection API is requir
 - Errors from trying to retrieve models (getModels, et al) is propagated to caller.
 - Errors from closing underlying ProjectConnection propagate to caller.
 - When retrieving anything other than `EclipseProject`, an `UnsupportedOperationException` is thrown.
-- When retrieving `EclipseProject`, 
+- When retrieving `EclipseProject`:
     - a single ProjectConnection is used.
     - a single project returns a single `EclipseProject`
     - a multi-project build returns a `EclipseProject` for each project in a flatten set (does not rely on hierarchy)
