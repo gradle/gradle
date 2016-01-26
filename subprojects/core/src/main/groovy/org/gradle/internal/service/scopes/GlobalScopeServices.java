@@ -28,8 +28,6 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -72,6 +70,7 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.process.internal.DefaultExecActionFactory;
 
 import java.util.List;
 
@@ -79,8 +78,6 @@ import java.util.List;
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
  */
 public class GlobalScopeServices {
-
-    private static final Logger LOGGER = Logging.getLogger(GlobalScopeServices.class);
     private final ClassPath additionalModuleClassPath;
 
     private GradleBuildEnvironment environment;
@@ -213,6 +210,10 @@ public class GlobalScopeServices {
 
     FileCollectionFactory createFileCollectionFactory() {
         return new DefaultFileCollectionFactory();
+    }
+
+    DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
+        return new DefaultExecActionFactory(fileResolver);
     }
 
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {

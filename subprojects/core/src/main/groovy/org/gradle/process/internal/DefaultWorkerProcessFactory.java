@@ -18,7 +18,6 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
@@ -43,20 +42,19 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
-    private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
-    private ApplicationClassesInSystemClassLoaderWorkerFactory systemClassLoaderWorkerFactory;
-    private ApplicationClassesInIsolatedClassLoaderWorkerFactory isolatedClassLoaderWorkerFactory;
+    private final ExecHandleFactory execHandleFactory;
+    private final ApplicationClassesInSystemClassLoaderWorkerFactory systemClassLoaderWorkerFactory;
+    private final ApplicationClassesInIsolatedClassLoaderWorkerFactory isolatedClassLoaderWorkerFactory;
 
-    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
-                                       ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator, File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider) {
+    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
-        this.resolver = resolver;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.execHandleFactory = execHandleFactory;
         isolatedClassLoaderWorkerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(classPathRegistry);
         systemClassLoaderWorkerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
     }
@@ -67,7 +65,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
 
     private class DefaultWorkerProcessBuilder extends WorkerProcessBuilder {
         public DefaultWorkerProcessBuilder() {
-            super(resolver);
+            super(execHandleFactory.newJavaExec());
             setLogLevel(workerLogLevel);
             setGradleUserHomeDir(gradleUserHomeDir);
         }
