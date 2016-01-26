@@ -16,12 +16,13 @@
 
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
 class ExecHandleBuilderTest extends Specification {
-    private final ExecHandleBuilder builder = new ExecHandleBuilder()
+    private final ExecHandleBuilder builder = new ExecHandleBuilder(TestFiles.resolver())
 
     def handlesCommandLineWithNoArgs() {
         when:
