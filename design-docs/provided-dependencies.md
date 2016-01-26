@@ -20,12 +20,16 @@ metadata or include them in such a way as they are non-transitive and ignored by
         compileOnly 'javax.servlet:servlet-api:2.5'
     }
 
+When using the 'war' plugin, 'compileOnly' behaves similarly to 'providedCompile'. Compile only dependencies should not be included in the packaged WAR file. Additionally,
+dependencies added to 'providedCompile' should be included in 'compileOnly' but not 'compile'.
+
 ### Implementation
 
 * Introduce a new configuration for each `SourceSet` named 'compileOnly'.
 * The 'compileOnly' configuration should extend from 'compile'. The 'runtime' configuration will continue to extend from 'compile'.
 * `SourceSet.compileClasspath` should now become `configurations.compileOnly`.
 * When applying the 'java' plugin, `configurations.testCompileOnly` should extend `configurations.compileOnly`.
+* When applying the 'war' plugin, `configurations.compileOnly` (not `configurations.compile`) should extend `configurations.providedCompile`.
 * Compile only dependencies should be visible to IDEs.
     * For IntelliJ this means mapping to 'provided' scope
     * For Eclipse this means not exporting 'compileOnly' dependencies
@@ -41,6 +45,8 @@ metadata or include them in such a way as they are non-transitive and ignored by
 * Declaring a dependency on a project with 'compileOnly' dependencies does not include 'compileOnly' dependencies
 * When using 'java' plugin, 'main' sourceset 'compileOnly' dependencies are available on the test compile classpath
 * When using 'java' plugin, 'main' sourceset 'compielOnly' dependencies are *not* available on the test runtime classpath
+* When using 'war' plugin, 'compileOnly' dependencies are not included in WAR file.
+* When using 'war' plugin, a dependency included in both 'providedCompile' and 'compile' is included in the WAR file.
 * 'compileOnly' dependencies mapped to 'provided' scope in IDEA model
 * The 'eclipse' plugin includes 'compileOnly' dependencies on project classpath
 * The 'eclipse' plugin does not include 'compileOnly' dependencies on dependent projects' classpath
