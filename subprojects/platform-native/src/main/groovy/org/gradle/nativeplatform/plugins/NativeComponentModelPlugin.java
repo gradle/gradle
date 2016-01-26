@@ -179,44 +179,29 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Mutate
-        void configureGeneratedSourceSets(ModelMap<NativeComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
-                @Override
-                public void execute(NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(LanguageSourceSetInternal.class).afterEach(new Action<LanguageSourceSetInternal>() {
-                        @Override
-                        public void execute(LanguageSourceSetInternal languageSourceSet) {
-                            Task generatorTask = languageSourceSet.getGeneratorTask();
-                            if (generatorTask != null) {
-                                languageSourceSet.builtBy(generatorTask);
-                                maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
-                                if (languageSourceSet instanceof HeaderExportingSourceSet) {
-                                    maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
-                                }
-                            }
-                        }
-                    });
+        @Finalize
+        void configureGeneratedSourceSets(@Each LanguageSourceSetInternal languageSourceSet) {
+            Task generatorTask = languageSourceSet.getGeneratorTask();
+            if (generatorTask != null) {
+                languageSourceSet.builtBy(generatorTask);
+                maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                    maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
                 }
-            });
+            }
         }
 
-        @Mutate
-        void configurePrefixHeaderFiles(ModelMap<NativeComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
-            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
+        @Defaults
+        void configurePrefixHeaderFiles(@Each final NativeComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
+            componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
                 @Override
-                public void execute(final NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
-                        @Override
-                        public void execute(DependentSourceSetInternal dependentSourceSet) {
-                            if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
-                                File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
-                                File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
-                                dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
-                            }
-                        }
-                    });
+                public void execute(DependentSourceSetInternal dependentSourceSet) {
+                    if (dependentSourceSet.getPreCompiledHeader() != null) {
+                        String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
+                        File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
+                        File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
+                        dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
+                    }
                 }
             });
         }
