@@ -6,6 +6,8 @@ This feature spec introduces the concept of a ‘Gradle composite build’. A co
 
 Each separate Gradle build that provides projects for a composite build is a _build participant_. Each build participant has a version of Gradle that is used for building. A composite build is defined as _homogeneous_ if every participant is built with the same Gradle version.
 
+TAPI clients must use >= Gradle 2.12 to use composite builds. Participant projects can be mixed, but not all features of a composite build may be supported.
+
 #### Independent configuration models
 
 Gradle builds within a composite will be configured independently, and will have no direct access to the configuration model of other builds within the composite. This will permit these builds to be configured lazily and in parallel.

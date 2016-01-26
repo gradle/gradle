@@ -5,7 +5,6 @@
 - This story provides an API for retrieving an aggregate model (single type from multiple projects) through the TAPI.
 - With the existing `ProjectConnection` API, aggregation must be done on the client side or a model type must be a `HierarchicalElement` (only works for multi-project builds).
 - It will only support retrieving models for `EclipseProject`.  Later stories add support for `ProjectPublications`, and eventually any model type should be able to be aggregated from a composite build.
-- TAPI clients must use >= Gradle 2.12 to use composite builds. Participant projects can be mixed, but not all features of a composite build may be supported.
 
 ### API
 
@@ -56,6 +55,7 @@ To support Eclipse import, only a constrained composite connection API is requir
     - Fail for any other model type
 - Gather all `EclipseProject`s into result Set
 - After closing a `GradleConnection`, `GradleConnection` methods throw IllegalStateException (like `ProjectConnection.getModel`)
+- All `ModelBuilder` methods are delegates to the underlying `ProjectConnection`
 
 ### Test coverage
 
@@ -76,6 +76,7 @@ To support Eclipse import, only a constrained composite connection API is requir
 ### Documentation
 
 - Need to rework sample or add composite sample using new API.
+- Add toolingApi sample with a single multi-project build. Demonstrate retrieving models from all projects.
 
 ### Open issues
 
