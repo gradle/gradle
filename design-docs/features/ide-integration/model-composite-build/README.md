@@ -336,3 +336,4 @@ analogue of the model provided for Buildship.
 but their `getParent()` and `getChildren()` methods return undecorated projects.
 - There are a lot of details and test cases about the flattening, but it is not really helpful to Buildship.
 A `getRootProjects()` method would need less explanation and work just as well for Buildship
+- Refreshing all projects in the workspace might be too costly for some power users. Buildship could allow the user to define composites explicitly, in order to reduce the number of affected projects
