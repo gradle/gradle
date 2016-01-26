@@ -92,7 +92,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
                     resourcesTask.from(resourceSet.getSource());
 
-                    // The first directory is the one created by JarBinaryRules
+                    // The first directory is the one created by JvmComponentPlugin.configureJvmBinaries()
                     // to be used as the default output directory for processed resources
                     JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
                     resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));

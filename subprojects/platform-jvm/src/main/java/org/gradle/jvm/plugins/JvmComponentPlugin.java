@@ -32,12 +32,10 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,8 +43,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Base plugin for JVM component support. Applies the
@@ -56,16 +52,8 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public JvmComponentPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -208,6 +196,23 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     ? binaryName.substring(0, binaryName.length() - 3)
                     : binaryName;
             return libName + "ApiJar";
+        }
+
+        @Defaults
+        void configureJvmBinaries(@Each JvmBinarySpecInternal jvmBinary, ProjectLayout projectLayout) {
+            File buildDir = projectLayout.getBuildDir();
+            BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
+            jvmBinary.setClassesDir(namingScheme.getOutputDirectory(buildDir, "classes"));
+            jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(buildDir, "resources"));
+        }
+
+        @Defaults
+        void configureJarBinaries(@Each JarBinarySpecInternal jarBinary, ProjectLayout projectLayout, JavaToolChainRegistry toolChains) {
+            String libraryName = jarBinary.getId().getLibraryName();
+            File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
+            jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
+            jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
+            jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
         }
     }
 }
