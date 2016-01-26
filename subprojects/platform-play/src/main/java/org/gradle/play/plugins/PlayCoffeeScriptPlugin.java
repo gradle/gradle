@@ -27,11 +27,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.play.PlayApplicationSpec;
@@ -74,18 +71,13 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultCoffeeScriptSourceSet.class);
         }
 
-        @Mutate
-        void createCoffeeScriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-            components.afterEach(new Action<PlayApplicationSpec>() {
+        @Finalize
+        void createCoffeeScriptSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
                 @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
-                        @Override
-                        public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
-                            coffeeScriptSourceSet.getSource().srcDir("app/assets");
-                            coffeeScriptSourceSet.getSource().include("**/*.coffee");
-                        }
-                    });
+                public void execute(CoffeeScriptSourceSet coffeeScriptSourceSet) {
+                    coffeeScriptSourceSet.getSource().srcDir("app/assets");
+                    coffeeScriptSourceSet.getSource().include("**/*.coffee");
                 }
             });
         }
@@ -103,16 +95,10 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             });
         }
 
-        // TODO:DAZ This should not need to be `@BinaryTasks`
-        @BinaryTasks
-        void configureCoffeeScriptCompileDefaults(ModelMap<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
-            tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
-                @Override
-                public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
-                    coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
-                    coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
-                }
-            });
+        @Defaults
+        void configureCoffeeScriptCompileDefaults(@Each PlayCoffeeScriptCompile coffeeScriptCompile) {
+            coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+            coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
         }
 
         @Mutate
