@@ -19,7 +19,6 @@
 ### Test coverage
 
 - Including 'single-build' tests, except relaxing allowed # of participants.
-- Fails with `UnsupportedVersionException` when any participant in the composite is <Gradle 2.12 when retrieving the first model
 - When composite build connection is closed, all `ProjectConnection`s are closed.
 - When retrieving an `EclipseProject`,
     - with two 'single' projects, two `EclipseProject`s are returned.
