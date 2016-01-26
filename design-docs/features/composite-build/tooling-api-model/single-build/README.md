@@ -10,14 +10,11 @@
 ### API
 
 To support Eclipse import, only a constrained composite connection API is required.
-
-    abstract class CompositeBuildConnector { 
-        static CompositeBuildConnector newComposite()
-        CompositeParticipant addParticipant(File rootProjectDirectory);
-        CompositeBuildConnection connect() throws GradleConnectionException;
+    GradleConnector { // existing class
+        static GradleConnection.Builder newGradleConnection()
     }
 
-    interface CompositeParticipant extends GradleDistributionAware {
+    interface GradleBuild extends GradleDistributionAware {
     }
 
     interface GradleDistributionAware {
@@ -26,43 +23,43 @@ To support Eclipse import, only a constrained composite connection API is requir
         void useDistribution(URI location);
     }
 
-    interface CompositeBuildConnection {
-        <T> Set<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException
+    interface GradleConnection {    
+        interface Builder { 
+            GradleBuild addBuild(File rootProjectDirectory);
+            GradleConnection build() throws GradleConnectionException;
+        }
+
+        <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException
         void close()
     }
 
-    interface ModelResult<T> {
-        T getModel()
-    }
-
     // Usage:
-    CompositeBuildConnector composite = CompositeBuildConnector.newComposite()
-    CompositeParticipant participant = composite.addParticipant(new File("path/to/somewhere"))
-    participant.useGradleVersion(new File("path/to/gradles"))
-    CompositeBuildConnection connection = composite.connect()
+    GradleConnection.Builder builder = GradleConnector.newGradleConnection()
+    GradleBuild projectBuild1 = builder.addBuild(new File("path/to/project-build-1"))
+    projectBuild1.useGradleVersion(new File("path/to/gradles"))
+    GradleConnection connection = builder.build()
 
-    Set<ModelResult<EclipseProject>> results = connection.getModels(EclipseProject.class)
-    for (ModelResult<EclipseProject> result : results) {
-        EclipseProject project = result.getModel()
+    Set<EclipseProject> projects = connection.getModels(EclipseProject.class)
+    for (EclipseProject project : projects) {
         // do something with EclipseProject model
     }
 
 ### Implementation notes
 
-- Implement `CompositeBuildConnection` on top of existing Tooling API client
+- Implement `GradleConnection` on top of existing Tooling API client
 - Create `ProjectConnection` instance for the participant
 - Delegating all `getModels()` calls to the `ProjectConnection`
     - Optimize for `EclipseProject`: open a single connection and traverse hierarchy
     - Fail for any other model type
-- Create a `ModelResult` for each `EclipseProject` instance
-- After closing a `CompositeBuildConnection`, `getModels` throws IllegalStateException (like `ProjectConnection.getModel`)
+- Gather all `EclipseProject` into result Set
+- After closing a `GradleConnection`, `getModels` throws IllegalStateException (like `ProjectConnection.getModel`)
 
 ### Test coverage
 
 - Fail with `IllegalStateException` if no participants are added to the composite when connecting.
 - Fail with `UnsupportedOperationException` if composite build is created with >1 participant when connecting.
 - Fail with `UnsupportedVersionException` if composite build participant is using < Gradle 2.12 when retrieving model.
-- Fail with `IllegalStateException` after connecting to a `CompositeBuildConnection`, closing the connection and trying to retrieve a model.
+- Fail with `IllegalStateException` after connecting to a `GradleConnection`, closing the connection and trying to retrieve a model.
 - Errors from trying to retrieve models (getModels) is propagated to caller.
 - Errors from closing underlying ProjectConnection propagate to caller.
 - When retrieving anything other than `EclipseProject`, an `UnsupportedOperationException` is thrown.
@@ -80,7 +77,6 @@ To support Eclipse import, only a constrained composite connection API is requir
 
 ### Open issues
 
-- Should we provide a `GradleConnector.newCompositeConnector()` since `GradleConnector` is the main entry point for TAPI?
 - Should we do any pre-checking before connecting
     - Check that rootProjectDir exists?
     - Check that it's a root project?
