@@ -28,11 +28,13 @@ import java.util.Set;
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
+    private final int order;
     private final Class<?> optionType;
     private final NotationParser<CharSequence, ?> notationParser;
 
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
+        this.order = option.order();
         this.optionName = optionName;
         this.optionType = optionType;
         this.notationParser = notationParser;
@@ -69,6 +71,10 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     protected NotationParser<CharSequence, ?> getNotationParser() {
         return notationParser;
     }
@@ -90,6 +96,4 @@ abstract class AbstractOptionElement implements OptionElement {
             return type;
         }
     }
-
-
 }
