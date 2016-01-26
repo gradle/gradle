@@ -19,11 +19,6 @@ package org.gradle.play.tasks
 class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     def customCoffeeScriptImplFileName
 
-    @Override
-    String getDefaultSourceSet() {
-        return "CoffeeScript"
-    }
-
     def setup() {
         customCoffeeScriptImplFileName = 'coffeescript/coffee-script.min.js'
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
@@ -65,11 +60,12 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "compilePlayBinaryCoffeeScript", "compilePlayBinaryExtraCoffeeScript"
+        succeeds "assemble"
 
         then:
-        matchesExpectedRaw('test.js')
-        matchesExpectedRaw('ExtraCoffeeScript', 'test2.js')
+        executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript", ":compilePlayBinaryPlayExtraCoffeeScript"
+        hasProcessedCoffeeScript("test")
+        hasProcessedCoffeeScript("extraCoffeeScript", "test2")
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -99,10 +95,11 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "compilePlayBinaryCoffeeScript", "compilePlayBinaryExtraCoffeeScript"
+        succeeds "assemble"
 
         then:
-        matchesExpectedRaw('test.js')
-        matchesExpectedRaw('ExtraCoffeeScript', 'test2.js')
+        executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript", ":compilePlayBinaryPlayExtraCoffeeScript"
+        hasProcessedCoffeeScript("test")
+        hasProcessedCoffeeScript("extraCoffeeScript", "test2")
     }
 }

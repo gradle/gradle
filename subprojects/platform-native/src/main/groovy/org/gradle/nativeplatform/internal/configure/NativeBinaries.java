@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.internal.configure;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
@@ -25,7 +26,6 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 
 public class NativeBinaries {
 
@@ -33,16 +33,17 @@ public class NativeBinaries {
         NativeComponentSpec component,
         ModelMap<NativeBinarySpec> binaries,
         NativeDependencyResolver resolver,
-        BinaryNamingSchemeBuilder namingScheme,
+        FileCollectionFactory fileCollectionFactory,
+        BinaryNamingScheme namingScheme,
         NativePlatform platform,
         BuildType buildType,
         Flavor flavor
     ) {
         if (component instanceof NativeLibrarySpec) {
-            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, namingScheme.withTypeString("SharedLibrary").build(), platform, buildType, flavor);
-            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, namingScheme.withTypeString("StaticLibrary").build(), platform, buildType, flavor);
+            createNativeBinary(SharedLibraryBinarySpec.class, binaries, resolver, fileCollectionFactory, namingScheme.withBinaryType("SharedLibrary").withRole("shared", false), platform, buildType, flavor);
+            createNativeBinary(StaticLibraryBinarySpec.class, binaries, resolver, fileCollectionFactory, namingScheme.withBinaryType("StaticLibrary").withRole("static", false), platform, buildType, flavor);
         } else {
-            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, namingScheme.withTypeString("Executable").build(), platform, buildType, flavor);
+            createNativeBinary(NativeExecutableBinarySpec.class, binaries, resolver, fileCollectionFactory, namingScheme.withBinaryType("Executable").withRole("executable", true), platform, buildType, flavor);
         }
     }
 
@@ -50,6 +51,7 @@ public class NativeBinaries {
         Class<T> type,
         ModelMap<NativeBinarySpec> binaries,
         final NativeDependencyResolver resolver,
+        final FileCollectionFactory fileCollectionFactory,
         final BinaryNamingScheme namingScheme,
         final NativePlatform platform,
         final BuildType buildType,
@@ -75,7 +77,7 @@ public class NativeBinaries {
             new BiAction<MutableModelNode, NativeBinarySpec>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, NativeBinarySpec nativeBinarySpec) {
-                    initialize(nativeBinarySpec, namingScheme, resolver, platform, buildType, flavor);
+                    initialize(nativeBinarySpec, namingScheme, resolver, fileCollectionFactory, platform, buildType, flavor);
                 }
             }
         ));
@@ -86,6 +88,7 @@ public class NativeBinaries {
         NativeBinarySpec nativeBinarySpec,
         BinaryNamingScheme namingScheme,
         NativeDependencyResolver resolver,
+        FileCollectionFactory fileCollectionFactory,
         NativePlatform platform,
         BuildType buildType,
         Flavor flavor
@@ -96,6 +99,7 @@ public class NativeBinaries {
         nativeBinary.setBuildType(buildType);
         nativeBinary.setFlavor(flavor);
         nativeBinary.setResolver(resolver);
+        nativeBinary.setFileCollectionFactory(fileCollectionFactory);
     }
 
 }

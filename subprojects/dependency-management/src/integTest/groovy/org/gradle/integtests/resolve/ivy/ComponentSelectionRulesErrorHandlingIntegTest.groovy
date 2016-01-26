@@ -154,7 +154,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(13)
-        failureHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'select' must be of type org.gradle.api.artifacts.ComponentSelection")
+        failureHasCause("""Type BadRuleSource is not a valid rule source:
+- Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
 
     def "produces sensible error when rule source throws an exception" () {

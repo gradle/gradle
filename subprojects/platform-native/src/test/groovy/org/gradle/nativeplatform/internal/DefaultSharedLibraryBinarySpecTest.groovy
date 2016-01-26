@@ -21,9 +21,9 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.nativeplatform.NativeResourceSet
-import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.SharedLibraryBinarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
@@ -39,7 +39,7 @@ import spock.lang.Specification
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def namingScheme = new DefaultBinaryNamingScheme("main", "sharedLibrary", [])
+    def namingScheme = DefaultBinaryNamingScheme.component("main").withBinaryType("sharedLibrary")
     final toolChain = Stub(NativeToolChainInternal)
     final platform = Stub(NativePlatform)
     final buildType = Stub(BuildType)
@@ -93,16 +93,17 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         binary.sharedLibraryLinkFile == sharedLibraryLinkFile
 
         binary.headerDirs.files == [headerDir] as Set
+        binary.headerDirs.toString() == "Headers for shared library 'main:sharedLibrary'"
 
         and:
         binary.linkFiles.files == [binary.sharedLibraryLinkFile] as Set
         binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        binary.linkFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.linkFiles.toString() == "Link files for shared library 'main:sharedLibrary'"
 
         and:
         binary.runtimeFiles.files == [binary.sharedLibraryFile] as Set
         binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        binary.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.runtimeFiles.toString() == "Runtime files for shared library 'main:sharedLibrary'"
     }
 
     def "has empty link files when has resources and no symbols are exported from library"() {
@@ -145,9 +146,9 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         binary.tasks.link == linkTask
     }
 
-    private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"));
-        TestNativeBinariesFactory.create(DefaultSharedLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver,
+    private def getSharedLibrary() {
+        def library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"));
+        TestNativeBinariesFactory.create(SharedLibraryBinarySpec, DefaultSharedLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver,
                                          platform, buildType, new DefaultFlavor("flavorOne"))
     }
 }

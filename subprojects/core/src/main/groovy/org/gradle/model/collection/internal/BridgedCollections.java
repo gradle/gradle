@@ -22,7 +22,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +44,8 @@ public abstract class BridgedCollections {
         final ModelType<C> containerType = containerReference.getType();
         assert containerPath != null : "container reference path cannot be null";
 
-        return ModelRegistrations.of(
-            containerPath,
-            new Action<MutableModelNode>() {
+        return ModelRegistrations.of(containerPath)
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 public void execute(final MutableModelNode containerNode) {
                     final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
@@ -80,13 +78,8 @@ public abstract class BridgedCollections {
                         }
                     });
                 }
-            }
-        )
+            })
             .descriptor(descriptor);
-    }
-
-    public static Transformer<String, String> itemDescriptor(String parentDescriptor) {
-        return new StandardDescriptorFactory(parentDescriptor);
     }
 
     private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>> implements Transformer<I, MutableModelNode> {

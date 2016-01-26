@@ -19,10 +19,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.concurrent.Callable;
 
@@ -37,7 +37,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     }
 
     @Override
-    public FileCollectionResolveContext push(FileResolver fileResolver) {
+    public FileCollectionResolveContext push(PathToFileResolver fileResolver) {
         return this;
     }
 

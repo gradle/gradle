@@ -71,8 +71,8 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
-        jarFile("build/jars/myLibJar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
+        jarFile("build/jars/myLib/jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -97,10 +97,10 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLibJava5Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
-        jarFile("build/jars/myLibJava6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
-        jarFile("build/jars/myLibJava7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
-        jarFile("build/jars/myLibJava8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/myLib/java5Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_5
+        jarFile("build/jars/myLib/java6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLib/java7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
+        jarFile("build/jars/myLib/java8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
     }
 
     def "erroneous target should produce reasonable error message"() {
@@ -148,7 +148,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLib${current.name.capitalize()}Jar/myLib.jar").javaVersion == current.targetCompatibility
+        jarFile("build/jars/myLib/${current.name}Jar/myLib.jar").javaVersion == current.targetCompatibility
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)

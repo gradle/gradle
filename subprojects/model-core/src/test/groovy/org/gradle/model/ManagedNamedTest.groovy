@@ -15,24 +15,22 @@
  */
 
 package org.gradle.model
-import org.gradle.api.Named
-import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import org.gradle.model.internal.core.ModelRegistrations
+
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.ReadonlyImmutableManagedPropertyException
-import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 
 class ManagedNamedTest extends ProjectRegistrySpec {
 
     def "named struct has name name property populated"() {
         when:
-        registry.register(ModelRegistrations.of(registry.path("foo"), nodeInitializerRegistry.getNodeInitializer(NamedThingInterface)).descriptor(registry.desc("foo")).build())
+        registry.registerWithInitializer("foo", NamedThingInterface, nodeInitializerRegistry)
 
         then:
         registry.realize("foo", NamedThingInterface).name == "foo"
 
         when:
-        registry.register(ModelRegistrations.of(registry.path("bar"), nodeInitializerRegistry.getNodeInitializer(NamedThingInterface)).descriptor(registry.desc("bar")).build())
+        registry.registerWithInitializer("bar", NamedThingInterface, nodeInitializerRegistry)
 
         then:
         registry.realize("bar", NamedThingInterface).name == "bar"
@@ -48,7 +46,7 @@ class ManagedNamedTest extends ProjectRegistrySpec {
 
     def "named struct does not have name populated if does not implement named"() {
         when:
-        registry.register(ModelRegistrations.of(registry.path("foo"), nodeInitializerRegistry.getNodeInitializer(NonNamedThing)).descriptor(registry.desc("foo")).build())
+        registry.registerWithInitializer("foo", NonNamedThing, nodeInitializerRegistry)
 
         then:
         registry.realize("foo", NonNamedThing).name == null
@@ -61,7 +59,7 @@ class ManagedNamedTest extends ProjectRegistrySpec {
 
     def "name requires setter if not named"() {
         given:
-        registry.register(ModelRegistrations.of(registry.path("bar"), nodeInitializerRegistry.getNodeInitializer(NonNamedThingNoSetter)).descriptor(registry.desc("bar")).build())
+        registry.registerWithInitializer("bar", NonNamedThingNoSetter, nodeInitializerRegistry)
 
         when:
         registry.realize("bar", NonNamedThingNoSetter)
@@ -69,20 +67,5 @@ class ManagedNamedTest extends ProjectRegistrySpec {
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause instanceof ReadonlyImmutableManagedPropertyException
-    }
-
-    @Managed
-    static abstract class NamedThingWithSetter implements Named {
-        abstract String getName()
-
-        abstract void setName(String name)
-    }
-
-    def "named cannot have setter"() {
-        when:
-        schemaStore.getSchema(NamedThingWithSetter)
-
-        then:
-        thrown InvalidManagedModelElementTypeException
     }
 }

@@ -16,59 +16,41 @@
 
 package org.gradle.language.base.plugins
 
-import org.gradle.api.Task
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.model.ModelMap
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.internal.BinarySpecInternal
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.platform.base.PlatformBaseSpecification
 
-import static org.gradle.model.internal.type.ModelTypes.modelMap
+class LanguageBasePluginTest extends PlatformBaseSpecification {
+    def "applies lifecycle base plugin only"() {
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+        }
 
-class LanguageBasePluginTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
-
-    def setup() {
-        project.pluginManager.apply(LanguageBasePlugin)
+        then:
+        project.pluginManager.pluginContainer.size() == 2
     }
 
-    def "adds a 'binaries' container to the project model"() {
-        expect:
-        project.modelRegistry.find("binaries", modelMap(BinarySpec)) != null
+    def "registers LanguageSourceSet"() {
+        when:
+        dsl {
+            apply plugin: LanguageBasePlugin
+            model {
+                baseSourceSet(LanguageSourceSet) {
+                }
+            }
+        }
+
+        then:
+        realize("baseSourceSet") instanceof LanguageSourceSet
     }
 
     def "adds a 'sources' container to the project model"() {
-        expect:
-        project.modelRegistry.find("sources", ProjectSourceSet) != null
-    }
-
-    def "copies binary tasks into task container"() {
-        def tasks = Mock(TaskContainer)
-        def binaries = Mock(ModelMap)
-        def binary = Mock(BinarySpecInternal)
-        def binaryTasks = new DefaultBinaryTasksCollection(binary, Mock(ITaskFactory))
-        def someTask = Mock(Task) { getName() >> "someTask" }
-        def buildTask = Mock(Task) { getName() >> "lifecycleTask" }
-        binaryTasks.add(someTask)
-
         when:
-        def rules = new LanguageBasePlugin.Rules()
-        rules.copyBinaryTasksToTaskContainer(tasks, binaries)
+        dsl {
+            apply plugin: LanguageBasePlugin
+        }
 
         then:
-        binaries.iterator() >> [binary].iterator()
-        binary.name >> "binaryName"
-        binary.toString() >> "binary foo"
-        binary.getTasks() >> binaryTasks
-        binary.getBuildTask() >> buildTask
-
-        and:
-        1 * tasks.addAll(binaryTasks)
-        1 * tasks.add(buildTask)
+        realizeSourceSets() != null
     }
 }

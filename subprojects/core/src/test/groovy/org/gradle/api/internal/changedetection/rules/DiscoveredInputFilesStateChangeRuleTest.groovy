@@ -15,10 +15,11 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
+
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
@@ -35,7 +36,7 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         def inputSnapshotter = Stub(FileCollectionSnapshotter) {
             snapshot(_) >> discoveredFileSnapshot
         }
-        return DiscoveredInputFilesStateChangeRule.create(previousExecution, currentExecution, inputSnapshotter)
+        return new DiscoveredInputFilesStateChangeRule(inputSnapshotter, TestFiles.fileCollectionFactory()).create(previousExecution, currentExecution)
     }
 
     def "emits change for no previous input snapshot"() {
@@ -52,7 +53,7 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * previousInputSnapshot.getFiles() >> new SimpleFileCollection()
+        1 * previousInputSnapshot.getAllFiles() >> []
         1 * discoveredFileSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
         4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
             // added probably doesn't make sense for discovered inputs...

@@ -31,7 +31,7 @@ abstract class AbstractPlayCompilerContinuousIntegrationTest extends AbstractCom
                 $plugins
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 }

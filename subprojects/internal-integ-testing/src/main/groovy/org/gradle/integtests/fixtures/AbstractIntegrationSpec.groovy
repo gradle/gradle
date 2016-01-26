@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
@@ -43,12 +44,13 @@ class AbstractIntegrationSpec extends Specification {
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
 
+//    @Rule
+    M2Installation m2 = new M2Installation(temporaryFolder)
+
     ExecutionResult result
     ExecutionFailure failure
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
-    private File mavenLocalDirectory
-    private boolean overrideMavenLocal
 
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')
@@ -220,34 +222,6 @@ class AbstractIntegrationSpec extends Specification {
 
     public MavenLocalRepository mavenLocal(Object repo) {
         return new MavenLocalRepository(file(repo))
-    }
-
-    void overrideMavenLocal() {
-        overrideMavenLocal(file(".m2/repository"))
-    }
-
-    void overrideMavenLocal(File dir) {
-        mavenLocalDirectory = dir
-        if (!overrideMavenLocal) {
-            overrideMavenLocal = true
-            executer.beforeExecute {
-                if (this.overrideMavenLocal) {
-                    executer.withArgument("-Dmaven.repo.local=${this.mavenLocalDirectory.getAbsolutePath()}")
-                }
-            }
-        }
-    }
-
-    void dontOverrideMavenLocal() {
-        overrideMavenLocal = false
-    }
-
-    boolean isOverrideMavenLocal() {
-        this.overrideMavenLocal
-    }
-
-    File getMavenLocalDirectory() {
-        this.mavenLocalDirectory
     }
 
     public MavenFileRepository getMavenRepo() {

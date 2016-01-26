@@ -18,7 +18,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -29,11 +29,11 @@ import java.util.*;
 public class TemplateOperationFactory {
 
     private final String templatepackage;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final DocumentationRegistry documentationRegistry;
     private final Map defaultBindings;
 
-    public TemplateOperationFactory(String templatepackage, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+    public TemplateOperationFactory(String templatepackage, PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
         this.fileResolver = fileResolver;
         this.templatepackage = templatepackage;
@@ -93,6 +93,9 @@ public class TemplateOperationFactory {
             final Set<Map.Entry<String, String>> entries = bindings.entrySet();
             Map wrappedBindings = new HashMap(entries.size());
             for (Map.Entry<String, String> entry : entries) {
+                if (entry.getValue() == null) {
+                    throw new IllegalArgumentException("Null value provided for binding '" + entry.getKey() + "'.");
+                }
                 wrappedBindings.put(entry.getKey(), new TemplateValue(entry.getValue()));
             }
             return new SimpleTemplateOperation(templateUrl, target, wrappedBindings);

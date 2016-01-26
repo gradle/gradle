@@ -35,7 +35,7 @@ class MavenFileModuleTest extends Specification {
 
     def "Add multiple dependencies without type"() {
         when:
-        List dependencies = mavenFileModule.dependsOn("dep1", "dep2").dependencies
+        List dependencies = mavenFileModule.dependsOnModules("dep1", "dep2").dependencies
 
         then:
         dependencies != null
@@ -52,12 +52,12 @@ class MavenFileModuleTest extends Specification {
 
     def "Add single dependency"() {
         when:
-        List dependencies = mavenFileModule.dependsOn('my-company', 'dep1', 'jar', '1.0', 'compile').dependencies
+        List dependencies = mavenFileModule.dependsOn('my-company', 'dep1', '1.0', 'jar', 'compile', null).dependencies
 
         then:
         dependencies != null
         dependencies.size() == 1
-        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: 'jar', type: '1.0', scope: 'compile']
+        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: '1.0', type: 'jar', scope: 'compile', classifier: null]
     }
 
     def "Check packaging for set packaging"() {

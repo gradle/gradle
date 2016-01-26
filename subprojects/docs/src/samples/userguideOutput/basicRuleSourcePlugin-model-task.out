@@ -12,15 +12,18 @@ Root project
          ⤷ PersonRules#setFirstName
     + age
           | Type:   	int
+          | Value:  	0
           | Creator: 	PersonRules#person
     + children
-          | Type:   	org.gradle.model.collection.ManagedSet<Person>
+          | Type:   	org.gradle.model.ModelSet<Person>
           | Creator: 	PersonRules#person
     + employed
           | Type:   	boolean
+          | Value:  	false
           | Creator: 	PersonRules#person
     + father
           | Type:   	Person
+          | Value:  	null
           | Creator: 	PersonRules#person
     + firstName
           | Type:   	java.lang.String
@@ -28,9 +31,11 @@ Root project
           | Creator: 	PersonRules#person
     + homeDirectory
           | Type:   	java.io.File
+          | Value:  	null
           | Creator: 	PersonRules#person
     + id
           | Type:   	java.lang.Long
+          | Value:  	null
           | Creator: 	PersonRules#person
     + lastName
           | Type:   	java.lang.String
@@ -41,9 +46,11 @@ Root project
           | Creator: 	PersonRules#person
     + mother
           | Type:   	Person
+          | Value:  	null
           | Creator: 	PersonRules#person
     + userGroups
           | Type:   	java.util.List<java.lang.String>
+          | Value:  	null
           | Creator: 	PersonRules#person
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>

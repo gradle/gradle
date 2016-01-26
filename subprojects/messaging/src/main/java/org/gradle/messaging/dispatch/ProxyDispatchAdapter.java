@@ -48,8 +48,8 @@ public class ProxyDispatchAdapter<T> {
             }
             types.add(extraType);
         }
-        source = type.cast(Proxy.newProxyInstance(classLoader, types.toArray(new Class<?>[types.size()]),
-                new DispatchingInvocationHandler(type, dispatch)));
+        source = type.cast(Proxy.newProxyInstance(classLoader, types.toArray(new Class<?>[0]),
+            new DispatchingInvocationHandler(type, dispatch)));
     }
 
     public Class<T> getType() {

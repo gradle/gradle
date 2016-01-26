@@ -16,8 +16,14 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.internal.registry.NamedLanguageRegistration;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
@@ -27,24 +33,41 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
 
-    private final FileResolver fileResolver;
+    private final List<LanguageRegistration<?>> languageRegistrations = Lists.newArrayList();
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-    public LanguageSourceSetFactory(String displayName, FileResolver fileResolver) {
+    public LanguageSourceSetFactory(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
         super(displayName, LanguageSourceSet.class, BaseLanguageSourceSet.class);
-        this.fileResolver = fileResolver;
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
-    public <T extends LanguageSourceSet, V extends T> void register(ModelType<T> type, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
+    public <T extends LanguageSourceSet, V extends LanguageSourceSet> void register(String languageName, ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
         InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
 
-        registration.withImplementation(implementationType, new InstanceFactory.ImplementationFactory<T>() {
-            @Override
-            public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
-                return BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), fileResolver);
-            }
-        });
+        if (implementationType != null) {
+            registration.withImplementation(Cast.<ModelType<? extends T>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<T>() {
+                @Override
+                public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
+                    return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), sourceDirectorySetFactory));
+                }
+            });
+        }
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
+        if (!StringUtils.isEmpty(languageName)) {
+            languageRegistrations.add(new NamedLanguageRegistration<T>(languageName, type));
+        }
+    }
+
+    public Collection<LanguageRegistration<?>> getRegistrations() {
+        return ImmutableList.copyOf(languageRegistrations);
     }
 
     private String determineParentName(MutableModelNode modelNode) {

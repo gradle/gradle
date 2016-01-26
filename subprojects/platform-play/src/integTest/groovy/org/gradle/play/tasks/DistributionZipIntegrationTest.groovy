@@ -28,7 +28,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 

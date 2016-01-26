@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.language.base.internal.model.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.*;
 
@@ -66,7 +67,7 @@ public class VariantsMatcher {
         Set<BinarySpec> removedSpecs = Sets.newHashSet();
         for (BinarySpec binarySpec : binaries) {
             if (binarySpecType.isAssignableFrom(binarySpec.getClass())) {
-                VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(binarySpec, schemaStore);
+                VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(binarySpec, schemaStore.getSchema(((BinarySpecInternal)binarySpec).getPublicType()));
                 Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullVariantAxes());
                 Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData, binaryVariants, commonsDimensions);
                 if (incompatibleDimensionTypes.isEmpty()) {

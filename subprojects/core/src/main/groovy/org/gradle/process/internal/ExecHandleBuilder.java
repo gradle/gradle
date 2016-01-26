@@ -17,8 +17,8 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
@@ -36,7 +36,7 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super(new IdentityFileResolver());
     }
 
-    public ExecHandleBuilder(FileResolver fileResolver) {
+    public ExecHandleBuilder(PathToFileResolver fileResolver) {
         super(fileResolver);
     }
 

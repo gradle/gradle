@@ -27,11 +27,14 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
+
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
@@ -48,8 +51,19 @@ import spock.lang.Specification
 @ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 abstract class ToolingApiSpecification extends Specification {
+
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
+
+    @Rule
+    RetryRule retryRule = retryIf(
+        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
+        { t ->
+           GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") && t.cause != null &&
+                (t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
+                || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) }
+    );
+
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()

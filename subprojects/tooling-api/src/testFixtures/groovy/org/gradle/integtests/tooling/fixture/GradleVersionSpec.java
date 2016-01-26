@@ -49,7 +49,7 @@ public class GradleVersionSpec {
             };
         }
 
-        List<Spec> specs = new ArrayList<Spec>();
+        List<Spec<GradleVersion>> specs = new ArrayList<Spec<GradleVersion>>();
         String[] patterns = trimmed.split("\\s+");
         for (String value : patterns) {
             if (value.startsWith(">=")) {
@@ -84,7 +84,7 @@ public class GradleVersionSpec {
                 throw new RuntimeException(String.format("Unsupported version range '%s' specified in constraint '%s'. Supported formats: '>=nnn' or '<=nnn' or space-separate patterns", value, constraint));
             }
         }
-        return Specs.and(specs.toArray(new Spec[specs.size()]));
+        return Specs.intersect(specs);
     }
 
 }

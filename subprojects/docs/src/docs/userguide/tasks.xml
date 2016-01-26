@@ -270,7 +270,7 @@
                 <para>You might be wondering why there is neither an import for the
                     <literal>StopExecutionException</literal>
                     nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
-                    to your script. These imports are customizable (see <xref linkend='ide_support'/>).
+                    to your script (see <xref linkend='script-default-imports'/>).
                 </para>
             </footnote>
         </para>

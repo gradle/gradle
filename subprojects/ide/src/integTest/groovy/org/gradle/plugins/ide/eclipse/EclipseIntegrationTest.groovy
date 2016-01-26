@@ -156,6 +156,26 @@ dependencies {
     }
 
     @Test
+    void canConfigureTargetRuntimeName() {
+
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "eclipse"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+eclipse {
+    jdt {
+        javaRuntimeName = "Jigsaw-1.9"
+    }
+}"""
+
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Jigsaw-1.9/"]
+    }
+
+    @Test
     void eclipseFilesAreWrittenWithUtf8Encoding() {
         runEclipseTask """
 apply plugin: "war"

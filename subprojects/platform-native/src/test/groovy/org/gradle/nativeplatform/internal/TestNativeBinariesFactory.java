@@ -16,8 +16,11 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -25,18 +28,17 @@ import org.gradle.nativeplatform.internal.configure.NativeBinaries;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.binary.BaseBinaryFixtures;
-import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class TestNativeBinariesFactory {
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, ITaskFactory taskFactory, final MutableModelNode componentNode,
-        final BinaryNamingScheme namingScheme, final NativeDependencyResolver resolver,
-        final NativePlatform platform, final BuildType buildType, final Flavor flavor) {
-        T binary = BaseBinaryFixtures.create(type, type, name, componentNode, taskFactory);
-        NativeBinaries.initialize((NativeBinarySpec) binary, namingScheme, resolver, platform, buildType, flavor);
-        ComponentSpecInternal component = (ComponentSpecInternal) componentNode.getPrivateData();
+    public static <T extends NativeBinarySpec, I extends AbstractNativeBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, ITaskFactory taskFactory, MutableModelNode componentNode,
+                                                                                      BinaryNamingScheme namingScheme, NativeDependencyResolver resolver,
+                                                                                      NativePlatform platform, BuildType buildType, Flavor flavor) {
+        T binary = BaseBinaryFixtures.create(publicType, implType, name, componentNode, taskFactory);
+        NativeBinaries.initialize(binary, namingScheme, resolver, TestFiles.fileCollectionFactory(), platform, buildType, flavor);
+        ComponentSpecInternal component = componentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
         binary.getInputs().addAll(component.getSources().values());
         return binary;
     }

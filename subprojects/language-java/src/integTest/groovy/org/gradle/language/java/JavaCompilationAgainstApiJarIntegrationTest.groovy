@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -22,19 +23,16 @@ import spock.lang.Unroll
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
-    private void mainLibraryDependingOnApi() {
-        mainLibraryDependingOnApi(DependencyScope.SOURCES)
-    }
 
-    private void mainLibraryDependingOnApi(DependencyScope scope) {
+    private void mainLibraryDependingOnApi(DependencyScope scope = DependencyScope.SOURCES, boolean declaresApi = true) {
         buildFile << """
 model {
     components {
-        myLib(JvmLibrarySpec) {
+        myLib(JvmLibrarySpec)""" + (declaresApi ? """ {
             api {
                 exports 'com.acme'
             }
-        }
+        }""" : '') + """
         main(JvmLibrarySpec) {
             ${scope.declarationFor 'myLib'}
         }
@@ -99,16 +97,18 @@ public class TestApp {
 
         and:
         fails ':mainJar'
+        failure.assertHasDescription("Execution failed for task ':compileMainJarMainJava'.")
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
 
         where:
         scope << scopes
     }
 
     @Unroll
-    def "changing API class should trigger recompilation of a consuming library with #scope dependency"() {
+    def "changing API class in ABI breaking way should trigger recompilation of a consuming library with #scope dependency when an API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi(scope)
+        mainLibraryDependingOnApi(scope, api)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -144,11 +144,15 @@ public class Person {
         recompiled("Main")
 
         where:
-        scope << scopes
+        scope << scopes * 2
+        api << ([true]*scopes.size() + [false]*scopes.size())
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
     @Unroll
-    def "changing non-API class should not trigger recompilation of a consuming library with #scope dependency"() {
+    def "changing non-API class should not trigger recompilation of a consuming library with #scope dependency when API is declared"() {
         given:
         applyJavaPlugin(buildFile)
         mainLibraryDependingOnApi(scope)
@@ -191,10 +195,11 @@ public class PersonInternal extends Person {
         scope << scopes
     }
 
-    def "changing comment in API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -230,12 +235,19 @@ public class Person {
         and:
         recompiled "MyLib"
         notRecompiled "Main"
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing method body of API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -268,6 +280,12 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
     @Ignore("Requires a better definition of what ABI means")
@@ -348,10 +366,12 @@ public class Person {
         recompiled 'Main'
     }
 
-    def "extraction of private method in API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "extraction of private method in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
+
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person {
@@ -391,12 +411,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing the order of public methods of API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing the order of public methods of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
 
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
@@ -442,12 +469,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "adding a private field to an API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "adding a private field to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person {
@@ -485,12 +519,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "adding a private method to an API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "adding a private method to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person {
@@ -529,12 +570,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing the order of members of API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing the order of members of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person {
@@ -582,12 +630,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-      def "changing an API field of an API class should trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing an API field of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person {
@@ -627,12 +682,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         recompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-     def "changing the superclass of an API class should trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing the superclass of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person extends Named {
@@ -640,7 +702,7 @@ public class Person extends Named {
     }
 }
 '''
-         file('src/myLib/java/com/acme/Named.java') << '''package com.acme;
+        file('src/myLib/java/com/acme/Named.java') << '''package com.acme;
 
 public class Named {
     private String name;
@@ -674,12 +736,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         recompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-     def "changing the interfaces of an API class should trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing the interfaces of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
 
 public class Person implements Named {
@@ -689,7 +758,7 @@ public class Person implements Named {
     }
 }
 '''
-         file('src/myLib/java/com/acme/Named.java') << '''package com.acme;
+        file('src/myLib/java/com/acme/Named.java') << '''package com.acme;
 
 public interface Named {
     public String getName();
@@ -722,12 +791,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         recompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing order of annotations on API class should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing order of annotations on API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
 
 import java.lang.annotation.ElementType;
@@ -794,12 +870,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing order of annotations on API method should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing order of annotations on API method should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
 
 import java.lang.annotation.ElementType;
@@ -868,12 +951,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library when #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
 
 import java.lang.annotation.ElementType;
@@ -943,12 +1033,19 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
-    def "changing order of annotations on API field should not trigger recompilation of the consuming library"() {
+    @Unroll
+    def "changing order of annotations on API field should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
-        mainLibraryDependingOnApi()
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
         file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
 
 import java.lang.annotation.ElementType;
@@ -1017,6 +1114,46 @@ public class Person {
         and:
         recompiled 'MyLib'
         notRecompiled 'Main'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
+    }
+
+    @Unroll
+    def "building the API jar should not depend on the runtime jar when API is #apiDeclared"() {
+        given:
+        applyJavaPlugin(buildFile)
+        mainLibraryDependingOnApi(DependencyScope.SOURCES, api)
+
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+public class Person {}
+'''
+        file('src/myLib/java/internal/PersonInternal.java') << '''package internal;
+import com.acme.Person;
+
+public class PersonInternal extends Person {}
+'''
+
+        and:
+        testAppDependingOnApiClass()
+
+        expect:
+        succeeds ':myLibApiJar'
+
+        and:
+        recompiled 'MyLib'
+        notExecuted ':createMyLibJar'
+        notExecuted ':myLibJar'
+
+        where:
+        api << [true, false]
+
+        and:
+        apiDeclared = api?'declared':'not declared'
     }
 
     private recompiled(String name) {

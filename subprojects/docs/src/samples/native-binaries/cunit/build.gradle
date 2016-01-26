@@ -1,6 +1,6 @@
 // START SNIPPET complete-example
 apply plugin: "c"
-apply plugin: "cunit"
+apply plugin: 'cunit-test-suite'
 
 model {
     flavors {
@@ -27,6 +27,11 @@ model {
     components {
         operators(NativeLibrarySpec) {
             targetPlatform "x86"
+        }
+    }
+    testSuites {
+        operatorsTest(CUnitTestSuiteSpec) {
+            testing $.components.operators
         }
     }
 }

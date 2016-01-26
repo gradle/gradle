@@ -17,7 +17,5 @@
 /**
  * Types for support of JVM runtime.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.jvm;
-
-import org.gradle.api.Incubating;

@@ -78,7 +78,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return "${timestampFormat.format(publishTimestamp)}-${publishCount}"
     }
 
-    MavenModule dependsOn(String... dependencyArtifactIds) {
+    MavenModule dependsOnModules(String... dependencyArtifactIds) {
         for (String id : dependencyArtifactIds) {
             dependsOn(groupId, id, '1.0')
         }
@@ -90,8 +90,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return dependsOn(module.groupId, module.artifactId, module.version)
     }
 
-    MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null) {
-        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope]
+    MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null) {
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope, classifier: classifier]
         return this
     }
 
@@ -272,12 +272,17 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                             dependency {
                                 groupId(dep.groupId)
                                 artifactId(dep.artifactId)
-                                version(dep.version)
+                                if (dep.version) {
+                                    version(dep.version)
+                                }
                                 if (dep.type) {
                                     type(dep.type)
                                 }
                                 if (dep.scope) {
                                     scope(dep.scope)
+                                }
+                                if (dep.classifier) {
+                                    classifier(dep.classifier)
                                 }
                             }
                         }

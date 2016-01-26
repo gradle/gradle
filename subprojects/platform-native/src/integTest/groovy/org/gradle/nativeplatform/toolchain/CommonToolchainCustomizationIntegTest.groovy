@@ -58,6 +58,6 @@ model {
         and:
         succeeds "mainExecutable"
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 }

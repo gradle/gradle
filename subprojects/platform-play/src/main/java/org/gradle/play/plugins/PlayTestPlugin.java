@@ -16,6 +16,7 @@
 
 package org.gradle.play.plugins;
 
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -72,8 +73,6 @@ public class PlayTestPlugin extends RuleSource {
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
-
-                    binary.getTasks().add(scalaCompile);
                 }
             });
 
@@ -81,7 +80,7 @@ public class PlayTestPlugin extends RuleSource {
             final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
-                    test.setDescription("Runs tests for the " + binary.getDisplayName() + ".");
+                    test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 

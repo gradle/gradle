@@ -18,7 +18,7 @@ package org.gradle.play.integtest.fixtures
 
 
 class Repositories {
-    public static final String PLAY_REPOSITORES = """
+    public static final String PLAY_REPOSITORIES = """
         repositories {
             jcenter()
             maven {

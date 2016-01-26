@@ -16,10 +16,12 @@
 
 package org.gradle.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.ComponentSpec;
 
 /**
  * Definition of a software component that is to be built by Gradle to run a on JVM platform.
  */
+@Incubating
 public interface JvmComponentSpec extends ComponentSpec {
 }

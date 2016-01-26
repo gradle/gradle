@@ -116,9 +116,98 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 - Add coverage for NTLM based authentication, perhaps as provided by this [pull request](https://github.com/gradle/gradle/pull/444)
 
+## Story: An S3 repository can be configured to authenticate using AWS's EC2 instance metadata.
+
+### Implementation
+
+- Add the method org.gradle.internal.authentication.AuthenticationInternal.requiresCredentials to determine if an Authentication requires credentials
+- change `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory.validateConnectorFactoryCredentials` to only vaildate when credentials are required
+- Add an authentication type `public interface AwsImAuthentication extends Authentication` and implementation `DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication`
+- Change `org.gradle.internal.resource.transport.aws.s3.S3ConnectorFactory` to register `org.gradle.authentication.aws.AwsImAuthentication` as a supported authentication type
+- Change `org.gradle.internal.resource.transport.aws.s3.S3ResourcesPluginServiceRegistry` to register the authentication scheme: `authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);`
+- Add integration test support to stub out AWS IM http api calls.  
+
+### Test coverage
+- No instance metadata found on the host
+- Successfully publish and resolve using IM authentication
+
+### DSL
+
+```
+maven {
+    url "s3://somewhere/over/the/rainbow"
+    authentication {
+        awsIm(AwsImAuthentication)
+    }
+}
+
+ivy {
+    url "s3://somewhere/over/the/rainbow"
+    authentication {
+        awsIm(AwsImAuthentication)
+    }
+}
+```
+
+## Story: S3 Repositories can be configured with credentials providers
+A current shortcomming with gradle is the inability to model credentials providers. A credentilas provder is something which produces credentials and in most cases, sources those credentials from a particular location. There are several places from where credentials can be sourced: local file system, environment variables, the CLI, a network resource, etc. A credentials provider is responsible for locating (and or) producing one __type__ of crenentials only. The goal of this story is to retrofit the existing S3 resource/repository support to use credentials providers to configure AWS credentilas for S3 repositories. Two secondary aims of this story is to 1. provide the mechanics and a level of reuse such that credentials providers can be used to configure credentials for other repository types and 2. more generally, the same mechanism can be leveraged anywhere else in gradle where credentials may be required. #1 and #2 will not be achieved by this story alone and later stories will have to implement those features. 
+
+## Implementation 
+
+- Existing credentials and configuration must remain backward compatible. In this case `org.gradle.api.credentials.AwsCredentials` only.
+
+- An `InternalCredentialsProvider<T extends Credentials>` is a credentials provider which provides credentials of type `T`. It has a single type of credentials it supports `T extends Credentials` and an accompaning public implementation of `org.gradle.api.credentials.CredentialsProvider`.
+
+- An `AuthenticationProtocol` has a set of credentials types it supports (`Iterable<Class<? extends Credentials>>`) and zero or more `InternalCredentialsProvider`'s
+
+- All implementations of `org.gradle.api.credentials.CredentialsProvider` are effectively the public facing types which can be configured via the build script DSL e.g. `credentials(AwsImCredentialsProvider)`
+
+- Other implementations of `org.gradle.api.credentials.CredentialsProvider` can have properties which could themselves be credentials (e.g. `username = '---'`) but in general the properties of an `org.gradle.api.credentials.CredentialsProvider` should be about locating credentials. e.g
+    - This is the endpoint where the credentials live
+    - The private key is located at ~/.ssh/id_rsa'    
+
+- An `AbstractAuthenticationSupportedRepository` can be configured with zero or more `org.gradle.api.credentials.CredentialsProvider`'s which are the types which a build author will have specified.
+
+- A `org.gradle.internal.resource.connector.ResourceConnectorFactory` can have zero or more `AuthenticationProtocol`'s. This effectively determines all supported types of credentials and internal credentials provider implementations supported for a particular resource type. 
+
+- A `org.gradle.internal.resource.connector.ResourceConnectorSpecification` can be configured with a set of `org.gradle.api.credentials.CredentialsProvider`'s which represents what the build author has configured. 
+
+- With all of the above in place a `ResourceConnectorFactory` has enough to decide which authentication protocols the build author has specified and which `InternalCredentialsProvider` to use to source credentials.
+
+- For an `S3ConnectorFactory` there will be a single authentication protocol `org.gradle.internal.authentication.AwsAuthenticationProtocol` which will have several `CredentialsProvider` implementations. e.g. `AwsImCredentialsProvider`, `AwsSessionTokenCredentialsProvider`, `AwsAnonymousCredentialsCredentialsProvider`, etc.
+
+
+## Test coverge
+- The error message for non supported `CredentialsProvider` types should list the supported types.
+- Configuring credentials via both a credentials provider and the existing DSL produces an error and recommends using the `CredentialsProvider` way.
+- S3 repos configured with `org.gradle.api.credentials.AwsCredentials` work as they do today.
+- Integration test with the AWS instance metatdata service stubbed out
+    + Returning an acces key, secrey key and a session token.
+    + Returning an acces key and secrey key only.
+    + No IM roles available which is a 404 not found response.
+
+## DSL
+
+```groovy
+
+maven {
+    url "s3://somewhere/over/the/rainbow"
+    credentials(AwsImCredentialsProvider)
+}
+
+maven {
+    url "s3://somewhere/over/the/rainbow"
+    credentials(AwsAccessKeyCredentialsProvider){
+        accessKey = '-----'
+        secretKey = '-----'
+    }
+}
+
+```
+
 ## Candidate Stories
 
-* Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
+* ~~Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.~~
 * Implement an authentication scheme to facilitate authenticating with S3 repositories using [temporary credentials](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html).
 * Implement an authentication scheme to facilitate authenticating with S3 no credentials (publicly accessible buckets)
 ~~* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.~~

@@ -16,10 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
-import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -29,19 +26,18 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer implements ModelProducer {
+public class ModelBuilderBackedModelProducer extends HasCompatibilityMapperAction implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final ModelBuilder builder;
-    private final Action<SourceObjectMapping> mapper;
 
     public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
+        super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
-        mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -55,6 +51,6 @@ public class ModelBuilderBackedModelProducer implements ModelProducer {
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        return adapter.adapt(type, result.getModel(), mapper);
+        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction());
     }
 }

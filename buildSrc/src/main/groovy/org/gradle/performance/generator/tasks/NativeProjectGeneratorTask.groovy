@@ -18,6 +18,11 @@ package org.gradle.performance.generator.tasks
 
 import org.gradle.performance.generator.*
 
+/**
+ * Generates source code for projects using a standard layout (src/componentname/c).
+ *
+ * Currently only supports C and PCH.
+ */
 class NativeProjectGeneratorTask extends ProjectGeneratorTask {
 
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {

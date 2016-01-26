@@ -79,7 +79,7 @@ public class VersionParser implements Transformer<Version, String> {
 
         public DefaultVersion(String source, List<String> parts, DefaultVersion baseVersion) {
             this.source = source;
-            this.parts = parts.toArray(new String[parts.size()]);
+            this.parts = parts.toArray(new String[0]);
             this.baseVersion = baseVersion == null ? this : baseVersion;
         }
 

@@ -16,16 +16,9 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.api.JavaVersion
-import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
-    private JavaVersion currentJvm = JavaVersion.current()
-    private String currentJavaName = "java" + currentJvm.majorVersion
-    private String currentJava = "Java SE " + currentJvm.majorVersion
-    private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
-    private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
     @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
@@ -78,9 +71,12 @@ Source sets
 Binaries
     Jar 'jvmLib:jar'
         build using task: :jvmLibJar
-        targetPlatform: $currentJava
+        target platform: $currentJava
         tool chain: $currentJdk
-        Jar file: build/jars/jvmLibJar/jvmLib.jar
+        classes dir: build/classes/jvmLib/jar
+        resources dir: build/resources/jvmLib/jar
+        API Jar file: build/jars/jvmLib/jar/api/jvmLib.jar
+        Jar file: build/jars/jvmLib/jar/jvmLib.jar
 
 Native library 'nativeLib'
 --------------------------
@@ -94,18 +90,18 @@ Source sets
 Binaries
     Shared library 'nativeLib:sharedLibrary'
         build using task: :nativeLibSharedLibrary
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
+        shared library file: build/libs/nativeLib/shared/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
+        static library file: build/libs/nativeLib/static/libnativeLib.a
 """
     }
 

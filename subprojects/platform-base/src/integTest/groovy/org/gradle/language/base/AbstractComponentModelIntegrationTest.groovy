@@ -64,22 +64,16 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
      */
     void withCustomLanguageType() {
         buildFile << """
-            interface CustomLanguageSourceSet extends LanguageSourceSet {
-                String getData();
-            }
-
-            class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
-                final String data = "foo"
-
-                public boolean getMayHaveSources() {
-                    true
+            @Managed abstract class CustomLanguageSourceSet implements LanguageSourceSet {
+                String getData() {
+                    "foo"
                 }
             }
 
             class LanguageTypeRules extends RuleSource {
                 @LanguageType
                 void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.defaultImplementation(DefaultCustomLanguageSourceSet)
+                    builder.setLanguageName("custom")
                 }
             }
 

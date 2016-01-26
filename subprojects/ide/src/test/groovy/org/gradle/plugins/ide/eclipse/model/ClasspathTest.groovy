@@ -32,6 +32,8 @@ public class ClasspathTest extends Specification {
             new Container("org.eclipse.jdt.USER_LIBRARY/gradle"),
             new Output("bin")]
     final projectDependency = [customEntries[0]]
+    final jreContainer = [customEntries[1]]
+
     final allDependencies = [customEntries[0], customEntries[2], customEntries[4]]
 
     private final Classpath classpath = new Classpath(new XmlTransformer(), fileReferenceFactory)
@@ -51,16 +53,16 @@ public class ClasspathTest extends Specification {
         classpath.entries == customEntries
     }
 
-    def "configure overwrites dependencies and appends all other entries"() {
+    def "configure overwrites dependencies and jre container and appends all other entries"() {
         def constructorEntries = [createSomeLibrary()]
 
         when:
         classpath.load(customClasspathReader)
-        def newEntries = constructorEntries + projectDependency
+        def newEntries = constructorEntries + projectDependency + jreContainer
         classpath.configure(newEntries)
 
         then:
-        def entriesToBeKept = customEntries - allDependencies
+        def entriesToBeKept = customEntries - allDependencies - jreContainer
         classpath.entries == entriesToBeKept + newEntries
     }
 

@@ -71,7 +71,7 @@ Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45d
 - Test that Spec<FileTreeElement> includes (added with PatternSet.include(Spec<FileTreeElement> spec)) and excludes (added with PatternSet.exclude(Spec<FileTreeElement> spec)) are not cached.
 - Existing PatternSet tests cover rest of the changes since there are no planned behavioural or API changes for 1. phase.
 
-#### 2. phase - target release Gradle 2.10
+#### 2. phase - target release Gradle 2.11
 
 Goal: manage the cache instance in Gradle infrastructure instead of a singleton instance
 - Use default non-caching PatternSpecFactory in PatternSet class, replace use of CachingPatternSpecFactory with plain PatternSpecFactory
@@ -79,9 +79,11 @@ Goal: manage the cache instance in Gradle infrastructure instead of a singleton 
 - Create a new PatternSet subclass that takes the PatternSpecFactory instance in the constructor.
 - Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSpecFactory instance to the instances of the new PatternSet subclass.
 
-Goal: support suppressing default excludes
-- Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSpecFactory.
-- make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
+#### Open Questions 2. phase
+
+- When is the cache cleared?
+- How do we keep the cache from running the JVM out of memory?
+- Do we care to keep builds separated (e.g., clear if we use the daemon for a different build)?
 
 ## Story: Add "discovered" inputs to incremental tasks
 
@@ -352,6 +354,7 @@ Introduces a method `source(String, Closure<PatternFilterable-like>)` to `Langua
 
 - What do the defaults look like and how do they mix with this? e.g., how do I add exclusions without duplicating the default path?
 
+
     model {
         components {
             lib(NativeLibrarySpec) {
@@ -393,6 +396,22 @@ level cache, and reducing the cache size.
   - Conditionally enabling the profiler in the code by using Yourkit API.
 - Profiler support: For cross-version tests, skip all versions except the current?
 - Profiler support: Do we care about conditionally profiling the CLI and daemon processes (such that the profiling options should be configurable for each)?
+
+## Avoid unnecessary Ant default excludes in software model source sets
+
+- Add internal support for `DefaultSourceDirectorySet`-like class for use with `LanguageSourceSet`.  It would not use the default Ant exclude patterns.
+- We should try to leverage the existing PatternSet caching where that makes sense.
+
+## Story: Making "discovered" inputs a public feature
+
+We currently use discovered inputs to extract #include headers from native source files. This is an internal feature of `IncrementalTaskInputs` and is only used by the `IncrementalNativeCompiler`. To make this a public feature that build authors can use to add their own discovered inputs, we need to make this feature more friendly.
+
+### Open Issues
+
+- When discovered inputs changed, without knowing which source files contributed to the discovered inputs, we should mark the task inputs as incremental=false and treat it like a rebuild.  We don't do this because `IncrementalNativeCompiler` doesn't handle this case.
+- When discovering inputs, we should make sure that all source files are visited each time or provide a way to incrementally discover inputs.
+- We may want to revisit the API so that we know the mapping between source and discovered inputs better.
+- We should provide documentation/samples for using discovered inputs.
 
 ## Story: TBD
 

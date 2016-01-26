@@ -19,11 +19,13 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
-        if (type.getRawClass().isPrimitive()) {
+        if (isPrimitiveType(type)) {
             extractionContext.found(new ScalarValueSchema<T>(type));
         }
     }

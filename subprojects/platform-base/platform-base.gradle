@@ -1,11 +1,11 @@
 dependencies {
     compile libraries.groovy
-    compile project(":core")
-    compile project(":dependencyManagement")
-    testFixturesCompile project(path: ":modelCore", configuration: "testFixturesUsageRuntime")
+    compile project(':core')
+    compile project(':dependencyManagement')
+    testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 
-//useClassycle(exclude: ["org.gradle.language.base.internal/**"])
+//useClassycle(exclude: ['org.gradle.language.base.internal/**'])
 strictCompile()
 useTestFixtures()
 useTestFixtures(sourceSet: 'testFixtures')

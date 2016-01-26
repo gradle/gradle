@@ -53,5 +53,8 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      */
     void discoverTasks();
 
-    void maybeRealizeTask(String name);
+    /**
+     * Ensures that all configuration has been applied to the given task, and the task is ready to be added to the task graph.
+     */
+    void prepareForExecution(Task task);
 }

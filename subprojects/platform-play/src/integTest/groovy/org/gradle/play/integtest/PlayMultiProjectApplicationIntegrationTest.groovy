@@ -67,9 +67,9 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         zip("primary/build/distributions/playBinary.zip").containsDescendants(
             "playBinary/lib/primary.jar",
             "playBinary/lib/primary-assets.jar",
-            "playBinary/lib/submodule.jar",
-            "playBinary/lib/submodule-assets.jar",
-            "playBinary/lib/javalibrary.jar",
+            "playBinary/lib/submodule-submodule.jar",
+            "playBinary/lib/submodule-submodule-assets.jar",
+            "playBinary/lib/javalibrary-javalibrary.jar",
             "playBinary/bin/playBinary",
             "playBinary/bin/playBinary.bat",
             "playBinary/conf/application.conf"
@@ -82,8 +82,9 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         file("primary/build/stage/playBinary").assertIsDir().assertContainsDescendants(
             "lib/primary.jar",
             "lib/primary-assets.jar",
-            "lib/submodule.jar",
-            "lib/submodule-assets.jar",
+            "lib/submodule-submodule.jar",
+            "lib/submodule-submodule-assets.jar",
+            "lib/javalibrary-javalibrary.jar",
             "bin/playBinary",
             "bin/playBinary.bat",
             "conf/application.conf"

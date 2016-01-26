@@ -18,6 +18,7 @@ package org.gradle.play.plugins;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -25,11 +26,17 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -41,10 +48,14 @@ import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+
+import static org.gradle.internal.FileUtils.hasExtension;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -53,6 +64,8 @@ import java.util.Map;
 @Incubating
 public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
+    public static final String DIST_LIFECYCLE_TASK_NAME = "dist";
+    public static final String STAGE_LIFECYCLE_TASK_NAME = "stage";
 
     @Model
     PlayDistributionContainer distributions(ServiceRegistry serviceRegistry) {
@@ -62,7 +75,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Mutate
     void createLifecycleTasks(ModelMap<Task> tasks) {
-        tasks.create("dist", new Action<Task>() {
+        tasks.create(DIST_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setDescription("Assembles all Play distributions.");
@@ -70,7 +83,7 @@ public class PlayDistributionPlugin extends RuleSource {
             }
         });
 
-        tasks.create("stage", new Action<Task>() {
+        tasks.create(STAGE_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setDescription("Stages all Play distributions.");
@@ -137,6 +150,7 @@ public class PlayDistributionPlugin extends RuleSource {
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
             libSpec.from(configurations.getPlayRun().getAllArtifacts());
+            libSpec.eachFile(new PrefixArtifactFileNames(configurations.getPlayRun()));
 
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
@@ -154,18 +168,18 @@ public class PlayDistributionPlugin extends RuleSource {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");
             final String baseName = StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
-            tasks.create(stageTaskName, Copy.class, new Action<Copy>() {
+            tasks.create(stageTaskName, Sync.class, new Action<Sync>() {
                 @Override
-                public void execute(Copy copy) {
-                    copy.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
-                    copy.setDestinationDir(stageDir);
+                public void execute(Sync sync) {
+                    sync.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
+                    sync.setDestinationDir(stageDir);
 
-                    CopySpecInternal baseSpec = copy.getRootSpec().addChild();
+                    CopySpecInternal baseSpec = sync.getRootSpec().addChild();
                     baseSpec.into(baseName);
                     baseSpec.with(distribution.getContents());
                 }
             });
-            tasks.named("stage", new Action<Task>() {
+            tasks.named(STAGE_LIFECYCLE_TASK_NAME, new Action<Task>() {
                 @Override
                 public void execute(Task task) {
                     task.dependsOn(stageTaskName);
@@ -173,23 +187,44 @@ public class PlayDistributionPlugin extends RuleSource {
             });
 
             final Task stageTask = tasks.get(stageTaskName);
-            final String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
-            tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
+            final String distributionZipTaskName = String.format("create%sZipDist", StringUtils.capitalize(distribution.getName()));
+            tasks.create(distributionZipTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
                     zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
-                    zip.setArchiveName(String.format("%s.zip", baseName));
+                    zip.setBaseName(baseName);
                     zip.setDestinationDir(new File(buildDir, "distributions"));
                     zip.from(stageTask);
                 }
             });
 
-            tasks.named("dist", new Action<Task>() {
+            final String distributionTarTaskName = String.format("create%sTarDist", StringUtils.capitalize(distribution.getName()));
+            tasks.create(distributionTarTaskName, Tar.class, new Action<Tar>() {
                 @Override
-                public void execute(Task task) {
-                    task.dependsOn(distributionTaskName);
+                public void execute(final Tar tar) {
+                    tar.setDescription("Packages the '" + distribution.getName() + "' distribution as a tar file.");
+                    tar.setBaseName(baseName);
+                    tar.setDestinationDir(new File(buildDir, "distributions"));
+                    tar.from(stageTask);
                 }
             });
+
+            tasks.named(distributionTarTaskName, DistributionArchiveRules.class);
+            tasks.named(distributionZipTaskName, DistributionArchiveRules.class);
+
+            tasks.named(DIST_LIFECYCLE_TASK_NAME, new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(distributionZipTaskName, distributionTarTaskName);
+                }
+            });
+        }
+    }
+
+    static class DistributionArchiveRules extends RuleSource {
+        @Finalize
+        void fixupDistributionArchiveNames(AbstractArchiveTask archiveTask) {
+            archiveTask.setArchiveName(String.format("%s.%s", archiveTask.getBaseName(), archiveTask.getExtension()));
         }
     }
 
@@ -213,14 +248,100 @@ public class PlayDistributionPlugin extends RuleSource {
                         playConfiguration.getAllArtifacts(),
                         Collections.singleton(assetsJarFile)
                     ),
-                    new Function<File, String>() {
-                        @Override
-                        public String apply(File input) {
-                            return input.getName();
-                        }
-                    }
+                    new PrefixArtifactFileNames(playConfiguration)
                 )
             );
+        }
+    }
+
+    static class PrefixArtifactFileNames implements Action<FileCopyDetails>, Function<File, String> {
+        private final PlayPluginConfigurations.PlayConfiguration configuration;
+        ImmutableMap<File, String> renames;
+
+        PrefixArtifactFileNames(PlayPluginConfigurations.PlayConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.setName(apply(fileCopyDetails.getFile()));
+        }
+
+        @Override
+        public String apply(File input) {
+            calculateRenames();
+            String rename = renames.get(input);
+            if (rename!=null) {
+                return rename;
+            }
+            return input.getName();
+        }
+
+        private void calculateRenames() {
+            if (renames == null) {
+                renames = calculate();
+            }
+        }
+
+        private ImmutableMap<File, String> calculate() {
+            ImmutableMap.Builder<File, String> files = ImmutableMap.builder();
+            for (ResolvedArtifact artifact : getResolvedArtifacts()) {
+                boolean isProject = artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier;
+                if (isProject) {
+                    // rename project dependencies
+                    ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
+                    files.put(artifact.getFile(), renameForProject(projectComponentIdentifier, artifact.getFile()));
+                } else {
+                    boolean isExternalModule = artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier;
+                    if (isExternalModule) {
+                        ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                        files.put(artifact.getFile(), renameForModule(moduleComponentIdentifier, artifact.getFile()));
+                    } else {
+                        // don't rename other types of dependencies
+                        files.put(artifact.getFile(), artifact.getFile().getName());
+                    }
+                }
+            }
+            return files.build();
+        }
+
+        Set<ResolvedArtifact> getResolvedArtifacts() {
+            return configuration.getConfiguration().getResolvedConfiguration().getResolvedArtifacts();
+        }
+
+        static String renameForProject(ProjectComponentIdentifier id, File file) {
+            String fileName = file.getName();
+            if (shouldBeRenamed(file)) {
+                String projectPath = id.getProjectPath();
+                projectPath = projectPathToSafeFileName(projectPath);
+                return maybePrefix(projectPath, file);
+            }
+            return fileName;
+        }
+
+        static String renameForModule(ModuleComponentIdentifier id, File file) {
+            if (shouldBeRenamed(file)) {
+                return maybePrefix(id.getGroup(), file);
+            }
+            return file.getName();
+        }
+
+        private static String maybePrefix(String prefix, File file) {
+            if (!GUtil.isTrue(prefix)) {
+                return file.getName();
+            }
+            return String.format("%s-%s", prefix, file.getName());
+        }
+
+        private static String projectPathToSafeFileName(String projectPath) {
+            if (projectPath.equals(":")) {
+                return null;
+            }
+            return projectPath.replaceAll(":", ".").substring(1);
+        }
+
+        private static boolean shouldBeRenamed(File file) {
+            return hasExtension(file, ".jar");
         }
     }
 }

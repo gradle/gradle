@@ -17,7 +17,7 @@ package org.gradle.api.internal.cache;
 
 import org.gradle.internal.Factory;
 
-abstract public class CacheSupport<K, V> implements Cache<K, V> {
+public abstract class CacheSupport<K, V> implements Cache<K, V> {
     
     public V get(K key, Factory<V> factory) {
         V value = doGet(key);

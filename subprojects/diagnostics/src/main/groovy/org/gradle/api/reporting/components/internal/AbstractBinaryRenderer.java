@@ -31,6 +31,7 @@ import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.VariantAspect;
 import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.GUtil;
 
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         }
 
         for (Map.Entry<String, Object> variant : variants.entrySet()) {
-            String variantName = variant.getKey();
+            String variantName = GUtil.toWords(variant.getKey());
             builder.item(variantName, RendererUtils.displayValueOf(variant.getValue()));
         }
     }

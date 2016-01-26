@@ -53,7 +53,7 @@ model {
 
         run "mainExecutable"
 
-        mainExe = executable("build/binaries/mainExecutable/main")
+        mainExe = executable("build/exe/main/main")
         mainResourceFile = file("src/main/rc/resources.rc")
     }
 
@@ -126,7 +126,7 @@ model {
     def "stale .res files are removed when a resource source file is renamed"() {
         setup:
         def outputFileNameScheme = new CompilerOutputFileNamingScheme()
-                .withOutputBaseFolder(file("build/objs/mainExecutable/mainRc"))
+                .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def oldResFile = outputFileNameScheme.map(mainResourceFile)
         def newResFile = outputFileNameScheme.map(file('src/main/rc/changed_resources.rc'))
@@ -149,7 +149,7 @@ model {
 
         given: "set the generated res file timestamp to zero"
         def outputFileNameScheme = new CompilerOutputFileNamingScheme()
-                .withOutputBaseFolder(file("build/objs/mainExecutable/mainRc"))
+                .withOutputBaseFolder(file("build/objs/main/mainRc"))
                 .withObjectFileNameSuffix(".res")
         def resourceFile = outputFileNameScheme.map(mainResourceFile)
 

@@ -144,7 +144,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     }
 
     @Unroll
-    def "input reference can be used as expression - #syntax"() {
+    def "input reference can be used as expression statement - #syntax"() {
         when:
         buildScript """
           @Managed

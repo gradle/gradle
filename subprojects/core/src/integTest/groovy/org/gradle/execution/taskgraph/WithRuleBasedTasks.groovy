@@ -21,10 +21,10 @@ trait WithRuleBasedTasks {
     String ruleBasedTasks() {
         """
         class EchoTask extends DefaultTask {
-            String text = "default"
+            String message = "default"
             @TaskAction
             void print() {
-                println(name + ' ' + text)
+                println(name + ': ' + message)
             }
         }
 
@@ -42,6 +42,10 @@ trait WithRuleBasedTasks {
             void print() {
                 println "Jumping \$height centimeters"
             }
+        }
+
+        class BrokenTask extends DefaultTask {
+            BrokenTask() { throw new RuntimeException() }
         }
 """
     }

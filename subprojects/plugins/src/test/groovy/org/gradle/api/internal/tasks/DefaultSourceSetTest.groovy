@@ -18,10 +18,13 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Task
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 import static org.gradle.util.Matchers.isEmpty
@@ -29,11 +32,12 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest {
-    private final FileResolver fileResolver = [resolve: {it as File}] as FileResolver
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
+    private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, fileResolver)
+        def s = new DefaultSourceSet(name, TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
     }
@@ -128,13 +132,13 @@ class DefaultSourceSetTest {
     @Test public void canConfigureResources() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.resources { srcDir 'src/resources' }
-        assertThat(sourceSet.resources.srcDirs, equalTo([new File('src/resources').canonicalFile] as Set))
+        assertThat(sourceSet.resources.srcDirs, equalTo([tmpDir.file('src/resources')] as Set))
     }
-    
+
     @Test public void canConfigureJavaSource() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.java { srcDir 'src/java' }
-        assertThat(sourceSet.java.srcDirs, equalTo([new File('src/java').canonicalFile] as Set))
+        assertThat(sourceSet.java.srcDirs, equalTo([tmpDir.file('src/java')] as Set))
     }
 
     @Test
@@ -142,10 +146,14 @@ class DefaultSourceSetTest {
         SourceSet sourceSet = sourceSet('set-name')
         assertThat(sourceSet.output.files, isEmpty())
 
-        sourceSet.output.classesDir = new File('classes')
-        assertThat(sourceSet.output.files, equalTo([new File('classes')] as Set))
-        sourceSet.output.classesDir = new File('other-classes')
-        assertThat(sourceSet.output.files, equalTo([new File('other-classes')] as Set))
+        def dir1 = tmpDir.file('classes')
+        def dir2 = tmpDir.file('other-classes')
+
+        sourceSet.output.classesDir = dir1
+        assertThat(sourceSet.output.files, equalTo([dir1] as Set))
+
+        sourceSet.output.classesDir = dir2
+        assertThat(sourceSet.output.files, equalTo([dir2] as Set))
     }
 
     @Test

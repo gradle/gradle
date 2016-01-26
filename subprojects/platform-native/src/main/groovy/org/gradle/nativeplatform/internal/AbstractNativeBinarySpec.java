@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.nativeplatform.PreprocessingTool;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -33,7 +33,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
@@ -61,17 +60,17 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
             .build();
 
     private PlatformToolProvider toolProvider;
-    private BinaryNamingScheme namingScheme;
     private Flavor flavor;
     private NativeToolChain toolChain;
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
+    private FileCollectionFactory fileCollectionFactory;
 
     @Override
     public String getDisplayName() {
-        return namingScheme.getDescription();
+        return getNamingScheme().getDescription();
     }
 
     @Override
@@ -147,14 +146,6 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return toolsByName.get(name);
     }
 
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
-    }
-
-    public void setNamingScheme(BinaryNamingScheme namingScheme) {
-        this.namingScheme = namingScheme;
-    }
-
     public Collection<NativeDependencySet> getLibs() {
         return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
     }
@@ -195,6 +186,15 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    protected FileCollectionFactory getFileCollectionFactory() {
+        return fileCollectionFactory;
+    }
+
+    @Override
+    public void setFileCollectionFactory(FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override

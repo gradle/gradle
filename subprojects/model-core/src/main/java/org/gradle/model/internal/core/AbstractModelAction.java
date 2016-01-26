@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Preconditions;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Arrays;
@@ -31,9 +32,9 @@ public abstract class AbstractModelAction<T> implements ModelAction {
     }
 
     protected AbstractModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
-        this.subject = subject;
-        this.descriptor = descriptor;
-        this.inputs = inputs;
+        this.subject = Preconditions.checkNotNull(subject, "subject");
+        this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
+        this.inputs = Preconditions.checkNotNull(inputs, "inputs");
     }
 
     @Override

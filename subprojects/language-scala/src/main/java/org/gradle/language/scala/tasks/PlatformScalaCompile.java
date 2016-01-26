@@ -18,6 +18,7 @@ package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
@@ -29,6 +30,7 @@ import javax.inject.Inject;
  * A platform-aware Scala compile task.
  */
 @Incubating
+@ParallelizableTask
 public class PlatformScalaCompile extends AbstractScalaCompile {
 
     private ScalaPlatform platform;

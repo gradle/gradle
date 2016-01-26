@@ -16,16 +16,55 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.model.ModelSet;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSetSchema;
 import org.gradle.model.internal.type.ModelType;
 
-@ThreadSafe
-public class ModelSetStrategy extends SetStrategy {
+import java.util.List;
+
+public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
+
+    private final ModelType<?> modelType;
 
     public ModelSetStrategy() {
-        super(new ModelType<ModelSet<?>>() {
-        });
+        modelType = new ModelType<ModelSet<?>>() {
+        };
     }
 
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
+        ModelType<T> type = extractionContext.getType();
+        if (modelType.isAssignableFrom(type)) {
+            if (!type.getRawClass().equals(ModelSet.class)) {
+                extractionContext.add(String.format("subtyping %s is not supported", ModelSet.class.getName()));
+                return;
+            }
+            if (type.isHasWildcardTypeVariables()) {
+                extractionContext.add(String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
+                return;
+            }
+
+            List<ModelType<?>> typeVariables = type.getTypeVariables();
+            if (typeVariables.isEmpty()) {
+                extractionContext.add(String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
+                return;
+            }
+
+            ModelType<?> elementType = typeVariables.get(0);
+            extractionContext.found(getModelSchema(extractionContext, elementType));
+        }
+    }
+
+    private <T, E> ModelSchema<T> getModelSchema(final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType) {
+        final CollectionSchema<T, E> schema = new ModelSetSchema<T, E>(extractionContext.getType(), elementType);
+        extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
+            @Override
+            public void execute(ModelSchema<E> elementTypeSchema) {
+                schema.setElementTypeSchema(elementTypeSchema);
+            }
+        });
+        return schema;
+    }
 }

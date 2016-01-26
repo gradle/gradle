@@ -15,52 +15,47 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Task;
+import com.google.common.collect.Lists;
+import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.ComponentBinaryRules;
+import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
-import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.core.Service;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
 import javax.inject.Inject;
+import java.util.List;
+import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.model.internal.core.ModelNodes.withType;
+import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code componentSpecs} to the project.
+ * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
+public class ComponentModelBasePlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -68,18 +63,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         this.modelRegistry = modelRegistry;
     }
 
-    public void apply(final ProjectInternal project) {
+    public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
+        project.getPluginManager().apply(BinaryBasePlugin.class);
 
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentRules.class);
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), ComponentBinaryRules.class);
+        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        // TODO The 'path' is required to here to avoid a rule cycle being reported
-        @Service
-        ComponentSpecFactory componentSpecFactory(@Path("projectIdentifier") ProjectIdentifier projectIdentifier) {
+        @Hidden @Model
+        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
             return new ComponentSpecFactory("components", projectIdentifier);
         }
 
@@ -89,52 +83,36 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             builder.internalView(ComponentSpecInternal.class);
         }
 
-        @Service
-        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
+        @ComponentType
+        void registerPlatformAwareComponet(ComponentTypeBuilder<PlatformAwareComponentSpec> builder) {
+            builder.internalView(PlatformAwareComponentSpecInternal.class);
         }
 
         @Model
-        void components(ComponentSpecContainer componentSpecs) {}
-
-        @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
+        void components(ComponentSpecContainer componentSpecs) {
         }
 
-        @Service
+        @Mutate
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, bindingsStore));
+        }
+
+        @Hidden @Model
         LanguageTransformContainer languageTransforms() {
             return new DefaultLanguageTransformContainer();
         }
 
-        // Required because creation of Binaries from Components is not yet wired into the infrastructure
-        @Mutate
-        void closeComponentsForBinaries(ModelMap<Task> tasks, ComponentSpecContainer components) {
-        }
-
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
+        // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
         void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
-            for (LanguageTransform<?, ?> language : languageTransforms) {
-                for (final BinarySpecInternal binary : binaries) {
-                    if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
-                        continue;
-                    }
-
-                    final SourceTransformTaskConfig taskConfig = language.getTransformTask();
-                    for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
-                        LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
-                        if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
-                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getProjectScopedName());
-                            Task task = tasks.create(taskName, taskConfig.getTaskType());
-                            taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
-
-                            task.dependsOn(sourceSet);
-                            binary.getTasks().add(task);
-                        }
-                    }
+            BinarySourceTransformations transformations = new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
+            for (BinarySpecInternal binary : binaries) {
+                if (binary.isLegacyBinary()) {
+                    continue;
                 }
+
+                transformations.createTasksFor(binary);
             }
         }
 
@@ -144,7 +122,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
-        @Service
+        @Hidden @Model
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }
@@ -154,11 +132,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-        @Defaults
-        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
+        @Mutate
+        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.put(((BinarySpecInternal) binary).getProjectScopedName(), binary);
+                for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }
@@ -168,23 +146,50 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             instanceFactory.validateRegistrations();
         }
 
-        @Validate
-        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
+        @Mutate
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
+            List<BinarySpecInternal> notBuildable = Lists.newArrayList();
+            boolean hasBuildableBinaries = false;
+            for (ComponentSpec component : components) {
+                for (BinarySpecInternal binary : component.getBinaries().withType(BinarySpecInternal.class)) {
+                    if (binary.isBuildable()) {
+                        assemble.dependsOn(binary);
+                        hasBuildableBinaries = true;
+                    } else {
+                        notBuildable.add(binary);
+                    }
+                }
+            }
+            if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
+                assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
+            }
         }
 
-        // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
-        @Defaults
-        void addSourceSetsOwnedByBinariesToTheirInputs(ModelMap<BinarySpec> binarySpecs) {
-            binarySpecs.withType(BinarySpecInternal.class).afterEach(new Action<BinarySpecInternal>() {
-                @Override
-                public void execute(BinarySpecInternal binary) {
-                    if (binary.isLegacyBinary()) {
-                        return;
+        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
+            private final List<BinarySpecInternal> notBuildable;
+
+            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
+                this.notBuildable = notBuildable;
+            }
+
+            @Override
+            public void execute(Task task) {
+                Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
+
+                if (taskDependencies.isEmpty()) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("No buildable binaries found");
+                    formatter.startChildren();
+                    for (BinarySpecInternal binary : notBuildable) {
+                        formatter.node(binary.getDisplayName());
+                        formatter.startChildren();
+                        binary.getBuildAbility().explain(formatter);
+                        formatter.endChildren();
                     }
-                    binary.getInputs().addAll(binary.getSources().values());
+                    formatter.endChildren();
+                    throw new GradleException(formatter.toString());
                 }
-            });
+            }
         }
     }
 }

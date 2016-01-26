@@ -80,7 +80,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
                 return dependencyHandler.create(dependencyNotation);
             }
         });
-        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
+        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[0]);
         return configurationContainer.detachedConfiguration(dependenciesArray);
     }
 

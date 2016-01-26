@@ -55,7 +55,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source dependency on source set of headers"() {
@@ -82,7 +82,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source dependency on source set of different type"() {
@@ -112,7 +112,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source files in depended-on source set are not included"() {

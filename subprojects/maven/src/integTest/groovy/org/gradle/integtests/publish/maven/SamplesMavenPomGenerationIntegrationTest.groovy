@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
-
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
 import org.hamcrest.Matchers
@@ -39,8 +37,9 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
         pomProjectDir = sample.dir
+        using m2 //uploadArchives leaks into local ~/.m2
     }
-    
+
     @Test
     void "can deploy to local repository"() {
         def repo = maven(pomProjectDir.file('pomRepo'))
@@ -57,7 +56,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = maven(new TestFile("$SystemProperties.instance.userHome/.m2/repository"))
+        def repo = m2.mavenRepo()
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 
@@ -90,7 +89,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(pomProjectDir).withTasks('writeDeployerPom').run()
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomProjectDir.file("target/deployerpom.xml").text)
     }
-    
+
     private String expectedPom(String version, String groupId, String path = 'pomGeneration/expectedPom.txt') {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
         String text = resources.getResource(path).text

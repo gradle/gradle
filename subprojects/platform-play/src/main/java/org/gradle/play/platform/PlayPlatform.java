@@ -31,17 +31,17 @@ public interface PlayPlatform extends Platform {
      * Version of Play Framework to use
      * @return version of the Play Framework
      */
-    public String getPlayVersion();
+    String getPlayVersion();
 
     /**
      * Version of Scala Runtime to use.
      * @return version of the Scala runtime
      */
-    public ScalaPlatform getScalaPlatform();
+    ScalaPlatform getScalaPlatform();
 
     /**
      * Version of Java Runtime to use.
      * @return version of the Java runtime
      */
-    public JavaPlatform getJavaPlatform();
+    JavaPlatform getJavaPlatform();
 }

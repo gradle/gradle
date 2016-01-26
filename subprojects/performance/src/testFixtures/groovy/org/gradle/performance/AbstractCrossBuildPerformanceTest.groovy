@@ -16,7 +16,7 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.PerformanceTest
+import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
@@ -27,16 +27,15 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
-@Category(PerformanceTest)
+@Category(GradleCorePerformanceTest)
 class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossBuildResultsStore()
 
-    final def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-            builder.invocationCount(5).warmUpCount(1)
             super.defaultSpec(builder)
             AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
         }

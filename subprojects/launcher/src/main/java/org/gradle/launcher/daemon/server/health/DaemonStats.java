@@ -56,13 +56,18 @@ class DaemonStats {
      * Informs the stats that the build finished
      */
     void buildFinished() {
-        allBuildsTime += timeProvider.getCurrentTime() - currentBuildStart;
+        long buildTime = Math.max(timeProvider.getCurrentTime() - currentBuildStart, 1);
+        allBuildsTime += buildTime;
         currentPerformance = performance(allBuildsTime, memory);
     }
 
     private static int performance(long totalTime, MemoryInfo memoryInfo) {
         //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        return 100 - NumberUtil.percentOf(memoryInfo.getCollectionTime(), totalTime);
+        if (memoryInfo.getCollectionTime() > 0 && memoryInfo.getCollectionTime() < totalTime) {
+            return 100 - NumberUtil.percentOf(memoryInfo.getCollectionTime(), totalTime);
+        } else {
+            return 100;
+        }
     }
 
     /**

@@ -35,7 +35,7 @@ abstract class VariantAwareDependencyResolutionSpec extends AbstractIntegrationS
                         while (!(t instanceof PlatformJavaCompile)) {
                             t = t.taskDependencies.getDependencies(t)[0]
                         }
-                        assert t.classpath.files == [file("\${buildDir}/jars/${target.replace('Jar','ApiJar')}/second.jar")] as Set
+                        assert t.classpath.files == [file("\${buildDir}/jars/${target}/api/second.jar")] as Set
                     }
                 }
 """
@@ -111,18 +111,12 @@ trait FlavorAndBuildTypeJarBinarySpec implements FlavorJarBinarySpec, BuildTypeJ
 
 // define the 3 concrete binary types used in tests (flavor, build type and both)
 class FlavorBinary extends DefaultJarBinarySpec implements FlavorJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class BuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class FlavorAndBuildTypeBinary extends DefaultJarBinarySpec implements FlavorAndBuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 // define the 3 concrete library types

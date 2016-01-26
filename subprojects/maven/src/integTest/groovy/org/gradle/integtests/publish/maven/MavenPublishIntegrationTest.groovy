@@ -16,7 +16,6 @@
 package org.gradle.integtests.publish.maven
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -31,8 +30,8 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    def setup() {
-        overrideMavenLocal()
+    def setup(){
+        using m2
     }
 
     def "can publish a project with dependency in mapped and unmapped configuration"() {
@@ -350,12 +349,9 @@ uploadArchives {
 
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
-        def m2Installation = new M2Installation(testDirectory)
-        def localM2Repo = m2Installation.mavenRepo()
+        def localM2Repo = m2.mavenRepo()
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
-        m2Installation.generateUserSettingsFile(customLocalRepo)
-        dontOverrideMavenLocal()
-        executer.beforeExecute(m2Installation)
+        m2.generateUserSettingsFile(customLocalRepo)
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -428,11 +424,9 @@ uploadArchives {
     @Issue('GRADLE-3272')
     def "can publish to custom maven local repo defined with system property"() {
         given:
-        def m2Installation = new M2Installation(testDirectory)
-        def localM2Repo = m2Installation.mavenRepo()
+        def localM2Repo = m2.mavenRepo()
         def customLocalRepo = mavenLocal("customMavenLocal")
-        dontOverrideMavenLocal()
-        executer.beforeExecute(m2Installation)
+        executer.beforeExecute(m2)
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -445,7 +439,7 @@ uploadArchives {
         """
 
         when:
-        overrideMavenLocal(customLocalRepo.rootDir)
+        args "-Dmaven.repo.local=${customLocalRepo.rootDir.getAbsolutePath()}"
         succeeds 'install'
 
         then:

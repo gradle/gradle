@@ -47,7 +47,7 @@ public class NotFoundScalaToolProvider implements ToolProvider {
     private RuntimeException failure() {
         TreeFormatter formatter = new TreeFormatter();
         this.explain(formatter);
-        return new GradleException(formatter.toString());
+        return new GradleException(formatter.toString(), exception);
     }
 
     @Override

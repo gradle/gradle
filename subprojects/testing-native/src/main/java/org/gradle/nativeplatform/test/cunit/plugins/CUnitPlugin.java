@@ -23,22 +23,17 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
 import org.gradle.model.*;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.*;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 
@@ -60,20 +55,6 @@ public class CUnitPlugin implements Plugin<Project> {
 
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
 
-        // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
-        @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
-            for (final NativeComponentSpec component : components.values()) {
-                final String suiteName = String.format("%sTest", component.getName());
-                testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
-                    @Override
-                    public void execute(CUnitTestSuiteSpec testSuite) {
-                        testSuite.setTestedComponent(component);
-                    }
-                });
-            }
-        }
-        
         @ComponentType
         public void registerCUnitTestSuiteSpecType(ComponentTypeBuilder<CUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultCUnitTestSuiteSpec.class);
@@ -125,12 +106,14 @@ public class CUnitPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultCUnitTestSuiteBinary.class);
         }
 
-        @Mutate
-        public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
-                                            LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuites, CUnitTestSuiteSpec.class, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
+        @ComponentBinaries
+        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries,
+                                            CUnitTestSuiteSpec testSuite,
+                                            @Path("buildDir") final File buildDir,
+                                            final ServiceRegistry serviceRegistry,
+                                            final ITaskFactory taskFactory) {
+            createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
-
     }
 
 }

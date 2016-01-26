@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
-
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -32,6 +31,7 @@ class TaskUpToDateStateTest extends Specification {
     private TaskHistoryRepository.History stubHistory
     private FileCollectionSnapshotter stubOutputFileSnapshotter
     private FileCollectionSnapshotter stubInputFileSnapshotter
+    DiscoveredInputFilesStateChangeRule stubDiscoveredInputFilesStateChangeRule = Stub(DiscoveredInputFilesStateChangeRule)
 
     def setup() {
         TaskInputs stubInputs = Stub(TaskInputs)
@@ -55,7 +55,7 @@ class TaskUpToDateStateTest extends Specification {
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, stubDiscoveredInputFilesStateChangeRule)
 
         then:
         noExceptionThrown()
@@ -70,7 +70,7 @@ class TaskUpToDateStateTest extends Specification {
         _ * stubInputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFilesStateChangeRule)
 
         then:
         def e = thrown(UncheckedIOException)
@@ -87,7 +87,7 @@ class TaskUpToDateStateTest extends Specification {
          _ * stubOutputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFilesStateChangeRule)
 
         then:
         def e = thrown(UncheckedIOException)

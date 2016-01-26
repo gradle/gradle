@@ -21,24 +21,48 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class DefaultTypeConverterTest extends Specification {
+    public static final BigInteger LARGE = BigInteger.ONE.shiftLeft(64)
     def converter = new DefaultTypeConverter(Stub(FileResolver))
 
     def "converts null to null"() {
         expect:
-        converter.convert(null, Long.class, false) == null
-        converter.convert(null, File.class, false) == null
-        converter.convert(null, String.class, false) == null
-        converter.convert(null, Thing.class, false) == null
+        converter.convert(null, type, false) == null
+
+        where:
+        type       | _
+        Boolean    | _
+        Byte       | _
+        Short      | _
+        Integer    | _
+        Long       | _
+        Float      | _
+        Double     | _
+        BigDecimal | _
+        BigInteger | _
+        String     | _
+        File       | _
     }
 
-    def "converts int to Long"() {
+    def "widens numeric values to Long"() {
         expect:
-        converter.convert(123 as int, Long.class, false) == 123L
+        converter.convert(12 as Byte, Long.class, false) == 12L
+        converter.convert(123 as Short, Long.class, false) == 123L
+        converter.convert(123 as Integer, Long.class, false) == 123L
+        converter.convert(123 as Long, Long.class, false) == 123L
+        converter.convert(123 as Double, Long.class, false) == 123L
+        converter.convert(123 as BigInteger, Long.class, false) == 123L
+        converter.convert(123 as BigDecimal, Long.class, false) == 123L
     }
 
-    def "converts int to primitive Long"() {
+    def "widens numeric values to primitive Long"() {
         expect:
-        converter.convert(123 as int, Long.class, true) == 123L
+        converter.convert(12 as Byte, Long.class, true) == 12L
+        converter.convert(123 as Short, Long.class, true) == 123L
+        converter.convert(123 as Integer, Long.class, true) == 123L
+        converter.convert(123 as Long, Long.class, true) == 123L
+        converter.convert(123 as Double, Long.class, true) == 123L
+        converter.convert(123 as BigInteger, Long.class, true) == 123L
+        converter.convert(123 as BigDecimal, Long.class, true) == 123L
     }
 
     def "converts CharSequence to Long"() {
@@ -53,14 +77,22 @@ class DefaultTypeConverterTest extends Specification {
         converter.convert(new StringBuilder("123"), Long.class, true) == 123L
     }
 
-    def "converts Long to Long"() {
-        expect:
-        converter.convert(123L, Long.class, false) == 123L
-    }
+    def "fails when value is truncated when converting to Long"() {
+        when:
+        converter.convert(value, Long.class, false)
 
-    def "converts Long to primitive long"() {
-        expect:
-        converter.convert(123L, Long.class, true) == 123L
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert value '${value}' to type Long"
+        e.cause instanceof ArithmeticException
+
+        where:
+        value               | _
+        LARGE               | _
+        LARGE as BigDecimal | _
+        LARGE as String     | _
+        12.123              | _
+        "0.123"             | _
     }
 
     def "cannot convert arbitrary type to Long"() {
@@ -72,8 +104,119 @@ class DefaultTypeConverterTest extends Specification {
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Long: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances.
-  - Number instances.""")
+  - A String or CharSequence
+  - Any Number""")
+    }
+
+    def "cannot convert arbitrary string to Long"() {
+        when:
+        converter.convert("42-not-a-long", Long.class, false)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == TextUtil.toPlatformLineSeparators("Cannot convert value '42-not-a-long' to type Long")
+        e.cause instanceof NumberFormatException
+    }
+
+    def "cannot convert arbitrary type to primitive long"() {
+        when:
+        def cl = {}
+        converter.convert(cl, Long.class, true)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type long: ${cl.toString()}.
+The following types/formats are supported:
+  - A String or CharSequence
+  - Any Number""")
+    }
+
+    def "cannot convert null to primitive long"() {
+        when:
+        converter.convert(null, Long.class, true)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert a null value to an object of type long.
+The following types/formats are supported:
+  - A String or CharSequence
+  - Any Number""")
+    }
+
+    def "cannot convert arbitrary string to primitive long"() {
+        when:
+        converter.convert("42-not-a-long", Long.class, true)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == TextUtil.toPlatformLineSeparators("Cannot convert value '42-not-a-long' to type long")
+        e.cause instanceof NumberFormatException
+    }
+
+    def "fails when value is truncated when converting to Byte"() {
+        when:
+        converter.convert(value, Byte.class, false)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert value '${value}' to type Byte"
+        e.cause instanceof ArithmeticException
+
+        where:
+        value             | _
+        128l              | _
+        128 as BigDecimal | _
+        "12045"           | _
+        "128"             | _
+        "-129"            | _
+        12.123            | _
+        "0.123"           | _
+    }
+
+    def "converts CharSequence to BigDecimal"() {
+        expect:
+        converter.convert("123", BigDecimal.class, false) == 123
+        converter.convert("123.12", BigDecimal.class, false) == 123.12
+        converter.convert(new StringBuilder("0.00001"), BigDecimal.class, false) == 0.00001
+    }
+
+    def "fails when value is truncated when converting to BigInteger"() {
+        when:
+        converter.convert(value, BigInteger.class, false)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert value '${value}' to type BigInteger"
+        e.cause instanceof ArithmeticException
+
+        where:
+        value   | _
+        12.123  | _
+        "0.123" | _
+    }
+
+    def "converts numeric values to Double"() {
+        expect:
+        converter.convert(12 as Byte, Double.class, false) == 12L
+        converter.convert(123 as Short, Double.class, false) == 123L
+        converter.convert(123 as Integer, Double.class, false) == 123L
+        converter.convert(123 as Long, Double.class, false) == 123L
+        converter.convert(123 as Float, Double.class, false) == 123L
+        converter.convert(123 as Double, Double.class, false) == 123L
+        converter.convert(123 as BigInteger, Double.class, false) == 123L
+        converter.convert(123 as BigDecimal, Double.class, false) == 123L
+    }
+
+    def "converts numeric values to primitive double"() {
+        expect:
+        converter.convert(12 as Byte, Double.class, true) == 12L
+        converter.convert(123 as Short, Double.class, true) == 123L
+        converter.convert(123 as Integer, Double.class, true) == 123L
+        converter.convert(123 as Long, Double.class, true) == 123L
+        converter.convert(123 as Float, Double.class, true) == 123L
+        converter.convert(123 as Double, Double.class, true) == 123L
+        converter.convert(123 as BigInteger, Double.class, true) == 123L
+        converter.convert(123 as BigDecimal, Double.class, true) == 123L
     }
 
     def "converts CharSequence to Boolean"() {
@@ -109,7 +252,65 @@ The following types/formats are supported:
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Boolean: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances.""")
+  - A String or CharSequence
+  - A Boolean""")
+    }
+
+    def "converts scalar types to Character"() {
+        expect:
+        converter.convert("a" as Character, Character.class, false) == "a"
+        converter.convert("a", Character.class, false) == "a"
+        converter.convert(new StringBuilder("a"), Character.class, false) == "a"
+    }
+
+    def "cannot convert string that is not exactly one character long to character"() {
+        when:
+        converter.convert(value, Character.class, false)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert string value '${value}' with length ${value.length()} to type Character"
+
+        where:
+        value << ["", "123"]
+    }
+
+    def "cannot convert string that is not exactly one character long to primitive char"() {
+        when:
+        converter.convert(value, Character.class, true)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == "Cannot convert string value '${value}' with length ${value.length()} to type char"
+
+        where:
+        value << ["", "123"]
+    }
+
+    def "cannot convert arbitrary type to Character"() {
+        when:
+        def cl = {}
+        converter.convert(cl, Character.class, false)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Character: ${cl.toString()}.
+The following types/formats are supported:
+  - A String or CharSequence
+  - A Character""")
+    }
+
+    def "cannot convert arbitrary type to primitive char"() {
+        when:
+        def cl = {}
+        converter.convert(cl, Character.class, true)
+
+        then:
+        def e = thrown(UnsupportedNotationException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type char: ${cl.toString()}.
+The following types/formats are supported:
+  - A String or CharSequence
+  - A Character""")
     }
 
     def "converts CharSequence to String"() {
@@ -120,8 +321,12 @@ The following types/formats are supported:
 
     def "converts scalar types to String"() {
         expect:
-        converter.convert(123L, String.class, false) == "123"
+        converter.convert('a' as Character, String.class, false) == "a"
+        converter.convert(12 as Byte, String.class, false) == "12"
+        converter.convert(123 as Long, String.class, false) == "123"
+        converter.convert(123 as BigInteger, String.class, false) == "123"
         converter.convert(true, String.class, false) == "true"
+        converter.convert(new File("f"), String.class, false) == "f"
     }
 
     def "cannot convert arbitrary type to String"() {
@@ -133,11 +338,15 @@ The following types/formats are supported:
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to a String: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances.
-  - Any number or boolean.""")
+  - A String or CharSequence or Character
+  - Any Number
+  - A Boolean
+  - A File""")
     }
 
-    enum Thing { SOME_THING, SOME_OTHER_THING }
+    enum Thing {
+        SOME_THING, SOME_OTHER_THING
+    }
 
     def "converts CharSequence to Enum"() {
         expect:
@@ -154,6 +363,15 @@ The following types/formats are supported:
         def e = thrown(UnsupportedNotationException)
         e.message == TextUtil.toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Thing: ${cl.toString()}.
 The following types/formats are supported:
-  - String or CharSequence instances.""")
+  - One of the following values: 'SOME_THING', 'SOME_OTHER_THING'""")
+    }
+
+    def "cannot convert arbitrary string to Enum"() {
+        when:
+        converter.convert("not-a-thing", Thing.class, false)
+
+        then:
+        def e = thrown(TypeConversionException)
+        e.message == TextUtil.toPlatformLineSeparators("Cannot convert string value 'not-a-thing' to an enum value of type '${Thing.name}' (valid case insensitive values: [SOME_THING, SOME_OTHER_THING])")
     }
 }

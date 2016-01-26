@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * Displays the dependency tree for a configuration.
  */
-abstract public class AbstractDependencyReportTask extends AbstractReportTask {
+public abstract class AbstractDependencyReportTask extends AbstractReportTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 

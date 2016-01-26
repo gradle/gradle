@@ -16,27 +16,24 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
-import org.gradle.model.*;
-import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.*;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 
@@ -55,18 +52,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Defaults
-        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
-            for (final NativeComponentSpec component : components.values()) {
-                final String suiteName = String.format("%sTest", component.getName());
-                testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
-                    @Override
-                    public void execute(GoogleTestTestSuiteSpec testSuite) {
-                        testSuite.setTestedComponent(component);
-                    }
-                });
-            }
-        }
 
         @ComponentType
         public void registerGoogleTestSuiteSpecTest(ComponentTypeBuilder<GoogleTestTestSuiteSpec> builder) {
@@ -87,11 +72,13 @@ public class GoogleTestPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
         }
 
-        @Mutate
-        public void createGoogleTestTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
-                                                 LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            createNativeTestSuiteBinaries(testSuites, GoogleTestTestSuiteSpec.class, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
+        @ComponentBinaries
+        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
+                                                 GoogleTestTestSuiteSpec testSuite,
+                                                 @Path("buildDir") final File buildDir,
+                                                 final ServiceRegistry serviceRegistry,
+                                                 final ITaskFactory taskFactory) {
+            createNativeTestSuiteBinaries(binaries, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
-   }
-
+    }
 }

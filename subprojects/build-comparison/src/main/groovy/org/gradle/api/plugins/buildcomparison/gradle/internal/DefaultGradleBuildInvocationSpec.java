@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
@@ -28,13 +28,13 @@ import java.util.List;
 
 public class DefaultGradleBuildInvocationSpec implements GradleBuildInvocationSpec {
 
-    private FileResolver fileResolver;
+    private PathToFileResolver fileResolver;
     private Object projectDir;
     private String gradleVersion = GradleVersion.current().getVersion();
     private List<String> tasks = new LinkedList<String>();
     private List<String> arguments = new LinkedList<String>();
 
-    public DefaultGradleBuildInvocationSpec(FileResolver fileResolver, Object projectDir) {
+    public DefaultGradleBuildInvocationSpec(PathToFileResolver fileResolver, Object projectDir) {
         this.fileResolver = fileResolver;
         this.projectDir = projectDir;
     }

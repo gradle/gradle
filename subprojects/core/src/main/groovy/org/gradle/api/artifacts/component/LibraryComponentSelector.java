@@ -43,4 +43,7 @@ public interface LibraryComponentSelector extends ComponentSelector {
     @Nullable
     String getLibraryName();
 
+    @Nullable
+    String getVariant();
+
 }

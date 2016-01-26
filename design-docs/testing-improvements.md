@@ -238,6 +238,34 @@ In TestNG, we only receive notification on entire suite start / end and then on 
 This means that with TestNG, the CaptureTestOutputTestResultProcessor is started only when the first test starts.
 We could possibly fix it by starting redirecting the output at suite start in the TestNG scenario.
 
+## Story: Adding support for TestNG's preserveOrder and groupByInstances options
+
+### Implementation plan
+
+Add options 'preserveOrder' and 'groupByInstances' to TestNGOptions. Both options should default to 'false'.
+Handling of these options has to be done in TestNGTestClassProcessor. Use reflection to call TestNG.setPreserveOrder(boolean)
+and TestNG.setGroupByInstances(boolean) to keep with TestNG versions not having these features implemented.
+Add documentation and samples for these options.
+
+### User visible changes
+
+The TestNGOptions closure will expose the new options
+
+    test {
+      useTestNG {
+        preserveOrder = true
+        groupByInstances = true
+      }
+    }
+    
+### Test coverage
+
+- Test default values of preserveOrder and groupByInstances
+- Test multiple tests are executed in the correct order when preserveOrder is set to true
+- Test multiple instances created by a test class factory are executed in the correct order when groupByInstances is set to true
+- Test error handling in case of preserveOrder option is set to true and TestNG version does not support preserving order (version <= 5.14.4)
+- Test error handling in case of groupByInstances option is set to true and TestNG version does not support grouping by instances (version <= 6.0.1)
+
 # Other issues
 
 - Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.

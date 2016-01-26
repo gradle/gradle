@@ -39,7 +39,7 @@ public class CommandLineAssistant {
      */
     public static String[] breakUpCommandLine(String fullCommandLine) {
         List<String> commandLineArguments = ArgumentsSplitter.split(fullCommandLine);
-        return commandLineArguments.toArray(new String[commandLineArguments.size()]);
+        return commandLineArguments.toArray(new String[0]);
     }
 
     public boolean hasLogLevelDefined(String[] commandLineArguments) {

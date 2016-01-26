@@ -133,7 +133,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         childAppIsRunningAndDeployed()
 
         when:
-        addBadJava("primary/app")
+        addBadScala("primary/app")
 
         then:
         fails()
@@ -142,24 +142,23 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         childErrorPageHasTaskFailure(":primary:compilePlayBinaryScala")
 
         when:
-        fixBadJava("primary/app")
+        fixBadScala("primary/app")
         then:
         succeeds()
         appIsRunningAndDeployed()
         childAppIsRunningAndDeployed()
     }
 
+    def addBadScala(path) {
+        file("$path/models/NewType.scala") << """
+package models
 
-    def addBadJava(path) {
-        file("$path/models/NewType.java") << """
-package models;
-
-public class NewType {
+object NewType {
 """
     }
 
-    def fixBadJava(path) {
-        file("$path/models/NewType.java") << """
+    def fixBadScala(path) {
+        file("$path/models/NewType.scala") << """
 }
 """
     }

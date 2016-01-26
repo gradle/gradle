@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='implement_rule_source'>
+    <title>Implementing model rules in a plugin</title>
+    <para>A plugin can define rules by extending <apilink class="org.gradle.model.RuleSource"/> and adding methods that define the rules.
+        The plugin class can either extend <apilink class="org.gradle.model.RuleSource"/> directly or can implement <apilink class="org.gradle.api.Plugin"/> and include a nested <apilink class="org.gradle.model.RuleSource"/> subclass.
+    </para>
+    <para>Refer to the API docs for <apilink class="org.gradle.model.RuleSource"/> for more details.</para>
+
+    <section>
+        <title>Applying additional rules</title>
+        <para>A rule method annotated with <apilink class="org.gradle.model.Rules"/> can apply a <apilink class="org.gradle.model.RuleSource"/> to a target model element.</para>
+    </section>
+</chapter>

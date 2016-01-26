@@ -16,35 +16,15 @@
 
 package org.gradle.language.assembler.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
-import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.*
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.util.GFileUtils
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-import static org.gradle.model.internal.type.ModelTypes.modelMap
-
-class AssemblerPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
-
-    ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize("components", modelMap(ComponentSpec))
-    }
-
-    ProjectSourceSet realizeSourceSets() {
-        project.modelRegistry.find("sources", ProjectSourceSet)
-    }
-
-    ModelMap<BinarySpec> realizeBinaries() {
-        project.modelRegistry.find("binaries", modelMap(BinarySpec))
-    }
+class AssemblerPluginTest extends PlatformBaseSpecification {
 
     def "creates asm source set with conventional locations for components"() {
         when:
@@ -181,12 +161,5 @@ class AssemblerPluginTest extends Specification {
 
     def touch(String filePath) {
         GFileUtils.touch(project.file(filePath))
-    }
-
-    def dsl(@DelegatesTo(Project) Closure closure) {
-        closure.delegate = project
-        closure()
-        project.tasks.realize()
-        project.bindAllModelRules()
     }
 }

@@ -15,13 +15,11 @@
  */
 
 package org.gradle.buildinit.plugins
-
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -42,7 +40,13 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     def setup() {
-        withLocalM2Installation()
+        /**
+         * We need to configure the local maven repository explicitly as
+         * RepositorySystem.defaultUserLocalRepository is statically initialised and used when
+         * creating multiple ProjectBuildingRequest.
+         * */
+        m2.generateUserSettingsFile(m2.mavenRepo())
+        using m2
     }
 
     def "multiModule"() {
@@ -321,13 +325,6 @@ Root project 'webinar-parent'
 
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
-    }
-
-    M2Installation withLocalM2Installation() {
-        M2Installation m2Installation = new M2Installation(testDirectory)
-        m2Installation.generateUserSettingsFile(mavenLocal("local_m2"))
-        using m2Installation
-        m2Installation
     }
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {

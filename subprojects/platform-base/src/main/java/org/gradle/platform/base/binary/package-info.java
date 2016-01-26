@@ -17,7 +17,5 @@
 /**
  * General purpose types for binary support.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.platform.base.binary;
-
-import org.gradle.api.Incubating;

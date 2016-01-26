@@ -15,17 +15,15 @@
  */
 
 package org.gradle.language.cpp.plugins
+
 import org.gradle.api.Plugin
 import org.gradle.api.Task
+import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.cpp.tasks.CppCompile
-import org.gradle.util.TestUtil
 
 class CppPluginTest extends AbstractNativeComponentPluginTest {
-    final def project = TestUtil.createRootProject()
-
     @Override
     Class<? extends Plugin> getPluginClass() {
         return CppPlugin

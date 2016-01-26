@@ -18,13 +18,17 @@ package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.tooling.GradleConnectionException
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@InspectsExecutedTasks
+class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrationTest {
 
+    @InspectsBuildOutput
     def "build execution for script with invalid Groovy syntax"() {
         given:
         buildFile << """
@@ -40,8 +44,10 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         then:
         result.output.contains('Could not compile build file')
+        result.tasks.empty
     }
 
+    @InspectsBuildOutput
     def "build execution for script with unknown Gradle API method class"() {
         given:
         buildFile << """
@@ -60,6 +66,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         result.tasks.empty
     }
 
+    @InspectsBuildOutput
     def "build execution with badly formed argument"() {
         given:
         buildFile << helloWorldTask()
@@ -77,6 +84,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         result.output.contains("Problem configuring task :helloWorld from command line.")
     }
 
+    @InspectsBuildOutput
     def "build execution with non-existent working directory"() {
         given:
         File nonExistentWorkingDir = new File('some/path/that/does/not/exist')
@@ -100,7 +108,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
     @NoDebug
     def "build execution with invalid JVM arguments"() {
         given:
-        testProjectDir.file('gradle.properties') << 'org.gradle.jvmargs=-unknown'
+        file('gradle.properties') << 'org.gradle.jvmargs=-unknown'
         buildFile << helloWorldTask()
 
         when:
@@ -135,7 +143,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testProjectDir.testDirectory.canonicalPath'. Output before error:
+        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
 """.toString()

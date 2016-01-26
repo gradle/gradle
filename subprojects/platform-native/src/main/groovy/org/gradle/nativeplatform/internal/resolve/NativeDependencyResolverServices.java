@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
@@ -39,11 +40,11 @@ public class NativeDependencyResolverServices {
         return new ChainedLibraryBinaryLocator(locators);
     }
 
-    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator) {
+    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {
         NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
-        resolver = new ApiRequirementNativeDependencyResolver(resolver);
+        resolver = new ApiRequirementNativeDependencyResolver(resolver, fileCollectionFactory);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
-        resolver = new SourceSetNativeDependencyResolver(resolver);
+        resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Named
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.MutableModelNode
@@ -30,13 +31,11 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
 import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class NativeComponentRulesTest extends Specification {
-    def namingSchemeBuilder = Spy(DefaultBinaryNamingSchemeBuilder)
     def platforms = Mock(PlatformResolvers)
     def nativePlatforms = Stub(NativePlatforms)
     def nativeDependencyResolver = Mock(NativeDependencyResolver)
@@ -75,17 +74,20 @@ class NativeComponentRulesTest extends Specification {
 
     def "does not use variant dimension names for single valued dimensions"() {
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [platformRequirement]
         1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
-        0 * namingSchemeBuilder.withVariantDimension(_)
+        createdBinaries == ([
+            "sharedLibrary",
+            "staticLibrary",
+        ] as SortedSet)
     }
 
     def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [platformRequirement]
@@ -102,7 +104,7 @@ class NativeComponentRulesTest extends Specification {
         def platform2 = createStub(NativePlatformInternal, "platform2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1"), requirement("platform2")]
@@ -122,7 +124,7 @@ class NativeComponentRulesTest extends Specification {
         final BuildType buildType2 = createStub(BuildType, "buildType2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType, buildType2].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType, buildType2].toSet(), [flavor].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1")]
@@ -139,7 +141,7 @@ class NativeComponentRulesTest extends Specification {
         final Flavor flavor2 = createStub(Flavor, "flavor2")
 
         when:
-        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor, flavor2].toSet(), nativePlatforms, nativeDependencyResolver, namingSchemeBuilder)
+        NativeComponentRules.createBinariesImpl(component, platforms, [buildType].toSet(), [flavor, flavor2].toSet(), nativePlatforms, nativeDependencyResolver, TestFiles.fileCollectionFactory())
 
         then:
         _ * component.targetPlatforms >> [requirement("platform1")]

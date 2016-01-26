@@ -16,49 +16,95 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.binding.ManagedProperty;
 import org.gradle.model.internal.type.ModelType;
 
-public class NodeInitializerContext<T, P, O> {
+public class NodeInitializerContext<T> {
     private final ModelType<T> modelType;
-    private final Optional<PropertyContext<P, O>> propertyContextOptional;
+    private final ModelType<? super T> baseType;
+    private final Optional<PropertyContext> propertyContextOptional;
 
-    public NodeInitializerContext(ModelType<T> modelType, Optional<PropertyContext<P, O>> propertyContextOptional) {
+    public NodeInitializerContext(ModelType<T> modelType, ModelType<? super T> baseType, Optional<PropertyContext> propertyContextOptional) {
         this.modelType = modelType;
+        this.baseType = baseType;
         this.propertyContextOptional = propertyContextOptional;
     }
 
-    public static <T, P, O> NodeInitializerContext<T, P, O> forType(ModelType<T> modelType) {
-        return new NodeInitializerContext<T, P, O>(modelType, Optional.<PropertyContext<P, O>>absent());
+    public static <T> NodeInitializerContext<T> forType(ModelType<T> type) {
+        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.<PropertyContext>absent());
     }
 
-    public static <T, P, O> NodeInitializerContext<T, P, O> forProperty(ModelType<T> modelType, ModelProperty<P> modelProperty, ModelType<O> containingType) {
-        return new NodeInitializerContext<T, P, O>(modelType, Optional.of(new PropertyContext<P, O>(modelProperty, containingType)));
+    public static <T> NodeInitializerContext<T> forExtensibleType(ModelType<T> type, ModelType<? super T> baseType) {
+        return new NodeInitializerContext<T>(type, baseType, Optional.<PropertyContext>absent());
+    }
+
+    public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
+        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 
     public ModelType<T> getModelType() {
         return modelType;
     }
 
-    public Optional<PropertyContext<P, O>> getPropertyContextOptional() {
+    public ModelType<? super T> getBaseType() {
+        return baseType;
+    }
+
+    public Optional<PropertyContext> getPropertyContextOptional() {
         return propertyContextOptional;
     }
 
-    static class PropertyContext<P, O> {
-        private final ModelProperty<P> modelProperty;
-        private final ModelType<O> declaringType;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        NodeInitializerContext<?> that = (NodeInitializerContext<?>) o;
+        return Objects.equal(modelType, that.modelType);
+    }
 
-        private PropertyContext(ModelProperty<P> modelProperty, ModelType<O> declaringType) {
-            this.modelProperty = modelProperty;
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(modelType);
+    }
+
+    public static class PropertyContext {
+        private final String name;
+        private final ModelType<?> type;
+        private final boolean writable;
+        private final boolean declaredAsHavingUnmanagedType;
+        private final ModelType<?> declaringType;
+
+        private PropertyContext(String name, ModelType<?> type, boolean writable, boolean declaredAsHavingUnmanagedType, ModelType<?> declaringType) {
+            this.name = name;
+            this.type = type;
+            this.writable = writable;
+            this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
             this.declaringType = declaringType;
         }
 
-        public ModelProperty<P> getModelProperty() {
-            return modelProperty;
+        public String getName() {
+            return name;
         }
 
-        public ModelType<O> getDeclaringType() {
+        public ModelType<?> getType() {
+            return type;
+        }
+
+        public boolean isWritable() {
+            return writable;
+        }
+
+        public boolean isDeclaredAsHavingUnmanagedType() {
+            return declaredAsHavingUnmanagedType;
+        }
+
+        public ModelType<?> getDeclaringType() {
             return declaringType;
         }
     }

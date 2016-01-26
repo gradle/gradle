@@ -22,6 +22,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
@@ -44,7 +45,7 @@ public class DefaultCopySpecTest {
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final FileResolver fileResolver = context.mock(FileResolver);
+    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
     private final Instantiator instantiator = DirectInstantiator.INSTANCE
     private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
 

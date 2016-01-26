@@ -50,97 +50,84 @@ class SampleLayoutHandler {
 
         programListingElement.appendChild(doc.createTextNode(content.toString()))
     }
-}
 
-class TreeNode {
-    String path
-    final List<String> nameParts
-    List<TreeNode> children = []
-    String name
-    final mustInclude
 
-    TreeNode(String name, String path = name, boolean mustInclude = true) {
-        this.name = name
-        this.path = path
-        this.mustInclude = mustInclude
-    }
+    private static class TreeNode {
+        String path
+        List<TreeNode> children = []
+        String name
+        final mustInclude
 
-    @Override
-    String toString() {
-        return path
-    }
-
-    boolean isFile() {
-        return !path.endsWith('/')
-    }
-
-    void normalise() {
-        if (children.isEmpty()) {
-            return
+        TreeNode(String name, String path = name, boolean mustInclude = true) {
+            this.name = name
+            this.path = path
+            this.mustInclude = mustInclude
         }
 
-        TreeNode currentContext = null
-        int pos = 0;
-        while (pos < children.size()) {
-            def child = children.get(pos)
-            if (child.depth == 1) {
-                currentContext = child
-                pos++
-            } else if (currentContext == null || !child.path.startsWith(currentContext.path)) {
-                // Start a new stack
-                def path = child.parentPath
-                currentContext = new TreeNode(path, path, false)
-                children.add(pos, currentContext)
-                pos++
-            } else {
-                // Move this child down one level
-                if (!currentContext.path.endsWith('/')) {
-                    throw new RuntimeException("Parent directory '$currentContext.path' should end with a slash.")
+        @Override
+        String toString() {
+            return path
+        }
+
+        boolean isFile() {
+            return !path.endsWith('/')
+        }
+
+        void normalise() {
+            if (children.isEmpty()) {
+                return
+            }
+
+            TreeNode currentContext = null
+            int pos = 0;
+            while (pos < children.size()) {
+                def child = children.get(pos)
+                if (child.depth == 1) {
+                    currentContext = child
+                    pos++
+                } else if (currentContext == null || !child.path.startsWith(currentContext.path)) {
+                    // Start a new stack
+                    def path = child.parentPath
+                    currentContext = new TreeNode(path, path, false)
+                    children.add(pos, currentContext)
+                    pos++
+                } else {
+                    // Move this child down one level
+                    if (!currentContext.path.endsWith('/')) {
+                        throw new RuntimeException("Parent directory '$currentContext.path' should end with a slash.")
+                    }
+                    def path = child.path.substring(currentContext.path.length())
+                    currentContext.children.add(new TreeNode(path, path, child.mustInclude))
+                    children.remove(pos)
                 }
-                def path = child.path.substring(currentContext.path.length())
-                currentContext.children.add(new TreeNode(path, path, child.mustInclude))
-                children.remove(pos)
+            }
+            children.each { child ->
+                child.normalise()
+            }
+
+            // Collapse this node if it has a single child which is a directory
+            if (!mustInclude && children.size() == 1 && children[0].path.endsWith('/')) {
+                path = path + children[0].path
+                name = name + children[0].name
+                children = children[0].children
             }
         }
-        children.each { child ->
-            child.normalise()
+
+        def getDepth() {
+            return path.tokenize('/').size()
         }
 
-        // Collapse this node if it has a single child which is a directory
-        if (!mustInclude && children.size() == 1 && children[0].path.endsWith('/')) {
-            path = path + children[0].path
-            name = name + children[0].name
-            children = children[0].children
+        def getParentPath() {
+            return path.tokenize('/')[0] + '/'
         }
-    }
 
-    def getDepth() {
-        return path.tokenize('/').size()
-    }
-
-    def getParentPath() {
-        return path.tokenize('/')[0] + '/'
-    }
-
-    def commonPrefix(String a, String b) {
-        def partsA = a.tokenize('/')
-        def partsB = b.tokenize('/')
-        int i = 0
-        for (; i < partsA.size() && i < partsB.size() && partsA[i] == partsB[i]; i++) {
-        }
-        if (i == 0) {
-            return null
-        }
-        return partsA.subList(0, i).join('/')
-    }
-
-    void writeTo(Appendable target, int depth = 0) {
-        depth.times { target.append('  ') }
-        target.append(name)
-        target.append('\n')
-        children.each { child ->
-            child.writeTo(target, depth + 1)
+        void writeTo(Appendable target, int depth = 0) {
+            depth.times { target.append('  ') }
+            target.append(name)
+            target.append('\n')
+            children.each { child ->
+                child.writeTo(target, depth + 1)
+            }
         }
     }
 }
-

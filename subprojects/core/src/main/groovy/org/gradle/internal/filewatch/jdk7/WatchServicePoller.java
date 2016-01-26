@@ -27,8 +27,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 class WatchServicePoller {
+    private static final int POLL_TIMEOUT_SECONDS = 5;
     private final WatchService watchService;
 
     WatchServicePoller(WatchService watchService) throws IOException {
@@ -37,7 +39,7 @@ class WatchServicePoller {
 
     @Nullable
     public List<FileWatcherEvent> takeEvents() throws InterruptedException {
-        WatchKey watchKey = watchService.take();
+        WatchKey watchKey = watchService.poll(POLL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (watchKey != null) {
             return handleWatchKey(watchKey);
         }

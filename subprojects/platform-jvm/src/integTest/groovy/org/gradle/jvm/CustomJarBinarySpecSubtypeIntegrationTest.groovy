@@ -49,8 +49,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds "assemble"
-        new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
-        new JarTestFixture(file("build/jars/sampleLibCustomJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+        new JarTestFixture(file("build/jars/sampleLib/jar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+        new JarTestFixture(file("build/jars/sampleLib/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
     def "managed JarBinarySpec subtypes can have further subtypes"() {
@@ -124,8 +124,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds "assemble", "validate"
-        new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
-        new JarTestFixture(file("build/jars/sampleLibCustomJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+        new JarTestFixture(file("build/jars/sampleLib/jar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+        new JarTestFixture(file("build/jars/sampleLib/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
     def "managed JarBinarySpec subtypes can have @Unmanaged properties"() {
@@ -157,7 +157,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds "sampleLibCustomJar"
-        new JarTestFixture(file("build/jars/sampleLibCustomJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+        new JarTestFixture(file("build/jars/sampleLib/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
     // TODO:LPTR There is a deeper breakage here, as creating Jar binaries in the top-level binaries container would result in an NPE anyway,
@@ -202,8 +202,9 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        def ex = fails "components"
-        ex.assertHasCause "Invalid managed model type IllegalJarBinarySpec: only paired getter/setter methods are supported (invalid methods: void IllegalJarBinarySpec#sayHello(java.lang.String))."
+        fails "components"
+        failure.assertHasCause """Type IllegalJarBinarySpec is not a valid managed type:
+- Method sayHello(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     def registerCustomJarBinaryType() {

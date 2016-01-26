@@ -119,6 +119,73 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2'
     }
 
+    def "rule can create a map of various supported types"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing extends Named {
+              void setValue(String value)
+              String getValue()
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void mapThings(ModelSet<ModelMap<Thing>> things) {
+                things.create {
+                    a(Thing) {
+                        value = '1'
+                    }
+                    b(Thing)
+                }
+              }
+              @Model
+              void setThings(ModelSet<ModelSet<Thing>> things) {
+                things.create {
+                    create { value = '1' }
+                }
+              }
+              @Model
+              void setStrings(ModelSet<Set<String>> strings) {
+                strings.create {
+                    add 'a'
+                }
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              mapThings {
+                create {
+                    a(Thing)
+                }
+              }
+              setStrings {
+                create {
+                    add 'b'
+                }
+              }
+              tasks {
+                create("print") {
+                  doLast {
+                    println "mapThings: " + ($.mapThings as List)*.keySet()
+                    println "setThings: " + ($.setThings as List)
+                    println "setStrings: " + ($.setStrings as List)
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "mapThings: [[a, b], [a]]"
+        output.contains "setThings: [[Thing 'setThings.0.0']]"
+        output.contains "setStrings: [[a], [b]]"
+    }
+
     def "managed model type has property of collection of managed types"() {
         when:
         buildScript '''
@@ -201,8 +268,9 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Declaration of model rule Rules#group is invalid.")
-        failure.assertHasCause("Invalid managed model type Group: property 'members' cannot have a setter (org.gradle.model.ModelSet<Person> properties must be read only)")
+        failure.assertHasCause "Exception thrown while executing model rule: Rules#group"
+        failure.assertHasCause """Type Group is not a valid managed type:
+- Property 'members' is not valid: it cannot have a setter (ModelSet properties must be read only)"""
     }
 
     def "rule method can apply defaults to a managed set"() {
@@ -388,7 +456,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#people'")
     }
 
     def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
@@ -421,7 +489,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
-        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#readPeople'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#readPeople'")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {

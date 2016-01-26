@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="output" path="bin"/>
 	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7/"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="src" path="/api"/>
 	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar"/>

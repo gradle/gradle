@@ -25,7 +25,7 @@ class InstanceOptionDescriptorSpec extends Specification{
 
     def setup(){
         _ * delegate.getOptionType() >> String.class
-        _ * delegate.getAvailableValues() >> new ArrayList<String>()
+        _ * delegate.getAvailableValues() >> []
         _ * delegate.getOptionName() >> "someOption"
     }
 
@@ -33,7 +33,7 @@ class InstanceOptionDescriptorSpec extends Specification{
         when:
         InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate)
         then:
-        descriptor.getAvailableValues() == []
+        descriptor.getAvailableValues() == [] as Set
     }
 
     def getAvailableValuesCallsWhenOptionValueMethodAvailable() {
@@ -41,9 +41,9 @@ class InstanceOptionDescriptorSpec extends Specification{
         JavaMethod<Object, Collection> optionValueMethod = Mock(JavaMethod)
         when:
         InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate, optionValueMethod)
-        List<String> values = descriptor.getAvailableValues()
+        def values = descriptor.getAvailableValues()
         then:
-        values == ["dynValue1", "dynValue2"]
+        values == ["dynValue1", "dynValue2"] as Set
         1 * optionValueMethod.invoke(_,_) >> ["dynValue1", "dynValue2"]
     }
 

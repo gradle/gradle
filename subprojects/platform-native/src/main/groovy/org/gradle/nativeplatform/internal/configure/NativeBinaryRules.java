@@ -18,13 +18,9 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
+import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -75,36 +71,24 @@ public class NativeBinaryRules extends RuleSource {
         staticLibrary.setStaticLibraryFile(staticLibraryFileFor(nativeBinary, buildDir));
     }
 
-    private static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, executableNameFor(nativeBinary));
+    public static File executableFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "exe"), executableNameFor(nativeBinary));
     }
 
     private static File sharedLibraryLinkFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryLinkFileNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), sharedLibraryLinkFileNameFor(nativeBinary));
     }
 
     private static File sharedLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, sharedLibraryNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), sharedLibraryNameFor(nativeBinary));
     }
 
     private static File staticLibraryFileFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return binaryOutputFileFor(nativeBinary, buildDir, staticLibraryNameFor(nativeBinary));
+        return new File(nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "libs"), staticLibraryNameFor(nativeBinary));
     }
 
-    private static File binaryOutputFileFor(NativeBinarySpecInternal nativeBinary, File buildDir, String fileName) {
-        return new File(binaryOutputDirFor(nativeBinary, buildDir), fileName);
-    }
-
-    private static File binaryOutputDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return outputDirectoryFor(nativeBinary, buildDir, "binaries");
-    }
-
-    private static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
-        return outputDirectoryFor(nativeBinary, buildDir, "install");
-    }
-
-    private static File outputDirectoryFor(NativeBinarySpecInternal nativeBinary, File buildDir, String purpose) {
-        return new File(new File(buildDir, purpose), nativeBinary.getNamingScheme().getOutputDirectoryBase());
+    public static File installationDirFor(NativeBinarySpecInternal nativeBinary, File buildDir) {
+        return nativeBinary.getNamingScheme().getOutputDirectory(buildDir, "install");
     }
 
     private static String executableNameFor(NativeBinarySpecInternal nativeBinary) {

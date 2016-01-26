@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -65,35 +64,19 @@ public interface ModelRegistry {
     <T> T find(String path, Class<T> type);
 
     /**
-     * Returns the node at the given path at the desired state, if it exists.
-     * <p>
-     * If there is no known node at that path, {@code null} is returned.
-     * <p>
-     * If the node exists but is at a later state than the requested state an exception will be thrown.
-     * If the node is at an earlier state it will be irrevocably transitioned to the desired state and returned.
-     * If it is at the desired state it is returned.
-     *
-     * @param path the path for the node
-     * @param state the desired node state
-     * @return the node at the desired state, or null if node is unknown
-     */
-    @Nullable
-    ModelNode atState(ModelPath path, ModelNode.State state);
-
-    /**
      * Returns the node at the given path at the desired state or later, if it exists.
      * <p>
-     * If there is no known node at that path, {@code null} is returned.
+     * If there is no known node at that path, an {@link IllegalStateException} is thrown.
      * <p>
      * If the node is at an earlier state than desired it will be irrevocably transitioned to the desired state and returned.
      * If it is at the desired state or later it is returned.
      *
      * @param path the path for the node
      * @param state the desired node state
-     * @return the node at the desired state, or null if node is unknown
+     * @return the node at the desired state
      */
-    @Nullable
     ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
+    <T> T atStateOrLater(ModelPath path, ModelType<T> type, ModelNode.State state);
 
     ModelNode.State state(ModelPath path);
 
@@ -121,12 +104,5 @@ public interface ModelRegistry {
 
     ModelRegistry configure(ModelActionRole role, ModelAction action);
 
-    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
-
-    ModelRegistry apply(Class<? extends RuleSource> rules);
-
     MutableModelNode getRoot();
-
-    @Nullable
-    MutableModelNode node(ModelPath path);
 }

@@ -18,8 +18,7 @@ package org.gradle.tooling.internal.adapter;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
-import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -122,11 +121,11 @@ public class ProtocolToModelAdapter implements Serializable {
             } else {
                 literal = sourceObject.toString();
             }
-            EnumFromCharSequenceNotationParser parser = new EnumFromCharSequenceNotationParser(targetType);
-            Enum parsedLiteral = parser.parseNotation(literal);
+            NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<String, T>(new EnumFromCharSequenceNotationParser(targetType));
+            T parsedLiteral = parser.parseNotation(literal);
             return targetType.cast(parsedLiteral);
         } catch (TypeConversionException e) {
-            throw new IllegalArgumentException(String.format("Can't convert '%s' to enum type '%s'", sourceObject, targetType.getSimpleName()));
+            throw new IllegalArgumentException(String.format("Can't convert '%s' to enum type '%s'", sourceObject, targetType.getSimpleName()), e);
         }
     }
 

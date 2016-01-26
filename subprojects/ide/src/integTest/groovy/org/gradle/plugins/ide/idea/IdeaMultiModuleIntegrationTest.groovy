@@ -310,10 +310,10 @@ project(':two') {
         //then
         def dependencies = parseIml("master/one/one.iml").dependencies
         dependencies.assertHasModule("COMPILE", "two")
-        assert dependencies.libraries.findAll { it.scope == 'COMPILE'}*.jarName == [someLib2Jar.name]
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
 
         dependencies = parseIml("master/two/two.iml").dependencies
-        assert dependencies.libraries.findAll { it.scope == 'COMPILE'}*.jarName == [someLib2Jar.name]
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
 
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
 
@@ -321,10 +321,10 @@ project(':two') {
         dependencies = parseIml("master/one/one.iml").dependencies
         assert dependencies.modules.size() == 1
         dependencies.assertHasModule("COMPILE", "two")
-        assert dependencies.libraries.findAll { it.scope == 'COMPILE'}*.jarName == [someLib1Jar.name]
+        assert dependencies.libraries*.jarName == [someLib1Jar.name]
 
         dependencies = parseIml("master/two/two.iml").dependencies
-        assert dependencies.libraries.findAll { it.scope == 'COMPILE'}*.jarName == [someLib2Jar.name]
+        assert dependencies.libraries*.jarName == [someLib2Jar.name]
     }
 
     @Test

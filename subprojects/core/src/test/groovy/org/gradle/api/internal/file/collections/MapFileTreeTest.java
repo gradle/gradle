@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
@@ -99,6 +100,59 @@ public class MapFileTreeTest {
         assertFalse(fileTreeAdapter.contains(rootDir.file("file2.txt")));
 
         assertEquals(0, callCounter.get());
+    }
+
+    @Test
+    public void wontOverwriteFileWhenGeneratedContentRemainsTheSame() {
+        Action<OutputStream> action = getAction();
+        tree.add("path/file.txt", action);
+
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
+
+        TestFile file = rootDir.file("path/file.txt");
+
+        file.assertContents(equalTo("content"));
+        TestFile.Snapshot snapshot = file.snapshot();
+
+        try {
+            // make sure file modification time would change if file would get written
+            Thread.sleep(1000L);
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        file.assertContents(equalTo("content"));
+        file.assertHasNotChangedSince(snapshot);
+    }
+
+    @Test
+    public void overwritesFileWhenGeneratedContentChanges() {
+        final AtomicReference<String> currentContentReference = new AtomicReference<String>("content");
+
+        tree.add("path/file.txt", new Action<OutputStream>() {
+            @Override
+            public void execute(OutputStream outputStream) {
+                try {
+                    outputStream.write(currentContentReference.get().getBytes());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
+
+        TestFile file = rootDir.file("path/file.txt");
+
+        file.assertContents(equalTo("content"));
+        TestFile.Snapshot snapshot = file.snapshot();
+
+        currentContentReference.set("updated content");
+
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        file.assertContents(equalTo("updated content"));
+        file.assertHasChangedSince(snapshot);
     }
 
     private Action<OutputStream> getAction() {

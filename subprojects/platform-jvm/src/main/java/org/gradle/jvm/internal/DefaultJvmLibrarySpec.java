@@ -33,15 +33,18 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
-    private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
+
+    public static Set<Class<? extends TransformationFileType>> defaultJvmComponentInputTypes() {
+        final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
+        inputTypes.add(JvmResources.class);
+        inputTypes.add(JvmByteCode.class);
+        return inputTypes;
+    }
+
+    private final Set<Class<? extends TransformationFileType>> languageOutputs = defaultJvmComponentInputTypes();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
     private final JvmApiSpec apiSpec = new DefaultJvmApiSpec();
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
-
-    public DefaultJvmLibrarySpec() {
-        this.languageOutputs.add(JvmResources.class);
-        this.languageOutputs.add(JvmByteCode.class);
-    }
 
     @Override
     protected String getTypeName() {

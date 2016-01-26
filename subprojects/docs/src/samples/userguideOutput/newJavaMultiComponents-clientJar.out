@@ -1,9 +1,0 @@
-:util:compileMainJarMainJava
-:util:createMainJar
-:util:mainApiJar
-:compileClientJarClientJava
-:createClientJar
-:clientApiJar
-:clientJar
-
-BUILD SUCCESSFUL

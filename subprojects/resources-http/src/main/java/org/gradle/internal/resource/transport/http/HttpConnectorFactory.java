@@ -30,6 +30,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class HttpConnectorFactory implements ResourceConnectorFactory {
+    private SslContextFactory sslContextFactory;
+
+    public HttpConnectorFactory(SslContextFactory sslContextFactory) {
+        this.sslContextFactory = sslContextFactory;
+    }
+
     @Override
     public Set<String> getSupportedProtocols() {
         return Sets.newHashSet("http", "https");
@@ -46,7 +52,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getAuthentications()));
+        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getAuthentications(), sslContextFactory));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceLister lister = new HttpResourceLister(accessor);
         HttpResourceUploader uploader = new HttpResourceUploader(http);

@@ -58,7 +58,7 @@ class DefaultJarBinarySpecTest extends Specification {
         binary.classesDir == classesDir
     }
 
-    private DefaultJarBinarySpec binary() {
-        BaseBinaryFixtures.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", null, Mock(ITaskFactory))
+    private JarBinarySpec binary() {
+        return BaseBinaryFixtures.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", null, Mock(ITaskFactory))
     }
 }

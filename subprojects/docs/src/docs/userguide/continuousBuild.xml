@@ -56,7 +56,7 @@
             </para>
         </tip>
         <para>
-            At this time, only changes that occur after the build has completed (and Gradle has prompted that it is waiting for changes) are noticed.
+            At this time, only changes to task inputs are noticed. Gradle will start watching for changes just before the task starts to execute.
             No other changes will initiate a build.
             For example, changes to build scripts and build logic will not initiate build.
             Likewise, changes to files that are read during the configuration of the build, not the execution, will not initiate a build.
@@ -117,6 +117,22 @@
             There are several issues to be aware with the current implementation of continuous build.
             These are likely to be addressed in future Gradle releases.
         </para>
+        <section>
+            <title>Build cycles</title>
+            <para>
+                Gradle starts watching for changes just before a task executes.
+
+                If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build.
+                If every time the task executes, the inputs are modified again, the build will be triggered again.
+                This isn't unique to continuous build. A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
+            </para>
+            <para>
+                If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle.
+                After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input.
+                In some cases, it may be obvious (e.g., a Java file is compiled with <literal>compileJava</literal>).
+                In other cases, you can use <literal>--info</literal> logging to find the task that is out-of-date due to the identified files.
+            </para>
+        </section>
         <section id="continuous_build_limitations_jdk">
             <title>Requires Java 7 or later</title>
             <para>
@@ -127,7 +143,7 @@
             </para>
         </section>
         <section>
-            <title>Performance and stability on Mac OS X</title>
+            <title>Performance and stability</title>
             <para>
                 The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-7133447">JDK-7133447</ulink>).
                 This can significantly delay notification of changes on large projects with many source files.
@@ -136,6 +152,9 @@
                 Additionally, the watching mechanism may deadlock under <emphasis>heavy</emphasis> load on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-8079620">JDK-8079620</ulink>).
                 This will manifest as Gradle appearing not to notice file changes.
                 If you suspect this is occurring, exit continuous build and start again.
+            </para>
+            <para>
+                On Linux, OpenJDK's implementation of the file watch service can sometimes miss file system events (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-8145981">JDK-8145981</ulink>).
             </para>
         </section>
         <section>

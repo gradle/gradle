@@ -73,7 +73,7 @@ public class CollectionEventRegister<T> {
         }
 
         public <K extends S> CollectionEventRegister<K> filtered(CollectionFilter<K> filter) {
-            return super.filtered(new CollectionFilter<K>(filter.getType(), Specs.<K>and(filter, this.filter)));
+            return super.filtered(new CollectionFilter<K>(filter.getType(), Specs.<K>intersect(filter, this.filter)));
         }
     }
 

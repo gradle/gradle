@@ -30,7 +30,7 @@ public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.
      */
-    public interface TasksCollection extends BinaryTasksCollection {
+    interface TasksCollection extends BinaryTasksCollection {
         /**
          * Returns the link task for this binary.
          */

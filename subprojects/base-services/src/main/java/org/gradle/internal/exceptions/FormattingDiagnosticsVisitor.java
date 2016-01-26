@@ -18,7 +18,10 @@ package org.gradle.internal.exceptions;
 
 import com.google.common.base.Joiner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Formats candidates as a list.
@@ -27,11 +30,11 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
     private final Map<String, Candidate> candidates = new LinkedHashMap<String, Candidate>();
     private Candidate current;
 
-    public Collection<String> getCandidates() {
+    public List<String> getCandidates() {
         return format(candidates);
     }
 
-    private Collection<String> format(Map<String, Candidate> candidates) {
+    private List<String> format(Map<String, Candidate> candidates) {
         List<String> formatted = new ArrayList<String>();
         for (Candidate candidate : candidates.values()) {
             if (candidate.examples.isEmpty()) {
@@ -57,6 +60,11 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
     @Override
     public DiagnosticsVisitor example(String example) {
         current.examples.add(example);
+        return this;
+    }
+
+    @Override
+    public DiagnosticsVisitor values(Iterable<?> values) {
         return this;
     }
 

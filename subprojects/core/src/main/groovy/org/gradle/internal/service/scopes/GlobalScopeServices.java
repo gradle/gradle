@@ -24,10 +24,14 @@ import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.*;
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.*;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
+import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -35,6 +39,7 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.*;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -60,9 +65,12 @@ import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.binding.DefaultStructBindingsStore;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.process.internal.DefaultExecActionFactory;
 
 import java.util.List;
 
@@ -70,8 +78,6 @@ import java.util.List;
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
  */
 public class GlobalScopeServices {
-
-    private static final Logger LOGGER = Logging.getLogger(GlobalScopeServices.class);
     private final ClassPath additionalModuleClassPath;
 
     private GradleBuildEnvironment environment;
@@ -190,24 +196,37 @@ public class GlobalScopeServices {
         );
     }
 
-    FileResolver createFileResolver(FileSystem fileSystem) {
-        return new IdentityFileResolver(fileSystem);
+    FileResolver createFileResolver(FileLookup lookup) {
+        return lookup.getFileResolver();
     }
 
-    FileLookup createFileLookup(FileSystem fileSystem) {
-        return new DefaultFileLookup(fileSystem);
+    FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
+        return new DefaultFileLookup(fileSystem, patternSetFactory);
     }
 
-    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory() {
+        return new DefaultDirectoryFileTreeFactory();
+    }
+
+    FileCollectionFactory createFileCollectionFactory() {
+        return new DefaultFileCollectionFactory();
+    }
+
+    DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
+        return new DefaultExecActionFactory(fileResolver);
+    }
+
+    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
-        return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
+        return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
     ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, StringInterner stringInterner) {
         if (environment.isLongLivingProcess()) {
-            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore(), stringInterner);
-            return new HashClassPathSnapshotter(fileSnapshotter);
+            final MapBackedInMemoryStore inMemoryStore = new MapBackedInMemoryStore();
+            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
+            return new HashClassPathSnapshotter(fileSnapshotter, inMemoryStore);
         } else {
             return new FileClassPathSnapshotter();
         }
@@ -227,12 +246,15 @@ public class GlobalScopeServices {
     }
 
     protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
-        List<ModelSchemaExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaExtractionStrategy.class);
-        return new ModelSchemaExtractor(strategies, aspectExtractor);
+        return DefaultModelSchemaExtractor.withDefaultStrategies(serviceRegistry.getAll(ModelSchemaExtractionStrategy.class), aspectExtractor);
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
+    }
+
+    protected StructBindingsStore createStructBindingsStore(ModelSchemaStore schemaStore) {
+        return new DefaultStructBindingsStore(schemaStore);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
@@ -249,5 +271,13 @@ public class GlobalScopeServices {
 
     StringInterner createStringInterner() {
         return new StringInterner();
+    }
+
+    PatternSpecFactory createPatternSpecFactory(GradleBuildEnvironment environment) {
+        return new CachingPatternSpecFactory();
+    }
+
+    protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
+        return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 }

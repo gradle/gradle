@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r211
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -27,11 +26,11 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=2.11")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    def "Java project has target language level"() {
+    def "Java project has target bytecode level"() {
         given:
         buildFile << "apply plugin: 'java'"
 
@@ -39,10 +38,26 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.current()
+        rootProject.javaSourceSettings.targetBytecodeVersion== JavaVersion.current()
     }
 
-    def "target language level respects explicit targetCompatibility configuration"() {
+    def "Java project has jdk"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+
+description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
+"""
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+
+        then:
+        rootProject.javaSourceSettings.jdk != null
+        rootProject.javaSourceSettings.jdk.javaVersion == JavaVersion.current()
+        rootProject.javaSourceSettings.jdk.javaHome.toString() == rootProject.gradleProject.description
+    }
+
+    def "target bytecode level respects explicit targetCompatibility configuration"() {
         given:
         buildFile << """
         apply plugin:'java'
@@ -52,10 +67,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
     }
 
-    def "target language level respects explicit configured eclipse config"() {
+    def "target bytecode level respects explicit configured eclipse config"() {
         given:
         buildFile << """
         apply plugin:'java'
@@ -73,17 +88,71 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
-        rootProject.javaSourceSettings.targetLanguageLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
     }
 
-    @TargetGradleVersion("=2.10")
-    def "older Gradle versions throw exception when querying Java source settings"() {
+    @TargetGradleVersion("=2.9")
+    def "older Gradle versions throw exception when querying target bytecode level"() {
         when:
         EclipseProject rootProject = loadEclipseProjectModel()
-        rootProject.javaSourceSettings.targetLanguageLevel
+        rootProject.javaSourceSettings.targetBytecodeVersion
 
         then:
         thrown(UnsupportedMethodException)
+    }
+
+    @TargetGradleVersion("=2.9")
+    def "older Gradle versions throw exception when querying target runtime"() {
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+        rootProject.javaSourceSettings.jdk
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
+    def "Multi-project build can define different target bytecode level for subprojects"() {
+        given:
+        settingsFile << """
+            include 'subproject-a', 'subproject-b', 'subproject-c'
+        """
+
+        buildFile << """
+            project(':subproject-a') {
+                apply plugin: 'java'
+                targetCompatibility = 1.1
+            }
+            project(':subproject-b') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+                eclipse {
+                    jdt {
+                        targetCompatibility = 1.2
+                    }
+                }
+            }
+            project(':subproject-c') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+                targetCompatibility = 1.6
+                eclipse {
+                    jdt {
+                        targetCompatibility = 1.3
+                    }
+                }
+            }
+        """
+
+        when:
+        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
+        EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
+        EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
+
+        then:
+        subprojectA.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_1
+        subprojectB.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_2
+        subprojectC.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_3
     }
 
     private EclipseProject loadEclipseProjectModel() {

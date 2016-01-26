@@ -28,6 +28,8 @@ import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
 
+    public static final BuildOperationParameters BUILD_OPERATION_PARAMETERS = new BuildOperationParameters(GradleVersion.version('2.4'), false)
+
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
     @Rule
@@ -228,7 +230,7 @@ class DefaultGradleRunnerTest extends Specification {
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run({ it.gradleUserHome == gradleUserHomeDir }) >> new GradleExecutionResult("", null)
+        1 * gradleExecutor.run({ it.gradleUserHome == gradleUserHomeDir }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
     def "debug flag determines runtime mode passed to executor"() {
@@ -240,7 +242,7 @@ class DefaultGradleRunnerTest extends Specification {
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run({ it.embedded == debug }) >> new GradleExecutionResult("", null)
+        1 * gradleExecutor.run({ it.embedded == debug }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
 
         where:
         debug << [true, false]
@@ -291,7 +293,7 @@ class DefaultGradleRunnerTest extends Specification {
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run({ it.standardError == null && it.standardOutput != null }) >> new GradleExecutionResult("", null)
+        1 * gradleExecutor.run({ it.standardError == null && it.standardOutput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
     def "standard error is passed on to executor"() {
@@ -306,7 +308,7 @@ class DefaultGradleRunnerTest extends Specification {
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run({ it.standardError != null && it.standardOutput == null }) >> new GradleExecutionResult("", null)
+        1 * gradleExecutor.run({ it.standardError != null && it.standardOutput == null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
     def "standard output and error is passed on to executor"() {
@@ -323,7 +325,7 @@ class DefaultGradleRunnerTest extends Specification {
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run({ it.standardError != null && it.standardOutput != null }) >> new GradleExecutionResult("", null)
+        1 * gradleExecutor.run({ it.standardError != null && it.standardOutput != null }) >> new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "", null)
     }
 
     private DefaultGradleRunner createRunner() {
@@ -338,7 +340,7 @@ class DefaultGradleRunnerTest extends Specification {
     }
 
     static GradleExecutionResult createGradleExecutionResult(Throwable throwable = null) {
-        new GradleExecutionResult("this is some output", [], throwable)
+        new GradleExecutionResult(BUILD_OPERATION_PARAMETERS, "this is some output", [], throwable)
     }
 
     private String getBasicDiagnosticsMessage() {

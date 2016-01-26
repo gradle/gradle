@@ -22,6 +22,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class InstanceOptionDescriptor implements OptionDescriptor {
 
@@ -47,8 +48,8 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return optionElement.getOptionName();
     }
 
-    public List<String> getAvailableValues() {
-        final List<String> values = optionElement.getAvailableValues();
+    public Set<String> getAvailableValues() {
+        final Set<String> values = optionElement.getAvailableValues();
 
         if (getArgumentType().isAssignableFrom(String.class)) {
             values.addAll(readDynamicAvailableValues());

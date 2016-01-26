@@ -22,23 +22,26 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.*;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.params.AuthPolicy;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.auth.*;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.specs.Spec;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
+import org.gradle.internal.Cast;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
@@ -59,31 +62,58 @@ public class HttpClientConfigurer {
         this.httpSettings = httpSettings;
     }
 
-    public void configure(DefaultHttpClient httpClient) {
-        NTLMSchemeFactory.register(httpClient);
-        configureCredentials(httpClient, httpSettings.getAuthenticationSettings());
-        configureProxyCredentials(httpClient, httpSettings.getProxySettings());
-        configureRetryHandler(httpClient);
-        configureUserAgent(httpClient);
+    public void configure(HttpClientBuilder builder) {
+        SystemDefaultCredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
+        configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory());
+        configureAuthSchemeRegistry(builder);
+        configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
+        configureProxy(builder, credentialsProvider, httpSettings);
+        configureRetryHandler(builder);
+        configureUserAgent(builder);
+        builder.setDefaultCredentialsProvider(credentialsProvider);
     }
 
-    private void configureCredentials(DefaultHttpClient httpClient, Collection<Authentication> authentications) {
+    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory) {
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), new DefaultHostnameVerifier(null)));
+    }
+
+    private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
+        builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeProvider>create()
+            .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+            .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+            .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+            .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+            .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
+            .build()
+        );
+    }
+
+    private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
         if(authentications.size() > 0) {
-            useCredentials(httpClient, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
+            useCredentials(credentialsProvider, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
-            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), isPreemptiveEnabled(authentications)), 0);
+            builder.addInterceptorFirst(new PreemptiveAuth(new BasicScheme(), isPreemptiveEnabled(authentications)));
         }
     }
 
-    private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
-        HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
-        if (proxy != null && proxy.credentials != null) {
-            useCredentials(httpClient, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+    private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
+        String proxyScheme = "https";
+        HttpProxySettings.HttpProxy proxy = httpSettings.getSecureProxySettings().getProxy();
+        if (proxy == null) {
+            proxy = httpSettings.getProxySettings().getProxy();
+            proxyScheme = "http";
+        }
+
+        if (proxy != null) {
+            if (proxy.credentials != null) {
+                useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+            }
+            builder.setProxy(new HttpHost(proxy.host, proxy.port, proxyScheme));
         }
     }
 
-    private void useCredentials(DefaultHttpClient httpClient, String host, int port, Collection<? extends Authentication> authentications) {
+    private void useCredentials(CredentialsProvider credentialsProvider, String host, int port, Collection<? extends Authentication> authentications) {
         Credentials httpCredentials;
 
         for (Authentication authentication : authentications) {
@@ -93,14 +123,14 @@ public class HttpClientConfigurer {
             if (authentication instanceof AllSchemesAuthentication) {
                 NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
                 httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-                httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), httpCredentials);
+                credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
 
-                LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", new Object[]{credentials, ntlmCredentials, host, port, AuthPolicy.NTLM});
+                LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
             }
 
             httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-            httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-            LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", new Object[]{credentials, host, port, scheme});
+            credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+            LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
         }
     }
 
@@ -113,8 +143,8 @@ public class HttpClientConfigurer {
         });
     }
 
-    public void configureUserAgent(DefaultHttpClient httpClient) {
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
+    public void configureUserAgent(HttpClientBuilder builder) {
+        builder.setUserAgent(UriResource.getUserAgentString());
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {
@@ -126,8 +156,8 @@ public class HttpClientConfigurer {
         return Cast.uncheckedCast(credentials);
     }
 
-    private void configureRetryHandler(DefaultHttpClient httpClient) {
-        httpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
+    private void configureRetryHandler(HttpClientBuilder builder) {
+        builder.setRetryHandler(new HttpRequestRetryHandler() {
             public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
                 return false;
             }
@@ -136,9 +166,9 @@ public class HttpClientConfigurer {
 
     private String getAuthScheme(Authentication authentication) {
         if (authentication instanceof BasicAuthentication) {
-            return AuthPolicy.BASIC;
+            return AuthSchemes.BASIC;
         } else if (authentication instanceof DigestAuthentication) {
-            return AuthPolicy.DIGEST;
+            return AuthSchemes.DIGEST;
         } else if (authentication instanceof AllSchemesAuthentication) {
             return AuthScope.ANY_SCHEME;
         } else {
@@ -157,7 +187,7 @@ public class HttpClientConfigurer {
 
         public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
 
-            AuthState authState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+            AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);
 
             if (authState.getAuthScheme() != null || authState.hasAuthOptions()) {
                 return;
@@ -166,8 +196,8 @@ public class HttpClientConfigurer {
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
             if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
-                CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
-                HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
+                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
                 if (credentials == null) {
                     throw new HttpException("No credentials for preemptive authentication");

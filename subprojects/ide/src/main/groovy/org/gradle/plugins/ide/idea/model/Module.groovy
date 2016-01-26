@@ -74,17 +74,20 @@ class Module extends XmlPersistableConfigurationObject {
     String jdkName
 
     private final PathFactory pathFactory
+    private String languageLevel
 
     Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
         super(withXmlActions)
         this.pathFactory = pathFactory
     }
 
-    @Override protected String getDefaultResourceName() {
+    @Override
+    protected String getDefaultResourceName() {
         return 'defaultModule.xml'
     }
 
-    @Override protected void load(Node xml) {
+    @Override
+    protected void load(Node xml) {
         readJdkFromXml()
         readSourceAndExcludeFolderFromXml()
         readInheritOutputDirsFromXml()
@@ -148,7 +151,8 @@ class Module extends XmlPersistableConfigurationObject {
     }
 
     protected def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set generatedSourceFolders, Set excludeFolders,
-                            Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String jdkName) {
+                            Boolean inheritOutputDirs, Path outputDir, Path testOutputDir, Set dependencies, String jdkName, String languageLevel) {
+        this.languageLevel = languageLevel
         this.contentPath = contentPath
         this.sourceFolders.addAll(sourceFolders)
         this.excludeFolders.addAll(excludeFolders)
@@ -171,16 +175,24 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    @Override protected void store(Node xml) {
+    @Override
+    protected void store(Node xml) {
         addJdkToXml()
         setContentURL()
         removeSourceAndExcludeFolderFromXml()
         addSourceAndExcludeFolderToXml()
         writeInheritOutputDirsToXml()
+        writeSourceLanguageLevel()
         addOutputDirsToXml()
 
         removeDependenciesFromXml()
         addDependenciesToXml()
+    }
+
+    def writeSourceLanguageLevel() {
+        if(languageLevel != null){
+            findNewModuleRootManager().@"LANGUAGE_LEVEL" = languageLevel
+        }
     }
 
     private addJdkToXml() {
@@ -296,7 +308,7 @@ class Module extends XmlPersistableConfigurationObject {
     }
 
     private Node findNewModuleRootManager() {
-        xml.component.find { it.@name == 'NewModuleRootManager'}
+        xml.component.find { it.@name == 'NewModuleRootManager' }
     }
 
     private Node findTestOutputDir() {
@@ -309,19 +321,37 @@ class Module extends XmlPersistableConfigurationObject {
 
 
     boolean equals(o) {
-        if (this.is(o)) { return true }
+        if (this.is(o)) {
+            return true
+        }
 
-        if (getClass() != o.class) { return false }
+        if (getClass() != o.class) {
+            return false
+        }
 
         Module module = (Module) o
 
-        if (dependencies != module.dependencies) { return false }
-        if (excludeFolders != module.excludeFolders) { return false }
-        if (outputDir != module.outputDir) { return false }
-        if (sourceFolders != module.sourceFolders) { return false }
-        if (generatedSourceFolders != module.generatedSourceFolders) { return false }
-        if (testOutputDir != module.testOutputDir) { return false }
-        if (testSourceFolders != module.testSourceFolders) { return false }
+        if (dependencies != module.dependencies) {
+            return false
+        }
+        if (excludeFolders != module.excludeFolders) {
+            return false
+        }
+        if (outputDir != module.outputDir) {
+            return false
+        }
+        if (sourceFolders != module.sourceFolders) {
+            return false
+        }
+        if (generatedSourceFolders != module.generatedSourceFolders) {
+            return false
+        }
+        if (testOutputDir != module.testOutputDir) {
+            return false
+        }
+        if (testSourceFolders != module.testSourceFolders) {
+            return false
+        }
 
         return true
     }
@@ -343,14 +373,14 @@ class Module extends XmlPersistableConfigurationObject {
 
     String toString() {
         return "Module{" +
-                "dependencies=" + dependencies +
-                ", sourceFolders=" + sourceFolders +
-                ", testSourceFolders=" + testSourceFolders +
-                ", generatedSourceFolders=" + generatedSourceFolders +
-                ", excludeFolders=" + excludeFolders +
-                ", inheritOutputDirs=" + inheritOutputDirs +
-                ", outputDir=" + outputDir +
-                ", testOutputDir=" + testOutputDir +
-                '}'
+            "dependencies=" + dependencies +
+            ", sourceFolders=" + sourceFolders +
+            ", testSourceFolders=" + testSourceFolders +
+            ", generatedSourceFolders=" + generatedSourceFolders +
+            ", excludeFolders=" + excludeFolders +
+            ", inheritOutputDirs=" + inheritOutputDirs +
+            ", outputDir=" + outputDir +
+            ", testOutputDir=" + testOutputDir +
+            '}'
     }
 }

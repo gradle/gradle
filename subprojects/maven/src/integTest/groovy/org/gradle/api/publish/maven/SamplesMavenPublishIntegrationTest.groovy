@@ -16,10 +16,8 @@
 
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -49,10 +47,8 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
 
     def quickstartPublishLocal() {
         given:
-        dontOverrideMavenLocal()
-        def m2Installation = new M2Installation(testDirectory)
-        executer.beforeExecute m2Installation
-        def localModule = m2Installation.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
+        executer.beforeExecute m2
+        def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
 
         and:
         sample quickstart

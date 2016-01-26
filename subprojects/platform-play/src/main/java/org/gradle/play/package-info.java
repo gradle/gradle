@@ -17,4 +17,5 @@
 /**
  * Classes that model aspects of the Play Framework support in Gradle.
  */
+@org.gradle.api.Incubating
 package org.gradle.play;

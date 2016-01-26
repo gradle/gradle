@@ -31,7 +31,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = "${type}Native"
         runner.tasksToRun = [ "clean", "assemble" ]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = [ '2.3', '2.4', '2.8', 'last' ]
+        runner.targetVersions = [ '2.4', '2.8', 'last' ]
 
         when:
         def result = runner.run()
@@ -43,8 +43,8 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         type           | maxExecutionTimeRegression
         "small"        | millis(500)
         "medium"       | millis(500)
-        "big"          | millis(1500)
-        "multi"        | millis(1500)
+        "big"          | millis(2500)
+        "multi"        | millis(2500)
     }
 
     def "Many projects native build" () {
@@ -53,7 +53,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = "manyProjectsNative"
         runner.tasksToRun = [ "clean", "assemble" ]
         runner.maxExecutionTimeRegression = millis(1000)
-        runner.targetVersions = [ '2.3', '2.4', '2.8', 'last' ]
+        runner.targetVersions = [ '2.8', '2.11', 'last' ]
         runner.useDaemon = true
 
         when:

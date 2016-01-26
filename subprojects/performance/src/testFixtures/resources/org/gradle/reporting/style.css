@@ -10,6 +10,11 @@ h2 {
     margin-top: 2em;
 }
 
+h3 {
+    margin-top: 2em;
+    margin-bottom: 1.4em;
+}
+
 #footer {
     margin-top: 4em;
     font-size: 8pt;
@@ -19,37 +24,42 @@ table {
     border-collapse: collapse;
 }
 
-table.history {
+table.history, table.test-details {
     margin-top: 20px;
     font-size: 10pt;
 }
 
 th, td {
     white-space: nowrap;
-    padding-top: 4px;
-    padding-bottom: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
     text-align: left;
+    vertical-align: bottom;
 }
 
 th.numeric, td.numeric {
     text-align: right;
-    min-width: 4em;
 }
 
-th.test-execution {
-    font-size: 14pt;
-    padding-top: 1em;
+.empty {
+    color: #a0a0a0;
+    font-size: 8pt;
+}
+
+.more-detail {
+    color: #a0a0a0;
+    font-size: 8pt;
+}
+
+td.more-detail {
+    text-align: left;
+    padding-left: 0;
 }
 
 .table-row-even {
     background-color: #ecf4fa;
-}
-
-#controls {
-    text-align: right;
-    font-size: 10pt;
 }
 
 .min-value {
@@ -58,6 +68,17 @@ th.test-execution {
 
 .max-value {
     color: red;
+}
+
+.details {
+    padding-top: 5px;
+    font-size: 10pt;
+}
+
+#controls {
+    float: right;
+    text-align: right;
+    font-size: 10pt;
 }
 
 #controls label {

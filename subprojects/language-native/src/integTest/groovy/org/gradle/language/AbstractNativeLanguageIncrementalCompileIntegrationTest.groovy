@@ -66,7 +66,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
-        objectFileDir = file("build/objs/mainExecutable")
+        objectFileDir = file("build/objs/main")
         outputs = new CompilationOutputsFixture(objectFileDir)
     }
 
@@ -128,7 +128,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
-    @NotYetImplemented
     def "does not recompile when fallback mechanism is used and there are empty directories"() {
         given:
         file("src/main/headers/empty/directory").mkdirs()
@@ -141,7 +140,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.snapshot { run "mainExecutable" }
 
         when:
-        executer.withArgument("--info")
         run "mainExecutable"
         then:
         skipped compileTask
@@ -400,8 +398,6 @@ model {
         outputs.recompiledFiles allSources
     }
 
-    // We can't implement this because we don't scan the input directories.
-    @NotYetImplemented
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """
@@ -550,7 +546,7 @@ model {
         given:
         run "mainExecutable"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.assertExists()
 
         when:

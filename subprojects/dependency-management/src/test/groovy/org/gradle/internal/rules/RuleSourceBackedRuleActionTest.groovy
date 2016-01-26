@@ -16,7 +16,6 @@
 
 package org.gradle.internal.rules
 
-import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Mutate
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -93,23 +92,24 @@ class RuleSourceBackedRuleActionTest extends Specification {
 
         then:
         def e = thrown RuleActionValidationException
-        def cause = e.cause
-        cause instanceof InvalidModelRuleDeclarationException
-        cause.message.startsWith("Type ${ruleSource.class.name} is not a valid model rule source:")
-        def messageReasons = getReasons(cause.message)
+        e.message.startsWith("Type ${ruleSource.class.name} is not a valid rule source:")
+        def messageReasons = getReasons(e.message)
         messageReasons.size() == reasons.size()
         messageReasons.sort() == reasons.sort()
 
         where:
         ruleSource                                | reasons
-        new RuleSourceWithNoMethod()              | [ "must have at exactly one method annotated with @org.gradle.model.Mutate" ]
-        new RuleSourceWithNoMutateMethod()        | [ "must have at exactly one method annotated with @org.gradle.model.Mutate" ]
-        new RuleSourceWithMultipleMutateMethods() | [ "more than one method is annotated with @org.gradle.model.Mutate" ]
-        new RuleSourceWithDifferentSubjectClass() | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
-        new RuleSourceWithDifferentSubjectType()  | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
-        new RuleSourceWithNoSubject()             | [ "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>" ]
-        new RuleSourceWithReturnValue()           | [ "rule method 'theRule' must return void" ]
-        new RuleSourceWithMultipleIssues()        | [ "more than one method is annotated with @org.gradle.model.Mutate", "rule method 'theRule' must return void", "first parameter of rule method 'theRule' must be of type java.util.List<java.lang.String>", "first parameter of rule method 'anotherRule' must be of type java.util.List<java.lang.String>" ]
+        new RuleSourceWithNoMethod()              | [ "Must have at exactly one method annotated with @org.gradle.model.Mutate" ]
+        new RuleSourceWithNoMutateMethod()        | [ "Must have at exactly one method annotated with @org.gradle.model.Mutate" ]
+        new RuleSourceWithMultipleMutateMethods() | [ "More than one method is annotated with @org.gradle.model.Mutate" ]
+        new RuleSourceWithDifferentSubjectClass() | [ "Method theRule(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type java.util.List<java.lang.String>" ]
+        new RuleSourceWithDifferentSubjectType()  | [ "Method theRule(java.util.List<java.lang.Integer>) is not a valid rule method: First parameter of a rule method must be of type java.util.List<java.lang.String>" ]
+        new RuleSourceWithNoSubject()             | [ "Method theRule() is not a valid rule method: First parameter of a rule method must be of type java.util.List<java.lang.String>" ]
+        new RuleSourceWithReturnValue()           | [ "Method theRule(java.util.List<java.lang.String>) is not a valid rule method: A rule method must return void" ]
+        new RuleSourceWithMultipleIssues()        | [ "More than one method is annotated with @org.gradle.model.Mutate",
+                                                      "Method theRule(java.util.List<java.lang.Integer>) is not a valid rule method: A rule method must return void",
+                                                      "Method theRule(java.util.List<java.lang.Integer>) is not a valid rule method: First parameter of a rule method must be of type java.util.List<java.lang.String>",
+                                                      "Method anotherRule() is not a valid rule method: First parameter of a rule method must be of type java.util.List<java.lang.String>" ]
     }
 
     def getReasons(String message) {

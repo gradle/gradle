@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.jvm.internal;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactResults;
@@ -32,47 +34,43 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.language.base.DependentSourceSet;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
-import static com.google.common.collect.Iterables.concat;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
-    private final JarBinarySpecInternal binary;
-    private final DependentSourceSet sourceSet;
+    private final BinarySpecInternal binary;
     private final ArtifactDependencyResolver dependencyResolver;
-    private final DependentSourceSetResolveContext resolveContext;
+    private final ResolveContext resolveContext;
+    private final String descriptor;
 
     private ResolveResult resolveResult;
 
     public DependencyResolvingClasspath(
-            JarBinarySpecInternal binarySpec,
-            DependentSourceSet sourceSet,
+            BinarySpecInternal binarySpec,
+            String descriptor,
             ArtifactDependencyResolver dependencyResolver,
-            ModelSchemaStore schemaStore,
-            List<ResolutionAwareRepository> remoteRepositories) {
+            List<ResolutionAwareRepository> remoteRepositories,
+            ResolveContext resolveContext
+            ) {
         this.binary = binarySpec;
-        this.sourceSet = sourceSet;
+        this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
         this.remoteRepositories = remoteRepositories;
-        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, variantsMetaDataFrom(binary, schemaStore), allDependencies());
+        this.resolveContext = resolveContext;
     }
 
     @Override
     public String getDisplayName() {
-        return "Classpath for " + sourceSet.getDisplayName();
+        return String.format("Classpath for %s", descriptor);
     }
 
     @Override
@@ -93,27 +91,6 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         return resolveResult.taskDependency;
     }
 
-    private Iterable<DependencySpec> allDependencies() {
-        return new Iterable<DependencySpec>() {
-            @Override
-            public Iterator<DependencySpec> iterator() {
-                return concat(sourceSetDependencies(), componentDependencies(), apiDependencies()).iterator();
-            }
-        };
-    }
-
-    private Collection<DependencySpec> componentDependencies() {
-        return binary.getDependencies();
-    }
-
-    private Collection<DependencySpec> sourceSetDependencies() {
-        return sourceSet.getDependencies().getDependencies();
-    }
-
-    private Collection<DependencySpec> apiDependencies() {
-        return binary.getApiDependencies();
-    }
-
     private void ensureResolved(boolean failFast) {
         if (resolveResult == null) {
             resolveResult = resolve();
@@ -131,14 +108,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     private void failOnUnresolvedDependency(List<Throwable> notFound) {
         if (!notFound.isEmpty()) {
-            throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
+            throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' %s", binary.getDisplayName(), descriptor), notFound);
         }
     }
-
-    private VariantsMetaData variantsMetaDataFrom(JarBinarySpec binary, ModelSchemaStore schemaStore) {
-        return DefaultVariantsMetaData.extractFrom(binary, schemaStore);
-    }
-
+    
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();

@@ -27,6 +27,9 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
+/**
+ * Clean up cache files for older versions that aren't multi-process safe.
+ */
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
         for (File cacheDir : dir.listFiles()) {
@@ -44,6 +47,22 @@ def removeDodgyCacheFiles(File dir) {
     }
 }
 
+
+/**
+ * Clean up daemon log files produced in integration tests.
+ */
+def removeDaemonLogFiles(File dir) {
+    if (dir.directory) {
+        def daemonLogFiles = fileTree(dir) {
+            include '**/*.log'
+        }
+        delete daemonLogFiles
+    }
+}
+
+/**
+ * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
+ */
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -107,6 +126,9 @@ project(":") {
 
             // Remove caches that weren't multi-process safe and may be corrupt
             removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
+
+            // Remove old daemon log files
+            removeDaemonLogFiles(file("intTestHomeDir/worker-1/daemon"))
         }
     }
 }
@@ -114,27 +136,49 @@ project(":") {
 def forEachJavaProcess(Closure action) {
     String queryString = "(?i)${Pattern.quote(File.separator)}(java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
+    def error = new ByteArrayOutputStream()
     def pidPattern
+    def result
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
-        exec {
+        result = exec {
             commandLine('wmic', 'process', 'get', 'processid,commandline')
             standardOutput = output
+            errorOutput = error
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)\s*$/
     } else {
-        exec {
+        result = exec {
             commandLine('ps', 'x')
             standardOutput = output
+            errorOutput = output
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)/
     }
+    if (result.exitValue != 0) {
+        def errorLog = file("${rootProject.buildDir}/errorLogs/process-list-${System.currentTimeMillis()}.log")
+        project.mkdir(errorLog.parent)
+        errorLog.text = "[Output]\n${output.toString()}\n[Error Output]\n${error.toString()}"
+        logger.quiet "Error obtaining process list, output log created at $errorLog"
+        result.assertNormalExitValue()
+    }
     output.toString().readLines().each { String line ->
+        if(isCiServer && line.contains('java')) {
+            logger.quiet "Java Process: $line"
+        }
+
         def processMatcher = line =~ queryString
         if (processMatcher.find()) {
             def pidMatcher = line =~ pidPattern
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
+
+                if(isCiServer) {
+                    logger.quiet "-> Parsed PID: $pid, Parsed process: $process"
+                }
+
                 action.call(pid, process)
             }
         }
@@ -201,7 +245,8 @@ allprojects {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage'
-    finalizedBy(':cleanUpDaemons', ':cleanUpCaches')
+    dependsOn ':cleanUpCaches'
+    finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
     testClassesDir = sourceSets.integTest.output.classesDir
@@ -299,6 +344,15 @@ releasedVersions.allVersions.each { targetVersion ->
         include '**/*CrossVersion*'
     }
 }
+
+task testKitVersionCompatibilityIntegTest(type: Test) {
+    description "Runs the TestKit version compatibility tests"
+    systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+    include 'org/gradle/testkit/**/*'
+}
+
+crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
     idea {

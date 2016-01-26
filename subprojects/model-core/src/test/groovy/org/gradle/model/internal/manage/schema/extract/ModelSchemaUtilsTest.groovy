@@ -116,19 +116,18 @@ class ModelSchemaUtilsTest extends Specification {
         @Override String someOverriddenCovariantMethod(Object param)
     }
 
-    def "gets overridden methods from type hierachy"() {
+    def "gets overridden methods from type hierarchy"() {
         expect:
         def overridden = ModelSchemaUtils.getCandidateMethods(SubTypeWithOverloadedMethods).overriddenMethodsNamed("someOverloadedMethod")
         overridden.size() == 2
-        overridden.values()[1].size() == 2
         overridden.values()[0].size() == 2
         overridden.values()[0]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
-        overridden.values()[1]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
         overridden.values()[0]*.returnType == [String, String]
+        overridden.values()[0]*.parameterTypes == [[int], [int]]
+        overridden.values()[1].size() == 2
+        overridden.values()[1]*.name == ["someOverloadedMethod", "someOverloadedMethod"]
         overridden.values()[1]*.returnType == [String, String]
-        def sourceOrderOk = overridden.values()[0]*.parameterTypes == [[Object], [Object]] && overridden.values()[1]*.parameterTypes == [[int], [int]]
-        def reverseOrderOk = overridden.values()[0]*.parameterTypes == [[int], [int]] && overridden.values()[1]*.parameterTypes == [[Object], [Object]]
-        sourceOrderOk || reverseOrderOk
+        overridden.values()[1]*.parameterTypes == [[Object], [Object]]
     }
 
     def "gets covariant return type overridden methods from type hierarchy"() {

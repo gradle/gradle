@@ -17,18 +17,12 @@
 package org.gradle.jvm.tasks.api.internal;
 
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.gradle.jvm.tasks.api.internal.ApiMemberSelector.isCandidateApiMember;
 
 /**
  * Extracts an "API class" from an original "runtime class" for subsequent inclusion
@@ -42,12 +36,12 @@ public class ApiClassExtractor {
     private final boolean apiIncludesPackagePrivateMembers;
 
     public ApiClassExtractor(Set<String> exportedPackages) {
-        this.exportedPackages = exportedPackages;
+        this.exportedPackages = exportedPackages.isEmpty() ? null : exportedPackages;
         this.apiIncludesPackagePrivateMembers = exportedPackages.isEmpty();
     }
 
     /**
-     * Indicates whether the class in the given file is a candidate for extraction to
+     * Indicates whether the class held by the given reader is a candidate for extraction to
      * an API class. Checks whether the class's package is in the list of packages
      * explicitly exported by the library (if any), and whether the class should be
      * included in the public API based on its visibility. If the list of exported
@@ -58,53 +52,30 @@ public class ApiClassExtractor {
      *
      * <p>For these reasons, this method should be called as a test on every original
      * .class file prior to invoking processed through
-     * {@link #extractApiClassFrom(File)}.</p>
+     * {@link #extractApiClassFrom(ClassReader)}.</p>
      *
-     * @param originalClassFile the file containing the original class to evaluate
+     * @param originalClassReader the reader containing the original class to evaluate
      * @return whether the given class is a candidate for API extraction
      */
-    public boolean shouldExtractApiClassFrom(File originalClassFile) throws IOException {
-        if (!originalClassFile.getName().endsWith(".class")) {
+    public boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
+        if (!isCandidateApiMember(originalClassReader.getAccess(), apiIncludesPackagePrivateMembers)) {
             return false;
         }
-        InputStream inputStream = new FileInputStream(originalClassFile);
-        try {
-            return shouldExtractApiClassFrom(new ClassReader(inputStream));
-        } finally {
-            inputStream.close();
+        String originalClassName = originalClassReader.getClassName();
+        if (isLocalClass(originalClassName)) {
+            return false;
         }
-    }
-
-    boolean shouldExtractApiClassFrom(ClassReader originalClassReader) {
-        final AtomicBoolean shouldExtract = new AtomicBoolean();
-        originalClassReader.accept(new ClassVisitor(ASM5) {
-            @Override
-            public void visit(int version, int access, String name, String signature, String superName,
-                              String[] interfaces) {
-                String originalClassName = convertAsmInternalNameToClassName(name);
-                shouldExtract.set(isApiClassExtractionCandidate(access, originalClassName));
-            }
-        }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-        return shouldExtract.get();
+        return exportedPackages == null
+            || exportedPackages.contains(packageNameOf(originalClassName));
     }
 
     /**
      * Extracts an API class from a given original class.
      *
-     * @param originalClassFile the file containing the original class
+     * @param originalClassReader the reader containing the original class
      * @return bytecode of the API class extracted from the original class
      */
-    public byte[] extractApiClassFrom(File originalClassFile) throws IOException {
-        InputStream inputStream = new FileInputStream(originalClassFile);
-        try {
-            ClassReader classReader = new ClassReader(inputStream);
-            return extractApiClassFrom(classReader);
-        } finally {
-            inputStream.close();
-        }
-    }
-
-    byte[] extractApiClassFrom(ClassReader originalClassReader) {
+    public byte[] extractApiClassFrom(ClassReader originalClassReader) {
         ClassWriter apiClassWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         originalClassReader.accept(
             new ApiMemberSelector(new MethodStubbingApiMemberAdapter(apiClassWriter), apiIncludesPackagePrivateMembers),
@@ -112,25 +83,11 @@ public class ApiClassExtractor {
         return apiClassWriter.toByteArray();
     }
 
-    private boolean isApiClassExtractionCandidate(int access, String candidateClassName) {
-        if (isLocalClass(candidateClassName)) {
-            return false;
-        }
-        if (!ApiMemberSelector.isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
-            return false;
-        }
-        if (exportedPackages.isEmpty()) {
-            return true;
-        }
-        return exportedPackages.contains(packageNameOf(candidateClassName));
-    }
-
-    private static String convertAsmInternalNameToClassName(String internalName) {
-        return internalName.replace('/', '.');
-    }
-
-    private static String packageNameOf(String className) {
-        return className.indexOf('.') > 0 ? className.substring(0, className.lastIndexOf('.')) : "";
+    private static String packageNameOf(String internalClassName) {
+        int packageSeparatorIndex = internalClassName.lastIndexOf('/');
+        return packageSeparatorIndex > 0
+            ? internalClassName.substring(0, packageSeparatorIndex).replace('/', '.')
+            : "";
     }
 
     // See JLS3 "Binary Compatibility" (13.1)

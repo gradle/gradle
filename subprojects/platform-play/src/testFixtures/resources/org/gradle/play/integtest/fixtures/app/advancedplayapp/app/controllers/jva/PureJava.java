@@ -17,7 +17,7 @@ package controllers.jva;
 
 import play.*;
 import play.mvc.*;
-import views.html.*;
+import jva.html.*;
 
 public class PureJava extends Controller {
 

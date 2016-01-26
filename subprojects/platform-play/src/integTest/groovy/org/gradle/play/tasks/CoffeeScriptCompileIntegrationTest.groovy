@@ -19,10 +19,6 @@ package org.gradle.play.tasks
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
-    @Override
-    String getDefaultSourceSet() {
-        return "CoffeeScript"
-    }
 
     def setup() {
         buildFile << """
@@ -31,7 +27,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 id 'play-coffeescript'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
 
             ${GRADLE_JS_REPOSITORY}
         """
@@ -44,14 +40,12 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScript",
-                ":minifyPlayBinaryCoffeeScriptJavaScript",
+                ":compilePlayBinaryPlayCoffeeScript",
+                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        matchesExpectedRaw("test.js")
-        matchesExpectedRaw(copied("test.js"))
-        matchesExpected("test.min.js")
+        hasProcessedCoffeeScript("test")
         assetsJar.containsDescendants(
                 "public/test.js",
                 "public/test.min.js"
@@ -61,10 +55,10 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
     def "minify task depends on compile task" () {
         when:
         withCoffeeScriptSource(assets("test.coffee"))
-        succeeds "minifyPlayBinaryCoffeeScriptJavaScript"
+        succeeds "minifyPlayBinaryBinaryCoffeeScriptJavaScript"
 
         then:
-        executedAndNotSkipped ":compilePlayBinaryCoffeeScript"
+        executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript"
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -95,26 +89,21 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScript",
-                ":minifyPlayBinaryCoffeeScriptJavaScript",
-                ":compilePlayBinaryExtraCoffeeScript",
-                ":minifyPlayBinaryExtraCoffeeScriptJavaScript",
-                ":compilePlayBinaryAnotherCoffeeScript",
-                ":minifyPlayBinaryAnotherCoffeeScriptJavaScript",
-                ":minifyPlayBinaryJavaScript",
-                ":minifyPlayBinaryExtraJavaScript",
+                ":compilePlayBinaryPlayCoffeeScript",
+                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":compilePlayBinaryPlayExtraCoffeeScript",
+                ":minifyPlayBinaryBinaryExtraCoffeeScriptJavaScript",
+                ":compilePlayBinaryPlayAnotherCoffeeScript",
+                ":minifyPlayBinaryBinaryAnotherCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayJavaScript",
+                ":minifyPlayBinaryPlayExtraJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        matchesExpectedRaw("test1.js")
-        matchesExpectedRaw("ExtraCoffeeScript", "xxx/test2.js")
-        matchesExpectedRaw("AnotherCoffeeScript", "a/b/c/test3.js")
-        matchesExpectedRaw(copied("test1.js"))
-        matchesExpectedRaw(copied("ExtraCoffeeScriptJavaScript", "xxx/test2.js"))
-        matchesExpectedRaw(copied("AnotherCoffeeScriptJavaScript", "a/b/c/test3.js"))
-        matchesExpected("test1.min.js")
-        matchesExpected("ExtraCoffeeScriptJavaScript", "xxx/test2.min.js")
-        matchesExpected("AnotherCoffeeScriptJavaScript", "a/b/c/test3.min.js")
+        hasProcessedCoffeeScript("coffeeScript", "test1")
+        hasProcessedCoffeeScript("extraCoffeeScript", "xxx/test2")
+        hasProcessedCoffeeScript("anotherCoffeeScript", "a/b/c/test3")
+
         assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
@@ -138,8 +127,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         then:
-        skipped(":compilePlayBinaryCoffeeScript",
-                ":minifyPlayBinaryCoffeeScriptJavaScript",
+        skipped(":compilePlayBinaryPlayCoffeeScript",
+                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -156,8 +145,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScript",
-                ":minifyPlayBinaryCoffeeScriptJavaScript",
+                ":compilePlayBinaryPlayCoffeeScript",
+                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -168,21 +157,21 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         when:
-        compiled("test.js").delete()
-        copied("test.js").delete()
-        minified("test.min.js").delete()
+        hasProcessedCoffeeScript("test")
+        compiledCoffeeScript("test.js").delete()
+        processedJavaScript("test.js").delete()
+        processedJavaScript("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
 
         then:
         executedAndNotSkipped(
-                ":compilePlayBinaryCoffeeScript",
-                ":minifyPlayBinaryCoffeeScriptJavaScript",
+                ":compilePlayBinaryPlayCoffeeScript",
+                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        compiled("test.js").exists()
-        copied("test.js").exists()
-        minified("test.min.js").exists()
+
+        hasProcessedCoffeeScript("test")
     }
 
     def "cleans removed source file on compile" () {
@@ -206,9 +195,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         succeeds "assemble"
 
         then:
-        ! compiled("test2.js").exists()
-        ! copied("test2.js").exists()
-        ! minified("test2.min.js").exists()
+        ! compiledCoffeeScript("test2.js").exists()
+        ! processedJavaScript("test2.js").exists()
+        ! processedJavaScript("test2.min.js").exists()
         assetsJar.countFiles("public/test2.js") == 0
         assetsJar.countFiles("public/test2.min.js") == 0
     }
@@ -221,7 +210,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         fails "assemble"
 
         then:
-        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryCoffeeScript'."
+        failure.assertHasDescription "Execution failed for task ':compilePlayBinaryPlayCoffeeScript'."
         failure.assertHasCause "Failed to compile coffeescript file: test1.coffee"
         failure.assertHasCause "SyntaxError: unexpected if (coffee-script-js-1.8.0.js#10)"
     }

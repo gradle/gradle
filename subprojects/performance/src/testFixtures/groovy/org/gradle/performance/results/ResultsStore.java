@@ -27,10 +27,10 @@ public interface ResultsStore {
     /**
      * Returns the full history of the given test.
      */
-    TestExecutionHistory getTestResults(String testName);
+    PerformanceTestHistory getTestResults(String testName);
 
     /**
      * Returns the n most recent instances of the given test.
      */
-    TestExecutionHistory getTestResults(String testName, int mostRecentN);
+    PerformanceTestHistory getTestResults(String testName, int mostRecentN);
 }

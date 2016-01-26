@@ -1,0 +1,13 @@
+:compileCollectionsJarCollectionsJava
+:collectionsApiJar
+:compileCommonsJarCommonsJava
+:commonsApiJar
+:compileCoreJarCoreJava
+:processCoreJarCoreResources
+:coreApiJar
+:compileServerJarServerJava
+:createServerJar
+:serverApiJar
+:serverJar
+
+BUILD SUCCESSFUL

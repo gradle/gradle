@@ -20,6 +20,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.cache.CacheAccess;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.GFileUtils;
 
@@ -32,25 +33,31 @@ import java.util.zip.Adler32;
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
     private final FileSnapshotter fileSnapshotter;
+    private final CacheAccess cacheAccess;
 
-    public HashClassPathSnapshotter(FileSnapshotter fileSnapshotter) {
+    public HashClassPathSnapshotter(FileSnapshotter fileSnapshotter, CacheAccess cacheAccess) {
         this.fileSnapshotter = fileSnapshotter;
+        this.cacheAccess = cacheAccess;
     }
 
     public ClassPathSnapshot snapshot(ClassPath classPath) {
-        List<String> visitedFilePaths = Lists.newLinkedList();
-        Set<File> visitedDirs = Sets.newLinkedHashSet();
-        List<File> cpFiles = classPath.getAsFiles();
+        final List<String> visitedFilePaths = Lists.newLinkedList();
+        final Set<File> visitedDirs = Sets.newLinkedHashSet();
+        final List<File> cpFiles = classPath.getAsFiles();
 
-        Adler32 checksum = new Adler32();
-        hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
+        final Adler32 checksum = new Adler32();
+        cacheAccess.useCache("Snapshot classpath", new Runnable() {
+            @Override
+            public void run() {
+                hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
+            }
+        });
         return new ClassPathSnapshotImpl(visitedFilePaths, checksum.getValue());
     }
 
     private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
         while (toHash.hasNext()) {
-            File file = toHash.next();
-            file = GFileUtils.canonicalise(file);
+            File file = GFileUtils.canonicalise(toHash.next());
             if (file.isDirectory()) {
                 if (visitedDirs.add(file)) {
                     //in theory, awkward symbolic links can lead to recursion problems.

@@ -29,6 +29,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import static org.gradle.model.internal.core.DefaultNodeInitializerRegistry.DEFAULT_REFERENCE;
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 @ThreadSafe
 public class TransformedModelDslBacking {
@@ -46,7 +47,7 @@ public class TransformedModelDslBacking {
     public void configure(String modelPathString, Closure<?> closure) {
         ModelPath modelPath = ModelPath.path(modelPathString);
         DeferredModelAction modelAction = ruleFactory.toAction(Object.class, closure);
-        registerAction(modelPath, Object.class, ModelActionRole.Mutate, modelAction);
+        registerAction(modelPath, ModelType.UNTYPED, ModelActionRole.Mutate, modelAction);
     }
 
     /**
@@ -56,17 +57,18 @@ public class TransformedModelDslBacking {
         ModelPath modelPath = ModelPath.path(modelPathString);
         DeferredModelAction modelAction = ruleFactory.toAction(type, closure);
         ModelRuleDescriptor descriptor = modelAction.getDescriptor();
+        ModelType<T> modelType = ModelType.of(type);
         try {
             NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DEFAULT_REFERENCE.getPath(), DEFAULT_REFERENCE.getType());
-            NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
+            NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(modelType));
             modelRegistry.register(ModelRegistrations.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
         }
-        registerAction(modelPath, type, ModelActionRole.Initialize, modelAction);
+        registerAction(modelPath, modelType, ModelActionRole.Initialize, modelAction);
     }
 
-    private <T> void registerAction(ModelPath modelPath, Class<T> viewType, final ModelActionRole role, final DeferredModelAction action) {
+    private <T> void registerAction(ModelPath modelPath, ModelType<T> viewType, final ModelActionRole role, final DeferredModelAction action) {
         ModelReference<T> reference = ModelReference.of(modelPath, viewType);
         modelRegistry.configure(ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(reference, action.getDescriptor(), new Action<MutableModelNode>() {
             @Override

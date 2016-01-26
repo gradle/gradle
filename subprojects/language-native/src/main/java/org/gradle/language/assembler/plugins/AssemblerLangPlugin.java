@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.assembler.AssemblerSourceSet;
 import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
@@ -54,7 +53,7 @@ public class AssemblerLangPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
+        void registerLanguageTransform(LanguageTransformContainer languages) {
             languages.add(new Assembler());
         }
     }

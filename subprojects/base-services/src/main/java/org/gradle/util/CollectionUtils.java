@@ -37,6 +37,29 @@ import static org.gradle.internal.Cast.cast;
 
 public abstract class CollectionUtils {
 
+    /**
+     * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
+     */
+    @Nullable
+    public static <T> T findSingle(Collection<T> source) {
+        return source.isEmpty() ? null : single(source);
+    }
+
+    /**
+     * Returns the single element in the collection or throws.
+     */
+    public static <T> T single(Iterable<? extends T> source) {
+        Iterator<? extends T> iterator = source.iterator();
+        if (!iterator.hasNext()) {
+            throw new NoSuchElementException("Expecting collection with single element, got none.");
+        }
+        T element = iterator.next();
+        if (iterator.hasNext()) {
+            throw new IllegalArgumentException("Expecting collection with single element, got multiple.");
+        }
+        return element;
+    }
+
     public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
         for (Object o : input) {
             cast(type, o);
@@ -62,6 +85,10 @@ public abstract class CollectionUtils {
         }
 
         return null;
+    }
+
+    public static <T> T first(Iterable<? extends T> source) {
+        return source.iterator().next();
     }
 
     public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {

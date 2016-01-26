@@ -247,7 +247,12 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 if (!arguments.getExpressions().isEmpty()) {
                     Expression lastArg = arguments.getExpression(arguments.getExpressions().size() - 1);
                     if (lastArg instanceof ClosureExpression) {
-                        // TODO - other args need to be visited
+                        // This is a potential nested rule.
+                        // Visit method parameters
+                        for (int i = 0; i < arguments.getExpressions().size() - 1; i++) {
+                            arguments.getExpressions().set(i, replaceExpr(arguments.getExpression(i)));
+                        }
+                        // Transform closure
                         ClosureExpression closureExpression = (ClosureExpression) lastArg;
                         visitRuleClosure(closureExpression, call, displayName(call));
                         Expression replaced = new StaticMethodCallExpression(RULE_FACTORY, "decorate", new ArgumentListExpression(new VariableExpression(RULE_FACTORY_FIELD_NAME), closureExpression));

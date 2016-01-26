@@ -23,6 +23,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
+
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
         root.file("src/main/java/org/gradle/Class0.java") << "package org.gradle; public class Class0 { }"
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"

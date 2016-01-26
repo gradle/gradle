@@ -63,10 +63,12 @@ import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -189,29 +191,39 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     static class BasicServicesRules extends RuleSource {
-        @Service
+        @Hidden @Model
         ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ITaskFactory.class);
         }
 
-        @Service
+        @Hidden @Model
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Service
+        @Hidden @Model
         ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ManagedProxyFactory.class);
         }
 
-        @Service
-        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore) {
-            return new DefaultNodeInitializerRegistry(schemaStore);
+        @Hidden @Model
+        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(StructBindingsStore.class);
         }
 
-        @Service
+        @Hidden @Model
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
+        }
+
+        @Hidden @Model
         TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(TypeConverter.class);
+        }
+
+        @Hidden @Model
+        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileOperations.class);
         }
     }
 
@@ -226,7 +238,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         });
         registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
         registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
-        modelRegistry.apply(BasicServicesRules.class);
+        modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
     }
 
     private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {

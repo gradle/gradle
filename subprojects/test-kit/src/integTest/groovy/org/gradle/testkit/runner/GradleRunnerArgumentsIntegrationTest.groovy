@@ -16,11 +16,13 @@
 
 package org.gradle.testkit.runner
 
-import spock.lang.Unroll
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@InspectsExecutedTasks
+class GradleRunnerArgumentsIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
         when:
@@ -30,6 +32,7 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrati
         result.task(":help")
     }
 
+    @InspectsBuildOutput
     def "execute build for multiple tasks"() {
         given:
         buildFile << helloWorldTask()
@@ -50,8 +53,8 @@ class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrati
         result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
     }
 
-    @Unroll
-    def "can provide arguments #arguments for build execution"() {
+    @InspectsBuildOutput
+    def "can provide arguments for build execution"() {
         given:
         final String debugMessage = 'Some debug message'
         final String infoMessage = 'My property: ${project.hasProperty("myProp") ? project.getProperty("myProp") : null}'

@@ -51,10 +51,10 @@ class BaseInstanceFactoryTest extends Specification {
     def factoryMock = Mock(InstanceFactory.ImplementationFactory)
 
     def "can register public type"() {
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
 
         expect:
-        instanceFactory.getSupportedTypes() == ([ModelType.of(ThingSpec)] as Set)
+        instanceFactory.getSupportedTypes() == ([ModelType.of(ManagedThingSpec)] as Set)
     }
 
     def "can register implementation"() {
@@ -132,15 +132,29 @@ class BaseInstanceFactoryTest extends Specification {
         0 * _
     }
 
-    def "fails when trying to create an unregistered type"() {
+    def "base type is not advertised as known type in error messages"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+        instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("other"))
+            .withImplementation(ModelType.of(DefaultOtherThingSpec), factoryMock)
 
         when:
-        instanceFactory.getImplementationInfo(ModelType.of(OtherThingSpec))
+        instanceFactory.getImplementationInfo(ModelType.of(ManagedThingSpec))
+
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Cannot create a '$OtherThingSpec.name' because this type is not known to things. Known types are: $ThingSpec.name"
+        ex.message == "Cannot create a '$ManagedThingSpec.name' because this type is not known to things. Known types are: $OtherThingSpec.name"
+    }
+
+    def "fails when trying to create an unregistered type"() {
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
+
+        when:
+        instanceFactory.getImplementationInfo(ModelType.of(ChildManagedThingSpec))
+
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Cannot create a '$ChildManagedThingSpec.name' because this type is not known to things. Known types are: $ManagedThingSpec.name"
     }
 
     def "fails when an implementation is registered that doesn't extend the base type"() {
@@ -212,18 +226,6 @@ class BaseInstanceFactoryTest extends Specification {
         then:
         def ex = thrown IllegalStateException
         ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because it doesn't extend an interface with a default implementation"
-    }
-
-    def "fails validation if unmanaged type extends interface with default implementation"() {
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
-        instanceFactory.register(ModelType.of(UnmanagedThingSpec), new SimpleModelRuleDescriptor("unmanaged thing"))
-
-        when:
-        instanceFactory.validateRegistrations()
-        then:
-        def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$UnmanagedThingSpec.name' is invalid because no implementation was registered"
     }
 
     @Ignore("This would be hard to check, and we only use this internally, so we'll just be careful")

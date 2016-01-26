@@ -23,15 +23,8 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
     public <R> void extract(ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
-        if (ScalarTypes.TYPES.contains(type)) {
+        if (ScalarTypes.isScalarType(type)) {
             extractionContext.found(new ScalarValueSchema<R>(type));
-        } else {
-            for (ModelType<?> nonFinalType : ScalarTypes.NON_FINAL_TYPES) {
-                if (nonFinalType.isAssignableFrom(type)) {
-                    throw new InvalidManagedModelElementTypeException(extractionContext, "subclasses of " + nonFinalType + " are not supported");
-                }
-            }
         }
     }
-
 }

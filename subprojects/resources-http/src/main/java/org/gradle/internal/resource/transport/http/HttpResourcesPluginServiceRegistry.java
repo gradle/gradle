@@ -44,8 +44,12 @@ public class HttpResourcesPluginServiceRegistry implements PluginServiceRegistry
     }
 
     private static class GlobalScopeServices {
-        ResourceConnectorFactory createHttpConnectorFactory() {
-            return new HttpConnectorFactory();
+        SslContextFactory createSslContextFactory() {
+            return new DefaultSslContextFactory();
+        }
+
+        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory) {
+            return new HttpConnectorFactory(sslContextFactory);
         }
     }
 

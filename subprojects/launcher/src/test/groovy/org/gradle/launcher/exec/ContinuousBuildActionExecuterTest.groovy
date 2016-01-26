@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.StartParameter
 import org.gradle.api.JavaVersion
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
@@ -44,7 +45,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
     RedirectStdIn redirectStdIn = new RedirectStdIn()
 
     def delegate = Mock(BuildActionExecuter)
-    def action = Mock(BuildAction)
+    def action = Mock(BuildAction) {
+        1 * getStartParameter() >> Stub(StartParameter)
+    }
     def cancellationToken = new DefaultBuildCancellationToken()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
@@ -71,6 +74,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
                 }
         ]
         waiterFactory.createChangeWaiter(_) >> waiter
+        waiter.isWatching() >> true
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -104,7 +108,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
     }
@@ -116,7 +120,8 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        0 * waiter.wait(_)
+        waiter.isWatching() >> false
+        0 * waiter.wait(_,_)
     }
 
     def "throws exception if last build fails in continous mode"() {
@@ -129,7 +134,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
         thrown(ReportedException)
@@ -146,7 +151,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_)
+        1 * waiter.wait(_,_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -155,7 +160,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_)
+        1 * waiter.wait(_,_)
 
         and:
         1 * delegate.execute(action, requestContext, actionParameters, _) >> {
@@ -163,7 +168,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
 
         and:
-        1 * waiter.wait(_) >> {
+        1 * waiter.wait(_,_) >> {
             cancellationToken.cancel()
         }
     }
@@ -208,6 +213,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
+        waiter.wait(_,_) >> {
+            cancellationToken.cancel()
+        }
         noExceptionThrown()
 
         where:
@@ -229,6 +237,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
+        waiter.wait(_,_) >> {
+            cancellationToken.cancel()
+        }
         1 * sessionService.stop()
     }
 

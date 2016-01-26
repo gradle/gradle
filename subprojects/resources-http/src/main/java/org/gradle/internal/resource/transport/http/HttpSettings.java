@@ -23,5 +23,9 @@ import java.util.Collection;
 public interface HttpSettings {
     HttpProxySettings getProxySettings();
 
+    HttpProxySettings getSecureProxySettings();
+
     Collection<Authentication> getAuthenticationSettings();
+
+    SslContextFactory getSslContextFactory();
 }

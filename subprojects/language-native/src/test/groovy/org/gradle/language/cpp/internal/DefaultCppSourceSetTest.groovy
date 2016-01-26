@@ -15,7 +15,8 @@
  */
 
 package org.gradle.language.cpp.internal
-import org.gradle.api.internal.file.FileResolver
+
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativeplatform.NativeDependencySet
@@ -25,8 +26,7 @@ import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
     def parent = "main"
-    def fileResolver = Mock(FileResolver)
-    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, "cpp", parent, fileResolver)
+    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, "cpp", parent, TestFiles.sourceDirectorySetFactory())
 
     def "has useful string representation"() {
         expect:

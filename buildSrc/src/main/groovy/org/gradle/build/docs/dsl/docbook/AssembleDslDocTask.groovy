@@ -16,7 +16,6 @@
 package org.gradle.build.docs.dsl.docbook
 
 import groovy.transform.CompileStatic
-import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.InputDirectory
@@ -86,18 +85,18 @@ class AssembleDslDocTask extends DefaultTask {
             linkRepository.put(name, new ClassLinkMetaData(metaData))
         }
 
-        Document document = mainDocbookTemplate
-        use(DOMCategory) {
-            use(BuildableDOMCategory) {
-                Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
-                DslDocModel model = this.createDslDocModel(classDocbookDir, document, classRepository, extensions)
-                def root = document.documentElement
-                root.section.table.each { Element table ->
-                    mergeContent(table, model)
-                }
-                model.classes.each {
-                    generateDocForType(root.ownerDocument, model, linkRepository, it)
-                }
+        // workaround to IBM JDK bug
+        def createDslDocModelClosure = this.&createDslDocModel.curry(classDocbookDir, mainDocbookTemplate, classRepository)
+
+        def doc = mainDocbookTemplate
+        use(BuildableDOMCategory) {
+            DslDocModel model = createDslDocModelClosure(loadPluginsMetaData())
+            def root = doc.documentElement
+            root.section.table.each { Element table ->
+                mergeContent(table, model)
+            }
+            model.classes.each {
+                generateDocForType(root.ownerDocument, model, linkRepository, it)
             }
         }
 

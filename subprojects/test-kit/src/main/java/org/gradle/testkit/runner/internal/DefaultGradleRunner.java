@@ -16,7 +16,10 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -27,9 +30,6 @@ import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
-import org.gradle.testkit.runner.internal.io.WriterOutputStream;
-import org.gradle.tooling.internal.classpath.DefaultGradleDistributionLocator;
-import org.gradle.tooling.internal.classpath.GradleDistributionLocator;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -91,7 +91,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public DefaultGradleRunner withTestKitDir(final File testKitDir) {
+    public DefaultGradleRunner withTestKitDir(File testKitDir) {
         validateArgumentNotNull(testKitDir, "testKitDir");
         this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
@@ -275,7 +275,8 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult createBuildResult(GradleExecutionResult execResult) {
-        return new DefaultBuildResult(
+        return new FeatureCheckBuildResult(
+            execResult.getBuildOperationParameters(),
             execResult.getOutput(),
             execResult.getTasks()
         );
@@ -288,7 +289,7 @@ public class DefaultGradleRunner extends GradleRunner {
                 throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
             }
             return dir;
-        } else if (dir.exists()) {
+        } else if (dir.exists() && !dir.isDirectory()) {
             throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
         } else if (dir.mkdirs() || dir.isDirectory()) {
             return dir;

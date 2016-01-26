@@ -444,68 +444,167 @@ a human-readable error message that explains why this feature cannot be used.
 
 ### Open issues
 
-* Account for increased build time on CI (potentially requires re-sharding of jobs).
+* Account for increased build time on CI. We could either re-shard the jobs or create dedicated jobs that executed the compatibility tests with different versions of Java.
+* To determine the target Gradle version under test based on the provided distribution, the Tooling API model is queries which probably has a small overhead in terms of
+execution performance. Are we OK with this overhead or is there a better way to determine the target Gradle version?
+
+## Story: Audit existing tests and improve the test coverage for TestKit
+
+In a previous story, support for cross-version compatibility tests have been put in place. The goal of this story to audit the existing tests and improve the test coverage.
+
+### Implementation
+
+* _Reducing the number of tests:_ We should audit the tests and try and remove ones that aren’t adding enough value. There are a lot of tests that fairly closely overlap.
+We can get the number (and build time) down by collapsing some of these tests.
+* _Improving the coverage by removing arbitrary restrictions on tests:_ A lot of tests are reading from the output, or inspecting the task list unnecessarily.
+This limits them to running with recent versions of Gradle. We should confine such tests to explicit tests for those features, so more of the tests can run on older versions.
+* _Increase test coverage of a specific Gradle versions_ used to test a scenario by removing some of the constrains explained in the previous two points.
+This work would change how we apply the range of test executions for a test class (e.g. Gradle 2.5, latest release and version under development). Instead of creation test
+executions on the class level, this needs to be done on the level of a test method. The approach would require a different implementation than `AbstractMultiTestRunner`.
+
+### Test coverage
+
+* The number of tests is reduced.
+* Optimally test execution time is shorter.
+* Specific test methods can be tested against earlier versions of Gradle.
 
 # Milestone 3
 
-## Story: Classes under test are visible to build scripts
+This milestone focuses on making TestKit more convenient to use for plugin developers by reducing boiler plate logic. Another aspect addresses the packaging of TestKit
+and the Gradle API to avoid classpath issues.
 
-When using the plugin development plugin, plugins under test are visible to build scripts.
+## Story: Plugin development plugin automatically injects plugin classpath
+
+Plugin developers using TestKit need to inject the classes-under-test by using the method `withPluginClasspath(Iterable<? extends File> classpath)`. TestKit proposes ways
+to determine the classpath in the user guide. This approach requires boiler plate code that needs to be copy/pasted from project to project. The goal of this story is
+to provide a simple way to remove boiler plate code by enhancing the [plugin development plugin](https://docs.gradle.org/current/userguide/javaGradle_plugin.html). The creation
+and usage of the `classpath.properties` method demonstrated in the user guide will be abstracted from the user and turned into into an automated process.
 
 ### Implementation
 
-- Infer the classpath for classes under test classpath
-    - When running from the plugin dev plugin, use the main source set's runtime classpath.
-    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
-- Add or expand sample to demonstrate this feature.
-- Add some brief user guide material.
-
-### Test coverage
-
-* The classpath of the tooling API execution is set up properly.
-    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
-        * A plugin class under test can be referenced and tested in build script by type and id.
-        * A custom task class under test can be referenced and tested in build script by type.
-        * Arbitrary classes under test can be referenced and tested in build script.
-    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
-* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
-* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
-
-## Story: Integration with plugin-development-plugin
-
-Users can easily test their Gradle plugins developed using the [plugin-development-plugin](https://docs.gradle.org/current/userguide/javaGradle_plugin.html).
+* The plugin automatically creates a new task for generating the manifest file named `generatePluginClasspathManifest`.
+    * Create implementation as custom task.
+    * The classpath generated by the task is stored in a plain text file. Each classpath entry is written line-by-line. The file separator used for the entries is "/" for all operating systems.
+    * The task defines inputs and outputs for the task for supporting incremental build functionality.
+    * The task uses the value of `sourceSets.main.runtimeClasspath` to derive the classpath.
+    * The output file for the generated classpath is `$buildDir/$task.name/plugin-classpath.txt`. The task automatically creates the output directory if it doesn't exist yet.
+    * The task `generatePluginClasspathManifest` is declared as dependency for the `testRuntime` configuration via `dependencies.testRuntime files(createClasspathManifest)`.
+* A class named `GradlePluginClasspathLoader` is created in the plugin exposing a method that reads the generated classpath file.
+    * TODO: Writing and reading part will have to agree on the location of the generated classpath file.
+* The plugin automatically declares the `gradleTestKit()` dependency for the `testCompile` configuration.
+* Add or expand sample to demonstrate this feature.
+* Add some brief user guide material in TestKit guide. The documentation for the plugin-dev-plugin should link to it.
 
 ### User visible changes
 
-### Implementation
+Enhance the the existing API of `GradlePluginClasspathLoader`:
 
-* The plugin depends on the relevant modules of the test-kit.
-* Applying the `java-gradle-plugin` plugin adds a functional test SourceSet and Test task.
-    * The SourceSet name will be `functionalTest`. The srcDir will be set to `src/functTest/java`, the resourcesDir will be set to `src/functTest/resources`. Both directories
-    will be created by the plugin if they don't exist yet.
-    * The task name will be `functionalTest`. The `check` task depends on `functionalTest`. The task `functionalTest` must run after `test`.
-* Derive the test adapter that should be applied by the declared dependencies of the project.
-* Add (or expand) sample that shows how to implement and test a plugin or task implementation.
-* Code coverage metrics can be generated by configuring the Jacoco plugin.
-    * Java agent is hooked up to daemon JVM executing the tests.
-    * Configure plugin to add a `JacocoReport` task for functional tests.
+    package org.gradle.plugin.devel.plugins;
 
-### Test coverage
+    public final class GradlePluginClasspathLoader {
+        public static List<File> getGeneratedClasspath() {
+            ...
+        }
+    }
 
-* Applying the plugin creates the functional SourceSet and Test task with the appropriate configuration.
-* Executing the `functionalTest` task exercises all functional tests in the appropriate directory.
-* The generated XML and HTML test reports are stored in a different target directory than the ones produces by the `test` task.
-* Code coverage metrics are generated when executing functional tests. Binary and HTML-based reports can be generated.
+The user calls the method introduced by the class when building the `GradleRunner`:
+
+    import org.gradle.plugin.devel.plugins.GradlePluginClasspathLoader
+
+    GradleRunner.create()
+        .withProjectDir(testProjectDir.root)
+        .withPluginClasspath(GradlePluginClasspathLoader.getGeneratedClasspath())
+        .build()
+
+### Test Coverage
+
+* By applying this plugin sensible default values are set for plugin classpath generation.
+* A user can manually execute the task for generating classpath by executing the `generatePluginClasspathManifest` task.
+* The `generatePluginClasspathManifest` task is executed before the `test` task is executed.
+* Default values for inputs/outputs of the task `generatePluginClasspathManifest` are used.
+* The generated classpath file contains the expected entries.
+* A user can reconfigure inputs and outputs of the `generatePluginClasspathManifest` task.
+* The generated classpath file is read when accessing the exposed API method. Once read the classpath should be cached within `GradlePluginClasspathLoader`.
+* The read classpath can be used to inject the classpath via the method `withPluginClasspath(Iterable<? extends File> classpath)`.
+* Tests written in the source directory of the Test source set can use the TestKit API.
+* Manually verify that executing tests in the IDE (say IDEA) works reasonably well. Document any unforeseen caveats.
 
 ### Open issues
 
-* Should use the software model.
-* Should the test suite generation be the responsibility of another plugin?
-* Will there be a `groovy-gradle-plugin` and `scala-gradle-plugin` in the future or will automatic configuration kick in if other plugins are applied e.g. the `groovy` plugin?
-* Do we want to auto-generate a sample functional test case class and method based on JUnit that demonstrates the use of test-kit?
-* Should there be any support for IDE integration?
+* For automatically injecting the read classpath into `GradleRunner` would require an existing instance. There are probably some options to achieve that:
+    * Create a new class in the plugin that implements `GradleRunner` and delegates to `DefaultGradleRunner`. This class would use `GradlePluginClasspathLoader` to the the classpath.
+    * Create a base class used for tests that instantiate a `GradleRunner` instance and sets the classpath automatically.
+* The Java plugin development plugin only applies the Java plugin. If a user wants to write a Groovy-based plugin do we ask the user to apply the Groovy plugin or should there be
+ a Groovy plugin development plugin?
+* Integration with IDE plugins e.g. for automatic setup of debug flag
+* Users might want to use a custom Test source set. Should we allow to make this configurable?
+
+## Story: Isolate external dependencies used by Gradle runtime from user classpath
+
+This story continues the work that was done in milestone 2: "Test kit does not require any of the Gradle runtime". It solves the problem in a broader scope by providing fat JARs
+for TestKit, the Tooling API and Gradle API. External dependencies (required by Gradle) bundled within the fat JAR are relocated to avoid version conflicts with libraries used
+by plugins. The solution will also fix [GRADLE-1715](https://issues.gradle.org/browse/GRADLE-1715).
+
+### Implementation
+
+* Create a fat jar for Gradle API, the Tooling API and TestKit.
+* The fat JAR will relocated all external dependencies to `org.gradle.jarjar`. All Gradle runtime classes (`org.gradle.**` will keep the package).
+* Do not relocate those classes that form part of the API, either provided by or required by Gradle.
+    * For the Tooling API, this means SLF4J and `@Inject`
+    * For Gradle core, this means Ant, Groovy, SLF4J and `@Inject`.
+* The fat Gradle API JAR will created in a new directory of the Gradle distribution e.g. `jarjar`. If the size of the Gradle distribution increases significantly, this JAR might
+have to be published instead.
+* The fat Tooling API JAR will not become part of the Gradle distribution. It will only be published.
+* The fat TestKit JAR will be part of the Gradle distribution under `lib/plugins`.
+* At runtime `gradleApi()` will reference the fat Gradle API JAR in the distribution.
+* At runtime `gradleTestKit()` will reference the Tooling API JAR as module dependency from the distribution.
+* JARs of Gradle API, the Tooling API and TestKit will need to have the same version.
+
+### Test Coverage
+
+* Allow a user to declare the following set of dependencies by hiding the implementations of the dependencies we expose.
+
+<!-- -->
+
+    dependencies {
+        compile gradleApi()
+        compile gradleTestKit()
+        compile <fat TAPI jar for the same Gradle version>
+    }
+
+* The Gradle runtime always uses the relocated external dependencies bundled with their corresponding JARs.
+* A plugin can use an external library with a different version than the one bundled in `gradleApi()`. Only the external library defined by the plugin is referenced at build and
+ runtime. No classpath issue occurs.
+* `gradleApi()` and `gradleTestKit` can be declared for the same configuration. Independent of classpath ordering no classpath issue occurs.
+
+### Open Issues
+
+* Increased size of Gradle distribution
+* Publishing of fat JARs might be required
 
 # Milestone 4
+
+## Story: Integration with Jacoco plugin
+
+If the user applies the Jacoco plugin, the plugin development plugin should properly configure it to allow for generation of code coverage metrics. This functionality has been
+requested on the [Gradle forum](https://discuss.gradle.org/t/gradle-plugins-integration-tests-code-coverage-with-jacoco-plugin/12403).
+
+### User visible changes
+
+* Code coverage metrics can be generated by configuring the Jacoco plugin.
+    * Java agent is hooked up to daemon JVM executing the tests via `GradleRunner.create().withJvmArguments(...)`.
+    * The version of Jacoco used for generating the metrics is one provided by the property `toolVersion`.
+    * Configure plugin to add a `JacocoReport` task for functional tests.
+* Add or expand sample to demonstrate this feature.
+* Add some brief user guide material.
+
+### Test coverage
+
+* If the consuming build script does not apply the Jacoco plugin, no code coverage metrics are generated.
+* If the consuming build script applies the Jacoco plugin, code coverage metrics are generated when executing functional tests.
+    * Binary and HTML-based reports can be generated.
+    * Reports are generated in a dedicated report directory.
+    * Code coverage can be generated when tests are executed with and without debug mode. The reports should reflect the same result.
 
 ## Story: User can create repositories and populate dependencies
 

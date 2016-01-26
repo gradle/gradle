@@ -95,4 +95,14 @@ public class FileUtils {
         return roots;
     }
 
+    /**
+     * Checks if the given file path ends with the given extension.
+     * @param file the file
+     * @param extension candidate extension including leading dot
+     * @return true if {@code file.getPath().endsWith(extension)}
+     */
+    public static boolean hasExtension(File file, String extension) {
+        return file.getPath().endsWith(extension);
+    }
+
 }

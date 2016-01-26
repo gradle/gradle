@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.jvm.ClassDirectoryBinaryRenderer;
+import org.gradle.api.internal.jvm.JvmBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
@@ -33,7 +33,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompileServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(ClassDirectoryBinaryRenderer.class);
+        registration.add(JvmBinaryRenderer.class);
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {

@@ -18,20 +18,16 @@ package org.gradle.internal.typeconversion;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 public class DefaultTypeConverter implements TypeConverter {
-
-    private static final String CANDIDATE = "String or CharSequence instances.";
-    private static final Collection<String> CANDIDATES = Collections.singleton(CANDIDATE);
     private static final Map<Class<?>, Class<?>> UNBOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(Byte.class, byte.class)
         .put(Short.class, short.class)
@@ -43,7 +39,6 @@ public class DefaultTypeConverter implements TypeConverter {
         .put(Long.class, long.class)
         .build();
     private final Map<Class<?>, NotationParser<Object, ?>> parsers = Maps.newHashMap();
-    private final NotationParser<Object, File> fileParser;
 
     private static <T> NotationParser<Object, T> build(NotationConverter<Object, T> converter, Class<T> type) {
         return NotationParserBuilder
@@ -61,182 +56,59 @@ public class DefaultTypeConverter implements TypeConverter {
         parsers.put(type, build(new CharSequenceNotationConverter<Object, T>(converter), type));
     }
 
-    private void convertToCharacter(String notation, NotationConvertResult<? super Character> result, Class<?> type) throws TypeConversionException {
-        if (notation.length() != 1) {
-            throw new TypeConversionException(String.format("Cannot coerce string value '%s' with length %d to type %s",
-                    notation, notation.length(), type.getSimpleName()));
-        }
-
-        result.converted(notation.charAt(0));
-    }
-
     private void registerConverters() {
-        registerConverter(new NumberConverter<Double>(Double.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Double> result) throws TypeConversionException {
-                result.converted(Double.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Double> result) {
-                result.converted(n.doubleValue());
-            }
-        }, Double.class);
-        registerConverter(new NumberConverter<Double>(double.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Double> result) throws TypeConversionException {
-                result.converted(Double.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Double> result) {
-                result.converted(n.doubleValue());
-            }
-        }, double.class);
+        registerConverter(new DoubleNumberConverter(Double.class), Double.class);
+        registerConverter(new DoubleNumberConverter(double.class), double.class);
+        registerConverter(new FloatNumberConverter(Float.class), Float.class);
+        registerConverter(new FloatNumberConverter(float.class), float.class);
+        registerConverter(new IntegerNumberConverter(Integer.class), Integer.class);
+        registerConverter(new IntegerNumberConverter(int.class), int.class);
+        registerConverter(new LongNumberConverter(Long.class), Long.class);
+        registerConverter(new LongNumberConverter(long.class), long.class);
+        registerConverter(new ShortNumberConverter(Short.class), Short.class);
+        registerConverter(new ShortNumberConverter(short.class), short.class);
+        registerConverter(new ByteNumberConverter(Byte.class), Byte.class);
+        registerConverter(new ByteNumberConverter(byte.class), byte.class);
+        registerConverter(new BigDecimalNumberConverter(), BigDecimal.class);
+        registerConverter(new BigIntegerNumberConverter(), BigInteger.class);
 
-        registerConverter(new NumberConverter<Float>(Float.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Float> result) throws TypeConversionException {
-                result.converted(Float.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Float> result) {
-                result.converted(n.floatValue());
-            }
-        }, Float.class);
-        registerConverter(new NumberConverter<Float>(float.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Float> result) throws TypeConversionException {
-                result.converted(Float.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Float> result) {
-                result.converted(n.floatValue());
-            }
-        }, float.class);
-
-        registerConverter(new NumberConverter<Integer>(Integer.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Integer> result) throws TypeConversionException {
-                result.converted(Integer.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Integer> result) {
-                result.converted(n.intValue());
-            }
-        }, Integer.class);
-        registerConverter(new NumberConverter<Integer>(int.class) {
-            protected void convertStringToNumber(String s, NotationConvertResult<? super Integer> result) throws TypeConversionException {
-                result.converted(Integer.valueOf(s));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Integer> result) {
-                result.converted(n.intValue());
-            }
-        }, int.class);
-
-        registerConverter(new NumberConverter<Long>(Long.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Long> result) throws TypeConversionException {
-                result.converted(Long.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Long> result) {
-                result.converted(n.longValue());
-            }
-        }, Long.class);
-        registerConverter(new NumberConverter<Long>(long.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Long> result) throws TypeConversionException {
-                result.converted(Long.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Long> result) {
-                result.converted(n.longValue());
-            }
-        }, long.class);
-
-        registerConverter(new NumberConverter<Short>(Short.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Short> result) throws TypeConversionException {
-                result.converted(Short.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Short> result) {
-                result.converted(n.shortValue());
-            }
-        }, Short.class);
-        registerConverter(new NumberConverter<Short>(short.class) {
-            protected void convertStringToNumber(String s, NotationConvertResult<? super Short> result) throws TypeConversionException {
-                result.converted(Short.valueOf(s));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Short> result) {
-                result.converted(n.shortValue());
-            }
-        }, short.class);
-
-        registerConverter(new NumberConverter<Byte>(Byte.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Byte> result) throws TypeConversionException {
-                result.converted(Byte.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Byte> result) {
-                result.converted(n.byteValue());
-            }
-        }, Byte.class);
-        registerConverter(new NumberConverter<Byte>(byte.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super Byte> result) throws TypeConversionException {
-                result.converted(Byte.valueOf(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super Byte> result) {
-                result.converted(n.byteValue());
-            }
-        }, byte.class);
-
-        registerConverter(new NumberConverter<BigDecimal>(BigDecimal.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super BigDecimal> result) throws TypeConversionException {
-                result.converted(new BigDecimal(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super BigDecimal> result) {
-                if (n instanceof BigDecimal) {
-                    result.converted((BigDecimal)n);
-                } else if (n instanceof BigInteger) {
-                    result.converted(new BigDecimal((BigInteger)n));
-                }
-            }
-        }, BigDecimal.class);
-
-        registerConverter(new NumberConverter<BigInteger>(BigInteger.class) {
-            protected void convertStringToNumber(String notation, NotationConvertResult<? super BigInteger> result) throws TypeConversionException {
-                result.converted(new BigInteger(notation));
-            }
-            protected void convertNumberToNumber(Number n, NotationConvertResult<? super BigInteger> result) {
-                if (n instanceof BigInteger) {
-                    result.converted((BigInteger)n);
-                }
-            }
-        }, BigInteger.class);
-
-        CharSequenceConverter<Boolean> booleanConverter = new CharSequenceConverter<Boolean>() {
-            public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
-                result.converted("true".equals(notation));
-            }
-        };
+        CharSequenceConverter<Boolean> booleanConverter = new BooleanConverter();
         registerStringConverter(booleanConverter, Boolean.class);
         registerStringConverter(booleanConverter, boolean.class);
 
-        registerStringConverter(new CharSequenceConverter<Character>() {
-            public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
-                convertToCharacter(notation, result, Character.class);
-            }
-        }, Character.class);
-        registerStringConverter(new CharSequenceConverter<Character>() {
-            public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
-                convertToCharacter(notation, result, char.class);
-            }
-        }, char.class);
+        registerStringConverter(new CharacterConverter(Character.class, Character.class), Character.class);
+        registerStringConverter(new CharacterConverter(Character.class, char.class), char.class);
 
         registerConverter(new StringConverter(), String.class);
     }
 
     private abstract static class CharSequenceConverter<T> implements NotationConverter<String, T> {
+        final Class<T> type;
+
+        public CharSequenceConverter(Class<T> type) {
+            this.type = type;
+        }
+
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate(CANDIDATE);
+            visitor.candidate("A String or CharSequence");
+            visitor.candidate("A " + type.getSimpleName());
         }
     }
 
     private static class StringConverter implements NotationConverter<Object, String> {
         @Override
         public void convert(Object notation, NotationConvertResult<? super String> result) throws TypeConversionException {
-            if (notation instanceof CharSequence || notation instanceof Number || notation instanceof Boolean) {
+            if (notation instanceof CharSequence || notation instanceof Number || notation instanceof Boolean || notation instanceof Character || notation instanceof File) {
                 result.converted(notation.toString());
             }
         }
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate(CANDIDATE);
-            visitor.candidate("Any number or boolean.");
+            visitor.candidate("A String or CharSequence or Character");
+            visitor.candidate("Any Number");
+            visitor.candidate("A Boolean");
+            visitor.candidate("A File");
         }
     }
 
@@ -249,46 +121,52 @@ public class DefaultTypeConverter implements TypeConverter {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate(CANDIDATE);
-            visitor.candidate("Number instances.");
+            visitor.candidate("A String or CharSequence");
+            visitor.candidate("Any Number");
         }
 
         public void convert(Object notation, NotationConvertResult<? super T> result) throws TypeConversionException {
             if (notation instanceof CharSequence) {
                 try {
-                    convertStringToNumber(notation.toString().trim(), result);
+                    convertNumberToNumber(new BigDecimal(notation.toString().trim()), result);
+                } catch (ArithmeticException e) {
+                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
+                        notation, type.getSimpleName()), e);
                 } catch (NumberFormatException e) {
-                    throw new TypeConversionException(String.format("Cannot coerce string value '%s' to type %s",
-                        notation, type.getSimpleName()));
+                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
+                        notation, type.getSimpleName()), e);
                 }
             } else if (notation instanceof Number) {
                 try {
-                    convertNumberToNumber((Number)notation, result);
-                } catch (NumberFormatException e) {
-                    throw new TypeConversionException(String.format("Cannot coerce numeric value '%s' to type %s",
-                        notation, type.getSimpleName()));
+                    convertNumberToNumber(toBigDecimal((Number) notation), result);
+                } catch (ArithmeticException e) {
+                    throw new TypeConversionException(String.format("Cannot convert value '%s' to type %s",
+                        notation, type.getSimpleName()), e);
                 }
             }
         }
 
-        protected abstract void convertStringToNumber(String s, NotationConvertResult<? super T> result);
-        protected abstract void convertNumberToNumber(Number n, NotationConvertResult<? super T> result);
-    }
-
-    private static class EnumConverter<T extends Enum> extends CharSequenceConverter<T> {
-        private final Class<? extends T> enumType;
-
-        public EnumConverter(Class<? extends T> enumType) {
-            this.enumType = enumType;
+        private static BigDecimal toBigDecimal(Number notation) {
+            if (notation instanceof BigDecimal) {
+                return (BigDecimal) notation;
+            }
+            if (notation instanceof BigInteger) {
+                return new BigDecimal((BigInteger) notation);
+            }
+            if (notation instanceof Float) {
+                return new BigDecimal(notation.floatValue());
+            }
+            if (notation instanceof Double) {
+                return new BigDecimal(notation.doubleValue());
+            }
+            return new BigDecimal(notation.longValue());
         }
 
-        public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-            result.converted((T)new EnumFromCharSequenceNotationParser(enumType).parseNotation(notation));
-        }
+        protected abstract void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super T> result);
     }
 
-    public DefaultTypeConverter(final FileResolver fileResolver) {
-        fileParser = build(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>() {
+    public DefaultTypeConverter(final PathToFileResolver fileResolver) {
+        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
             public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
                 result.converted(fileResolver.resolve(notation));
             }
@@ -296,38 +174,150 @@ public class DefaultTypeConverter implements TypeConverter {
         registerConverters();
     }
 
-    public Object convert(Object notation, Class<?> type, boolean primitive) throws UnsupportedNotationException, TypeConversionException {
-
-        if (notation == null) {
-            if (primitive) {
-                throw new UnsupportedNotationException(notation,
-                    String.format("Cannot assign null value to primitive type %s.", UNBOXED_TYPES.get(type).getSimpleName()), null, CANDIDATES);
-            }
-
-            return null;
-        }
+    public Object convert(Object notation, Class<?> type, boolean primitive) throws TypeConversionException {
         if (type.isInstance(notation)) {
             return notation;
         }
+        if (!primitive && notation == null) {
+            return null;
+        }
 
         if (type.isEnum()) {
-            return NotationParserBuilder
-                .toType(type)
-                .noImplicitConverters()
-                .converter(new CharSequenceNotationConverter(new EnumConverter(type)))
-                .toComposite().parseNotation(notation);
+            Class<? extends Enum> enumType = Cast.uncheckedCast(type);
+            return convertEnum(enumType, notation);
         }
 
         NotationParser<Object, ?> parser;
-        if (File.class.equals(type)) {
-            parser = fileParser;
-        } else {
-            parser = parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
-            if (parser == null) {
-                throw new UnsupportedNotationException(notation, "Unsupported type", null, CANDIDATES);
-            }
+        parser = parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
+        if (parser == null) {
+            throw new IllegalArgumentException("Don't know how to convert to type " + type.getName());
         }
 
         return parser.parseNotation(notation);
+    }
+
+    private <T extends Enum<T>> T convertEnum(Class<T> type, Object notation) {
+        return NotationParserBuilder
+                .toType(type)
+                .noImplicitConverters()
+                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
+                .toComposite()
+                .parseNotation(notation);
+    }
+
+    private static class DoubleNumberConverter extends NumberConverter<Double> {
+        public DoubleNumberConverter(Class<Double> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Double> result) {
+            result.converted(n.doubleValue());
+        }
+    }
+
+    private static class FloatNumberConverter extends NumberConverter<Float> {
+        public FloatNumberConverter(Class<Float> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Float> result) {
+            result.converted(n.floatValue());
+        }
+    }
+
+    private static class IntegerNumberConverter extends NumberConverter<Integer> {
+        public IntegerNumberConverter(Class<Integer> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Integer> result) {
+            result.converted(n.intValueExact());
+        }
+    }
+
+    private static class LongNumberConverter extends NumberConverter<Long> {
+        public LongNumberConverter(Class<Long> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Long> result) {
+            result.converted(n.longValueExact());
+        }
+    }
+
+    private static class ShortNumberConverter extends NumberConverter<Short> {
+        public ShortNumberConverter(Class<Short> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Short> result) {
+            result.converted(n.shortValueExact());
+        }
+    }
+
+    private static class ByteNumberConverter extends NumberConverter<Byte> {
+        public ByteNumberConverter(Class<Byte> cl) {
+            super(cl);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super Byte> result) {
+            result.converted(n.byteValueExact());
+        }
+    }
+
+    private static class BigDecimalNumberConverter extends NumberConverter<BigDecimal> {
+        public BigDecimalNumberConverter() {
+            super(BigDecimal.class);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super BigDecimal> result) {
+            result.converted(n);
+        }
+    }
+
+    private static class BigIntegerNumberConverter extends NumberConverter<BigInteger> {
+        public BigIntegerNumberConverter() {
+            super(BigInteger.class);
+        }
+
+        @Override
+        protected void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super BigInteger> result) {
+            result.converted(n.toBigIntegerExact());
+        }
+    }
+
+    private static class BooleanConverter extends CharSequenceConverter<Boolean> {
+        public BooleanConverter() {
+            super(Boolean.class);
+        }
+
+        public void convert(String notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
+            result.converted("true".equals(notation));
+        }
+    }
+
+    private class CharacterConverter extends CharSequenceConverter<Character> {
+        private final Class<Character> target;
+
+        public CharacterConverter(Class<Character> boxed, Class<Character> target) {
+            super(boxed);
+            this.target = target;
+        }
+
+        public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
+            if (notation.length() != 1) {
+                throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",
+                        notation, notation.length(), target.getSimpleName()));
+            }
+
+            result.converted(notation.charAt(0));
+        }
     }
 }

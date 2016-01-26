@@ -17,16 +17,15 @@
 
 package org.gradle.build.docs
 
-import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.*
 import org.gradle.build.docs.dsl.links.ClassLinkMetaData
 import org.gradle.build.docs.dsl.links.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-import org.gradle.api.tasks.*
 
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
@@ -85,15 +84,13 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     private def transformImpl(Document doc) {
-        use(DOMCategory) {
-            use(BuildableDOMCategory) {
-                addVersionInfo(doc)
-                applyConditionalChunks(doc)
-                transformSamples(doc)
-                transformApiLinks(doc)
-                transformWebsiteLinks(doc)
-                fixProgramListings(doc)
-            }
+        use(BuildableDOMCategory) {
+            addVersionInfo(doc)
+            applyConditionalChunks(doc)
+            transformSamples(doc)
+            transformApiLinks(doc)
+            transformWebsiteLinks(doc)
+            fixProgramListings(doc)
         }
     }
 

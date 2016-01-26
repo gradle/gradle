@@ -19,21 +19,15 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.model.*
-import org.gradle.model.internal.core.DependencyOnlyExtractedModelRule
-import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors
-import org.gradle.model.internal.inspect.MethodRuleDefinition
-import org.gradle.model.internal.inspect.ModelRuleExtractor
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.inspect.*
 
-class ScopedRuleTest extends Specification {
-
-    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance())
-    def registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors))
+class ScopedRuleTest extends ProjectRegistrySpec {
+    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(schemaStore)
+    ModelRegistry registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors, proxyFactory, schemaStore, structBindingsStore))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {
         @HasDependencies
@@ -47,8 +41,22 @@ class ScopedRuleTest extends Specification {
 
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
-        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-            new DependencyOnlyExtractedModelRule([ImperativePlugin])
+        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext extractionContext) {
+            new ExtractedModelRule() {
+                @Override
+                void apply(MethodModelRuleApplicationContext applicationContext, MutableModelNode target) {
+                }
+
+                @Override
+                List<? extends Class<?>> getRuleDependencies() {
+                    return [ImperativePlugin]
+                }
+
+                @Override
+                MethodRuleDefinition<?, ?> getRuleDefinition() {
+                    return ruleDefinition
+                }
+            }
         }
     }
 
@@ -61,8 +69,8 @@ class ScopedRuleTest extends Specification {
 
         then:
         ModelRuleExecutionException e = thrown()
-        e.cause.class == IllegalStateException
-        e.cause.message.startsWith "Rule source $RuleSourceUsingRuleWithDependencies cannot have plugin dependencies"
+        e.cause.class == UnsupportedOperationException
+        e.cause.message == "ScopedRuleTest.RuleSourceUsingRuleWithDependencies#rule has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
     }
 
     static class CreatorRule extends RuleSource {
@@ -110,8 +118,8 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByPathBoundInputsChildRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.first", new MutableValue()))
-                it.addLink(registry.instanceRegistration("values.second", new MutableValue()))
+                it.addLinkInstance("values.first", new MutableValue())
+                it.addLinkInstance("values.second", new MutableValue())
             }
         }
 
@@ -138,7 +146,7 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByTypeSubjectBoundToScopeChildRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.mutable", new MutableValue()))
+                it.addLinkInstance("values.mutable", new MutableValue())
             }
         }
 
@@ -164,7 +172,7 @@ class ScopedRuleTest extends Specification {
             .apply("values", ByTypeBindingSubjectRule)
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.element", new MutableValue()))
+                it.addLinkInstance("values.element", new MutableValue())
             }
         }
 
@@ -190,7 +198,7 @@ class ScopedRuleTest extends Specification {
             .registerInstance("element", new MutableValue(value: "outer"))
             .mutate {
             it.path "values" node {
-                it.addLink(registry.instanceRegistration("values.element", new MutableValue()))
+                it.addLinkInstance("values.element", new MutableValue())
             }
         }
 

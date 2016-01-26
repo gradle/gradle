@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
+public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
     private final LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform;
     private final Class<? extends DefaultTask> taskType;

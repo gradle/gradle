@@ -17,9 +17,13 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.Incubating
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
+import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -68,7 +72,7 @@ import org.gradle.util.ConfigureUtil
  *     outputDir = file('muchBetterOutputDir')
  *     testOutputDir = file('muchBetterTestOutputDir')
  *
- *     //if you prefer different SDK than that inherited from IDEA project
+ *     //if you prefer different SDK than the one inherited from IDEA project
  *     jdkName = '1.6'
  *
  *     //if you need to put 'provided' dependencies on the classpath
@@ -131,7 +135,7 @@ import org.gradle.util.ConfigureUtil
  */
 class IdeaModule {
 
-   /**
+    /**
      * Configures module name, that is the name of the *.iml file.
      * <p>
      * It's <b>optional</b> because the task should configure it correctly for you.
@@ -273,7 +277,60 @@ class IdeaModule {
     String jdkName
 
     /**
-     * See {@link #iml(Closure) }
+     * The module specific language Level to use for this module. When {@code null}, the module will inherit the
+     * language level from the idea project.
+     * <p>
+     * Idea project and module language levels are based on the {@code sourceCompatibility} settings for each Gradle project,
+     * unless the {@link IdeaProject#languageLevel} is explicitly set.
+     */
+    @Incubating
+    IdeaLanguageLevel getLanguageLevel() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
+            if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
+                return moduleLanguageLevel;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The module specific bytecode version to use for this module. When {@code null}, the module will inherit the
+     * bytecode version from the idea project.
+     * <p>
+     * Idea project and module byte code versions are based on the {@code targetCompatibility} settings for each Gradle project.
+     */
+    @Incubating
+    JavaVersion getTargetBytecodeVersion() {
+        if (project.plugins.hasPlugin(JavaBasePlugin)) {
+            JavaVersion moduleTargetBytecodeLevel = project.targetCompatibility
+            if (includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel)) {
+                return moduleTargetBytecodeLevel;
+            }
+        }
+        return null;
+    }
+
+    private boolean includeModuleBytecodeLevelOverride(org.gradle.api.Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
+            return true
+        }
+        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
+    }
+
+    private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
+            return true
+        }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedLanguageLevel){
+            return false;
+        }
+        return moduleLanguageLevel != ideaProject.languageLevel
+    }
+
+    /**
+     * See {@link #iml(Closure)}
      */
     final IdeaModuleIml iml
 
@@ -299,7 +356,7 @@ class IdeaModule {
     }
 
     void setOutputFile(File newOutputFile) {
-        setName(newOutputFile.name.replaceFirst(/\.iml$/,""))
+        setName(newOutputFile.name.replaceFirst(/\.iml$/, ""))
         iml.generateTo = newOutputFile.parentFile
     }
 
@@ -309,7 +366,9 @@ class IdeaModule {
      * @return dependencies
      */
     Set<Dependency> resolveDependencies() {
-        return new IdeaDependenciesProvider().provide(this)
+        def ideaDependenciesProvider = new IdeaDependenciesProvider()
+        new UnresolvedDependenciesLogger().log(ideaDependenciesProvider.getUnresolvedDependencies(this))
+        return ideaDependenciesProvider.provide(this)
     }
 
     /**
@@ -349,7 +408,7 @@ class IdeaModule {
         Set<Dependency> dependencies = resolveDependencies()
 
         xmlModule.configure(contentRoot, sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
-                getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName())
+            getInheritOutputDirs(), outputDir, testOutputDir, dependencies, getJdkName(), getLanguageLevel()?.level)
 
         iml.whenMerged.execute(xmlModule)
     }

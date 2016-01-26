@@ -22,28 +22,30 @@ import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
 
 @SuppressWarnings("UnusedDeclaration")
 public class JarBinaryRules extends RuleSource {
     @Defaults
-    void configureJarBinaries(final ComponentSpec jvmLibrary, ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
-        final File binariesDir = new File(projectLayout.getBuildDir(), "jars");
-        final File classesDir = new File(projectLayout.getBuildDir(), "classes");
-        final File resourcesDir = new File(projectLayout.getBuildDir(), "resources");
+    void configureJarBinaries(final ComponentSpec jvmLibrary, final ProjectLayout projectLayout, final JavaToolChainRegistry toolChains) {
+        final File buildDir = projectLayout.getBuildDir();
+        jvmLibrary.getBinaries().withType(JvmBinarySpecInternal.class).beforeEach(new Action<JvmBinarySpecInternal>() {
+            @Override
+            public void execute(JvmBinarySpecInternal jvmBinary) {
+                BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
+                jvmBinary.setClassesDir(namingScheme.getOutputDirectory(buildDir, "classes"));
+                jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(buildDir, "resources"));
+            }
+        });
         jvmLibrary.getBinaries().withType(JarBinarySpecInternal.class).beforeEach(new Action<JarBinarySpecInternal>() {
             @Override
             public void execute(JarBinarySpecInternal jarBinary) {
-                String jarBinaryName = jarBinary.getProjectScopedName();
-                int idx = jarBinaryName.lastIndexOf("Jar");
-                String apiJarBinaryName = idx>0?jarBinaryName.substring(0, idx) + "ApiJar" : jarBinaryName + "ApiJar";
                 String libraryName = jarBinary.getId().getLibraryName();
-
-                jarBinary.setClassesDir(new File(classesDir, jarBinaryName));
-                jarBinary.setResourcesDir(new File(resourcesDir, jarBinaryName));
-                jarBinary.setJarFile(new File(binariesDir, String.format("%s%s%s.jar", jarBinaryName, File.separator, libraryName)));
-                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s%s%s.jar", apiJarBinaryName, File.separator, libraryName)));
+                File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(buildDir, "jars");
+                jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
+                jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });

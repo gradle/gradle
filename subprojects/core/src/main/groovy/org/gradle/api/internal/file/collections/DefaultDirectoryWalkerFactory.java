@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeintegration.services.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.CharsetUtil;
 
@@ -49,15 +51,16 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
+        FileSystem fileSystem = FileSystems.getDefault();
         if (javaVersion.isJava8Compatible() || (javaVersion.isJava7Compatible() && defaultEncodingContainsPlatformEncoding())) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
-                return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
+                return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, fileSystem));
             } catch (ClassNotFoundException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
-            return new DefaultDirectoryWalker();
+            return new DefaultDirectoryWalker(fileSystem);
         }
     }
 

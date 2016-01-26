@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +27,7 @@ import org.junit.Test
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
-    public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider)
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
@@ -66,11 +66,7 @@ sourceSets.each {
 }
 
 tasks.withType(ScalaCompile) {
-    scalaCompileOptions.fork = true
     scalaCompileOptions.useAnt = false
-    if(!JavaVersion.current().isJava8Compatible()) {
-        scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
-    }
 }
 '''
         file('src/org/gradle/main/resource.txt') << 'some text'

@@ -23,20 +23,19 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 import static org.gradle.api.artifacts.Configuration.State.*
@@ -1295,7 +1294,7 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
         new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
-                resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder)
+                resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory())
     }
 
     private DefaultPublishArtifact artifact(String name) {
@@ -1316,9 +1315,5 @@ All Artifacts:
                 props.file,
                 props.tasks ?: []
         )
-    }
-
-    private PublishArtifactSet artifacts(PublishArtifact... containedArtifacts) {
-        new DefaultPublishArtifactSet("artifacts", WrapUtil.toDomainObjectSet(PublishArtifact.class, containedArtifacts))
     }
 }

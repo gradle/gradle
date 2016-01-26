@@ -24,8 +24,8 @@ import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -52,12 +52,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy;
 
+
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
         this.fileResolver = resolver;
         this.instantiator = instantiator;
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<CopySpecInternal>();
-        patternSet = new PatternSet();
+        patternSet = resolver.getPatternSetFactory().create();
         duplicatesStrategy = null;
     }
 
@@ -171,8 +172,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
-        return eachFile(
-                new MatchingCopyAction(new NotSpec<RelativePath>(matcher), action));
+        return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(matcher), action));
     }
 
     public CopySpec include(String... includes) {
@@ -485,7 +485,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public PatternSet getPatternSet() {
-            PatternSet patterns = new PatternSet();
+            PatternSet patterns = fileResolver.getPatternSetFactory().create();
             patterns.setCaseSensitive(isCaseSensitive());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());

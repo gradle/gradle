@@ -20,9 +20,13 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtractionContext<T> {
@@ -30,18 +34,17 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     private final DefaultModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private final List<Action<? super ModelSchema<T>>> validators;
+    private final Action<? super ModelSchema<T>> validator;
     private ModelSchema<T> result;
     private final List<DefaultModelSchemaExtractionContext<?>> children = Lists.newArrayList();
+    private final FormattingValidationProblemCollector problems;
 
     private DefaultModelSchemaExtractionContext(DefaultModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
-        this.validators = Lists.newArrayListWithCapacity(2);
-        if (validator != null) {
-            validators.add(validator);
-        }
+        this.problems = new FormattingValidationProblemCollector("model element type", type);
+        this.validator = validator;
     }
 
     public static <T> DefaultModelSchemaExtractionContext<T> root(ModelType<T> type) {
@@ -58,6 +61,40 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
 
     public ModelType<T> getType() {
         return type;
+    }
+
+    public FormattingValidationProblemCollector getProblems() {
+        return problems;
+    }
+
+    @Override
+    public boolean hasProblems() {
+        return problems.hasProblems();
+    }
+
+    @Override
+    public void add(String problem) {
+        problems.add(problem);
+    }
+
+    @Override
+    public void add(Field field, String problem) {
+        problems.add(field, problem);
+    }
+
+    @Override
+    public void add(Method method, String role, String problem) {
+        problems.add(method, role, problem);
+    }
+
+    @Override
+    public void add(Method method, String problem) {
+        add(method, null, problem);
+    }
+
+    @Override
+    public void add(Constructor<?> constructor, String problem) {
+        problems.add(constructor, problem);
     }
 
     public String getDescription() {
@@ -88,12 +125,8 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     public void validate(ModelSchema<T> schema) {
-        for (Action<? super ModelSchema<T>> validator : validators) {
+        if (validator != null) {
             validator.execute(schema);
         }
-    }
-
-    public void addValidator(Action<? super ModelSchema<T>> validator) {
-        validators.add(validator);
     }
 }

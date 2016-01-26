@@ -157,7 +157,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     protected Collection<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
         visitContents(context);
         return context.resolveAsFileCollections();
     }

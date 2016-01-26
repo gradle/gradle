@@ -15,14 +15,11 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
-
 /**
  * Tests “simple” maven publishing scenarios
  */
@@ -31,13 +28,9 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     SetSystemProperties sysProp = new SetSystemProperties()
 
     MavenLocalRepository localM2Repo
-    private M2Installation m2Installation
 
     def "setup"() {
-        dontOverrideMavenLocal()
-        m2Installation = new M2Installation(testDirectory)
-        localM2Repo = m2Installation.mavenRepo()
-        executer.beforeExecute m2Installation
+        localM2Repo = m2.mavenRepo()
     }
 
     def "publishes nothing without defined publication"() {
@@ -94,6 +87,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish simple jar"() {
         given:
+        using m2
         def repoModule = mavenRepo.module('group', 'root', '1.0')
         def localModule = localM2Repo.module('group', 'root', '1.0')
 
@@ -146,7 +140,8 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
         def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
-        m2Installation.generateUserSettingsFile(customLocalRepo)
+        m2.generateUserSettingsFile(customLocalRepo)
+        using m2
 
         and:
         settingsFile << "rootProject.name = 'root'"

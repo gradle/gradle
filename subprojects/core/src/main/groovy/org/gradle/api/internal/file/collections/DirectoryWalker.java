@@ -20,11 +20,10 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface DirectoryWalker {
-    void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix);
+    void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix);
 }

@@ -20,19 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
     def "variant annotation on property with illegal type type raises error"() {
         buildFile << """
+        @Managed
         interface SampleBinary extends BinarySpec {
             @Variant
             Integer getVariantProp()
             void setVariantProp(Integer variant)
         }
-        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            Integer variantProp
-        }
         class Rules extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -44,19 +40,15 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
 
     def "variant annotation on property with primitive type type raises error"() {
         buildFile << """
+        @Managed
         interface SampleBinary extends BinarySpec {
             @Variant
             int getVariantProp()
             void setVariantProp(int variant)
         }
-        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            int variantProp
-        }
         class Rules extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -68,18 +60,14 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
 
     def "variant annotation on property with boolean type raises error"() {
         buildFile << """
+        @Managed
         interface SampleBinary extends BinarySpec {
             @Variant boolean isVariantProp()
             void setVariantProp(boolean variant)
         }
-        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            boolean variantProp
-        }
         class Rules extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -91,19 +79,15 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
 
     def "variant annotation on setter raises error"() {
         buildFile << """
+        @Managed
         interface SampleBinary extends BinarySpec {
             String getVariantProp()
             @Variant
             void setVariantProp(String variant)
         }
-        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            String variantProp
-        }
         class Rules extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
-                builder.defaultImplementation(DefaultSampleBinary)
-            }
+            void register(BinaryTypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """

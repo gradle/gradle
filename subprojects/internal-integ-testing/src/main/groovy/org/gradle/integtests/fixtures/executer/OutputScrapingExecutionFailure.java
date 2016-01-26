@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -39,6 +38,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private final String lineNumber;
     private final String fileName;
     private final String resolution;
+    // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
 
     public OutputScrapingExecutionFailure(String output, String error) {
@@ -127,7 +127,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertHasCause(String description) {
-        assertThatCause(normalizedLineSeparators(startsWith(description)));
+        assertThatCause(startsWith(description));
         return this;
     }
 

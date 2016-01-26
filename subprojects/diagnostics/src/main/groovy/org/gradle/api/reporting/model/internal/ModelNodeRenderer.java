@@ -26,6 +26,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
@@ -37,7 +38,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
     private static final int LABEL_LENGTH = 7;
-    
+
     private final boolean showHidden;
 
     public ModelNodeRenderer(boolean showHidden) {
@@ -58,6 +59,10 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             maybePrintValue(model, styledTextoutput);
             printCreator(model, styledTextoutput);
             maybePrintRules(model, styledTextoutput);
+        }
+
+        if (model instanceof ModelReferenceNode) {
+            return;
         }
 
         Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
@@ -87,7 +92,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     public void maybePrintValue(ModelNode model, StyledTextOutput styledTextoutput) {
-        if (model.getLinkCount() == 0) {
+        if (model.getLinkCount() == 0 || model instanceof ModelReferenceNode) {
             Optional<String> value = model.getValueDescription();
             if (value.isPresent()) {
                 printNodeAttribute(styledTextoutput, "Value:", value.get());

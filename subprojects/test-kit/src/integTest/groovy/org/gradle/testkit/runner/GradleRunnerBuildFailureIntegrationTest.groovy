@@ -16,11 +16,14 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 import org.gradle.util.TextUtil
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@InspectsExecutedTasks
+class GradleRunnerBuildFailureIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "execute build for expected failure"() {
         given:
@@ -38,9 +41,6 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld FAILED')
-        result.output.contains("Execution failed for task ':helloWorld'")
-        result.output.contains('Expected exception')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
@@ -48,6 +48,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
         result.taskPaths(FAILED) == [':helloWorld']
     }
 
+    @InspectsBuildOutput
     def "execute build for expected failure but succeeds"() {
         given:
         buildFile << helloWorldTask()
@@ -79,6 +80,7 @@ Total time: .+ secs
         result.taskPaths(FAILED).empty
     }
 
+    @InspectsBuildOutput
     def "execute build for expected success but fails"() {
         given:
         buildFile << """
@@ -149,6 +151,7 @@ Total time: .+ secs
         t.message == expectedErrorMessage
     }
 
+    @InspectsBuildOutput
     def "build execution for non-existent task"() {
         given:
         buildFile << helloWorldTask()

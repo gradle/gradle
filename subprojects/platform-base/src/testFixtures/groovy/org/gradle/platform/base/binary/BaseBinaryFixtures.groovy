@@ -15,33 +15,21 @@
  */
 
 package org.gradle.platform.base.binary
-
+import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.internal.BinarySpecInternal
 
 class BaseBinaryFixtures {
     static final def GENERATOR = new AsmBackedClassGenerator()
 
-    static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> type, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
-        try {
-            def modelRegistry = new ModelRegistryHelper()
-            modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
-            modelRegistry.register(
-                ModelRegistrations.unmanagedInstanceOf(ModelReference.of(name, type), {
-                    def generated = GENERATOR.generate(type)
-                    BaseBinarySpec.create(publicType, generated, name, it, componentNode, DirectInstantiator.INSTANCE, taskFactory)
-                })
-                    .descriptor(name)
-                    .build()
-            ).atState(name, ModelNode.State.Initialized).getPrivateData(type)
-        } catch (ModelRuleExecutionException e) {
-            throw e.cause
+    static <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
+        return BaseInstanceFixtureSupport.create(publicType, BinarySpecInternal, implType, name) { MutableModelNode node ->
+            def generated = GENERATOR.generate(implType)
+            return BaseBinarySpec.create(publicType, generated, name, node, componentNode, DirectInstantiator.INSTANCE, taskFactory)
         }
     }
-
 }

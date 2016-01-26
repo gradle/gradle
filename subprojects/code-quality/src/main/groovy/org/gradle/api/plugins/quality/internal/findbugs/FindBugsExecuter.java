@@ -34,8 +34,7 @@ public class FindBugsExecuter implements Serializable {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             final List<String> args = spec.getArguments();
-            String[] strArray = new String[args.size()];
-            args.toArray(strArray);
+            String[] strArray = args.toArray(new String[0]);
 
             Thread.currentThread().setContextClassLoader(FindBugs2.class.getClassLoader());
             FindBugs2 findBugs2 = new FindBugs2();

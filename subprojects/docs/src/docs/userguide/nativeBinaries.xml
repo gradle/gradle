@@ -15,7 +15,7 @@
     </para>
 
     <para>
-        The native software plugins make use of the new <link linkend="software_model">rule based model configuration</link>.
+        The native software plugins make use of the Gradle <link linkend="software_model">software model</link>.
     </para>
 
     <section>
@@ -140,6 +140,7 @@
 
     <section>
         <title>Native software model</title>
+        <para>The native software model builds on the base Gradle <link linkend="software_model_concepts">software model</link>.</para>
         <para>
             To build native software using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
             executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
@@ -237,19 +238,19 @@
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>Executable</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/exe/<replaceable>${component.name}</replaceable>/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/shared/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
-                    <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/static/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -473,7 +474,9 @@
         <title>Library Dependencies</title>
         <para>
             Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
-            binary dependency being used during linking and execution.
+            binary dependency being used during linking and execution. Header files should be organized into subdirectories to prevent clashes of commonly named headers.
+            For instance, if your <literal>mylib</literal> project has a <filename>logging.h</filename> header, it will make it less likely the wrong header is used if you include it as
+            <literal>"mylib/logging.h"</literal> instead of <literal>"logging.h"</literal>.
         </para>
         <section>
            <title>Dependencies within the same project</title>
@@ -836,7 +839,7 @@
             </para>
             <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
-                <output args='-q runFailingOperatorsTestCUnitExe' expectFailure="true"/>
+                <output args='-q runOperatorsTestFailingCUnitExe' expectFailure="true"/>
             </sample>
         </section>
 

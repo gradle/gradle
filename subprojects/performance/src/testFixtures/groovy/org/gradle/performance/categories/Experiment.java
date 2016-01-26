@@ -21,5 +21,5 @@ package org.gradle.performance.categories;
  *
  * Add @Category(Experiment) to tests that should be run as part of the adhoc/experiment build.
  */
-public interface Experiment extends PerformanceTest {
+public interface Experiment extends GradleCorePerformanceTest {
 }

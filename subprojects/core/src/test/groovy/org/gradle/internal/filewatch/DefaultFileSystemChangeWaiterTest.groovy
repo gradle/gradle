@@ -33,19 +33,24 @@ import java.util.concurrent.atomic.AtomicReference
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider testDirectory
+    ChangeReporter reporter
+
+    def setup() {
+        reporter = Mock(ChangeReporter)
+    }
 
     def "can wait for filesystem change"() {
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
@@ -57,20 +62,23 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     def "escapes on cancel"() {
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory))
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory))
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
@@ -82,6 +90,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     def "escapes on exception"() {
@@ -95,7 +106,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         }
         when:
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, fileWatcherFactory)
+        def wf = new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
@@ -103,9 +114,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         start {
             try {
                 w.watch(f)
-                w.wait {
+                w.wait({
                     instant.notified
-                }
+                }, reporter)
             } catch (Exception e) {
                 instant.done
             }
@@ -119,13 +130,16 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         then:
         waitFor.done
+
+        cleanup:
+        w.stop()
     }
 
     @Unroll
     def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
         when:
         def quietPeriod = 1000L
-        def wf = new DefaultFileSystemChangeWaiterFactory(executorFactory, new DefaultFileWatcherFactory(executorFactory), quietPeriod)
+        def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory), quietPeriod)
         def f = FileSystemSubset.builder().add(testDirectory.testDirectory).build()
         def c = new DefaultBuildCancellationToken()
         def w = wf.createChangeWaiter(c)
@@ -133,9 +147,9 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
 
         start {
             w.watch(f)
-            w.wait {
+            w.wait({
                 instant.notified
-            }
+            }, reporter)
             instant.done
         }
 
@@ -150,7 +164,10 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
+        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= Math.round(quietPeriod * 0.99)
+
+        cleanup:
+        w.stop()
 
         where:
         description            | fileChanger

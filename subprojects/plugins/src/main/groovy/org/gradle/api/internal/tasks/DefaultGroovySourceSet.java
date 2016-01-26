@@ -17,8 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.util.ConfigureUtil;
 
@@ -26,10 +25,10 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
     private final SourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
-    public DefaultGroovySourceSet(String displayName, FileResolver fileResolver) {
-        groovy = new DefaultSourceDirectorySet(String.format("%s Groovy source", displayName), fileResolver);
+    public DefaultGroovySourceSet(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        groovy = sourceDirectorySetFactory.create(String.format("%s Groovy source", displayName));
         groovy.getFilter().include("**/*.java", "**/*.groovy");
-        allGroovy = new DefaultSourceDirectorySet(String.format("%s Groovy source", displayName), fileResolver);
+        allGroovy = sourceDirectorySetFactory.create(String.format("%s Groovy source", displayName));
         allGroovy.source(groovy);
         allGroovy.getFilter().include("**/*.groovy");
     }

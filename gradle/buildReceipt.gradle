@@ -40,6 +40,11 @@ task determineCommitId {
 
         def env = System.getenv()
 
+        // For promotion builds use the commitId passed in as a project property
+        strategies << {
+            project.hasProperty('promotionCommitId') ? project.property('promotionCommitId') : null
+        }
+
         // Builds of Gradle happening on the CI server
         strategies << {
             env["BUILD_VCS_NUMBER"]
@@ -57,7 +62,7 @@ task determineCommitId {
 
         // If it's a checkout, ask Git for it
         strategies << {
-            if (file(".git/HEAD").exists()) {
+            if (file(".git").exists()) {
                 def baos = new ByteArrayOutputStream()
                 def execResult = exec {
                     ignoreExitValue = true
@@ -70,7 +75,7 @@ task determineCommitId {
                 }
                 if (execResult.exitValue == 0) {
                     new String(baos.toByteArray(), "utf8").trim()
-                } else {
+                } else if (file(".git/HEAD").exists()) {
                     // Read commit id directly from filesystem
                     def headRef = file(".git/HEAD").text
                     headRef = headRef.replaceAll('ref: ', '').trim()

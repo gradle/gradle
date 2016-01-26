@@ -16,9 +16,9 @@
 
 package org.gradle.language.base.internal.model
 
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.platform.base.Platform
 import org.gradle.platform.base.Variant
 import org.gradle.platform.base.internal.BinarySpecInternal
@@ -27,14 +27,15 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class VariantsMetaDataHelperTest extends Specification {
-
-    def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+    def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
     @Unroll("Incompatible variant dimensions for #referenceClass.simpleName(#dimensions) onto #candidateClass.simpleName are #expectedIncompatible")
     def "computes the set of incompatible variant dimensions"() {
         given:
-        def reference = DefaultVariantsMetaData.extractFrom(binary(referenceClass), schemaStore)
-        def candidate = DefaultVariantsMetaData.extractFrom(binary(candidateClass), schemaStore)
+        def referenceBinary = binary(referenceClass)
+        def candidateBinary = binary(candidateClass)
+        def reference = DefaultVariantsMetaData.extractFrom(referenceBinary, schemaStore.getSchema(referenceBinary.publicType))
+        def candidate = DefaultVariantsMetaData.extractFrom(candidateBinary, schemaStore.getSchema(candidateBinary.publicType))
 
         when:
         def incompatibleDimensions = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(reference, candidate, dimensions as Set)

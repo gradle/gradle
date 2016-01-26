@@ -715,6 +715,18 @@
             <tr>
                 <td>org.gradle.play.distribution.PlayDistributionContainer</td>
             </tr>
+            <tr>
+                <td>org.gradle.language.twirl.TwirlSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.routes.RoutesSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.coffeescript.CoffeeScriptSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.javascript.JavaScriptSourceSet</td>
+            </tr>
         </table>
     </section>
 

@@ -27,28 +27,25 @@ public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
     private final FilesSnapshotSet inputFilesSnapshot;
 
-    private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
     private DiscoveredTaskStateChanges discoveredInputFilesState;
-    private TaskStateChanges inputPropertiesState;
-    private TaskStateChanges taskTypeState;
-    private TaskStateChanges outputFilesState;
     private SummaryTaskStateChanges allTaskChanges;
     private SummaryTaskStateChanges rebuildChanges;
 
-    public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history, FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter) {
+    public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history, FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter, DiscoveredInputFilesStateChangeRule discoveredInputFilesStateChangeRule) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
-        noHistoryState = NoHistoryStateChangeRule.create(task, lastExecution);
-        taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
-        inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
+        TaskStateChanges noHistoryState = NoHistoryStateChangeRule.create(task, lastExecution);
+        TaskStateChanges taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
+        TaskStateChanges inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
 
         // Capture outputs state
+        TaskStateChanges outputFilesState;
         try {
             outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture inputs state
@@ -57,14 +54,14 @@ public class TaskUpToDateState {
             this.inputFilesSnapshot = inputFilesSnapshot.getSnapshot();
             inputFilesState = caching(InputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshot));
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture discovered inputs state from previous execution
         try {
-            discoveredInputFilesState = DiscoveredInputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshotter);
+            discoveredInputFilesState = discoveredInputFilesStateChangeRule.create(lastExecution, thisExecution);
         } catch (UncheckedIOException e) {
-            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.  See stacktrace for details.", task.getName()), e);
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, caching(discoveredInputFilesState));

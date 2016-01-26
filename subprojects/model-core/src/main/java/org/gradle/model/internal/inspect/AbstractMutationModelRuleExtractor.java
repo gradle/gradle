@@ -16,28 +16,50 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ExtractedModelAction;
-import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.core.MutableModelNode;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 
-@ThreadSafe
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
-
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        validate(ruleDefinition);
-        return new ExtractedModelAction(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));
+    @Nullable
+    @Override
+    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        validateIsVoidMethod(ruleDefinition, context);
+        if (ruleDefinition.getReferences().isEmpty()) {
+            context.add(ruleDefinition, "A method " + getDescription() + " must have at least one parameter");
+        }
+        if (context.hasProblems()) {
+            return null;
+        }
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition);
     }
 
     protected abstract ModelActionRole getMutationType();
 
-    private void validate(MethodRuleDefinition<?, ?> ruleDefinition) {
-        if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "only void can be used as return type for mutation rules");
+    private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
+        private final ModelActionRole mutationType;
+
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+            super(ruleDefinition);
+            this.mutationType = mutationType;
+        }
+
+        @Override
+        public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
+            MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
+            context.getRegistry().configure(mutationType,
+                    context.contextualize(
+                        new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())));
+        }
+
+        @Override
+        public List<? extends Class<?>> getRuleDependencies() {
+            return Collections.emptyList();
         }
     }
-
 }

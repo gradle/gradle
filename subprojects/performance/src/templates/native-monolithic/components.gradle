@@ -34,17 +34,7 @@ model {
                 lib project: ':', library: "prebuilt$it", linkage: 'api'
                 <% } %>
 
-                if (!project.hasProperty("includeHack")) {
-                    lib project: ':', library: "commonHeaders", linkage: 'api'
-                } else {
-                    <% if (overlapWithOutput) { %>
-                        cCompiler.args "-I\${rootDir}"
-                        cppCompiler.args "-I\${rootDir}"
-                    <% } else { %>
-                        cCompiler.args "-I\${rootDir}/common"
-                        cppCompiler.args "-I\${rootDir}/common"
-                    <% } %>
-                }
+                lib project: ':', library: "commonHeaders", linkage: 'api'
             }
         }
     }

@@ -16,14 +16,16 @@
 
 package sample.markdown
 
-import sample.documentation.DocumentationSourceSet
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.model.Managed
 
-interface MarkdownSourceSet extends DocumentationSourceSet {
-    File getOutputDir()
+// START SNIPPET markdown-lang-declaration
+@Managed
+interface MarkdownSourceSet extends LanguageSourceSet {
+    boolean isGenerateIndex()
+    void setGenerateIndex(boolean generateIndex)
 
-    void setOutputDir(File file)
-
-    String getTaskName()
-
-    void setTaskName(String taskName)
+    boolean isSmartQuotes()
+    void setSmartQuotes(boolean smartQuotes)
 }
+// END SNIPPET markdown-lang-declaration

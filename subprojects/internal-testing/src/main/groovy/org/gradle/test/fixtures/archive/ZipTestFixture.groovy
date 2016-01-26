@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipFile
 
 class ZipTestFixture extends ArchiveTestFixture {
@@ -25,7 +26,7 @@ class ZipTestFixture extends ArchiveTestFixture {
             def entries = zipFile.getEntries()
             while (entries.hasMoreElements()) {
                 def entry = entries.nextElement()
-                def content = zipFile.getInputStream(entry).text
+                String content = getContentForEntry(entry, zipFile)
                 if (!entry.directory) {
                     add(entry.name, content)
                 }
@@ -33,5 +34,13 @@ class ZipTestFixture extends ArchiveTestFixture {
         } finally {
             zipFile.close();
         }
+    }
+
+    private String getContentForEntry(ZipEntry entry, ZipFile zipFile) {
+        def extension = entry.name.tokenize(".").last()
+        if (!(extension in ["jar", "zip"])) {
+            return zipFile.getInputStream(entry).text
+        }
+        return ""
     }
 }

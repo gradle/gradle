@@ -21,6 +21,7 @@ import spock.lang.IgnoreIf
 class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
     def setup() {
+        using m2
         executer.withArguments("-info")
     }
 
@@ -31,10 +32,10 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
                 sign jar
             }
         """ << uploadArchives()
-        
+
         then:
         fails ":uploadArchives"
-        
+
         and:
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
@@ -76,5 +77,5 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         pom().exists()
         pomSignature().exists()
     }
-    
+
 }

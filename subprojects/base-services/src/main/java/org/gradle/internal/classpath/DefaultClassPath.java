@@ -84,7 +84,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public URL[] getAsURLArray() {
         Collection<URL> result = getAsURLs();
-        return result.toArray(new URL[result.size()]);
+        return result.toArray(new URL[0]);
     }
 
     public List<URL> getAsURLs() {

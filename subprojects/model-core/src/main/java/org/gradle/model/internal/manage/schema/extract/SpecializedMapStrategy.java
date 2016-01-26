@@ -48,11 +48,10 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> modelType = extractionContext.getType();
-        Type type = modelType.getType();
-        if (!(type instanceof Class)) {
+        if (!modelType.isClass()) {
             return;
         }
-        Class<?> contractType = (Class<?>) type;
+        Class<?> contractType = modelType.getConcreteClass();
         if (!contractType.isInterface()) {
             return;
         }

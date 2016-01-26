@@ -16,24 +16,21 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
-import org.gradle.platform.base.internal.ToolSearchBuildAbility;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
@@ -44,7 +41,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
-    private final DefaultJvmBinaryTasks tasks;
+    private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
     public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
@@ -52,7 +49,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.tasks = instantiator.newInstance(DefaultJvmBinaryTasks.class, new DefaultBinaryTasksCollection(this, taskFactory));
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
     }
 
     private String removeClassesSuffix(String name) {
@@ -60,6 +57,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -72,7 +74,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return ClassDirectoryBinarySpec.class;
     }
 
-    public JvmBinaryTasks getTasks() {
+    public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
@@ -131,6 +133,21 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BinaryNamingScheme getNamingScheme() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasCodependentSources() {
         throw new UnsupportedOperationException();
     }
 

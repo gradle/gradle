@@ -16,36 +16,34 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
+import org.gradle.internal.typeconversion.NotationParser;
 
 public class OptionNotationParserFactory {
-    public ValueAwareNotationParser<Object> toComposite(Class<?> targetType) throws OptionValidationException {
+    public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
         assert targetType != null : "resultingType cannot be null";
-        List<ValueAwareNotationParser<?>> parsers = new ArrayList<ValueAwareNotationParser<?>>();
-
         if (targetType == Void.TYPE) {
-            parsers.add(new UnsupportedNotationParser());
+            return new UnsupportedNotationParser<T>();
         }
+
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionValuesJustReturningParser());
+            return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         }
         if (targetType.isEnum()) {
-            parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            NotationConverter<CharSequence, T> converter = Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            return new NotationConverterToNotationParserAdapter<CharSequence, T>(converter);
         }
-        if (parsers.isEmpty()) {
-            throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
-        }
-        return new ValueAwareCompositeNotationParser<Object>(parsers);
+
+        throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
     }
 
-    private static class UnsupportedNotationParser implements ValueAwareNotationParser<Object> {
+    private static class UnsupportedNotationParser<T> implements NotationParser<CharSequence, T> {
 
-        public Object parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
+        public T parseNotation(CharSequence notation) {
             throw new UnsupportedOperationException();
         }
 
@@ -53,11 +51,9 @@ public class OptionNotationParserFactory {
         public void describe(DiagnosticsVisitor visitor) {
         }
 
-        public void describeValues(Collection<String> collector) {
-        }
     }
 
-    private static class NoDescriptionValuesJustReturningParser implements ValueAwareNotationParser<String> {
+    private static class NoDescriptionValuesJustReturningParser implements NotationParser<CharSequence, String> {
         public String parseNotation(CharSequence notation) {
             return notation.toString();
         }
@@ -67,22 +63,5 @@ public class OptionNotationParserFactory {
             visitor.candidate("Instances of String or CharSequence.");
         }
 
-        public void describeValues(Collection<String> collector) {
-        }
-    }
-
-    private static class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
-        private final Collection<ValueAwareNotationParser<? extends T>> delegates;
-
-        public ValueAwareCompositeNotationParser(Collection<ValueAwareNotationParser<? extends T>> delegates) {
-            super(delegates);
-            this.delegates = delegates;
-        }
-
-        public void describeValues(Collection<String> collector) {
-            for (ValueAwareNotationParser<? extends T> delegate : delegates) {
-                delegate.describeValues(collector);
-            }
-        }
     }
 }

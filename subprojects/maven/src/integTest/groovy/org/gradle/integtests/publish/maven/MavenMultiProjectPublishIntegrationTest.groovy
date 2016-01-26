@@ -23,7 +23,7 @@ class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
     def setup() {
-        overrideMavenLocal()
+        using m2 //uploadArchives leaks into local ~/.m2
     }
 
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {

@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -32,16 +30,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWaiterFactory {
-    private final ExecutorFactory executorFactory;
     private final FileWatcherFactory fileWatcherFactory;
     private final long quietPeriodMillis;
 
-    public DefaultFileSystemChangeWaiterFactory(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory) {
-        this(executorFactory, fileWatcherFactory, 250L);
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
+        this(fileWatcherFactory, 250L);
     }
 
-    public DefaultFileSystemChangeWaiterFactory(ExecutorFactory executorFactory, FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
-        this.executorFactory = executorFactory;
+    public DefaultFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis) {
         this.fileWatcherFactory = fileWatcherFactory;
         this.quietPeriodMillis = quietPeriodMillis;
     }
@@ -60,6 +56,8 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final AtomicLong lastChangeAt = new AtomicLong(0);
         private final FileWatcher watcher;
         private final Action<Throwable> onError;
+        private boolean watching;
+        private volatile FileWatcherEventListener eventListener;
 
         private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
@@ -77,6 +75,10 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                     @Override
                     public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
                         if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
+                            FileWatcherEventListener listener = eventListener;
+                            if (listener != null) {
+                                listener.onChange(event);
+                            }
                             signal(lock, condition, new Runnable() {
                                 @Override
                                 public void run() {
@@ -92,17 +94,16 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         @Override
         public void watch(FileSystemSubset fileSystemSubset) {
             try {
-                watcher.watch(fileSystemSubset);
+                if (!fileSystemSubset.isEmpty()) {
+                    watching = true;
+                    watcher.watch(fileSystemSubset);
+                }
             } catch (IOException e) {
                 onError.execute(e);
             }
         }
 
-        public void wait(Runnable notifier) {
-            if (cancellationToken.isCancellationRequested()) {
-                return;
-            }
-
+        public void wait(Runnable notifier, FileWatcherEventListener eventListener) {
             Runnable cancellationHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -110,12 +111,16 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 }
             };
             try {
+                this.eventListener = eventListener;
+                if (cancellationToken.isCancellationRequested()) {
+                    return;
+                }
                 cancellationToken.addCallback(cancellationHandler);
                 notifier.run();
                 lock.lock();
                 try {
                     long lastChangeAtValue = lastChangeAt.get();
-                    while (!cancellationToken.isCancellationRequested() && error.get() == null && (lastChangeAtValue == 0 || monotonicClockMillis() - lastChangeAtValue < quietPeriodMillis)) {
+                    while (!cancellationToken.isCancellationRequested() && error.get() == null && shouldKeepWaitingForQuietPeriod(lastChangeAtValue)) {
                         condition.await(quietPeriodMillis, TimeUnit.MILLISECONDS);
                         lastChangeAtValue = lastChangeAt.get();
                     }
@@ -129,9 +134,27 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             } catch (Throwable e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
+                this.eventListener = null;
                 cancellationToken.removeCallback(cancellationHandler);
-                CompositeStoppable.stoppable(watcher).stop();
+                watcher.stop();
             }
+        }
+
+        private boolean shouldKeepWaitingForQuietPeriod(long lastChangeAtValue) {
+            long now = monotonicClockMillis();
+            return lastChangeAtValue == 0   // no changes yet
+                || now < lastChangeAtValue  // handle case where monotic clock isn't monotonic
+                || now - lastChangeAtValue < quietPeriodMillis;
+        }
+
+        @Override
+        public boolean isWatching() {
+            return watching;
+        }
+
+        @Override
+        public void stop() {
+            watcher.stop();
         }
     }
 
@@ -140,12 +163,16 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
     }
 
     private static void signal(Lock lock, Condition condition, Runnable runnable) {
+        boolean interrupted = Thread.interrupted();
         lock.lock();
         try {
             runnable.run();
             condition.signal();
         } finally {
             lock.unlock();
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

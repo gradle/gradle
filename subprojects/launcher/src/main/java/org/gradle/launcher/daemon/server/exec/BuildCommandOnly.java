@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
  * 
  * If an action of this type receives a command that is not Build it will throw an exception.
  */
-abstract public class BuildCommandOnly implements DaemonCommandAction {
+public abstract class BuildCommandOnly implements DaemonCommandAction {
 
     public void execute(DaemonCommandExecution execution) {
         Command command = execution.getCommand();

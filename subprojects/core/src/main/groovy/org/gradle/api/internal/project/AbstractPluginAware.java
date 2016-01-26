@@ -27,7 +27,7 @@ import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
 
-abstract public class AbstractPluginAware implements PluginAwareInternal {
+public abstract class AbstractPluginAware implements PluginAwareInternal {
 
     @SuppressWarnings("unchecked")
     public void apply(Closure closure) {

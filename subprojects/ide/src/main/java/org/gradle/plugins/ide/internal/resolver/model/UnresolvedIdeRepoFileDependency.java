@@ -21,17 +21,22 @@ import org.gradle.api.artifacts.Configuration;
 import java.io.File;
 
 public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
-    private Exception problem;
 
-    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file) {
+    private final Throwable problem;
+    private final String displayName;
+
+    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file, Throwable problem, String displayName) {
         super(declaredConfiguration, file);
+
+        this.displayName = displayName;
+        this.problem = problem;
     }
 
-    public Exception getProblem() {
+    public Throwable getProblem() {
         return problem;
     }
 
-    public void setProblem(Exception problem) {
-        this.problem = problem;
+    public String getDisplayName() {
+        return displayName;
     }
 }

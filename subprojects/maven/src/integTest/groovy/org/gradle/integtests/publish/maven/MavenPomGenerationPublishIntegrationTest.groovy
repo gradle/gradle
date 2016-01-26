@@ -21,8 +21,9 @@ import spock.lang.Unroll
 
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
+
     def setup() {
-        overrideMavenLocal()
+        using m2 //uploadArchives leaks into local ~/.m2
     }
 
     @Unroll

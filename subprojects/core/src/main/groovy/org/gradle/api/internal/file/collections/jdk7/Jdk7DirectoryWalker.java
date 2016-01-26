@@ -21,8 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileVisitDetailsWithAttributes;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -37,14 +36,18 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Jdk7DirectoryWalker implements DirectoryWalker {
-    private final StringInterner relativePathStringInterner = new StringInterner();
+    private final FileSystem fileSystem;
+
+    public Jdk7DirectoryWalker(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
 
     static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
     }
 
     @Override
-    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<FileTreeElement> spec, final AtomicBoolean stopFlag, final FileSystem fileSystem, final boolean postfix) {
+    public void walkDir(final File rootDir, final RelativePath rootPath, final FileVisitor visitor, final Spec<FileTreeElement> spec, final AtomicBoolean stopFlag, final boolean postfix) {
         final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {
@@ -83,8 +86,8 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                 private FileVisitDetails getFileVisitDetails(Path file, BasicFileAttributes attrs, boolean isDirectory) {
                     File child = file.toFile();
                     FileVisitDetails dirDetails = directoryDetailsHolder.peek();
-                    RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, relativePathStringInterner.intern(child.getName())) : rootPath;
-                    return new FileVisitDetailsWithAttributes(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+                    RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
+                    return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
                 }
 
                 @Override

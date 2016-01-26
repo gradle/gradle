@@ -1,4 +1,5 @@
 :compileMainJarMainJava
+:processMainJarMainResources
 :mainApiJar
 :compileBrokenclientJarBrokenclientJava FAILED
 

@@ -128,14 +128,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
                     if (imperative) {
-                        // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
-                        // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
-                        Object instance = findInstance(pluginClass, pluginContainer);
-                        if (instance == null) {
-                            instance = instantiatePlugin(pluginClass);
-                        }
-
-                        Plugin<?> pluginInstance = Cast.uncheckedCast(instance);
+                        Plugin<?> pluginInstance = producePluginInstance(pluginClass);
                         instances.put(pluginClass, pluginInstance);
 
                         if (plugin.isHasRules()) {
@@ -159,6 +152,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } catch (Exception e) {
             throw new PluginApplicationException(plugin.getDisplayName(), e);
         }
+    }
+
+    private Plugin<?> producePluginInstance(Class<?> pluginClass) {
+        // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
+        // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
+        Object instance = findInstance(pluginClass, pluginContainer);
+        if (instance == null) {
+            instance = instantiatePlugin(pluginClass);
+        }
+
+        return Cast.uncheckedCast(instance);
     }
 
     private <T> T findInstance(Class<T> clazz, Iterable<?> instances) {

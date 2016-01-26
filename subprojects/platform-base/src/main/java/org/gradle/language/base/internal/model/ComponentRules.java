@@ -21,14 +21,15 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
-import org.gradle.model.Defaults;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.io.File;
@@ -41,19 +42,19 @@ import static com.google.common.base.Strings.emptyToNull;
 @SuppressWarnings("UnusedDeclaration")
 public class ComponentRules extends RuleSource {
     @Defaults
-    void initializeSourceSets(ComponentSpecInternal component, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
-        for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-            ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms).execute(component);
+    void initializeSourceSets(ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
+        for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
+            registerLanguageTypes(component, languageRegistration, languageTransforms);
         }
     }
 
     @Defaults
-    void applyDefaultSourceConventions(final ComponentSpec component, final ProjectIdentifier projectIdentifier) {
+    void applyDefaultSourceConventions(ComponentSpec component, ProjectIdentifier projectIdentifier) {
         component.getSources().afterEach(new AddDefaultSourceLocation(projectIdentifier.getProjectDir()));
     }
 
     @Defaults
-    void addSourcesSetsToProjectSourceSet(final ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+    void addSourcesSetsToProjectSourceSet(ComponentSpec component, final ProjectSourceSet projectSourceSet) {
         component.getSources().afterEach(new Action<LanguageSourceSet>() {
             @Override
             public void execute(LanguageSourceSet languageSourceSet) {
@@ -62,40 +63,48 @@ public class ComponentRules extends RuleSource {
         });
     }
 
-    // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
-        private final LanguageRegistration<U> languageRegistration;
-        private final LanguageTransformContainer languageTransforms;
-
-        private ComponentSourcesRegistrationAction(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            this.languageRegistration = registration;
-            this.languageTransforms = languageTransforms;
-        }
-
-        public static <U extends LanguageSourceSet> ComponentSourcesRegistrationAction<U> create(LanguageRegistration<U> registration, LanguageTransformContainer languageTransforms) {
-            return new ComponentSourcesRegistrationAction<U>(registration, languageTransforms);
-        }
-
-        public void execute(ComponentSpecInternal componentSpecInternal) {
-            registerLanguageTypes(componentSpecInternal);
-        }
-
-        // If there is a transform for the language into one of the component inputs, add a default source set
-        void registerLanguageTypes(final ComponentSpecInternal component) {
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
-                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
-                    return;
-                }
+    // If there is a transform for the language into one of the component inputs, add a default source set
+    private <U extends LanguageSourceSet> void registerLanguageTypes(ComponentSpecInternal component, LanguageRegistration<U> languageRegistration, LanguageTransformContainer languageTransforms) {
+        for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+            if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
+                && component.getInputTypes().contains(languageTransform.getOutputType())) {
+                component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
+                return;
             }
         }
     }
 
-    private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
+    @Rules
+    void inputRules(AttachInputs attachInputs, ComponentSpec component) {
+        attachInputs.setBinaries(component.getBinaries());
+        attachInputs.setSources(component.getSources());
+    }
+
+    static abstract class AttachInputs extends RuleSource {
+        @RuleTarget
+        abstract ModelMap<BinarySpec> getBinaries();
+        abstract void setBinaries(ModelMap<BinarySpec> binaries);
+
+        @RuleInput
+        abstract ModelMap<LanguageSourceSet> getSources();
+        abstract void setSources(ModelMap<LanguageSourceSet> sources);
+
+        @Mutate
+        void initializeBinarySourceSets(ModelMap<BinarySpec> binaries) {
+            // TODO - sources is not actual an input to binaries, it's an input to each binary
+            binaries.withType(BinarySpecInternal.class, new Action<BinarySpecInternal>() {
+                @Override
+                public void execute(BinarySpecInternal binary) {
+                    binary.getInputs().addAll(getSources().values());
+                }
+            });
+        }
+    }
+
+    static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
         private File baseDir;
 
-        public AddDefaultSourceLocation(File baseDir) {
+        AddDefaultSourceLocation(File baseDir) {
             this.baseDir = baseDir;
         }
 

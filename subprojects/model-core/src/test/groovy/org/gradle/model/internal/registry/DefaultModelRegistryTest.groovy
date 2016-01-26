@@ -15,14 +15,13 @@
  */
 
 package org.gradle.model.internal.registry
+
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.Actions
 import org.gradle.internal.BiAction
 import org.gradle.internal.BiActions
-import org.gradle.model.ConfigurationCycleException
-import org.gradle.model.InvalidModelRuleException
-import org.gradle.model.ModelRuleBindingException
+import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -32,6 +31,8 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.model.internal.core.NodePredicate.allDescendants
+import static org.gradle.model.internal.core.NodePredicate.allLinks
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultModelRegistryTest extends Specification {
@@ -168,8 +169,8 @@ class DefaultModelRegistryTest extends Specification {
         registry.register("foo") { it.descriptor("create foo as Integer").unmanaged(12.toInteger()) }
         registry.mutate { it.path "foo" type Integer descriptor "mutate foo as Integer" node mutatorAction }
         mutatorAction.execute(_) >> { MutableModelNode node ->
-            node.addLink(registry.registration("foo.bar") { it.descriptor("create foo.bar as String").unmanaged("12") })
-            node.addLink(registry.registration("foo.bar") { it.descriptor("create foo.bar as Integer").unmanaged(12) })
+            node.addLink("foo.bar") { it.descriptor("create foo.bar as String").unmanaged("12") }
+            node.addLink("foo.bar") { it.descriptor("create foo.bar as Integer").unmanaged(12) }
         }
 
         when:
@@ -225,7 +226,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.registerInstance("foo", "foo")
         registry.mutate {
             it.path "foo" type String node {
-                node -> node.addLink(registry.instanceRegistration("foo.child", 12))
+                node -> node.addLinkInstance("foo.child", 12)
             }
         }
 
@@ -239,9 +240,7 @@ class DefaultModelRegistryTest extends Specification {
         def target = registry.node("target")
         registry.register("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                def refDirectRegistration = registry.registration("ref.direct").descriptor("ref.direct creator").unmanagedNode(String, {})
-                node.addReference(refDirectRegistration)
-                node.getLink("direct").setTarget(target)
+                node.addReference("direct", String, target)
             }
         }
         registry.register("foo") { it.unmanaged(String, "ref.direct") { it } }
@@ -254,15 +253,14 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addLink(registry.registration("parent.child").descriptor("parent.child creator").unmanaged(String, "value"))
+                node.addLinkInstance("parent.child", "value")
             }
         }
 
         def parent = registry.node("parent")
         registry.register("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addReference(registry.registration("ref.indirect").unmanagedNode(String, {}))
-                node.getLink("indirect").setTarget(parent)
+                node.addReference("indirect", String, parent)
             }
         }
         registry.register("foo") { it.unmanaged(String, "ref.indirect.child") { it } }
@@ -275,7 +273,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference(registry.registration("parent.child").unmanagedNode(String, {}))
+                node.addReference("child", String, null)
             }
         }
 
@@ -290,9 +288,8 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addReference(registry.registration("parent.child").unmanagedNode(String, {}))
-                node.applyToSelf(ModelActionRole.Mutate, registry.action().path("parent").node { it.setPrivateData(String, "value")})
-                node.getLink("child").setTarget(node)
+                node.addReference("child", String, node)
+                node.applyToSelf(ModelActionRole.Mutate) { it.path("parent").node { it.setPrivateData(String, "value") }}
             }
         }
 
@@ -304,7 +301,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(String) { node ->
-                node.addLink(registry.registration("parent.child").unmanagedNode(String, {}))
+                node.addLinkInstance("parent.child", "child")
             }
         }
 
@@ -319,9 +316,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.registerInstance("target", "value")
         def target = registry.node("target")
-        registry.root.addReference(registry.registration("ref").unmanagedNode(String) { node ->
-            node.setTarget(target)
-        })
+        registry.root.addReference("ref", String, target)
         def ref = registry.atState("ref", ModelNode.State.SelfClosed)
 
         when:
@@ -340,12 +335,12 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry
-            .register("foo", new Bean(), action)
-            .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
-            .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
-            .configure(ModelActionRole.Mutate, registry.action().path("foo").type(Bean).action(action))
-            .configure(ModelActionRole.Finalize, registry.action().path("foo").type(Bean).action(action))
-            .configure(ModelActionRole.Validate, registry.action().path("foo").type(Bean).action(action))
+            .register("foo") { it.unmanaged(new Bean(), action) }
+            .configure(ModelActionRole.Defaults) { it.path("foo").type(Bean).action(action) }
+            .configure(ModelActionRole.Initialize) { it.path("foo").type(Bean).action(action) }
+            .configure(ModelActionRole.Mutate) { it.path("foo").type(Bean).action(action) }
+            .configure(ModelActionRole.Finalize) { it.path("foo").type(Bean).action(action) }
+            .configure(ModelActionRole.Validate) { it.path("foo").type(Bean).action(action) }
 
         when:
         def value = registry.realize("foo", Bean).value
@@ -393,7 +388,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo", Bean)
 
         then:
-        1 * action.execute(_) >> { MutableModelNode node -> node.addLink(registry.registration("foo.bar", "value", action)) }
+        1 * action.execute(_) >> { MutableModelNode node -> node.addLink("foo.bar") { it.unmanaged("value", action) } }
         1 * action.execute(_)
         0 * action._
     }
@@ -501,11 +496,13 @@ class DefaultModelRegistryTest extends Specification {
     def "can attach a mutator with inputs to all elements linked from an element"() {
         given:
         registry.register("parent") { it.unmanagedNode Integer, { MutableModelNode node ->
-            node.applyToAllLinks(ModelActionRole.Mutate, registry.action().type(Bean).action(String, { Bean bean, String prefix ->
-                bean.value = "$prefix: $bean.value"
-            }))
-            node.addLink(registry.instanceRegistration("parent.foo", new Bean(value: "foo")))
-            node.addLink(registry.instanceRegistration("parent.bar", new Bean(value: "bar")))
+            node.applyTo(allLinks(), ModelActionRole.Mutate) {
+                it.type(Bean).action(String) { Bean bean, String prefix ->
+                    bean.value = "$prefix: $bean.value"
+                }
+            }
+            node.addLinkInstance("parent.foo", new Bean(value: "foo"))
+            node.addLinkInstance("parent.bar", new Bean(value: "bar"))
         }
         }
         registry.registerInstance("prefix", "prefix")
@@ -522,14 +519,14 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToAllLinks(ModelActionRole.Mutate, registry.action().type(Bean).action(mutatorAction))
-            node.addLink(registry.instanceRegistration("parent.foo", "ignore me"))
-            node.addLink(registry.instanceRegistration("parent.bar", new Bean(value: "bar")))
+            node.applyTo(allLinks(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
+            node.addLinkInstance("parent.foo", "ignore me")
+            node.addLinkInstance("parent.bar", new Bean(value: "bar"))
         }
         registry.registerInstance("other", new Bean(value: "ignore me"))
         mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.bar", Bean).value == "prefix: bar"
@@ -546,18 +543,18 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToAllLinksTransitive(ModelActionRole.Mutate, registry.action().type(Bean).action(mutatorAction))
-            node.addLink(registry.instanceRegistration("parent.foo", "ignore me"))
-            node.addLink(registry.instanceRegistration("parent.bar", new Bean(value: "bar")))
-            node.applyToLink(ModelActionRole.Mutate, registry.action().path("parent.bar").node { MutableModelNode bar ->
-                bar.addLink(registry.instanceRegistration("parent.bar.child1", new Bean(value: "baz")))
-                bar.addLink(registry.instanceRegistration("parent.bar.child2", "ignore me too"))
-            })
+            node.applyTo(allDescendants(), ModelActionRole.Mutate) { it.type(Bean).action(mutatorAction) }
+            node.addLinkInstance("parent.foo", "ignore me")
+            node.addLinkInstance("parent.bar", new Bean(value: "bar"))
+            node.applyToLink(ModelActionRole.Mutate) { it.path("parent.bar").node { MutableModelNode bar ->
+                bar.addLinkInstance("parent.bar.child1", new Bean(value: "baz"))
+                bar.addLinkInstance("parent.bar.child2", "ignore me too")
+            }}
         }
         registry.registerInstance("other", new Bean(value: "ignore me"))
         mutatorAction.execute(_) >> { Bean bean -> bean.value = "prefix: $bean.value" }
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.bar", Bean).value == "prefix: bar"
@@ -576,16 +573,16 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.register("parent") { it.unmanagedNode Integer, creatorAction }
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToLink(ModelActionRole.Mutate, registry.action().path("parent.foo").type(Bean).action(String, mutatorAction))
-            node.addLink(registry.instanceRegistration("parent.foo", new Bean(value: "foo")))
-            node.addLink(registry.instanceRegistration("parent.bar", new Bean(value: "bar")))
+            node.applyToLink(ModelActionRole.Mutate) { it.path("parent.foo").type(Bean).action(String, mutatorAction) }
+            node.addLinkInstance("parent.foo", new Bean(value: "foo"))
+            node.addLinkInstance("parent.bar", new Bean(value: "bar"))
         }
         mutatorAction.execute(_, _) >> { Bean bean, String prefix ->
             bean.value = "$prefix: $bean.value"
         }
-        registry.register(registry.instanceRegistration("prefix", "prefix"))
+        registry.registerInstance("prefix", "prefix")
 
-        registry.realize("parent") // TODO - should not need this
+        registry.realize("parent") // TODO - should not need this: parent mutations should be applied before mutating element
 
         expect:
         registry.realize("parent.foo", Bean).value == "prefix: foo"
@@ -598,7 +595,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.registerInstance("thing", "value")
         registry.configure(ModelActionRole.Validate) { it.path "thing" type Object node action }
-        action.execute(_) >> { MutableModelNode node -> node.addLink(registry.registration("thing.child") { it.descriptor("create thing.child as String").unmanaged("value") }) }
+        action.execute(_) >> { MutableModelNode node -> node.addLink("thing.child") { it.descriptor("create thing.child as String").unmanaged("value") } }
 
         when:
         registry.realize("thing")
@@ -658,22 +655,34 @@ class DefaultModelRegistryTest extends Specification {
     def "can remove an element with children that has not been used as input by a rule"() {
         given:
         registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
-            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+            node.addLinkInstance("parent.foo", 12.toInteger())
         }}
+
         registry.realize("parent")
 
-        when:
+        expect:
+        registry.atStateOrLater("parent", ModelNode.State.Registered).path == ModelPath.path("parent")
+        registry.atStateOrLater("parent.foo", ModelNode.State.Registered).path == ModelPath.path("parent.foo")
+
         registry.remove(ModelPath.path("parent"))
 
-        then:
+        when:
         registry.atStateOrLater("parent", ModelNode.State.Registered) == null
+        then:
+        def exParent = thrown IllegalStateException
+        exParent.message == "No model node at 'parent'"
+
+        when:
         registry.atStateOrLater("parent.foo", ModelNode.State.Registered) == null
+        then:
+        def exFoo = thrown IllegalStateException
+        exFoo.message == "No model node at 'parent.foo'"
     }
 
     def "cannot remove an element whose child has already been used as input by a rule"() {
         given:
         registry.register("parent") { it.unmanagedNode (Integer) { MutableModelNode node ->
-            node.addLink(registry.instanceRegistration("parent.foo", 12.toInteger()))
+            node.addLinkInstance("parent.foo", 12.toInteger())
         }}
         registry.registerInstance("bar", new Bean())
         registry.mutate { it.path("bar").action("parent.foo", Integer, BiActions.doNothing()) }
@@ -702,7 +711,7 @@ class DefaultModelRegistryTest extends Specification {
 
     @Unroll
     def "cannot execute action with role #targetRole where view is not available"() {
-        registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name())) {
+        registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name()), []) {
             @Override
             protected void execute(MutableModelNode modelNode, Bean view, List<ModelView<?>> inputs) {
             }
@@ -911,7 +920,7 @@ class DefaultModelRegistryTest extends Specification {
     def "asking for element at state #state does not create node"() {
         given:
         def events = []
-        registry.register("thing", new Bean(), { events << "created" })
+        registry.register("thing") { it.unmanaged(new Bean()) { events << "created" } }
 
         when:
         registry.atState(ModelPath.path("thing"), state)
@@ -930,9 +939,13 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "asking for unknown element at state #state returns null"() {
-        expect:
-        registry.atState(ModelPath.path("thing"), state) == null
+    def "asking for unknown element at state #state fails"() {
+        when:
+        registry.atState(ModelPath.path("thing"), state)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "No model node at 'thing'"
 
         where:
         state << ModelNode.State.values()
@@ -944,7 +957,7 @@ class DefaultModelRegistryTest extends Specification {
         def mmType = ModelTypes.modelMap(Bean)
 
         registry
-            .modelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+            .registerModelMap("things", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "things" type mmType action { c ->
                 events << "collection mutated"
@@ -1126,19 +1139,19 @@ class DefaultModelRegistryTest extends Specification {
         registry.register("a") { it.unmanaged("a") }
         registry.mutate {
             it.path("a").node {
-                it.addLink(registry.registration("a.1").unmanaged("a.1"))
-                it.applyToLink(ModelActionRole.Finalize, registry.action().path("a.1").node {
-                    it.addLink(registry.registration("a.1.2").unmanaged("a.1.2"))
-                })
+                it.addLinkInstance("a.1", "a.1")
+                it.applyToLink(ModelActionRole.Finalize) { it.path("a.1").node {
+                    it.addLinkInstance("a.1.2", "a.1.2")
+                }}
             }
         }
         registry.register("b") { it.unmanaged("b") }
         registry.mutate {
             it.path("b").node {
-                it.addLink(registry.registration("b.1").unmanaged("b.1"))
-                it.applyToLink(ModelActionRole.Finalize, registry.action().path("b.1").node {
-                    it.addLink(registry.registration("b.1.2").unmanaged("b.1.2"))
-                })
+                it.addLinkInstance("b.1", "b.1")
+                it.applyToLink(ModelActionRole.Finalize) { it.path("b.1").node {
+                    it.addLinkInstance("b.1.2", "b.1.2")
+                }}
             }
         }
 
@@ -1162,13 +1175,13 @@ class DefaultModelRegistryTest extends Specification {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
             }
         }
-        .modelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+        .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
             .mutate {
             it.path "beans" type mmType action { c ->
                 c.create("element")
             }
         }
-        .modelMap("emptyBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
+        .registerModelMap("emptyBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
 
         when:
         registry.bindAllReferences()
@@ -1186,7 +1199,7 @@ class DefaultModelRegistryTest extends Specification {
 
     def "does not report unbound actions applied at registration as unbound after the nodes is removed"() {
         given:
-        def registration = ModelRegistrations.of(ModelPath.path("unused"))
+        def registration = ModelRegistrations.of(ModelPath.path("unused")).descriptor("unused")
         ModelActionRole.values().each { role ->
             registration.action(role, [ModelReference.of("unknown")], BiActions.doNothing())
         }
@@ -1286,7 +1299,7 @@ bar
     def "implicit cycle when node depends on parent is detected"() {
         given:
         registry.registerInstance("foo", "foo")
-            .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink(registry.registration("foo.bar").unmanaged(Number, 12)) } }
+            .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink("foo.bar") { it.unmanaged(Number, 12) } } }
             .mutate { it.path("foo.bar").descriptor("bar mutator").action(String) {} }
 
         when:
@@ -1304,9 +1317,9 @@ foo
     def "implicit cycle when node depends on ancestor is detected"() {
         given:
         registry.registerInstance("foo", "foo")
-            .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink(registry.registration("foo.bar").unmanaged(Number, 12)) } }
-            .mutate { it.path("foo.bar").descriptor("bar mutator").node { it.addLink(registry.registration("foo.bar.baz").unmanaged(Number, 107)) } }
-            .mutate { it.path("foo.bar.baz").descriptor("baz mutator").action(ModelType.of(String)) {} }
+            .mutate { it.path("foo").descriptor("foo mutator").node { it.addLink("foo.bar") { it.unmanaged(Number, 12) } } }
+            .mutate { it.path("foo.bar").descriptor("bar mutator").node { it.addLink("foo.bar.baz") { it.unmanaged(Number, 107) } } }
+            .mutate { it.path("foo.bar.baz").descriptor("baz mutator").action(String) {} }
 
         when:
         registry.get("foo")
@@ -1367,11 +1380,11 @@ foo
     }
 
     def "discover children of scope when defining scope when node matching input type is not already discovered"() {
-        registry.register(registry.registration("dep").unmanaged(Bean, new Bean()))
-        registry.register(registry.registration("target").unmanaged(String, {}))
-        registry.register(registry.registration("childA").unmanaged(String, {}))
-        registry.register(registry.registration("childB").unmanaged(String, {}))
-        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+        registry.register("dep") { it.unmanaged(Bean, new Bean()) }
+        registry.register("target") { it.unmanaged(String) }
+        registry.register("childA") { it.unmanaged(String) }
+        registry.register("childB") { it.unmanaged(String) }
+        registry.configure(ModelActionRole.Mutate) { it.path("target").action(Bean, BiActions.doNothing())}
 
         when:
         registry.realize("target")
@@ -1384,11 +1397,12 @@ foo
     }
 
     def "does not discover children of scope when node matching input type is already in discovered"() {
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).build())
-        registry.register(registry.registration("target").unmanaged(String, {}))
-        registry.register(registry.registration("childA").unmanaged(String, {}))
-        registry.register(registry.registration("childB").unmanaged(String, {}))
-        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).descriptor("dep").build())
+        registry.atState("dep", ModelNode.State.Discovered)
+        registry.register("target") { it.unmanaged(String) }
+        registry.register("childA") { it.unmanaged(String) }
+        registry.register("childB") { it.unmanaged(String) }
+        registry.configure(ModelActionRole.Mutate) { it.path("target").action(Bean, BiActions.doNothing()) }
 
         when:
         registry.realize("target")
@@ -1401,11 +1415,12 @@ foo
     }
 
     def "fails when another child in scope with matching bound rule's target type is discovered"() {
-        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).descriptor("dep creator").build())
-        registry.register(registry.registration("target").unmanaged(String, {}))
-        registry.register(registry.registration("childA").unmanaged(String, {}))
-        registry.register(registry.registration("childB").unmanaged(String, {}))
-        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+        registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).descriptor("dep creator").build())
+        registry.atState("dep", ModelNode.State.Discovered)
+        registry.register("target") { it.unmanaged(String) }
+        registry.register("childA") { it.unmanaged(String) }
+        registry.register("childB") { it.unmanaged(String) }
+        registry.configure(ModelActionRole.Mutate) { it.path("target").action(Bean, BiActions.doNothing()) }
 
         when:
         registry.register(ModelRegistrations.bridgedInstance(ModelReference.of("dep2", Bean), new Bean()).descriptor("dep2 creator").build())
@@ -1424,6 +1439,32 @@ foo
   - dep2 (created by: dep2 creator)""")
     }
 
+    def "can apply RuleSource to node"() {
+        when:
+        registry.registerInstance("bean", new Bean())
+        registry.configure(ModelActionRole.Create) { it.path("bean").node { node -> node.applyToSelf(BeanRules) } }
+
+        then:
+        def bean = registry.realize("bean", Bean)
+        bean.name == 'bean'
+        bean.value == '12'
+    }
+
+    def "can apply RuleSource to node via reference"() {
+        when:
+        registry.registerInstance("target", new Bean())
+        registry.root.addReference("bean", Bean, registry.root.getLink("target"))
+        registry.configure(ModelActionRole.Defaults) { it.path("bean").node { node -> node.applyToSelf(BeanRules) } }
+
+        // TODO - should not need this: target of the reference should be transitioned
+        registry.realize("target", Bean)
+
+        then:
+        def bean = registry.realize("bean", Bean)
+        bean.name == 'bean'
+        bean.value == '12'
+    }
+
     static class Bean {
         String name
         String value
@@ -1438,3 +1479,4 @@ foo
         String internal
     }
 }
+

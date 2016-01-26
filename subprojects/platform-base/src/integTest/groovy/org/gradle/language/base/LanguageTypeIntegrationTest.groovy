@@ -22,14 +22,12 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-        interface CustomLanguageSourceSet extends LanguageSourceSet {}
-        class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
+        @Managed interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
         class CustomLanguagePlugin extends RuleSource {
             @LanguageType
             void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
                 builder.setLanguageName("custom")
-                builder.defaultImplementation(DefaultCustomLanguageSourceSet)
             }
         }
 
@@ -37,15 +35,16 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    def "registers language in languageRegistry"(){
+    def "registers language in languageSourceSetFactory"(){
         given:
         buildFile << '''
 model {
     tasks {
         create("printLanguages") {
             it.doLast {
-                 def languages = $.languages*.name.sort().join(", ")
-                 println "registered languages: $languages"
+                def languageSourceSetFactory = $.languageSourceSetFactory
+                def languages = languageSourceSetFactory.registrations*.name.sort().join(", ")
+                println "registered languages: $languages"
             }
         }
     }
@@ -85,7 +84,6 @@ model {
                 }
             }
         }
-
 """
         then:
         succeeds "components"

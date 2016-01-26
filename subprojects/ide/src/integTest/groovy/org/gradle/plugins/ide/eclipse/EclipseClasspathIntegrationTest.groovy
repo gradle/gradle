@@ -16,8 +16,10 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
+
 import spock.lang.Issue
 
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -26,6 +28,8 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     String content
+
+    private final String jreContainerPath = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-${org.gradle.api.JavaVersion.current()}/"
 
     @Test
     void classpathContainsLibraryEntriesForExternalAndFileDependencies() {
@@ -67,6 +71,53 @@ dependencies {
         libraries[2].assertHasNoSource()
         libraries[2].assertHasNoJavadoc()
     }
+
+    @Test
+    @Issue("GRADLE-1945")
+    void unresolvedDependenciesAreLogged() {
+        //given
+        def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
+        module.publish()
+
+        //when
+        ExecutionResult result = runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations {
+    myPlusConfig
+    myMinusConfig
+}
+
+dependencies {
+    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
+
+    eclipse {
+        classpath {
+            plusConfigurations += [ configurations.myPlusConfig ]
+            minusConfigurations += [ configurations.myMinusConfig]
+        }
+    }
+}
+"""
+        String expected = """:eclipseClasspath
+Could not resolve: myGroup:missing-artifact:1.0
+Could not resolve: myGroup:missing-extra-artifact:1.0
+:eclipseJdt
+:eclipseProject
+:eclipse
+"""
+        result.assertOutputEquals(expected, true, false)
+    }
+
 
     @Test
     @Issue("GRADLE-1622")
@@ -589,15 +640,15 @@ eclipse.classpath {
     @Test
     void removeDependenciesFromExistingClasspathFileWhenMerging() {
         //given
-        getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
+        getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="$jreContainerPath"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
 	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
 	<classpathentry kind="src" path="/someProject"/>
 </classpath>
-'''
+"""
 
         //when
         runEclipseTask """
@@ -608,7 +659,6 @@ dependencies {
   compile files('newDependency.jar')
 }
 """
-
         //then
         assert classpath.entries.size() == 3
         def libraries = classpath.libs
@@ -760,14 +810,14 @@ sourceSets {
     void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
-        classpath << '''<?xml version="1.0" encoding="UTF-8"?>
+        classpath << """<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="$jreContainerPath"/>
 	<classpathentry kind="lib" path="/some/path/someDependency.jar"/>
 	<classpathentry kind="var" path="SOME_VAR/someVarDependency.jar"/>
 </classpath>
-'''
+"""
 
         //when
         runEclipseTask """
@@ -982,7 +1032,28 @@ dependencies {
         def libraries = classpath.libs
         assert libraries.size() == 1
         libraries[0].assertHasJar(otherLib)
-        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER', 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
+        assert classpath.containers == [jreContainerPath, 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
 
+    @Test
+    void avoidsDuplicateJreContainersInClasspathWhenMerging() {
+        //given
+        getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.5"/>
+	<classpathentry kind="src" path="/someProject"/>
+</classpath>
+"""
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+"""
+        //then
+        assert classpath.entries.size() == 2
+        assert classpath.containers.size() == 1
+        assert classpath.containers == [jreContainerPath]
+    }
 }

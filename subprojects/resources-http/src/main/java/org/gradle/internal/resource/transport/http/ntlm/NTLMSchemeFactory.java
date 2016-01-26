@@ -20,23 +20,19 @@ import jcifs.ntlmssp.Type2Message;
 import jcifs.ntlmssp.Type3Message;
 import jcifs.util.Base64;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.impl.auth.NTLMEngine;
 import org.apache.http.impl.auth.NTLMEngineException;
 import org.apache.http.impl.auth.NTLMScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 import java.io.IOException;
 
 // Copied from http://hc.apache.org/httpcomponents-client-ga/ntlm.html
-public class NTLMSchemeFactory implements AuthSchemeFactory {
+public class NTLMSchemeFactory implements AuthSchemeProvider {
 
-    public static void register(DefaultHttpClient httpClient) {
-        httpClient.getAuthSchemes().register("ntlm", new NTLMSchemeFactory());
-    }
-
-    public AuthScheme newInstance(HttpParams params) {
+    @Override
+    public AuthScheme create(HttpContext context) {
         return new NTLMScheme(new JCIFSEngine());
     }
 

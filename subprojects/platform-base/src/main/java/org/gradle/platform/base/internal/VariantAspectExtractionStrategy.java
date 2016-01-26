@@ -32,15 +32,17 @@ public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtract
         ImmutableSet.Builder<ModelProperty<?>> dimensionsBuilder = ImmutableSet.builder();
         for (ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
             ModelProperty<?> property = propertyResult.getProperty();
-            if (propertyResult.getGetter().isAnnotationPresent(Variant.class)) {
-                Class<?> propertyType = property.getType().getRawClass();
-                if (!String.class.equals(propertyType) && !Named.class.isAssignableFrom(propertyType)) {
-                    throw invalidProperty(extractionContext, property, String.format("@Variant annotation only allowed for properties of type String and %s, but property has type %s", Named.class.getName(), propertyType.getName()));
+            for (PropertyAccessorExtractionContext accessor : propertyResult.getAccessors()) {
+                if (accessor.isAnnotationPresent(Variant.class)) {
+                    if (accessor.getAccessorType() == PropertyAccessorType.SETTER) {
+                        throw invalidProperty(extractionContext, property, "@Variant annotation is only allowed on getter methods");
+                    }
+                    Class<?> propertyType = property.getType().getRawClass();
+                    if (!String.class.equals(propertyType) && !Named.class.isAssignableFrom(propertyType)) {
+                        throw invalidProperty(extractionContext, property, String.format("@Variant annotation only allowed for properties of type String and %s, but property has type %s", Named.class.getName(), propertyType.getName()));
+                    }
+                    dimensionsBuilder.add(property);
                 }
-                dimensionsBuilder.add(property);
-            }
-            if (propertyResult.getSetter() != null && propertyResult.getSetter().isAnnotationPresent(Variant.class)) {
-                throw invalidProperty(extractionContext, property, "@Variant annotation is only allowed on getter methods");
             }
         }
         ImmutableSet<ModelProperty<?>> dimensions = dimensionsBuilder.build();

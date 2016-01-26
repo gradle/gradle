@@ -22,7 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.cache.HeapProportionalSizer;
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -38,9 +38,9 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
     private final Cache<SpecKey, Spec> specInstanceCache;
 
     public CachingPatternSpecFactory() {
-        HeapProportionalSizer sizer = new HeapProportionalSizer();
-        specResultCache = CacheBuilder.newBuilder().maximumSize(sizer.scaleValue(RESULTS_CACHE_MAX_SIZE)).build();
-        specInstanceCache = CacheBuilder.newBuilder().maximumSize(sizer.scaleValue(INSTANCES_MAX_SIZE)).build();
+        HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
+        specResultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
+        specInstanceCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(INSTANCES_MAX_SIZE)).build();
     }
 
     @Override

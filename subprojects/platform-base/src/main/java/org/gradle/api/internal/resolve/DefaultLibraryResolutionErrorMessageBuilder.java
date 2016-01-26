@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.TextUtil;
 
 import java.util.*;
@@ -47,7 +48,8 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
             variantDescriptor.setLength(0);
             boolean first = true;
             variantDescriptor.append("    - ").append(variant.getDisplayName()).append(" [");
-            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore);
+            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore.getSchema(((BinarySpecInternal)variant).getPublicType()));
+
             for (String axis : metaData.getNonNullVariantAxes()) {
                 if (first) {
                     first = false;
@@ -70,7 +72,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     public String noCompatibleVariantErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
         HashMultimap<String, String> variantAxisMessages = HashMultimap.create();
         for (BinarySpec spec : allBinaries) {
-            VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore);
+            VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore.getSchema(((BinarySpecInternal)spec).getPublicType()));
             Set<String> variantAxesWithIncompatibleTypes = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData, md, variantAxesToResolve);
             for (String variantAxis : variantAxesToResolve) {
                 String value = md.getValueAsString(variantAxis);

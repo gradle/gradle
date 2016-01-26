@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -53,11 +52,11 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     public FileCollection getLinkFiles() {
-        return new StaticLibraryLinkOutputs();
+        return getFileCollectionFactory().create(new StaticLibraryLinkOutputs());
     }
 
     public FileCollection getRuntimeFiles() {
-        return new SimpleFileCollection();
+        return getFileCollectionFactory().empty("Runtime files for " + getDisplayName());
     }
 
     @Override
@@ -69,7 +68,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
         public DefaultTasksCollection(BinaryTasksCollection delegate) {
             super(delegate);
         }
@@ -80,6 +79,11 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     private class StaticLibraryLinkOutputs extends LibraryOutputs {
+        @Override
+        public String getDisplayName() {
+            return "Link files for " + DefaultStaticLibraryBinarySpec.this.getDisplayName();
+        }
+
         @Override
         protected boolean hasOutputs() {
             return hasSources() || !additionalLinkFiles.isEmpty();

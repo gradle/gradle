@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrat
 class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {
-        return "compilePlayBinaryRoutes"
+        return "compilePlayBinaryPlayRoutes"
     }
 
     @Override

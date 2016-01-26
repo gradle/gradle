@@ -61,7 +61,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         expect:
         fails("verify")
         errorResolvingPlugin()
-        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json'")
+        outOfProtocolCause("content type is 'text/html; charset=utf-8', expected 'application/json' (status code: $statusCode)")
 
         where:
         statusCode << [200, 404, 500]
@@ -321,7 +321,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         errorResolvingPlugin()
 
         failure.assertThatCause(matchesRegexp(".*?Could not GET 'http://localhost:\\d+/.+?/plugin/use/org.my.myplugin/1.0'.*?"))
-        failure.assertThatCause(matchesRegexp(".*?Connection( to http://localhost:\\d+)? refused"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:\\d+ (\\[.*\\])? failed: Connection refused(: connect)?"))
     }
 
     def "non contactable dependency repository produces error"() {
@@ -342,7 +342,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         fails("verify")
         errorResolvingPlugin()
         failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
-        failure.assertThatCause(matchesRegexp(".*?Connection( to $address)? refused"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:\\d+ (\\[.*\\])? failed: Connection refused(: connect)?"))
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {

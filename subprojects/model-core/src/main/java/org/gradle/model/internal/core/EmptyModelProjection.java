@@ -43,22 +43,12 @@ public class EmptyModelProjection implements ModelProjection {
     }
 
     @Override
-    public <T> boolean canBeViewedAsMutable(ModelType<T> type) {
+    public <T> boolean canBeViewedAs(ModelType<T> type) {
         return false;
     }
 
     @Override
-    public <T> boolean canBeViewedAsImmutable(ModelType<T> type) {
-        return false;
-    }
-
-    @Override
-    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
+    public Iterable<String> getTypeDescriptions(MutableModelNode node) {
         return Collections.emptyList();
     }
 

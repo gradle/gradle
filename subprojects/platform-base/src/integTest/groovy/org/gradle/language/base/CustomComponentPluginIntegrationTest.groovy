@@ -291,8 +291,8 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin#register is not a valid component model rule method."
-        failure.assertHasCause "Method annotated with @ComponentType must have a single parameter of type 'org.gradle.platform.base.ComponentTypeBuilder'."
+        failure.assertHasCause '''Type MySamplePlugin is not a valid rule source:
+- Method register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.ComponentTypeBuilder.'''
     }
 
     def "cannot register same unmanaged component type implementation multiple times"(){

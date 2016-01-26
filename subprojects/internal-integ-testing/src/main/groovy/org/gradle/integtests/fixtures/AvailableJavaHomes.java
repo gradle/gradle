@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
-abstract public class AvailableJavaHomes {
+public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
 
     @Nullable

@@ -136,7 +136,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 return r;
             }
         };
-        return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()]));
+        return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[0]));
     }
 
     protected static abstract class Execution implements Filterable {

@@ -118,8 +118,8 @@ model {
         run "installMainExecutable"
 
         then:
-        resourceOnlyLibrary("build/binaries/resourcesSharedLibrary/resources").assertExists()
-        installation("build/install/mainExecutable").exec().out == "Hello!"
+        resourceOnlyLibrary("build/libs/resources/shared/resources").assertExists()
+        installation("build/install/main").exec().out == "Hello!"
     }
 
     @Ignore

@@ -17,4 +17,5 @@
 /**
  * The tooling models for Gradle builds and projects.
  */
+@org.gradle.api.Incubating
 package org.gradle.tooling.model.gradle;

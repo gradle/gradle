@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -25,11 +26,17 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector;
 public class DefaultLibraryComponentSelector implements LibraryComponentSelector {
     private final String projectPath;
     private final String libraryName;
+    private final String variant;
 
     public DefaultLibraryComponentSelector(String projectPath, String libraryName) {
+        this(projectPath, libraryName, null);
+    }
+
+    public DefaultLibraryComponentSelector(String projectPath, String libraryName, String variant) {
         assert !Strings.isNullOrEmpty(projectPath) : "project path cannot be null or empty";
         this.projectPath = projectPath;
         this.libraryName = Strings.emptyToNull(libraryName);
+        this.variant = variant;
     }
 
     @Override
@@ -37,8 +44,10 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         String txt;
         if (Strings.isNullOrEmpty(libraryName)) {
             txt = String.format("project '%s'", projectPath);
-        } else {
+        } else if (Strings.isNullOrEmpty(variant)) {
             txt = String.format("project '%s' library '%s'", projectPath, libraryName);
+        } else {
+            txt = String.format("project '%s' library '%s' binary '%s'", projectPath, libraryName, variant);
         }
         return txt;
     }
@@ -53,13 +62,20 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         return libraryName;
     }
 
+    @Nullable
+    @Override
+    public String getVariant() {
+        return variant;
+    }
+
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
         if (identifier instanceof LibraryBinaryIdentifier) {
             LibraryBinaryIdentifier projectComponentIdentifier = (LibraryBinaryIdentifier) identifier;
-            return projectPath.equals(projectComponentIdentifier.getProjectPath())
-                && projectComponentIdentifier.getLibraryName().equals(libraryName);
+            return Objects.equal(projectComponentIdentifier.getProjectPath(), projectPath)
+                && Objects.equal(projectComponentIdentifier.getLibraryName(), libraryName)
+                && Objects.equal(projectComponentIdentifier.getVariant(), variant);
         }
 
         return false;
@@ -75,12 +91,13 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         }
         DefaultLibraryComponentSelector that = (DefaultLibraryComponentSelector) o;
         return Objects.equal(projectPath, that.projectPath)
-            && Objects.equal(libraryName, that.libraryName);
+            && Objects.equal(libraryName, that.libraryName)
+            && Objects.equal(variant, that.variant);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(projectPath, libraryName);
+        return Objects.hashCode(projectPath, libraryName, variant);
     }
 
     @Override

@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
+public abstract class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;

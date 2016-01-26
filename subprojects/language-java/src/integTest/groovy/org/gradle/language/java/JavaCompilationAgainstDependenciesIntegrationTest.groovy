@@ -95,6 +95,9 @@ model {
     }
 }
 """
+        file('src/apiLib/java/ApiLib.java') << '''public class ApiLib {}'''
+        file('src/other/java/Other.java') << '''public class Other {}'''
+        file('src/transitiveApiLib/java/TransitiveApiLib.java') << '''public class TransitiveApiLib {}'''
         file('src/main/java/TestApp.java') << '''public class TestApp {}'''
 
         when:

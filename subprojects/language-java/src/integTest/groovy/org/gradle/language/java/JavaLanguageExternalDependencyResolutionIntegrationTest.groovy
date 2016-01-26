@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
@@ -36,7 +37,8 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
     }
 
-    def "can resolve dependency on library in maven repository"() {
+    @Unroll
+    def "can resolve dependency on library in maven repository using #description"() {
         given:
         def module = mavenRepo.module("org.gradle", "test").publish()
 
@@ -47,7 +49,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
                         sources {
                             java {
                                 dependencies {
-                                    module 'org.gradle:test:1.0'
+                                    $declaration
                                 }
                             }
                         }
@@ -68,6 +70,13 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         then:
         file('libs').assertHasDescendants('test-1.0.jar')
         file('libs/test-1.0.jar').assertIsCopyOf(module.artifactFile)
+
+        where:
+        description                                   | declaration
+        "shorthand notation"                          | "module 'org.gradle:test:1.0'"
+        "shorthand notation without a version number" | "module 'org.gradle:test'"
+        "explicit notation without a version number"  | "group 'org.gradle' module 'test'"
+        "explicit notation starting from module"      | "module 'test' group 'org.gradle' version '1.0'"
     }
 
     def "resolved classpath includes compile-scoped but not runtime-scoped transitive dependencies for library in maven repository"() {
@@ -76,7 +85,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         mavenRepo.module("org.gradle", "runtimeDep").publish()
         def module = mavenRepo.module("org.gradle", "test")
                 .dependsOn("org.gradle", "compileDep", "1.0")
-                .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime")
+                .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime", null)
                 .publish()
 
         theModel """
@@ -168,8 +177,8 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         mavenRepo.module("org.gradle", "transitiveDep").publish()
         mavenRepo.module("org.gradle", "transitiveApiDep").publish()
         mavenRepo.module("org.gradle", "apiDep")
-                .dependsOn("org.gradle", "transitiveApiDep", "1.0", null, "compile")
-                .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime")
+                .dependsOn("org.gradle", "transitiveApiDep", "1.0", null, "compile", null)
+                .dependsOn("org.gradle", "transitiveDep", "1.0", null, "runtime", null)
                 .publish()
 
         theModel """
@@ -208,6 +217,8 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
             }
         """
 
+        file('src/other/java/Other.java') << 'public class Other {}'
+
         when:
         succeeds ':copyDeps'
 
@@ -231,7 +242,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         fails 'mainJar'
 
         and:
-        failureDescriptionContains('Could not resolve all dependencies')
+        failureDescriptionContains("Could not resolve all dependencies for 'Jar 'main:jar''")
         failureCauseContains('Could not find org.gradle:test:1.0')
     }
 
@@ -251,6 +262,6 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         fails 'mainJar'
 
         and:
-        failureCauseContains("`org.gradle:test:1.0' is not a valid library name. Did you mean to refer to a module instead?")
+        failureCauseContains("'org.gradle:test:1.0' is not a valid library name. Did you mean to refer to a module instead?")
     }
 }

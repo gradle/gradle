@@ -23,10 +23,15 @@ abstract class AbstractAntForkingScalaCompilerIntegrationTest extends BasicScala
 
     String compilerConfiguration() {
         '''
-compileScala.scalaCompileOptions.with {
-    useAnt = true
-    fork = true
-    forkOptions.memoryMaximumSize = "512m"
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        useAnt = true
+        fork = true
+        forkOptions.memoryMaximumSize = "512m"
+        if(!JavaVersion.current().isJava8Compatible()) {
+            forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+        }
+    }
 }
 '''
     }

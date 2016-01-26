@@ -51,10 +51,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
             toolVersion = DEFAULT_PMD_VERSION
-            // NOTE: should change default rule set to java-basic once we bump default version to 5.0+
-            // this will also require a change to Pmd.run() (convert java-basic to basic for old versions,
-            // instead of basic to java-basic for new versions)
-            ruleSets = ["basic"]
+            ruleSets = ["java-basic"]
             ruleSetFiles = project.files()
         }
         extension.getConventionMapping().with{

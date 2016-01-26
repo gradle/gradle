@@ -21,5 +21,5 @@ import java.io.File;
 import java.util.Set;
 
 public interface SourceIncludesResolver {
-    Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes);
+    Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes, Set<File> candidates);
 }

@@ -28,11 +28,11 @@ import org.gradle.internal.resource.CharsetUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -45,15 +45,11 @@ class Jdk7DirectoryWalkerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    @Shared
-    private String originalFileEncoding
+    @Rule
+    SetSystemProperties setSystemPropertiesRule
 
-    def setupSpec() {
-        originalFileEncoding = System.getProperty("file.encoding")
-    }
 
     def cleanup() {
-        System.setProperty("file.encoding", originalFileEncoding)
         Charset.defaultCharset = null // clear cache
     }
 

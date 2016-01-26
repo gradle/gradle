@@ -91,7 +91,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath());
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath(), getProject().getGradle().getGradleUserHomeDir());
             compiler = scalaCompilerFactory.newCompiler(spec);
             if (getScalaCompileOptions().isUseAnt()) {
                 compiler = new CleaningScalaCompiler(compiler, getOutputs());

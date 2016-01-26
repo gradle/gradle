@@ -42,9 +42,7 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
     @Override
     public ModuleDependencySpecBuilder module(String moduleIdOrName) {
-        return moduleIdOrName.contains(":")
-            ? moduleDependencyFromModuleId(moduleIdOrName)
-            : moduleDependency().module(moduleIdOrName);
+        return moduleDependency().module(moduleIdOrName);
     }
 
     @Override
@@ -76,15 +74,6 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
     private <T extends DependencySpecBuilder> T add(T builder) {
         builders.add(builder);
         return builder;
-    }
-
-    private ModuleDependencySpecBuilder moduleDependencyFromModuleId(String moduleId) {
-        //TODO:RBO: validate module id syntax here
-        String[] components = moduleId.split(":");
-        return moduleDependency()
-            .group(components[0])
-            .module(components[1])
-            .version(components.length < 3 ? null : components[2]);
     }
 
     private Set<DependencySpec> dependencySpecSet() {

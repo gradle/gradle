@@ -17,12 +17,9 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Annotation;
 
-@ThreadSafe
 public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation> implements MethodModelRuleExtractor {
     private final Class<T> annotationType;
 
@@ -31,17 +28,18 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         this.annotationType = annotationType;
     }
 
-    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
-        return new AnnotationMatchingSpec();
+    @Override
+    public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
+        return ruleDefinition.getAnnotation(annotationType) != null;
     }
 
     public String getDescription() {
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }
 
-    private class AnnotationMatchingSpec implements Spec<MethodRuleDefinition<?, ?>> {
-        public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
-           return ruleDefinition.getAnnotation(annotationType) != null;
-       }
+    protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+        if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
+            problems.add(ruleDefinition, "A method " + getDescription() + " must have void return type.");
+        }
     }
 }

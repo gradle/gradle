@@ -56,7 +56,7 @@ dependencies {
 
     private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
         def repoDir = file("repo")
-        maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOn("myartifactdep").publish()
+        maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOnModules("myartifactdep").publish()
         maven(repoDir).module("mygroup", "myartifactdep").publish()
 
         def settingsFile = file("settings.gradle")

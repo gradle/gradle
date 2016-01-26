@@ -19,11 +19,12 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.List;
+import java.util.Set;
 
 public interface OptionElement {
     Class<?> getDeclaredClass();
 
-    List<String> getAvailableValues();
+    Set<String> getAvailableValues();
 
     Class<?> getOptionType();
 

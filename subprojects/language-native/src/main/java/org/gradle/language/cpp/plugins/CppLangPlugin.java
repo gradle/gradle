@@ -27,6 +27,7 @@ import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
@@ -54,6 +55,7 @@ public class CppLangPlugin implements Plugin<Project> {
         void registerLanguage(LanguageTypeBuilder<CppSourceSet> builder) {
             builder.setLanguageName("cpp");
             builder.defaultImplementation(DefaultCppSourceSet.class);
+            builder.internalView(DependentSourceSetInternal.class);
         }
 
         @Mutate

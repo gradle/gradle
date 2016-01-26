@@ -17,6 +17,7 @@ package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
@@ -33,7 +34,7 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
     public DefaultProjectDependencySpec(String libraryName, String projectPath) {
         if (libraryName == null && projectPath == null) {
-            throw new IllegalArgumentException("A project dependency spec must have at least one of project or library name not null");
+            throw new IllegalDependencyNotation("A project dependency must have at least a project or library name specified.");
         }
         this.libraryName = libraryName;
         this.projectPath = projectPath;
@@ -68,14 +69,22 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
         @Override
         public ProjectDependencySpecBuilder project(String path) {
+            checkNotSet("project", projectPath);
             projectPath = path;
             return this;
         }
 
         @Override
         public ProjectDependencySpecBuilder library(String name) {
+            checkNotSet("library", libraryName);
             libraryName = name;
             return this;
+        }
+
+        private void checkNotSet(String name, String value) {
+            if (value != null) {
+                throw new IllegalDependencyNotation(String.format("Cannot set '%s' multiple times for project dependency.", name));
+            }
         }
 
         @Override
@@ -86,8 +95,8 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
         private void validate() {
             if (projectPath == null && libraryName != null && libraryName.contains(":")) {
-                throw new IllegalArgumentException(
-                    String.format("`%s' is not a valid library name. Did you mean to refer to a module instead?", libraryName));
+                throw new IllegalDependencyNotation(
+                    String.format("'%s' is not a valid library name. Did you mean to refer to a module instead?", libraryName));
             }
         }
     }

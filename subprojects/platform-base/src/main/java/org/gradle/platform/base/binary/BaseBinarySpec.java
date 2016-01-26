@@ -17,29 +17,31 @@
 package org.gradle.platform.base.binary;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelMaps;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
+
+import java.io.File;
+import java.util.Set;
 
 /**
  * Base class for custom binary implementations.
@@ -53,16 +55,16 @@ import org.gradle.util.DeprecationLogger;
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
 public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
-    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
+    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
     private final String name;
-    private final MutableModelNode modelNode;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
-
+    private BinaryNamingScheme namingScheme;
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
@@ -90,11 +92,37 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         }
         this.name = info.name;
         this.publicType = info.publicType;
-        this.modelNode = info.modelNode;
+        MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                @Override
+                public void execute(MutableModelNode modelNode) {
+                    modelNode.setPrivateData(BINARY_TASKS_COLLECTION, tasks);
+                }
+            })
+            .withProjection(new UnmanagedModelProjection<BinaryTasksCollection>(BINARY_TASKS_COLLECTION))
+            .descriptor(modelNode.getDescriptor())
+            .build();
+        modelNode.addLink(itemRegistration);
+
+        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(name).withBinaryType(getTypeName());
+    }
+
+    @Nullable
+    private String componentName() {
+        ComponentSpec component = getComponent();
+        return component != null ? component.getName() : null;
+    }
+
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        // TODO:DAZ This can throw a NPE: will need an identifier for a variant without an owning component
+        ComponentSpec component = getComponent();
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override
@@ -109,10 +137,13 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Nullable
     protected <T extends ComponentSpec> T getComponentAs(Class<T> componentType) {
-        if (componentNode != null && componentNode.canBeViewedAs(ModelType.of(componentType))) {
-            return componentNode.asImmutable(ModelType.of(componentType), componentNode.getDescriptor()).getInstance();
+        if (componentNode == null) {
+            return null;
         }
-        return null;
+        ModelType<T> modelType = ModelType.of(componentType);
+        return componentNode.canBeViewedAs(modelType)
+            ? componentNode.asImmutable(modelType, componentNode.getDescriptor()).getInstance()
+            : null;
     }
 
     protected String getTypeName() {
@@ -160,7 +191,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
+        return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
     public BinaryTasksCollection getTasks() {
@@ -168,6 +199,19 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     public boolean isLegacyBinary() {
+        return false;
+    }
+
+    public BinaryNamingScheme getNamingScheme() {
+        return namingScheme;
+    }
+
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
+        this.namingScheme = namingScheme;
+    }
+
+    @Override
+    public boolean hasCodependentSources() {
         return false;
     }
 
@@ -207,4 +251,19 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         // criteria make them buildable or not.
         return new FixedBuildAbility(true);
     }
+
+    public static void replaceSingleDirectory(Set<File> dirs, File dir) {
+        switch (dirs.size()) {
+            case 0:
+                dirs.add(dir);
+                break;
+            case 1:
+                dirs.clear();
+                dirs.add(dir);
+                break;
+            default:
+                throw new IllegalStateException("Can't replace multiple directories.");
+        }
+    }
+
 }

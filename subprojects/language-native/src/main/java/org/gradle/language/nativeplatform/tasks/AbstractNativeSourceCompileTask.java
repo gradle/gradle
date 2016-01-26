@@ -30,7 +30,7 @@ import java.io.File;
  * Compiles native source files into object files.
  */
 @Incubating
-abstract public class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
+public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
     public AbstractNativeSourceCompileTask() {

@@ -29,6 +29,8 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
+    private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
+    private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files of tasks..."
 
     GradleHandle gradle
 
@@ -129,20 +131,34 @@ ${result.error}
 
     private void waitForBuild() {
         def lastOutput = buildOutputSoFar()
+        def lastLength = lastOutput.size()
         def lastActivity = monotonicClockMillis()
-        boolean endOfBuildReached = false
+        int endOfBuildReached = 0
+        int startIndex = 0
 
         while (gradle.isRunning() && monotonicClockMillis() - lastActivity < (buildTimeout * 1000)) {
             sleep 100
-            def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
-
-            if (lastOutput.contains("Waiting for changes to input files of tasks...")) {
-                endOfBuildReached = true
-                sleep 100
-                break
-            } else if (lastOutput.size() > lastLength) {
+            if (lastOutput.size() != lastLength) {
                 lastActivity = monotonicClockMillis()
+                lastLength = lastOutput.size()
+                // wait for quiet period in output before detecting build ending
+                continue
+            }
+
+            int changeDetectedIndex = lastOutput.lastIndexOf(CHANGE_DETECTED_OUTPUT)
+            if (changeDetectedIndex > startIndex) {
+                startIndex = changeDetectedIndex + CHANGE_DETECTED_OUTPUT.length()
+                endOfBuildReached = 0
+            }
+            if (lastOutput.length() > startIndex && lastOutput.indexOf(WAITING_FOR_CHANGES_OUTPUT, startIndex) > -1) {
+                if (endOfBuildReached++ > 1) {
+                    // must reach end of build twice before breaking out of loop
+                    break
+                } else {
+                    // wait extra period
+                    sleep 100
+                }
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {

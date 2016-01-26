@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -85,7 +86,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     def addArtifact(String configuration, PublishArtifact publishArtifact) {
-        metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact)))
+        metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
     }
 
     def "can add artifact to several configurations"() {

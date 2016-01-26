@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':plugins')
+    compile project(':testingJvm')
     compile project(':launcher')
     compile project(':toolingApi')
 }

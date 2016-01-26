@@ -32,7 +32,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.test.TestSuiteContainer;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -81,7 +80,7 @@ public class ComponentReport extends DefaultTask {
             components.addAll(componentSpecs.values());
         }
 
-        TestSuiteContainer testSuites = modelElement("testSuites", TestSuiteContainer.class);
+        ModelMap<ComponentSpec> testSuites = modelElement("testSuites", modelMap(ComponentSpec.class));
         if (testSuites != null) {
             components.addAll(testSuites.values());
         }

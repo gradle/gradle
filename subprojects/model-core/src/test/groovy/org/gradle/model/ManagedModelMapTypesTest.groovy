@@ -15,16 +15,14 @@
  */
 
 package org.gradle.model
-import org.gradle.api.Named
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Specification
 
-class ManagedModelMapTypesTest extends Specification {
-
-    def schemaStore = DefaultModelSchemaStore.instance
+class ManagedModelMapTypesTest extends ProjectRegistrySpec {
 
     @Managed
     abstract static class ManagedThing {}
@@ -43,7 +41,8 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type $ModelMap.name: type parameter of $ModelMap.name has to be specified."
+        e.message == """Type $ModelMap.name is not a valid model element type:
+- type parameter of $ModelMap.name has to be specified."""
     }
 
     @Managed
@@ -57,63 +56,14 @@ class ManagedModelMapTypesTest extends Specification {
 
         then:
         def e = thrown InvalidManagedModelElementTypeException
-        e.message.startsWith "Invalid managed model type $ModelMap.name<?>: type parameter of $ModelMap.name cannot be a wildcard."
+        e.message.startsWith("""Type $ModelMap.name<?> is not a valid model element type:
+- type parameter of $ModelMap.name cannot be a wildcard.""")
     }
 
-    def "cannot have map of map"() {
-        when:
-        schemaStore.getSchema(ModelTypes.modelMap(ModelTypes.modelMap(NamedThingInterface)))
+    def "can have map of map"() {
+        def type = ModelTypes.modelMap(ModelTypes.modelMap(NamedThingInterface))
 
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message.endsWith "org.gradle.model.ModelMap cannot be used as type parameter of org.gradle.model.ModelMap."
-    }
-
-    @Managed
-    abstract static class MutableName implements Named {
-        abstract void setName(String name)
-    }
-
-    def "element cannot have setName"() {
-        when:
-        schemaStore.getSchema(ModelTypes.modelMap(MutableName))
-
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message.startsWith "Invalid managed model type $MutableName.name: @Managed types implementing $Named.name must not declare a setter for the name property"
-    }
-
-    @Managed
-    static abstract class WritableMapProperty {
-        abstract void setMap(ModelMap<NamedThingInterface> map)
-
-        abstract ModelMap<NamedThingInterface> getMap()
-    }
-
-    @Managed
-    static abstract class WritableSetProperty {
-        abstract void setSet(ModelSet<NamedThingInterface> set)
-
-        abstract ModelSet<NamedThingInterface> getSet()
-    }
-
-    def "map cannot be writable"() {
-        when:
-        schemaStore.getSchema(ModelType.of(WritableMapProperty))
-
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableMapProperty: property 'map' cannot have a setter (org.gradle.model.ModelMap<org.gradle.model.NamedThingInterface> properties must be read only)."
-
-
-    }
-
-    def "set cannot be writable"() {
-        when:
-        schemaStore.getSchema(ModelType.of(WritableSetProperty))
-
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type org.gradle.model.ManagedModelMapTypesTest\$WritableSetProperty: property 'set' cannot have a setter (org.gradle.model.ModelSet<org.gradle.model.NamedThingInterface> properties must be read only)."
+        expect:
+        schemaStore.getSchema(type) instanceof ModelMapSchema
     }
 }

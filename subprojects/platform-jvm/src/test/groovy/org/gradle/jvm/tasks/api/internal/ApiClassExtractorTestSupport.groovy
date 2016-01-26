@@ -32,13 +32,13 @@ import java.lang.reflect.Method
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorTestSupport extends Specification {
+
     private static class JavaSourceFromString extends SimpleJavaFileObject {
 
         private final String code
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///${ApiClassExtractorTestSupport.toFileName(name)}"),
-                JavaFileObject.Kind.SOURCE)
+            super(URI.create("string:///${ApiClassExtractorTestSupport.toFileName(name)}"), JavaFileObject.Kind.SOURCE)
             this.code = code
         }
 
@@ -119,8 +119,8 @@ class ApiClassExtractorTestSupport extends Specification {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
-        def task = compiler.getTask(new OutputStreamWriter(
-            new ByteArrayOutputStream()),
+        def task = compiler.getTask(
+            new OutputStreamWriter(new ByteArrayOutputStream()),
             fileManager,
             diagnostics,
             ['-d', dir.absolutePath, '-source', targetVersion, '-target', targetVersion],
@@ -144,7 +144,6 @@ class ApiClassExtractorTestSupport extends Specification {
         diagnostics.diagnostics.each {
             sb.append("In $it\n")
         }
-
 
         throw new RuntimeException(sb.toString())
     }

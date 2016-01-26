@@ -25,13 +25,11 @@ class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
-    def setup() {
-        overrideMavenLocal()
-    }
-
     @Issue("GRADLE-2681")
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
+
+        using m2
 
         TestFile m2Home = temporaryFolder.createDir("m2_home");
         m2Home.file("conf/settings.xml").createFile().text = """

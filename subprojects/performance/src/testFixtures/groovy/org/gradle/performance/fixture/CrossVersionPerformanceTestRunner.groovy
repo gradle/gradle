@@ -39,6 +39,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> tasksToRun = []
     List<String> args = []
     List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+    List<String> previousTestIds = []
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -52,33 +53,45 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
-        assert testId
+        if (testId == null) {
+            throw new IllegalStateException("Test id has not been specified")
+        }
+        if (testProject == null) {
+            throw new IllegalStateException("Test project has not been specified")
+        }
+        if (!targetVersions) {
+            throw new IllegalStateException("Target versions have not been specified")
+        }
 
         def results = new CrossVersionPerformanceResults(
-                testId: testId,
-                testProject: testProject,
-                tasks: tasksToRun,
-                args: args,
-                jvm: Jvm.current().toString(),
-                operatingSystem: OperatingSystem.current().toString(),
-                versionUnderTest: GradleVersion.current().getVersion(),
-                vcsBranch: Git.current().branchName,
-                vcsCommit: Git.current().commitId,
-                testTime: System.currentTimeMillis())
+            testId: testId,
+            previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
+            testProject: testProject,
+            tasks: tasksToRun.collect { it.toString() },
+            args: args.collect { it.toString() },
+            gradleOpts: gradleOpts.collect { it.toString() },
+            daemon: useDaemon,
+            jvm: Jvm.current().toString(),
+            operatingSystem: OperatingSystem.current().toString(),
+            versionUnderTest: GradleVersion.current().getVersion(),
+            vcsBranch: Git.current().branchName,
+            vcsCommits: [Git.current().commitId],
+            testTime: System.currentTimeMillis())
 
         def releasedDistributions = new ReleasedVersionDistributions()
         def releasedVersions = releasedDistributions.all*.version.version
         def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        allVersions.remove(currentBaseVersion)
+        def allVersions = targetVersions.findAll { it != 'last' } as LinkedHashSet
+
+        // Always include the most recent final release
+        allVersions.add(mostRecentFinalRelease)
 
         // A target version may be something that is yet unreleased, so filter that out
+        allVersions.remove(currentBaseVersion)
         allVersions.removeAll { !releasedVersions.contains(it) }
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
-
-        println "Running performance tests for test project '$testProject', no. of runs: $runs"
 
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
@@ -90,20 +103,23 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         runVersion(current, projectDir, results.current)
 
-        reporter.report(results)
         results.assertEveryBuildSucceeds()
+        results.assertCurrentVersionHasNotRegressed()
+
+        // Don't store results when builds have failed
+        reporter.report(results)
 
         return results
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def builder = BuildExperimentSpec.builder()
-                .projectName(testId)
-                .displayName(dist.version.version)
-                .warmUpCount(warmUpRuns)
-                .invocationCount(runs)
-                .listener(buildExperimentListener)
-                .invocation {
+            .projectName(testId)
+            .displayName(dist.version.version)
+            .warmUpCount(warmUpRuns)
+            .invocationCount(runs)
+            .listener(buildExperimentListener)
+            .invocation {
             workingDirectory(projectDir)
             distribution(dist)
             tasksToRun(this.tasksToRun as String[])

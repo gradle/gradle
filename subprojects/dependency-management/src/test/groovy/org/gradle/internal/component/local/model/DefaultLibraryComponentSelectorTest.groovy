@@ -117,23 +117,24 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     }
 
     @Unroll
-    def "matches id (#projectPath,#libraryName)"() {
+    def "matches id (#projectPath1,#libraryName1, #variant1) with (#projectPath2,#libraryName2, #variant2)"() {
         expect:
-        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
-        LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(projectPath2, libraryName2, variant)
+        LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant1)
+        LibraryBinaryIdentifier defaultBuildComponentIdentifier = new DefaultLibraryBinaryIdentifier(projectPath2, libraryName2, variant2)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:
-        projectPath1      | libraryName1 | projectPath2      | libraryName2 | variant | matchesId
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | 'api'   | true
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'impl'  | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'   | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | 'api'   | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | 'api'   | false
-        ':myProjectPath1' | null         | ':myProjectPath2' | 'foo'        | 'api'   | false
-        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | 'api'   | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'   | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'   | false
-        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | 'api'   | false
+        projectPath1      | libraryName1 | projectPath2      | libraryName2 | variant1 | variant2 | matchesId
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | 'api'    | 'api'    | true
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib1'     | 'api'    | 'impl'   | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'impl'   | 'impl'   | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'    | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | 'api'    | 'api'    | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | 'api'    | 'api'    | false
+        ':myProjectPath1' | null         | ':myProjectPath2' | 'foo'        | 'api'    | 'api'    | false
+        ':myProjectPath1' | null         | ':myProjectPath1' | 'foo'        | 'api'    | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'    | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath2' | 'myLib1'     | 'api'    | 'api'    | false
+        ':myProjectPath1' | 'myLib1'     | ':myProjectPath1' | 'myLib2'     | 'api'    | 'api'    | false
     }
 }

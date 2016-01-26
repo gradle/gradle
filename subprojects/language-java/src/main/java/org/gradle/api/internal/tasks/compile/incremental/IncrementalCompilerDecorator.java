@@ -54,8 +54,8 @@ public class IncrementalCompilerDecorator {
         this.sourceDirs = sourceDirs;
     }
 
-    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs) {
-        final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
+    public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
+        Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
         return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
     }
 
@@ -64,7 +64,7 @@ public class IncrementalCompilerDecorator {
             LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
             return cleaningCompiler;
         }
-        if (!sourceDirs.areSourceDirsKnown()) {
+        if (!sourceDirs.canInferSourceRoots()) {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
             return cleaningCompiler;
         }

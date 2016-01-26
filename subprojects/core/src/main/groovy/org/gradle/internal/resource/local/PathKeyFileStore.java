@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 /**
  * File store that accepts the target path as the key for the entry.
  *
@@ -164,7 +166,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     }
 
     private boolean isInProgressMarkerFile(File file) {
-        return file.getName().endsWith(IN_PROGRESS_MARKER_FILE_SUFFIX);
+        return hasExtension(file, IN_PROGRESS_MARKER_FILE_SUFFIX);
     }
 
     private boolean isInProgressFile(File file) {

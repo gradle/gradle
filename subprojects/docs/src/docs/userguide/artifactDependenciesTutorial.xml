@@ -123,7 +123,7 @@
     <section>
         <title>External dependencies</title>
         <para>There are various types of dependencies that you can declare. One such type is an <firstterm>external dependency</firstterm>.
-            This a dependency on some files built outside the current build, and stored in a repository of some kind, such as Maven central, or
+            This is a dependency on some files built outside the current build, and stored in a repository of some kind, such as Maven central, or
             a corporate Maven or Ivy repository, or a directory in the local file system.
         </para>
         <para>

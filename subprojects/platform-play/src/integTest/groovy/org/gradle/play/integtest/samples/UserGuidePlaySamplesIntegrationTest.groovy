@@ -18,7 +18,9 @@ package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -78,7 +80,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         and:
-        distributionZip(distributionPlaySample).containsDescendants(
+        distributionArchives(distributionPlaySample)*.containsDescendants(
             "playBinary/README.md",
             "playBinary/bin/runPlayBinaryAsUser.sh"
         )
@@ -107,7 +109,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
 
         and:
-        play24Sample.dir.file("build/playBinary/src/compilePlayBinaryRoutes").assertHasDescendants(
+        play24Sample.dir.file("build/src/play/binary/routesScalaSources").assertHasDescendants(
             "controllers/routes.java",
             "controllers/ReverseRoutes.scala",
             "router/Routes.scala",
@@ -125,7 +127,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         new JarTestFixture(sample.dir.file("build/playBinary/lib/${projectName}-assets.jar"))
     }
 
-    ZipTestFixture distributionZip(Sample sample) {
-        new ZipTestFixture(sample.dir.file("build/distributions/playBinary.zip"))
+    List<ArchiveTestFixture> distributionArchives(Sample sample) {
+        [ new ZipTestFixture(sample.dir.file("build/distributions/playBinary.zip")), new TarTestFixture(sample.dir.file("build/distributions/playBinary.tar")) ]
     }
 }

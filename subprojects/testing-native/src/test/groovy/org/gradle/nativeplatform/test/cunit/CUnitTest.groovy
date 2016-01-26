@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.cunit
-
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
+import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -29,7 +28,7 @@ class CUnitTest extends Specification {
 
     def "creates a test suite for each library under test"() {
         given:
-        project.pluginManager.apply(CUnitPlugin)
+        project.pluginManager.apply(CUnitConventionPlugin)
         project.model {
             components {
                 main(NativeLibrarySpec)

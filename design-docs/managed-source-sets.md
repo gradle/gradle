@@ -174,7 +174,7 @@ model {
 
 ### Implementation
 
-- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
+- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructibleTypesRegistry`).
 
 ### Test cases
 - Can not create a top level LSS for an LSS type that has not been registered
@@ -248,8 +248,21 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
     - Are added to the top-level 'sources' container
 - Reasonable error message when source set added to `BinarySpec.sources` cannot be constructed
 
-
 ## Story: Standalone `FunctionalSourceSet` has true `ModelMap` semantics
+
+This work involves converting `FunctionalSourceSet` to a node-backed `ModelMap` implementation, removing the use of a backing DomainObjectContainer. This change will add consistency, and enable the later transition to managed-type-aware node registration.
+
+We will add test coverage to ensure that it has true `ModelMap` semantics:
+- Elements appear in the model report
+- Elements can be addressed by model rules
+- Elements are configured on demand
+
+### Test cases
+
+- ~~Elements in a standalone `FunctionalSourceSet` are visible in the model report~~
+- ~~Elements in a standalone `FunctionalSourceSet` can be addressed by model rules~~
+- ~~Elements in a standalone `FunctionalSourceSet` are not created when defined: configuration is evaluated on-demand~~
+
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
@@ -257,11 +270,64 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
 
 ## Plugin author declares default implementation and internal views for custom `LanguageSourceSet` subtype
 
-Extend story "Plugin author declares default implementation for extensible binary and component type"
-for `LanguageSourceSet`.
+Currently, `LanguageTypeBuilder` provides methods to specify both `defaultImplementation` and `internalView`.
+The former is functional (possibly without adequate test coverage), and the latter is ignored.
+This story is about ensuring there is adequate test coverage for `defaultImplementation`, and supporting the `internalView` functionality.
 
-Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
+For this story we should extract the common functionality provided for `BinaryTypeBuilder` and `ComponentTypeBuilder` so that it also applies to `LanguageTypeBuilder`.
+This will form the basis for adding support for other 'extensible types' via additional type builders.
 
-As part of this work, remove empty subclasses of `BaseLanguageSourceSet`, such as `DefaultCoffeeScriptSourceSet`.
+Update user guide and samples to show how to implement a custom unmanaged `LanguageSourceSet` type
 
+### Test cases
 
+- user can declare a custom unmanaged `LanguageSourceSet` default implementation
+- user can attach unmanaged internal views to custom `LanguageSourceSet`
+- fails on registration when:
+  - language name is not set
+  - model type extends `LanguageSourceSet` without a default implementation
+  - default implementation is not a non-abstract class
+  - default implementation does not extend `BaseLanguageSourceSet`
+  - default implementation does not implement internal views
+  - an internal view is not an interface
+
+## Story: Plugin author defines `@Managed` subtype of `LanguageSourceSet`
+
+This story will enable plugin authors to define custom `@Managed` subtypes of `LanguageSourceSet`.
+These subtypes may or may not add additional properties to the base type. For example:
+
+    @Managed
+    interface MyLanguageSourceSet extends LanguageSourceSet {
+        // potential additional properties
+    }
+
+and is used as follows:
+
+    plugins {
+        id "myLanguage"
+    }
+    model {
+        components {
+            main(MyLanguageComponentSpec) {
+                sources {
+                    myLanguage(MyLanguageSourceSet) {
+                      // potential properties
+                    }
+                }
+            }
+        }
+    }
+
+### Test cases
+
+- ~~user can declare and use a custom managed `LanguageSourceSet`~~
+- ~~user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component~~
+- ~~user can target managed internal views to a custom managed `LanguageSourceSet` with rules~~
+- managed `LanguageSourceSet` can be used in all places where an unmanaged `LanguageSourceSet` can be used
+    - ~~as a binary's source~~
+    - ~~as a component's source~~
+    - as a standalone top-level source element
+    - as a property of a managed type
+    - as an element of a managed collection
+- custom managed `LanguageSourceSet` show up properly in `model` report
+- custom managed `LanguageSourceSet` show up properly in `component` report

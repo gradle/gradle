@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
+import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG
+import static org.gradle.buildinit.plugins.internal.BuildInitTypeIds.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
@@ -158,6 +161,37 @@ include 'child'
 
         then:
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+    }
+
+    def "gives decent error message when using unknown test framework"() {
+        when:
+        fails('init', '--type', 'basic', '--test-framework', 'fake')
+
+        then:
+        failure.assertHasCause("The requested test framework 'fake' is not supported.")
+    }
+
+    def "gives decent error message when test framework is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'basic', '--test-framework', 'spock')
+
+        then:
+        failure.assertHasCause("The requested test framework 'spock' is not supported in 'basic' setup type")
+    }
+
+    def "displays all build types and modifiers in help command output"() {
+        when:
+        run('help', '--task', 'init')
+
+        then:
+        def output = result.output
+        output.contains(BASIC)
+        output.contains(POM)
+        output.contains(JAVA_LIBRARY)
+        output.contains(GROOVY_LIBRARY)
+        output.contains(SCALA_LIBRARY)
+        output.contains(SPOCK.id)
+        output.contains(TESTNG.id)
     }
 
     private TestFile pom() {

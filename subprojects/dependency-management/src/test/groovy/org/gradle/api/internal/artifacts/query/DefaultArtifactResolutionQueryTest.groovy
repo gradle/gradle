@@ -140,12 +140,12 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     private static class TestComponent implements Component {
     }
 
-    private static class TestArtifact implements Artifact {
+    private static interface TestArtifact extends Artifact {
     }
 
     private static class UnknownComponent implements Component {
     }
 
-    private static class UnknownArtifact implements Artifact {
+    private static interface UnknownArtifact extends Artifact {
     }
 }

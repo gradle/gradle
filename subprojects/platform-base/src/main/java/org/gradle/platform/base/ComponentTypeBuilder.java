@@ -16,9 +16,12 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 /**
  * Allows a plugin to register a custom component type.
  * @param <C> The component type.
  */
+@Incubating
 public interface ComponentTypeBuilder<C extends ComponentSpec> extends TypeBuilder<C> {
 }

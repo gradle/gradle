@@ -63,8 +63,8 @@ compile
 
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
-        mavenRepo.module("foo", "bar", 1.0).dependsOn("unknown").publish()
-        mavenRepo.module("foo", "baz", 1.0).dependsOn("bar").publish()
+        mavenRepo.module("foo", "bar", 1.0).dependsOnModules("unknown").publish()
+        mavenRepo.module("foo", "baz", 1.0).dependsOnModules("bar").publish()
 
         file("build.gradle") << """
             repositories {
@@ -301,10 +301,10 @@ rootProject.name = 'root'
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        mavenRepo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
 
-        mavenRepo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
 
         file("build.gradle") << """
             repositories {
@@ -538,8 +538,8 @@ No dependencies
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        mavenRepo.module("org", "toplevel1").dependsOn('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "toplevel2").dependsOn('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "toplevel1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "toplevel2").dependsOnModules('leaf3', 'leaf4').publish()
 
         file("build.gradle") << """
             repositories {

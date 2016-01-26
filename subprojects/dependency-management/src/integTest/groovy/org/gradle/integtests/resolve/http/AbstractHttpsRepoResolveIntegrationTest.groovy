@@ -72,10 +72,10 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertHasCause("peer not authenticated")
+        failure.error.contains("javax.net.ssl.SSLHandshakeException")
     }
 
-    def "decent error message when server can't authenticate client"() {
+    def "build fails when server can't authenticate client"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerAndBadClientCert(server)
 
@@ -89,7 +89,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertThatCause(containsText("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/"))
-        failure.assertHasCause("peer not authenticated")
+        failure.error.contains("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
     }
 
     private void setupBuildFile(String repoType) {

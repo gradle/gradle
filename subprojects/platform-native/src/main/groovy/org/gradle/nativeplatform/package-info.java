@@ -17,4 +17,5 @@
 /**
  * Classes that model aspects of native component projects.
  */
+@org.gradle.api.Incubating
 package org.gradle.nativeplatform;

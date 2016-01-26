@@ -17,8 +17,9 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.Managed;
+import org.gradle.model.ModelMap;
 
 @Managed
 public interface ManagedWithPropertyOfInvalidManagedType {
-    ParametrizedManaged<String> getInvalidManaged();
+    ModelMap<?> getInvalidManaged();
 }

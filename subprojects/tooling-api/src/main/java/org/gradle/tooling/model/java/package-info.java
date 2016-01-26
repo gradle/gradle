@@ -17,4 +17,5 @@
 /**
  * Java-specific details for tooling models.
  */
+@org.gradle.api.Incubating
 package org.gradle.tooling.model.java;

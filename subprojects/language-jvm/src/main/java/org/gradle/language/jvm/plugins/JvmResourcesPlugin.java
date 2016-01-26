@@ -18,7 +18,8 @@ package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -35,6 +36,8 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static org.gradle.util.CollectionUtils.first;
 
 /**
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
@@ -87,15 +90,19 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
-                    JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;
                     resourcesTask.from(resourceSet.getSource());
-                    resourcesTask.setDestinationDir(jvmBinary.getResourcesDir());
-                    jvmBinary.getTasks().getJar().dependsOn(resourcesTask);
+
+                    // The first directory is the one created by JarBinaryRules
+                    // to be used as the default output directory for processed resources
+                    JvmAssembly assembly = ((WithJvmAssembly) binary).getAssembly();
+                    resourcesTask.setDestinationDir(first(assembly.getResourceDirectories()));
+
+                    assembly.builtBy(resourcesTask);
                 }
             };
         }
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmBinarySpec;
+            return binary instanceof WithJvmAssembly;
         }
     }
 }

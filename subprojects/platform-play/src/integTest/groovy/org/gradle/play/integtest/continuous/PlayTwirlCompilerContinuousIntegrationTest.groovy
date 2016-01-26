@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrat
 class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {
-        return "compilePlayBinaryTwirlTemplates"
+        return "compilePlayBinaryPlayTwirlTemplates"
     }
 
     @Override

@@ -16,36 +16,28 @@
 
 package org.gradle.platform.base.component
 
+import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class BaseComponentFixtures {
     static final def GENERATOR = new AsmBackedClassGenerator()
 
-    static <P extends ComponentSpec, T extends BaseComponentSpec> P create(Class<P> type, Class<T> implType, ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
-        def node = createNode(type, implType,  modelRegistry, componentId);
-        return node.asMutable(ModelType.of(type), new SimpleModelRuleDescriptor(componentId.getName())).getInstance()
+    static <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType, ComponentSpecIdentifier componentId) {
+        def node = createNode(publicType, implType, componentId);
+        return node.asMutable(ModelType.of(publicType), new SimpleModelRuleDescriptor(componentId.getName())).getInstance()
     }
 
-    static <T extends BaseComponentSpec> MutableModelNode createNode(Class<? extends ComponentSpec> type, Class<T> implType,  ModelRegistry modelRegistry, ComponentSpecIdentifier componentId) {
-        try {
-            modelRegistry.registerInstance("TestNodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
-            return modelRegistry.register(
-                ModelRegistrations.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    def decorated = GENERATOR.generate(implType)
-                    BaseComponentSpec.create(type, decorated, componentId, it)
-                })
-                    .descriptor(componentId.name)
-                    .build()
-            ).atState(componentId.name, ModelNode.State.Initialized)
-        } catch (ModelRuleExecutionException e) {
-            throw e.cause
+    static <T extends ComponentSpec, I extends BaseComponentSpec> MutableModelNode createNode(Class<T> publicType, Class<I> implType, ComponentSpecIdentifier componentId) {
+        def descriptor = new SimpleModelRuleDescriptor("<create $componentId.name>")
+        BaseInstanceFixtureSupport.createNode(publicType, ComponentSpecInternal, implType, componentId.name) { MutableModelNode node ->
+            def decorated = GENERATOR.generate(implType)
+            return BaseComponentSpec.create(publicType, decorated, componentId, node)
         }
     }
 }

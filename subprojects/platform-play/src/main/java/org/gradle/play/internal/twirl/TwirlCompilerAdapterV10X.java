@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.scala.internal.reflect.ScalaCodecMapper;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -27,9 +28,11 @@ import java.util.Arrays;
 class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
     private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
 
+    // Based on https://github.com/playframework/playframework/blob/2.4.0/framework/src/build-link/src/main/java/play/TemplateImports.java
     private static final String DEFAULT_JAVA_IMPORTS =
               "import models._;"
             + "import controllers._;"
+            + "import play.api.templates.PlayMagic._;"
             + "import java.lang._;"
             + "import java.util._;"
             + "import scala.collection.JavaConversions._;"
@@ -45,6 +48,7 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
     private static final String DEFAULT_SCALA_IMPORTS =
               "import models._;"
             + "import controllers._;"
+            + "import play.api.templates.PlayMagic._;"
             + "import play.api.i18n._;"
             + "import play.api.mvc._;"
             + "import play.api.data._;"
@@ -74,13 +78,13 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
                 sourceDirectory,
                 destinationDirectory,
                 "play.twirl.api.HtmlFormat",
-                javaProject ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS,
+                defaultImports == TwirlImports.JAVA ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS,
                 ScalaCodecMapper.create(cl, "UTF-8"),
                 isInclusiveDots(),
                 isUseOldParser()

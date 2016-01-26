@@ -15,11 +15,13 @@
  */
 
 package org.gradle.plugins.ide.idea.model
-
+import groovy.transform.PackageScope
 import org.gradle.api.Incubating
+import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
-
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
@@ -110,15 +112,55 @@ class IdeaProject {
     String jdkName
 
     /**
-     * The java language level of the project.
-     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * The default Java language Level to use for this project.
      * <p>
-     * See the examples in the docs for {@link IdeaProject}.
+     * This is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
+     * Idea modules of this Idea project.
      */
     IdeaLanguageLevel languageLevel
 
+
+    /**
+     * The default target bytecode version to use for this project.
+     * <p>
+     * This is calculated as the maximum {@code targetCompatibility} value for all Java projects that form the
+     * Idea modules of this Idea project.
+     */
+    @Incubating
+    JavaVersion getTargetBytecodeVersion() {
+        List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
+            it.targetCompatibility
+        }
+        JavaVersion maxBytecodeVersion = allTargetCompatibilities.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allTargetCompatibilities)
+        return maxBytecodeVersion;
+    }
+
+    /**
+     * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     */
+    private boolean hasUserSpecifiedLanguageLevel
+
+    /**
+     * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     * */
+    @PackageScope
+    boolean  getHasUserSpecifiedLanguageLevel() {
+        return hasUserSpecifiedLanguageLevel
+    }
+
+    /**
+     * Sets java language level of the project.
+     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}.
+     * <p>
+     * When explicitly set, this setting overrides any calculated values for Idea project and Idea module.
+     */
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
+        this.hasUserSpecifiedLanguageLevel = true
     }
 
     /**
@@ -176,16 +218,21 @@ class IdeaProject {
 
     PathFactory pathFactory
 
-    IdeaProject(XmlFileContentMerger ipr) {
+    /**
+     * An owner of this IDEA project.
+     * <p>
+     * If IdeaProject requires some information from gradle this field should not be used for this purpose.
+     */
+    final org.gradle.api.Project project
+
+    IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
+        this.project = project
         this.ipr = ipr
     }
 
     void mergeXmlProject(Project xmlProject) {
         ipr.beforeMerged.execute(xmlProject)
-        def modulePaths = getModules().collect {
-            getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
-        }
-        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards(), getProjectLibraries(), getVcs())
+        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs())
         ipr.whenMerged.execute(xmlProject)
     }
 }

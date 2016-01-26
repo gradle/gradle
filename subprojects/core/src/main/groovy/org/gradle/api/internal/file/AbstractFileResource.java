@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
 import java.net.URI;
 
-public abstract class AbstractFileResource implements ReadableResource {
+public abstract class AbstractFileResource implements ReadableResourceInternal {
 
     protected final File file;
 
@@ -46,4 +46,7 @@ public abstract class AbstractFileResource implements ReadableResource {
         return file;
     }
 
+    public File getBackingFile() {
+        return getFile();
+    }
 }

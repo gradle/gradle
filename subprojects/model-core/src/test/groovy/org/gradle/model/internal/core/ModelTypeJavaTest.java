@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.model.internal.type.ModelType;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,12 @@ public class ModelTypeJavaTest {
     class Nested<T> {
         class Child<S extends Number & Runnable> { }
     }
+
+    <T extends Number, S extends T, R> void m1(T t, S s, R r) { }
+    <T extends Number & Runnable, S extends T> void m1(S s) { }
+    void m2(List<String>... lists) { }
+    void m4(List<? super Number>... lists) { }
+    void m5(Collection<String>... collections) { }
 
     @Test
     public void testNestedParameterizedType() {
@@ -50,6 +57,7 @@ public class ModelTypeJavaTest {
     @Test
     public void testBuildType() throws Exception {
         assertEquals(new ModelType<Map<String, Integer>>() {}, buildMap(ModelType.of(String.class), ModelType.of(Integer.class)));
+        assertEquals(new ModelType<Map<String, Integer>>() {}.hashCode(), buildMap(ModelType.of(String.class), ModelType.of(Integer.class)).hashCode());
     }
 
     static <K, V> ModelType<Map<K, V>> buildMap(ModelType<K> k, ModelType<V> v) {

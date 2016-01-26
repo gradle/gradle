@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.prebuilt
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.PrebuiltLibrary
@@ -23,12 +24,18 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import spock.lang.Specification
 
 class DefaultPrebuiltStaticLibraryBinaryTest extends Specification {
-    def binary = new DefaultPrebuiltStaticLibraryBinary("name", Stub(PrebuiltLibrary), Stub(BuildType), Stub(NativePlatform), Stub(Flavor))
+    def prebuiltLibrary = Stub(PrebuiltLibrary) {
+        getName() >> "lib"
+    }
+    def binary = new DefaultPrebuiltStaticLibraryBinary("name", prebuiltLibrary, Stub(BuildType), Stub(NativePlatform), Stub(Flavor), TestFiles.fileCollectionFactory())
 
     def "has useful string representation"() {
         expect:
-        binary.toString() == "static library 'name'"
-        binary.displayName == "static library 'name'"
+        binary.toString() == "prebuilt static library 'lib:name'"
+        binary.displayName == "prebuilt static library 'lib:name'"
+        binary.headerDirs.toString() == "Headers for prebuilt static library 'lib:name'"
+        binary.linkFiles.toString() == "Link files for prebuilt static library 'lib:name'"
+        binary.runtimeFiles.toString() == "Runtime files for prebuilt static library 'lib:name'"
     }
 
     def "can set static library file"() {

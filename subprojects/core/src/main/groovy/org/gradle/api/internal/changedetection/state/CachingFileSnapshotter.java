@@ -26,7 +26,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementSnapshotter {
+public class CachingFileSnapshotter implements FileSnapshotter {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
