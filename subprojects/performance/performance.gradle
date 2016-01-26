@@ -390,7 +390,7 @@ task smallJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
@@ -400,7 +400,7 @@ task smallJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
