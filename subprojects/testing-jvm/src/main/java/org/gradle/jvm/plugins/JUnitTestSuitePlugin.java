@@ -22,17 +22,17 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
-import org.gradle.jvm.test.internal.*;
+import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteBinarySpec;
+import org.gradle.jvm.test.internal.DefaultJUnitTestSuiteSpec;
+import org.gradle.jvm.test.internal.JvmTestSuiteBinarySpecInternal;
+import org.gradle.jvm.test.internal.JvmTestSuiteRules;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.model.ModelMap;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.DefaultModuleDependencySpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
-
-import javax.inject.Inject;
 
 /**
  * This plugin adds support for execution of JUnit test suites to the Java software model.
@@ -42,19 +42,11 @@ import javax.inject.Inject;
 @Incubating
 public class JUnitTestSuitePlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public JUnitTestSuitePlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(TestingModelBasePlugin.class);
         project.getPluginManager().apply(JvmComponentPlugin.class);
         project.getPluginManager().apply(JvmTestSuiteBasePlugin.class);
-        JUnitTestSuiteRules.apply(modelRegistry);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -80,6 +72,21 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
                                                       ModelSchemaStore modelSchemaStore) {
             JvmTestSuiteRules.createJvmTestSuiteBinaries(testBinaries, registry, platformResolver, testSuite, toolChains, modelSchemaStore, JUnitTestSuiteBinarySpec.class);
         }
-    }
 
+        @Validate
+        void validateJUnitVersion(@Each JUnitTestSuiteSpec jUnitTestSuiteSpec) {
+            if (jUnitTestSuiteSpec.getjUnitVersion() == null) {
+                throw new InvalidModelException(
+                    String.format("Test suite '%s' doesn't declare JUnit version. Please specify it with `jUnitVersion '4.12'` for example.", jUnitTestSuiteSpec.getName()));
+            }
+        }
+
+        @Defaults
+        void configureBinaryJUnitVersion(@Each JUnitTestSuiteBinarySpec testSuiteBinary) {
+            JUnitTestSuiteSpec testSuite = testSuiteBinary.getTestSuite();
+            String jUnitVersion = testSuite.getjUnitVersion();
+            testSuiteBinary.setjUnitVersion(jUnitVersion);
+            testSuiteBinary.getDependencies().add(new DefaultModuleDependencySpec("junit", "junit", jUnitVersion));
+        }
+    }
 }
