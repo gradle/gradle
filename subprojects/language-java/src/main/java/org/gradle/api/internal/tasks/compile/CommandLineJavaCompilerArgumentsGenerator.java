@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
-import org.gradle.platform.base.internal.toolchain.ArgCollector;
-import org.gradle.platform.base.internal.toolchain.ArgWriter;
+import org.gradle.internal.process.ArgCollector;
+import org.gradle.internal.process.ArgWriter;
 
 import java.io.File;
 import java.io.Serializable;

@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
-import org.gradle.platform.base.internal.toolchain.ArgWriter;
+import org.gradle.internal.process.ArgWriter;
 
 import java.io.File;
 import java.util.ArrayList;
