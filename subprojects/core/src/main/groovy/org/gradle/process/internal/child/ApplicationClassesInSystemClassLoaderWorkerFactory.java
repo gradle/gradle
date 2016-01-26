@@ -78,7 +78,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
         execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
 
-        boolean useOptionsFile = Jvm.current().getJavaVersion().isJava9Compatible();
+        // This check is not quite right. Should instead probe the version of the requested executable and use options file if it is Java 9 or later, regardless of
+        // the version of this JVM
+        boolean useOptionsFile = Jvm.current().getJavaVersion().isJava9Compatible() && execSpec.getExecutable().equals(Jvm.current().getJavaExecutable().getPath());
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
