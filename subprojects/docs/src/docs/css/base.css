@@ -145,7 +145,10 @@ h3, h4, h5, h6 {
 
 .text-container,
 div.book,
-div.chapter {
+div.chapter,
+div.part,
+div.appendix,
+div.glossary {
   margin-left: 10px;
   margin-right: 10px;
 }
