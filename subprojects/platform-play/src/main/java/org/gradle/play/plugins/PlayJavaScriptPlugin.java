@@ -25,7 +25,8 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
-import org.gradle.model.ModelMap;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
@@ -58,18 +59,13 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }
 
-        @Mutate
-        void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-            components.afterEach(new Action<PlayApplicationSpec>() {
+        @Finalize
+        void createJavascriptSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
                 @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
-                        @Override
-                        public void execute(JavaScriptSourceSet javaScriptSourceSet) {
-                            javaScriptSourceSet.getSource().srcDir("app/assets");
-                            javaScriptSourceSet.getSource().include("**/*.js");
-                        }
-                    });
+                public void execute(JavaScriptSourceSet javaScriptSourceSet) {
+                    javaScriptSourceSet.getSource().srcDir("app/assets");
+                    javaScriptSourceSet.getSource().include("**/*.js");
                 }
             });
         }
