@@ -99,9 +99,7 @@ class IdeaPlugin extends IdePlugin {
                     JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor {it.sourceCompatibility}
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
-//                ideaProject.conventionMapping.targetBytecodeVersion = {
-//                    return getMaxJavaModuleCompatibilityVersionFor {it.targetCompatibility}
-//                }
+
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
                     project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
@@ -117,7 +115,7 @@ class IdeaPlugin extends IdePlugin {
 
     private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Closure collectClosure) {
         List<JavaVersion> allProjectJavaVersions = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect(collectClosure)
-        JavaVersion maxJavaVersion = allProjectJavaVersions.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allProjectJavaVersions)
+        JavaVersion maxJavaVersion = allProjectJavaVersions.max() ?: JavaVersion.VERSION_1_6
         maxJavaVersion
     }
 

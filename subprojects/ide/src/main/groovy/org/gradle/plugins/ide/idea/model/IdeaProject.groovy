@@ -131,7 +131,7 @@ class IdeaProject {
         List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
             it.targetCompatibility
         }
-        JavaVersion maxBytecodeVersion = allTargetCompatibilities.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allTargetCompatibilities)
+        JavaVersion maxBytecodeVersion = allTargetCompatibilities.max() ?: JavaVersion.VERSION_1_6
         return maxBytecodeVersion;
     }
 
