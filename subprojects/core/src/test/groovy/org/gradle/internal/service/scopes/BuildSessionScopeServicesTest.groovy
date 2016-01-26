@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
@@ -65,6 +66,7 @@ class BuildSessionScopeServicesTest extends Specification {
     def "provides a WorkerProcessBuilder factory"() {
         setup:
         expectParentServiceLocated(MessagingServer)
+        expectParentServiceLocated(TemporaryFileProvider)
 
         expect:
         registry.getFactory(WorkerProcessBuilder) instanceof DefaultWorkerProcessFactory

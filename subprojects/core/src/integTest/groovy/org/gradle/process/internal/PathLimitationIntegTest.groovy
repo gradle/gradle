@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.*
@@ -60,7 +61,7 @@ class PathLimitationIntegTest extends Specification {
     private final CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current()), factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator(), null);
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator(), null, new TmpDirTemporaryFileProvider());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source);
 

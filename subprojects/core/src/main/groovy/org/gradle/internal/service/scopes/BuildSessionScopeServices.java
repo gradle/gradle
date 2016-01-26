@@ -23,6 +23,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
@@ -64,14 +65,15 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                                       FileResolver fileResolver) {
+                                                                       FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
             classPathRegistry,
             fileResolver,
             new LongIdGenerator(),
-            startParameter.getGradleUserHomeDir());
+            startParameter.getGradleUserHomeDir(),
+            temporaryFileProvider);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

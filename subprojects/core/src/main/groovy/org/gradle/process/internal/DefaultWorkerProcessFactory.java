@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -46,16 +47,18 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
+    private final TemporaryFileProvider temporaryFileProvider;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator, File gradleUserHomeDir) {
+                                       IdGenerator<?> idGenerator, File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     public WorkerProcessBuilder create() {
@@ -92,7 +95,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
                 workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry);
+                        implementationClassPath, localAddress, classPathRegistry, temporaryFileProvider);
             } else {
                 workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
                         implementationClassPath, localAddress, classPathRegistry);
