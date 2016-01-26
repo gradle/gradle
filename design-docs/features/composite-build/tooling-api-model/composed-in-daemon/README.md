@@ -20,11 +20,13 @@ The implementation involves the Tooling API client "consumer" and "provider" par
 The execution of composite build models needs a composite build specific `BuildActionExecuter`.
 The contextual information of the composite build, like participant builds, should be passed in `ConsumerOperationParameters`/`ProviderOperationParameters` parameter. These parameters should be mapped to a `BuildActionParameters` implementation that contains the composite build related contextual information in an instance of a `CompositeParameters` type. When the composite parameters are available, the `BuildActionExecuter` implementation should be chosen accordingly.
 
-That launcher module already depends on tooling-api and core modules. Therefore using the tooling api for accessing participant projects should be possible.
+The launcher module already depends on tooling-api and core modules. Therefore using the tooling api for accessing participant projects should be possible.
 
 ### Test coverage
 
-Existing test coverage added in the previous composite build stories should pass. 
+- Existing test coverage added in the previous composite build stories should pass.
+- Check that retrieving a model causes a daemon to be started for the participant
+  - the test code can use `DaemonLogsAnalyzer` for inspecting daemons
 
 ### Documentation
 
