@@ -15,82 +15,28 @@
  */
 package org.gradle.jvm.test.internal;
 
-import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.internal.JvmAssembly;
-import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.Defaults;
 import org.gradle.model.ModelMap;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.*;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@SuppressWarnings("unused")
-public class JvmTestSuiteRules extends RuleSource {
-
-    private static void createJvmTestSuiteTasks(final JvmTestSuiteBinarySpec binary,
-                                                final JvmAssembly jvmAssembly,
-                                                final File buildDir) {
-        binary.getTasks().create(testTaskNameFor(binary), Test.class, new Action<Test>() {
-            @Override
-            public void execute(final Test test) {
-                test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
-                test.dependsOn(jvmAssembly);
-                test.setTestClassesDir(binary.getClassesDir());
-                test.setClasspath(binary.getRuntimeClasspath());
-                configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
-            }
-
-            private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
-                // todo: improve configuration of reports
-                TestTaskReports reports = test.getReports();
-                File reportsDirectory = new File(buildDir, "reports");
-                File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
-                File htmlDir = new File(reportsOutputDirectory, "tests");
-                File xmlDir = new File(buildDir, "test-results");
-                File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
-                File binDir = new File(xmlDirOutputDirectory, "binary");
-                reports.getHtml().setDestination(htmlDir);
-                reports.getJunitXml().setDestination(xmlDirOutputDirectory);
-                test.setBinResultsDir(binDir);
-            }
-        });
-    }
-
-    @Defaults
-    public void createTestSuiteTasks(
-        final ModelMap<JvmTestSuiteBinarySpec> binaries,
-        final @Path("buildDir") File buildDir) {
-        binaries.afterEach(new Action<JvmTestSuiteBinarySpec>() {
-            @Override
-            public void execute(JvmTestSuiteBinarySpec binary) {
-                final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-                createJvmTestSuiteTasks(binary, jvmAssembly, buildDir);
-            }
-        });
-    }
+public class JvmTestSuiteRules {
 
     /**
      * Create binaries for test suites. TODO: This should really be a @ComponentBinaries rule, but at this point we have no clue what the concrete binary type is, so everything has to be duplicated in
@@ -160,11 +106,11 @@ public class JvmTestSuiteRules extends RuleSource {
         });
     }
 
-    public static Collection<JvmBinarySpec> testedBinariesOf(JvmTestSuiteSpec testSuite) {
+    private static Collection<JvmBinarySpec> testedBinariesOf(JvmTestSuiteSpec testSuite) {
         return testedBinariesWithType(JvmBinarySpec.class, testSuite);
     }
 
-    public static <S> Collection<S> testedBinariesWithType(Class<S> type, JvmTestSuiteSpec testSuite) {
+    private static <S> Collection<S> testedBinariesWithType(Class<S> type, JvmTestSuiteSpec testSuite) {
         JvmComponentSpec spec = testSuite.getTestedComponent();
         return spec.getBinaries().withType(type).values();
     }
@@ -183,9 +129,5 @@ public class JvmTestSuiteRules extends RuleSource {
     private static List<JavaPlatform> resolvePlatforms(final PlatformResolvers platformResolver) {
         PlatformRequirement defaultPlatformRequirement = DefaultPlatformRequirement.create(DefaultJavaPlatform.current().getName());
         return Collections.singletonList(platformResolver.resolve(JavaPlatform.class, defaultPlatformRequirement));
-    }
-
-    private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
-        return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
     }
 }

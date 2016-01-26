@@ -16,13 +16,14 @@
 package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.apache.commons.lang.WordUtils;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -30,25 +31,26 @@ import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.JvmBinarySpecInternal;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.internal.JvmTestSuiteBinarySpecInternal;
-import org.gradle.jvm.test.internal.JvmTestSuiteRules;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
-import org.gradle.model.Each;
-import org.gradle.model.Finalize;
-import org.gradle.model.ModelMap;
-import org.gradle.model.RuleSource;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.model.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultLibraryBinaryDependencySpec;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -61,11 +63,45 @@ import java.util.List;
 public class JvmTestSuiteBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(JvmTestSuiteRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+        @BinaryTasks
+        void createJvmTestSuiteTasks(ModelMap<Task> tasks,
+                                     final JvmTestSuiteBinarySpecInternal binary,
+                                     final @Path("buildDir") File buildDir) {
+            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+            tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
+                @Override
+                public void execute(final Test test) {
+                    test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                    test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
+                    test.dependsOn(jvmAssembly);
+                    test.setTestClassesDir(binary.getClassesDir());
+                    test.setClasspath(binary.getRuntimeClasspath());
+                    configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
+                }
+
+                private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
+                    // todo: improve configuration of reports
+                    TestTaskReports reports = test.getReports();
+                    File reportsDirectory = new File(buildDir, "reports");
+                    File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
+                    File htmlDir = new File(reportsOutputDirectory, "tests");
+                    File xmlDir = new File(buildDir, "test-results");
+                    File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
+                    File binDir = new File(xmlDirOutputDirectory, "binary");
+                    reports.getHtml().setDestination(htmlDir);
+                    reports.getJunitXml().setDestination(xmlDirOutputDirectory);
+                    test.setBinResultsDir(binDir);
+                }
+            });
+        }
+
+        private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
+            return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
+        }
 
         @Finalize
         public void configureRuntimeClasspath(@Each JvmTestSuiteBinarySpecInternal testBinary, ServiceRegistry serviceRegistry, ModelSchemaStore modelSchemaStore) {
