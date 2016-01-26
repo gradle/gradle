@@ -16,15 +16,12 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.model.Defaults;
-import org.gradle.model.Finalize;
-import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.BuildType;
+import org.gradle.nativeplatform.Flavor;
+import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -40,41 +37,9 @@ import java.util.Set;
 /**
  * Cross cutting rules for all instances of {@link org.gradle.nativeplatform.NativeComponentSpec}
  */
-@SuppressWarnings("UnusedDeclaration")
-public class NativeComponentRules extends RuleSource {
-    @Defaults
-    public void applyHeaderSourceSetConventions(final NativeComponentSpec component) {
-        component.getSources().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>() {
-            @Override
-            public void execute(HeaderExportingSourceSet headerSourceSet) {
-                // Only apply default locations when none explicitly configured
-                if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                    headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", component.getName()));
-                }
-
-                headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                headerSourceSet.getImplicitHeaders().include("**/*.h");
-            }
-        });
-    }
-
-    @Finalize
-    public static void createBinaries(
-        NativeComponentSpec nativeComponent,
-        PlatformResolvers platforms,
-        BuildTypeContainer buildTypes,
-        FlavorContainer flavors,
-        ServiceRegistry serviceRegistry
-    ) {
-        final NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
-        final NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
-        final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
-
-        createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver, fileCollectionFactory);
-    }
-
-    static void createBinariesImpl(
-        NativeComponentSpec nativeComponent,
+public class NativeComponentRules {
+    public static void createBinariesImpl(
+        TargetedNativeComponentInternal nativeComponent,
         PlatformResolvers platforms,
         Set<? extends BuildType> buildTypes,
         Set<? extends Flavor> flavors,
@@ -82,11 +47,7 @@ public class NativeComponentRules extends RuleSource {
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        if (!(nativeComponent instanceof TargetedNativeComponentInternal)) {
-            return;
-        }
-        TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) nativeComponent;
-        List<NativePlatform> resolvedPlatforms = resolvePlatforms(targetedComponent, nativePlatforms, platforms);
+        List<NativePlatform> resolvedPlatforms = resolvePlatforms(nativeComponent, nativePlatforms, platforms);
 
         for (NativePlatform platform : resolvedPlatforms) {
             BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(nativeComponent.getName());
