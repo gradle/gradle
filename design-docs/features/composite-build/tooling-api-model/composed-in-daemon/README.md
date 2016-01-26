@@ -8,26 +8,23 @@ is implemented in the daemon process.
 
 ### API
 
-This story doesn't change the API of the composite build. This story is limited to implementing the  `<T> Set<ModelResult<T>> getModels(Class<T> modelType)` method of the `CompositeBuildConnection` interface.
-Other model related methods of the designed `CompositeBuildConnection` interface are implemented in later stories.
+This story doesn't change the API of the composite build from previous stories. This story moves the implementation from the previous story [Tooling client provides model for composite containing multiple participants](../multiple-builds#tooling-client-provides-model-for-composite-containing-multiple-participants) into a `BuildActionExecuter` implementation which resides in the daemon process. 
+Internally a `SetOfEclipseProjects` type will be used to workaround the lack of support for collection types in existing infrastructure. 
+It can be assumed that the only supported model type is `EclipseProject`.
 
 ### Implementation notes
 
-The implementation involves a client part ("consumer") and a server part ("provider").
-On the consumer side, the idea is to extend the current Tooling API client and reuse the infrastructure used for `ProjectConnection` and share most of it for `CompositeBuildConnection`.
-Optimally the underlying `ConsumerConnection` infrastructure could be reused and shared.
-The `getModels` API method uses a different pattern that is currently used in Tooling API client. Supporting this requires changes to the consumer side infrastructure and possibly also in the serialization protocol used in the daemon/provider connection.
+On the client side, the idea is to extend the current Tooling API client and reuse the `ConsumerConnection` infrastructure.
+The implementation involves the Tooling API client "consumer" and "provider" parts besides the daemon part. The provider and daemon execution code is in the launcher module.
 
-Later stories will require the possibility to use parameters for model requests. An example of such model is `<T> T getModel(ProjectIdentity id, Class<T> modelType)`. This story doesn't require that behaviour, but it might be beneficial to start preparing for that change in the implementation.
+The execution of composite build models needs a composite build specific `BuildActionExecuter`.
+The contextual information of the composite build, like participant builds, should be passed in `ConsumerOperationParameters`/`ProviderOperationParameters` parameter. These parameters should be mapped to a `BuildActionParameters` implementation that contains the composite build related contextual information in an instance of a `CompositeParameters` type. When the composite parameters are available, the `BuildActionExecuter` implementation should be chosen accordingly.
 
-The provider side and daemon execution implementation is in the launcher module.
-The execution of composite build models need composite build specific `BuildAction` classes that are executed by composite build specific `BuildActionRunner` implementation classes.
-This story needs `CompositeBuildModelAction` and `CompositeBuildModelActionRunner` classes that should reside in the `laucher` module.
-That module already depends on tooling-api and core modules. Therefore using the tooling api for accessing participant projects should be possible.
+That launcher module already depends on tooling-api and core modules. Therefore using the tooling api for accessing participant projects should be possible.
 
 ### Test coverage
 
-Existing test coverage for `<T> Set<ModelResult<T>> getModels(Class<T> modelType)` API method should pass. There are existing tests for the previous stories where this behaviour has been implemented on the client side.
+Existing test coverage added in the previous composite build stories should pass. 
 
 ### Documentation
 
