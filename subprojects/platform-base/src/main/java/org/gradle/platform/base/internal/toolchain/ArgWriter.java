@@ -18,7 +18,6 @@ package org.gradle.platform.base.internal.toolchain;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +76,7 @@ public class ArgWriter implements ArgCollector {
                 if (args.isEmpty()) {
                     return args;
                 }
-                GFileUtils.mkdirs(argsFile.getParentFile());
+                argsFile.getParentFile().mkdirs();
                 try {
                     PrintWriter writer = new PrintWriter(argsFile);
                     try {
