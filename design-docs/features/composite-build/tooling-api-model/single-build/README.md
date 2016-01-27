@@ -10,18 +10,16 @@
 
 To support Eclipse import, only a constrained composite connection API is required.
 
-    GradleConnector { // existing class
-        static GradleConnection.Builder newGradleConnection()
+    abstract class GradleConnector { // existing class
+        static GradleConnection.Builder newGradleConnectionBuilder()
     }
 
     // See code in 'composite-build/src'
 
     // Usage:
-    GradleConnection.Builder builder = GradleConnector.newGradleConnection()
-    builder.addBuild(new File("path/to/root")) // use Gradle version specified by build
-    builder.addBuild(new File("...")).useGradleVersion("2.0") // use specific version
-
-    GradleConnection connection = builder.build()
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
+        addBuild(new File("path/to/root")).
+        build()
 
     // Using blocking call
     Set<EclipseProject> projects = connection.getModels(EclipseProject.class)

@@ -9,6 +9,13 @@
 
     class GradleCompositeException extends GradleConnectionException {
     }
+    
+    // Usage:
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
+        addBuild(new File("path/to/root")). // use project default
+        addBuild(new File("..."), "2.6"). // use Gradle 2.6
+        addBuild(new File("..."), new File("...")). // use local distribution
+        build()
 
 ### Implementation notes
 
