@@ -19,6 +19,7 @@ package org.gradle.testing.internal.util
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
+import org.spockframework.runtime.WrongExceptionThrownError
 
 /*
   Use this rule judiciously. This is not intended as a generic solution for flaky tests.
@@ -47,11 +48,11 @@ class RetryRule implements MethodRule {
             try {
                 base.evaluate()
             } catch (Throwable t1) {
-                if (shouldRetry(t1)) {
+                if (shouldReallyRetry(t1)) {
                     try {
                         base.evaluate()
                     } catch (Throwable t2) {
-                        if (shouldRetry(t2)) {
+                        if (shouldReallyRetry(t2)) {
                             try {
                                 base.evaluate();
                             } catch (Throwable t3) {
@@ -66,5 +67,12 @@ class RetryRule implements MethodRule {
                 }
             }
         }
+    }
+
+    private boolean shouldReallyRetry(Throwable t) {
+        if (t instanceof WrongExceptionThrownError) {
+            return shouldRetry(t.getCause())
+        }
+        shouldRetry(t)
     }
 }
