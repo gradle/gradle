@@ -53,7 +53,7 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * previousInputSnapshot.getAllFiles() >> []
+        1 * previousInputSnapshot.getFiles() >> []
         1 * discoveredFileSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
         4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
             // added probably doesn't make sense for discovered inputs...

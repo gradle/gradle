@@ -27,8 +27,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A minimal file set snapshotter is different from the default file collection snapshotter in that it doesn't depend
- * on the files in the file collection to exist.  Missing files are turned into MissingFileSnapshots.
+ * A minimal file set snapshotter is different from the default file collection snapshotter in that it creates a snapshot for every file
+ * in the input FileCollection without visiting the files on disk.  This allows files that do not exist yet to be considered part of the
+ * FileCollectionSnapshot without that information being lost.
  */
 public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
     private final FileSystem fileSystem;

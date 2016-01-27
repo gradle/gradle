@@ -106,10 +106,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getFiles();
         }
 
-        public Collection<File> getAllFiles() {
-            return filesSnapshot.getAllFiles();
-        }
-
         public FilesSnapshotSet getSnapshot() {
             return filesSnapshot.getSnapshot();
         }

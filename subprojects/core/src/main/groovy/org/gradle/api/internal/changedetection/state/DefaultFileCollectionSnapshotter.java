@@ -176,16 +176,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         public List<File> getFiles() {
-            List<File> files = new ArrayList<File>();
-            for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
-                if (entry.getValue() instanceof FileHashSnapshot) {
-                    files.add(new File(entry.getKey()));
-                }
-            }
-            return files;
-        }
-
-        public List<File> getAllFiles() {
             List<File> files = Lists.newArrayList();
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 if (!(entry.getValue() instanceof DirSnapshot)) {
