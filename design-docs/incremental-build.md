@@ -6,7 +6,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 These are general speed ups that improve all builds.
 
-## Story: Speed up File metadata lookup in task input/output snapshotting
+## ~~Story: Speed up File metadata lookup in task input/output snapshotting~~ ✔︎
 
 File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are
 hotspots in task input/output snapshotting.
@@ -32,7 +32,7 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 - Performance gains will be measured from existing performance tests. ✔︎
 - Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
 
-## Story: Reduce the in-memory size of the task history cache by interning file paths
+## ~~Story: Reduce the in-memory size of the task history cache by interning file paths~~ ✔︎
 
 ### Implementation
 
@@ -46,7 +46,7 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
   - interning different string instances with similar content return the first instance that was interned
   - allows calling method with null, returns null in that case
 
-## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
+## ~~Story: Add caching to Specs returned from PatternSet.getAsSpecs()~~ ✔︎
 
 Evaluating patterns is a hotspot in directory scanning. The default excludes patterns
 contains 28 entries. Checking all rules for each file sums up in a lot of operations.
@@ -56,7 +56,7 @@ Adding caching will improve performance of subsequent incremental builds.
 
 Assumption: PatternSet class is part of the Gradle Public API and we cannot change it's interface.
 
-#### 1. phase - target release Gradle 2.9
+#### ~~1. phase - target release Gradle 2.9~~
 
 Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45dca8ee9dc2331559
 
@@ -71,7 +71,7 @@ Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45d
 - Test that Spec<FileTreeElement> includes (added with PatternSet.include(Spec<FileTreeElement> spec)) and excludes (added with PatternSet.exclude(Spec<FileTreeElement> spec)) are not cached.
 - Existing PatternSet tests cover rest of the changes since there are no planned behavioural or API changes for 1. phase.
 
-#### 2. phase - target release Gradle 2.11
+#### ~~2. phase - target release Gradle 2.11~~
 
 Goal: manage the cache instance in Gradle infrastructure instead of a singleton instance
 - Use default non-caching PatternSpecFactory in PatternSet class, replace use of CachingPatternSpecFactory with plain PatternSpecFactory
@@ -132,7 +132,7 @@ This story adds a way for an incremental task to register additional inputs once
 - The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
 - Discovered inputs do not work with continuous build.
 
-## Story: Use source #include information as discovered inputs
+## ~~Story: Use source #include information as discovered inputs~~
 
 Based on IncrementalNativeCompiler's #include extractor, add header files as discovered inputs to compile tasks.
 
