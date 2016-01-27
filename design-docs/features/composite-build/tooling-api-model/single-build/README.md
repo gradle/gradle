@@ -14,28 +14,7 @@ To support Eclipse import, only a constrained composite connection API is requir
         static GradleConnection.Builder newGradleConnection()
     }
 
-    interface GradleBuild extends GradleDistributionAware {
-        GradleBuild useGradleUserHomeDir(File gradleUserHomeDir); // TODO: May not be needed
-    }
-
-    interface GradleDistributionAware {
-        GradleBuild useInstallation(File gradleHome);
-        GradleBuild useGradleVersion(String gradleVersion);
-        GradleBuild useDistribution(URI location);
-    }
-
-    interface GradleConnection {
-        interface Builder {
-            GradleBuild addBuild(File rootProjectDirectory);
-            GradleConnection build() throws GradleConnectionException;
-        }
-
-        <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException
-        <T> void getModel(Class<T> modelType, ResultHandler<Set<? super T>> handler) throws IllegalStateException
-        <T> ModelBuilder<Set<T>> models(Class<T> modelType);
-
-        void close()
-    }
+    // See code in 'composite-build/src'
 
     // Usage:
     GradleConnection.Builder builder = GradleConnector.newGradleConnection()
@@ -44,14 +23,18 @@ To support Eclipse import, only a constrained composite connection API is requir
 
     GradleConnection connection = builder.build()
 
+    // Using blocking call
     Set<EclipseProject> projects = connection.getModels(EclipseProject.class)
     for (EclipseProject project : projects) {
         // do something with EclipseProject model
     }
 
+    // Using ModelBuilder
     ModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
     Set<EclipseProject> projects = modelBuilder.get()
 
+    // using result handler
+    // or connection.getModels(EclipseProject.class, ...)
     modelBuilder.get(new ResultHandler<Set<EclipseProject>>() {
         @Override
         public void onComplete(Set<EclipseProject> result) {

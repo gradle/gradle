@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.composite;
 
-import org.gradle.tooling.GradleConnectionException;
+package org.gradle.tooling.composite;
 
-import java.util.Set;
+import org.gradle.api.Incubating;
+
+import java.io.File;
 
 /**
- * TODO: Change this API to provide each result separately
+ * Represents a participant in a composite build.
+ *
+ * <p>Gradle builds within a composite will be configured independently, and will not have direct access to the configuration model of other builds within the composite.</p>
  */
-public interface CompositeResultHandler<T> {
-
-    void onResults(Set<ModelResult<T>> result);
-
-    void onFailure(GradleConnectionException failure);
+@Incubating
+public interface GradleBuild extends GradleDistributionAware<GradleBuild> {
+    // TODO: May not be needed
+    GradleBuild useGradleUserHomeDir(File gradleUserHomeDir);
 }

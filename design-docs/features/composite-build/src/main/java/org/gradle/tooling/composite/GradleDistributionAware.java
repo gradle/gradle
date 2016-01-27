@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.composite;
 
-import org.gradle.tooling.ConfigurableLauncher;
-import org.gradle.tooling.GradleConnectionException;
+package org.gradle.tooling.composite;
 
-import java.util.Set;
+import org.gradle.api.Incubating;
 
-public interface CompositeModelBuilder<T> extends ConfigurableLauncher<CompositeModelBuilder<T>> {
-    CompositeModelBuilder<T> forTasks(String... tasks);
-    CompositeModelBuilder<T> forTasks(Iterable<String> tasks);
+import java.io.File;
+import java.net.URI;
 
-    Set<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException;
-    void get(CompositeResultHandler<? super T> handler) throws IllegalStateException;
+/**
+ * A {@code GradleDistributionAware} represents an object which can configure the version or distribution of Gradle to be used.
+ */
+@Incubating
+public interface GradleDistributionAware<T> {
+    T useInstallation(File gradleHome);
+    T useGradleVersion(String gradleVersion);
+    T useDistribution(URI gradleDistribution);
 }
