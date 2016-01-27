@@ -142,10 +142,9 @@ The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hi
 - A composite can only contain a Gradle project. A future story will also need to address building a workspace with homogeneous project types (e.g. Maven, Ant or any other type of
 project that does not have access to the Gradle API).
 
-### Story - Buildship queries model result to determine set of Eclipse projects for an imported Gradle build
+### Story - Buildship queries model result to determine set of Eclipse projects for multiple imported Gradle builds
 
-By switching to use the new model result, Buildship (and tooling-commons) will no longer need to traverse the hierarchy of eclipse projects.
-This change will enable Buildship to later take advantage of project substitution and name de-duplication for composite builds.
+By switching to use the new model result, Buildship (and tooling-commons) will no longer need to traverse the hierarchy of eclipse projects. This change will enable Buildship to later take advantage of project substitution and name de-duplication for composite builds. When importing a new Gradle build, projects for all previously imported Gradle builds will need to be refreshed. If implemented correctly, the development of project name deduplication and project dependency substitution support in Gradle will automatically be reflected in functionality within Buildship.
 
 ##### API
 
@@ -181,34 +180,17 @@ A new `CompositeModelRepository` will be added in order to query composites from
 
 ##### Implementation
 
- Buildship will query for an `OmniEclipseWorkspace` containing exactly one root project instead of querying for that root project directly. The rest of the synchronization logic can remain unchanged.
+ The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of the new `CompositeModelRepository` to query for the `EclipseWorkspace` model. If the set of projects contained in the workspace change, the `ToolingClient` will rebuild the `GradleComposite` from scratch.
 
-##### Test cases
-
-- executing a `CompositeModelRequest` with no `ProjectIdentifier` throws an `IllegalArgumentException`
-- a `CompositeModelRequest` can only request an `EclipseWorkspace`, requesting any other Model throws an `UnsupportedModelException`
-- executing a `CompositeModelRequest` for a single project returns an `OmniEclipseWorkspace` containing the corresponding `OmniEclipseGradleBuild`
-- executing a `CompositeModelRequest` for a multi-project build returns an `OmniEclipseWorkspace` containing all the `OmniEclipseGradleBuild`s contained in that project
-- executing a `CompositeModelRequest` for more than one root project throws an `IllegalArgumentException`
-- all Buildship tests must pass unaltered
-
-### Story - Buildship queries model result to determine set of Eclipse projects for multiple imported Gradle builds
-
-This story builds on the previous by converting Buildship to create and use a model result where multiple Gradle projects have been imported into Eclipse.
-
-When importing a new Gradle build, projects for all previously imported Gradle builds will need to be refreshed.
-
-If implemented correctly, the development of project name deduplication and project dependency substitution support in Gradle will automatically be reflected in functionality within Buildship.
-
-##### Implementation
-
-The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of the new `CompositeModelRepository` to query for the `EclipseWorkspace` model. If the set of Projects contained in the workspace change, the `ToolingClient` will rebuild the `GradleComposite` from scratch.
-
-The project synchronization methods will be changed to take an additional `EclipseWorkspace` argument. This especially affects the `ClasspathUpdater`, because to support the upcoming substitution story, it now needs to search for project dependencies across the whole workspace.
+ The project synchronization methods will be changed to take an additional `EclipseWorkspace` argument. This especially affects the `ClasspathUpdater`, because to support the upcoming substitution story, it now needs to search for project dependencies across the whole workspace.
 
 ##### Test cases
 
 tooling-commons:
+- executing a `CompositeModelRequest` with no `ProjectIdentifier` throws an `IllegalArgumentException`
+- a `CompositeModelRequest` can only request an `EclipseWorkspace`, requesting any other Model throws an `UnsupportedModelException`
+- executing a `CompositeModelRequest` for a single project returns an `OmniEclipseWorkspace` containing the corresponding `OmniEclipseGradleBuild`
+- executing a `CompositeModelRequest` for a multi-project build returns an `OmniEclipseWorkspace` containing all the `OmniEclipseGradleBuild`s contained in that project
 - executing a `CompositeModelRequest` for a several multi-project build returns an `OmniEclipseWorkspace` containing the union of all the `OmniEclipseGradleBuild`s contained in those projects.
 - an exception is thrown if any of the `OmniGradleBuild`s cannot be obtained
 
