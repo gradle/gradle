@@ -311,20 +311,15 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Defaults
-        void applyHeaderSourceSetConventions(@Each final NativeComponentSpec component) {
-            component.getSources().withType(HeaderExportingSourceSet.class).afterEach(new Action<HeaderExportingSourceSet>() {
-                @Override
-                public void execute(HeaderExportingSourceSet headerSourceSet) {
-                    // Only apply default locations when none explicitly configured
-                    if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", component.getName()));
-                    }
+        @Finalize
+        void applyHeaderSourceSetConventions(@Each HeaderExportingSourceSet headerSourceSet) {
+            // Only apply default locations when none explicitly configured
+            if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+                headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", headerSourceSet.getParentName()));
+            }
 
-                    headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                    headerSourceSet.getImplicitHeaders().include("**/*.h");
-                }
-            });
+            headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+            headerSourceSet.getImplicitHeaders().include("**/*.h");
         }
 
         @Finalize
