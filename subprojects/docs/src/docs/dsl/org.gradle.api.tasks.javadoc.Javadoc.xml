@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <td>title</td>
-                <td><literal>project.apiDocTitle</literal></td>
+                <td><literal>project.reporting.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>classpath</td>
@@ -49,7 +49,7 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
-                <td>toolResolver</td>
+                <td>toolChain</td>
                 <td></td>
             </tr>
         </table>

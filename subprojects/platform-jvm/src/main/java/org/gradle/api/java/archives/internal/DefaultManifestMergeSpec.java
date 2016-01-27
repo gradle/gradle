@@ -19,11 +19,11 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -47,7 +47,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
     }
 
-    public DefaultManifest merge(Manifest baseManifest, FileResolver fileResolver) {
+    public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
@@ -58,7 +58,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return mergedManifest;
     }
 
-    private DefaultManifest mergeManifest(DefaultManifest baseManifest, DefaultManifest toMergeManifest, FileResolver fileResolver) {
+    private DefaultManifest mergeManifest(DefaultManifest baseManifest, DefaultManifest toMergeManifest, PathToFileResolver fileResolver) {
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergeSection(null, mergedManifest, baseManifest.getAttributes(), toMergeManifest.getAttributes());
         Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
@@ -109,7 +109,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private DefaultManifest createManifest(Object mergePath, FileResolver fileResolver) {
+    private DefaultManifest createManifest(Object mergePath, PathToFileResolver fileResolver) {
         if (mergePath instanceof DefaultManifest) {
             return ((DefaultManifest) mergePath).getEffectiveManifest();
         }

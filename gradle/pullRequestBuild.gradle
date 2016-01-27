@@ -1,0 +1,80 @@
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+
+ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    @Override
+    Thread newThread(Runnable runnable) {
+        Thread thread = Executors.defaultThreadFactory().newThread(runnable)
+        thread.setDaemon(true)
+        return thread
+    }
+})
+
+task startHeartBeat << {
+    logger.lifecycle("Starting heartbeat.")
+    executor.execute(new Heartbeat(logger));
+}
+
+task stopHeartBeat << {
+    logger.lifecycle("Shutting down heartbeat.")
+    executor.shutdownNow();
+}
+
+class Heartbeat implements Runnable {
+    int frequency = 8 * 60 * 1000
+    def logger
+
+    public Heartbeat(logger) {
+        this.logger = logger
+    }
+
+    @Override
+    public void run() {
+        boolean beating = true
+        while (beating) {
+            logger.lifecycle(" [heartbeat] ")
+            try {
+                Thread.sleep(frequency)
+            } catch (InterruptedException e) {
+                beating = false
+                logger.lifecycle("Heartbeat thread Interrupted")
+            }
+        }
+    }
+}
+
+def matrixSize = 4
+def splits = (1..matrixSize).collect { [] }
+project.subprojects.asList().eachWithIndex { project, i ->
+    splits[(i % matrixSize)] << project
+}
+
+splits.eachWithIndex { List<Project> bucket, int i ->
+    def index = i + 1
+    def testTask = project.tasks.create("testSplit${index}", {
+        ext.projectNames = bucket.collect { it.name }
+    })
+
+    bucket.each { Project project ->
+        def checkTask = project.tasks.getByName('check')
+        if (checkTask) {
+            testTask.dependsOn(checkTask)
+        }
+    }
+    buildTypes {
+        "prBuild${index}" {
+            tasks "startHeartBeat", testTask.name, "stopHeartBeat"
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def task = graph.getAllTasks()?.find { it.name.contains('testSplit') }
+    if (task) {
+        logger.quiet("============================================")
+        logger.quiet("${task.name} configured to test the following projects: ")
+        task.projectNames.each { logger.quiet("${it}") }
+        logger.quiet("============================================")
+    }
+}

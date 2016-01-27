@@ -16,27 +16,61 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
-// TODO:DAZ Split data from behaviour
-// data: fullName + component parts [typeName, dimensions, baseName?]
-// Can determine baseName
-
-// behaviour: composing these
 public interface BinaryNamingScheme {
-    String getBaseName();
-
-    String getLifecycleTaskName();
+    String getBinaryName();
 
     String getTaskName(@Nullable String verb);
 
     String getTaskName(@Nullable String verb, @Nullable String target);
 
-    String getOutputDirectoryBase();
+    /**
+     * Returns a directory that can be used for outputs for this binary.
+     */
+    File getOutputDirectory(File baseDir);
+
+    /**
+     * Returns a directory that can be used for outputs of the given type for this binary.
+     */
+    File getOutputDirectory(File baseDir, String outputType);
 
     String getDescription();
 
     List<String> getVariantDimensions();
+
+    /**
+     * Creates a copy of this scheme, replacing the component name.
+     */
+    BinaryNamingScheme withComponentName(String componentName);
+
+    /**
+     * Creates a copy of this scheme, replacing the role. The 'role' refers to the role that the binary plays within its component.
+     */
+    BinaryNamingScheme withRole(String role, boolean isMain);
+
+    /**
+     * Creates a copy of this scheme, replacing the binary type.
+     */
+    BinaryNamingScheme withBinaryType(String type);
+
+    /**
+     * Creates a copy of this scheme, specifying a binary name. This overrides the default binary name that would be generated from the other attributes.
+     */
+    BinaryNamingScheme withBinaryName(String name);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension.
+     */
+    BinaryNamingScheme withVariantDimension(String dimension);
+
+    /**
+     * Creates a copy of this scheme, <em>adding</em> a variant dimension if required.
+     */
+    <T extends Named> BinaryNamingScheme withVariantDimension(T value, Collection<? extends T> allValuesForAxis);
 }

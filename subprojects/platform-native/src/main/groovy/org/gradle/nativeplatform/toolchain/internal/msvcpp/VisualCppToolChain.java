@@ -38,7 +38,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     private final String name;
     private final OperatingSystem operatingSystem;
-    private final FileResolver fileResolver;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
@@ -60,7 +59,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         this.name = name;
         this.operatingSystem = operatingSystem;
-        this.fileResolver = fileResolver;
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;

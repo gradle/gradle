@@ -26,11 +26,11 @@
             </tr>
             <tr>
                 <td>windowTitle</td>
-                <td><literal>project.apiDocTitle</literal></td>
+                <td><literal>project.reporting.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>docTitle</td>
-                <td><literal>project.apiDocTitle</literal></td>
+                <td><literal>project.reporting.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>header</td>

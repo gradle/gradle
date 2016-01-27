@@ -16,10 +16,9 @@
 
 package org.gradle.sonar.runner.tasks;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
@@ -28,6 +27,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.sonar.runner.SonarRunnerExtension;
 import org.gradle.util.GUtil;
@@ -47,8 +47,10 @@ import java.util.Properties;
  * <p>
  * For more information on how to configure the SonarQube Runner, and on which properties are available, see the
  * <a href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner documentation</a>.
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarRunner extends DefaultTask {
 
     private static final Logger LOGGER = Logging.getLogger(SonarRunner.class);
@@ -72,7 +74,7 @@ public class SonarRunner extends DefaultTask {
             LOGGER.info("Executing SonarQube Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
         }
 
-        JavaExecHandleBuilder javaExec = new JavaExecHandleBuilder(getFileResolver());
+        JavaExecHandleBuilder javaExec = getExecHandleFactory().newJavaExec();
         getForkOptions().copyTo(javaExec);
 
         FileCollection sonarRunnerConfiguration = getProject().getConfigurations().getAt(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
@@ -86,7 +88,7 @@ public class SonarRunner extends DefaultTask {
                 .systemProperty("project.settings", propertyFile.getAbsolutePath())
 
                 // This value is set in the properties file, but SonarQube Runner 2.4 requires it on the command line as well
-                // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
+                    // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
                 .systemProperty("project.home", getProject().getProjectDir().getAbsolutePath())
 
                 .setClasspath(sonarRunnerConfiguration)
@@ -120,6 +122,11 @@ public class SonarRunner extends DefaultTask {
 
     @Inject
     protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecHandleFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();
     }
 

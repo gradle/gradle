@@ -19,20 +19,18 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.*
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 import spock.lang.Unroll
 
 /**
  * Test the binding of rules by the registry.
  */
-class ModelRuleBindingTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance)))
-    def modelRegistry = new DefaultModelRegistry(extractor)
+class ModelRuleBindingTest extends ProjectRegistrySpec {
+    def modelRegistry = new DefaultModelRegistry(modelRuleExtractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate
@@ -54,15 +52,16 @@ class ModelRuleBindingTest extends Specification {
 
     def "error message produced when unpathed reference matches more than one item"() {
         when:
-        modelRegistry.apply(AmbiguousBindingsInOneSource).bindAllReferences()
+        modelRegistry.getRoot().applyToSelf(AmbiguousBindingsInOneSource)
+        modelRegistry.bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)
         e.descriptor == MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "m").toString()
         def cause = e.cause as ModelRuleBindingException
         def message = new AmbiguousBindingReporter(String.name, "parameter 1", [
-                new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s2").toString()),
-                new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s1").toString()),
+            new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s2").toString()),
+            new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s1").toString()),
         ]).asString()
 
         cause.message == message
@@ -93,7 +92,7 @@ class ModelRuleBindingTest extends Specification {
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 
@@ -103,8 +102,8 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new AmbiguousBindingReporter(String.name, "parameter 1", [
-                new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(ProvidesStringTwo, "s2").toString()),
-                new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString()),
+            new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(ProvidesStringTwo, "s2").toString()),
+            new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString()),
         ]).asString()
 
         cause.message == message
@@ -124,7 +123,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 
@@ -134,12 +133,12 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new IncompatibleTypeReferenceReporter(
-                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
-                "s1",
-                Integer.name,
-                "parameter 1",
-                true,
-                [UnmanagedModelProjection.description(ModelType.of(String))]
+            MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+            "s1",
+            Integer.name,
+            "parameter 1",
+            true,
+            [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message
@@ -159,7 +158,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            modelRegistry.apply(it)
+            modelRegistry.getRoot().applyToSelf(it)
         }
         modelRegistry.bindAllReferences()
 
@@ -169,12 +168,12 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new IncompatibleTypeReferenceReporter(
-                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
-                "s1",
-                Integer.name,
-                "parameter 2",
-                false,
-                [UnmanagedModelProjection.description(ModelType.of(String))]
+            MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+            "s1",
+            Integer.name,
+            "parameter 2",
+            false,
+            [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message

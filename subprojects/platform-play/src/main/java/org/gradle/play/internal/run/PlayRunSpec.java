@@ -26,6 +26,14 @@ public interface PlayRunSpec {
 
     Iterable<File> getClasspath();
 
+    Iterable<File> getChangingClasspath();
+
+    File getApplicationJar();
+
+    File getAssetsJar();
+
+    Iterable<File> getAssetsDirs();
+
     File getProjectPath();
 
     int getHttpPort();

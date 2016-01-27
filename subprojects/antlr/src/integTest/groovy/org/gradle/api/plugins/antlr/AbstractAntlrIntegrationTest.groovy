@@ -31,7 +31,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
         assert output.contains("Processing with ANTLR $version")
     }
 
-    private void writeBuildFile() {
+    protected void writeBuildFile() {
         buildFile << """
             apply plugin: "java"
             apply plugin: "antlr"

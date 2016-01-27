@@ -1,13 +1,59 @@
 
-This spec defines a number of features to improve the developer IDE experience with Gradle. It covers changes in Gradle to improve those features
+This spec defines a number of features to improve the developer experience using Gradle from the IDE. It covers changes in Gradle to improve those features
 that directly affect the IDE user experience. This includes the tooling API and tooling models, the Gradle daemon, and the Gradle IDE plugins
 (i.e. the plugins that run inside Gradle to provide the IDE models).
 
-This spec does not cover more general features such as improving dependency resolution or configuration performance.
+Tooling API stories that are not related directly to the IDE experience should go in the `tooling-api-improvements.md` spec.
 
 # Implementation plan
 
-Below is a list of stories, in approximate priority order:
+## Feature - Expose source and target platforms of JVM language projects
+
+Spec moved to [features/ide-integration/source-and-target-jvm].
+
+### Story - Introduce JavaProject
+
+#### Estimate
+
+- 3.5 days
+
+#### Implementation
+
+- add new `JavaProject` to model IDE agnostic Java Projects
+- add details about Java Source level to the `JavaModel`
+    - should be based on projects `sourceCompatibility` level
+- add details about dependencies to the project
+    - project and external dependencies
+- add details about source folders to the `JavaProject` model
+- add details of the target JVM:
+    - should be based on projects `targetCompatibility` level
+    - Java version
+    - Install directory
+
+- TBD: Classpath
+- For older Gradle versions:
+    - TBD - reasonable defaults for Java language version
+
+#### Test Coverage
+
+- Query `JavaProject` for older Gradle providers throws meaningful error message
+- Query `JavaProject` for non java projects fails with meaningful error message
+- `JavaProject` model for multi project build contains information about
+    - source folders
+    - thirdparty dependencies
+    - project dependencies
+    - target sdk
+    - source compatibility
+- respects customizations of sourcesets
+    - additional sourcesets
+    - additional sourcefolders to sourcesets are respected
+
+- TBD: provide test and runtime classpath
+
+
+### Story - Expose Groovy components to the IDE
+
+TBD
 
 ## Feature - Tooling API parity with command-line for task visualisation and execution
 
@@ -33,23 +79,6 @@ model introduced by the new language plugins:
 #### Open issues
 
 - Split `gradle tasks` into 'what can I do with this build?' and a 'what are all the tasks in this project?'.
-
-### GRADLE-2434 - IDE visualises and runs task selectors (DONE)
-
-On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
-and all its subprojects.
-
-Expose some information to allow the IDE to visualise this and execute builds in a similar way.
-
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434---expose-the-aggregate-tasks-for-a-project)
-
-### IDE hides implementation tasks (DONE)
-
-On the command-line I can run `gradle tasks` and see the public tasks for the build, and `gradle tasks --all` to see all the tasks.
-
-Expose some information to allow the IDE to visualise this.
-
-See [tooling-api-improvements.md](tooling-api-improvements.md#expose-information-about-the-visibility-of-a-task)
 
 ### Simplify task visibility logic
 
@@ -185,15 +214,6 @@ Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
     - Include JvmLibrary main artifact in query results
     - Replace `IdeDependenciesExtractor.extractRepoFileDependencies` with single ArtifactResolutionQuery
 
-## Feature - Tooling API client cancels an operation (DONE)
-
-Add some way for a tooling API client to request that an operation be cancelled.
-
-The implementation will do the same thing as if the daemon client is disconnected, which is to drop the daemon process.
-Later stories incrementally add more graceful cancellation handling.
-
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-a-long-running-operation)
-
 ## Feature - Expose dependency resolution problems
 
 - For the following kinds of failures:
@@ -208,55 +228,58 @@ See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-
 - Change the existing IDE plugin int tests to verify the warning is produced in each of the above cases.
 - Add test coverage for the tooling API to cover the above cases.
 
-## Feature - Expose build script compilation details
+## Feature: Expose the compile details of a build script
 
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-compile-details-of-a-build-script):
+This feature exposes some information about how a build script will be compiled. This information can be used by an
+IDE to provide some basic content assistance for a build script.
 
-Expose some details to allow some basic content assistance for build scripts:
+## Story: Expose the Groovy version used for a build script
 
-- Expose the classpath each build script.
-- Expose the default imports for each build script.
-- Expose the Groovy version for each build script.
+Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
 
-## Story - Tooling API stability tests
+### Test coverage
 
-Introduce some stress and stability tests for the tooling API and daemon to the performance test suite. Does not include
-fixing any leaks or stability problems exposed by these tests. Additional stories will be added to take care of such issues.
+## Story: Expose the default imports used for a build script
 
-## Feature - Daemon usability improvements
+Add a `defaultImports` property to `GradleScript` to expose the default imports applied to the script.
 
-### Story - Build script classpath can contain a changing jar
+### Test coverage
 
-Fix ClassLoader caching to detect when a build script classpath has changed.
+## Story: Expose the classpath used for a build script
 
-Fix the ClassLoading implementation to avoid locking these Jars on Windows.
+1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
+    - Should expose a set of files, a set of source archives and a set of API docs.
+2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
+3. Script classpath includes the Gradle API and core plugins
+    - Should include the source and Javadoc
+4. Script classpath includes the libraries declared in the `buildscript { }` block.
+5. Script classpath includes the plugins declared in the `plugins { }` block.
+6. Script classpath includes the libraries inherited from parent project.
 
-### Story - Can clean after compiling on Windows
+### Test coverage
 
-Fix GRADLE-2275.
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - Gradle API is included in the classpath.
+    - buildSrc output is included in the classpath, if present.
+    - Classpath declared in script is included in the classpath.
+    - Classpath declared in script of ancestor project is included in the classpath.
+    - Source and Javadoc artifacts for the above are included in the classpath.
+- Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
 
-### Story - Prefer a single daemon instance
+### Open issues
 
-Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
-selected as the survivor and the others expire quickly (say, as soon as they become idle).
+- Need to flesh out the classpath types.
+- Will need to use Eclipse and IDEA specific classpath models
+
+## Story: Tooling API client requests build script details for a given file
+
+Add a way to take a file path and request a `BuildScript` model for it.
 
 ## Feature - Expose project components to the IDE
 
-### Story - Expose Java components to the IDE
+## Story: Expose the IDE output directories
 
-See [tooling-api-improvements.md](tooling-api-improvements.md):
-
-Expose Java language level and other details about a Java component.
-
-Expose the corresponding Eclipse and IDEA model.
-
-### Story - Expose Groovy components to the IDE
-
-See [tooling-api-improvements.md](tooling-api-improvements.md):
-
-Expose Groovy language level and other details about a Groovy component.
-
-Expose the corresponding Eclipse and IDEA model.
+Add the appropriate properties to the IDEA and Eclipse models.
 
 ### Story - Expose Scala components to the IDE
 
@@ -276,133 +299,14 @@ Expose Ear content, J2EE API versions, deployment descriptor and other details a
 
 Expose the corresponding Eclipse and IDEA model.
 
+## Story: Expose generated directories
+
+It is useful for IDEs to know which directories are generated by the build. An initial approximation can be to expose
+just the build directory and the `.gradle` directory. This can be improved later.
+
 ### Story - Expose artifacts to IDEA
 
 Expose details to allow IDEA to build various artifacts: http://www.jetbrains.com/idea/webhelp/configuring-artifacts.html
-
-## Feature - Daemon usability improvements
-
-### Story - Daemon handles additional immutable system properties
-
-Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
-a new daemon instance must be started. Currently, only `file.encoding` is treated as an immutable system property.
-
-Add support for the following properties:
-
-- The jmxremote system properties (GRADLE-2629)
-- The SSL system properties (GRADLE-2367)
-- 'java.io.tmpdir' : this property is only read once at JVM startup
-
-### Story - Daemon process expires when a memory pool is exhausted
-
-Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
-
-### Story - Cross-version daemon management
-
-Daemon management, such as `gradle --stop` and the daemon expiration algorithm should consider daemons across all Gradle versions.
-
-### Story - Reduce the default daemon maximum heap and permgen sizes
-
-Should be done in a backwards compatible way.
-
-## Feature - Tooling API client listens for changes to a tooling model
-
-Provide a subscription mechanism to allow a tooling API client to listen for changes to the model it is interested in.
-
-## Feature - Tooling API client receives test execution events
-
-Allow a tooling API client to be notified as tests are executed
-
-## Feature - Interactive builds
-
-### Story - Support interactive builds from the command-line
-
-Provide a mechanism that build logic can use to prompt the user, when running from the command-line.
-
-### Story - Support interactive builds from the IDE
-
-Extend the above mechanism to support prompting the user, when running via the tooling API.
-
-# More candidates
-
-Some more features to mix into the above plan:
-
-- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
-- Honour same environment variables as command-line `gradle` invocation.
-- Richer events during execution:
-    - Task execution
-    - Custom events
-- Richer build results:
-    - Test results
-    - Custom results
-    - Compilation and other verification failures
-    - Task failures
-    - Build configuration failures
-- Expose unresolved dependencies.
-- Expose dependency graph.
-- Expose component graph.
-- Provide some way to search repositories, to offer content assistance with dependency notations.
-- Don't configure the projects when `GradleBuild` model is requested.
-- Configure projects as required when using configure-on-demand.
-- Don't configure tasks when they are not requested.
-- Deal with non-standard wrapper meta-data location.
-- More accurate content assistance.
-- User provides input to build execution.
-- User edits dependencies via some UI.
-- User upgrades Gradle version via some UI.
-- User creates a new build via some UI.
-- Provide some way to define additional JVM args and system properties (possibly via command-line args)
-- Provide some way to locate Gradle builds, eg to allow the user to select which build to import.
-
-### Story - Classpath export across projects in multi-project builds
-
-Project files generated by the Gradle Idea and Eclipse plugins are responsible for deriving the classpath from the declared list of dependencies in the build file. The current
- behavior is best explained by example. Let's assume project A and B. Both projects are part of a multi-project build. Project B declares a project dependency on project A. The generated classpath
- of project B is a union of the classpath of project A (the generated JAR file plus its dependencies) and its own declared top-level dependencies and transitive dependencies. Classpath
- ordering matters. In practice this means the following: given that project A and B depend on a specific library with different versions, the "exported" dependency versions win as they happens
- to be listed first in classpath of project B. This behavior might lead to compilation and runtime issues in the IDE as no conflict-resolution takes place across projects.
-
-[Concrete example](https://github.com/bmuschko/eclipse-export): Project A  declares a dependency in Guava 15.0, Project B declares a dependency on Guava 16.0.1. Project B depends on A. If you generate
-the project files with the Gradle Eclipse plugin, project A is exported to B and appears to be on the classpath as the first entry (exported project). As a result Guava 15 is found and not 16.0.1.
-Any code in B that relies on Guava's API from 16.0.1 will cause a compilation error.
-
-The other use case to consider is the generation of project files directly via the IDE's import capabilities. In this scenario the Gradle IDE plugins might be used or only partially depending on
-the product.
-
-- IntelliJ: To our knowledge depends on classes from Gradle's internal API to generate classpath (`org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver`).
-- Eclipse: STS uses a custom model for the tooling API to generate the classpath. The Gradle IDE plugins can be activated optionally to derive additional customizations of the project files.
-- Buildship: See Eclipse. Is there any difference in behavior? How is the classpath generated right now?
-
-#### Implementation
-
-There are two options:
-
-1. Make each generated IDE module contain the full transitive set of dependencies, and not use the "exported" attribute at all.
-2. Apply conflict resolution across the entire set of IDE modules. External dependencies resolve to a specific version. The dependency graph for any module will only have a single version
-of a dependency.
-
-We'll go with option 1 which includes the following concrete work items:
-
-- Expose information about whether a given dependency is exported or not in the Eclipse tooling model. This is only needed if we want to make "exported" a selectable option.
-- Change the mapping for Eclipse so that a Eclipse project's classpath contains all the dependencies of that project, including transitive dependencies. Should apply whether using `gradle eclipse` to
-generated Eclipse config files or using the tooling API.
-- Change the mapping for IDEA.
-
-#### Test cases
-
-- Existing test cases for the Idea and Eclipse plugins need to be modified to reflect changed export behavior.
-- The classpath generated by the Gradle IDE plugins need to contain all dependencies of a project, including transitive dependencies.
-- In a multi-project build have two projects with conflicting version on an external dependency.
-    - Project A depends on Guava 15.
-    - Project B depends on Guava 16.0.1. A class in this project depends on API of version 16.0.1.
-    - The generated project files for project B use Guava version 16.0.1 to allow for proper compilation.
-    - This behavior should be observed using the IDE plugins as well as the tooling API.
-
-#### Open issues
-
-- Potential backward compatibility issues for existing projects.
-- Should the exported flag become configurable? Especially in larger organizations allowing this behavior might lead to confusion. Users are usually not aware of the implications; they
-"just want it to work".
 
 ### Story - IntelliJ directory-based project metadata generation
 
@@ -449,3 +353,33 @@ per configuration file. The DSL of the old and new format may not conflict.
 might be confusing to users.
 - Is there any feature parity between the file-based and directory-based project formats?
 - There's no overarching, publicly-available documentation or specification on directory-based project files. It might be worth to contact JetBrains for a good resource.
+
+# More candidates
+
+Some more features to mix into the above plan:
+
+- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
+- Honour same environment variables as command-line `gradle` invocation.
+- Richer events during execution:
+    - Custom events
+- Richer build results:
+    - Test results
+    - Custom results
+    - Compilation and other verification failures
+    - Task failures
+    - Build configuration failures
+- Expose unresolved dependencies.
+- Expose dependency graph.
+- Expose component graph.
+- Provide some way to search repositories, to offer content assistance with dependency notations.
+- Don't configure the projects when `GradleBuild` model is requested.
+- Configure projects as required when using configure-on-demand.
+- Don't configure tasks when they are not requested.
+- Deal with non-standard wrapper meta-data location.
+- More accurate content assistance.
+- User provides input to build execution.
+- User edits dependencies via some UI.
+- User upgrades Gradle version via some UI.
+- User creates a new build via some UI.
+- Provide some way to define additional JVM args and system properties (possibly via command-line args)
+- Provide some way to locate Gradle builds, eg to allow the user to select which build to import.

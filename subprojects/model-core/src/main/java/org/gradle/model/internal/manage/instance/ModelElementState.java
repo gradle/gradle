@@ -16,14 +16,14 @@
 
 package org.gradle.model.internal.manage.instance;
 
+import groovy.lang.Closure;
 import org.gradle.model.internal.core.MutableModelNode;
 
-public interface ModelElementState {
+public interface ModelElementState extends GeneratedViewState {
     MutableModelNode getBackingNode();
 
-    String getDisplayName();
-
-    Object get(String name);
-
-    void set(String name, Object value);
+    /**
+     * Applies the given action to the value of the given property.
+     */
+    void apply(String name, Closure<?> action);
 }

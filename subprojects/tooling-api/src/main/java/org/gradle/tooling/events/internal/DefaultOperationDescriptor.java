@@ -18,20 +18,23 @@ package org.gradle.tooling.events.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 /**
  * Implementation of the {@code BuildOperationDescriptor} interface.
  */
-public class DefaultOperationDescriptor implements OperationDescriptor {
+public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorWrapper {
 
     private final String name;
     private final String displayName;
     private final OperationDescriptor parent;
+    private InternalOperationDescriptor internalDescriptor;
 
-    public DefaultOperationDescriptor(String name, String displayName, OperationDescriptor parent) {
-        this.name = name;
-        this.displayName = displayName;
+    public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor,  OperationDescriptor parent) {
+        this.name = internalDescriptor.getName();
+        this.displayName = internalDescriptor.getDisplayName();
         this.parent = parent;
+        this.internalDescriptor = internalDescriptor;
     }
 
     @Override
@@ -55,4 +58,8 @@ public class DefaultOperationDescriptor implements OperationDescriptor {
         return getDisplayName();
     }
 
+    @Override
+    public InternalOperationDescriptor getInternalOperationDescriptor() {
+        return internalDescriptor;
+    }
 }

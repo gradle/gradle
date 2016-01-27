@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.util.ConfigureUtil
@@ -32,6 +33,7 @@ import org.gradle.util.ConfigureUtil
  *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
  *     sourceCompatibility = 1.6
  *     targetCompatibility = 1.5
+ *     javaRuntimeName = "J2SE-1.5"
  *
  *     file {
  *       //whenMerged closure is the highest voodoo
@@ -43,7 +45,7 @@ import org.gradle.util.ConfigureUtil
  *       whenMerged { jdt
  *         //you can tinker with the {@link Jdt} here
  *       }
- *       
+ *
  *       //withProperties allows addition of properties not currently
  *       //modeled by Gradle
  *       withProperties { properties ->
@@ -61,10 +63,10 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion sourceCompatibility
+    JavaVersion sourceCompatibility = JavaVersion.current()
 
     void setSourceCompatibility(Object sourceCompatibility) {
-        this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility)
+        this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility) ?: sourceCompatibility
     }
 
     /**
@@ -72,11 +74,19 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion targetCompatibility
+    JavaVersion targetCompatibility = JavaVersion.current()
 
     void setTargetCompatibility(Object targetCompatibility) {
-        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)
+        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)  ?: targetCompatibility
     }
+
+    /**
+     * The name of the Java Runtime to use.
+     * <p>
+     * For example see docs for {@link EclipseJdt}
+     */
+    @Incubating
+    String javaRuntimeName
 
     /**
      * Enables advanced configuration like affecting the way existing jdt file content
@@ -96,7 +106,7 @@ class EclipseJdt {
      * See {@link #file(Closure) }
      */
     final PropertiesFileContentMerger file
-    
+
     EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file
     }

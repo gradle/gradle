@@ -1,5 +1,7 @@
 This specification defines a number of improvements to the tooling API.
 
+Stories relating specifically to usability from the IDE should go in the `ide-integration.md` spec.
+
 # Use cases
 
 ## Tooling can be developed for Gradle plugins
@@ -42,52 +44,70 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
-## Feature: Expose the compile details of a build script
+## Bugfix: allow concurrent usage of different gradle distributions of the same version
 
-This feature exposes some information about how a build script will be compiled. This information can be used by an
-IDE to provide some basic content assistance for a build script.
+When using the tooling api to work with different gradle distributions of the same version (e.g a gradle "-bin" and a "-all" distribution)
+an OverlappingFileException can be thrown in the current implementation.
+This is caused by loading the same version of the Gradle provider loaded up in multiple ClassLoaders (from each of the different distributions for the 2 different builds).
+The provider loading must be changed to deal with this.
 
-## Story: Expose the Groovy version used for a build script
+### implementation
+- Instead of using the version string as cache key in `CachingToolingImplementation` use a hash of the files of the provider's classpath as a key to the cache.
+- pass the distribution(by file reference) from the consumer across to the provider
+- for provider versions is >= this implementation can use cached provider, otherwise use new one.
 
-Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
+### integration test coverage
 
-### Test coverage
-
-## Story: Expose the default imports used for a build script
-
-Add a `defaultImports` property to `GradleScript` to expose the default imports applied to the script.
-
-### Test coverage
-
-## Story: Expose the classpath used for a build script
-
-1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
-    - Should expose a set of files, a set of source archives and a set of API docs.
-2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
-3. Script classpath includes the Gradle API and core plugins
-    - Should include the source and Javadoc
-4. Script classpath includes the libraries declared in the `buildscript { }` block.
-5. Script classpath includes the plugins declared in the `plugins { }` block.
-6. Script classpath includes the libraries inherited from parent project.
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - Gradle API is included in the classpath.
-    - buildSrc output is included in the classpath, if present.
-    - Classpath declared in script is included in the classpath.
-    - Classpath declared in script of ancestor project is included in the classpath.
-    - Source and Javadoc artifacts for the above are included in the classpath.
-- Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
+- Can load and use multiple distributions of the same gradle version for doing running multiple build requests via tooling api.
+    - using the new tooling-api tested against multiple (older) gradle versions
 
 ### Open issues
+- cannot handle init scripts in distributions init.d folder if as distribution of cached provider is used for resolving init scripts
 
-- Need to flesh out the classpath types.
-- Will need to use Eclipse and IDEA specific classpath models
+## Story - Tooling API stability tests
 
-## Story: Tooling API client requests build script details for a given file
+Introduce some stress and stability tests for the tooling API and daemon to the performance test suite. Does not include
+fixing any leaks or stability problems exposed by these tests. Additional stories will be added to take care of such issues.
 
-Add a way to take a file path and request a `BuildScript` model for it.
+## Feature - Daemon usability improvements
+
+### Story - Build script classpath can contain a changing jar
+
+Fix ClassLoader caching to detect when a build script classpath has changed.
+
+Fix the ClassLoading implementation to avoid locking these Jars on Windows.
+
+### Story - Can clean after compiling on Windows
+
+Fix GRADLE-2275.
+
+### Story - Prefer a single daemon instance
+
+Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
+selected as the survivor and the others expire quickly (say, as soon as they become idle).
+
+### Story - Daemon handles additional immutable system properties
+
+Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
+a new daemon instance must be started. Currently, only `file.encoding` is treated as an immutable system property.
+
+Add support for the following properties:
+
+- The jmxremote system properties (GRADLE-2629)
+- The SSL system properties (GRADLE-2367)
+- 'java.io.tmpdir' : this property is only read once at JVM startup
+
+### Story - Daemon process expires when a memory pool is exhausted
+
+Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
+
+### Story - Cross-version daemon management
+
+Daemon management, such as `gradle --stop` and the daemon expiration algorithm should consider daemons across all Gradle versions.
+
+### Story - Reduce the default daemon maximum heap and permgen sizes
+
+Should be done in a backwards compatible way.
 
 # Feature: Fetching models
 
@@ -211,51 +231,11 @@ This story adds support for conditionally requesting a model, if it is available
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
 
-## Story: Tooling API client launches a build using task selectors from different projects (DONE)
-
-TBD
-
-### Test cases
-
-- Can execute task selectors from multiple projects, for all target Gradle versions
-- Can execute overlapping task selectors.
-
-## Story: Tooling API exposes project's implicit tasks as launchable (DONE)
-
-Change the building of the `BuildInvocations` model so that:
-
-- `getTasks()` includes the implicit tasks of the project.
-- `getTaskSelectors()` includes the implicit tasks of the project and all its subprojects.
-
-### Test cases
-
-- `BuildInvocations.getTasks()` includes `help` and other implicit tasks.
-    - Launching a build using one of these task instances runs the appropriate task.
-- `BuildInvocations.getTaskSelectors()` includes the `help` and other implicit tasks.
-    - Launching a build using the `dependencies` selector runs the task in the default project only (this is the behaviour on the command-line).
-- A project defines a task placeholder. This should be visible in the `BuildInvocations` model for the project and for the parent of the project.
-    - Launching a build using the selector runs the task.
-
-## Story: Expose information about the visibility of a task (DONE)
-
-This story allows the IDE to hide those tasks that are part of the implementation details of a build.
-
-- Add a `visibility` property to `Launchable`.
-- A task is considered `public` when it has a non-empty `group` property, otherwise it is considered `private`.
-- A task selector is considered `public` when any task it selects is `public`, otherwise it is considered `private`.
-
-### Test cases
-
-- A project defines a public and private task.
-    - The `BuildInvocations` model for the project includes task instances with the correct visibility.
-    - The `BuildInvocations` model for the project includes task selectors with the correct visibility.
-    - The `BuildInvocations` model for the parent project includes task selectors with the correct visibility.
-
 ## Story: Allow options to be specified for tasks
 
 For example, allow something similar to `gradle test --tests SomePattern`
 
-## Story: Tooling API build action requests a tooling model for a Gradle build (DONE)
+## Story: Tooling API build action requests a tooling model for a Gradle build
 
 This story adds support to build models that have a scope of a whole Gradle build (not just a project)
 
@@ -280,50 +260,28 @@ This story adds support to build models that have a scope of a whole Gradle buil
 
 - A model builder should simply be a rule with some tooling model as output, and whatever it needs declared as inputs.
 
-## Feature: Expose more details about the project
-
-## Story: Expose the IDE output directories
-
-Add the appropriate properties to the IDEA and Eclipse models.
-
-## Story: Expose the project root directory
-
-Add a `projectDir` property to `GradleProject`
-
-### Test coverage
-
-- Verify that a decent error message is received when using a Gradle version that does not expose the project directory
-
-## Story: Expose the Java language level
-
-Split out a `GradleJavaProject` model from `GradleProject` and expose this for Java projects.
-
-Add the appropriate properties to the IDEA, Eclipse and GradleJavaProject models. For Eclipse, need to expose the appropriate
-container and nature. For IDEA, need to choose between setting level on all modules vs setting level on project and inheriting.
-
-## Story: Expose the Groovy language level
-
-Split out a `GradleGroovyProject` model from `GradleProject` and expose this for Groovy projects.
-
-Add the appropriate properties to the IDEA, Eclipse and GradleGroovyProject models.
-
-## Story: Expose generated directories
-
-It is useful for IDEs to know which directories are generated by the build. An initial approximation can be to expose
-just the build directory and the `.gradle` directory. This can be improved later.
-
 ## Story: Add a convenience dependency for obtaining the tooling API JARs
 
 Similar to `gradleApi()`
 
-## Story: Add ability to launch tests in debug mode
-
-Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.
-
-# Open issues
+# Backlog
 
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
 * Change the tooling API protocol to allow the provider to inform the consumer that it is deprecated and/or no longer supported, and fix the exception
   handling in the consumer to deal with this.
 * Test fixtures should stop daemons at end of test when custom user home dir is used.
 * Introduce a `GradleExecutor` implementation backed by the tooling API and remove the in-process executor.
+
+## Feature - Tooling API client listens for changes to a tooling model
+
+Provide a subscription mechanism to allow a tooling API client to listen for changes to the model it is interested in.
+
+## Feature - Interactive builds
+
+### Story - Support interactive builds from the command-line
+
+Provide a mechanism that build logic can use to prompt the user, when running from the command-line.
+
+### Story - Support interactive builds from the IDE
+
+Extend the above mechanism to support prompting the user, when running via the tooling API.

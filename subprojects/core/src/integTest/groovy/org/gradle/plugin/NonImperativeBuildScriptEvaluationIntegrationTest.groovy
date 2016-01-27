@@ -44,6 +44,8 @@ class NonImperativeBuildScriptEvaluationIntegrationTest extends AbstractIntegrat
         """
 
         then:
+        // Invoke twice to exercise script caching
+        succeeds "fromScriptPlugin1", "fromScriptPlugin2"
         succeeds "fromScriptPlugin1", "fromScriptPlugin2"
     }
 }

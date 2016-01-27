@@ -22,10 +22,10 @@ import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
-import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildScriptTransformerSpec extends Specification {
 
@@ -36,7 +36,7 @@ class BuildScriptTransformerSpec extends Specification {
         getImportPackages() >> ([] as String[])
     }
 
-    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader)
+    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)
     final String classpathClosureName = "buildscript"
 
     File scriptCacheDir
@@ -49,48 +49,205 @@ class BuildScriptTransformerSpec extends Specification {
         metadataCacheDir = new File(testProjectDir, "metadata");
     }
 
-    private boolean containsImperativeStatements(String script) {
+    private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
-        def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BaseSerializerFactory.BOOLEAN_SERIALIZER)
-        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, classpathClosureName, ProjectScript, Actions.doNothing())
-        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data
+        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
+        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
+        return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }
 
-    def "empty script does not contain imperative code"() {
+    def "empty script does not contain any code"() {
         expect:
-        !containsImperativeStatements("")
-        !containsImperativeStatements("//ignore me")
+        def scriptData = parse(script)
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+
+        where:
+        script         | _
+        ""             | _
+        "// ignore me" | _
+        "\r\n\t   "    | _
     }
 
-    def "class, method and property declarations are not considered imperative code"() {
-        expect:
-        !containsImperativeStatements("""
-            class SomeClass {}
-            String a
+    def "class declarations are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            class SomeClass {
+                String a = 123
+                def doStuff() {
+                    int i = 9
+                }
+            }
         """)
+
+        expect:
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
     }
 
-    def "non-imperative script blocks are not considered imperative code"() {
+    def "property declarations with constant initializer are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            String a
+            String b = "hi"
+            int c = 12
+        """)
+
         expect:
-        !containsImperativeStatements("plugins {}; buildscript {}; model {}")
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "field declarations are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+            @groovy.transform.Field Long c
+            @groovy.transform.Field Long d = 12
+            @groovy.transform.Field Long e = d * foo
+        """)
+
+        expect:
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "filtered script blocks are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+plugins {
+    int v = 12
+    println "ignore me"
+}
+buildscript {
+    doStuff()
+}
+buildscript {
+    if ( true ) { return }
+}
+""")
+
+        expect:
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "model blocks are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+model {
+    task { foo(Task) { println "hi" } }
+}
+
+model { thing { println "hi" } }
+""")
+
+        expect:
+        scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+    }
+
+    def "model blocks combined with other non imperative elements are not considered imperative code"() {
+        given:
+        def scriptData = parse("""
+model {
+    task { foo(Task) { println "hi" } }
+}
+
+"constant"
+
+def something() { return 12 }
+
+model { thing { println "hi" } }
+
+class Thing { }
+
+return null
+""")
+
+        expect:
+        scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        scriptData.hasMethods
     }
 
     def "imports are not considered imperative code"() {
-        !containsImperativeStatements("import java.lang.String")
-    }
-
-    def "method declarations are considered imperative code"() {
         expect:
-        containsImperativeStatements("def method() { println 'hi' }")
+        def scriptData = parse("""import java.lang.String
+import java.lang.*
+import static java.lang.String.*
+""")
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
     }
 
-    def "imperative code is detected"() {
+    def "method declarations are not considered imperative code"() {
         expect:
-        containsImperativeStatements("foo = 'bar'")
-        containsImperativeStatements("foo")
-        containsImperativeStatements("println 'hi!'")
+        def scriptData = parse("""def method() { println 'hi' }
+private void doSomething() { thing = true }
+""")
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        scriptData.hasMethods
     }
 
+    def "constant expressions and constant return are not imperative"() {
+        expect:
+        def scriptData = parse(script)
+        !scriptData.runDoesSomething
+        !scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+
+        where:
+        script         | _
+        "return null"  | _
+        "return true"  | _
+        "return 'abc'" | _
+        """
+"hi"
+'hi'
+null
+true
+123
+return 12
+"""         | _
+    }
+
+    @Unroll
+    def "imperative code is detected in #script"() {
+        expect:
+        def scriptData = parse(script)
+        scriptData.runDoesSomething
+        scriptData.data.hasImperativeStatements
+        !scriptData.hasMethods
+
+        where:
+        script                                         | _
+        "foo = 'bar'"                                  | _
+        "foo"                                          | _
+        '"${foo}"'                                     | _
+        "println 'hi!'"                                | _
+        "return a + 1"                                 | _
+        "return foo"                                   | _
+        'return "${foo}"'                              | _
+        'String s = "a" + "b"'                         | _
+        "if (a) { return null }; foo"                  | _
+        """
+plugins {
+}
+println "hi"
+"""                                         | _
+        """
+foo
+return null
+"""                                         | _
+    }
 }

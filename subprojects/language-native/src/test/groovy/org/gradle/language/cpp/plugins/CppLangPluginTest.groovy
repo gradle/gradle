@@ -21,12 +21,12 @@ import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 class CppLangPluginTest extends AbstractLanguagePluginSpec {
 
     @Override
-    def getPluginClass() {
+    Class getPluginClass() {
         return CppLangPlugin
     }
 
     @Override
-    def getLanguageSourceSet() {
+    Class getLanguageSourceSet() {
         return CppSourceSet
     }
 

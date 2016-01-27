@@ -25,7 +25,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
 
     @Override
     void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc) {
-        def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def lib = classpath.lib(jar)
 
         // Eclipse only retains the first source/javadoc file
@@ -34,7 +34,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
-        def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def lib = classpath.libs[0]
         lib.assertHasNoSource()
         lib.assertHasNoJavadoc()

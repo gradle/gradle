@@ -20,6 +20,7 @@ import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -29,14 +30,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         succeeds("stage")
 
         then:
-        executedAndNotSkipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryDistributionJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":stagePlayBinaryDist")
+        executedAndNotSkipped buildTasks
 
         and:
         verifyJars()
@@ -46,18 +40,11 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         succeeds("dist")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
-        skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryDistributionJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":stagePlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
+        skipped buildTasks
 
         and:
-        verifyZips()
+        verifyArchives()
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -67,34 +54,36 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         String distDirPath = new File(testDirectory, "build/stage").path
 
         setup:
-        httpPort = portFinder.nextAvailable
         run "stage"
 
         when:
-        builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        builder = new DistributionTestExecHandleBuilder('0', distDirPath)
         handle = builder.build()
         handle.start()
+        runningApp.initialize(handle)
 
         then:
-        verifyStarted()
+        runningApp.verifyStarted()
 
         and:
-        verifyRunningApp()
+        runningApp.verifyContent()
 
         cleanup:
-        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        verifyStopped()
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown(runningApp.httpPort)
+        runningApp.verifyStopped()
     }
 
-    void verifyZips() {
-        zip("build/distributions/playBinary.zip").containsDescendants(
+    List<ArchiveTestFixture> archives() {
+        [ zip("build/distributions/playBinary.zip"), tar("build/distributions/playBinary.tar") ]
+    }
+    void verifyArchives() {
+        archives()*.containsDescendants(
                 "playBinary/lib/${playApp.name}.jar",
                 "playBinary/lib/${playApp.name}-assets.jar",
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat",
                 "playBinary/conf/application.conf",
-                "playBinary/README"
-        )
+                "playBinary/README")
     }
 
     void verifyStagedFiles() {
@@ -117,5 +106,17 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
                 "application.conf")
 
         jar("build/distributionJars/playBinary/${playApp.name}.jar").isManifestPresentAndFirstEntry()
+    }
+
+    String[] getBuildTasks() {
+        return [
+            ":compilePlayBinaryPlayRoutes",
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":createPlayBinaryJar",
+            ":createPlayBinaryDistributionJar",
+            ":createPlayBinaryAssetsJar",
+            ":createPlayBinaryStartScripts",
+            ":stagePlayBinaryDist"
+        ]
     }
 }

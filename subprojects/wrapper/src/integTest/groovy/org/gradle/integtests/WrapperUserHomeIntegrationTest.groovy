@@ -17,9 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+@LeaksFileHandles
 class WrapperUserHomeIntegrationTest extends AbstractIntegrationSpec {
 
     void setup() {

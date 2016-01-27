@@ -17,13 +17,8 @@
 package org.gradle.internal.rules;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 
-@Incubating
 public class RuleActionValidationException extends GradleException {
-    public RuleActionValidationException() {
-    }
-
     public RuleActionValidationException(String message) {
         super(message);
     }

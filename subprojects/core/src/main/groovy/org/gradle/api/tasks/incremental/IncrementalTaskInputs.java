@@ -29,13 +29,13 @@ import org.gradle.api.NonExtensible;
  *
  * <pre autoTested="true">
  * class IncrementalReverseTask extends DefaultTask {
- *      @InputDirectory
+ *      {@literal @}InputDirectory
  *      def File inputDir
  *
- *      @OutputDirectory
+ *      {@literal @}OutputDirectory
  *      def File outputDir
  *
- *      @TaskAction
+ *      {@literal @}TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
  *          if (!inputs.incremental)
  *              project.delete(outputDir.listFiles())
@@ -75,8 +75,8 @@ import org.gradle.api.NonExtensible;
 @NonExtensible
 public interface IncrementalTaskInputs {
     /**
-     * Indicates if it was possible for Gradle to determine which exactly which input files were out of date compared to a previous execution.
-     * This is <em>not</em> possible in the case of no previous execution, changed Input Properties, Output Files, etc.
+     * Indicates if it was possible for Gradle to determine which exactly input files were out of date compared to a previous execution.
+     * This is <em>not</em> possible in the case of no previous execution, changed input properties, output files, etc.
      * <p>
      * When <code>true</code>:
      * <ul>

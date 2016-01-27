@@ -15,18 +15,22 @@
  */
 
 package org.gradle.launcher.continuous.jdk7
-import org.gradle.launcher.continuous.AbstractContinuousIntegrationTest
+
+import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+@Requires(TestPrecondition.NOT_WINDOWS)
+class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def "can use symlink for input"() {
         given:
         def baseDir = file("src").createDir()
         def sourceFile = baseDir.file("A")
         sourceFile.text = "original"
-        def symlink = baseDir.file("link")
+        def symlink = baseDir.createDir("linkdir").file("link")
         buildFile << """
     task echo {
         def symlink = file("${symlink.toURI()}")
@@ -58,6 +62,9 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         sourceFile.text = "changed"
         then:
         noBuildTriggered()
+
+        cleanup:
+        assert symlink.delete()
     }
 
     def "can use symlinked directory for input"() {
@@ -66,7 +73,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         def targetDir = baseDir.file("target").createDir()
         targetDir.files("A", "B")*.createFile()
 
-        def symlink = baseDir.file("link")
+        def symlink = baseDir.createDir("linkdir").file("link")
         buildFile << """
     task echo {
         def symlink = files("${symlink.toURI()}")
@@ -85,24 +92,12 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         symlink.delete()
         then:
         noBuildTriggered()
-// TODO: This behavior seems inconsistent with symlinked files
-//        succeeds()
-//        executedAndNotSkipped(":echo")
-//        output.contains("isEmpty: true")
-//        when: "symlink is created"
-//        Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
-//        then:
-//        succeeds()
-//        executedAndNotSkipped(":echo")
-//        output.contains("isEmpty: false")
         when: "changes made to target of symlink"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
         targetDir.file("C").createFile()
         then:
-        noBuildTriggered()
-        when: "target directory is removed"
-        targetDir.deleteDir()
-        then:
-        noBuildTriggered()
+        succeeds("echo")
+        executedAndNotSkipped(":echo")
+        output.contains("isEmpty: false")
     }
 }

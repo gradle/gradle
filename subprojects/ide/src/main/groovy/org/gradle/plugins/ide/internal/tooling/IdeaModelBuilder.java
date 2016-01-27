@@ -16,10 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
+import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -52,17 +55,23 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
-        root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
+        ideaPluginFor(root).makeSureModuleNamesAreUnique();
     }
 
     private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
-        IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
+        IdeaModel ideaModel = ideaPluginFor(project).getModel();
         IdeaProject projectModel = ideaModel.getProject();
+        JavaVersion projectSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(projectModel.getLanguageLevel());
+        JavaVersion projectTargetBytecodeLevel = projectModel.getTargetBytecodeVersion();
 
         DefaultIdeaProject out = new DefaultIdeaProject()
-                .setName(projectModel.getName())
-                .setJdkName(projectModel.getJdkName())
-                .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()));
+            .setName(projectModel.getName())
+            .setJdkName(projectModel.getJdkName())
+            .setLanguageLevel(new DefaultIdeaLanguageLevel(projectModel.getLanguageLevel().getLevel()))
+            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
+                .setSourceLanguageLevel(projectSourceLanguageLevel)
+                .setTargetBytecodeVersion(projectTargetBytecodeLevel)
+                .setJdk(DefaultInstalledJdk.current()));
 
         Map<String, DefaultIdeaModule> modules = new HashMap<String, DefaultIdeaModule>();
         for (IdeaModule module : projectModel.getModules()) {
@@ -71,9 +80,13 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IdeaModule module : projectModel.getModules()) {
             buildDependencies(modules, module);
         }
-        out.setChildren(new LinkedList<DefaultIdeaModule>(modules.values()));
-
+        final Collection<DefaultIdeaModule> ideaModules = modules.values();
+        out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
         return out;
+    }
+
+    private IdeaPlugin ideaPluginFor(Project project) {
+        return project.getPlugins().getPlugin(IdeaPlugin.class);
     }
 
     private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
@@ -84,11 +97,11 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
                 DefaultIdeaSingleEntryLibraryDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency()
-                        .setFile(d.getLibraryFile())
-                        .setSource(d.getSourceFile())
-                        .setJavadoc(d.getJavadocFile())
-                        .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                        .setExported(d.getExported());
+                    .setFile(d.getLibraryFile())
+                    .setSource(d.getSourceFile())
+                    .setJavadoc(d.getJavadocFile())
+                    .setScope(new DefaultIdeaDependencyScope(d.getScope()))
+                    .setExported(d.getExported());
 
                 if (d.getModuleVersion() != null) {
                     defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
@@ -97,9 +110,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             } else if (dependency instanceof ModuleDependency) {
                 ModuleDependency d = (ModuleDependency) dependency;
                 DefaultIdeaModuleDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency()
-                        .setExported(d.getExported())
-                        .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                        .setDependencyModule(modules.get(d.getName()));
+                    .setExported(d.getExported())
+                    .setScope(new DefaultIdeaDependencyScope(d.getScope()))
+                    .setDependencyModule(modules.get(d.getName()));
                 dependencies.add(defaultDependency);
             }
         }
@@ -113,16 +126,26 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setTestDirectories(srcDirs(ideaModule.getTestSourceDirs(), ideaModule.getGeneratedSourceDirs()))
             .setExcludeDirectories(ideaModule.getExcludeDirs());
 
+        Project project = ideaModule.getProject();
+
         DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
-                .setName(ideaModule.getName())
-                .setParent(ideaProject)
-                .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
-                .setContentRoots(Collections.singletonList(contentRoot))
-                .setCompilerOutput(new DefaultIdeaCompilerOutput()
-                    .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
-                    .setOutputDir(ideaModule.getOutputDir())
-                    .setTestOutputDir(ideaModule.getTestOutputDir())
-                );
+            .setName(ideaModule.getName())
+            .setParent(ideaProject)
+            .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
+            .setContentRoots(Collections.singletonList(contentRoot))
+            .setCompilerOutput(new DefaultIdeaCompilerOutput()
+                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
+                .setOutputDir(ideaModule.getOutputDir())
+                .setTestOutputDir(ideaModule.getTestOutputDir()));
+        JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
+        if (javaPluginConvention != null) {
+            final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
+            JavaVersion moduleSourceLanguageLevel = convertIdeaLanguageLevelToJavaVersion(ideaModuleLanguageLevel);
+            JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
+            defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
+                .setSourceLanguageLevel(moduleSourceLanguageLevel)
+                .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
+        }
 
         modules.put(ideaModule.getName(), defaultIdeaModule);
     }
@@ -142,5 +165,13 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     public IdeaModelBuilder setOfflineDependencyResolution(boolean offlineDependencyResolution) {
         this.offlineDependencyResolution = offlineDependencyResolution;
         return this;
+    }
+
+    private JavaVersion convertIdeaLanguageLevelToJavaVersion(IdeaLanguageLevel ideaLanguageLevel) {
+        if (ideaLanguageLevel == null) {
+            return null;
+        }
+        String languageLevel = ideaLanguageLevel.getLevel();
+        return JavaVersion.valueOf(languageLevel.replaceFirst("JDK", "VERSION"));
     }
 }

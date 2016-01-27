@@ -16,55 +16,32 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-class MethodBackedModelAction<T> implements ModelAction<T> {
-    private final ModelRuleDescriptor descriptor;
-    private final ModelReference<T> subject;
+class MethodBackedModelAction<T> extends AbstractMethodRuleAction<T> {
     private final List<ModelReference<?>> inputs;
-    private final ModelRuleInvoker<?> ruleInvoker;
 
-    public MethodBackedModelAction(MethodRuleDefinition<?, T> ruleDefinition) {
-        this(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
-    }
-
-    public MethodBackedModelAction(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
-        this.ruleInvoker = ruleInvoker;
-        this.subject = subject;
+    public MethodBackedModelAction(ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        super(subject, descriptor);
         this.inputs = inputs;
-        this.descriptor = descriptor;
     }
 
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public ModelReference<T> getSubject() {
-        return subject;
-    }
-
-    public List<ModelReference<?>> getInputs() {
+    @Override
+    public List<? extends ModelReference<?>> getInputs() {
         return inputs;
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
+    protected void execute(ModelRuleInvoker<?> invoker, T subject, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
-        args[0] = object;
+        args[0] = subject;
         for (int i = 0; i < this.inputs.size(); ++i) {
             args[i + 1] = inputs.get(i).getInstance();
         }
-        ruleInvoker.invoke(args);
-    }
-
-    @Override
-    public String toString() {
-        return "MethodBackedModelAction{descriptor=" + descriptor + ", subject=" + subject + ", inputs=" + inputs + '}';
+        invoker.invoke(args);
     }
 }

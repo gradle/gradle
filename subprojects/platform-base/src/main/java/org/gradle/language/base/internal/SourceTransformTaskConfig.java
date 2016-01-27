@@ -18,11 +18,13 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 
 public interface SourceTransformTaskConfig {
     String getTaskPrefix();
     Class<? extends DefaultTask> getTaskType();
-    void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet);
+    // TODO:DAZ This should create a RuleSource instance to configure the task, rather than being imperative
+    void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry);
 }

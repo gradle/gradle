@@ -110,6 +110,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NOT_JDK_IBM({
         System.getProperty('java.vm.vendor') != 'IBM Corporation'
     }),
+    JDK_IBM({
+        !NOT_JDK_IBM
+    }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
@@ -125,8 +128,20 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     }),
     // TODO:DAZ Should be detecting this based on tool chain, not OS
-        OBJECTIVE_C_SUPPORT({
+    OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
+    }),
+    SMART_TERMINAL({
+        System.getenv("TERM")?.toUpperCase() != "DUMB"
+    }),
+    NOT_PULL_REQUEST_BUILD({
+        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
+            return false
+        }
+        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
+            return false
+        }
+        return true
     });
 
     /**

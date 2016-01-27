@@ -336,7 +336,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
             }
 
-            String[] confs = (String[]) configsToAdd.toArray(new String[configsToAdd.size()]);
+            String[] confs = (String[]) configsToAdd.toArray(new String[0]);
             parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande);
         }
 
@@ -353,7 +353,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         public void warning(SAXParseException ex) {
-            LOGGER.warn("xml parsing: " + getLocationString(ex) + ": " + ex.getMessage());
+            LOGGER.warn("xml parsing: {}: {}", getLocationString(ex), ex.getMessage());
         }
 
         public void error(SAXParseException ex) {
@@ -590,14 +590,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
             ModuleDescriptor parent;
             try {
-                LOGGER.debug("Trying to parse included ivy file :" + location);
+                LOGGER.debug("Trying to parse included ivy file :{}", location);
                 parent = parseOtherIvyFileOnFileSystem(location);
                 if (parent != null) {
                     //verify that the parsed descriptor is the correct parent module.
                     ModuleId expected = IvyUtil.createModuleId(parentOrganisation, parentModule);
                     ModuleId pid = parent.getModuleRevisionId().getModuleId();
                     if (!expected.equals(pid)) {
-                        LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
+                        LOGGER.warn("Ignoring parent Ivy file {}; expected {} but found {}", location, expected, pid);
                         parent = null;
                     }
                 }
@@ -605,12 +605,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 // if the included ivy file is not found on file system, tries to resolve using
                 // repositories
                 if (parent == null) {
-                    LOGGER.debug("Trying to parse included ivy file by asking repository for module :"
-                            + parentOrganisation
-                            + "#"
-                            + parentModule
-                            + ";"
-                            + parentRevision);
+                    LOGGER.debug("Trying to parse included ivy file by asking repository for module :{}#{};{}",
+                        parentOrganisation, parentModule, parentRevision);
                     parent = parseOtherIvyFile(parentOrganisation, parentModule, parentRevision);
                 }
             } catch(Exception e) {
@@ -693,7 +689,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void mergeConfigurations(ModuleRevisionId sourceMrid, Configuration[] configurations) {
             DefaultModuleDescriptor md = getMd();
             for (Configuration configuration : configurations) {
-                LOGGER.debug("Merging configuration with: " + configuration.getName());
+                LOGGER.debug("Merging configuration with: {}", configuration.getName());
                 //copy configuration from parent descriptor
                 md.addConfiguration(new Configuration(configuration, sourceMrid));
             }
@@ -702,7 +698,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void mergeDependencies(DependencyDescriptor[] dependencies) {
             DefaultModuleDescriptor md = getMd();
             for (DependencyDescriptor dependencyDescriptor : dependencies) {
-                LOGGER.debug("Merging dependency with: " + dependencyDescriptor.getDependencyRevisionId().toString());
+                LOGGER.debug("Merging dependency with: {}", dependencyDescriptor.getDependencyRevisionId());
                 md.addDependency(dependencyDescriptor);
             }
         }
@@ -717,7 +713,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private ModuleDescriptor parseOtherIvyFileOnFileSystem(String location)
                 throws ParseException, IOException {
             URL url = relativeUrlResolver.getURL(descriptorURL, location);
-            LOGGER.debug("Trying to load included ivy file from " + url.toString());
+            LOGGER.debug("Trying to load included ivy file from {}", url);
             ExternalResource resource = UrlExternalResource.open(url);
             try {
                 return parseModuleDescriptor(resource, url);
@@ -774,11 +770,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 getMd().addConfiguration(config);
             }
             if (parser.getDefaultConfMapping() != null) {
-                LOGGER.debug("setting default conf mapping from imported configurations file: " + parser.getDefaultConfMapping());
+                LOGGER.debug("setting default conf mapping from imported configurations file: {}", parser.getDefaultConfMapping());
                 setDefaultConfMapping(parser.getDefaultConfMapping());
             }
             if (parser.getDefaultConf() != null) {
-                LOGGER.debug("setting default conf from imported configurations file: " + parser.getDefaultConf());
+                LOGGER.debug("setting default conf from imported configurations file: {}", parser.getDefaultConf());
                 setDefaultConf(parser.getDefaultConf());
             }
             if (parser.getMd().isMappingOverride()) {
@@ -890,7 +886,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
                 artifact = new BuildableIvyArtifact(artName, type, ext, extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
-                
+
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements
                 if (confs != null && confs.length() > 0) {
                     String[] conf;
@@ -965,10 +961,10 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throw new SAXException("invalid version " + descriptorVersion);
             }
             if (versionIndex >= ALLOWED_VERSIONS.indexOf("1.3")) {
-                LOGGER.debug("post 1.3 ivy file: using " + PatternMatcher.EXACT + " as default matcher");
+                LOGGER.debug("post 1.3 ivy file: using {} as default matcher", PatternMatcher.EXACT);
                 defaultMatcher = getMatcher(PatternMatcher.EXACT);
             } else {
-                LOGGER.debug("pre 1.3 ivy file: using " + PatternMatcher.EXACT_OR_REGEXP + " as default matcher");
+                LOGGER.debug("pre 1.3 ivy file: using {} as default matcher", PatternMatcher.EXACT_OR_REGEXP);
                 defaultMatcher = getMatcher(PatternMatcher.EXACT_OR_REGEXP);
             }
 

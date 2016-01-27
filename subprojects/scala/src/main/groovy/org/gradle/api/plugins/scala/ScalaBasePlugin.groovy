@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.scala
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -36,14 +36,14 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
 
-    private final FileResolver fileResolver
+    private final SourceDirectorySetFactory sourceDirectorySetFactory
 
     private Project project
     private ScalaRuntime scalaRuntime
 
     @Inject
-    ScalaBasePlugin(FileResolver fileResolver) {
-        this.fileResolver = fileResolver
+    ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory
     }
 
     void apply(Project project) {
@@ -70,14 +70,13 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
+            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, sourceDirectorySetFactory)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala") }
             sourceSet.allJava.source(sourceSet.scala)
             sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
             configureScalaCompile(javaPlugin, sourceSet)
-            configureScalaConsole(sourceSet)
         }
     }
 
@@ -103,18 +102,6 @@ class ScalaBasePlugin implements Plugin<Project> {
                 }
             }
         }
-    }
-
-    private void configureScalaConsole(SourceSet sourceSet) {
-        def taskName = sourceSet.getTaskName("scala", "Console")
-        def scalaConsole = project.tasks.create(taskName, JavaExec)
-        scalaConsole.dependsOn(sourceSet.runtimeClasspath)
-        scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
-        scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.conventionMapping.classpath = { scalaRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
-        scalaConsole.systemProperty("scala.usejavacp", true)
-        scalaConsole.standardInput = System.in
-        scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
     private void configureCompileDefaults() {

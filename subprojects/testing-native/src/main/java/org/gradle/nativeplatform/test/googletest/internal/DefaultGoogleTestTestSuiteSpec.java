@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.test.googletest.internal;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.ComponentSpec;
 
-public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec, ComponentSpecInternal {
+public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec {
     private NativeComponentSpec testedComponent;
 
     public String getDisplayName() {
@@ -31,7 +31,8 @@ public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec 
         return testedComponent;
     }
 
-    public void setTestedComponent(NativeComponentSpec testedComponent) {
-        this.testedComponent = testedComponent;
+    @Override
+    public void testing(ComponentSpec testedComponent) {
+        this.testedComponent = (NativeComponentSpec) testedComponent;
     }
 }

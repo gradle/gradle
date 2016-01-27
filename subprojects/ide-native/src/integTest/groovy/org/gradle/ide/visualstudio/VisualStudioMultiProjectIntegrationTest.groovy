@@ -80,7 +80,7 @@ model {
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :exe:install${it.name.capitalize()}MainExecutable"
+            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
 
         and:
@@ -89,7 +89,7 @@ model {
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:${it.name}HelloStaticLibrary"
+            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
         }
 
         and:
@@ -301,7 +301,7 @@ project(':exe') {
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "../gradlew.bat -p \"..\" :exe:install${it.name.capitalize()}MainExecutable"
+            assert it.buildCommand == "../gradlew.bat -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 

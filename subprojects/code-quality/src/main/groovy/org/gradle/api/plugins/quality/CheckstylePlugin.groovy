@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
@@ -47,8 +46,8 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     @Override
     protected void configureTaskDefaults(Checkstyle task, String baseName) {
         def conf = project.configurations['checkstyle']
-        conf.whenEmpty { dependencies ->
-            dependencies.add(project.dependencies.create("com.puppycrawl.tools:checkstyle:$extension.toolVersion"))
+        conf.defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("com.puppycrawl.tools:checkstyle:${this.extension.toolVersion}"))
         }
 
         task.conventionMapping.with {
@@ -59,9 +58,11 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             showViolations = { extension.showViolations }
         }
 
-        task.reports.xml.conventionMapping.with {
-            enabled = { true }
-            destination = { new File(extension.reportsDir, "${baseName}.xml") }
+        task.reports.all { report ->
+            report.conventionMapping.with {
+                enabled = { true }
+                destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+            }
         }
     }
 

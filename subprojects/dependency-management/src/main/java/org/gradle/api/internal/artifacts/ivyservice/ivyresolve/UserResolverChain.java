@@ -25,7 +25,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
-public class UserResolverChain implements RepositoryChain {
+public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainDependencyToComponentIdResolver componentIdResolver;
     private final RepositoryChainComponentMetaDataResolver componentResolver;
     private final RepositoryChainArtifactResolver artifactResolver;

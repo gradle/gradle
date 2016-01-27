@@ -15,26 +15,12 @@
  */
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface InternalTestProgressEvent extends InternalProtocolInterface {
-    /**
-     * Returns the time when the event happened.
-     *
-     * @return The event time
-     */
-    long getEventTime();
-
-    /**
-     * Returns a human consumable display name for this event.
-     */
-    String getDisplayName();
-
+public interface InternalTestProgressEvent extends InternalProgressEvent {
     /**
      * Returns the description of the test for which progress is reported.
      *

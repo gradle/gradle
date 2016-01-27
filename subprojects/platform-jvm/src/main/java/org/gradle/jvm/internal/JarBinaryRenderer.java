@@ -18,8 +18,17 @@ package org.gradle.jvm.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+
+import javax.inject.Inject;
 
 public class JarBinaryRenderer extends AbstractJvmBinaryRenderer<JarBinarySpec> {
+
+    @Inject
+    public JarBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     public Class<JarBinarySpec> getTargetType() {
         return JarBinarySpec.class;
@@ -27,6 +36,8 @@ public class JarBinaryRenderer extends AbstractJvmBinaryRenderer<JarBinarySpec> 
 
     @Override
     protected void renderOutputs(JarBinarySpec binary, TextReportBuilder builder) {
+        super.renderOutputs(binary, builder);
+        builder.item("API Jar file", binary.getApiJarFile());
         builder.item("Jar file", binary.getJarFile());
     }
 }

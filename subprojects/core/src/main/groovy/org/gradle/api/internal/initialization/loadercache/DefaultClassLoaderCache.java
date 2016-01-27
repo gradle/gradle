@@ -23,9 +23,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.net.URLClassLoader;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
@@ -62,9 +62,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     @Override
     public void remove(ClassLoaderId id) {
-        CachedClassLoader cachedClassLoader = byId.remove(id);
-        if (cachedClassLoader != null) {
-            cachedClassLoader.release(id);
+        synchronized (lock) {
+            CachedClassLoader cachedClassLoader = byId.remove(id);
+            if (cachedClassLoader != null) {
+                cachedClassLoader.release(id);
+            }
         }
     }
 
@@ -77,7 +79,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = new URLClassLoader(classPath.getAsURLArray(), spec.parent);
+                classLoader = new MutableURLClassLoader(spec.parent, classPath);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -88,7 +90,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
 
     @Override
     public int size() {
-        return bySpec.size();
+        synchronized (lock) {
+            return bySpec.size();
+        }
     }
 
     private static class ClassLoaderSpec {
@@ -170,15 +174,17 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     // Used in org.gradle.api.internal.initialization.loadercache.ClassLoadersCachingIntegrationTest
     @SuppressWarnings("UnusedDeclaration")
     public void assertInternalIntegrity() {
-        Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
-        for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
-            if (!bySpec.containsKey(entry.getValue().spec)) {
-                orphaned.put(entry.getKey(), entry.getValue());
+        synchronized (lock) {
+            Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
+            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+                if (!bySpec.containsKey(entry.getValue().spec)) {
+                    orphaned.put(entry.getKey(), entry.getValue());
+                }
             }
-        }
 
-        if (!orphaned.isEmpty()) {
-            throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+            if (!orphaned.isEmpty()) {
+                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+            }
         }
     }
 }

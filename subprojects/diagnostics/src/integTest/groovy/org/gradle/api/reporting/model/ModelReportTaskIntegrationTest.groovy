@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -26,31 +25,7 @@ class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help", "--task", "model"
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-Options
-     --detail     The level of detail to include on the model report
-                  Available values are:
-                       BARE
-                       VERBOSE
-
-     --format     The format of the model report
-                  Available values are:
-                       TEXT
-"""))
+        output.contains("Displays the configuration model of root project '${getTestDirectory().name}'. [incubating]")
     }
 
-
-    def "should complain with invalid options"() {
-        when:
-        def result = fails(*options)
-
-        then:
-        result.error.contains(errorMessage)
-
-        where:
-        options                            | errorMessage
-        ["model", "--format", "latex"]     | "Problem configuring option 'format' on task ':model' from command line."
-        ["model", "--detail", "something"] | "Problem configuring option 'detail' on task ':model' from command line."
-
-    }
 }

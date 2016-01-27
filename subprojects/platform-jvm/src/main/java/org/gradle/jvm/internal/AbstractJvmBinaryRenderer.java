@@ -19,11 +19,23 @@ package org.gradle.jvm.internal;
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.jvm.JvmBinarySpec;
+import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public abstract class AbstractJvmBinaryRenderer<T extends JvmBinarySpec> extends AbstractBinaryRenderer<T> {
+    protected AbstractJvmBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     protected void renderDetails(T binary, TextReportBuilder builder) {
-        builder.item("platform", binary.getTargetPlatform().getName());
-        builder.item("tool chain", binary.getToolChain().getDisplayName());
+        JavaToolChain toolChain = binary.getToolChain();
+        builder.item("tool chain", toolChain != null ? toolChain.getDisplayName() : "not set");
+    }
+
+    @Override
+    protected void renderOutputs(T binary, TextReportBuilder builder) {
+        builder.item("classes dir", binary.getClassesDir());
+        builder.item("resources dir", binary.getResourcesDir());
     }
 }

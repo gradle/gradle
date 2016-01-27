@@ -22,7 +22,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def "idle daemon is reused in preference to starting a new daemon"() {
         given:
-        executer.requireIsolatedDaemons()
         executer.run()
         daemons.daemon.assertIdle()
 

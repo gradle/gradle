@@ -91,7 +91,7 @@ public interface Configuration extends FileCollection {
             return c.getName();
         }
     }
-    
+
     /**
      * Returns true if this is a visible configuration. A visible configuration is usable outside the project it belongs
      * to. The default value is true.
@@ -101,7 +101,7 @@ public interface Configuration extends FileCollection {
     boolean isVisible();
 
     /**
-     * Sets the visibility of this configuration. When visible is set to true, this configuration is visibile outside
+     * Sets the visibility of this configuration. When visible is set to true, this configuration is visible outside
      * the project it belongs to. The default value is true.
      *
      * @param visible true if this is a visible configuration
@@ -296,14 +296,14 @@ public interface Configuration extends FileCollection {
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
-     * 
+     *
      * @return The set.
      */
     PublishArtifactSet getArtifacts();
 
     /**
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
-     * 
+     *
      * @return The (read-only) set.
      */
     PublishArtifactSet getAllArtifacts();
@@ -326,30 +326,34 @@ public interface Configuration extends FileCollection {
     Configuration exclude(Map<String, String> excludeProperties);
 
     /**
-     * Execute the given action if the configuration is empty when it first participates in
-     * dependency resolution. A {@code Configuration} can participate in dependency resolution
-     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
-     * The {@code Configuration} is considered empty even if it extends another, non-empty
-     * {@code Configuration}.
+     * Execute the given action if the configuration has no defined dependencies when it first participates in
+     * dependency resolution. A {@code Configuration} will participate in dependency resolution
+     * when:
+     * <ul>
+     *     <li>The {@link Configuration} itself is resolved</li>
+     *     <li>Another {@link Configuration} that extends this one is resolved</li>
+     *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
+     * </ul>
      *
-     * @param action the action to execute when the configuration is empty.
+     *
+     * This method is useful for specifying default dependencies for a configuration:
+     * <pre autoTested='true'>
+     * configurations { conf }
+     * configurations['conf'].defaultDependencies { dependencies ->
+     *      dependencies.add(owner.project.dependencies.create("org.gradle:my-util:1.0"))
+     * }
+     * </pre>
+     *
+     * A {@code Configuration} is considered empty even if it extends another, non-empty {@code Configuration}.
+     *
+     * If multiple actions are supplied, each action will be executed until the set of dependencies is no longer empty.
+     * Remaining actions will be ignored.
+     *
+     * @param action the action to execute when the configuration has no defined dependencies.
      * @return this
      */
     @Incubating
-    Configuration whenEmpty(Action<? super DependencySet> action);
-
-    /**
-     * Execute the given action if the configuration is empty when it first participates in
-     * dependency resolution. A {@code Configuration} can participate in dependency resolution
-     * either when it is resolved or when a {@code Configuration} that extends it is resolved.
-     * The {@code Configuration} is considered empty even if it extends another, non-empty
-     * {@code Configuration}.
-     *
-     * @param action the action to execute when the configuration is empty.
-     * @return this
-     */
-    @Incubating
-    Configuration whenEmpty(Closure action);
+    Configuration defaultDependencies(Action<? super DependencySet> action);
 
     /**
      * Returns all the configurations belonging to the same configuration container as this

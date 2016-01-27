@@ -301,7 +301,8 @@ compile('group:projectA:1.0') {
         buildWithDependencies("""
 compile 'group:mavenProject:1.0'
 """)
-        def mavenProject = repo1.module('group', 'mavenProject', '1.0').hasPackaging('pom').dependsOn('group', 'projectA', '1.0', 'zip').publishPom()
+        def mavenProject = repo1.module('group', 'mavenProject', '1.0').hasPackaging('pom')
+                .dependsOn('group', 'projectA', '1.0', 'zip', 'compile', null).publishPom()
         projectARepo1.hasPackaging("custom")
         projectARepo1.artifact(type: 'zip')
         projectARepo1.publish()

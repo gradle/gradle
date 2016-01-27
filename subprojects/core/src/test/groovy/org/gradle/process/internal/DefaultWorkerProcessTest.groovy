@@ -22,6 +22,7 @@ import org.gradle.messaging.remote.ConnectionAcceptor
 import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.process.ExecResult
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JMock
@@ -35,6 +36,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
+@LeaksFileHandles
 class DefaultWorkerProcessTest extends MultithreadedTestCase {
     private final Mockery context = new JUnit4GroovyMockery()
     private final ExecHandle execHandle = context.mock(ExecHandle.class)

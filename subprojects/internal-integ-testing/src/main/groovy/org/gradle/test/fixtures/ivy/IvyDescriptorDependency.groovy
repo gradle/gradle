@@ -21,6 +21,7 @@ class IvyDescriptorDependency {
     String module
     String revision
     String conf
+    Collection<IvyDescriptorDependencyExclusion> exclusions = []
 
     IvyDescriptorDependency hasConf(def conf) {
         assert this.conf == conf

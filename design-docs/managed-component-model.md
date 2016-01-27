@@ -4,233 +4,14 @@ advantage of the features of that rule based configuration offers.
 
 This spec outlines several steps toward a fully managed software component model.
 
-# Feature 1: Key objects in the software model are visible to rules
-
-The goal for this feature is to expose something like the following structure to rules:
-
-    project (aka 'model')
-    +-- components
-    |   +-- <component-name>
-    |       +-- sources
-    |       |   +-- <source-set-name>
-    |       +-- binaries
-    |           +-- <binary-name>
-    |               +-- tasks
-    |                   +-- <task-name>
-    +-- testSuites
-        +-- <test-suite-name>
-            +-- <same-structure-as-component-above>
-
-For this feature, it is a non-goal to expose any public mechanism for implementing this structure, but this isn't necessarily ruled out either.
-The implementation may be fully internal and not extensible (other than adding elements to the various collections above).
-
-At the completion of this feature, it should be possible to:
-
-- Run the `model` report to see something like the above structure.
-- Use the rule DSL to configure any of the objects above selected using hard-coded path.
-
-## Implementation
-
-One possible approach is to add each relationship to the graph incrementally, one at a time, fixing the inevitable breakages before moving to the
-next.
-
-An implementation could use the internal `MutableModelNode` type to expose each relationship as an edge between two nodes with unmanaged values.
-Rules hardcoded in the component base plugins can attach these node and edges as the appropriate model elements become known.
-
-The collections in the graph above are currently represented using `DomainObjectSet`. One possible implementation is to listen for changes to these collections
-and attach node and edges as elements are added, bridging the legacy collections into the model graph.
-Possibly a better implementation would be to change `CollectionBuilder` into a 'managed map' and use a managed implementation
-(not the existing bridged implementation) for these collections instead. This approach would mean some interleaving of this feature and the next.
-
-## Candidate stories
-
-### Make `ComponentSpecContainer` a `CollectionBuilder<ComponentSpec>`
-
-* Remove the ability to view/mutate the component container as a domain object set
-* Remove the “bridging” of the component container outside of model space
-
-#### Implementation
-
-* Remove `components` project extension
-* Remove model projection that allows access as a domain object set
-* Change `ComponentSpecContainer` to `extends CollectionBuilder<ComponentSpec>`
-* Add the necessary, possibly adhoc, projection that presents a view that is a ComponentSpecContainer impl
-
-Some, internal only, mechanism will also need to be added to keep the functionality of `ExtensiblePolymorphicDomainObjectContainer`.
-That is, the ability to register a kind of factory for new component types.
-
-This story doesn't dictate any kind of implementation for the actual model node other than the ability to project as a `ComponentSpecContainer` (and `CollectionBuilder<T extends ComponentSpec>` sub collections)
-
-#### Test Coverage
-
-- Can view the components container as a `ComponentSpecContainer`
-- Can view the components container as a sub set `CollectionBuilder<T>` where T extends `ComponentSpec` (e.g. `PlayCoffeeScriptPlugin.createCoffeeScriptSourceSets`)
-- DSL type methods (e.g. Action → Closure) methods can be used on a `ComponentSpecContainer`
-- Can continue to register custom component types (i.e. `@ComponentType` rules still work)
-
-Most of this coverage already exists, need to fill in the gaps:
-
-- ~~Build script can:~~
-   - ~~Create a component using a registered component type.~~
-   - ~~Configure components:~~
-       - ~~With given name~~
-       - ~~With given type~~
-       - ~~All components~~
-   - ~~Apply beforeEach/afterEach rules to components.~~
-- ~~Plugin can do the above.~~
-- ~~Reasonable error message when:~~
-   - ~~Attempting to create a component using a type for which there is no implementation.~~
-   - ~~Attempting to create a component using default type.~~
-
-#### Breaking changes
-
-- Removal of `project.componentSpecs`
-- Removal of ability to bind to the component container as `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` (if this ever actually worked)
-- Removal of `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` methods from `ComponentSpecContainer`, addition of collection builder methods
-- All configuration done using subject of type `ComponentSpecContainer` is deferred. Used to be eager.
-
-###  `components.«component».binaries.«binary»` is addressable/visible in rule space
-
-#### Implementation
-
-* Change implementation of `components` node to eagerly create a `binaries` child node for each element node, with the object returned by `componentSpec.binaries`
-* `components.«name».binaries` is projected using the unmanaged projection (i.e. it is opaque)
-* Use `.all()` hook of component's binaries container to create the child nodes of the `binaries` node as unmanaged node, based on the runtime type of the binary
-* Change all removal type operations of `«component».binaries` to throw `UnsupportedOperationException`
-
-#### Test Coverage
-
-- ~~Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)~~
-- ~~`binaries` node is displayed for each component in the component report~~
-- ~~Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)~~
-- ~~Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`~~
-- ~~`binaries.«binary»` node is displayed for each source set of each component in the component container~~
-- ~~Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)~~
-- ~~Removal of binaries throws `UnsupportedOperationException`~~
-
-#### Breaking changes
-
-- Removing binaries from components no longer supported
-
-### The test suite container has the same level of management/visibility as the general component container
-
-Effectively the same treatment that the component spec container received.
-
-Implementation should refactor `ComponentModelBasePlugin` and `NativeBinariesTestPlugin` so that this behaviour is reused for the test suite container and not
-duplicated.
-
-# Feature 2: Public API of the component model does not use domain object collections
-
-## Story: Use `ModelMap` instead of various domain object collection types in public API of component model
-
-- Change the methods currently using domain object collections (i.e. `ComponentSpec.getSource()`, `ComponentSpec.sources()`, `ComponentSpec.getBinaries()`, `ComponentSpec.binaries()`,
-`BinarySpec.getSource()`, `BinarySpec.sources()`) to use `ModelMap`.
-- Create new implementations of `ModelMap` that are backed by appropriate domain object collection and use them in implementation of the above methods.
-- Backing these implementations with domain object collection types means that they will be eager.
-
-### Test coverage
-
-Existing test coverage still works.
-
-### Breaking changes
-
-- `ComponentSpec.getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
-- `ComponentSpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
-- `ComponentSpec.getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `NamedDomainObjectCollection<BinarySpec>`.
-- `ComponentSpec.binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super NamedDomainObjectContainer<BinarySpec>>`.
-- `BinarySpec.getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`.
-- `BinarySpec.sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`.
-
-# Feature 3: Configuration of key parts of the software model are deferrable until required
-
-This feature changes the software model to introduce 'managed map' types instead of `DomainObjectSet`.
-
-- The property `ComponentSpec.sources`, a collection of `LanguageSourceSet`, should allow any `LanguageSourceSet` type registered using a `@LanguageType` rule to be added.
-- The property `ComponentSpec.binaries`, a collection of `BinarySpec`, should allow any `BinarySpec` type registered using a `@BinaryType` rule to be added.
-- The property `BinarySpec.tasks`, a collection of `Task`, should allow any `Task` implementation to be added.
-
-At the completion of this feature, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component,
-and the tasks of a binary. These rules will be executed as required.
-
-This feature does not require that sources, binaries etc. of the component model are actually deferred under conventional use.
-Some of the infrastructure rules in the component model plugins are currently coarse in that they effectively depend on all the components, forcing realisation.
-This feature does not require changing the implementation of these rules to be more fine grained.
-It does require that the elements are potentially deferrable.
-
-## Implementation
-
-Again, a possible approach is to change each collection, one at a time, and fix the breakages before moving on to the next collection. Breakages are expected
-as configuration for the elements of these collections will be deferred, whereas it is currently performed eagerly.
-
-This feature requires a managed map implementation whose values are unmanaged, which means some kind of internal factory will be required for this implementation
-(such as `NamedEntityInstantiator`).
-
-Currently the DSL supports nested, eager, configuration of these elements:
-
-    model {
-        component {
-            someThing {
-                sources {
-                    cpp { ... }
-                }
-                binaries {
-                    all { ... }
-                }
-            }
-        }
-    }
-
-Some replacement for this nesting should be offered, and the configuration deferred.
-
-## Story: Component source sets are not realized unless required
-
-This story changes the `sources` property of `ComponentSpec` to be of type (the new with this story) `ModelMap<LanguageSourceSet>`.
-The model map will be entirely model graph backed, and not “bridge” a collection.
-This allows actually creating the source sets to be deferred.
-
-`ModelMap` is replacement for the existing `CollectionBuilder`, and `DomainObjectContainer` from non-rules world.
-It should actually extend `CollectionBuilder`, which will later be removed and inlined into `ModelMap`.
-`ModelMap` does not need to actually implement `Map` at this time.
-Existing usages of `CollectionBuilder` do not necessarily need to be changed to `ModelMap`.
-However, if it makes things easier (e.g. reuse of projections) then we should do this.
-If so, `CollectionBuilder` must go through a deprecate cycle and still be usable (e.g. as a type binding target) for one release.
-
-After the change, the DSL for working with component source sets should be largely unchanged.
-Particularly, the familiar nested closure syntax.
-It is not a requirement that `ModelMap` is structurally compatible with NamedDomainObjectSet and friends, but supports the same patterns in so far as `CollectionBuilder` already does.
-
-### Test Coverage
-
-- Component spec source sets are not realised when only another property of the component is required (e.g. rule depends on `component.binaries`)
-- Only required component source set is realised (e.g. rule depends on `component.sources.main` does not realise `component.sources.other`)
-- Specification of source set for component in DSL does not eagerly create the source set (i.e. existing container DSL syntax can still be used, but source set is no longer eagerly created)
-- Can use `withType()`, `named()` etc. methods to attach rules to specific source sets
-
-### Breaking changes / Deprecations
-
-- `component.sources` no longer a `DomainObjectSet`
-- `component.source(Action)` no longer operates on a `PolymorphicDomainObjectContainer`
-- Potential deprecation (for removal in next release) of `CollectionBuilder` (replaced by `ModelMap`)
-
-### Open questions
-
-- Implications for FunctionalSourceSet and project level source set container?
-
-## Story: Component binaries are not realized unless required
-
-TODO
-
-## Story: Binary tasks are not realized unless required
-
-TODO
-
-# Feature 4: Plugin author uses managed types to extend the software model
+# Plugin author uses managed types and internal views to extend the software model
 
 This feature allows a plugin author to extend certain key types using a managed type:
 
 - `ComponentSpec`
-- `LanguageSourceSet`
+- `LanguageSourceSet` (see [managed-source-sets.md](./managed-source-sets.md))
 - `BinarySpec`
+- `JarBinarySpec`
 
 It is a non-goal of this feature to add any further capabilities to managed types, or to migrate any of the existing subtypes to managed types.
 
@@ -239,10 +20,682 @@ It is a non-goal of this feature to add any further capabilities to managed type
 This feature will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
 individual nodes.
 
-# Feature 5: Build logic defines tasks for generated source sets and intermediate outputs
+## Custom JarBinarySpec type is implemented as a @Managed type (DONE)
 
-This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
-and intermediate outputs.
+Specific support will be added for specialisations of `JarBinarySpec`.
+This is being targeted first as it is needed to continue the dependency management stream.
+
+### Implementation
+
+(unordered)
+
+- Allow plugins to register schema extraction strategies via our plugin service registry mechanism
+- Have the platformJvm module register a strategy for `JarBinarySpec` subtypes
+- Change `@BinaryType` rule to have some understanding of `@Managed` types so that `defaultImplementation` is not required or allowed for managed binary types.
+- Add support for having managed types be somehow backed by a “real object”
+
+> For this story, the simplest approach may be to do this via delegation.
+> First we create a `JarBinarySpecInternal` using the existing machinery, then create a managed subtype wrapper that delegates
+> all `JarBinarySpecInternal` to the manually created unmanaged instance.
+> This will require opening up the type generation mechanics to some extent.
+
+- Open up managed node creation mechanics to allow “custom” strategies
+
+> The schema extraction strategy may be the link here.
+> That is, the strategy for creating the _node_ may be part of the schema.
+
+- Implementation of `@BinaryType` rule WRT interaction with `BinarySpecFactory` will need to be “managed aware”
+- Move `baseName` property from `JarBinarySpecInternal` to `JarBinarySpec`
+
+### Tests
+
+- Illegal managed subtype registered via `@BinaryType` yields error at rule execution time (i.e. when the binary types are being discovered)
+- Attempt to call `binaryTypeBuilder.defaultImplementation` fails eagerly if public type is `@Managed`
+- Subtype can have `@Unmanaged` properties
+- Subtype can have further subtypes
+- Subtype exhibits managed impl behaviour WRT immutability when realised
+- Subtype can be cast and used as `BinarySpecInternal`
+- Subtype cannot be created via `BinaryContainer` (i.e. top level `binaries` node) - (requires node backing)
+- Can successfully create binary represented by `JarBinarySpec` subtype
+
+## Plugin author declares internal view for custom component type
+
+Given a `ComponentSpec` subtype with default implementation extending `BaseComponentSpec`, allow one or more internal views to be
+registered when the component type is registered:
+
+    @ComponentType
+    public void registerMyType(ComponentTypeBuilder<MyType> builder) {
+        builder.defaultImplementation(MyTypeImpl.class);
+        builder.internalView(MyTypeInternal.class);
+        builder.internalView(MyInternalThing.class);
+    }
+
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
+- Model report shows elements as public view type. Internal views and properties defined in them are not shown in the report for this story.
+- Internal view type can be used with `ComponentSpecContainer` methods that filter components by type, eg can do `components { withType(MyTypeInternal) { ... } }`.
+- Rule subjects of type `ModelMap<>` can be used to refer to nodes by an internal view.
+- Each component spec should have the internal view `ComponentSpecInternal` configured by default.
+
+### Test cases
+
+- Internal view type can be used with `ComponentSpecContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with rule subjects like `ModelMap<InternalView>`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Model report shows only public view type properties.
+- Error cases:
+    - Non-interface internal view raises error during rule execution time.
+    - Default implementation type that does not implement public view type raises error.
+    - Default implementation type that does not implement all internal view types raises error.
+    - Specifying the same internal view twice raises an error.
+
+## Plugin author declares internal view for custom non-managed binary types
+
+Given a `BinarySpec` subtype with default implementation extending `BaseBinarySpec`, allow one or more internal views to be
+registered when the binary type is registered:
+
+    @BinaryType
+    public void registerMyType(BinaryTypeBuilder<MyType> builder) {
+        builder.defaultImplementation(MyTypeImpl.class);
+        builder.internalView(MyTypeInternal.class);
+        builder.internalView(MyInternalThing.class);
+    }
+
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
+- Internal view type can be used with `BinarySpecContainer` methods that filter binaries by type, eg can do:
+
+        components {
+            myComponent {
+                binaries.withType(MyTypeInternal) { ... }
+            }
+        }
+
+- Internal view type can be used with top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
+- Rule subjects of type `ModelMap<>` can be used to refer to child nodes of `binaries` by an internal view.
+- Each binary spec should have the internal view `BinarySpecInternal` configured by default.
+
+### Test cases
+
+- Internal view type can be used with `BinarySpecContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with `BinaryContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with rule subjects like `ModelMap<InternalView>`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Error cases:
+    - Non-interface internal view raises error during rule execution time.
+    - Default implementation type that does not implement public view type raises error.
+    - Default implementation type that does not implement all internal view types raises error.
+    - Specifying the same internal view twice raises an error.
+
+### Implementation
+
+- Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
+
+## Plugin author declares default implementation for extensible binary and component type
+
+Given a plugin defines a general type, allow the plugin to provide a default implementation the general type.
+This default implementation is then used as the super class for all `@Managed` subtype of the general type. For example:
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
+            builder.defaultImplementation(BaseTypeInternal.class);
+        }
+    }
+
+    @Managed
+    interface CustomType extends BaseType { }
+
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
+            // No default implementation required
+        }
+    }
+
+- Generalise the work done to allow `@Managed` subtypes of `JarBinarySpec` to support this.
+- Allow for binaries and components.
+
+### Test cases
+
+- user can declare a base binary type and extended it with a `@Managed` subtype
+- user can declare a base component type and extended it with a `@Managed` subtype
+- user can attach internal view to custom type
+- internal views registered for managed super-type are available on custom managed type
+- internal views registered for unmanaged super-type are available on custom managed type
+- fails on registration when:
+    - registered implementation type is an abstract type
+    - registered implementation type does not have a default constructor
+    - registered implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
+    - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
+    - registered managed type extends multiple interfaces that declare default implementations
+
+## Plugin author declares managed internal view for extensible type
+
+Allow a node with an unmanaged instance of an extensible type (say a `DefaultJarBinarySpec`) to be viewed as a `@Managed` internal view.
+The internal view need not be implemented by the default implementation. The state of the properties defined in the internal view are
+stored in child nodes (just as with any `@Managed` internal view).
+
+    @Managed
+    interface MyJarBinarySpecInternal extends JarBinarySpec {}
+
+    @Managed
+    interface MyInternal {}
+
+    class CustomPlugin extends RuleSource {
+        @BinaryType
+        public void register(BinaryTypeBuilder<JarBinarySpec> builder) {
+            builder.internalView(MyJarBinarySpecInternal)
+            builder.internalView(MyInternal)
+        }
+
+        @Mutate
+        void mutateInternal(ModelMap<MyJarBinarySpecInternal> binaries) {
+            // ...
+        }
+    }
+
+    apply plugin: "jvm-component"
+
+    model {
+        components {
+            myComponent(JvmLibrarySpec) {
+                binaries.withType(MyJarBinarySpecInternal) {
+                    // ...
+                }
+                binaries.withType(MyInternal) {
+                    // ...
+                }
+            }
+        }
+    }
+
+### Test cases
+
+* Can attach `MyJarBinarySpecInternal` that extends `JarBinarySpec`
+    * internal view can declare a read-write property that can be set on a Jar binary
+    * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyJarBinarySpecInternal)`
+    * instance cannot be accessed as `MyInternal`
+* Can attach `MyInternal` that does not extend `JarBinarySpec`
+    * internal view can declare a read-write property that can be set on a Jar binary
+    * regular `JarBinarySpec` binaries can be accessed via `component.binaries.withType(MyInternal)`
+    * instance cannot be accessed as `MyJarBinarySpecInternal`
+
+### Implementation
+
+* Attach managed projections based on the registered `@Managed` internal views for these nodes.
+
+### Open issues
+
+* Managed internal views registered on extensible type are not available in the top-level `binaries` container, e.g. via `binaries.withType(MyJarBinarySpecInternal)`. To fix this the top-level container would need to contain references to the actual component binary nodes instead of the copies of unmanaged views it contains now.
+
+## Plugin author declares internal views for any extensible type
+
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
+specialized type. For example:
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
+            builder.internalView(BaseTypeInternal.class);
+        }
+    }
+
+    interface CustomType extends BaseType { }
+
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
+            builder.internalView(MyCustomTypeInternal.class);
+        }
+    }
+
+The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the
+`BaseTypeInternal` view applied to it.
+
+- Allow for all types that support registration.
+- Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
+- Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
+- Change node creation so that implementation is no longer available as a view type.
+
+
+## Plugin author defines `@Managed` subtype of core type without providing implementation
+
+Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
+of these types.
+
+```
+@Managed
+interface MyComponentSpec extends ComponentSpec {
+    String getValue()
+    void setValue(String value)
+}
+
+class Rules extends RuleSource {
+    @ComponentType
+    void registerMyComponent(ComponentTypeBuilder<MyComponentSpec> builder) {
+    }
+}
+
+model {
+    components {
+        myThing(MyComponentSpec) {
+            value = "alma"
+        }
+    }
+}
+```
+
+- Include in release notes
+
+### Implementation
+
+- Default implementations needs to be allowed for multiple levels. In case of multiple default implementations the most specific one should be used.
+  Example: `BinarySpec` has its own default implementation, yet `JarBinarySpec` can specify its own. `@Managed` types extending `JarBinarySpec` should delegate to the default implementation of `JarBinarySpec` as it is more specific than the default implementation declared for `BinarySpec`.
+
+### Test cases
+
+- A `@Managed` subtype of `ComponentSpec`, `LibrarySpec` and `ApplicationSpec` can be used to declare a component
+    - it should be possible to attach binaries to the `@Managed` component
+- A `@Managed` subtype of `BinarySpec` can be used to declare a binary
+    - `isBuildable()` should return `true`
+- An unmanaged subtype of `BinarySpec` (with its more-specific default implementation) can be extended via a `@Managed` subtype
+  - this is already covered by `CustomJarBinarySpecSubtypeIntegrationTest`
+- Verify how instances of managed subtypes show up in component report
+
+
+## Plugin author declares internal views for custom managed type
+
+Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
+
+- Allow for all types that support registration.
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- Each internal view must be `@Managed` when no default implementation is declared.
+- Allow an internal view to make a property mutable.
+- Allow an internal view to specialize the type of a property. This implicitly adds a view to the property node.
+- Allow an internal view to declare additional properties for a node. These properties should be hidden.
+- Generate a proxy type for each view type.
+- Remove constraint the default implementation should implement the internal view types. Instead, use the proxy type.
+- toString() and missing property/method error messages should reflect view type rather than implementation type, for generated views.
+
+## Plugin author declares internal views for any managed type
+
+Allow a rule to declare internal views for any `@Managed` type.
+
+## Convert our plugins to use internal views and managed subtypes of ComponentSpec
+
+Investigate the `ComponentSpec` type hierarchy to find what types could benefit from the following new features, and apply them:
+- internal views, they now work for both unmanaged and managed types
+- managed subtypes of unmanaged types
+
+### Implementation notes
+
+- Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
+- Make types `@Managed` starting from leafs of the `ComponentSpec` hierarchy.
+
+#### Identified candidates
+
+- `PlayApplicationSpec`
+    - `PlayApplicationSpecInternal` can be made an internal view.
+    - `PlatformAwareComponentSpec` aspect of it can be extracted in a dedicated unmanaged super-type (eg. `PlayPlatformAwareComponentSpec`) registered with its own implementation
+      which would provide the implementation for the unmanaged `platform(String)` behavior method.
+    - Then, `PlayApplicationSpec` can be `@Managed` with a single property: `injectedRoutesGenerator`.
+- `NativeTestSuiteSpec`
+    - It can be `@Managed` and its `testedComponent` property can be made `@Unmanaged`
+
+### Tests
+
+- No existing test should break
+
+## Convert our plugins to use internal views and managed subtypes of BinarySpec
+
+Investigate the `BinarySpec` type hierarchy to find what types could benefit from the following new features, and apply them:
+- internal views, they now work for both unmanaged and managed types
+- managed subtypes of unmanaged types
+
+### Implementation notes
+
+- Introduce internal views all along the type hierarchy and remove as much casts as possible, mostly from rules.
+- Make types `@Managed` in tests and samples
+- Make types `@Managed` starting from leafs of the `BinarySpec` hierarchy.
+
+### Tests
+
+- No existing test should break
+
+## Convert our plugins to use internal views and managed subtypes of LanguageSourceSet
+
+- TBD
+
+## User guide contains details and samples on how to use managed subtypes and internal views
+
+A decision was made during the implementation of other stories on this theme to wait on adding user guide documentation
+until all or most of the stories were complete. This card ensures we pay off this debt before calling the overall theme
+complete.
+
+Proposed table of content:
+
+*Extending the software model*
+
+- Concepts
+    - Public type and base interfaces
+    - Internal views
+    - The component -> binary -> task chain
+- Components
+  (extending `ComponentSpec`, mention `LibrarySpec` and `ApplicationSpec`)
+- Binaries
+  (extending `BinarySpec`)
+- Source sets
+  (extending `LanguageSourceSet`, language name)
+- Putting it all together
+    - Generating binaries from components
+      (`@ComponentBinaries`)
+    - Generating tasks from binaries
+      (`@BinaryTasks`)
+- Wrap up
+
+The documentation should focus on how to use `@Managed` types (e.g. how to declare a `@Managed` subtype of an extensible
+type) and `@Managed` internal views. The unmanaged infrastructure should be treated as internal to Gradle, and should
+only be documented where it is necessary for clarity. The goal is for users to be able to play around with the managed
+infrastructure, and exposing the unmanaged infrastructure is not required to reach that goal.
+
+- Insert a new user guide section titled "Extending the software model" last in the "The Software model" chapter.
+- Update/Create samples to show how to implement a custom `@Managed` `ComponentSpec`, `BinarySpec` and `LanguageSourceSet` type
+- Eventually create samples to support the user guide content.
+
+## Model report does not show internal properties of an element
+
+Infer a model element's hidden properties based on the parent's views:
+
+- When a property is declared on any of the parent's public view types, that property should be considered public, even if it is also declared on an internal view type
+- When a property is declared only on the parent's internal view types, that property should be considered hidden and not shown.
+- Add an option to model report to show all hidden elements and types, named `showHidden`
+
+### Test cases
+
+- Add a test that register customs binaries, components and languages all having internal views and assert their internal properties are not present in the report
+- Add a test that do the same as the test above but requires the model report to show all hidden elements and types and assert their presence in the report
+- Add a test that register an element that have some property declared both in public and internal views and assert is is not hidden
+
+### Implementation
+
+`ModelNode` already has a `hidden` flag that is taken into account by `ModelReport`.
+This is how services are hidden in the model report.
+
+Implementation goal is then to set this `hidden` flag on `ModelNode`s backing internal views.
+
+This should be done as core model finalization rules for Component, Binary and Language types that would use a newly introduced `InstanceFactory.getHiddenProperties(ModelType<T> type)` method.
+`InstanceFactory` being the guy who knows all public and internal views and so is able to resolve properties publicity.
+
+### Open Issues
+
+Only extensible types (BinarySpec, ComponentSpec, LanguageSourceSet) can have internal views for now.
+Once any type can have internal views, another story will be needed to assert that the implementation of this very story for extensible types works for any types.
+
+## Allow managed types to extend non-managed interfaces
+
+Plugin author should be able to reuse existing types (from an existing external library perhaps) as a public type or as an internal view type
+in declaring managed types.
+
+We already do most things the same way with managed and unmanaged views of an element. For example we always generate a proxy. It makes sense
+to make a further step, and merge managed and unmanaged structs together. The idea is basically to drop `@Managed` as a concept, and simply check
+if all methods declared by the public type and internal views can be implemented either by:
+
+* a concrete implementation on the public type (internal views are required to be interfaces, so no implementation is possible there)
+* the default implementation
+* as a managed property
+
+This also means that all validation that currently happens in schema extraction will be pushed to when the `InstanceFactory` is being validated, or when
+`@Model` triggers an instance of a type to be created in a managed fashion.
+
+### Implementation
+
+* Deprecate `@Managed` annotation
+
+* **Struct schema extraction**—instead of a separate managed/unmanaged version, we only have one `StructSchema`. The schema extraction is lenient (i.e. it does not report any errors), as we need to extract schemas from types that will never be used to instantiate model elements, and we must allow "errors" to be present there (think of `ClassLoader.getResource(URL)`). All validation happening in schema extraction needs to be moved to before instantiation.
+
+  * first we get the methods from the type as usual, indexed into a `Multimap` by signature with all their overrides (the overrides are only needed in order to extract annotations defined in super-types)
+  * we try to find methods that belong to a property (`getX()`, `isX()`, `setX()`) and index them by property name; we leave all methods we cannot identify as belonging to a property in an "arbitrary methods" bucket.
+  * we check each property if we can actually make the methods belonging to it work as a property (i.e. check if they getter returns a type that's compatible with the setter etc.)—if we _can_ make it a property, we create a `ModelViewProperty` out of it; otherwise we put the methods back into "arbitrary methods".
+  * we extract aspects from the properties we could make sense of in the usual way.
+
+* **Type registration** happens as it does now, supplying a public type, some internal view types, and a default implementation.
+
+* **Managed type validation** happens in two places: a) when `InstanceFactory` is validated (we have internal views and a potential default implementation to take into account here), and
+b) when a type is instantiated in a managed fashion via `@Model`.
+
+  * check view types
+    * view types must not have state (i.e. non-static fields)
+    * internal view types must be interfaces
+    * (public) view type should not provide concrete implementations for any `Object` (except `toString()`) or `GroovyObject` methods or define `propertyMissing()` or `methodMissing()` methods
+  * we collect all the methods from the public type and the internal views: these are the methods that the delegate object needs to provide; the different view proxies are going to delegate to this instance
+    * we tag each method that is not abstract with `IMPLEMENTED_BY_VIEW_TYPE`
+    * we try to match the rest of the methods against the methods from the default implementation (if any)   and mark them as `IMPLEMENTED_BY_DEFAULT_IMPLEMENTATION`
+    * the rest of the methods remain tagged as `GENERATED`
+  * we repeat the same process with the methods as we did for the schema, and group the methods belonging to potential managed properties; we leave all other methods in an "arbitrary methods" bucket.
+  However, if there is a method that does not make sense as a property accessor (e.g. `getX(int)`), or if the property itself does not make sense (incompatible type derived from getter and setter), we fail.
+  * depending on the methods collected for each potential managed property:
+    * if all methods are implemented (either by the public type or the default implementation), we throw that property away (we won't need to add a child node for it)
+    * if all methods are abstract, we run the usual validation required for managed properties, and store a `ManagedProperty` instance with the data about the property (we will create a child node for this property); we also record if the getter was annotated with `@Unmanaged`.
+    * if some of the methods are abstract, while others have implementations, we fail
+  * if there are any methods left in the "arbitrary methods" bucket without an implementation, we fail
+  * we store the information about the `ManagedProperty`'s and the "arbitrary methods" in the `ManagedType` object (should probably be cached in `InstanceFactory`, too)
+
+* **Node initialization** happens similar to how it does now with some changes:
+
+  * the `ManagedNodeInitializer` keeps a reference to the `ExtensibleTypeRegistration`
+  * during the discovery of the node (`Discover`), projections are created based on the type registration
+
+* **Viewing the node**
+
+  * the proxy generator takes the schema of the requested view and the `ExtensibleTypeRegistration` (both received from the `StructProjection`)
+  * it generates each method found in the view schema based on the type registration; it either
+    * delegates to the implementation in the view type (only allowed for the public type now)
+    * delegates to the default implementation
+    * delegates to a managed property
+  * the logic in the proxy generator is reduced, as there are no decisions to make there (and hence no chance of illegal states to arise)
+
+### Test cases
+
+* all current test cases for managed and unmanaged type validation and instantiation should keep working, but without `@Managed` being specified
+* using `@Managed` on a type shows a deprecation warning
+* managed type validation
+
+# Feature 6: Managed Model usability
+
+Some candidates:
+
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated as inputs.
+    - Directly
+    - When parent is input.
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated after view is closed.
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated as subject that is not mutable (eg in validation).
+    - Directly
+    - When parent is subject
+- Consistent error message for managed type property, ModelMap<T> and ModelSet<T> where T is not managed.
+- Consistent usage of ModelMap and ModelSet with reference properties.
+- Consistent mutation methods on ModelMap and ModelSet.
+- Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
+- Enforce that subject cannot be mutated in a validate rule.
+- Rename (via add-deprecate-remove) the mutation methods on ModelMap and ModelSet to make more explicit that
+  they are intended to be used to define mutation rules that are invoked later. For example `all { }` or `withType(T) { }` could have better names.
+- Add methods (or a view) that allows iteration over collection when it is immutable.
+- Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
+- Allow empty managed subtypes of ModelSet and ModelMap. This is currently available internally, eg for `ComponentSpecContainer`.
+- Adjust naming schemes so that it excludes only those variant dimensions with a single value provided by a `@Defaults` rule.
+
+# Feature 7: Build author applies cross-cutting rules for software model types
+
+Link all `ComponentSpec`, `LanguageSourceSet`, `BinarySpec` and `Task` instances into top level containers where rules can be
+applied to them regardless of their location in the model.
+
+Non-goal is to provide this as a general capability for arbitrary types.
+
+### Backlog
+
+- Improve error message when input or subject cannot be bound due to a null reference.
+- Deal with case where by-path binding points to a null reference or null scalar value. Currently we supply a null value to the rule, should probably fail.
+- Deal with by-type binding to a non-null reference.
+- Currently an input or subject reachable via a reference can be viewed only as the types from the reference definition. Instead, should be able to view the target
+using any type that the view supports.
+- The target of a reference value can be changed while mutation is allowed. Treat reference change as remove and add.
+- Can't remove an element when it is the target of a reference.
+
+## Model report shows references between elements
+
+- Creator and mutator rules should be those that affected the value of the reference, not the target.
+
+### Test cases
+
+- Reference is `null`.
+- Reference is not `null`.
+- Can mutate reference value during configuration.
+- Cycle from child to parent.
+
+### Backlog
+
+- A reference is almost always set via a rule on the parent or an ancestor. This is not captured, so that in the report the reference does not appear to be
+configured by any rule.
+
+## Referenced element can be used as subject for a rule
+
+- For defaults, finalization and validation rules.
+- Can only be applied when the target of the reference still allows these rules to be applied.
+- Error messages when rule cannot be applied.
+- Out of scope: locating referencing elements in the model, in order to inject rules via the references. This is intended to be used internally
+only to implement the top level containers.
+
+## Model containers allow elements to be added as references
+
+- Adding a managed element to a model container should be treated as adding a reference to the target element.
+
+## Language source sets are linked into top level container
+
+- Change `LanguageSourceSet` implementations so that they are node backed.
+- Apply the above capabilities to the `sources` top level container.
+
+## Binaries are linked into top level container
+
+- Change `BinarySpec` implementations so that they are node backed.
+- Apply the above capabilities to the `binaries` top level container.
+
+## Run only those rules that define cross-cutting configuration
+
+- Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so
+far forces all elements to be discovered.
+
+## Apply cross cutting configuration to all `LanguageSourceSet` instances
+
+- All `LanguageSourceSet` instances are visible through `sources` container
+- Depends on improvements to reference handling define in previous feature.
+- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized.
+- TBD: Need to split this up into several stories.
+
+## Backlog
+
+- Apply to `ComponentSpec`, `Task`, etc.
+- Apply cross-cutting defaults, finalization, validation.
+- Allow rules to be applied to any thing of a given type, relative to any model element.
+
+# More consistent validation of model types
+
+## Story: Consistent validation of model types
+
+- Validate model elements of the following types (check for existing test coverage, some of this may already exist):
+    - ModelMap<T> and ModelSet<T> where T is not constructable. Should report which types are constructable (should not mention `@Unmanaged`)
+    - List<T> and Set<T> where T is not a scalar type. Should report which types are scalar.
+    - A `@Managed` type with a read-only property of type T where T is not constructable. Should report which types are constructable.
+    - A `@Managed` type with a read-write property without `@Unmanaged` of type T where T is not scalar and not constructable. Should report scalar and constructable types.
+    - Any T where T is not constructable. Should report which types are constructable.
+- Ensure a consistent error message for each failure, should describe the available T for each case.
+
+### Implementation
+Coverage for all of this is already in place. The validation logic will change to give contextual error messages. For example:
+When attempting to define a managed model element of type `SomeManagedType` with a property of type `List<T>` where `T` is not a
+scalar type the error message should read:
+
+```
+> A model element of type: 'SomeManagedType' can not be constructed.
+  Its property 'List propertyName' is not a valid scalar collection type.
+  A scalar collection type is a List<T> or Set<T> where 'T' is a scalar type (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+```
+
+`org.gradle.model.internal.core.DefaultNodeInitializerRegistry` and `org.gradle.model.internal.core.ModelTypeInitializationException` should be refactored to take the context of what is being constructed
+ (i.e. is it a property, is it a top level model element, if it is a property the property's name)
+
+## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructible
+
+When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructible, use a specific error message that informs
+the user that an element of type `T` cannot be added to the collection. Error message should include the constructible types:
+
+- When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
+- Otherwise, report on the constructible types that are assignable to `T`.
+
+### Test cases
+
+- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`. This used to report the available types.
+- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with no implementation`.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with default implementation`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructible type`.
+
+For all theses tests, assert that the reported constructible types list contains appropriate types and only them.
+
+### Open Issues
+
+`ModelSet` contract does not allow to specify the type of element when adding one. The `elementType` is always used.
+In other words, there's no way to add an element of a different type that the `ModelSet` parameterized one.
+
+So, this test has not been implemented:
+
+- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructible type`.
+
+## Backlog
+
+- `ModelMap` Does not fail when type not within bounds is created or added.
+- There are inconsistent error messages when a 'schema' vs 'node-initialization' problem is found with a `@Managed` type
+    - For example, adding a read-only property of type `boolean` and `Boolean` fail in completely different ways
+
+## Story: Validate model types more eagerly
+
+- Validate the type of all top level elements, regardless of whether they are used or not in the current build.
+- Do this at the same time as `ModelRegistry.bindAllReferences()` is used.
+- Do not validate projects that are not used in the build current build.
+- Validate elements added via DSL and rules.
+- Other elements should be validated as they are realized.
+
+TBD:
+One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘discovered'
+that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
+coverage and the cost of the coverage
+
+## Story: Allow `@Unmanaged` properties of type `List` or `Set`
+
+This is a bugfix for a regression introduced in Gradle 2.8.
+
+Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
+
+# Later features
+
+# Feature: Key component model elements are not realized until required
+
+This feature continues earlier work to make key properties of `BinarySpec` managed.
+
+- `BinarySpec.tasks`
+
+# Feature: Build logic defines tasks for generated source sets and intermediate outputs
+
+This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets and intermediate outputs.
 
 A number of key intermediate outputs will be exposed for their respective binaries:
 
@@ -250,14 +703,11 @@ A number of key intermediate outputs will be exposed for their respective binari
 - JVM class files
 - Generated source for play applications
 
-Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs,
-an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
+Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs, an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
 
-Rules will also be able to navigate from the model for a buildable item, such as a binary, intermediate output or source set, to the tasks, for
-configuration or reporting.
+Rules will also be able to navigate from the model for a buildable item, such as a binary, intermediate output or source set, to the tasks, for configuration or reporting.
 
-The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and
-binaries, plus the task a user would run to build each thing.
+The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and binaries, plus the task a user would run to build each thing.
 
 It is a non-goal of this feature to provide a public way for a plugin author to define the intermediate outputs for a binary. This is a later feature.
 
@@ -287,20 +737,18 @@ The implementation would be responsible for invoking the rules when assembling t
 - When a physical thing is used as input, the tasks that build its inputs, if any, should be determined and attached as dependencies of those tasks
 that take the physical thing as input.
 
-# Feature 6: Plugin author uses managed types to define intermediate outputs
+# Feature: Plugin author uses managed types to define intermediate outputs
 
 This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
 Allow a plugin author to extend any buildable type with a custom managed type. Allow a custom type to declare the inputs for the buildable type in a strongly typed way.
-For example, a JVM library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a
-kind of JVM classpath component.
+For example, a JVM library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a kind of JVM classpath component.
 
 ## Implementation
 
-One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
-of a buildable thing.
+One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs of a buildable thing.
 
-# Feature 7: Build logic defines tasks that run executable things
+# Feature: Build logic defines tasks that run executable things
 
 This feature generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
 
@@ -319,7 +767,7 @@ The implementation would be responsible for building the executable things, and 
 
 The `components` report should show details of the executable things, which as the entry point task to run the thing.
 
-# Feature 8: References between key objects in the software model are visible to rules
+# Feature: References between key objects in the software model are visible to rules
 
 The relationships exposed in the first feature represent ownership, where the relationship is one between a parent and child.
 This feature exposes other key 'non-ownership' relationships present in the software model.
@@ -336,7 +784,6 @@ It is a non-goal of this feature to allow rules to be written to select these ob
 
 ## Implementation
 
-For a binary's input source sets, one option would be to change the behaviour so that a binary receives a copy of its component's source sets. These
-copies would then be owned by the binary and can be further customized in the context of the binary.
+For a binary's input source sets, one option would be to change the behaviour so that a binary receives a copy of its component's source sets. These copies would then be owned by the binary and can be further customized in the context of the binary.
 
 For a test suite's component under test, one option would be to restructure the relationship, so that test suite(s) become a child of the component under test.

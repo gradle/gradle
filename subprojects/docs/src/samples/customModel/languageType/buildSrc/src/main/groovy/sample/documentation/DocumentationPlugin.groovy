@@ -14,46 +14,63 @@
  * limitations under the License.
  */
 package sample.documentation
-
-import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.Copy
 import org.gradle.model.ModelMap
-import org.gradle.model.Mutate
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.*
 
+// START SNIPPET component-registration
+// START SNIPPET binary-registration
+// START SNIPPET binaries-generation
+// START SNIPPET text-tasks-generation
 class DocumentationPlugin extends RuleSource {
+// END SNIPPET binary-registration
+// END SNIPPET binaries-generation
+// END SNIPPET text-tasks-generation
     @ComponentType
-    void register(ComponentTypeBuilder<DocumentationComponent> builder) {
-        builder.defaultImplementation(DefaultDocumentationComponent)
-    }
+    void register(ComponentTypeBuilder<DocumentationComponent> builder) {}
+// END SNIPPET component-registration
 
+// START SNIPPET binary-registration
     @BinaryType
-    void register(BinaryTypeBuilder<DocumentationBinary> builder) {
-        builder.defaultImplementation(DefaultDocumentationBinary)
-    }
+    void register(BinaryTypeBuilder<DocumentationBinary> builder) {}
+// END SNIPPET binary-registration
 
+// START SNIPPET text-lang-registration
+    @LanguageType
+    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {
+        builder.languageName = "text"
+    }
+// END SNIPPET text-lang-registration
+
+// START SNIPPET binaries-generation
     @ComponentBinaries
-    void createBinariesForBinaryComponent(ModelMap<DocumentationBinary> binaries, DocumentationComponent component) {
-        binaries.create("${component.name}Binary")
+    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
+        binaries.create("exploded") { binary ->
+            outputDir = new File(buildDir, "${component.name}/${binary.name}")
+        }
     }
+// END SNIPPET binaries-generation
 
+// START SNIPPET text-tasks-generation
     @BinaryTasks
-    void createZip(ModelMap<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
-        tasks.create("zip${binary.name.capitalize()}", Zip, new Action<Zip>() {
-            @Override
-            public void execute(Zip zipBinary) {
-                binary.source.withType(DocumentationSourceSet) { source ->
-                    zipBinary.into(source.name) {
-                        from(source.outputDir)
-                    }
-                    zipBinary.dependsOn source.taskName
-                }
-                zipBinary.setDestinationDir(new File(buildDir, binary.name))
-                zipBinary.setArchiveName(binary.name + ".zip")
+    void generateTextTasks(ModelMap<Task> tasks, final DocumentationBinary binary) {
+        binary.inputs.withType(TextSourceSet) { textSourceSet ->
+            def taskName = binary.tasks.taskName("compile", textSourceSet.name)
+            def outputDir = new File(binary.outputDir, textSourceSet.name)
+            tasks.create(taskName, Copy) {
+                from textSourceSet.source
+                destinationDir = outputDir
             }
-        });
+        }
     }
+// START SNIPPET component-registration
+// START SNIPPET binary-registration
+// START SNIPPET binaries-generation
 }
+// END SNIPPET component-registration
+// END SNIPPET binary-registration
+// END SNIPPET binaries-generation
+// END SNIPPET text-tasks-generation

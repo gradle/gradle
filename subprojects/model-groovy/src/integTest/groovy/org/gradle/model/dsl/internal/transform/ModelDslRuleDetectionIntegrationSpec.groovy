@@ -17,16 +17,11 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "rules are detected when model path is a straight property reference chain - #path"() {
@@ -145,5 +140,30 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 'if (true) {}',
                 'try {} catch(e) {}',
         ]
+    }
+
+    def "only closure literals can be used as rules"() {
+        when:
+        buildScript """
+            class MyPlugin extends RuleSource {
+                @Model
+                String foo() {
+                  "foo"
+                }
+            }
+
+            apply type: MyPlugin
+
+            def c = {};
+            model {
+                foo(c)
+            }
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber 13
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
     }
 }

@@ -16,17 +16,31 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.BinarySpec;
 
 public interface BinarySpecInternal extends BinarySpec {
-    FunctionalSourceSet getBinarySources();
+    /**
+     * The unique identifier of this JarBinarySpec.
+     */
+    LibraryBinaryIdentifier getId();
 
-    void setBinarySources(FunctionalSourceSet sources);
+    /**
+     * Returns a name for this binary that is unique for all binaries in the current project.
+     */
+    String getProjectScopedName();
+
+    Class<? extends BinarySpec> getPublicType();
 
     void setBuildable(boolean buildable);
 
     BinaryBuildAbility getBuildAbility();
 
     boolean isLegacyBinary();
+
+    BinaryNamingScheme getNamingScheme();
+
+    void setNamingScheme(BinaryNamingScheme namingScheme);
+
+    boolean hasCodependentSources();
 }

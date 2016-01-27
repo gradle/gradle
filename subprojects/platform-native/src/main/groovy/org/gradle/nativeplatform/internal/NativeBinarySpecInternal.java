@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -24,7 +25,6 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
-    void setComponent(NativeComponentSpec component);
 
     void setFlavor(Flavor flavor);
 
@@ -42,15 +41,15 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     void setBuildType(BuildType buildType);
 
-    BinaryNamingScheme getNamingScheme();
-
-    void setNamingScheme(BinaryNamingScheme namingScheme);
+    Tool getToolByName(String name);
 
     PlatformToolProvider getPlatformToolProvider();
 
     void setPlatformToolProvider(PlatformToolProvider toolProvider);
 
     void setResolver(NativeDependencyResolver resolver);
+
+    void setFileCollectionFactory(FileCollectionFactory fileCollectionFactory);
 
     File getPrimaryOutput();
 
@@ -64,4 +63,5 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     void binaryInputs(FileCollection files);
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
+
 }

@@ -16,40 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.Map;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
 
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 
-    private final static Map<ModelType<?>, Class<?>> BOXED_REPLACEMENTS = ImmutableMap.<ModelType<?>, Class<?>>builder()
-            .put(ModelType.of(Boolean.TYPE), Boolean.class)
-            .put(ModelType.of(Character.TYPE), Character.class)
-            .put(ModelType.of(Float.TYPE), Double.class)
-            .put(ModelType.of(Integer.TYPE), Integer.class)
-            .put(ModelType.of(Long.TYPE), Long.class)
-            .put(ModelType.of(Short.TYPE), Integer.class)
-            .put(ModelType.of(Double.TYPE), Double.class)
-            .build();
-
-
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
-        if (type.getRawClass().isPrimitive()) {
-            Class<?> replacementType = BOXED_REPLACEMENTS.get(type);
-            if (replacementType != null) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type is not supported, please use %s instead", replacementType.getName()));
-            }
+        if (isPrimitiveType(type)) {
+            extractionContext.found(new ScalarValueSchema<T>(type));
         }
-
-        return null;
     }
-
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.emptySet();
-    }
-
 }

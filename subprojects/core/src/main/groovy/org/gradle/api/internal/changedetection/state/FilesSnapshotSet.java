@@ -29,7 +29,7 @@ public interface FilesSnapshotSet {
      */
     @Nullable FileSnapshot findSnapshot(File file);
 
-    static FilesSnapshotSet EMPTY = new FilesSnapshotSet() {
+    FilesSnapshotSet EMPTY = new FilesSnapshotSet() {
         public FileSnapshot findSnapshot(File file) {
             return null;
         }

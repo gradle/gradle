@@ -2247,4 +2247,54 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         'bundle'      | 'jar'         | null
         'custom-type' | 'custom-type' | null
     }
+
+    @Issue("GRADLE-3299")
+    def "correctly resolve references to parent GAV properties"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>\${project.parent.groupId}</groupId>
+    <artifactId>\${project.parent.artifactId}-ext</artifactId>
+    <version>\${project.parent.version}</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>artifact-one</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${parent.groupId}</groupId>
+            <artifactId>\${parent.artifactId}-xxx</artifactId>
+            <version>\${parent.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one-ext', 'version-one')
+
+        descriptor.dependencies.length == 1
+        def depGroupOne = descriptor.dependencies[0]
+        depGroupOne.dependencyRevisionId == moduleId('group-one', 'artifact-one-xxx', 'version-one')
+        depGroupOne.moduleConfigurations as List == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depGroupOne)
+    }
 }

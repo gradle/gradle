@@ -16,59 +16,111 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Nullable;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Specs;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
+public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<T> {
 
-    protected final Class<T> elementClass;
-    protected final NamedEntityInstantiator<T> instantiator;
-    protected final Action<? super T> onCreateAction;
+    private final Class<T> elementType;
+    private final DomainObjectCollection<T> collection;
+    private final NamedEntityInstantiator<T> instantiator;
+    private final Namer<? super T> namer;
+    private final Action<? super T> onCreateAction;
 
-    protected DomainObjectCollectionBackedModelMap(Class<T> elementClass, NamedEntityInstantiator<T> instantiator, Action<? super T> onCreateAction) {
-        this.elementClass = elementClass;
+    public DomainObjectCollectionBackedModelMap(Class<T> elementType, DomainObjectCollection<T> backingCollection, NamedEntityInstantiator<T> instantiator, Namer<? super T> namer, Action<? super T> onCreateAction) {
+        this.elementType = elementType;
+        this.collection = backingCollection;
         this.instantiator = instantiator;
+        this.namer = namer;
         this.onCreateAction = onCreateAction;
     }
 
-    protected abstract DomainObjectCollection<T> getBackingCollection();
-
-    @Override
-    public <S> ModelMap<S> withType(final Class<S> type) {
-        if (type.equals(elementClass)) {
-            return uncheckedCast(this);
-        }
-
-        if (elementClass.isAssignableFrom(type)) {
-            Class<? extends T> castType = uncheckedCast(type);
-            ModelMap<? extends T> subType = toSubtypeMap(castType);
-            return uncheckedCast(subType);
-        }
-
-        return toNonSubtypeMap(type);
+    private <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
+        DomainObjectCollection<S> cast = toNonSubtype(type);
+        Namer<S> castNamer = Cast.uncheckedCast(namer);
+        return DomainObjectCollectionBackedModelMap.wrap(type, cast, NamedEntityInstantiators.nonSubtype(type, elementType), castNamer, Actions.doNothing());
     }
 
-    protected abstract <S> ModelMap<S> toNonSubtypeMap(Class<S> type);
+    private <S> DomainObjectSet<S> toNonSubtype(final Class<S> type) {
+        return uncheckedCast(collection.matching(Specs.isInstance(type)));
+    }
 
-    protected abstract <S extends T> ModelMap<S> toSubtypeMap(Class<S> castType);
+    private <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
+        NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
+        return DomainObjectCollectionBackedModelMap.wrap(itemSubtype, collection.withType(itemSubtype), instantiator, namer, onCreateAction);
+    }
+
+    @Nullable
+    @Override
+    public T get(String name) {
+        return Iterables.find(collection, new HasNamePredicate<T>(name, namer), null);
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return Sets.newHashSet(Iterables.transform(collection, new ToName<T>(namer)));
+    }
+
+    @Override
+    public <S> void withType(Class<S> type, Action<? super S> configAction) {
+        toNonSubtype(type).all(configAction);
+    }
+
+    private static class HasNamePredicate<T> implements Predicate<T> {
+        private final String name;
+        private final Namer<? super T> namer;
+
+        public HasNamePredicate(String name, Namer<? super T> namer) {
+            this.name = name;
+            this.namer = namer;
+        }
+
+        @Override
+        public boolean apply(@Nullable T input) {
+            return namer.determineName(input).equals(name);
+        }
+    }
+
+    private static class ToName<T> implements Function<T, String> {
+        private final Namer<? super T> namer;
+
+        public ToName(Namer<? super T> namer) {
+            this.namer = namer;
+        }
+
+        @Override
+        public String apply(@Nullable T input) {
+            return namer.determineName(input);
+        }
+    }
+
+    public static <T> DomainObjectCollectionBackedModelMap<T> wrap(Class<T> elementType, DomainObjectCollection<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, Namer<? super T> namer, Action<? super T> onCreate) {
+        return new DomainObjectCollectionBackedModelMap<T>(elementType, domainObjectSet, instantiator, namer, onCreate);
+    }
 
     @Override
     public int size() {
-        return getBackingCollection().size();
+        return collection.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return getBackingCollection().isEmpty();
+        return collection.isEmpty();
     }
 
     @Nullable
@@ -85,17 +137,17 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
     @Override
     public boolean containsValue(Object item) {
         //noinspection SuspiciousMethodCalls
-        return getBackingCollection().contains(item);
+        return collection.contains(item);
     }
 
     @Override
     public void create(String name) {
-        create(name, elementClass, Actions.doNothing());
+        create(name, elementType, Actions.doNothing());
     }
 
     @Override
     public void create(String name, Action<? super T> configAction) {
-        create(name, elementClass, configAction);
+        create(name, elementType, configAction);
     }
 
     @Override
@@ -105,9 +157,18 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
 
     @Override
     public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
+        if (containsKey(name)) {
+            throw new IllegalStateException("Entry with name already exists: " + name);
+        }
         S s = instantiator.create(name, type);
         configAction.execute(s);
         onCreateAction.execute(s);
+        collection.add(s);
+    }
+
+    @Override
+    public void put(String name, T instance) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -117,7 +178,7 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
 
     @Override
     public void all(Action<? super T> configAction) {
-        getBackingCollection().all(configAction);
+        collection.all(configAction);
     }
 
     @Override
@@ -137,7 +198,12 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
 
     @Override
     public Collection<T> values() {
-        return getBackingCollection();
+        return collection;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return collection.iterator();
     }
 
     @Override
@@ -152,12 +218,27 @@ abstract public class DomainObjectCollectionBackedModelMap<T> implements ModelMa
 
     @Override
     public void named(final String name, Action<? super T> configAction) {
-        getBackingCollection().matching(new Spec<T>() {
+        collection.matching(new Spec<T>() {
             @Override
             public boolean isSatisfiedBy(T element) {
                 return get(name) == element;
             }
         }).all(configAction);
+    }
+
+    @Override
+    public <S> ModelMap<S> withType(final Class<S> type) {
+        if (type.equals(elementType)) {
+            return uncheckedCast(this);
+        }
+
+        if (elementType.isAssignableFrom(type)) {
+            Class<? extends T> castType = uncheckedCast(type);
+            ModelMap<? extends T> subType = toSubtypeMap(castType);
+            return uncheckedCast(subType);
+        }
+
+        return toNonSubtypeMap(type);
     }
 
 }

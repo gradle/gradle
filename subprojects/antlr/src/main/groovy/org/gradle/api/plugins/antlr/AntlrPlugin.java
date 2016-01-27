@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.plugins.JavaPlugin;
@@ -40,11 +40,11 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
  */
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
-    private final FileResolver fileResolver;
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     @Inject
-    public AntlrPlugin(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public AntlrPlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
     public void apply(final Project project) {
@@ -56,7 +56,7 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        antlrConfiguration.whenEmpty(new Action<DependencySet>() {
+        antlrConfiguration.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
                 dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
@@ -82,7 +82,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         // for each source set we will:
                         // 1) Add a new 'antlr' virtual directory mapping
                         final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
-                                = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), fileResolver);
+                                = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
                         new DslObject(sourceSet).getConvention().getPlugins().put(
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
                         final String srcDir = String.format("src/%s/antlr", sourceSet.getName());

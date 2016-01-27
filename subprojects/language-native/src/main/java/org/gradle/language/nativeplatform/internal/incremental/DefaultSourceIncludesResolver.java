@@ -32,10 +32,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         this.includePaths = includePaths;
     }
 
-    public Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes) {
+    public Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes, Set<File> candidates) {
         Set<ResolvedInclude> dependencies = new LinkedHashSet<ResolvedInclude>();
-        searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
-        searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
+        searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), candidates);
+        searchForDependencies(dependencies, includePaths, includes.getSystemIncludes(), candidates);
         if (!includes.getMacroIncludes().isEmpty()) {
             dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null));
         }
@@ -50,15 +50,16 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return quotedSearchPath;
     }
 
-    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<Include> includes) {
+    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<Include> includes, Set<File> candidates) {
         for (Include include : includes) {
-            searchForDependency(dependencies, searchPath, include.getValue());
+            searchForDependency(dependencies, searchPath, include.getValue(), candidates);
         }
     }
 
-    private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include) {
+    private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include, Set<File> candidates) {
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
+            candidates.add(candidate);
             if (candidate.isFile()) {
                 dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
                 return;

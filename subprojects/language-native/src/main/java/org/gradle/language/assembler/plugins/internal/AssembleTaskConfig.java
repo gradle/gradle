@@ -18,15 +18,17 @@ package org.gradle.language.assembler.plugins.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.assembler.tasks.Assemble;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.language.assembler.tasks.Assemble;
 import org.gradle.platform.base.BinarySpec;
+
+import java.io.File;
 
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
     public String getTaskPrefix() {
@@ -37,7 +39,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         return Assemble.class;
     }
 
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureAssembleTask((Assemble) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
 
@@ -50,9 +52,9 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         task.source(sourceSet.getSource());
 
         final Project project = task.getProject();
-        task.setObjectFileDir(project.file(project.getBuildDir() + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
+        task.setObjectFileDir(new File(binary.getNamingScheme().getOutputDirectory(project.getBuildDir(), "objs"), sourceSet.getProjectScopedName()));
 
-        Tool assemblerTool = (Tool) ((ExtensionAware) binary).getExtensions().getByName("assembler");
+        Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

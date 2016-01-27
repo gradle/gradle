@@ -34,7 +34,7 @@ class ModuleDependency implements Dependency {
     def ModuleDependency(name, scope) {
         this.name = name;
         this.scope = scope;
-        this.exported = !scope || scope == 'COMPILE' || scope == 'RUNTIME'
+        this.exported = false
     }
 
     void addToNode(Node parentNode) {

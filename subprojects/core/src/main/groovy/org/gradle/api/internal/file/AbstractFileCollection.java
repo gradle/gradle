@@ -24,12 +24,15 @@ import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.*;
@@ -74,6 +77,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return new UnionFileCollection(this, collection);
     }
 
+    public FileCollection plus(Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserWith("The plus(Iterable<FileCollection>) method and using the '+' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in " + GradleVersion.current().getNextMajor().getVersion() + ".  Please use the plus(FileCollection) method or the '+' operator with a FileCollection object instead.");
+        return this.plus(new UnionFileCollection(collections));
+    }
+
     public FileCollection minus(final FileCollection collection) {
         return new AbstractFileCollection() {
             @Override
@@ -92,6 +100,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 return files;
             }
         };
+    }
+
+    public FileCollection minus(final Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserWith("The minus(Iterable<FileCollection>) method and using the '-' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in " + GradleVersion.current().getNextMajor().getVersion() + ".  Please use the minus(FileCollection) method or the '-' operator with a FileCollection object instead.");
+        return this.minus(new UnionFileCollection(collections));
     }
 
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
@@ -158,7 +171,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
         if (type.isAssignableFrom(File[].class)) {
             Set<File> files = getFiles();
-            return files.toArray(new File[files.size()]);
+            return files.toArray(new File[0]);
         }
         if (type.isAssignableFrom(File.class)) {
             return getSingleFile();
@@ -179,10 +192,15 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this);
                 context.add(nested.resolveAsFileTrees());
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(AbstractFileCollection.this);
             }
 
             @Override
@@ -217,7 +235,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
     }
-
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {

@@ -34,7 +34,7 @@ class Git {
         def repository = new FileRepositoryBuilder().findGitDir().build()
         try {
             branchName = repository.branch
-            commitId = repository.getRef(repository.fullBranch).objectId.name
+            commitId = repository.resolve(repository.fullBranch).name
         } finally {
             repository.close()
         }

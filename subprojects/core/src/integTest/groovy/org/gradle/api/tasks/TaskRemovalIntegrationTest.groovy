@@ -78,7 +78,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         fails "dependencies"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
+        failure.assertThatCause(Matchers.startsWith("The following model rules could not be applied"))
 
         where:
         annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
@@ -102,7 +102,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails ":bar"
-        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by: tasks.bar"))
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model 'tasks.foo' but it is depended on by: 'tasks.bar'"))
 
     }
 }

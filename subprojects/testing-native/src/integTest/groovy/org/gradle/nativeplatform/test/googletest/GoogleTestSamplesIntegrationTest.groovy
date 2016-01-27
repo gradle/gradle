@@ -42,15 +42,15 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         sample googleTest
 
         when:
-        succeeds "runPassing"
+        succeeds "runOperatorsTestPassingGoogleTestExe"
 
         then:
-        executedAndNotSkipped ":compilePassingOperatorsTestGoogleTestExeOperatorsTestCpp",
-                ":linkPassingOperatorsTestGoogleTestExe", ":passingOperatorsTestGoogleTestExe",
-                ":installPassingOperatorsTestGoogleTestExe", ":runPassingOperatorsTestGoogleTestExe"
+        executedAndNotSkipped ":compileOperatorsTestPassingGoogleTestExeOperatorsTestCpp",
+                ":linkOperatorsTestPassingGoogleTestExe", ":operatorsTestPassingGoogleTestExe",
+                ":installOperatorsTestPassingGoogleTestExe", ":runOperatorsTestPassingGoogleTestExe"
 
         and:
-        def passingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTestGoogleTestExe/passing/test_detail.xml"))
+        def passingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/passing/test_detail.xml"))
         passingResults.suiteNames == ['OperatorTests']
         passingResults.suites['OperatorTests'].passingTests == ['test_minus', 'test_plus']
         passingResults.suites['OperatorTests'].failingTests == []
@@ -58,15 +58,15 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         when:
         sample googleTest
-        fails "runFailing"
+        fails "runOperatorsTestFailingGoogleTestExe"
 
         then:
-        executedAndNotSkipped ":compileFailingOperatorsTestGoogleTestExeOperatorsTestCpp",
-                ":linkFailingOperatorsTestGoogleTestExe", ":failingOperatorsTestGoogleTestExe",
-                ":installFailingOperatorsTestGoogleTestExe", ":runFailingOperatorsTestGoogleTestExe"
+        executedAndNotSkipped ":compileOperatorsTestFailingGoogleTestExeOperatorsTestCpp",
+                ":linkOperatorsTestFailingGoogleTestExe", ":operatorsTestFailingGoogleTestExe",
+                ":installOperatorsTestFailingGoogleTestExe", ":runOperatorsTestFailingGoogleTestExe"
 
         and:
-        def failingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTestGoogleTestExe/failing/test_detail.xml"))
+        def failingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/failing/test_detail.xml"))
         failingResults.suiteNames == ['OperatorTests']
         failingResults.suites['OperatorTests'].passingTests == ['test_minus']
         failingResults.suites['OperatorTests'].failingTests == ['test_plus']

@@ -704,4 +704,33 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('bcd.txt', 'abc.log')
         file('dest/abc.log').text = 'content'
     }
+
+    @Test
+    public void testSingleLineRemoved() {
+        TestFile buildFile = testFile('build.gradle') << '''
+            task (copy, type:Copy) {
+                from "src/two/two.b"
+                into "dest"
+                def lineNumber = 1
+                filter { lineNumber++ % 2 == 0 ? null : it }
+            }'''
+        usingBuildFile(buildFile).withTasks('copy').run()
+        Iterator<String> it = testFile('dest/two.b').readLines().iterator()
+        assertThat(it.next(), startsWith('one'))
+        assertThat(it.next(), startsWith('three'))
+    }
+
+    @Test
+    public void testAllLinesRemoved() {
+        TestFile buildFile = testFile('build.gradle') << '''
+            task (copy, type:Copy) {
+                from "src/two/two.b"
+                into "dest"
+                def lineNumber = 1
+                filter { null }
+            }'''
+        usingBuildFile(buildFile).withTasks('copy').run()
+        Iterator<String> it = testFile('dest/two.b').readLines().iterator()
+        assertFalse(it.hasNext())
+    }
 }

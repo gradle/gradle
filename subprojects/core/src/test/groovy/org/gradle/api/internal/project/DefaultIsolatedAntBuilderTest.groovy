@@ -23,11 +23,13 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestOutputEventListener
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -48,7 +50,12 @@ class DefaultIsolatedAntBuilderTest {
     @Before
     public void attachAppender() {
         classpath = registry.getClassPath("GROOVY").asFiles
-        logging.setLevel(LogLevel.INFO);
+        logging.setLevel(LogLevel.INFO)
+    }
+
+    @After
+    public void cleanup() {
+        builder.stop()
     }
 
     @Test
@@ -126,14 +133,15 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void reusesClassloaderForImplementation() {
         ClassLoader loader1 = null
+        ClassLoader loader2 = null
         def classpath = [new File("no-existo.jar")]
         builder.withClasspath(classpath).execute {
             loader1 = delegate.antlibClassLoader
+            owner.builder.withClasspath(classpath).execute {
+                loader2 = delegate.antlibClassLoader
+            }
         }
-        ClassLoader loader2 = null
-        builder.withClasspath(classpath).execute {
-            loader2 = delegate.antlibClassLoader
-        }
+
 
         assertThat(loader1, sameInstance(loader2))
 

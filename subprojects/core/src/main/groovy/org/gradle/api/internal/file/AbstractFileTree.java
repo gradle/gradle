@@ -62,9 +62,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree matching(PatternFilterable patterns) {
-        PatternSet patternSet = new PatternSet();
-        patternSet.copyFrom(patterns);
-        return new FilteredFileTree(this, patternSet.getAsSpec());
+        PatternSet patternSet = (PatternSet) patterns;
+        return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
     }
 
     public Map<String, File> getAsMap() {
@@ -114,11 +113,16 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
 
-    private static class FilteredFileTree extends AbstractFileTree {
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
+    private static class FilteredFileTreeImpl extends AbstractFileTree {
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
 
-        public FilteredFileTree(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
+        public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
             this.fileTree = fileTree;
             this.spec = spec;
         }
@@ -155,6 +159,10 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
             // TODO: we aren't considering the filter
             fileTree.registerWatchPoints(builder);
         }
-    }
 
+        @Override
+        public void visitTreeOrBackingFile(FileVisitor visitor) {
+            fileTree.visitTreeOrBackingFile(visitor);
+        }
+    }
 }

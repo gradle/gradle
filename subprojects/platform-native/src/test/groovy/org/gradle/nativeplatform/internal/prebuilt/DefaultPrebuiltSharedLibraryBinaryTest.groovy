@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.prebuilt
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.PrebuiltLibrary
@@ -23,12 +24,18 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import spock.lang.Specification
 
 class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
-    def binary = new DefaultPrebuiltSharedLibraryBinary("name", Stub(PrebuiltLibrary), Stub(BuildType), Stub(NativePlatform), Stub(Flavor))
+    def prebuiltLibrary = Stub(PrebuiltLibrary) {
+        getName() >> "lib"
+    }
+    def binary = new DefaultPrebuiltSharedLibraryBinary("name", prebuiltLibrary, Stub(BuildType), Stub(NativePlatform), Stub(Flavor), TestFiles.fileCollectionFactory())
 
     def "has useful string representation"() {
         expect:
-        binary.toString() == "shared library 'name'"
-        binary.displayName == "shared library 'name'"
+        binary.toString() == "prebuilt shared library 'lib:name'"
+        binary.displayName == "prebuilt shared library 'lib:name'"
+        binary.headerDirs.toString() == "Headers for prebuilt shared library 'lib:name'"
+        binary.linkFiles.toString() == "Link files for prebuilt shared library 'lib:name'"
+        binary.runtimeFiles.toString() == "Runtime files for prebuilt shared library 'lib:name'"
     }
 
     def "uses library file when link file not set"() {
@@ -51,7 +58,7 @@ class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
         binary.sharedLibraryLinkFile == sharedLibraryLinkFile
     }
 
-    def "uses specified linke file and library file"() {
+    def "uses specified link file and library file"() {
         given:
         def sharedLibraryFile = createFile()
         def sharedLibraryLinkFile = createFile()
@@ -62,6 +69,7 @@ class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
 
         then:
         binary.linkFiles.files == [sharedLibraryLinkFile] as Set
+
         binary.runtimeFiles.files == [sharedLibraryFile] as Set
     }
 

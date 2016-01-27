@@ -17,4 +17,5 @@
 /**
  * Task execution specific interfaces and classes related to event notifications.
  */
+@org.gradle.api.Incubating
 package org.gradle.tooling.events.task;

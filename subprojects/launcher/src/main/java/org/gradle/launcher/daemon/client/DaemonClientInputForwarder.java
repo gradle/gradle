@@ -20,11 +20,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.io.TextStream;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.launcher.daemon.protocol.IoCommand;
+import org.gradle.launcher.daemon.protocol.InputMessage;
 import org.gradle.messaging.dispatch.Dispatch;
 
 import java.io.InputStream;
@@ -40,14 +39,14 @@ public class DaemonClientInputForwarder implements Stoppable {
     public static final int DEFAULT_BUFFER_SIZE = 1024;
     private final InputForwarder forwarder;
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch,
-                                      ExecutorFactory executorFactory, IdGenerator<?> idGenerator) {
-        this(inputStream, dispatch, executorFactory, idGenerator, DEFAULT_BUFFER_SIZE);
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
+                                      ExecutorFactory executorFactory) {
+        this(inputStream, dispatch, executorFactory, DEFAULT_BUFFER_SIZE);
     }
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch,
-                                      ExecutorFactory executorFactory, IdGenerator<?> idGenerator, int bufferSize) {
-        TextStream handler = new ForwardTextStreamToConnection(dispatch, idGenerator);
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
+                                      ExecutorFactory executorFactory, int bufferSize) {
+        TextStream handler = new ForwardTextStreamToConnection(dispatch);
         forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
     }
 
@@ -60,23 +59,21 @@ public class DaemonClientInputForwarder implements Stoppable {
     }
 
     private static class ForwardTextStreamToConnection implements TextStream {
-        private final Dispatch<? super IoCommand> dispatch;
-        private final IdGenerator<?> idGenerator;
+        private final Dispatch<? super InputMessage> dispatch;
 
-        public ForwardTextStreamToConnection(Dispatch<? super IoCommand> dispatch, IdGenerator<?> idGenerator) {
+        public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
-            this.idGenerator = idGenerator;
         }
 
         public void text(String input) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
             }
-            dispatch.dispatch(new ForwardInput(idGenerator.generateId(), input.getBytes()));
+            dispatch.dispatch(new ForwardInput(input.getBytes()));
         }
 
         public void endOfStream(@Nullable Throwable failure) {
-            CloseInput message = new CloseInput(idGenerator.generateId());
+            CloseInput message = new CloseInput();
             LOGGER.debug("Dispatching close input message: {}", message);
             dispatch.dispatch(message);
         }

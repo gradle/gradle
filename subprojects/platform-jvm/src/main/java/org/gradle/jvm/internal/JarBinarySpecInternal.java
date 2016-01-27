@@ -16,11 +16,18 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
-public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal {
-    String getBaseName();
+import java.util.Collection;
 
-    void setBaseName(String baseName);
+public interface JarBinarySpecInternal extends JarBinarySpec, BinarySpecInternal, JvmBinarySpecInternal, WithJvmAssembly, WithDependencies {
+    void setApiDependencies(Collection<DependencySpec> apiDependencies);
+
+    Collection<DependencySpec> getApiDependencies();
+
+    JarFile getApiJar();
+
+    JarFile getRuntimeJar();
 }

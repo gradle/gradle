@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopier
 import org.gradle.api.internal.tasks.TaskResolver
@@ -27,10 +28,12 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
+import org.jmock.Expectations
 import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Before
 import org.junit.Rule
@@ -38,6 +41,7 @@ import org.junit.Test
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
 import static org.gradle.api.file.FileVisitorUtil.assertVisits
+import static org.gradle.api.internal.file.TestFiles.*
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
@@ -46,11 +50,11 @@ import static org.junit.Assert.*
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     JUnit4Mockery context = new JUnit4GroovyMockery();
     TaskResolver taskResolverStub = context.mock(TaskResolver)
-    FileCopier fileCopier = context.mock(FileCopier)
     DefaultConfigurableFileTree fileSet
-    FileResolver fileResolverStub = [resolve: {it as File}] as FileResolver
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     File testDir = tmpDir.testDirectory
+    FileResolver fileResolverStub = resolver(testDir)
+    FileCopier fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup))
 
     PatternFilterable getPatternSet() {
         return fileSet
@@ -59,7 +63,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     @Before public void setUp() {
         super.setUp()
         NativeServicesTestFixture.initialize()
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier)
+        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
     }
 
     @Test public void testFileSetConstructionWithBaseDir() {
@@ -67,19 +71,19 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testFileSetConstructionFromMap() {
-        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], fileCopier)
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], fileCopier, directoryFileTreeFactory())
         assertEquals(testDir, fileSet.dir)
         assertEquals(['include'] as Set, fileSet.includes)
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, fileCopier)
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
         fileSet.contains(new File('unknown'))
     }
 
     @Test public void testFileSetConstructionWithBaseDirAsString() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', fileCopier)
-        assertEquals(new File('dirname'), fileSet.dir);
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', fileCopier, directoryFileTreeFactory())
+        assertEquals(tmpDir.file("dirname"), fileSet.dir);
     }
 
     @Test public void testResolveAddsADirectoryFileTree() {
@@ -93,7 +97,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             }
         }
 
-        fileSet.resolve(resolveContext)
+        fileSet.visitContents(resolveContext)
     }
 
     @Test public void testResolveAddsBuildDependenciesIfNotEmpty() {
@@ -105,9 +109,9 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             one(resolveContext).add(withParam(instanceOf(TaskDependency)))
         }
 
-        fileSet.resolve(resolveContext)
+        fileSet.visitContents(resolveContext)
     }
-    
+
     @Test public void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -295,7 +299,10 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     @Test
     public void canGetAndSetTaskDependencies() {
         FileResolver fileResolverStub = context.mock(FileResolver.class);
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier)
+        context.checking {
+            addGetPatternSetFactory(delegate, fileResolverStub)
+        }
+        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
 
         assertThat(fileSet.getBuiltBy(), isEmpty());
 
@@ -317,5 +324,10 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         }
 
         assertThat(fileSet.getBuildDependencies().getDependencies(null), equalTo((Set) WrapUtil.toSet(task)));
+    }
+
+    static void addGetPatternSetFactory(Expectations expectations, FileResolver resolverMock) {
+        expectations.allowing(resolverMock).getPatternSetFactory();
+        expectations.will(expectations.returnValue(getPatternSetFactory()));
     }
 }

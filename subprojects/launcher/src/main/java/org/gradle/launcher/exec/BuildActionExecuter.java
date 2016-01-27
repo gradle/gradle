@@ -17,6 +17,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.service.ServiceRegistry;
 
 public interface BuildActionExecuter<P> {
     /**
@@ -25,5 +26,5 @@ public interface BuildActionExecuter<P> {
      * @param action The action
      * @return The result.
      */
-    Object execute(BuildAction action, BuildRequestContext requestContext, P actionParameters);
+    Object execute(BuildAction action, BuildRequestContext requestContext, P actionParameters, ServiceRegistry contextServices);
 }

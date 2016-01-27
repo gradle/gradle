@@ -15,8 +15,9 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
@@ -30,18 +31,19 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
+
     @Override
     public NativeLibrarySpec getComponent() {
-        return (NativeLibrarySpec) super.getComponent();
+        return getComponentAs(NativeLibrarySpec.class);
     }
 
     @Override
     public NativeLibrarySpec getLibrary() {
-        return getComponent();
+        return getComponentAs(NativeLibrarySpec.class);
     }
 
     protected boolean hasSources() {
-        for (LanguageSourceSet sourceSet : getSource().values()) {
+        for (LanguageSourceSet sourceSet : getInputs()) {
             if (!sourceSet.getSource().isEmpty()) {
                 return true;
             }
@@ -53,40 +55,15 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
     }
 
     public FileCollection getHeaderDirs() {
-        return new AbstractFileCollection() {
-            public String getDisplayName() {
-                return String.format("Headers for %s", getName());
-            }
-
-            public Set<File> getFiles() {
-                Set<File> headerDirs = new LinkedHashSet<File>();
-                for (HeaderExportingSourceSet sourceSet : getSource().withType(HeaderExportingSourceSet.class).values()) {
-                    headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
-                }
-                return headerDirs;
-            }
-
-            @Override
-            public TaskDependency getBuildDependencies() {
-                DefaultTaskDependency dependency = new DefaultTaskDependency();
-                for (HeaderExportingSourceSet sourceSet : getSource().withType(HeaderExportingSourceSet.class).values()) {
-                    dependency.add(sourceSet.getBuildDependencies());
-                }
-                return dependency;
-            }
-        };
+        return getFileCollectionFactory().create(new HeaderFileSet());
     }
 
-    protected abstract class LibraryOutputs extends AbstractFileCollection {
+    protected abstract class LibraryOutputs implements MinimalFileSet, Buildable {
         public final Set<File> getFiles() {
             if (hasOutputs()) {
                 return getOutputs();
             }
             return Collections.emptySet();
-        }
-
-        public final String getDisplayName() {
-            return AbstractNativeLibraryBinarySpec.this.toString();
         }
 
         public final TaskDependency getBuildDependencies() {
@@ -99,5 +76,28 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
         protected abstract boolean hasOutputs();
 
         protected abstract Set<File> getOutputs();
+    }
+
+    private class HeaderFileSet implements MinimalFileSet, Buildable {
+        public String getDisplayName() {
+            return "Headers for " + AbstractNativeLibraryBinarySpec.this.getDisplayName();
+        }
+
+        public Set<File> getFiles() {
+            Set<File> headerDirs = new LinkedHashSet<File>();
+            for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
+                headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
+            }
+            return headerDirs;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            DefaultTaskDependency dependency = new DefaultTaskDependency();
+            for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
+                dependency.add(sourceSet.getBuildDependencies());
+            }
+            return dependency;
+        }
     }
 }

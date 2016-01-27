@@ -17,4 +17,5 @@
 /**
  * Classes for declaring and using Ivy modules.
  */
+@org.gradle.api.Incubating
 package org.gradle.api.artifacts.ivy;

@@ -17,8 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.util.ConfigureUtil;
 
@@ -26,10 +25,10 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
     private final SourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
-    public DefaultScalaSourceSet(String displayName, FileResolver fileResolver) {
-        scala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
+    public DefaultScalaSourceSet(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        scala = sourceDirectorySetFactory.create(String.format("%s Scala source", displayName));
         scala.getFilter().include("**/*.java", "**/*.scala");
-        allScala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
+        allScala = sourceDirectorySetFactory.create(String.format("%s Scala source", displayName));
         allScala.getFilter().include("**/*.scala");
         allScala.source(scala);
     }

@@ -16,38 +16,48 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-@NotThreadSafe
+@ThreadSafe
 public class DefaultModelSchemaStore implements ModelSchemaStore {
-
-    private static final DefaultModelSchemaStore INSTANCE = new DefaultModelSchemaStore();
-
+    final Object lock = new Object();
     final ModelSchemaCache cache = new ModelSchemaCache();
-    final ModelSchemaExtractor extractor = new ModelSchemaExtractor();
+    final ModelSchemaExtractor schemaExtractor;
 
-    public static DefaultModelSchemaStore getInstance() {
-        return INSTANCE;
-    }
-
-    DefaultModelSchemaStore() {
+    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor) {
+        this.schemaExtractor = schemaExtractor;
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return extractor.extract(type, cache);
+        synchronized (lock) {
+            ModelSchema<T> schema = cache.get(type);
+            if (schema != null) {
+                return schema;
+            }
+            return schemaExtractor.extract(type, cache);
+        }
+    }
+
+    @Override
+    public <T> ModelSchema<T> getSchema(Class<T> type) {
+        return getSchema(ModelType.of(type));
     }
 
     @Override
     public void cleanUp() {
-        cache.cleanUp();
+        synchronized (lock) {
+            cache.cleanUp();
+        }
     }
 
     public long size() {
-        return cache.size();
+        synchronized (lock) {
+            return cache.size();
+        }
     }
 
 }

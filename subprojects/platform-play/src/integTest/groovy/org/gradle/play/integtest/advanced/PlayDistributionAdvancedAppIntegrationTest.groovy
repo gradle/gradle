@@ -17,25 +17,27 @@
 package org.gradle.play.integtest.advanced
 
 import org.gradle.play.integtest.PlayDistributionApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
-
-import static org.gradle.integtests.fixtures.UrlValidator.*
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplicationIntegrationTest {
+    def setup() {
+        runningApp = new AdvancedRunningPlayApp(testDirectory)
+    }
+
     @Override
     PlayApp getPlayApp() {
         return new AdvancedPlayApp()
     }
 
     @Override
-    void verifyZips() {
-        super.verifyZips()
+    void verifyArchives() {
+        super.verifyArchives()
 
-        zip("build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/conf/jva.routes",
-                "playBinary/conf/scala.routes"
-        )
+        archives()*.containsDescendants(
+            "playBinary/conf/jva.routes",
+            "playBinary/conf/scala.routes")
     }
 
     @Override
@@ -54,18 +56,17 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
 
         jar("build/distributionJars/playBinary/${playApp.name}.jar").containsDescendants(
                 "views/html/awesome/index.class",
+                "jva/html/index.class",
                 "special/strangename/Application.class",
                 "models/DataType.class",
                 "models/ScalaClass.class",
-                "controllers/scala/MixedJava.class",
+                "controllers/scla/MixedJava.class",
                 "controllers/jva/PureJava.class"
         )
     }
 
     @Override
-    void verifyRunningApp() {
-        super.verifyRunningApp()
-
-        AdvancedAppContentVerifier.verifyRunningApp(this)
+    String[] getBuildTasks() {
+        return super.getBuildTasks() + ":compilePlayBinaryPlayJavaTwirlTemplates"
     }
 }

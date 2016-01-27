@@ -19,10 +19,12 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 import static org.hamcrest.Matchers.startsWith
 
+@LeaksFileHandles
 class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 

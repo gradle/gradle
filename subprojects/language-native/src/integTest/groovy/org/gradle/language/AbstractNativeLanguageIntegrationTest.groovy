@@ -20,11 +20,13 @@ package org.gradle.language
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
+@LeaksFileHandles
 abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     abstract HelloWorldApp getHelloWorldApp()
@@ -51,7 +53,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
@@ -77,7 +79,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
@@ -103,9 +105,75 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.frenchOutput
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "install and run executable with dependencies"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            ${helloWorldApp.sourceType}.lib library: "hello"
+                        }
+                    }
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        sharedLibrary("build/libs/hello/shared/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
+
+        def install = installation("build/install/main")
+        install.assertInstalled()
+        install.assertIncludesLibraries("hello")
+        install.exec().out == helloWorldApp.englishOutput
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "install and run executable with dependencies and customized installation"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            ${helloWorldApp.sourceType}.lib library: "hello"
+                        }
+                        binaries.withType(NativeExecutableBinarySpec) {
+                            installation.directory = file("foo/custom")
+                        }
+                    }
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        def install = installation("foo/custom")
+        install.assertInstalled()
+        install.assertIncludesLibraries("hello")
+        install.exec().out == helloWorldApp.englishOutput
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -132,10 +200,10 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "installMainExecutable"
 
         then:
-        sharedLibrary("build/binaries/helloSharedLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        sharedLibrary("build/libs/hello/shared/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.assertIncludesLibraries("hello")
         install.exec().out == helloWorldApp.englishOutput
@@ -169,11 +237,11 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        executable("build/binaries/mainExecutable/main").assertExists()
+        staticLibrary("build/libs/hello/static/hello").assertExists()
+        executable("build/exe/main/main").assertExists()
 
         and:
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
         install.assertInstalled()
         install.exec().out == helloWorldApp.frenchOutput
     }
@@ -204,7 +272,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
         expect:
         succeeds "mainExecutable"
-        def mainExecutable = executable("$nestedProjectPath/build/binaries/mainExecutable/main")
+        def mainExecutable = executable("$nestedProjectPath/build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }

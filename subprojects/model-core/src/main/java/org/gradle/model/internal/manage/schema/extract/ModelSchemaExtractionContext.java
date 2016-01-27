@@ -16,71 +16,36 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.Lists;
-import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
-import org.gradle.internal.Actions;
+import org.gradle.model.internal.inspect.ValidationProblemCollector;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+import java.lang.reflect.Method;
 
-@NotThreadSafe
-public class ModelSchemaExtractionContext<T> {
-
-    private final ModelSchemaExtractionContext<?> parent;
-    private final ModelType<T> type;
-    private final String description;
-    private final List<Action<? super ModelSchemaExtractionContext<T>>> validators;
-
-    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
-        this.parent = parent;
-        this.type = type;
-        this.description = description;
-        this.validators = Lists.newArrayListWithCapacity(2);
-
-        validators.add(validator);
-    }
-
-    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
-        return new ModelSchemaExtractionContext<T>(null, type, null, Actions.doNothing());
-    }
-
-    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type, Action<? super ModelSchemaExtractionContext<T>> validator) {
-        return new ModelSchemaExtractionContext<T>(null, type, null, validator);
-    }
+public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollector {
+    /**
+     * Returns the type currently being inspected.
+     */
+    ModelType<T> getType();
 
     /**
-     * null if this is the root of the extraction
+     * Registers a type that should be inspected.
      */
-    @Nullable
-    public ModelSchemaExtractionContext<?> getParent() {
-        return parent;
-    }
+    <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description);
 
-    public ModelType<T> getType() {
-        return type;
-    }
+    /**
+     * Registers a type that should be inspected. The given action is invoked after the type has been inspected.
+     */
+    <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator);
 
-    public String getDescription() {
-        return description == null ? type.toString() : String.format("%s (%s)", description, type);
-    }
+    /**
+     * Marks the type as recognized.
+     */
+    void found(ModelSchema<T> result);
 
-    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
-        return child(type, description, Actions.doNothing());
-    }
-
-    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchemaExtractionContext<C>> validator) {
-        return new ModelSchemaExtractionContext<C>(this, type, description, validator);
-    }
-
-    public void validate() {
-        for (Action<? super ModelSchemaExtractionContext<T>> validator : validators) {
-            validator.execute(this);
-        }
-    }
-
-    public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
-        validators.add(validator);
-    }
+    /**
+     * Adds a problem with a method.
+     */
+    void add(Method method, String problem);
 }

@@ -19,6 +19,7 @@ package org.gradle.language.scala.tasks;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
@@ -41,7 +42,8 @@ import java.util.Set;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
-abstract public class AbstractScalaCompile extends AbstractCompile {
+@Incubating
+public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();

@@ -16,21 +16,28 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.exec.ChainingBuildActionRunner;
+
+import java.util.Arrays;
 
 public class ToolingBuilderServices implements PluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            BuildModelActionRunner createBuildModelActionRunner() {
-                return new BuildModelActionRunner();
-            }
 
-            ClientProvidedBuildActionRunner createClientProvidedBuildActionRunner() {
-                return new ClientProvidedBuildActionRunner();
+        registration.addProvider(new Object() {
+            BuildActionRunner createBuildActionRunner() {
+                return new SubscribableBuildActionRunner(new ChainingBuildActionRunner(Arrays.asList(
+                                                                new BuildModelActionRunner(),
+                                                                new TestExecutionRequestActionRunner(),
+                                                                new ClientProvidedBuildActionRunner())));
             }
         });
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
     @Override

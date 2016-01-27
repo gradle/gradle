@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.antlr
 
-import org.gradle.util.TextUtil
-
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -28,8 +26,9 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        assertGrammarSourceGenerated("TestGrammar")
-        assertGrammarSourceGenerated("AnotherGrammar")
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
         succeeds("build")
     }
 
@@ -43,12 +42,9 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         output.contains("TestGrammar.g:7:24: rule classDef trapped:")
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
-        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
-* What went wrong:
-Execution failed for task ':generateGrammarSource'.
-> There was 1 error during grammar generation
-   > ANTLR Panic: Exiting due to errors.
-"""))
+        failure.assertHasDescription("Execution failed for task ':generateGrammarSource'.")
+        failure.assertHasCause("There was 1 error during grammar generation")
+        failure.assertHasCause("ANTLR Panic: Exiting due to errors.")
     }
 
     def "uses antlr v2 if no explicit dependency is set"() {
@@ -66,12 +62,21 @@ Execution failed for task ':generateGrammarSource'.
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        assertGrammarSourceGenerated("TestGrammar")
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
+
         succeeds("build")
     }
 
     private goodGrammar() {
-        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
+        file("src/main/antlr/TestGrammar.g") << """
+            header {
+                package org.acme;
+            }
+
+            class TestGrammar extends Parser;
+
             options {
                 buildAST = true;
             }
@@ -86,10 +91,29 @@ Execution failed for task ':generateGrammarSource'.
             atom:   INT
                 ;"""
 
-        file("src/main/antlr/AnotherGrammar.g") << """class AnotherGrammar extends Parser;
+        file("src/main/antlr/AnotherGrammar.g") << """
+            header {
+                package org.acme;
+            }
+            class AnotherGrammar extends Parser;
             options {
                 buildAST = true;
                 importVocab = TestGrammar;
+            }
+
+            expr:   mexpr (PLUS^ mexpr)* SEMI!
+                ;
+
+            mexpr
+                :   atom (STAR^ atom)*
+                ;
+
+            atom:   INT
+                ;"""
+
+        file("src/main/antlr/UnpackagedGrammar.g") << """class UnpackagedGrammar extends Parser;
+            options {
+                buildAST = true;
             }
 
             expr:   mexpr (PLUS^ mexpr)* SEMI!
@@ -109,6 +133,7 @@ Execution failed for task ':generateGrammarSource'.
             import antlr.Token;
             import antlr.TokenStream;
             import antlr.TokenStreamException;
+            import org.acme.TestGrammar;
 
             public class Test {
                 public static void main(String[] args) {

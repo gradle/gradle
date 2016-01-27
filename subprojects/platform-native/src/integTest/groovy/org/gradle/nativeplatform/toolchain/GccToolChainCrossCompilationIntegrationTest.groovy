@@ -80,13 +80,13 @@ model {
         run 'mainExe'
 
         then:
-        file(OperatingSystem.WINDOWS.getStaticLibraryName("build/binaries/helloStaticLibrary/hello")).file
-        file(OperatingSystem.WINDOWS.getExecutableName("build/binaries/mainExecutable/main")).file
+        file(OperatingSystem.WINDOWS.getStaticLibraryName("build/libs/hello/static/hello")).file
+        file(OperatingSystem.WINDOWS.getExecutableName("build/exe/main/main")).file
 
         when:
         run 'helloSharedLib'
 
         then:
-        file(OperatingSystem.WINDOWS.getSharedLibraryName("build/binaries/helloSharedLibrary/hello")).file
+        file(OperatingSystem.WINDOWS.getSharedLibraryName("build/libs/hello/shared/hello")).file
     }
 }

@@ -35,6 +35,9 @@ class CheckstyleTest extends Specification {
             !reports.xml.enabled
             reports.xml.destination == null
             reports.xml.outputType == Report.OutputType.FILE
+            !reports.html.enabled
+            reports.html.destination == null
+            reports.html.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
         }

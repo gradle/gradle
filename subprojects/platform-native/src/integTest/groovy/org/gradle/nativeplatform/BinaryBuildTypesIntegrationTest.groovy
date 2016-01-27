@@ -17,13 +17,16 @@ package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
+    @LeaksFileHandles("can't delete build/binaries/mainExecutable/integration")
     def "creates debug and release variants"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -51,7 +54,7 @@ model {
                 if (toolChain in VisualCpp) {
                     // Apply to all debug build types: 'debug' and 'integration'
                     if (buildType.debug) {
-                        cppCompiler.args '/Zi'
+                        cppCompiler.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}
                         cppCompiler.define 'DEBUG'
                         linker.args '/DEBUG'
                     }
@@ -66,26 +69,27 @@ model {
 }
         """
         and:
-        succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
+        succeeds "mainDebugExecutable", "mainIntegrationExecutable", "mainReleaseExecutable"
 
         then:
-        with(executable("build/binaries/mainExecutable/debug/main")) {
+        with(executable("build/exe/main/debug/main")) {
             it.assertExists()
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.englishOutput
         }
-        with (executable("build/binaries/mainExecutable/integration/main")) {
+        with (executable("build/exe/main/integration/main")) {
             it.assertExists()
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.frenchOutput
         }
-        with (executable("build/binaries/mainExecutable/release/main")) {
+        with (executable("build/exe/main/release/main")) {
             it.assertExists()
             it.assertDebugFileDoesNotExist()
             it.exec().out == helloWorldApp.englishOutput
         }
     }
 
+    @LeaksFileHandles
     def "configure component for a single build type"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -115,10 +119,11 @@ model {
         then:
         // Build type dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "executable with build type depends on library with matching build type"() {
         when:
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -140,19 +145,21 @@ model {
         }
         hello(NativeLibrarySpec)
     }
-}
-binaries.all {
-    if (buildType == buildTypes.debug) {
-        cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
+    binaries {
+        all {
+            if (buildType == buildTypes.debug) {
+                cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
+            }
+        }
     }
 }
         """
         and:
-        succeeds "installDebugMainExecutable", "installReleaseMainExecutable"
+        succeeds "installMainDebugExecutable", "installMainReleaseExecutable"
 
         then:
-        installation("build/install/mainExecutable/debug").exec().out == helloWorldApp.frenchOutput
-        installation("build/install/mainExecutable/release").exec().out == helloWorldApp.englishOutput
+        installation("build/install/main/debug").exec().out == helloWorldApp.frenchOutput
+        installation("build/install/main/release").exec().out == helloWorldApp.englishOutput
     }
 
     def "fails with reasonable error message when trying to target an unknown build type"() {
@@ -175,7 +182,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries(")
+        failure.assertHasCause("Exception thrown while executing model rule: NativeComponentRules#createBinaries")
         failure.assertHasCause("Invalid BuildType: 'unknown'")
     }
 
@@ -203,7 +210,7 @@ model {
 """
 
         and:
-        fails "releaseMainExecutable"
+        fails "mainReleaseExecutable"
 
         then:
         failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")

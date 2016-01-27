@@ -18,12 +18,10 @@ package org.gradle.logging.internal;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 
-import java.io.Serializable;
-
 /**
  * Represents some event which may generate output. All implementations are immutable.
  */
-public abstract class OutputEvent implements Serializable {
+public abstract class OutputEvent {
     /**
      * Returns the log level for this event.
      */

@@ -88,6 +88,7 @@ public class IdeDependenciesExtractor {
         Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved = new ArrayList<IdeExtendedRepoFileDependency>(unresolvedDependencies.size() + resolvedDependencies.size());
         resolvedAndUnresolved.addAll(resolvedDependencies);
         resolvedAndUnresolved.addAll(unresolvedDependencies);
+
         return resolvedAndUnresolved;
     }
 
@@ -103,8 +104,8 @@ public class IdeDependenciesExtractor {
         ArtifactResolutionQuery query = dependencyHandler.createArtifactResolutionQuery();
         query.forComponents(dependencies.keySet());
 
-        @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesArray = (Class<? extends Artifact>[]) new Class<?>[artifactTypes.size()];
-        query.withArtifacts(JvmLibrary.class, artifactTypes.toArray(artifactTypesArray));
+        @SuppressWarnings("unchecked") Class<? extends Artifact>[] artifactTypesArray = (Class<? extends Artifact>[]) artifactTypes.toArray(new Class<?>[0]);
+        query.withArtifacts(JvmLibrary.class, artifactTypesArray);
         Set<ComponentArtifactsResult> componentResults = query.execute().getResolvedComponents();
         for (ComponentArtifactsResult componentResult : componentResults) {
             for (IdeExtendedRepoFileDependency dependency : dependencies.get(componentResult.getId())) {
@@ -123,7 +124,7 @@ public class IdeDependenciesExtractor {
         }
     }
 
-    private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Iterable<Configuration> plusConfigurations, Iterable<Configuration> minusConfigurations) {
         final LinkedHashMap<File, UnresolvedIdeRepoFileDependency> unresolved = new LinkedHashMap<File, UnresolvedIdeRepoFileDependency>();
 
         for (Configuration c : plusConfigurations) {

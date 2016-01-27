@@ -27,7 +27,6 @@ import javax.xml.parsers.SAXParserFactory;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             }
         }
 
-        return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), getIsolatedSystemClassLoader());
+        return new MutableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
     }
 
     public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {

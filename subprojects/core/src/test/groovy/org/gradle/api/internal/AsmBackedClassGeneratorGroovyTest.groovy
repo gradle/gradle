@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal
 
+import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.internal.BiAction
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.typeconversion.TypeConversionException
+import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -34,7 +37,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(generator, DirectInstantiator.INSTANCE)
 
     private <T> T create(Class<T> clazz, Object... args) {
-        instantiator.newInstance(clazz, *args)
+        instantiator.newInstance(clazz, args) as T
     }
 
     @Issue("GRADLE-2417")
@@ -354,6 +357,19 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         then:
         0 * services._
     }
+
+    def "property missing implementation is invoked exactly once, with actual value"() {
+        given:
+        def thing = create(DynamicThing)
+        def values = []
+        thing.onPropertyMissingSet = { n, v -> values << v }
+
+        when:
+        thing.foo = "bar"
+
+        then:
+        values == ["bar"]
+    }
 }
 
 enum TestEnum {
@@ -387,20 +403,20 @@ class DynamicThing {
     def methods = [:]
     def props = [:]
 
-    Closure onMethodMissing = { name, args -> methods[name] = args.toList() }
-    Closure onPropertyMissingGet = { name -> props[name] }
-    Closure onPropertyMissingSet = { name, value -> props[name] = value }
+    BiFunction<Object, String, Object[]> onMethodMissing = { name, args -> methods[name] = args.toList(); null }
+    Function<String, Object> onPropertyMissingGet = { name -> props[name] }
+    BiAction<String, Object> onPropertyMissingSet = { name, value -> props[name] = value }
 
     def methodMissing(String name, args) {
-        onMethodMissing(name, args)
+        onMethodMissing.apply(name, args as Object[])
     }
 
     def propertyMissing(String name) {
-        onPropertyMissingGet(name)
+        onPropertyMissingGet.apply(name)
     }
 
     def propertyMissing(String name, value) {
-        onPropertyMissingSet(name, value)
+        onPropertyMissingSet.execute(name, value)
     }
 }
 

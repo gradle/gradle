@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.tooling.BuildAction
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestClassLoader
 import spock.lang.Issue
 
@@ -68,6 +69,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
     }
 
     @Issue("GRADLE-3245")
+    @LeaksFileHandles
     def "determines action and tooling API classpath when loaded from a jar via a non-standard ClassLoader"() {
         def cl = new NetBeansLikeClassLoader(ClassLoader.systemClassLoader.parent, [isolatedClassesInJar(CustomAction, CustomModel)] + toolingApiClassPath)
         def actionClass = cl.loadClass(CustomAction.name)

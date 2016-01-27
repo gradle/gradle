@@ -18,14 +18,14 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -34,13 +34,14 @@ import java.util.Set;
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet {
     private final String publicationName;
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
-    private final ArtifactsFileCollection files = new ArtifactsFileCollection();
+    private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
-    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser) {
+    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser, FileCollectionFactory fileCollectionFactory) {
         super(MavenArtifact.class);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
+        this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
     }
 
     public MavenArtifact artifact(Object source) {
@@ -59,17 +60,13 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         return files;
     }
 
-    private class ArtifactsFileCollection extends AbstractFileCollection {
-
+    private class ArtifactsFileCollection implements MinimalFileSet {
+        @Override
         public String getDisplayName() {
-            return String.format("artifacts for " + publicationName + " publication");
+            return String.format("artifacts for Maven publication '%s'", publicationName);
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return builtBy;
-        }
-
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<File>();
             for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
@@ -80,7 +77,8 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
                 context.add(mavenArtifact);
             }

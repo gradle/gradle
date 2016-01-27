@@ -68,7 +68,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
+            return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }
@@ -80,7 +80,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
                 return dependencyHandler.create(dependencyNotation);
             }
         });
-        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
+        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[0]);
         return configurationContainer.detachedConfiguration(dependenciesArray);
     }
 

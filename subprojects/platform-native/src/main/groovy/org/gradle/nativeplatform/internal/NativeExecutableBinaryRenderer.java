@@ -17,9 +17,17 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
 
+import javax.inject.Inject;
+
 public class NativeExecutableBinaryRenderer extends AbstractNativeBinaryRenderer<NativeExecutableBinarySpec> {
+    @Inject
+    public NativeExecutableBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     public Class<NativeExecutableBinarySpec> getTargetType() {
         return NativeExecutableBinarySpec.class;
@@ -32,6 +40,6 @@ public class NativeExecutableBinaryRenderer extends AbstractNativeBinaryRenderer
 
     @Override
     protected void renderOutputs(NativeExecutableBinarySpec binary, TextReportBuilder builder) {
-        builder.item("executable file", binary.getExecutableFile());
+        builder.item("executable file", binary.getExecutable().getFile());
     }
 }

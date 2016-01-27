@@ -2,7 +2,7 @@ import java.util.jar.Attributes
 
 apply plugin: 'groovy'
 
-archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
+archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }}"
 
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
@@ -42,20 +42,24 @@ if (!javaVersion.java7Compatible) {
 }
 
 testTasks.all { task ->
+    maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
-        maxParallelForks = rootProject.maxParallelForks
-    }
-    if (isCiServer) {
+        systemProperties['org.gradle.test.maxParallelForks'] = maxParallelForks
+        systemProperties['org.gradle.ci.agentCount'] = 2
+        systemProperties['org.gradle.ci.agentNum'] = rootProject.agentNum
         doFirst {
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }
+    }
+    if (javaVersion.java6 || javaVersion.java7) {
+        task.jvmArgs '-XX:+CMSClassUnloadingEnabled'
     }
 }
 
 jarTasks.all { jar ->
     jar.manifest.mainAttributes(
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+        (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
     )
 }
 
@@ -78,9 +82,7 @@ if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
 }
 
-if (file("src/integTest").exists()) {
-    apply from: "$rootDir/gradle/integTest.gradle"
-}
+apply from: "$rootDir/gradle/integTest.gradle"
 
 class ClasspathManifest extends DefaultTask {
 
@@ -96,8 +98,8 @@ class ClasspathManifest extends DefaultTask {
         def properties = new Properties()
         properties.runtime = input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
-        }.collect {it.name}.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
+        }.collect { it.name }.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',')
         return properties
     }
 
@@ -106,12 +108,13 @@ class ClasspathManifest extends DefaultTask {
         manifestFile.withOutputStream { properties.save(it, 'module definition') }
     }
 }
+
 ext.ClasspathManifest = ClasspathManifest
 
 // This is here mostly for the TravisCI build.
 // It advertises as an ANSI capable terminal but isn't, so we run with -q there to make
 // the output legible, but we still want test result info
-if (buildTypes.isActive("pullRequestValidation")) {
+if (buildTypes.pullRequestValidation.active) {
     tasks.withType(Test) {
         testLogging {
             quiet {
@@ -120,4 +123,8 @@ if (buildTypes.isActive("pullRequestValidation")) {
             }
         }
     }
+}
+
+task compileAll {
+    dependsOn tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
 }

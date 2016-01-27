@@ -7,12 +7,17 @@ dependencies {
     compile project(":languageScala")
     compile project(":javascript")
     compile project(":diagnostics")
+
+    testFixturesCompile project(":internalIntegTesting")
 }
 
 useTestFixtures()
-useTestFixtures(project: ":platformBase", sourceSet: 'integTest')
 useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
 useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
+useTestFixtures(project: ':languageJvm', sourceSet: 'testFixtures')
+useTestFixtures(project: ":launcher", sourceSet: 'testFixtures')
+useTestFixtures(project: ":diagnostics")
+useTestFixtures(project: ':platformBase')
 
 useClassycle()
 strictCompile()

@@ -43,9 +43,16 @@ import java.lang.annotation.Target;
  * String getName();
  * </pre>
  * <p>
- * A getter and setter must be declared for each property that is not of a managed type or of {@link org.gradle.model.collection.ManagedSet}.
- * For properties of managed types or of {@link org.gradle.model.collection.ManagedSet} the getter is mandatory and the setter is optional.
+ * A getter and setter must be declared for each property that is not of a managed type or of {@link ModelSet}.
+ * For properties of managed types or of {@link ModelSet} the getter is mandatory and the setter is optional.
  * If no setter is provided the property is considered inherent and defaults to an "empty" instance of the type.
+ * In addition to the traditional getter method, properties of type {@code boolean} (but not {@code Boolean})
+ * also support a getter method which name starts with {@code is}, for example:
+ *
+ * <pre>
+ * void setEnabled(boolean enabled);
+ * boolean isEnabed();
+ * </pre>
  *
  * <h4>Supported property types</h4>
  * <p>
@@ -54,21 +61,34 @@ import java.lang.annotation.Target;
  * <li>{@link String}</li>
  * <li>{@link Boolean}</li>
  * <li>{@link Character}</li>
+ * <li>{@link Byte}</li>
+ * <li>{@link Short}</li>
  * <li>{@link Integer}</li>
  * <li>{@link Long}</li>
+ * <li>{@link Float}</li>
  * <li>{@link Double}</li>
  * <li>{@link java.math.BigInteger}</li>
  * <li>{@link java.math.BigDecimal}</li>
+ * <li>{@link java.io.File}</li>
  * </ul>
  * <p>
- * All {@link Enum} types are also allowed.
+ * All primitive types and {@link Enum} types are also allowed.
  * <p>
  * Properties that are themselves of a managed type are also supported.
  * <p>
- * Currently, the only collection type that is supported is {@link org.gradle.model.collection.ManagedSet}.
+ * Currently, the only collection types that are supported are {@link ModelSet} and {@link ModelMap}, as well as {@link java.util.Set} or {@link java.util.List}
+ * of {@link org.gradle.model.internal.manage.schema.extract.ScalarTypes scalar types}, where scalar types is either one of the supported immutable JDK types above or an enumeration.
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.
+ *
+ * <h3>Named types</h3>
+ * <p>
+ * Managed types may implement/extend the {@link org.gradle.api.Named} interface.
+ * Any managed type implementing this interface will have its {@code name} attribute populated automatically
+ * based on the name of the corresponding node in the model graph.
+ * <p>
+ * The {@link ModelMap} type requires that its elements are {@link org.gradle.api.Named}.
  *
  * <h3>Inheritance</h3>
  * <p>

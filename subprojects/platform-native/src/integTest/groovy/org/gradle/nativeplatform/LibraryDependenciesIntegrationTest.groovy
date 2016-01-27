@@ -19,21 +19,27 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             allprojects {
                 apply plugin: "cpp"
-                // Allow static libraries to be linked into shared
-                binaries.withType(StaticLibraryBinarySpec) {
-                    if (toolChain in Gcc || toolChain in Clang) {
-                        cppCompiler.args '-fPIC'
+                model {
+                    // Allow static libraries to be linked into shared
+                    binaries {
+                        withType(StaticLibraryBinarySpec) {
+                            if (toolChain in Gcc || toolChain in Clang) {
+                                cppCompiler.args '-fPIC'
+                            }
+                        }
                     }
                 }
             }
@@ -75,14 +81,17 @@ project(":other") {
         fails ":exe:mainExecutable"
 
         then:
-        failure.assertHasDescription(description)
-        failure.assertHasCause(cause)
+        if (useCauseDescription) {
+            failure.assertHasCause(description)
+        } else {
+            failure.assertHasDescription(description)
+        }
 
         where:
-        label                                  | dependencyNotation                      | description                                                | cause
-        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "NativeLibrarySpec with name 'unknown' not found."
-        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' could not be found in project ':exe'."
-        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "NativeLibrarySpec with name 'unknown' not found."
+        label                                  | dependencyNotation                      | description                                                | useCauseDescription
+        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | false
+        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Project with path ':unknown' not found."                  | true
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | false
     }
 
     @Unroll
@@ -110,7 +119,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         notationName | notation
@@ -143,7 +152,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         notationName | notation
@@ -175,11 +184,10 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @Unroll
-    def "can use map notation to reference library in different project#label"() {
+    def "can use map notation to reference library in different project"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
@@ -189,7 +197,6 @@ model {
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
 project(":exe") {
-    ${explicitEvaluation}
     model {
         components {
             main(NativeExecutableSpec) {
@@ -210,24 +217,47 @@ project(":lib") {
 """
 
         when:
-        if (configureOnDemand) {
-            executer.withArgument('--configure-on-demand')
-        }
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
+    }
 
-        where:
-        label                       | configureOnDemand | explicitEvaluation
-        ""                          | false             | ""
-        " with configure-on-demand" | true              | ""
-//        " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
-        " with afterEvaluate"       | false             | """
-project.afterEvaluate {
-    binaries*.libs*.linkFiles.files.each { println it }
+    def "can use map notation to reference library in different project with configure-on-demand"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+
+        and:
+        settingsFile.text = "include ':lib', ':exe'"
+        buildFile << """
+project(":exe") {
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
+                }
+            }
+        }
+    }
+}
+project(":lib") {
+    model {
+        components {
+            hello(NativeLibrarySpec)
+        }
+    }
 }
 """
+
+        when:
+        executer.withArgument('--configure-on-demand')
+        succeeds ":exe:installMainExecutable"
+
+        then:
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can use map notation to transitively reference libraries in different projects"() {
@@ -273,7 +303,7 @@ project(":greet") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can have component graph with project dependency cycle"() {
@@ -315,7 +345,7 @@ project(":lib") {
         succeeds ":exe:installMainExecutable"
 
         then:
-        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+        installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
     def "can have component graph with diamond dependency"() {
@@ -348,7 +378,7 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         and:
         notExecuted ":greetingsSharedLibrary"
@@ -385,15 +415,15 @@ model {
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         and:
         executedAndNotSkipped ":greetingsSharedLibrary", ":greetingsStaticLibrary"
-        sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertExists()
-        staticLibrary("build/binaries/greetingsStaticLibrary/greetings").assertExists()
+        sharedLibrary("build/libs/greetings/shared/greetings").assertExists()
+        staticLibrary("build/libs/greetings/static/greetings").assertExists()
 
         and:
-        println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
-        println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()
+        println executable("build/exe/main/main").binaryInfo.listLinkedLibraries()
+        println sharedLibrary("build/libs/hello/shared/hello").binaryInfo.listLinkedLibraries()
     }
 }

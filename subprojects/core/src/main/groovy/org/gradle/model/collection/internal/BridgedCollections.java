@@ -20,14 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
-import org.gradle.internal.BiAction;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public abstract class BridgedCollections {
 
@@ -36,7 +33,7 @@ public abstract class BridgedCollections {
     private BridgedCollections() {
     }
 
-    public static <I, C extends NamedDomainObjectCollection<I>> ModelCreators.Builder creator(
+    public static <I, C extends NamedDomainObjectCollection<I>> ModelRegistrations.Builder registration(
         final ModelReference<C> containerReference,
         final Transformer<? extends C, ? super MutableModelNode> containerFactory,
         final Namer<? super I> namer,
@@ -47,11 +44,10 @@ public abstract class BridgedCollections {
         final ModelType<C> containerType = containerReference.getType();
         assert containerPath != null : "container reference path cannot be null";
 
-        return ModelCreators.of(
-            containerPath,
-            new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
-                    C container = containerFactory.transform(containerNode);
+        return ModelRegistrations.of(containerPath)
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
+                public void execute(final MutableModelNode containerNode) {
+                    final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
                     container.all(new Action<I>() {
                         public void execute(final I item) {
@@ -64,18 +60,14 @@ public abstract class BridgedCollections {
                             }
 
                             if (!containerNode.hasLink(name)) {
-                                ModelType<I> itemType = ModelType.typeOf(item);
-                                ModelCreator itemCreator = ModelCreators.of(containerPath.child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                                    @Override
-                                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                                        I item = containerNode.getPrivateData(containerType).getByName(name);
-                                        modelNode.setPrivateData(ModelType.typeOf(item), item);
-                                    }
-                                })
-                                    .withProjection(UnmanagedModelProjection.of(itemType))
-                                    .descriptor(itemDescriptorGenerator.transform(name)).build();
-
-                                containerNode.addLink(itemCreator);
+                                ModelRegistration itemRegistration = ModelRegistrations
+                                    .unmanagedInstanceOf(
+                                        ModelReference.of(containerPath.child(name), new DslObject(item).getDeclaredType()),
+                                        new ExtractFromParentContainer<I, C>(name, containerType)
+                                    )
+                                    .descriptor(itemDescriptorGenerator.transform(name))
+                                    .build();
+                                containerNode.addLink(itemRegistration);
                             }
                         }
                     });
@@ -86,14 +78,24 @@ public abstract class BridgedCollections {
                         }
                     });
                 }
-            }
-        )
-            .ephemeral(true)
+            })
             .descriptor(descriptor);
     }
 
-    public static Transformer<String, String> itemDescriptor(String parentDescriptor) {
-        return new StandardDescriptorFactory(parentDescriptor);
+    private static class ExtractFromParentContainer<I, C extends NamedDomainObjectCollection<I>> implements Transformer<I, MutableModelNode> {
+
+        private final String name;
+        private final ModelType<C> containerType;
+
+        public ExtractFromParentContainer(String name, ModelType<C> containerType) {
+            this.name = name;
+            this.containerType = containerType;
+        }
+
+        @Override
+        public I transform(MutableModelNode modelNode) {
+            return modelNode.getParent().getPrivateData(containerType).getByName(name);
+        }
     }
 
 }

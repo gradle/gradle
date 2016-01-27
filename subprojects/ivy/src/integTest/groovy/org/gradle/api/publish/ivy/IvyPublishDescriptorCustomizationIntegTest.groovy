@@ -180,7 +180,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
 
         then:
         failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
+        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin.Rules#publishing")
         failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:

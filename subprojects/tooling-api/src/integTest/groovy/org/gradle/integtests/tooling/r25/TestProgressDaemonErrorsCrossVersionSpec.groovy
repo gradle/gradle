@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressEventType
+import org.gradle.tooling.events.OperationType
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
 
@@ -42,7 +42,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
                 toolingApi.daemons.daemon.kill()
-            }, EnumSet.of(ProgressEventType.TEST)).run()
+            }, EnumSet.of(OperationType.TEST)).run()
         }
 
         then: "build fails with a DaemonDisappearedException"

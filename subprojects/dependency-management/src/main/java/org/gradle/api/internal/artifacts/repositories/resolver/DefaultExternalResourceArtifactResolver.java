@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.model.ModuleDescriptorArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -52,11 +53,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         this.resourceAccessor = resourceAccessor;
     }
 
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
-        return downloadStaticResource(ivyPatterns, artifact, result);
-    }
-
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        if (artifact instanceof ModuleDescriptorArtifactMetaData) {
+            return downloadStaticResource(ivyPatterns, artifact, result);
+        }
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 

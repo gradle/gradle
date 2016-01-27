@@ -25,18 +25,16 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import java.io.File;
 
 public class PlayApplicationRunner {
-    private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
-        this.workingDir = workingDir;
+    public PlayApplicationRunner(Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start(PlayRunSpec spec) {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec, adapter);
+        WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
@@ -45,7 +43,7 @@ public class PlayApplicationRunner {
         process.getConnection().connect();
         PlayAppLifecycleUpdate result = clientCallBack.waitForRunning();
         if (result.isRunning()) {
-            return new PlayApplicationRunnerToken(workerServer, clientCallBack);
+            return new PlayApplicationRunnerToken(workerServer, clientCallBack, process);
         } else {
             throw new GradleException("Unable to start Play application.", result.getException());
         }
@@ -54,12 +52,12 @@ public class PlayApplicationRunner {
     private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
-        builder.applicationClasspath(spec.getClasspath());
-        builder.sharedPackages("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
+        builder.sharedPackages("org.gradle.play.internal.run");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
+        javaCommand.setJvmArgs(spec.getForkOptions().getJvmArgs());
         return builder.worker(new PlayWorkerServer(spec, adapter)).build();
     }
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
 import java.util.Set;
 
 public interface ModelNode {
@@ -28,11 +30,12 @@ public interface ModelNode {
 
     boolean hasLink(String name, ModelType<?> type);
 
-    // Note: order is crucial here
-    public enum State {
-        Known(true),
-        Created(true),
-        DefaultsApplied(true),
+    // Note: order is crucial here. Nodes are traversed through these states in the order defined below
+    enum State {
+        Registered(true), // Initial state. Only path and some projections are known here
+        Discovered(true), // All projections are defined
+        Created(true), // Private data has been created, initial rules discovered
+        DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),
         Finalized(false),
@@ -48,9 +51,11 @@ public interface ModelNode {
         public State previous() {
             return ModelNode.State.values()[ordinal() - 1];
         }
-    }
 
-    boolean isEphemeral();
+        public boolean isAtLeast(State state) {
+            return this.ordinal() >= state.ordinal();
+        }
+    }
 
     ModelPath getPath();
 
@@ -59,13 +64,13 @@ public interface ModelNode {
     State getState();
 
     /**
-     * Creates a read-only view over this node's value.
+     * Creates an immutable view over this node's value.
      *
      * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
      *
-     * Throws if this node can't be expressed as a read-only view of the requested type.
+     * Throws if this node can't be expressed as an immutable view of the requested type.
      */
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
+    <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     Set<String> getLinkNames(ModelType<?> type);
 
@@ -80,4 +85,29 @@ public interface ModelNode {
      * The number of link this node has.
      */
     int getLinkCount();
+
+    /**
+     * Gets the value represented by this node.
+     *
+     * Calling this method may create or transition the node.
+     */
+    Optional<String> getValueDescription();
+
+    /**
+     * Gets the underlying type of this node.
+     * <p>
+     * Calling this method may create or transition the node.
+     * <p>
+     * In practice, this describes the type that you would get if you asked for this node as Object, read only.
+     * This is used in the model report.
+     * In the future we may need a more sophisticated (e.g. multi-type aware, visibility aware) mechanism for advertising the type.
+     * <p>
+     * If an absent is returned, this node can not be viewed as an object.
+     */
+    Optional<String> getTypeDescription();
+
+    /**
+     * Gets the rules that have been executed on this node in the order in which they were executed.
+     */
+    List<ModelRuleDescriptor> getExecutedRules();
 }

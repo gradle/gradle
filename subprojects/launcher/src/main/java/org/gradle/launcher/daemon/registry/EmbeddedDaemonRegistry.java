@@ -44,14 +44,14 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     };
 
     @SuppressWarnings("unchecked")
-    private final Spec<DaemonInfo> idleSpec = Specs.<DaemonInfo>and(allSpec, new Spec<DaemonInfo>() {
+    private final Spec<DaemonInfo> idleSpec = Specs.<DaemonInfo>intersect(allSpec, new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
             return daemonInfo.isIdle();
         }
     });
 
     @SuppressWarnings("unchecked")
-    private final Spec<DaemonInfo> busySpec = Specs.<DaemonInfo>and(allSpec, new Spec<DaemonInfo>() {
+    private final Spec<DaemonInfo> busySpec = Specs.<DaemonInfo>intersect(allSpec, new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
             return !daemonInfo.isIdle();
         }

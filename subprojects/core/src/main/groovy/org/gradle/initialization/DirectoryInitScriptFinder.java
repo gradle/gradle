@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
     protected void findScriptsInDir(File initScriptsDir, Collection<File> scripts) {
         if (!initScriptsDir.isDirectory()) {
@@ -28,7 +30,7 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
         }
         List<File> files = new ArrayList<File>();
         for (File file : initScriptsDir.listFiles()) {
-            if (file.isFile() && file.getName().endsWith(".gradle")) {
+            if (file.isFile() && hasExtension(file, ".gradle")) {
                 files.add(file);
             }
         }

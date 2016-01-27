@@ -4,19 +4,129 @@
 Root project
 ------------------------------------------------------------
 
-model
-    person
-        firstName = John
-        lastName = Smith
-    tasks
-        components = task ':components'
-        dependencies = task ':dependencies'
-        dependencyInsight = task ':dependencyInsight'
-        hello = task ':hello'
-        help = task ':help'
-        init = task ':init'
-        model = task ':model'
-        projects = task ':projects'
-        properties = task ':properties'
-        tasks = task ':tasks'
-        wrapper = task ':wrapper'
++ person
+      | Type:   	Person
+      | Creator: 	PersonRules#person
+      | Rules:
+         ⤷ person { ... } @ build.gradle line 57, column 3
+         ⤷ PersonRules#setFirstName
+    + age
+          | Type:   	int
+          | Value:  	0
+          | Creator: 	PersonRules#person
+    + children
+          | Type:   	org.gradle.model.ModelSet<Person>
+          | Creator: 	PersonRules#person
+    + employed
+          | Type:   	boolean
+          | Value:  	false
+          | Creator: 	PersonRules#person
+    + father
+          | Type:   	Person
+          | Value:  	null
+          | Creator: 	PersonRules#person
+    + firstName
+          | Type:   	java.lang.String
+          | Value:  	John
+          | Creator: 	PersonRules#person
+    + homeDirectory
+          | Type:   	java.io.File
+          | Value:  	null
+          | Creator: 	PersonRules#person
+    + id
+          | Type:   	java.lang.Long
+          | Value:  	null
+          | Creator: 	PersonRules#person
+    + lastName
+          | Type:   	java.lang.String
+          | Value:  	Smith
+          | Creator: 	PersonRules#person
+    + maritalStatus
+          | Type:   	MaritalStatus
+          | Creator: 	PersonRules#person
+    + mother
+          | Type:   	Person
+          | Value:  	null
+          | Creator: 	PersonRules#person
+    + userGroups
+          | Type:   	java.util.List<java.lang.String>
+          | Value:  	null
+          | Creator: 	PersonRules#person
++ tasks
+      | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
+      | Creator: 	Project.<init>.tasks()
+      | Rules:
+         ⤷ PersonRules#createHelloTask
+    + buildEnvironment
+          | Type:   	org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
+          | Value:  	task ':buildEnvironment'
+          | Creator: 	tasks.addPlaceholderAction(buildEnvironment)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + components
+          | Type:   	org.gradle.api.reporting.components.ComponentReport
+          | Value:  	task ':components'
+          | Creator: 	tasks.addPlaceholderAction(components)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + dependencies
+          | Type:   	org.gradle.api.tasks.diagnostics.DependencyReportTask
+          | Value:  	task ':dependencies'
+          | Creator: 	tasks.addPlaceholderAction(dependencies)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + dependencyInsight
+          | Type:   	org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
+          | Value:  	task ':dependencyInsight'
+          | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
+          | Rules:
+             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
+             ⤷ copyToTaskContainer
+    + hello
+          | Type:   	org.gradle.api.Task
+          | Value:  	task ':hello'
+          | Creator: 	PersonRules#createHelloTask > create(hello)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + help
+          | Type:   	org.gradle.configuration.Help
+          | Value:  	task ':help'
+          | Creator: 	tasks.addPlaceholderAction(help)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + init
+          | Type:   	org.gradle.buildinit.tasks.InitBuild
+          | Value:  	task ':init'
+          | Creator: 	tasks.addPlaceholderAction(init)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + model
+          | Type:   	org.gradle.api.reporting.model.ModelReport
+          | Value:  	task ':model'
+          | Creator: 	tasks.addPlaceholderAction(model)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + projects
+          | Type:   	org.gradle.api.tasks.diagnostics.ProjectReportTask
+          | Value:  	task ':projects'
+          | Creator: 	tasks.addPlaceholderAction(projects)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + properties
+          | Type:   	org.gradle.api.tasks.diagnostics.PropertyReportTask
+          | Value:  	task ':properties'
+          | Creator: 	tasks.addPlaceholderAction(properties)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + tasks
+          | Type:   	org.gradle.api.tasks.diagnostics.TaskReportTask
+          | Value:  	task ':tasks'
+          | Creator: 	tasks.addPlaceholderAction(tasks)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + wrapper
+          | Type:   	org.gradle.api.tasks.wrapper.Wrapper
+          | Value:  	task ':wrapper'
+          | Creator: 	tasks.addPlaceholderAction(wrapper)
+          | Rules:
+             ⤷ copyToTaskContainer

@@ -16,7 +16,7 @@
 
 package org.gradle.jvm
 
-import org.gradle.api.JavaVersion
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -52,8 +52,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":myJvmLib1Jar")
 
         and:
-        file("build/jars/myJvmLib2Jar/myJvmLib2.jar").assertExists()
-        file("build/jars/myJvmLib1Jar/myJvmLib1.jar").assertDoesNotExist()
+        file("build/jars/myJvmLib2/jar/myJvmLib2.jar").assertExists()
+        file("build/jars/myJvmLib1/jar/myJvmLib1.jar").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -81,8 +81,58 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("No tool chains can satisfy the requirement: Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})"),
-                Matchers.containsString("Disabled by user")
+                Matchers.containsString("Jar 'myJvmLib1:jar': Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("Jar 'myJvmLib2:jar': Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("Jar 'myJvmLib3:jar': Disabled by user")
         ))
     }
+
+    def "model report should display configured components and binaries"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-lang'
+            }
+            model {
+                components {
+                    jvmLibrary(JvmLibrarySpec) {
+                        sources {
+                            other(JavaSourceSet)
+                        }
+                        binaries {
+                            jar {
+                                sources {
+                                    binarySources(JavaSourceSet)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+"""
+        when:
+        succeeds "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            components {
+                jvmLibrary {
+                    binaries {
+                        jar(type: "org.gradle.jvm.JarBinarySpec") {
+                            sources {
+                                binarySources(type: "org.gradle.language.java.JavaSourceSet")
+                            }
+                            tasks()
+                        }
+                    }
+                    sources {
+                        java(type: "org.gradle.language.java.JavaSourceSet")
+                        other(type: "org.gradle.language.java.JavaSourceSet")
+                        resources(type: "org.gradle.language.jvm.JvmResourceSet")
+                    }
+                }
+            }
+        }
+    }
+
 }

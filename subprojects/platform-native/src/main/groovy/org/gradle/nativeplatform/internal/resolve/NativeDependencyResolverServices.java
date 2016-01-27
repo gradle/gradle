@@ -16,8 +16,11 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
 import java.util.ArrayList;
@@ -25,23 +28,23 @@ import java.util.List;
 
 public class NativeDependencyResolverServices {
 
-    public ProjectLocator createProjectLocator(ProjectFinder projectFinder, DependencyMetaDataProvider metaDataProvider) {
+    public ProjectModelResolver createProjectLocator(ProjectRegistry<ProjectInternal> projectRegistry, DependencyMetaDataProvider metaDataProvider) {
         String currentProjectPath = metaDataProvider.getModule().getProjectPath();
-        return new DefaultProjectLocator(currentProjectPath, projectFinder);
+        return new CurrentProjectModelResolver(currentProjectPath, new DefaultProjectModelResolver(projectRegistry));
     }
 
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator) {
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(projectLocator));
-        locators.add(new PrebuiltLibraryBinaryLocator(projectLocator));
+        locators.add(new ProjectLibraryBinaryLocator(projectModelResolver));
+        locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
         return new ChainedLibraryBinaryLocator(locators);
     }
 
-    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, Instantiator instantiator) {
-        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator, instantiator);
-        resolver = new ApiRequirementNativeDependencyResolver(resolver);
+    public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {
+        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
+        resolver = new ApiRequirementNativeDependencyResolver(resolver, fileCollectionFactory);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
-        resolver = new SourceSetNativeDependencyResolver(resolver);
+        resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);
     }
 

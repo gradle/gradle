@@ -16,9 +16,7 @@
 
 package org.gradle.play.integtest
 
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
-import org.gradle.util.TextUtil
 
 abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
 
@@ -27,14 +25,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary",
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
-                ":playBinary",
-                ":assemble")
+        executedAndNotSkipped buildTasks
 
         and:
         verifyJars()
@@ -43,40 +34,34 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         succeeds("createPlayBinaryJar")
 
         then:
-        skipped(":createPlayBinaryJar", ":twirlCompileTwirlTemplatesPlayBinary")
+        skipped(":createPlayBinaryJar", ":compilePlayBinaryPlayTwirlTemplates")
     }
 
     def "can run play app"() {
         setup:
-        httpPort = portFinder.nextAvailable
+        run "assemble"
         buildFile << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = $httpPort
+                    httpPort = 0
                 }
             }
         """
-        run "assemble"
 
         when:
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        GradleHandle gradleHandle = executer.withTasks("runPlayBinary").start()
+        startBuild "runPlayBinary"
 
         then:
-        verifyStarted()
+        runningApp.verifyStarted()
 
         and:
-        verifyRunningApp()
+        runningApp.verifyContent()
 
         when: "stopping gradle"
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-
-        gradleHandle.waitForFinish()
+        build.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        verifyStopped()
+        runningApp.verifyStopped()
     }
 
     void verifyJars() {
@@ -85,10 +70,23 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
                 "views/html/index.class",
                 "views/html/main.class",
                 "controllers/Application.class",
-                "application.conf")
+                "application.conf",
+                "logback.xml")
         jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
+    }
+
+    String[] getBuildTasks() {
+        return [
+            ":compilePlayBinaryPlayRoutes",
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":compilePlayBinaryScala",
+            ":createPlayBinaryJar",
+            ":createPlayBinaryAssetsJar",
+            ":playBinary",
+            ":assemble"
+        ]
     }
 }

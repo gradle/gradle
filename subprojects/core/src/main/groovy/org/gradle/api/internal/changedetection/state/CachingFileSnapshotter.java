@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -25,27 +27,36 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.File;
 
 public class CachingFileSnapshotter implements FileSnapshotter {
-    private final PersistentIndexedCache<File, FileInfo> cache;
+    private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
+    private final StringInterner stringInterner;
 
-    public CachingFileSnapshotter(Hasher hasher, PersistentStore store) {
+    public CachingFileSnapshotter(Hasher hasher, PersistentStore store, StringInterner stringInterner) {
         this.hasher = hasher;
-        this.cache = store.createCache("fileHashes", File.class, serializer);
+        this.cache = store.createCache("fileHashes", String.class, serializer);
+        this.stringInterner = stringInterner;
     }
 
     public FileInfo snapshot(File file) {
-        FileInfo info = cache.get(file);
+        return snapshot(file, file.length(), file.lastModified());
+    }
 
-        long length = file.length();
-        long timestamp = file.lastModified();
+    public FileInfo snapshot(FileTreeElement file) {
+        return snapshot(file.getFile(), file.getSize(), file.getLastModified());
+    }
+
+    private FileInfo snapshot(File file, long length, long timestamp) {
+        String absolutePath = file.getAbsolutePath();
+        FileInfo info = cache.get(absolutePath);
+
         if (info != null && length == info.length && timestamp == info.timestamp) {
             return info;
         }
 
         byte[] hash = hasher.hash(file);
         info = new FileInfo(hash, length, timestamp);
-        cache.put(file, info);
+        cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }
 

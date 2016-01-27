@@ -18,20 +18,20 @@ package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.PrebuiltLibraries;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 
 public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary> implements PrebuiltLibraries {
-    private final FileResolver fileResolver;
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
     private final Action<PrebuiltLibrary> libraryInitializer;
     private String name;
 
-    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, FileResolver fileResolver, Action<PrebuiltLibrary> libraryInitializer) {
+    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, SourceDirectorySetFactory sourceDirectorySetFactory, Action<PrebuiltLibrary> libraryInitializer) {
         super(PrebuiltLibrary.class, instantiator);
         this.name = name;
-        this.fileResolver = fileResolver;
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
         this.libraryInitializer = libraryInitializer;
     }
 
@@ -45,7 +45,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
 
     @Override
     protected PrebuiltLibrary doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, fileResolver);
+        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, sourceDirectorySetFactory);
     }
 
     public PrebuiltLibrary resolveLibrary(String name) {

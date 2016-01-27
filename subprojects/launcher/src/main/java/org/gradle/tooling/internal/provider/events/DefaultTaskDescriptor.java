@@ -23,14 +23,12 @@ import java.io.Serializable;
 public class DefaultTaskDescriptor implements Serializable, InternalTaskDescriptor {
 
     private final Object id;
-    private final String name;
     private final String displayName;
     private final String taskPath;
     private final Object parentId;
 
-    public DefaultTaskDescriptor(Object id, String name, String displayName, String taskPath, Object parentId) {
+    public DefaultTaskDescriptor(Object id, String taskPath, String displayName, Object parentId) {
         this.id = id;
-        this.name = name;
         this.displayName = displayName;
         this.taskPath = taskPath;
         this.parentId = parentId;
@@ -43,7 +41,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskDescript
 
     @Override
     public String getName() {
-        return name;
+        return taskPath;
     }
 
     @Override

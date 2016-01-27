@@ -1,9 +1,0 @@
-allprojects {
-    repositories{
-        jcenter()
-        maven{
-            name = "typesafe-maven-release"
-            url = "https://repo.typesafe.com/typesafe/maven-releases"
-        }
-    }
-}

@@ -16,14 +16,12 @@
 
 package org.gradle.play.plugins
 
-import com.sun.xml.internal.ws.util.StringUtils
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Unroll
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,49 +31,12 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
-        plugins {
-            id 'play-application'
-        }
-
-        repositories{
-            jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "https://repo.typesafe.com/typesafe/maven-releases"
+            plugins {
+                id 'play-application'
             }
-        }
-"""
-    }
 
-    def "can register PlayApplicationSpec component"() {
-        when:
-        succeeds "components"
-
-        then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-Play Application 'play'
------------------------
-
-Source sets
-    Java source 'play:java'
-        srcDir: app
-        includes: **/*.java
-    JVM resources 'play:resources'
-        srcDir: conf
-    Routes source 'play:routesSources'
-        srcDir: conf
-        includes: routes, *.routes
-    Scala source 'play:scala'
-        srcDir: app
-        includes: **/*.scala
-    Twirl template source 'play:twirlTemplates'
-        srcDir: app
-        includes: **/*.html
-
-Binaries
-    Play Application Jar 'playBinary'
-        build using task: :playBinary
-        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})"""))
+            ${PLAY_REPOSITORIES}
+        """
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {
@@ -105,25 +66,28 @@ Binaries
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary")
+        skipped(":compilePlayBinaryScala")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants()
         jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
-    @Unroll
-    def "can declare additional #languageName sourceSets"() {
+    def "can declare additional scala and java sourceSets"() {
         given:
         buildFile << """
         model {
             components {
                 play {
                     sources {
-                        extra($sourceSetType) {
-                            source.srcDir "src/extra"
+                        extraJava(JavaSourceSet) {
+                            source.srcDir "src/extraJava"
+                        }
+                        extraScala(ScalaLanguageSourceSet) {
+                            source.srcDir "src/extraScala"
                         }
                     }
                 }
@@ -131,43 +95,45 @@ Binaries
         }
 """
         and:
-        file("src/extra/org/acme/model/Person.${languageName}") << """
+        file("src/extraJava/org/acme/model/JavaPerson.java") << """
             package org.acme.model;
-            class Person {
-            }
+            class JavaPerson {}
+"""
+        file("src/extraScala/org/acme/model/ScalaPerson.scala") << """
+            package org.acme.model;
+            class ScalaPerson {}
 """
 
         when:
         succeeds("components")
 
         then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-    ${StringUtils.capitalize(languageName)} source 'play:extra'
-        srcDir: src${File.separator}extra
-"""))
+        output.contains """
+    Java source 'play:extraJava'
+        srcDir: src${File.separator}extraJava
+"""
+        output.contains """
+    Scala source 'play:extraScala'
+        srcDir: src${File.separator}extraScala
+"""
 
         when:
         succeeds("assemble")
 
         then:
         executedAndNotSkipped(
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":scalaCompilePlayBinary",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
-        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/Person.class")
+        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")
         jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
-
-        where:
-
-        languageName | sourceSetType
-        "scala"      | "ScalaLanguageSourceSet"
-        "java"       | "JavaSourceSet"
     }
 
     JarTestFixture jar(String fileName) {

@@ -16,7 +16,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:

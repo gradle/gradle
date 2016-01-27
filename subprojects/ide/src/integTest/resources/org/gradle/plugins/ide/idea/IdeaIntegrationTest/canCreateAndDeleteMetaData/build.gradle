@@ -5,6 +5,7 @@ allprojects {
 }
 
 idea.project.jdkName = '1.6'
+idea.project.languageLevel = '1.6'
 
 subprojects {
     apply plugin: 'java'
@@ -25,6 +26,7 @@ subprojects {
 
     group = 'org.gradle'
     version = '1.0'
+    sourceCompatibility = '1.6'
 }
 
 cleanIdea.doLast {

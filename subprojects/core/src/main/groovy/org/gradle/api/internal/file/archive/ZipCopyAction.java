@@ -40,11 +40,13 @@ public class ZipCopyAction implements CopyAction {
     private final File zipFile;
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
+    private final String encoding;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
+        this.encoding = encoding;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -59,7 +61,7 @@ public class ZipCopyAction implements CopyAction {
         try {
             IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
                 public void execute(ZipOutputStream outputStream) {
-                    stream.process(new StreamAction(outputStream));
+                    stream.process(new StreamAction(outputStream, encoding));
                 }
             });
         } catch (UncheckedIOException e) {
@@ -76,8 +78,11 @@ public class ZipCopyAction implements CopyAction {
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipOutputStream zipOutStr;
 
-        public StreamAction(ZipOutputStream zipOutStr) {
+        public StreamAction(ZipOutputStream zipOutStr, String encoding) {
             this.zipOutStr = zipOutStr;
+            if (encoding != null) {
+                this.zipOutStr.setEncoding(encoding);
+            }
         }
 
         public void processFile(FileCopyDetailsInternal details) {

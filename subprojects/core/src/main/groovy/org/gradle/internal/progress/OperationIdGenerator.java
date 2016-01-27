@@ -34,17 +34,6 @@ public final class OperationIdGenerator {
     }
 
     /**
-     * Generates an operation id for the given build operation type.
-     *
-     * @param operationType the build operation type
-     * @param gradle te Gradle instance to which the build operation belongs
-     * @return the operation id
-     */
-    public static Object generateId(BuildOperationType operationType, Gradle gradle) {
-        return generateId(gradle) + "-" + operationType.getName();
-    }
-
-    /**
      * Generates an operation id for the given Gradle instance.
      *
      * @param gradle the Gradle instance

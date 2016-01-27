@@ -19,8 +19,6 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
-
 class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
@@ -32,12 +30,7 @@ class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
         succeeds()
 
         then:
-        output.contains DefaultDaemonConnector.STARTING_DAEMON_MESSAGE
-    }
-
-    def "the message is not shown when quiet log level is requested"() {
-        given:
-        executer.withArgument("-q")
+        output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
 
         when:
         succeeds()
@@ -46,9 +39,9 @@ class DaemonStartupMessageIntegrationTest extends DaemonIntegrationSpec {
         !output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
     }
 
-    def "daemon starting message can be disabled"() {
+    def "the message is not shown when quiet log level is requested"() {
         given:
-        executer.withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
+        executer.withArgument("-q")
 
         when:
         succeeds()

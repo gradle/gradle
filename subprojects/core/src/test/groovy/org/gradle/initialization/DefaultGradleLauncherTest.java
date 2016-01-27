@@ -27,11 +27,13 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.internal.progress.BuildOperationInternal;
-import org.gradle.internal.progress.BuildOperationType;
-import org.gradle.internal.progress.InternalBuildListener;
+import org.gradle.internal.Factory;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -39,26 +41,24 @@ import org.gradle.util.TestUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultGradleLauncherTest {
-    private BuildLoader buildLoaderMock;
     private InitScriptHandler initScriptHandlerMock;
-    private SettingsHandler settingsHandlerMock;
+    private SettingsLoader settingsLoaderMock;
     private BuildConfigurer buildConfigurerMock;
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
@@ -66,6 +66,7 @@ public class DefaultGradleLauncherTest {
     private StartParameter expectedStartParams;
     private GradleInternal gradleMock;
     private BuildListener buildBroadcaster;
+    private BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private BuildExecuter buildExecuter;
 
     private GradleLauncher gradleLauncher;
@@ -74,31 +75,28 @@ public class DefaultGradleLauncherTest {
 
     private ProjectDescriptor expectedRootProjectDescriptor;
 
-    private ProjectDescriptor expectedDefaultProjectDescriptor;
-
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ClassLoaderScope baseClassLoaderScope = context.mock(ClassLoaderScope.class);
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
-    private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
-    private InternalBuildListener internalBuildListener = context.mock(InternalBuildListener.class);
-    private Closeable buildServices = context.mock(Closeable.class);
+    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
+    private BuildScopeServices buildServices = context.mock(BuildScopeServices.class);
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {
         initScriptHandlerMock = context.mock(InitScriptHandler.class);
-        settingsHandlerMock = context.mock(SettingsHandler.class);
+        settingsLoaderMock = context.mock(SettingsHandler.class);
         settingsMock = context.mock(SettingsInternal.class);
         taskExecuterMock = context.mock(TaskGraphExecuter.class);
-        buildLoaderMock = context.mock(BuildLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         gradleMock = context.mock(GradleInternal.class);
         buildBroadcaster = context.mock(BuildListener.class);
         buildExecuter = context.mock(BuildExecuter.class);
+        buildConfigurationActionExecuter = context.mock(BuildConfigurationActionExecuter.class);
         boolean expectedSearchUpwards = false;
 
         File expectedRootDir = tmpDir.file("rootDir");
@@ -107,8 +105,6 @@ public class DefaultGradleLauncherTest {
         expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry(),
             TestFiles.resolver(expectedRootDir));
         expectedRootProject = TestUtil.createRootProject(expectedRootDir);
-        expectedDefaultProjectDescriptor = new DefaultProjectDescriptor(null, "default", new File("default"), new DefaultProjectDescriptorRegistry(),
-            TestFiles.resolver(expectedCurrentDir));
         expectedCurrentProject = TestUtil.createRootProject(expectedCurrentDir);
 
         expectedStartParams = new StartParameter();
@@ -116,9 +112,9 @@ public class DefaultGradleLauncherTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
-        gradleLauncher = new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsHandlerMock,
-            buildLoaderMock, buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
-            modelListenerMock, tasksCompletionListener, buildCompletionListener, internalBuildListener, buildExecuter,
+        gradleLauncher = new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
+            buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
+            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
             buildServices);
 
         context.checking(new Expectations() {
@@ -148,7 +144,7 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRun();
-        expectBuildListenerCallbacks(true);
+        expectBuildListenerCallbacks();
         BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getGradle(), sameInstance((Object) gradleMock));
         assertThat(buildResult.getFailure(), nullValue());
@@ -159,9 +155,8 @@ public class DefaultGradleLauncherTest {
         expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
-        expectBuildListenerCallbacks(false);
+        expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             one(buildConfigurerMock).configure(gradleMock);
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
@@ -175,27 +170,20 @@ public class DefaultGradleLauncherTest {
         final RuntimeException transformedException = new RuntimeException();
         expectLoggingStarted();
         expectInitScriptsExecuted();
-        expectSettingsBuilt();
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
-            startEvent(this, BuildOperationType.RUNNING_BUILD);
-            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            startEvent(this, BuildOperationType.LOADING_BUILD);
-            finishEvent(this, BuildOperationType.LOADING_BUILD);
-            finishEvent(this, BuildOperationType.RUNNING_BUILD);
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
+            one(settingsLoaderMock).findAndLoadSettings(gradleMock);
             will(throwException(exception));
             one(exceptionAnalyserMock).transform(exception);
             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
         }});
-        BuildResult buildResult = gradleLauncher.getBuildAnalysis();
-        assertThat(buildResult.getGradle(), sameInstance((Object) gradleMock));
-        assertThat((RuntimeException) buildResult.getFailure(), sameInstance(transformedException));
+        try {
+            gradleLauncher.getBuildAnalysis();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -203,9 +191,8 @@ public class DefaultGradleLauncherTest {
         expectLoggingStarted();
         expectInitScriptsExecuted();
         expectSettingsBuilt();
-        expectBuildListenerCallbacks(false);
+        expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
             one(buildConfigurerMock).configure(gradleMock);
         }});
 
@@ -219,9 +206,30 @@ public class DefaultGradleLauncherTest {
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRun();
-        expectBuildListenerCallbacks(true);
+        expectBuildListenerCallbacks();
 
         gradleLauncher.run();
+    }
+
+    @Test
+    public void testNotifiesListenerOnBuildListenerFailure() {
+        final RuntimeException failure = new RuntimeException();
+        final RuntimeException transformedException = new RuntimeException();
+        expectLoggingStarted();
+        context.checking(new Expectations() {{
+            one(buildBroadcaster).buildStarted(gradleMock);
+            will(throwException(failure));
+            one(exceptionAnalyserMock).transform(failure);
+            will(returnValue(transformedException));
+            one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
+        }});
+
+        try {
+            gradleLauncher.run();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -231,23 +239,20 @@ public class DefaultGradleLauncherTest {
         expectLoggingStarted();
         expectInitScriptsExecuted();
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
-            one(settingsHandlerMock).findAndLoadSettings(gradleMock);
+            one(settingsLoaderMock).findAndLoadSettings(gradleMock);
             will(throwException(failure));
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
-            startEvent(this, BuildOperationType.RUNNING_BUILD);
-            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
-        BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
+        try {
+            gradleLauncher.run();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -260,32 +265,20 @@ public class DefaultGradleLauncherTest {
         expectDagBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
-            one(gradleMock).getParent();
             one(buildBroadcaster).buildStarted(gradleMock);
-            one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
-            startEvent(this, BuildOperationType.RUNNING_BUILD);
-            startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-            startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-            startEvent(this, BuildOperationType.LOADING_BUILD);
-            finishEvent(this, BuildOperationType.LOADING_BUILD);
-            startEvent(this, BuildOperationType.CONFIGURING_BUILD);
-            finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
-            startEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
-            finishEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
-            startEvent(this, BuildOperationType.EXECUTING_TASKS);
-            finishEvent(this, BuildOperationType.EXECUTING_TASKS);
-            finishEvent(this, BuildOperationType.RUNNING_BUILD);
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
-        BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
+        try {
+            gradleLauncher.run();
+            fail();
+        } catch (ReportedException e) {
+            assertThat((RuntimeException) e.getCause(), sameInstance(transformedException));
+        }
     }
 
     @Test
@@ -314,56 +307,28 @@ public class DefaultGradleLauncherTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsHandlerMock).findAndLoadSettings(gradleMock);
+                one(settingsLoaderMock).findAndLoadSettings(gradleMock);
                 will(returnValue(settingsMock));
-                one(buildBroadcaster).settingsEvaluated(settingsMock);
             }
         });
     }
 
-    private void expectBuildListenerCallbacks(final boolean execute) {
+    private void expectBuildListenerCallbacks() {
         context.checking(new Expectations() {
             {
-                one(gradleMock).getParent();
                 one(buildBroadcaster).buildStarted(gradleMock);
-                one(buildBroadcaster).projectsLoaded(gradleMock);
                 one(buildBroadcaster).projectsEvaluated(gradleMock);
                 one(buildBroadcaster).buildFinished(with(result(nullValue(Throwable.class))));
                 one(modelListenerMock).onConfigure(gradleMock);
-                startEvent(this, BuildOperationType.RUNNING_BUILD);
-                startEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-                finishEvent(this, BuildOperationType.EVALUATING_INIT_SCRIPTS);
-                startEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-                finishEvent(this, BuildOperationType.EVALUATING_SETTINGS);
-                startEvent(this, BuildOperationType.LOADING_BUILD);
-                finishEvent(this, BuildOperationType.LOADING_BUILD);
-                startEvent(this, BuildOperationType.CONFIGURING_BUILD);
-                finishEvent(this, BuildOperationType.CONFIGURING_BUILD);
-                if (execute) {
-                    startEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
-                    finishEvent(this, BuildOperationType.POPULATING_TASK_GRAPH);
-                    startEvent(this, BuildOperationType.EXECUTING_TASKS);
-                    finishEvent(this, BuildOperationType.EXECUTING_TASKS);
-                }
-                finishEvent(this, BuildOperationType.RUNNING_BUILD);
             }
         });
-    }
-
-    private void startEvent(Expectations exp, BuildOperationType operationType) {
-        exp.one(internalBuildListener).started(exp.with(new BuildOperationInternalByOperationTypeMatcher(operationType)));
-    }
-
-    private void finishEvent(Expectations exp, BuildOperationType operationType) {
-        exp.one(internalBuildListener).finished(exp.with(new BuildOperationInternalByOperationTypeMatcher(operationType)));
     }
 
     private void expectDagBuilt() {
         context.checking(new Expectations() {
             {
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedDefaultProjectDescriptor, gradleMock, baseClassLoaderScope);
                 one(buildConfigurerMock).configure(gradleMock);
-                one(buildExecuter).select(gradleMock);
+                one(buildConfigurationActionExecuter).select(gradleMock);
             }
         });
     }
@@ -371,8 +336,7 @@ public class DefaultGradleLauncherTest {
     private void expectTasksRun() {
         context.checking(new Expectations() {
             {
-                one(buildExecuter).execute();
-                one(tasksCompletionListener).onTasksFinished(gradleMock);
+                one(buildExecuter).execute(gradleMock);
             }
         });
     }
@@ -380,7 +344,7 @@ public class DefaultGradleLauncherTest {
     private void expectTasksRunWithFailure(final Throwable failure) {
         context.checking(new Expectations() {
             {
-                one(buildExecuter).execute();
+                one(buildExecuter).execute(gradleMock);
                 will(throwException(failure));
             }
         });
@@ -399,21 +363,30 @@ public class DefaultGradleLauncherTest {
         };
     }
 
-    private static final class BuildOperationInternalByOperationTypeMatcher extends TypeSafeMatcher<BuildOperationInternal> {
-        private final BuildOperationType operationType;
-
-        private BuildOperationInternalByOperationTypeMatcher(BuildOperationType operationType) {
-            this.operationType = operationType;
+    private static class TestBuildOperationExecutor implements BuildOperationExecutor {
+        @Override
+        public Object getCurrentOperationId() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
-        protected boolean matchesSafely(BuildOperationInternal item) {
-            return item.getOperationType().equals(operationType);
+        public <T> T run(BuildOperationDetails operationDetails, Factory<T> factory) {
+            return factory.create();
         }
 
         @Override
-        public void describeTo(Description description) {
-            description.appendText("is BuildOperationInternal for operation type " + operationType);
+        public <T> T run(String displayName, Factory<T> factory) {
+            return factory.create();
+        }
+
+        @Override
+        public void run(BuildOperationDetails operationDetails, Runnable action) {
+            action.run();
+        }
+
+        @Override
+        public void run(String displayName, Runnable action) {
+            action.run();
         }
     }
 }

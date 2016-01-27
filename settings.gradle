@@ -69,8 +69,11 @@ include 'pluginUse'
 include 'pluginDevelopment'
 include 'modelCore'
 include 'modelGroovy'
+include 'testingBase'
 include 'testingNative'
+include 'testingJvm'
 include 'platformPlay'
+include 'testKit'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

@@ -33,7 +33,7 @@ class BuildEventTimestampCollectorTest extends Specification {
     BuildEventTimestampCollector collector = new BuildEventTimestampCollector(FILENAME)
 
     private void collect() {
-        collector.collect(directoryProvider.testDirectory, measuredOperation)
+        collector.collect([getProjectDir: { directoryProvider.testDirectory }] as BuildExperimentInvocationInfo, measuredOperation)
     }
 
     private void timestampFileContents(String contents) {
@@ -55,22 +55,22 @@ class BuildEventTimestampCollectorTest extends Specification {
 
     def "throws when file does not contain 3 lines"() {
         given:
-        timestampFileContents """1425907240
-1425907245
+        timestampFileContents """1425907240000000
+1425907245000000
 """
         when:
         collect()
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Build event timestamp log at $logFilePath should contain exactly 3 lines."
+        e.message == "Build event timestamp log at $logFilePath should contain at least 3 lines."
     }
 
     def "throws when file contains anything that can't be parsed to a long"() {
         given:
         timestampFileContents """null
-1425907240
-1425907245"""
+1425907240000000
+1425907245000000"""
 
         when:
         collect()
@@ -83,9 +83,9 @@ class BuildEventTimestampCollectorTest extends Specification {
 
     def "configuration time and execution time are collected"() {
         given:
-        timestampFileContents """1425907240
-1425907245
-1425907255"""
+        timestampFileContents """1425907240000000
+1425907245000000
+1425907255000000"""
 
         when:
         collect()

@@ -33,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * class, there is always a risk that someone else grabs the port between the time it is returned from <tt>getNextAvailable()</tt> and the time the socket is created.
  * @see <a href="http://www.iana.org/assignments/port-numbers">IANA.org</a>
  */
+@Deprecated
 @ThreadSafe
 public class AvailablePortFinder {
     private static final int MIN_PRIVATE_PORT = 49152;
@@ -66,6 +67,7 @@ public class AvailablePortFinder {
      * @throws NoSuchElementException if no available port is found
      */
     public int getNextAvailable() {
+        DeprecationLogger.nagUserOfDeprecated(this.getClass().getSimpleName());
         lock.lock();
         try {
             while (true) {

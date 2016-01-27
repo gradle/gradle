@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.equalTo
 
@@ -117,6 +118,31 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    @Issue("GRADLE-3310")
+    def "handles gzip compressed tars from resources.gzip"() {
+        given:
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tgzTo(file('test.tgz'))
+        and:
+        buildFile << '''
+            task copy(type: Copy) {
+                from tarTree(resources.gzip('test.tgz'))
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+        when:
+        run 'copy'
+        then:
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
     def "allows user to provide a custom resource for the tarTree"() {
         given:
         TestFile tar = file()
@@ -160,6 +186,31 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task copy(type: Copy) {
                 from tarTree('test.tbz2')
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+        when:
+        run 'copy'
+        then:
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+    @Issue("GRADLE-3310")
+    def "handles bzip2 compressed tars from resources.bzip2"() {
+        given:
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tbzTo(file('test.tbz2'))
+        and:
+        buildFile << '''
+            task copy(type: Copy) {
+                from tarTree(resources.bzip2('test.tbz2'))
                 exclude '**/2.txt'
                 into 'dest'
             }

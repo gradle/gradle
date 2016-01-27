@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,10 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
         } finally {
             handleCancellationPostOperation(operationParameters.getCancellationToken(), callback);
         }
+    }
+
+    public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters){
+        delegate.runTests(testExecutionRequest, operationParameters);
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

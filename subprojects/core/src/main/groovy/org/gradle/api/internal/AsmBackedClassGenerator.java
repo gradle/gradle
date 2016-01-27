@@ -26,16 +26,22 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
 import org.objectweb.asm.*;
-import org.objectweb.asm.Type;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.V1_5;
+import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
@@ -98,8 +104,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visitor.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
-                    superclassType.getInternalName(), interfaceTypes.toArray(new String[interfaceTypes.size()]));
+            visitor.visit(V1_5, ACC_PUBLIC, generatedType.getInternalName(), null,
+                superclassType.getInternalName(), interfaceTypes.toArray(new String[0]));
         }
 
         public void addConstructor(Constructor<?> constructor) throws Exception {
@@ -107,8 +113,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             for (Class<?> paramType : constructor.getParameterTypes()) {
                 paramTypes.add(Type.getType(paramType));
             }
-            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes.toArray(
-                    new Type[paramTypes.size()]));
+            String methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, paramTypes.toArray(new Type[0]));
 
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature(constructor), new String[0]);
 
@@ -134,126 +139,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
-        }
-
-        /**
-         * Generates the signature for the given constructor
-         */
-        private String signature(Constructor<?> constructor) {
-            StringBuilder builder = new StringBuilder();
-            visitFormalTypeParameters(builder, constructor.getTypeParameters());
-            visitParameters(builder, constructor.getGenericParameterTypes());
-            builder.append("V");
-            visitExceptions(builder, constructor.getGenericExceptionTypes());
-            return builder.toString();
-        }
-
-        /**
-         * Generates the signature for the given method
-         */
-        private String signature(Method method) {
-            StringBuilder builder = new StringBuilder();
-            visitFormalTypeParameters(builder, method.getTypeParameters());
-            visitParameters(builder, method.getGenericParameterTypes());
-            visitType(method.getGenericReturnType(), builder);
-            visitExceptions(builder, method.getGenericExceptionTypes());
-            return builder.toString();
-        }
-
-        private void visitExceptions(StringBuilder builder, java.lang.reflect.Type[] exceptionTypes) {
-            for (java.lang.reflect.Type exceptionType : exceptionTypes) {
-                builder.append('^');
-                visitType(exceptionType, builder);
-            }
-        }
-
-        private void visitParameters(StringBuilder builder, java.lang.reflect.Type[] parameterTypes) {
-            builder.append('(');
-            for (java.lang.reflect.Type paramType : parameterTypes) {
-                visitType(paramType, builder);
-            }
-            builder.append(")");
-        }
-
-        private void visitFormalTypeParameters(StringBuilder builder, TypeVariable<?>[] typeParameters) {
-            if (typeParameters.length > 0) {
-                builder.append('<');
-                for (TypeVariable<?> typeVariable : typeParameters) {
-                    builder.append(typeVariable.getName());
-                    for (java.lang.reflect.Type bound : typeVariable.getBounds()) {
-                        builder.append(':');
-                        visitType(bound, builder);
-                    }
-                }
-                builder.append('>');
-            }
-        }
-
-        private void visitType(java.lang.reflect.Type type, StringBuilder builder) {
-            if (type instanceof Class) {
-                Class<?> cl = (Class<?>) type;
-                if (cl.isPrimitive()) {
-                    builder.append(Type.getType(cl).getDescriptor());
-                } else {
-                    if (cl.isArray()) {
-                        builder.append(cl.getName().replace('.', '/'));
-                    } else {
-                        builder.append('L');
-                        builder.append(cl.getName().replace('.', '/'));
-                        builder.append(';');
-                    }
-                }
-            } else if (type instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) type;
-                visitNested(parameterizedType.getRawType(), builder);
-                builder.append('<');
-                for (java.lang.reflect.Type param : parameterizedType.getActualTypeArguments()) {
-                    visitType(param, builder);
-                }
-                builder.append(">;");
-            } else if (type instanceof WildcardType) {
-                WildcardType wildcardType = (WildcardType) type;
-                if (wildcardType.getUpperBounds().length == 1 && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                    if (wildcardType.getLowerBounds().length == 0) {
-                        builder.append('*');
-                        return;
-                    }
-                } else {
-                    for (java.lang.reflect.Type upperType : wildcardType.getUpperBounds()) {
-                        builder.append('+');
-                        visitType(upperType, builder);
-                    }
-                }
-                for (java.lang.reflect.Type lowerType : wildcardType.getLowerBounds()) {
-                    builder.append('-');
-                    visitType(lowerType, builder);
-                }
-            } else if (type instanceof TypeVariable) {
-                TypeVariable<?> typeVar = (TypeVariable) type;
-                builder.append('T');
-                builder.append(typeVar.getName());
-                builder.append(';');
-            } else if (type instanceof GenericArrayType) {
-                GenericArrayType arrayType = (GenericArrayType) type;
-                builder.append('[');
-                visitType(arrayType.getGenericComponentType(), builder);
-            } else {
-                throw new IllegalArgumentException(String.format("Cannot generate signature for %s.", type));
-            }
-        }
-
-        private void visitNested(java.lang.reflect.Type type, StringBuilder builder) {
-            if (type instanceof Class) {
-                Class<?> cl = (Class<?>) type;
-                if (cl.isPrimitive()) {
-                    builder.append(Type.getType(cl).getDescriptor());
-                } else {
-                    builder.append('L');
-                    builder.append(cl.getName().replace('.', '/'));
-                }
-            } else {
-                visitType(type, builder);
-            }
         }
 
         public void mixInDynamicAware() throws Exception {

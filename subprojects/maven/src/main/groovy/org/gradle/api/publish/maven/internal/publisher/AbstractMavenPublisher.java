@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-abstract public class AbstractMavenPublisher implements MavenPublisher {
+public abstract class AbstractMavenPublisher implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     private static Logger logger = LoggerFactory.getLogger(AbstractMavenPublisher.class);

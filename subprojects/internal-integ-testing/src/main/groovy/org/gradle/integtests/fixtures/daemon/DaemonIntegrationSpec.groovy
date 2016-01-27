@@ -17,25 +17,19 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.daemon })
+@LeaksFileHandles
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
-
-    @Override
-    DaemonGradleExecuter getExecuter() {
-        super.executer as DaemonGradleExecuter
-    }
-
     def setup() {
-        executer = new DaemonGradleExecuter(distribution, temporaryFolder)
+        executer.requireDaemon()
         executer.requireIsolatedDaemons()
     }
 
-    @Override
-    protected void cleanupWhileTestFilesExist() {
+    protected void cleanup() {
         // Need to kill daemons before test files are cleaned up, as the log files and registry are used to locate the daemons and these live under
         // the test file directory.
         daemons.killAll()
@@ -45,9 +39,8 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         result = executer.withArguments("--stop", "--info").run()
     }
 
-    void buildSucceeds(String script = '') {
-        file('build.gradle') << script
-        result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
+    void buildSucceeds() {
+        result = executer.withArguments("--info").run()
     }
 
     DaemonsFixture getDaemons() {

@@ -17,10 +17,6 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -48,16 +44,13 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
-    public ScriptHandler create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
         return create(scriptSource, classLoaderScope, new BasicDomainObjectContext());
     }
 
-    public ScriptHandler create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
-        RepositoryHandler repositoryHandler = services.getResolveRepositoryHandler();
-        ConfigurationContainer configurationContainer = services.getConfigurationContainer();
-        DependencyHandler dependencyHandler = services.getDependencyHandler();
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, new ScriptHandlerClassLoaderFactory(scriptSource, classLoaderScope));
+        return new DefaultScriptHandler(scriptSource, services, classLoaderScope);
     }
 
 }

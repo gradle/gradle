@@ -36,7 +36,7 @@ public abstract class TransformingClassLoader extends MutableURLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        URL resource = findResource(name.replace(".", "/") + ".class");
+        URL resource = findResource(name.replace('.', '/') + ".class");
         if (resource == null) {
             throw new ClassNotFoundException(name);
         }

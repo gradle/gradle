@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
+import org.gradle.util.TextUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,9 +25,8 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
+import static org.gradle.util.TextUtil.normaliseLineSeparators;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -45,7 +45,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public String getOutput() {
-        return output;
+        return TextUtil.normaliseLineSeparators(output);
     }
 
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
@@ -54,8 +54,14 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
+    public ExecutionResult assertOutputContains(String expectedOutput) {
+        assertThat("Substring not found in build output", getOutput(), org.hamcrest.core.StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+        return this;
+    }
+
     public String getError() {
-        return error;
+        return TextUtil.normaliseLineSeparators(error);
     }
 
     public List<String> getExecutedTasks() {
@@ -68,38 +74,23 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
-    public ExecutionResult assertTaskNotExecuted(String taskPath) {
-        Set<String> tasks = new HashSet<String>(getExecutedTasks());
-        assertThat(String.format("Expected task %s found in process output:%n%s", taskPath, getOutput()), tasks, not(hasItem(taskPath)));
-        return this;
-    }
-
     public Set<String> getSkippedTasks() {
         return new HashSet<String>(grepTasks(skippedTaskPattern));
     }
 
     public ExecutionResult assertTasksSkipped(String... taskPaths) {
-        if (GradleContextualExecuter.isParallel()) {
-            return this;
-        }
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
         return this;
     }
 
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        if (GradleContextualExecuter.isParallel()) {
-            return this;
-        }
         Set<String> tasks = new HashSet<String>(getSkippedTasks());
         assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;
     }
 
     public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-        if (GradleContextualExecuter.isParallel()) {
-            return this;
-        }
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
@@ -113,9 +104,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        if (GradleContextualExecuter.isParallel()) {
-            return this;
-        }
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;

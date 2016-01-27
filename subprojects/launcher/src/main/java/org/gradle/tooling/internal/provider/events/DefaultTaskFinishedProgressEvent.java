@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTaskFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 
-public class DefaultTaskFinishedProgressEvent extends AbstractTaskProgressEvent implements InternalTaskFinishedProgressEvent {
+public class DefaultTaskFinishedProgressEvent extends AbstractProgressEvent<DefaultTaskDescriptor> implements InternalOperationFinishedProgressEvent {
     private final AbstractTaskResult result;
 
     public DefaultTaskFinishedProgressEvent(long eventTime, DefaultTaskDescriptor descriptor, AbstractTaskResult result) {

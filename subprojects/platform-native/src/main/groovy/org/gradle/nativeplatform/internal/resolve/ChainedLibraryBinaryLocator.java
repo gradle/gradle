@@ -31,21 +31,14 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
     }
 
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
-        List<Exception> failures = new ArrayList<Exception>();
         for (LibraryBinaryLocator locator : locators) {
-            try {
-                return locator.getBinaries(requirement);
-            } catch (Exception e) {
-                failures.add(e);
+            DomainObjectSet<NativeLibraryBinary> binaries = locator.getBinaries(requirement);
+            if (binaries != null) {
+                return binaries;
             }
         }
-        throw new LibraryResolveException(getFailureMessage(requirement), failures);
+        return null;
     }
 
-    private String getFailureMessage(NativeLibraryRequirement requirement) {
-        return requirement.getProjectPath() == null
-                ? String.format("Could not locate library '%s'.", requirement.getLibraryName())
-                : String.format("Could not locate library '%s' for project '%s'.", requirement.getLibraryName(), requirement.getProjectPath());
-    }
 
 }

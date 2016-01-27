@@ -16,12 +16,12 @@
 
 package org.gradle.model.internal.type;
 
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
+
 import java.util.Arrays;
 
-class WildcardTypeWrapper implements WildcardType, TypeWrapper {
-
+class WildcardTypeWrapper implements WildcardWrapper {
     private final TypeWrapper[] upperBounds;
     private final TypeWrapper[] lowerBounds;
     private final int hashCode;
@@ -33,27 +33,46 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
     }
 
     @Override
-    public Type[] getUpperBounds() {
-        return ModelType.unwrap(upperBounds);
+    public Class<?> getRawClass() {
+        if (upperBounds.length > 0) {
+            return upperBounds[0].getRawClass();
+        }
+        return Object.class;
     }
 
     @Override
-    public Type[] getLowerBounds() {
-        return ModelType.unwrap(lowerBounds);
+    public boolean isAssignableFrom(TypeWrapper wrapper) {
+        return ParameterizedTypeWrapper.contains(this, wrapper);
     }
 
     @Override
-    public Type unwrap() {
-        return this;
+    public TypeWrapper getUpperBound() {
+        return upperBounds[0];
+    }
+
+    @Nullable
+    @Override
+    public TypeWrapper getLowerBound() {
+        return lowerBounds.length > 0 ? lowerBounds[0] : null;
+    }
+
+    @Override
+    public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
+        for (TypeWrapper upperBound : upperBounds) {
+            upperBound.collectClasses(builder);
+        }
+        for (TypeWrapper lowerBound : lowerBounds) {
+            lowerBound.collectClasses(builder);
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof WildcardType)) {
+        if (!(o instanceof WildcardTypeWrapper)) {
             return false;
         } else {
-            WildcardType var2 = (WildcardType) o;
-            return Arrays.equals(this.getLowerBounds(), var2.getLowerBounds()) && Arrays.equals(this.getUpperBounds(), var2.getUpperBounds());
+            WildcardTypeWrapper var2 = (WildcardTypeWrapper) o;
+            return Arrays.equals(this.lowerBounds, var2.lowerBounds) && Arrays.equals(this.upperBounds, var2.upperBounds);
         }
     }
 
@@ -76,8 +95,7 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
         if (lowerBounds.length > 0) {
             sb.append("? super ");
         } else {
-            Type[] upperBounds = getUpperBounds();
-            if (upperBounds.length > 0 && !upperBounds[0].equals(Object.class)) {
+            if (upperBounds.length > 0 && !upperBounds[0].getRawClass().equals(Object.class)) {
                 bounds = this.upperBounds;
                 sb.append("? extends ");
             } else {

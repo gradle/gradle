@@ -18,12 +18,12 @@ package org.gradle.performance.fixture;
 
 public interface GradleSession {
 
-    public abstract GradleInvocationSpec getInvocation();
+    GradleInvocationSpec getInvocation();
 
-    public abstract void prepare();
+    void prepare();
 
-    public abstract Runnable runner();
+    Runnable runner(GradleInvocationCustomizer invocationCustomizer);
 
-    public abstract void cleanup();
+    void cleanup();
 
 }

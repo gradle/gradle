@@ -17,23 +17,42 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Sets;
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.authentication.Authentication;
+import org.gradle.authentication.http.BasicAuthentication;
+import org.gradle.authentication.http.DigestAuthentication;
+import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class HttpConnectorFactory implements ResourceConnectorFactory {
+    private SslContextFactory sslContextFactory;
+
+    public HttpConnectorFactory(SslContextFactory sslContextFactory) {
+        this.sslContextFactory = sslContextFactory;
+    }
+
     @Override
     public Set<String> getSupportedProtocols() {
         return Sets.newHashSet("http", "https");
     }
 
     @Override
+    public Set<Class<? extends Authentication>> getSupportedAuthentication() {
+        Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
+        supported.add(BasicAuthentication.class);
+        supported.add(DigestAuthentication.class);
+        supported.add(AllSchemesAuthentication.class);
+        return supported;
+    }
+
+    @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getCredentials(PasswordCredentials.class)));
+        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(connectionDetails.getAuthentications(), sslContextFactory));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceLister lister = new HttpResourceLister(accessor);
         HttpResourceUploader uploader = new HttpResourceUploader(http);

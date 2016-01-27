@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -42,20 +42,21 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
-    private final ClassPathRegistry classPathRegistry;
-    private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
+    private final ExecHandleFactory execHandleFactory;
+    private final ApplicationClassesInSystemClassLoaderWorkerFactory systemClassLoaderWorkerFactory;
+    private final ApplicationClassesInIsolatedClassLoaderWorkerFactory isolatedClassLoaderWorkerFactory;
 
-    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
-                                       ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator, File gradleUserHomeDir) {
+    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
-        this.classPathRegistry = classPathRegistry;
-        this.resolver = resolver;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.execHandleFactory = execHandleFactory;
+        isolatedClassLoaderWorkerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(classPathRegistry);
+        systemClassLoaderWorkerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
     }
 
     public WorkerProcessBuilder create() {
@@ -64,7 +65,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
 
     private class DefaultWorkerProcessBuilder extends WorkerProcessBuilder {
         public DefaultWorkerProcessBuilder() {
-            super(resolver);
+            super(execHandleFactory.newJavaExec());
             setLogLevel(workerLogLevel);
             setGradleUserHomeDir(gradleUserHomeDir);
         }
@@ -91,11 +92,9 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
 
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry);
+                workerFactory = systemClassLoaderWorkerFactory;
             } else {
-                workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
-                        implementationClassPath, localAddress, classPathRegistry);
+                workerFactory = isolatedClassLoaderWorkerFactory;
             }
 
             LOGGER.debug("Creating {}", displayName);
@@ -103,8 +102,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             JavaExecHandleBuilder javaCommand = getJavaCommand();
-            workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
+
+            workerFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand);
+
             javaCommand.args("'" + displayName + "'");
             ExecHandle execHandle = javaCommand.build();
 

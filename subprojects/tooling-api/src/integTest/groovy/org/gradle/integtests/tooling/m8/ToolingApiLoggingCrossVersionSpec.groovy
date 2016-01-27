@@ -17,14 +17,12 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.junit.Assume
 
-class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {
-        //for embedded tests we don't mess with global logging. Run with forks only.
-        toolingApi.requireDaemons()
         reset()
     }
 
@@ -93,8 +91,8 @@ project.logger.debug("debug logging");
         def op = withBuild()
 
         then:
-        def out = op.standardOutput
-        def err = op.standardError
+        def out = op.result.output
+        def err = op.result.error
         normaliseOutput(out) == normaliseOutput(commandLineResult.output)
         err == commandLineResult.error
 
@@ -112,8 +110,8 @@ project.logger.debug("debug logging");
 
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder)
+            .requireGradleHome()
             .withArgument("--no-daemon") //suppress daemon usage suggestions
-            .withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
             .run()
     }
 

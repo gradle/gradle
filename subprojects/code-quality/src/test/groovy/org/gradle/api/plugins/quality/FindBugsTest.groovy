@@ -126,4 +126,21 @@ class FindBugsTest extends Specification {
         findbugs.excludeBugsFilter == project.file("config/file.txt")
         findbugs.excludeBugsFilterConfig.inputFiles.singleFile == project.file("config/file.txt")
     }
+
+    def "can add extra args"() {
+        given:
+        findbugs.extraArgs = [ 'abc' ]
+        expect:
+        findbugs.extraArgs == [ 'abc' ]
+
+        when:
+        findbugs.extraArgs 'def'
+        then:
+        findbugs.extraArgs == [ 'abc', 'def' ]
+
+        when:
+        findbugs.extraArgs([ 'ghi', 'jkl' ])
+        then:
+        findbugs.extraArgs == [ 'abc', 'def', 'ghi', 'jkl' ]
+    }
 }

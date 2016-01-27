@@ -15,47 +15,41 @@
  */
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.Actions;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.JvmBinaryTasks;
-import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.DomainObjectSetBackedModelMap;
-import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
 
+@SuppressWarnings("deprecation")
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final BinaryNamingScheme namingScheme;
     private final String name;
+    private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
-    private final DefaultJvmBinaryTasks tasks;
-    private final ToolResolver toolResolver;
-    private File classesDir;
-    private File resourcesDir;
+    private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory, ToolResolver toolResolver) {
+    public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
         this.name = name;
+        this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.namingScheme = new ClassDirectoryBinaryNamingScheme(removeClassesSuffix(name));
-        this.tasks = instantiator.newInstance(DefaultJvmBinaryTasks.class, new DefaultBinaryTasksCollection(this, taskFactory));
-        this.toolResolver = toolResolver;
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
     }
 
     private String removeClassesSuffix(String name) {
@@ -65,13 +59,23 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return name;
     }
 
-    public JvmBinaryTasks getTasks() {
-        return tasks;
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void tasks(Action<? super BinaryTasksCollection> action) {
-        action.execute(tasks);
+    public String getProjectScopedName() {
+        return getName();
+    }
+
+    @Override
+    public Class<? extends BinarySpec> getPublicType() {
+        return ClassDirectoryBinarySpec.class;
+    }
+
+    public BinaryTasksCollection getTasks() {
+        return tasks;
     }
 
     public JavaToolChain getToolChain() {
@@ -90,16 +94,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public ToolResolver getToolResolver() {
-        return toolResolver;
-    }
-
-    @Override
-    public void setToolResolver(ToolResolver toolResolver) {
-        throw new UnsupportedOperationException();
-    }
-
     public boolean isBuildable() {
         return getBuildAbility().isBuildable();
     }
@@ -112,60 +106,54 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return true;
     }
 
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
-    }
-
     public String getName() {
         return name;
     }
 
     public File getClassesDir() {
-        return classesDir;
+        return sourceSet.getOutput().getClassesDir();
     }
 
     public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+        sourceSet.getOutput().setClassesDir(classesDir);
     }
 
     public File getResourcesDir() {
-        return resourcesDir;
+        return sourceSet.getOutput().getResourcesDir();
     }
 
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        sourceSet.getOutput().setResourcesDir(resourcesDir);
     }
 
-    public FunctionalSourceSet getBinarySources() {
-        throw new UnsupportedOperationException();
+    @Override
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return getInputs();
     }
 
-    public void setBinarySources(FunctionalSourceSet sources) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void sources(Action<? super ModelMap<LanguageSourceSet>> action) {
+    @Override
+    public ModelMap<LanguageSourceSet> getSources() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ModelMap<LanguageSourceSet> getSource() {
-        return ModelMapGroovyDecorator.alwaysMutable(
-            DomainObjectSetBackedModelMap.ofNamed(
-                LanguageSourceSet.class,
-                sourceSets,
-                new NamedEntityInstantiator<LanguageSourceSet>() {
-                    public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
-                        throw new UnsupportedOperationException();
-                    }
-                },
-                Actions.doNothing()
-            )
-        );
+    public BinaryNamingScheme getNamingScheme() {
+        throw new UnsupportedOperationException();
     }
 
-    public void source(Object source) {
+    @Override
+    public void setNamingScheme(BinaryNamingScheme namingScheme) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasCodependentSources() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DomainObjectSet<LanguageSourceSet> getInputs() {
+        return sourceSets;
     }
 
     @Override
@@ -174,7 +162,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public String getDisplayName() {
-        return namingScheme.getDescription();
+        return "classes '" + removeClassesSuffix(name) + "'";
     }
 
     public String toString() {
@@ -186,6 +174,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         if (!buildable) {
             return new FixedBuildAbility(false);
         }
-        return new ToolSearchBuildAbility(toolResolver.checkToolAvailability(getTargetPlatform()));
+        return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
 }

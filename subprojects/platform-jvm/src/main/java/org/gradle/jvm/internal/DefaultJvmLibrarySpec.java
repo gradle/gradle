@@ -17,38 +17,62 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.jvm.JvmApiSpec;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
+import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
-    private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
-    private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
 
-    public DefaultJvmLibrarySpec() {
-        this.languageOutputs.add(JvmResources.class);
-        this.languageOutputs.add(JvmByteCode.class);
+    public static Set<Class<? extends TransformationFileType>> defaultJvmComponentInputTypes() {
+        final Set<Class<? extends TransformationFileType>> inputTypes = new HashSet<Class<? extends TransformationFileType>>();
+        inputTypes.add(JvmResources.class);
+        inputTypes.add(JvmByteCode.class);
+        return inputTypes;
     }
+
+    private final Set<Class<? extends TransformationFileType>> languageOutputs = defaultJvmComponentInputTypes();
+    private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
+    private final JvmApiSpec apiSpec = new DefaultJvmApiSpec();
+    private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override
     protected String getTypeName() {
         return "JVM library";
     }
 
+    @Override
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return languageOutputs;
     }
 
+    @Override
     public List<PlatformRequirement> getTargetPlatforms() {
         return Collections.unmodifiableList(targetPlatforms);
     }
 
+    @Override
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
+    }
+
+    @Override
+    public JvmApiSpec getApi() {
+        return apiSpec;
+    }
+
+    @Override
+    public DependencySpecContainer getDependencies() {
+        return dependencies;
     }
 }

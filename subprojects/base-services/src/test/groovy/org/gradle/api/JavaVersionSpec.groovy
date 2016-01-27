@@ -48,7 +48,10 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("7") == JavaVersion.VERSION_1_7
         JavaVersion.toVersion("8") == JavaVersion.VERSION_1_8
         JavaVersion.toVersion("9") == JavaVersion.VERSION_1_9
+
         JavaVersion.toVersion("1.9.0-internal") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("1.9.0-ea") == JavaVersion.VERSION_1_9
+        JavaVersion.toVersion("9-ea") == JavaVersion.VERSION_1_9
     }
 
     def convertClassVersionToJavaVersion() {
@@ -65,16 +68,26 @@ public class JavaVersionSpec extends Specification {
         conversionFails("1");
         conversionFails("2");
 
+        conversionFails("10");
         conversionFails("17");
 
         conversionFails("a");
+        conversionFails("java-9");
         conversionFails("");
         conversionFails("  ");
 
+        conversionFails("0.1");
         conversionFails("1.54");
         conversionFails("1.10");
         conversionFails("2.0");
         conversionFails("1_4");
+        conversionFails("8.1");
+        conversionFails("9.1");
+        conversionFails("9.0.0");
+        conversionFails("10.1.2");
+
+        conversionFails("9-");
+        conversionFails("10-ea");
     }
 
     def convertsVersionToVersion() {

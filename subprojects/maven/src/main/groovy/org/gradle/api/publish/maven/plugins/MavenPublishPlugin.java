@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -62,14 +63,16 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final FileCollectionFactory fileCollectionFactory;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                              ProjectDependencyPublicationResolver projectDependencyResolver) {
+                              ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public void apply(final Project project) {
@@ -174,7 +177,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver
+                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory
             );
         }
     }

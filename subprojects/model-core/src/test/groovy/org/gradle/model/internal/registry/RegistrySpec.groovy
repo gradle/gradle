@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.registry
 
+import com.google.common.base.Predicate
 import org.gradle.api.Nullable
-import org.gradle.internal.BiActions
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -25,23 +25,17 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
-class RegistrySpec extends Specification {
+abstract class RegistrySpec extends Specification {
     protected static class TestNode extends ModelNodeInternal {
         def links = []
 
         TestNode(String creationPath, Class<?> type) {
-            super(toBinder(creationPath, type))
+            super(null, ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
+            addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
-        private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
-            def binder = new CreatorRuleBinder(creator, [], [])
-            binder
-        }
-
-        @Override
-        ModelNodeInternal getTarget() {
-            return this
+        TestNode(ModelRegistration registration) {
+            super(null, registration)
         }
 
         @Override
@@ -49,24 +43,23 @@ class RegistrySpec extends Specification {
             return links
         }
 
-        @Override
         ModelNodeInternal addLink(ModelNodeInternal node) {
             links << node
             return node
         }
 
         @Override
-        def <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
             return null
         }
 
         @Override
-        void addReference(ModelCreator creator) {
+        def <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
 
         }
 
         @Override
-        void addLink(ModelCreator creator) {
+        void addLink(ModelRegistration registration) {
 
         }
 
@@ -76,58 +69,43 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+        def void applyToLink(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+        void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
+        void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
 
         }
 
         @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
-
-        }
-
-        @Override
-        def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToLink(String name, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToSelf(Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        MutableModelNode getLink(String name) {
+        ModelNodeInternal getLink(String name) {
             return null
         }
 
         @Override
-        int getLinkCount(ModelType<?> type) {
+        int getLinkCount(Predicate<? super MutableModelNode> predicate) {
             return 0
         }
 
         @Override
-        Set<String> getLinkNames(ModelType<?> type) {
+        Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
             return null
         }
 
         @Override
-        Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+        Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
             return null
+        }
+
+        @Override
+        int getLinkCount() {
+            return 0
         }
 
         @Override
@@ -136,7 +114,7 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        boolean hasLink(String name, ModelType<?> type) {
+        boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
             return false
         }
 
@@ -146,7 +124,17 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        def <T> void setPrivateData(Class<? super T> type, T object) {
+
+        }
+
+        @Override
         def <T> T getPrivateData(ModelType<T> type) {
+            return null
+        }
+
+        @Override
+        def <T> T getPrivateData(Class<T> type) {
             return null
         }
 
@@ -166,7 +154,12 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        void ensureAtLeast(ModelNode.State state) {
+
+        }
+
+        @Override
+        def <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
             return null
         }
 
@@ -179,21 +172,21 @@ class RegistrySpec extends Specification {
     protected static class RuleBinderTestBuilder {
 
         private ModelRuleDescriptor descriptor
-        private ModelReference<?> subjectReference
+        private BindingPredicate subjectReference
         private String subjectReferenceBindingPath
-        private List<ModelReference<?>> inputReferences = []
+        private List<BindingPredicate> inputReferences = []
         private Map<Integer, String> boundInputReferencePaths = [:]
 
         void subjectReference(ModelReference<?> reference) {
-            subjectReference = reference
+            subjectReference = new BindingPredicate(reference)
         }
 
         void subjectReference(Class type) {
-            subjectReference = ModelReference.of(ModelType.of(type))
+            subjectReference(ModelReference.of(ModelType.of(type)))
         }
 
         void subjectReference(String path, Class type) {
-            subjectReference = ModelReference.of(new ModelPath(path), ModelType.of(type))
+            subjectReference(ModelReference.of(new ModelPath(path), ModelType.of(type)))
         }
 
         void bindSubjectReference(String path) {
@@ -201,23 +194,23 @@ class RegistrySpec extends Specification {
         }
 
         void inputReference(ModelReference<?> reference) {
-            inputReferences.add(reference)
+            inputReferences.add(new BindingPredicate(reference))
         }
 
         void inputReference(Class type) {
-            inputReferences.add(ModelReference.of(ModelType.of(type)).inScope(ModelPath.ROOT))
+            inputReference(ModelReference.of(ModelType.of(type)).inScope(ModelPath.ROOT))
         }
 
         void inputReference(Class type, ModelNode.State state) {
-            inputReferences.add(ModelReference.of(null, ModelType.of(type), state).inScope(ModelPath.ROOT))
+            inputReference(ModelReference.of(null, ModelType.of(type), state).inScope(ModelPath.ROOT))
         }
 
         void inputReference(String path, ModelNode.State state) {
-            inputReferences.add(ModelReference.of(ModelPath.path(path), ModelType.untyped(), state))
+            inputReference(ModelReference.of(ModelPath.path(path), ModelType.untyped(), state))
         }
 
         void inputReference(String path, Class type) {
-            inputReferences.add(ModelReference.of(new ModelPath(path), ModelType.of(type)))
+            inputReference(ModelReference.of(new ModelPath(path), ModelType.of(type)))
         }
 
         void bindInputReference(int index, String path) {
@@ -229,14 +222,8 @@ class RegistrySpec extends Specification {
         }
 
         RuleBinder build() {
-            def binder
-            if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
-                binder = new CreatorRuleBinder(action, inputReferences, [])
-            } else {
-                def action = ActionBackedModelAction.of(subjectReference, descriptor, {})
-                binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
-            }
+            def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
+            def binder = new RuleBinder(subjectReference, inputReferences, action, [])
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)
             }

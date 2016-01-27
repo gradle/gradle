@@ -21,5 +21,5 @@ import org.junit.Rule
 
 class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     @Rule
-    final SFTPServer server = new SFTPServer(this)
+    final SFTPServer server = new SFTPServer(temporaryFolder)
 }

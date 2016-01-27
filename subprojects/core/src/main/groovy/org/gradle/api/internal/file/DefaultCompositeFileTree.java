@@ -28,13 +28,8 @@ public class DefaultCompositeFileTree extends CompositeFileTree {
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(fileTrees);
-    }
-
-    @Override
-    protected Collection<? extends FileTreeInternal> getSourceCollections() {
-        return fileTrees;
     }
 
     @Override

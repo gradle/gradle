@@ -34,11 +34,11 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        Key key = new Key(source.getClassName(), classLoader, operation.getId(), scriptBaseClass.getName());
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+        Key key = new Key(source.getClassName(), classLoader, operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = scriptClassCompiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, scriptBaseClass, verifier);
+            compiledScript = scriptClassCompiler.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;
@@ -47,14 +47,12 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     private static class Key {
         private final String className;
         private final ClassLoader classLoader;
-        private final String transformerId;
-        private final String baseClassName;
+        private final String dslId;
 
-        public Key(String className, ClassLoader classLoader, String transformerId, String baseClassName) {
+        public Key(String className, ClassLoader classLoader, String dslId) {
             this.className = className;
             this.classLoader = classLoader;
-            this.transformerId = transformerId;
-            this.baseClassName = baseClassName;
+            this.dslId = dslId;
         }
 
         @Override
@@ -68,18 +66,16 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
 
             Key key = (Key) o;
 
-            return baseClassName.equals(key.baseClassName)
-                    && classLoader.equals(key.classLoader)
+            return classLoader.equals(key.classLoader)
                     && className.equals(key.className)
-                    && transformerId.equals(key.transformerId);
+                    && dslId.equals(key.dslId);
         }
 
         @Override
         public int hashCode() {
             int result = className.hashCode();
             result = 31 * result + classLoader.hashCode();
-            result = 31 * result + transformerId.hashCode();
-            result = 31 * result + baseClassName.hashCode();
+            result = 31 * result + dslId.hashCode();
             return result;
         }
     }

@@ -21,18 +21,18 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
+public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConsumerActionExecutor connection;
 
     public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
+        operationParamsBuilder.setEntryPoint("BuildLauncher API");
         operationParamsBuilder.setTasks(Collections.<String>emptyList());
         this.connection = connection;
     }
@@ -73,7 +73,8 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
+        final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
+
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
@@ -81,8 +82,6 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
             public Void run(ConsumerConnection connection) {
                 Void sink = connection.run(Void.class, operationParameters);
-                FailsafeBuildProgressListenerAdapter buildProgressListener = (FailsafeBuildProgressListenerAdapter) operationParameters.getBuildProgressListener();
-                buildProgressListener.rethrowErrors();
                 return sink;
             }
         }, new ResultHandlerAdapter(handler));

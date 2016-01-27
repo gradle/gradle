@@ -22,6 +22,9 @@ import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
 import org.apache.tools.ant.taskdefs.Zip
+import org.apache.tools.ant.types.ArchiveFileSet
+import org.apache.tools.ant.types.EnumeratedAttribute
+import org.apache.tools.ant.types.ZipFileSet
 
 import java.util.zip.ZipInputStream
 
@@ -187,16 +190,16 @@ class TestFileHelper {
         return new ExecOutput(output, error)
     }
 
-    public void zipTo(TestFile zipFile, boolean nativeTools) {
+    public void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
         if (nativeTools && isUnix()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, zipFile.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
             Zip zip = new Zip();
-            zip.setBasedir(file);
+            zip.setProject(new Project())
+            setSourceDirectory(zip, readOnly);
             zip.setDestFile(zipFile);
-            zip.setProject(new Project());
             def whenEmpty = new Zip.WhenEmpty()
             whenEmpty.setValue("create")
             zip.setWhenempty(whenEmpty);
@@ -204,17 +207,48 @@ class TestFileHelper {
         }
     }
 
-    public void tarTo(TestFile tarFile, boolean nativeTools) {
+    private void setSourceDirectory(archiveTask, boolean readOnly) {
+        if (readOnly) {
+            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet();
+            archiveFileSet.setDir(file);
+            archiveFileSet.setFileMode("0444");
+            archiveFileSet.setDirMode("0555");
+            archiveTask.add(archiveFileSet);
+        } else {
+            archiveTask.setBasedir(file);
+        }
+    }
+
+    public void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         if (nativeTools && isUnix()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, tarFile.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
             Tar tar = new Tar();
-            tar.setBasedir(file);
-            tar.setDestFile(tarFile);
             tar.setProject(new Project())
-            tar.execute()
+            setSourceDirectory(tar, readOnly);
+            tar.setDestFile(tarFile);
+            tar.execute();
         }
     }
+
+    public void tgzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar();
+        tar.setProject(new Project())
+        setSourceDirectory(tar, readOnly);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
+        tar.execute();
+    }
+
+    public void tbzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar();
+        tar.setProject(new Project())
+        setSourceDirectory(tar, readOnly);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
+        tar.execute();
+    }
+
 }

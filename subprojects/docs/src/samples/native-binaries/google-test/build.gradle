@@ -1,6 +1,6 @@
 // START SNIPPET complete-example
 apply plugin: "cpp"
-apply plugin: "google-test"
+apply plugin: 'google-test-test-suite'
 
 model {
     flavors {
@@ -29,13 +29,27 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        operatorsTest(GoogleTestTestSuiteSpec) {
+            testing $.components.operators
+        }
+    }
 }
 // START SNIPPET configure-test-binary
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
 
-    if (flavor == flavors.failing) {
-        cppCompiler.define "PLUS_BROKEN"
+            if (flavor == flavors.failing) {
+                cppCompiler.define "PLUS_BROKEN"
+            }
+
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
     }
 }
 // END SNIPPET configure-test-binary

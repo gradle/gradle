@@ -95,11 +95,13 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.licenses[0].url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
-        pomReader.properties.size() == 4
+        pomReader.properties.size() == 6
         pomReader.properties['parent.version'] == 'version-one'
         pomReader.properties['parent.groupId'] == 'group-one'
+        pomReader.properties['parent.artifactId'] == 'artifact-one'
         pomReader.properties['project.parent.version'] == 'version-one'
         pomReader.properties['project.parent.groupId'] == 'group-one'
+        pomReader.properties['project.parent.artifactId'] == 'artifact-one'
         pomReader.relocation == null
     }
 
@@ -134,7 +136,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.pomProperties.size() == 5
         pomReader.pomProperties.containsKey('some.prop1')
         pomReader.pomProperties.containsKey('some.prop2')
-        pomReader.properties.size() == 9
+        pomReader.properties.size() == 11
         pomReader.properties.containsKey('some.prop1')
         pomReader.properties.containsKey('some.prop2')
     }
@@ -487,11 +489,13 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
-        pomReader.properties.size() == 13
+        pomReader.properties.size() == 15
         pomReader.properties['parent.version'] == 'version-one'
         pomReader.properties['parent.groupId'] == 'group-one'
+        pomReader.properties['parent.artifactId'] == 'artifact-one'
         pomReader.properties['project.parent.version'] == 'version-one'
         pomReader.properties['project.parent.groupId'] == 'group-one'
+        pomReader.properties['project.parent.artifactId'] == 'artifact-one'
         pomReader.properties['project.groupId'] == 'group-one'
         pomReader.properties['pom.groupId'] == 'group-one'
         pomReader.properties['groupId'] == 'group-one'
@@ -847,5 +851,33 @@ class PomReaderTest extends AbstractPomReaderTest {
 
         where:
         packaging << ['pom', 'jar', 'ejb', 'war', 'ear', 'rar', 'par']
+    }
+
+    @Issue("GRADLE-3299")
+    def "can define GAV with reference to parent.GAV"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>\${parent.groupId}</groupId>
+    <artifactId>\${parent.artifactId}</artifactId>
+    <version>\${parent.version}</version>
+
+    <parent>
+        <groupId>parent-group</groupId>
+        <artifactId>parent-artifact</artifactId>
+        <version>parent-version</version>
+    </parent>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.parentGroupId == 'parent-group'
+        pomReader.parentArtifactId == 'parent-artifact'
+        pomReader.parentVersion == 'parent-version'
+        pomReader.groupId == pomReader.parentGroupId
+        pomReader.artifactId == pomReader.parentArtifactId
+        pomReader.version == pomReader.parentVersion
     }
 }

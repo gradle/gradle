@@ -22,13 +22,16 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").path)
@@ -36,7 +39,7 @@ class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def setup() {
         buildFile << """
-apply plugin: "google-test"
+apply plugin: 'google-test-test-suite'
 
 model {
     repositories {
@@ -67,13 +70,31 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing \$.components.hello
+        }
+    }
 }
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-}
-
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
+}
+"""
+        addGoogleTestDep()
+    }
+
+    private void addGoogleTestDep() {
+        buildFile << """
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
+    }
 }
 """
     }
@@ -119,11 +140,41 @@ tasks.withType(RunTestExecutable) {
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
+    }
+
+    def "assemble does not build or run tests"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+
+        when:
+        run "assemble"
+
+        then:
+        notExecuted ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
+                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+    }
+
+    @Issue("GRADLE-3225")
+    def "can build and run googleTest test suite with C and C++ plugins"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << "apply plugin: 'c'"
+        file("src/hello/c").createDir().file("foo.c").text = "int foobar() { return 0; }"
+
+        when:
+        run "runHelloTestGoogleTestExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloC",
+            ":compileHelloTestGoogleTestExeHelloTestCpp",
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
     def "can configure via testSuite component"() {
@@ -138,7 +189,8 @@ model {
         }
     }
     testSuites {
-        helloTest {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing \$.components.hello
             binaries.all {
                 lib library: "googleTest", linkage: "static"
             }
@@ -150,6 +202,7 @@ tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"
 }
 """
+        addGoogleTestDep()
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -158,7 +211,7 @@ tasks.withType(RunTestExecutable) {
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == ['test_sum']
         testResults.suites['HelloTest'].failingTests == []
@@ -172,15 +225,19 @@ tasks.withType(RunTestExecutable) {
 
         when:
         buildFile << """
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    cppCompiler.define "ONE_TEST"
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            cppCompiler.define "ONE_TEST"
+        }
+    }
 }
 """
         and:
         run "runHelloTestGoogleTestExe"
 
         then:
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.checkTestCases(1, 1, 0)
     }
 
@@ -244,22 +301,26 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
+        hello(NativeLibrarySpec) { l ->
             targetPlatform "x86"
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variant/cpp"
+                        lib l.sources.cpp
                     }
                 }
             }
         }
     }
-}
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
+    testSuites {
+        helloTest(GoogleTestTestSuiteSpec) {
+            testing \$.components.hello
+        }
+    }
 }
 """
+        addGoogleTestDep()
 
         then:
         succeeds "runHelloTestGoogleTestExe"
@@ -275,12 +336,12 @@ binaries.withType(GoogleTestTestSuiteBinarySpec) {
         buildFile << """
 model {
     testSuites {
-        helloTest {
+        helloTest { t ->
             binaries.all {
                 sources {
                     variant(CppSourceSet) {
                         source.srcDir "src/variantTest/cpp"
-                        lib sources.cpp
+                        lib t.sources.cpp
                     }
                 }
             }
@@ -298,6 +359,7 @@ model {
         useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestGoogleTestExe"
+        executed ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
         when:
         run "runHelloTestGoogleTestExe"
@@ -321,7 +383,7 @@ model {
                 ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
         output.contains "[  FAILED  ]"
         and:
-        def testResults = new GoogleTestTestResults(file("build/test-results/helloTestGoogleTestExe/test_detail.xml"))
+        def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
         testResults.suites['HelloTest'].passingTests == []
         testResults.suites['HelloTest'].failingTests == ['test_sum']
@@ -344,7 +406,7 @@ tasks.withType(RunTestExecutable) {
         output.contains "There were failing tests. See the results at: "
 
         and:
-        file("build/test-results/helloTestGoogleTestExe/test_detail.xml").assertExists()
+        file("build/test-results/helloTest/test_detail.xml").assertExists()
     }
 
     def "test suite not skipped after failing run"() {

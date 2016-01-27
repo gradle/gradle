@@ -17,104 +17,59 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
-import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
-
-    private Instantiator instantiator;
-
-    public ComponentTypeModelRuleExtractor(final Instantiator instantiator) {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultComponentTypeBuilder.class));
-        this.instantiator = instantiator;
+    public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore);
     }
 
     @Override
-    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
-        List<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
-        ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
-        if (implementation != null) {
-            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
-        }
-        return new DependencyOnlyExtractedModelRule(dependencies);
+    protected <P extends ComponentSpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
+        return new ExtractedComponentTypeRule<P>(ruleDefinition, type);
     }
 
-    public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
-        public DefaultComponentTypeBuilder() {
-            super(ComponentType.class);
+    private static class DefaultComponentTypeBuilder<PUBLICTYPE extends ComponentSpec> extends AbstractTypeBuilder<PUBLICTYPE> implements ComponentTypeBuilder<PUBLICTYPE> {
+        private DefaultComponentTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
+            super(ComponentType.class, schema);
         }
     }
 
-    private static class RegistrationAction implements ModelAction<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> {
-        private final ModelType<? extends ComponentSpec> publicType;
-        private final ModelType<? extends BaseComponentSpec> implementationType;
-        private final ModelRuleDescriptor descriptor;
-        private final Instantiator instantiator;
-        private final ModelReference<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> subject;
-        private final List<ModelReference<?>> inputs;
-
-        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, ModelRuleDescriptor descriptor, Instantiator instantiator) {
-            this.publicType = publicType;
-            this.implementationType = implementationType;
-            this.descriptor = descriptor;
-            this.instantiator = instantiator;
-            ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
-            };
-            this.subject = ModelReference.of(factoryRegistryType);
-            this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
+    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultComponentTypeBuilder<PUBLICTYPE>, ComponentSpecFactory> {
+        public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
+            super(ruleDefinition, publicType);
         }
 
         @Override
-        public ModelReference<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> getSubject() {
-            return subject;
+        protected DefaultComponentTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultComponentTypeBuilder<PUBLICTYPE>(schema);
         }
 
         @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
+        protected Class<ComponentSpecFactory> getRegistryType() {
+            return ComponentSpecFactory.class;
         }
 
         @Override
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
+        protected void register(ComponentSpecFactory components, ModelSchema<PUBLICTYPE> schema, DefaultComponentTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseComponentSpec> implModelType) {
+            components.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec> components, List<ModelView<?>> inputs) {
-            final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(0), ModelType.of(ProjectIdentifier.class)).getInstance();
-            final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectSourceSet.class)).getInstance();
-            @SuppressWarnings("unchecked")
-            Class<ComponentSpec> publicClass = (Class<ComponentSpec>) publicType.getConcreteClass();
-            components.registerFactory(publicClass, new NamedDomainObjectFactory<BaseComponentSpec>() {
-                public BaseComponentSpec create(String name) {
-                    FunctionalSourceSet componentSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, name, instantiator, projectSourceSet);
-                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, componentSourceSet, instantiator);
-                }
-            }, descriptor);
+        public List<? extends Class<?>> getRuleDependencies() {
+            return ImmutableList.of(ComponentModelBasePlugin.class);
         }
     }
 }

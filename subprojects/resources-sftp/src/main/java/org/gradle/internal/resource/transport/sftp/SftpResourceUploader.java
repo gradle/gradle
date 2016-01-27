@@ -18,8 +18,8 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.internal.resource.local.LocalResource;
-import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
@@ -59,7 +59,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
 
     private void ensureParentDirectoryExists(ChannelSftp channel, URI uri) {
         String parentPath = FilenameUtils.getFullPathNoEndSeparator(uri.getPath());
-        if (parentPath.equals("")) {
+        if (parentPath.equals("/")) {
             return;
         }
         URI parent = uri.resolve(parentPath);

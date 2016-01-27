@@ -16,7 +16,8 @@
 package org.gradle.internal.resource.transport.http;
 
 
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
 
 public interface HttpProxySettings {
 
@@ -35,7 +36,7 @@ public interface HttpProxySettings {
             if (username == null || username.length() == 0) {
                 credentials = null;
             } else {
-                credentials = new PasswordCredentials(username, password);
+                credentials = new DefaultPasswordCredentials(username, password);
             }
         }
     }

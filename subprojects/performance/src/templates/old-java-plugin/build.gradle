@@ -1,3 +1,8 @@
+/**
+ * This build uses some fake plugins that add configuration-time weight to the build, but do not correctly wire tasks for execution.
+ * (e.g. FakeCheckstylePlugin).
+ * This gives us parity with the 'new-java-plugin' template.
+ */
 apply plugin: 'java'
 
 class CheckstyleExtension {

@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "can build the eclipse model for a java project"() {
-        
+
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 description = 'this is a project'
@@ -91,7 +91,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
     }
 
     def "can build the eclipse source directories for a java project"() {
-        
+
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
         projectDir.create {
@@ -141,7 +141,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
     }
 
     def "can build the eclipse external dependencies for a java project"() {
-        
+
         projectDir.file('settings.gradle').text = '''
 include "a"
 rootProject.name = 'root'
@@ -170,7 +170,7 @@ dependencies {
     }
 
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
-        
+
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -188,7 +188,7 @@ dependencies {
     }
 
     def "can build the eclipse project dependencies for a java project"() {
-        
+
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
 rootProject.name = 'root'
@@ -229,7 +229,7 @@ project(':a') {
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
-        
+
         projectDir.file('settings.gradle').text = '''
 include "c", "a", "a:b"
 rootProject.name = 'root'
@@ -268,7 +268,7 @@ project(':c') {
     }
 
     def "can build the eclipse project hierarchy for a multi-project build"() {
-        
+
         projectDir.file('settings.gradle').text = '''
             include "child1", "child2", "child1:grandChild1"
             rootProject.name = 'root'
@@ -313,5 +313,28 @@ project(':c') {
         child.parent != null
         child.parent.name == 'root'
         child.children.size() == 1
+    }
+
+    def "respects customized eclipse project name"() {
+        settingsFile.text = "include ':foo', ':bar'"
+        buildFile.text = """
+allprojects {
+    apply plugin:'java'
+    apply plugin:'eclipse'
+}
+
+configure(project(':bar')) {
+    eclipse {
+        project {
+            name = "customized-bar"
+        }
+    }
+}
+"""
+        when:
+        HierarchicalEclipseProject rootProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        then:
+        rootProject.children.any { it.name == 'foo'}
+        rootProject.children.any { it.name == 'customized-bar'}
     }
 }

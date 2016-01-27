@@ -15,12 +15,16 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.archive.ArchiveTestFixture
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import spock.lang.Issue
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -33,28 +37,83 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            repositories {
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
+            ${PLAY_REPOSITORIES}
         """
     }
 
+    @Issue("GRADLE-3386")
+    def "uses unique names for jars in distribution"() {
+        given:
+        file("extralib.jar").text = "This is not a jar"
+
+        settingsFile << """
+            include 'sub1:dependency'
+            include 'sub2:dependency'
+            include 'dependency'
+        """
+        buildFile << """
+            dependencies {
+                playRun 'com.google.code.gson:gson:2.2.4'
+                playRun files('extralib.jar')
+                playRun project(":sub1:dependency")
+                playRun project(":sub2:dependency")
+                playRun project(":dependency")
+            }
+
+            subprojects {
+                apply plugin: 'java'
+                version = "1.0"
+            }
+"""
+        def srcFileContent = """
+            public class Dependency {}
+"""
+
+        file("sub1/dependency/src/main/java/Dependency.java") << srcFileContent
+        file("sub2/dependency/src/main/java/Dependency.java") << srcFileContent
+        file("other/src/main/java/Dependency.java") << srcFileContent
+
+        when:
+        succeeds "dist"
+
+        then:
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
+
+        archives()*.containsDescendants(
+            "playBinary/lib/extralib.jar",
+            "playBinary/lib/com.google.code.gson-gson-2.2.4.jar",
+            "playBinary/lib/sub1.dependency-dependency-1.0.jar",
+            "playBinary/lib/sub2.dependency-dependency-1.0.jar",
+            "playBinary/lib/dependency-dependency-1.0.jar"
+        )
+    }
+
+    def "builds a tgz when requested"() {
+        given:
+        buildFile << """
+            model {
+                tasks.createPlayBinaryTarDist {
+                    compression = Compression.GZIP
+                }
+            }
+        """
+        when:
+        succeeds ":createPlayBinaryTarDist"
+        then:
+        tar("build/distributions/playBinary.tgz").containsDescendants(
+            "playBinary/lib/dist-play-app.jar",
+            "playBinary/lib/dist-play-app-assets.jar",
+            "playBinary/bin/playBinary",
+            "playBinary/bin/playBinary.bat"
+        )
+
+    }
     def "builds empty distribution when no sources present" () {
         buildFile << """
             model {
                 tasks.createPlayBinaryStartScripts {
                     doLast {
                         assert classpath.contains(file(createPlayBinaryDistributionJar.archivePath))
-                    }
-                }
-                tasks.createPlayBinaryDist {
-                    doLast {
-                        def zipFileNames = zipTree(archivePath).collect { it.name }
-                        configurations.playRun.collect { it.name }.each { assert zipFileNames.contains(it) }
                     }
                 }
             }
@@ -70,10 +129,10 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
-        skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary")
+        skipped(":compilePlayBinaryScala")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         file("build/stage/playBinary").assertContainsDescendants(
@@ -90,18 +149,19 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         then:
-        executedAndNotSkipped(":createPlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryZipDist", ":createPlayBinaryTarDist")
         skipped(
-                ":routesCompileRoutesSourcesPlayBinary",
-                ":twirlCompileTwirlTemplatesPlayBinary",
-                ":scalaCompilePlayBinary",
+                ":compilePlayBinaryScala",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
-        zip("build/distributions/playBinary.zip").containsDescendants(
+        archives()*.containsDescendants(
                 "playBinary/lib/dist-play-app.jar",
                 "playBinary/lib/dist-play-app-assets.jar",
                 "playBinary/bin/playBinary",
@@ -109,7 +169,15 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    TarTestFixture tar(String path) {
+        return new TarTestFixture(file(path))
+    }
+
     ZipTestFixture zip(String path) {
         return new ZipTestFixture(file(path))
+    }
+
+    List<ArchiveTestFixture> archives() {
+        return [ zip("build/distributions/playBinary.zip"), tar("build/distributions/playBinary.tar") ]
     }
 }

@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class ClasspathJarFinder {
     private final FileOperations fileOperations;
 
@@ -32,7 +34,7 @@ public class ClasspathJarFinder {
     public Iterable<JarArchive> findJarArchives(Iterable<File> classpath) {
         List<JarArchive> out = new LinkedList<JarArchive>();
         for (File file : classpath) {
-            if (file.getName().endsWith(".jar")) {
+            if (hasExtension(file, ".jar")) {
                 out.add(new JarArchive(file, fileOperations.zipTree(file))); //TODO SF only create zip tree when needed, limit usages of JarArchive
             }
         }

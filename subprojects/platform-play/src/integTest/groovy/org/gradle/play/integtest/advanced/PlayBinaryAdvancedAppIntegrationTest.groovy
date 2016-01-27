@@ -17,10 +17,15 @@
 package org.gradle.play.integtest.advanced
 
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
+    def setup() {
+        runningApp = new AdvancedRunningPlayApp(testDirectory)
+    }
+
     @Override
     PlayApp getPlayApp() {
         return new AdvancedPlayApp()
@@ -32,11 +37,13 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
 
         jar("build/playBinary/lib/${playApp.name}.jar").containsDescendants(
                 "views/html/awesome/index.class",
+                "jva/html/index.class",
                 "special/strangename/Application.class",
                 "models/DataType.class",
                 "models/ScalaClass.class",
-                "controllers/scala/MixedJava.class",
-                "controllers/jva/PureJava.class"
+                "controllers/scla/MixedJava.class",
+                "controllers/jva/PureJava.class",
+                "evolutions/default/1.sql"
         )
 
         jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(
@@ -48,9 +55,7 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
     }
 
     @Override
-    void verifyRunningApp() {
-        super.verifyRunningApp()
-
-        AdvancedAppContentVerifier.verifyRunningApp(this)
+    String[] getBuildTasks() {
+        return super.getBuildTasks() + ":compilePlayBinaryPlayJavaTwirlTemplates"
     }
 }

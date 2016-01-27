@@ -16,9 +16,12 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.internal.core.ModelPromise;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.InvalidModelRuleException;
+import org.gradle.model.ModelRuleBindingException;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 /**
  * A binding of a reference to an actual model element.
@@ -27,19 +30,23 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  */
 abstract class ModelBinding {
 
-    final ModelReference<?> reference;
+    final BindingPredicate predicate;
     final ModelRuleDescriptor referrer;
     final boolean writable;
     protected ModelNodeInternal boundTo;
 
-    protected ModelBinding(ModelRuleDescriptor referrer, ModelReference<?> reference, boolean writable) {
-        this.reference = reference;
+    protected ModelBinding(ModelRuleDescriptor referrer, BindingPredicate predicate, boolean writable) {
+        this.predicate = predicate;
         this.referrer = referrer;
         this.writable = writable;
     }
 
-    public ModelReference<?> getReference() {
-        return reference;
+    /**
+     * Returns the reference to the <em>output</em> of the rule. The state returned from {@link BindingPredicate#getState()} should reflect
+     * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
+     */
+    public BindingPredicate getPredicate() {
+        return predicate;
     }
 
     public boolean isBound() {
@@ -53,18 +60,30 @@ abstract class ModelBinding {
         return boundTo;
     }
 
-    boolean isTypeCompatible(ModelPromise promise) {
-        return promise.canBeViewedAsWritable(reference.getType()) || promise.canBeViewedAsReadOnly(reference.getType());
-    }
-
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", node=" + boundTo + '}';
+        return "ModelBinding{predicate=" + predicate + ", node=" + boundTo + '}';
     }
 
-    public abstract void onCreate(ModelNodeInternal node);
+    public abstract boolean canBindInState(ModelNode.State state);
 
-    public void onRemove(ModelNodeInternal node) {
+    public final void onBind(ModelNodeInternal node) {
+        if (boundTo != null) {
+            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
+            ModelPath path = node.getPath();
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
+            ));
+        }
+
+        doOnBind(node);
+    }
+
+    protected void doOnBind(ModelNodeInternal node) {
+        // Do nothing by default
+    }
+
+    public void onUnbind(ModelNodeInternal node) {
         if (node == boundTo) {
             boundTo = null;
         }

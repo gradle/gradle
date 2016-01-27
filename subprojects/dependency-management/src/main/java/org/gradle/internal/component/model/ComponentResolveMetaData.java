@@ -28,7 +28,7 @@ import java.util.Set;
  * The meta-data for a component instance that is required during dependency resolution.
  */
 public interface ComponentResolveMetaData {
-    static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+    List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
      * Returns the identifier for this component.
@@ -59,7 +59,6 @@ public interface ComponentResolveMetaData {
     /**
      * Returns the names of all of the configurations for this component.
      */
-    // TODO:DAZ Maybe getConfigurations() would be better?
     Set<String> getConfigurationNames();
 
     /**

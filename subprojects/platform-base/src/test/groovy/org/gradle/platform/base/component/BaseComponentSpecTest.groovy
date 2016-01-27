@@ -15,23 +15,16 @@
  */
 
 package org.gradle.platform.base.component
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.FunctionalSourceSet
+
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
-import spock.lang.Specification
+import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 
-class BaseComponentSpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
-    def componentId = Mock(ComponentSpecIdentifier)
-    FunctionalSourceSet functionalSourceSet;
-
-    def setup() {
-        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
-    }
+class BaseComponentSpecTest extends PlatformBaseSpecification {
+    def componentId = new DefaultComponentSpecIdentifier("p", "c")
 
     def "cannot instantiate directly"() {
         when:
@@ -42,54 +35,56 @@ class BaseComponentSpecTest extends Specification {
         e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
     }
 
-    def "cannot create instance of base class"() {
-        when:
-        BaseComponentSpec.create(BaseComponentSpec, componentId, functionalSourceSet, instantiator)
-
-        then:
-        def e = thrown ModelInstantiationException
-        e.message == "Cannot create instance of abstract class BaseComponentSpec."
+    private <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType) {
+        return BaseComponentFixtures.create(publicType, implType, componentId)
     }
 
     def "library has name, path and sensible display name"() {
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
-
         when:
-        _ * componentId.name >> "jvm-lib"
-        _ * componentId.projectPath >> ":project-path"
+        def component = create(SampleComponent, MySampleComponent)
 
         then:
-        component.class == MySampleComponent
-        component.name == "jvm-lib"
-        component.projectPath == ":project-path"
-        component.displayName == "MySampleComponent 'jvm-lib'"
+        component instanceof SampleComponent
+        component.name == componentId.name
+        component.projectPath == componentId.projectPath
+        component.displayName == "SampleComponent '$componentId.name'"
+        component.toString() == component.displayName
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {
 
         when:
-        BaseComponentSpec.create(MyConstructedComponent, componentId, functionalSourceSet, instantiator)
+        create(ConstructedComponent, MyConstructedComponent)
 
         then:
-        def e = thrown ModelInstantiationException
-        e.message == "Could not create component of type MyConstructedComponent"
-        e.cause instanceof IllegalArgumentException
-        e.cause.message.startsWith "Could not find any public constructor for class"
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ModelInstantiationException
+        e.cause.message == "Could not create component of type ConstructedComponent"
+        e.cause.cause instanceof IllegalArgumentException
+        e.cause.cause.message.startsWith "Could not find any public constructor for class"
     }
 
     def "contains sources of associated main sourceSet"() {
         when:
+        def component = create(SampleComponent, MySampleComponent)
         def lss1 = languageSourceSet("lss1")
-        functionalSourceSet.add(lss1)
-
-        def component = BaseComponentSpec.create(MySampleComponent, componentId, functionalSourceSet, instantiator)
-
-        and:
         def lss2 = languageSourceSet("lss2")
-        functionalSourceSet.add(lss2)
+        component.sources.put("lss1", lss1)
+        component.sources.put("lss2", lss2)
 
         then:
-        component.getSource().values() as List == [lss1, lss2]
+        component.sources as List == [lss1, lss2]
+    }
+
+    def "source property is the same as sources property"() {
+        when:
+        def component = create(SampleComponent, MySampleComponent)
+        def lss1 = languageSourceSet("lss1")
+        component.sources.put("lss1", lss1)
+
+        then:
+        component.source.values() == [lss1]
+        component.sources.values() == [lss1]
     }
 
     def languageSourceSet(String name) {
@@ -98,8 +93,13 @@ class BaseComponentSpecTest extends Specification {
         }
     }
 
-    static class MySampleComponent extends BaseComponentSpec {}
-    static class MyConstructedComponent extends BaseComponentSpec {
+    interface SampleComponent extends ComponentSpec {}
+
+    static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+    interface ConstructedComponent extends ComponentSpec {}
+
+    static class MyConstructedComponent extends BaseComponentSpec implements ConstructedComponent {
         MyConstructedComponent(String arg) {}
     }
 }

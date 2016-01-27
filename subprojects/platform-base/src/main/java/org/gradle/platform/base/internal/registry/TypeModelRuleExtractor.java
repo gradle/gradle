@@ -18,72 +18,84 @@ package org.gradle.platform.base.internal.registry;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ExtractedModelRule;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 
-public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenComponentModelRuleExtractor<A> {
-
+public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, BASEIMPL extends TYPE> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
     private final String modelName;
-    private final ModelType<T> baseInterface;
-    private final ModelType<U> baseImplementation;
+    private final ModelType<TYPE> baseInterface;
+    private final ModelType<BASEIMPL> baseImplementation;
     private final ModelType<?> builderInterface;
-    private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
+    private final ModelSchemaStore schemaStore;
 
-    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory) {
+    public TypeModelRuleExtractor(String modelName, Class<TYPE> baseInterface, Class<BASEIMPL> baseImplementation, Class<?> builderInterface, ModelSchemaStore schemaStore) {
         this.modelName = modelName;
-        this.typeBuilderFactory = typeBuilderFactory;
+        this.schemaStore = schemaStore;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        try {
-            ModelType<? extends T> type = readType(ruleDefinition);
-            TypeBuilderInternal<T> builder = typeBuilderFactory.create();
-            ruleDefinition.getRuleInvoker().invoke(builder);
-            return createRegistration(ruleDefinition, type, builder);
-        } catch (InvalidModelException e) {
-            throw invalidModelRule(ruleDefinition, e);
+    @Nullable
+    @Override
+    public <R, S> ExtractedModelRule registration(final MethodRuleDefinition<R, S> ruleDefinition, MethodModelRuleExtractionContext context) {
+        ModelType<? extends TYPE> type = readType(ruleDefinition, context);
+        if (context.hasProblems()) {
+            return null;
         }
+        return createExtractedRule(ruleDefinition, type);
     }
 
-    @Nullable
-    protected abstract <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+    /**
+     * Create model type registration.
+     * @param <P> Public parameterized type
+     */
+    protected abstract <P extends TYPE> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type);
 
-    protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition);
+    protected ModelType<? extends TYPE> readType(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+        validateIsVoidMethod(ruleDefinition, problems);
         if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+            return null;
         }
+
         ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
-        @SuppressWarnings("ConstantConditions") ModelType<?> builder = subjectReference.getType();
+        ModelType<?> builder = subjectReference.getType();
         if (!builderInterface.isAssignableFrom(builder)) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+            return null;
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter.", builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", builderInterface.toString()));
+            return null;
         }
+
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
         if (subType.isWildcard()) {
-            throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+            problems.add(ruleDefinition, String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+            return null;
+        }
+        if (!baseInterface.isAssignableFrom(subType)) {
+            problems.add(ruleDefinition, String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+            return null;
         }
 
-        ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
-        if (asSubclass == null) {
-            throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
-        }
-
-        return asSubclass;
+        return subType.asSubtype(baseInterface);
     }
 
     protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
@@ -93,29 +105,93 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {
-        Class<? extends T> implementation = builder.getDefaultImplementation();
+    protected ModelType<? extends BASEIMPL> determineImplementationType(ModelType<?> type, TypeBuilderInternal<?> builder) {
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isInterface()) {
+                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
+            }
+        }
+
+        Class<?> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }
 
-        ModelType<? extends T> implementationType = ModelType.of(implementation);
-        ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
+        ModelType<?> implementationType = ModelType.of(implementation);
 
-        if (asSubclass == null) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
+        if (!baseImplementation.isAssignableFrom(implementationType)) {
+            throw new InvalidModelException(String.format("%s implementation %s must extend %s.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
+        ModelType<? extends BASEIMPL> asSubclass = implementationType.asSubtype(baseImplementation);
         if (!type.isAssignableFrom(asSubclass)) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
+            throw new InvalidModelException(String.format("%s implementation %s must implement %s.", StringUtils.capitalize(modelName), asSubclass, type));
+        }
+
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isAssignableFrom(implementation)) {
+                throw new InvalidModelException(String.format("%s implementation %s must implement internal view %s.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
+            }
         }
 
         try {
             asSubclass.getRawClass().getConstructor();
         } catch (NoSuchMethodException nsmException) {
-            throw new InvalidModelException(String.format("%s implementation '%s' must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
+            throw new InvalidModelException(String.format("%s implementation %s must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
         }
 
         return asSubclass;
+    }
+
+    protected abstract class ExtractedTypeRule<PUBLICTYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>, REGISTRY> implements ExtractedModelRule {
+        protected final MethodRuleDefinition<?, ?> ruleDefinition;
+        protected final ModelType<PUBLICTYPE> publicType;
+
+        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
+            this.ruleDefinition = ruleDefinition;
+            this.publicType = publicType;
+        }
+
+        @Override
+        public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
+            ModelReference<REGISTRY> subjectReference = ModelReference.of(getRegistryType());
+            context.getRegistry().configure(ModelActionRole.Mutate,
+                    context.contextualize(new TypeRegistrationAction(subjectReference, ruleDefinition.getDescriptor())));
+        }
+
+        @Override
+        public MethodRuleDefinition<?, ?> getRuleDefinition() {
+            return ruleDefinition;
+        }
+
+        protected abstract Class<REGISTRY> getRegistryType();
+
+        protected abstract void register(REGISTRY registry, ModelSchema<PUBLICTYPE> schema, BUILDER builder, ModelType<? extends BASEIMPL> implModelType);
+
+        protected abstract BUILDER createBuilder(ModelSchema<PUBLICTYPE> schema);
+
+        private class TypeRegistrationAction extends AbstractMethodRuleAction<REGISTRY> {
+            public TypeRegistrationAction(ModelReference<REGISTRY> subject, ModelRuleDescriptor descriptor) {
+                super(subject, descriptor);
+            }
+
+            @Override
+            public List<? extends ModelReference<?>> getInputs() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            protected void execute(ModelRuleInvoker<?> invoker, REGISTRY registry, List<ModelView<?>> inputs) {
+                try {
+                    ModelSchema<PUBLICTYPE> schema = schemaStore.getSchema(publicType);
+                    BUILDER builder = createBuilder(schema);
+                    invoker.invoke(builder);
+                    ModelType<? extends BASEIMPL> implModelType = determineImplementationType(publicType, builder);
+                    register(registry, schema, builder, implModelType);
+                } catch (InvalidModelException e) {
+                    throw invalidModelRule(ruleDefinition, e);
+                }
+            }
+        }
     }
 }

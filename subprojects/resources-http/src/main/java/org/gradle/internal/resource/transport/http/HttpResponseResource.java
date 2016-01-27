@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.util.EntityUtils;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
@@ -81,7 +81,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     public long getContentLength() {
         Header header = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (header == null) {
-            return -1;            
+            return -1;
         }
 
         String value = header.getValue();
@@ -128,11 +128,11 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         Header etagHeader = response.getFirstHeader(HttpHeaders.ETAG);
         return etagHeader == null ? null : etagHeader.getValue();
     }
-    
+
     private static HashValue getSha1(HttpResponse response, String etag) {
         Header sha1Header = response.getFirstHeader("X-Checksum-Sha1");
         if (sha1Header != null) {
-            return new HashValue(sha1Header.getValue());    
+            return new HashValue(sha1Header.getValue());
         }
 
         // Nexus uses sha1 etags, with a constant prefix

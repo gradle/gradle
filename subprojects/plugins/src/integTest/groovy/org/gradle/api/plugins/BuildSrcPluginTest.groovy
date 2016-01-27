@@ -17,11 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 class BuildSrcPluginTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2001") // when using the daemon
+    @LeaksFileHandles
     def "can use plugin from buildSrc that changes"() {
         given:
         executer.requireIsolatedDaemons() // make sure we get the same daemon both times
@@ -29,14 +31,14 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
         buildFile << "apply plugin: 'test-plugin'"
 
         file("buildSrc/settings.gradle") << "include 'testplugin'"
-        
+
         file("buildSrc/build.gradle") << """
             apply plugin: "groovy"
             dependencies {
                 runtime project(":testplugin")
             }
         """
-                
+
         file("buildSrc/testplugin/build.gradle") << """
             apply plugin: "groovy"
 

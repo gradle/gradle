@@ -15,10 +15,10 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import java.io.File;
-import java.util.Collection;
-
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.gradle.api.GradleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
@@ -27,28 +27,24 @@ import org.sonatype.aether.deployment.DeploymentException;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.util.repository.DefaultProxySelector;
-import org.gradle.api.GradleException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
-    private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
-    public MavenDeployAction(File pomFile) {
-        super(pomFile);
+    public MavenDeployAction(File pomFile, List<File> wagonJars) {
+        super(pomFile, wagonJars);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
         this.remoteRepository = repository;
         this.remoteSnapshotRepository = snapshotRepository;
-    }
-
-    public void setUniqueVersion(boolean uniqueVersion) {
-        snapshotVersionManager.setUniqueVersion(uniqueVersion);
     }
 
     @Override
@@ -69,15 +65,12 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
             request.addArtifact(artifact);
         }
 
-        snapshotVersionManager.install(repositorySystem);
-
-        LOGGER.info("Deploying to " + gradleRepo.getUrl());
+        LOGGER.info("Deploying to {}", gradleRepo.getUrl());
         repositorySystem.deploy(session, request);
     }
 
     private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {
-        org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote",
-                        gradleRepo.getLayout(), gradleRepo.getUrl());
+        org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote", gradleRepo.getLayout(), gradleRepo.getUrl());
 
         org.apache.maven.artifact.ant.Authentication auth = gradleRepo.getAuthentication();
         if (auth != null) {

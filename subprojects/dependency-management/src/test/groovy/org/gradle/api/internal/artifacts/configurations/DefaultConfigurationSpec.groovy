@@ -23,22 +23,22 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
-import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-import static org.gradle.api.artifacts.Configuration.State.RESOLVED
-import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
+import static org.gradle.api.artifacts.Configuration.State.*
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -51,6 +51,7 @@ class DefaultConfigurationSpec extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
+    def metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
@@ -286,11 +287,37 @@ class DefaultConfigurationSpec extends Specification {
         resolvedConfiguration.rethrowFailure() >> { throw failure }
 
         when:
+        configuration.getResolvedConfiguration()
+
+        then:
+        configuration.getState() == RESOLVED_WITH_FAILURES
+
+        when:
         configuration.resolve()
 
         then:
         def t = thrown(RuntimeException)
         t == failure
+    }
+
+    def "state indicates failure resolving graph"() {
+        given:
+        def configuration = conf()
+        def failure = new ResolveException("bad", new RuntimeException())
+
+        and:
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+            resolverResults.failed(failure)
+        }
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
+        when:
+        configuration.getBuildDependencies()
+
+        then:
+        def t = thrown(ResolveException)
+        t == failure
+        configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
     def fileCollectionWithDependencies() {
@@ -403,11 +430,11 @@ class DefaultConfigurationSpec extends Specification {
 
     private void expectResolved(ResolvedConfiguration resolvedConfiguration) {
         def resolutionResults = Mock(ResolutionResult)
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def localComponentsResult = Mock(ResolvedLocalComponentsResult)
 
-        _ * projectConfigurationResults.get() >> Collections.emptySet()
-        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
-            resolverResults.resolved(resolutionResults, projectConfigurationResults)
+        _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, DefaultResolverResults resolverResults ->
+            resolverResults.resolved(resolutionResults, localComponentsResult)
             resolverResults.withResolvedConfiguration(resolvedConfiguration)
         }
     }
@@ -761,8 +788,8 @@ class DefaultConfigurationSpec extends Specification {
         TaskDependency taskDep = Mock()
         def config = conf("conf")
         def resolvedConfiguration = Mock(ResolvedConfiguration)
-        def resolverResults = new ResolverResults()
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def resolverResults = new DefaultResolverResults()
+        def projectConfigurationResults = Mock(ResolvedLocalComponentsResult)
 
         given:
         config.dependencies.add(dependency)
@@ -774,8 +801,9 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
         _ * resolvedConfiguration.hasError() >> false
-        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.resolved(Mock(ResolutionResult), projectConfigurationResults)
         }
         _ * projectConfigurationResults.get() >> []
@@ -897,12 +925,13 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
-        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
-        projectConfigurationResults.get() >> []
-        resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
-            res.resolved(resolutionResult, projectConfigurationResults)
+        def localComponentsResult = Mock(ResolvedLocalComponentsResult)
+        localComponentsResult.resolvedProjectConfigurations >> []
+        localComponentsResult.componentBuildDependencies >> new DefaultTaskDependency()
+        resolver.resolve(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
+            res.resolved(resolutionResult, localComponentsResult)
         }
-        resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+        resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, DefaultResolverResults res ->
             res.withResolvedConfiguration(resolvedConfiguration)
         }
     }
@@ -913,11 +942,27 @@ class DefaultConfigurationSpec extends Specification {
         resolves(config, result, Mock(ResolvedConfiguration))
 
         when:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
+    }
+
+    def "can determine task dependencies without resolution"() {
+        def config = conf("conf")
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.state == UNRESOLVED
+
+        and:
+        1 * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
+        0 * _._
     }
 
     def "resolving configuration marks parent configuration as observed"() {
@@ -931,7 +976,7 @@ class DefaultConfigurationSpec extends Specification {
         config.resolve()
 
         then:
-        parent.internalState == ConfigurationInternal.InternalState.RESULTS_OBSERVED
+        parent.observedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -951,10 +996,10 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        1 * listenerBroadcaster.getSource() >> listener
+        _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * listener.afterResolve(config.incoming)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -963,11 +1008,14 @@ class DefaultConfigurationSpec extends Specification {
         def result = Mock(ResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
 
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
         when:
         config.getBuildDependencies()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -975,7 +1023,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -983,12 +1031,15 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
 
+        given:
+        _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
+
         when:
         resolves(config, result, Mock(ResolvedConfiguration))
         config.incoming.getResolutionResult()
 
         then:
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -996,7 +1047,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver.resolve(_)
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1015,7 +1066,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1026,7 +1077,7 @@ class DefaultConfigurationSpec extends Specification {
         then:
         0 * resolver.resolve(_)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
-        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1056,7 +1107,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
         copy.state == UNRESOLVED
     }
 
@@ -1098,10 +1149,10 @@ class DefaultConfigurationSpec extends Specification {
         exArtifact.message == "Cannot change artifacts of configuration ':conf' after it has been resolved."
     }
 
-    def "whenEmpty action does not trigger when config has dependencies"() {
+    def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
-        conf.whenEmpty whenEmptyAction
+        def defaultDependencyAction = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction
         conf.dependencies.add(Mock(Dependency))
 
         when:
@@ -1111,55 +1162,55 @@ class DefaultConfigurationSpec extends Specification {
         0 * _
     }
 
-    def "second whenEmpty action does not trigger if first one already added dependencies"() {
+    def "second defaultDependencies action does not trigger if first one already added dependencies"() {
         def conf = conf("conf")
-        def whenEmptyAction1 = Mock(Action)
-        def whenEmptyAction2 = Mock(Action)
-        conf.whenEmpty whenEmptyAction1
-        conf.whenEmpty whenEmptyAction2
+        def defaultDependencyAction1 = Mock(Action)
+        def defaultDependencyAction2 = Mock(Action)
+        conf.defaultDependencies defaultDependencyAction1
+        conf.defaultDependencies defaultDependencyAction2
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction1.execute(conf.dependencies) >> {
+        1 * defaultDependencyAction1.execute(conf.dependencies) >> {
             conf.dependencies.add(Mock(Dependency))
         }
         0 * _
     }
 
-    def "whenEmpty action is called even if parent config has dependencies"() {
+    def "defaultDependencies action is called even if parent config has dependencies"() {
         def parent = conf("parent", ":parent")
         parent.dependencies.add(Mock(Dependency))
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
         0 * _
     }
 
-    def "whenEmpty action is called on self first, then on parent"() {
+    def "defaultDependencies action is called on self first, then on parent"() {
         def parentWhenEmptyAction = Mock(Action)
         def parent = conf("parent", ":parent")
-        parent.whenEmpty parentWhenEmptyAction
+        parent.defaultDependencies parentWhenEmptyAction
 
         def conf = conf("conf")
-        def whenEmptyAction = Mock(Action)
+        def defaultDependencyAction = Mock(Action)
         conf.extendsFrom parent
-        conf.whenEmpty whenEmptyAction
+        conf.defaultDependencies defaultDependencyAction
 
         when:
         conf.triggerWhenEmptyActionsIfNecessary()
 
         then:
-        1 * whenEmptyAction.execute(conf.dependencies)
+        1 * defaultDependencyAction.execute(conf.dependencies)
 
         then:
         1 * parentWhenEmptyAction.execute(parent.dependencies)
@@ -1242,7 +1293,8 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, projectAccessListener, projectFinder)
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+                resolutionStrategy, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory())
     }
 
     private DefaultPublishArtifact artifact(String name) {
@@ -1263,9 +1315,5 @@ All Artifacts:
                 props.file,
                 props.tasks ?: []
         )
-    }
-
-    private PublishArtifactSet artifacts(PublishArtifact... containedArtifacts) {
-        new DefaultPublishArtifactSet("artifacts", WrapUtil.toDomainObjectSet(PublishArtifact.class, containedArtifacts))
     }
 }

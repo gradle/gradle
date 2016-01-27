@@ -19,7 +19,8 @@ import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.initialization.FixedBuildCancellationToken
+import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import spock.lang.Specification
@@ -32,7 +33,8 @@ class RunBuildActionTest extends Specification {
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
     final BuildActionParameters parameters = Mock()
-    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters)
+    final ServiceRegistry sharedServices = Mock()
+    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters, sharedServices)
 
     def runsBuildUsingDaemon() {
         when:
@@ -40,12 +42,13 @@ class RunBuildActionTest extends Specification {
 
         then:
         startParameter.logLevel >> LogLevel.ERROR
-        1 * client.execute({!null}, {!null}, {!null}) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build ->
+        1 * client.execute({!null}, {!null}, {!null}, {!null}) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build, ServiceRegistry services ->
             assert action.startParameter == startParameter
-            assert context.cancellationToken instanceof FixedBuildCancellationToken
+            assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
             assert context.buildTimeClock.startTime == startTime
             assert build == parameters
+            assert services == sharedServices
         }
         0 * _._
     }

@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.Set;
 
 public class CompilationStateSerializer implements Serializer<CompilationState> {
-    
+
     private static final int SERIAL_VERSION = 1;
     private final BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
     private final Serializer<File> fileSerializer;

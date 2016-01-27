@@ -36,14 +36,16 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private final File rootProjectDirectory;
+    private final File gradleUserHomeDir;
 
-    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath, FileCollection zincClasspath) {
+    public ScalaCompilerFactory(File rootProjectDirectory, IsolatedAntBuilder antBuilder, JavaCompilerFactory javaCompilerFactory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath, FileCollection zincClasspath, File gradleUserHomeDir) {
         this.rootProjectDirectory = rootProjectDirectory;
         this.antBuilder = antBuilder;
         this.javaCompilerFactory = javaCompilerFactory;
         this.compilerDaemonFactory = compilerDaemonFactory;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     @SuppressWarnings("unchecked")
@@ -64,7 +66,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         Set<File> zincClasspathFiles = zincClasspath.getFiles();
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir), compilerDaemonFactory, zincClasspathFiles);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

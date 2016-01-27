@@ -15,18 +15,19 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 
 public interface FileCollectionResolveContext {
     /**
      * Adds the given element to be resolved. Handles the following types:
      *
      * <ul>
-     *     <li>{@link Iterable} - elements are recursively resolved.
+     *     <li>{@link Iterable} or array - elements are recursively resolved.
      *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
      *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
      *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
      *     <li>{@link org.gradle.api.Task} - resolved to task.outputs.files
+     *     <li>{@link org.gradle.api.tasks.TaskOutputs} - resolved to outputs.files
      *     <li>{@link MinimalFileSet} - wrapped as a {@link org.gradle.api.file.FileCollection}.
      *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
      *     <li>{@link FileCollectionContainer} - recursively resolved.
@@ -45,7 +46,7 @@ public interface FileCollectionResolveContext {
      * Adds a nested context which resolves elements using the given resolver. Any element added to the returned context will be added to this context. Those elements
      * which need to be resolved using a file resolver will use the provided resolver, instead of the default used by this context.
      */
-    FileCollectionResolveContext push(FileResolver fileResolver);
+    FileCollectionResolveContext push(PathToFileResolver fileResolver);
 
     /**
      * Creates a new context which can be used to resolve element. Elements added to the returned context will not be added to this context. Instead, the caller should use

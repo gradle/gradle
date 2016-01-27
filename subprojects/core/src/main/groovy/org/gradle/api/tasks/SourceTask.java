@@ -23,7 +23,9 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +35,16 @@ import java.util.Set;
  */
 public class SourceTask extends ConventionTask implements PatternFilterable {
     protected final List<Object> source = new ArrayList<Object>();
-    private final PatternFilterable patternSet = new PatternSet();
+    private final PatternFilterable patternSet;
+
+    public SourceTask() {
+        patternSet = getPatternSetFactory().create();
+    }
+
+    @Inject
+    protected Factory<PatternSet> getPatternSetFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.

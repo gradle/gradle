@@ -18,12 +18,11 @@ package org.gradle.model.internal.core;
 
 public interface ModelViewState {
 
-    ModelViewState ALWAYS_MUTABLE = new ModelViewState() {
-        @Override
-        public void assertCanMutate() {
-
-        }
-    };
-
     void assertCanMutate();
+
+    void assertCanReadChildren();
+
+    void assertCanReadChild(String name);
+
+    boolean isCanMutate();
 }

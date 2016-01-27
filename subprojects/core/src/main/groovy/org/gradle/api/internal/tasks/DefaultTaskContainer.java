@@ -24,6 +24,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -33,7 +34,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -201,9 +201,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public void maybeRealizeTask(String name) {
+    public void prepareForExecution(Task task) {
+        assert task.getProject() == project;
+        if (modelNode.hasLink(task.getName())) {
+            realizeTask(MODEL_PATH.child(task.getName()), ModelNode.State.GraphClosed);
+        }
+    }
+
+    private void maybeCreateTasks(String name) {
         if (modelNode.hasLink(name)) {
-            realizeTask(MODEL_PATH.child(name));
+            realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
         }
     }
 
@@ -212,21 +219,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (task != null) {
             return task;
         }
-        maybeMaterializePlaceholder(name);
-        maybeRealizeTask(name);
+        maybeCreateTasks(name);
+        placeholders.remove(name);
         return super.findByName(name);
     }
 
-    private void maybeMaterializePlaceholder(String name) {
-        if (placeholders.remove(name)) {
-            if (super.findByName(name) == null && modelNode.hasLink(name)) {
-                realizeTask(MODEL_PATH.child(name));
-            }
-        }
-    }
-
-    private Task realizeTask(ModelPath taskPath) {
-        return project.getModelRegistry().realize(taskPath, ModelType.of(Task.class));
+    private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {
+        return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
     public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
@@ -234,9 +233,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
             modelNode.addLink(
-                ModelCreators
-                    .of(path, new TaskCreator<T>(placeholderName, taskType, configure, taskModelType))
-                    .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
+                ModelRegistrations.of(path)
+                    .action(ModelActionRole.Create, new TaskCreator<T>(placeholderName, taskType, configure, taskModelType))
+                    .withProjection(new UnmanagedModelProjection<T>(taskModelType))
                     .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
                     .build()
             );
@@ -245,7 +244,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             placeholders.add(placeholderName);
         }
     }
-
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
@@ -286,16 +284,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void execute(final MutableModelNode mutableModelNode) {
-            DeprecationLogger.whileDisabled(new Runnable() {
-                @Override
-                public void run() {
-                    DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
-                    T task = taskContainer.taskFactory.create(placeholderName, taskType);
-                    configure.execute(task);
-                    taskContainer.add(task);
-                    mutableModelNode.setPrivateData(taskModelType, task);
-                }
-            });
+            DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
+            T task = taskContainer.taskFactory.create(placeholderName, taskType);
+            configure.execute(task);
+            taskContainer.add(task);
+            mutableModelNode.setPrivateData(taskModelType, task);
         }
+    }
+
+    @Override
+    public <S extends Task> TaskCollection<S> withType(Class<S> type) {
+        return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
     }
 }

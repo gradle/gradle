@@ -99,6 +99,23 @@ class JavaReflectionUtilTest extends Specification {
         readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
     }
 
+    def "set boolean field" () {
+        when:
+        writeableField(JavaTestSubject, "myBooleanField").setValue(myProperties, false)
+
+        then:
+        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == false
+    }
+
+    def "cannot set value on non public fields"(){
+        when:
+        writeableField(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
+
+        then:
+        thrown(NoSuchPropertyException);
+    }
+
+
     def "write boolean property"() {
         when:
         writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
@@ -281,6 +298,18 @@ class JavaReflectionUtilTest extends Specification {
         !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
     }
 
+    def "default toString methods"() {
+        expect:
+        hasDefaultToString(clazz)
+
+        where:
+        clazz << [new Object(), new Root()]
+    }
+
+    def "should not have a default toString"() {
+        expect:
+        !hasDefaultToString(new ClassWithToString())
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -322,3 +351,10 @@ class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
 class SuperWithInterface implements RootInterface {}
 
 class InheritsInterface extends SuperWithInterface {}
+
+class ClassWithToString {
+    @Override
+    public String toString() {
+        return "ClassWithToString{}";
+    }
+}

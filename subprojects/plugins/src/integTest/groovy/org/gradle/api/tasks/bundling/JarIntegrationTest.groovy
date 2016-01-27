@@ -278,6 +278,58 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
+    def "changes to manifest attributes should be honoured by incremental build"() {
+        given:
+        def jarWithManifest = { manifest ->
+            """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                manifest { $manifest }
+            }
+"""
+        }
+
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+        }
+        def jar = file('build/test.jar')
+
+        when:
+        buildFile.text = jarWithManifest("")
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == null
+
+        when: "Attribute added"
+        buildFile.text = jarWithManifest("attributes(attr: 'Hello')")
+        run 'jar'
+
+        then:
+        executedAndNotSkipped ':jar'
+        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
+
+        when: "Attribute modified"
+        buildFile.text = jarWithManifest("attributes(attr: 'Hi')")
+        run 'jar'
+
+        then:
+        executedAndNotSkipped ':jar'
+        jar.manifest.mainAttributes.getValue('attr') == 'Hi'
+
+        when: "Attribute removed"
+        buildFile.text = jarWithManifest("")
+        run 'jar'
+
+        then:
+        executedAndNotSkipped ':jar'
+        jar.manifest.mainAttributes.getValue('attr') == null
+    }
+
     private def createParallelDirsWithServices() {
         createDir('dir1') {
             'META-INF' {
@@ -316,5 +368,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.hasService('org.gradle.Service', 'org.gradle.BetterServiceImpl')
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
+
 
 }

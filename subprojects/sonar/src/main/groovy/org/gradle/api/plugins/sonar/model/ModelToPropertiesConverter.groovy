@@ -22,7 +22,10 @@ import net.jcip.annotations.NotThreadSafe
 /**
  * Converts a model object to a map of Sonar properties, guided by the information
  * provided with <tt>SonarProperty</tt> and <tt>IncludeProperties</tt> annotations.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 @NotThreadSafe
 class ModelToPropertiesConverter {
     List<Closure> propertyProcessors = []

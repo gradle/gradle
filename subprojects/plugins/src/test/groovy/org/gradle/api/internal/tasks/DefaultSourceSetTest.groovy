@@ -18,20 +18,26 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Task
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest {
-    private final FileResolver fileResolver = [resolve: {it as File}] as FileResolver
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
+    private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, fileResolver)
+        def s = new DefaultSourceSet(name, TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
     }
@@ -52,8 +58,8 @@ class DefaultSourceSetTest {
 
         assertThat(sourceSet.output.classesDir, nullValue())
         assertThat(sourceSet.output.files, isEmpty())
-        assertThat(sourceSet.output.displayName, equalTo('set name output'))
-        assertThat(sourceSet.output.toString(), equalTo('set name output'))
+        assertThat(sourceSet.output.displayName, equalTo('set name classes'))
+        assertThat(sourceSet.output.toString(), equalTo('set name classes'))
         assertThat(sourceSet.output.buildDependencies.getDependencies(null), isEmpty())
 
         assertThat(sourceSet.output.classesDir, nullValue())
@@ -126,33 +132,62 @@ class DefaultSourceSetTest {
     @Test public void canConfigureResources() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.resources { srcDir 'src/resources' }
-        assertThat(sourceSet.resources.srcDirs, equalTo([new File('src/resources').canonicalFile] as Set))
+        assertThat(sourceSet.resources.srcDirs, equalTo([tmpDir.file('src/resources')] as Set))
     }
-    
+
     @Test public void canConfigureJavaSource() {
         SourceSet sourceSet = sourceSet('main')
         sourceSet.java { srcDir 'src/java' }
-        assertThat(sourceSet.java.srcDirs, equalTo([new File('src/java').canonicalFile] as Set))
+        assertThat(sourceSet.java.srcDirs, equalTo([tmpDir.file('src/java')] as Set))
     }
 
     @Test
-    public void classesCollectionTracksChangesToClassesDir() {
+    public void tracksChangesToClassesDir() {
         SourceSet sourceSet = sourceSet('set-name')
         assertThat(sourceSet.output.files, isEmpty())
 
-        sourceSet.output.classesDir = new File('classes')
-        assertThat(sourceSet.output.files, equalTo([new File('classes')] as Set))
-        sourceSet.output.classesDir = new File('other-classes')
-        assertThat(sourceSet.output.files, equalTo([new File('other-classes')] as Set))
+        def dir1 = tmpDir.file('classes')
+        def dir2 = tmpDir.file('other-classes')
+
+        sourceSet.output.classesDir = dir1
+        assertThat(sourceSet.output.files, equalTo([dir1] as Set))
+
+        sourceSet.output.classesDir = dir2
+        assertThat(sourceSet.output.files, equalTo([dir2] as Set))
     }
 
     @Test
-    public void classesCollectionDependenciesTrackChangesToCompileTasks() {
+    public void dependenciesTrackChangesToCompileTasks() {
         SourceSet sourceSet = sourceSet('set-name')
-        assertThat(sourceSet.output.buildDependencies.getDependencies(null), isEmpty())
-
         sourceSet.output.classesDir = new File('classes')
+
+        def dependencies = sourceSet.output.buildDependencies
+        assertThat(dependencies.getDependencies(null), isEmpty())
+
         sourceSet.compiledBy('a', 'b')
-        assertThat(sourceSet.output.buildDependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+
+        sourceSet.compiledBy('c')
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
+    }
+
+    @Test
+    public void dependenciesTrackChangesToOutputDirs() {
+        SourceSet sourceSet = sourceSet('set-name')
+        sourceSet.output.classesDir = new File('classes')
+
+        def dependencies = sourceSet.output.buildDependencies
+        assertThat(dependencies.getDependencies(null), isEmpty())
+
+        sourceSet.compiledBy('a')
+
+        def dirs1 = new DefaultConfigurableFileCollection(fileResolver, taskResolver)
+
+        dirs1.builtBy('b')
+        sourceSet.output.dir(dirs1)
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+
+        dirs1.builtBy('c')
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
     }
 }

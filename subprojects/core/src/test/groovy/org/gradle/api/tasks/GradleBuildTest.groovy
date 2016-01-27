@@ -50,7 +50,22 @@ public class GradleBuildTest extends Specification {
         then:
         1 * launcherFactory.newInstance(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
-        1 * resultMock.rethrowFailure()
+        1 * launcher.stop()
+        0 * _._
+    }
+
+    void cleansUpOnBuildFailure() {
+        GradleLauncher launcher = Mock()
+        def failure = new RuntimeException()
+
+        when:
+        task.build()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+        1 * launcherFactory.newInstance(task.startParameter) >> launcher
+        1 * launcher.run() >> { throw failure }
         1 * launcher.stop()
         0 * _._
     }

@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -68,12 +69,13 @@ public abstract class DefaultScript extends BasicScript {
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
         FileLookup fileLookup = services.get(FileLookup.class);
+        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         if (target instanceof FileOperations) {
             fileOperations = (FileOperations) target;
         } else if (getScriptSource().getResource().getFile() != null) {
-            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator, fileLookup);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory);
         } else {
-            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory);
         }
 
         processOperations = (ProcessOperations) fileOperations;

@@ -38,6 +38,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private final String lineNumber;
     private final String fileName;
     private final String resolution;
+    // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
 
     public OutputScrapingExecutionFailure(String output, String error) {

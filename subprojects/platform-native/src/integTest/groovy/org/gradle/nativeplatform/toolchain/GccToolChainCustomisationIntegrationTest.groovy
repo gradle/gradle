@@ -20,6 +20,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -27,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 
 @RequiresInstalledToolChain(GccCompatible)
+@LeaksFileHandles
 class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 
@@ -93,16 +95,16 @@ model {
 """
 
         and:
-        succeeds "armMainExecutable", "i386MainExecutable", "sparcMainExecutable"
+        succeeds "mainArmExecutable", "mainI386Executable", "mainSparcExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/arm/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/arm/main").exec().out == helloWorldApp.frenchOutput
 
-        executable("build/binaries/mainExecutable/i386/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/i386/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/i386/main").exec().out == helloWorldApp.englishOutput
 
-        executable("build/binaries/mainExecutable/sparc/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/main/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -130,7 +132,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -196,10 +198,10 @@ model {
 """
         succeeds "assemble"
         then:
-        executable("build/binaries/mainExecutable/alwaysFrench/main").exec().out == helloWorldApp.frenchOutput
-        executable("build/binaries/mainExecutable/alwaysCPlusPlus/main").exec().out == helloWorldApp.englishOutput
-        executable("build/binaries/execTestExecutable/alwaysCPlusPlus/execTest").exec().out == "C++ compiler used"
-        executable("build/binaries/execTestExecutable/alwaysFrench/execTest").exec().out == "C compiler used"
+        executable("build/exe/main/alwaysFrench/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/exe/main/alwaysCPlusPlus/main").exec().out == helloWorldApp.englishOutput
+        executable("build/exe/execTest/alwaysCPlusPlus/execTest").exec().out == "C++ compiler used"
+        executable("build/exe/execTest/alwaysFrench/execTest").exec().out == "C compiler used"
     }
 
     def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {

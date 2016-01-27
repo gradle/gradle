@@ -39,7 +39,7 @@ public interface Decoder {
     long readLong() throws EOFException, IOException;
 
     /**
-     * Reads a signed 64 bit int value. Can read any value that was written using {@link Encoder#writeSmallLong(int)}.
+     * Reads a signed 64 bit int value. Can read any value that was written using {@link Encoder#writeSmallLong(long)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
      */

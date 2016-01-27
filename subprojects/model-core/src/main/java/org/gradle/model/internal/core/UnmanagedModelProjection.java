@@ -16,9 +16,16 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+
+import static org.gradle.internal.reflect.JavaReflectionUtil.hasDefaultToString;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.defaultValueOf;
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
+import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScalarType;
 
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
@@ -32,17 +39,30 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     }
 
     public UnmanagedModelProjection(ModelType<M> type) {
-        super(type, true, true);
-    }
-
-    public UnmanagedModelProjection(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
-        super(type, canBeViewedAsReadOnly, canBeViewedAsWritable);
+        super(type);
     }
 
     @Override
     protected ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        M instance = modelNode.getPrivateData(getType());
+        M instance = Cast.uncheckedCast(modelNode.getPrivateData());
         return InstanceModelView.of(modelNode.getPath(), getType(), instance);
     }
 
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNode) {
+        Object instance = this.asImmutable(ModelType.untyped(), modelNode, null).getInstance();
+        if (instance == null) {
+            if (isPrimitiveType(getType())) {
+                return Optional.of(String.valueOf(defaultValueOf(getType())));
+            }
+            if (isScalarType(getType())) {
+                return Optional.of("null");
+            }
+            return Optional.absent();
+        }
+        if (hasDefaultToString(instance)) {
+            return Optional.absent();
+        }
+        return Optional.of(toStringValueDescription(instance));
+    }
 }

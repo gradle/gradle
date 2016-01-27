@@ -1,4 +1,5 @@
 allprojects {
+    def antBuilder = it.services.get(org.gradle.api.internal.project.IsolatedAntBuilder)
     ext.useClassycle = { params = [:] ->
         def excludePatterns = params.exclude ?: []
 
@@ -22,23 +23,25 @@ allprojects {
                     if (!sourceSet.output.classesDir.directory) {
                         return;
                     }
-                    ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask", classpath: configurations.classycle.asPath)
-                    reportFile.parentFile.mkdirs()
-                    try {
-                        ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
+                    antBuilder.withClasspath(configurations.classycle.files).execute {
+                        ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
+                        reportFile.parentFile.mkdirs()
+                        try {
+                            ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
                                 """
                         show allResults
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
-                        ) {
-                            fileset(dir: sourceSet.output.classesDir) {
-                                excludePatterns.each { excludePattern ->
-                                    exclude(name: excludePattern)
+                            ) {
+                                fileset(dir: sourceSet.output.classesDir) {
+                                    excludePatterns.each { excludePattern ->
+                                        exclude(name: excludePattern)
+                                    }
                                 }
                             }
+                        } catch (Exception e) {
+                            throw new RuntimeException("Classycle check failed: $e.message. See report at ${new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(reportFile)}", e)
                         }
-                    } catch(Exception e) {
-                        throw new RuntimeException("Classycle check failed: $e.message. See report at ${new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(reportFile)}", e)
                     }
                 }
             }

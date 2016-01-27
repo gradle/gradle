@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -45,19 +46,21 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     private final IdGenerator<Long> idGenerator;
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final PersistentIndexedCache<String, Long> dirIdentifierCache;
+    private final StringInterner stringInterner;
 
     public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, IdGenerator<Long> idGenerator,
-                                            TaskArtifactStateCacheAccess cacheAccess) {
+                                            TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
         this.cacheAccess = cacheAccess;
         dirIdentifierCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
+        this.stringInterner = stringInterner;
     }
 
     public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
         DefaultSerializerRegistry<FileCollectionSnapshot> nested = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         snapshotter.registerSerializers(nested);
-        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build()));
+        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build(), stringInterner));
     }
 
     public FileCollectionSnapshot emptySnapshot() {
@@ -71,17 +74,18 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             public void run() {
                 for (File file : theFiles) {
                     Long dirId;
+                    final String absolutePath = stringInterner.intern(file.getAbsolutePath());
                     if (file.exists()) {
-                        dirId = dirIdentifierCache.get(file.getAbsolutePath());
+                        dirId = dirIdentifierCache.get(absolutePath);
                         if (dirId == null) {
                             dirId = idGenerator.generateId();
-                            dirIdentifierCache.put(file.getAbsolutePath(), dirId);
+                            dirIdentifierCache.put(absolutePath, dirId);
                         }
                     } else {
-                        dirIdentifierCache.remove(file.getAbsolutePath());
+                        dirIdentifierCache.remove(absolutePath);
                         dirId = null;
                     }
-                    snapshotDirIds.put(file.getAbsolutePath(), dirId);
+                    snapshotDirIds.put(absolutePath, dirId);
                 }
 
             }
@@ -98,8 +102,12 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             this.filesSnapshot = filesSnapshot;
         }
 
-        public FileCollection getFiles() {
+        public Collection<File> getFiles() {
             return filesSnapshot.getFiles();
+        }
+
+        public Collection<File> getAllFiles() {
+            return filesSnapshot.getAllFiles();
         }
 
         public FilesSnapshotSet getSnapshot() {

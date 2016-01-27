@@ -26,7 +26,8 @@ import java.util.List;
 
 public enum PlayMajorVersion {
     PLAY_2_2_X("2.2.x", "2.10"),
-    PLAY_2_3_X("2.3.x", "2.11", "2.10");
+    PLAY_2_3_X("2.3.x", "2.11", "2.10"),
+    PLAY_2_4_X("2.4.x", "2.11", "2.10");
 
     private final String name;
     private final List<String> compatibleScalaVersions;
@@ -61,7 +62,10 @@ public enum PlayMajorVersion {
         if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 3) {
             return PlayMajorVersion.PLAY_2_3_X;
         }
-        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: [2.3.x, 2.2.x].", playVersion));
+        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 4) {
+            return PlayMajorVersion.PLAY_2_4_X;
+        }
+        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: [2.4.x, 2.3.x, 2.2.x].", playVersion));
     }
 
 }

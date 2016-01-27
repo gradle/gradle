@@ -16,23 +16,18 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
+import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
 import org.gradle.play.internal.routes.RoutesCompilerFactory;
-import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayRunAdapterV22X;
-import org.gradle.play.internal.run.PlayRunAdapterV23X;
-import org.gradle.play.internal.run.VersionedPlayRunAdapter;
+import org.gradle.play.internal.run.*;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
@@ -48,31 +43,26 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private final FileResolver fileResolver;
     private final CompilerDaemonManager compilerDaemonManager;
-    private final ConfigurationContainer configurationContainer;
-    private final DependencyHandler dependencyHandler;
     private final PlayPlatform targetPlatform;
-    private final PlayMajorVersion playMajorVersion;
     private Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer,
-                                   DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform,
+    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager,
+                                   Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
-        this.configurationContainer = configurationContainer;
-        this.dependencyHandler = dependencyHandler;
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.targetPlatform = targetPlatform;
-        this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
         this.twirlClasspath = twirlClasspath;
         this.routesClasspath = routesClasspath;
         this.javaScriptClasspath = javaScriptClasspath;
+        // validate that the targetPlatform is valid
+        PlayMajorVersion.forPlatform(targetPlatform);
     }
 
-    // TODO:DAZ Detangle Routes adapter from compile specs
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
@@ -90,7 +80,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     @Override
     public <T> T get(Class<T> toolType) {
         if (PlayApplicationRunner.class.isAssignableFrom(toolType)) {
-            return toolType.cast(newApplicationRunner());
+            return toolType.cast(PlayApplicationRunnerFactory.create(targetPlatform, workerProcessBuilderFactory));
         }
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
@@ -99,21 +89,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         @SuppressWarnings("unchecked")
         Compiler<T> converted = (Compiler<T>) raw;
         return converted;
-    }
-
-    public PlayApplicationRunner newApplicationRunner() {
-        VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
-        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, playRunAdapter);
-    }
-
-    private VersionedPlayRunAdapter createPlayRunAdapter() {
-        switch (playMajorVersion) {
-            case PLAY_2_2_X:
-                return new PlayRunAdapterV22X();
-            case PLAY_2_3_X:
-            default:
-                return new PlayRunAdapterV23X();
-        }
     }
 
     public boolean isAvailable() {

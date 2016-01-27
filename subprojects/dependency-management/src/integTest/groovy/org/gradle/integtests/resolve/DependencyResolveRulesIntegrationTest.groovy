@@ -18,9 +18,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.junit.runner.RunWith
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
+@RunWith(FluidDependenciesResolveRunner)
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
     /**
@@ -665,9 +666,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("check", "dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""conf
+        output.contains """conf
 +--- org.utils:a:1.2 -> org.utils:b:2.1
-\\--- org.utils:b:2.0 -> 2.1"""))
+\\--- org.utils:b:2.0 -> 2.1"""
     }
 
     def "can substitute module group"()
@@ -697,11 +698,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 +--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:b:1.0 -> org:b:1.0
-     \\--- org:a:2.0 (*)"""))
+     \\--- org:a:2.0 (*)"""
     }
 
     def "can substitute module group, name and version"()
@@ -731,11 +732,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 +--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:bar:baz -> org:b:1.0
-     \\--- org:a:2.0 (*)"""))
+     \\--- org:a:2.0 (*)"""
     }
 
     def "provides decent feedback when target module incorrectly specified"()
@@ -783,13 +784,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("dependencies")
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 conf
 +--- org:a:1.0 -> org:c:2.0
 \\--- org:a:2.0
      \\--- org:b:2.0
           \\--- org:c:2.0
-"""))
+"""
     }
 
     def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"()

@@ -16,15 +16,12 @@
 package org.gradle.language.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.internal.ExtensiblePolymorphicDomainObjectContainerInternal;
+import org.gradle.model.ModelMap;
 
 /**
  * A container holding {@link LanguageSourceSet}s with a similar function
  * (production code, test code, etc.).
  */
 @Incubating
-// TODO:DAZ Make this internal
-public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainerInternal<LanguageSourceSet>, Named {
-    FunctionalSourceSet copy(String name);
+public interface FunctionalSourceSet extends ModelMap<LanguageSourceSet> {
 }

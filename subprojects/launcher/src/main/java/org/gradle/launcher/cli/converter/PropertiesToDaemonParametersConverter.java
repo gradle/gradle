@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.jvm.JavaHomeException;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.process.internal.JvmOptions;
@@ -49,12 +50,13 @@ public class PropertiesToDaemonParametersConverter {
             if (!javaHome.isDirectory()) {
                 throw new GradleException(String.format("Java home supplied via '%s' is invalid. Invalid directory: %s", JAVA_HOME_PROPERTY, prop));
             }
+            JavaInfo jvm;
             try {
-                Jvm.forHome(javaHome);
+                jvm = Jvm.forHome(javaHome);
             } catch (JavaHomeException e) {
                 throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_PROPERTY, prop));
             }
-            target.setJavaHome(javaHome);
+            target.setJvm(jvm);
         }
 
         prop = properties.get(DAEMON_BASE_DIR_PROPERTY);

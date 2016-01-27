@@ -40,9 +40,10 @@ import java.util.concurrent.ConcurrentMap;
  * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService
- * createSomeService() { .... }</code>. Parameters are injected using services from this registry or its parents.</li>
+ * createSomeService() { .... }</code>. Parameters are injected using services from this registry or its parents. Note that factory methods with a
+ * single parameter and an return type equal to that parameter type are interpreted as decorator methods.</li>
  *
- * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. Before invoking the method, the
+ * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have return type equal to the parameter type. Before invoking the method, the
  * parameter is located in the parent service registry and then passed to the method.</li>
  *
  * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters
@@ -89,7 +90,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public DefaultServiceRegistry(String displayName, Collection<? extends ServiceRegistry> parents) {
-        this.displayName = displayName != null ? displayName : getClass().getSimpleName();
+        this.displayName = displayName != null ? displayName : getClass().getSimpleName().intern();
         this.parentServices = parents.isEmpty() ? null : new CompositeProvider();
         this.ownServices = new OwnServices();
         allServices.providers.add(ownServices);
@@ -248,7 +249,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
                 }
-
                 builder.add(iterator, builder.factories, method);
             }
         }
@@ -259,11 +259,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         Iterator<Method> iterator = builder.remainingMethods.iterator();
         while (iterator.hasNext()) {
             Method method = iterator.next();
-            if (method.getName().startsWith("create") && method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(method.getReturnType())) {
+            if ((method.getName().startsWith("create") || method.getName().startsWith("decorate"))
+                && method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(method.getReturnType())) {
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
                 }
-
                 builder.add(iterator, builder.decorators, method);
             }
         }

@@ -80,7 +80,7 @@ class ToolingApiDistributionResolver {
                 .build()
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
-        BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
+        BuildScopeServices topLevelRegistry = BuildScopeServices.singleSession(globalRegistry, startParameter)
         ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject())
 
         stopLater.add(projectRegistry)

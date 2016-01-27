@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
@@ -49,6 +50,19 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return the dependency substitution rule (may aggregate multiple rules)
      */
     Action<DependencySubstitution> getDependencySubstitutionRule();
+
+    /**
+     * Used by tests to validate behaviour of the 'task graph modified' state
+     */
+    void assumeFluidDependencies();
+
+    /**
+     * Should the configuration be fully resolved to determine the task dependencies?
+     * If not, we do a shallow 'resolve' of SelfResolvingDependencies only.
+     */
+    boolean resolveGraphToDetermineTaskDependencies();
+
+    DependencySubstitutionsInternal getDependencySubstitution();
 
     /**
      * @return the version selection rules object

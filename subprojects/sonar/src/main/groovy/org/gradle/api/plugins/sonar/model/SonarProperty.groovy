@@ -19,6 +19,8 @@ import java.lang.annotation.*
 
 /**
  * Maps a model property to the corresponding Sonar property.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

@@ -29,8 +29,7 @@ class PersistentBuildProcessIntegrationTest extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
-    @Override
-    protected void cleanupWhileTestFilesExist() {
+    protected void cleanup() {
         if (GradleContextualExecuter.daemon) {
             executer.withArguments("-i", "--stop").run()
         }

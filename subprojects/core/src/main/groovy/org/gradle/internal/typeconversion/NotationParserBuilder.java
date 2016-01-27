@@ -89,7 +89,7 @@ public class NotationParserBuilder<T> {
     /**
      * Adds a converter that accepts any CharSequence notation.
      */
-    public NotationParserBuilder<T> fromCharSequence(NotationConverter<String, ? extends T> converter) {
+    public NotationParserBuilder<T> fromCharSequence(NotationConverter<? super String, ? extends T> converter) {
         this.notationParsers.add(new CharSequenceNotationConverter<Object, T>(converter));
         return this;
     }
@@ -130,6 +130,6 @@ public class NotationParserBuilder<T> {
         }
         composites.addAll(this.notationParsers);
 
-        return new NotationConverterToNotationParserAdapter<Object, T>(new CompositeNotationConverter<Object, T>(composites));
+        return new NotationConverterToNotationParserAdapter<Object, T>(composites.size() == 1 ? composites.get(0) : new CompositeNotationConverter<Object, T>(composites));
     }
 }

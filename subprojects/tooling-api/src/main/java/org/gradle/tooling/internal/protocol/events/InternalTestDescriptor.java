@@ -16,41 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-public interface InternalTestDescriptor extends InternalProtocolInterface {
-
-    /**
-     * Returns the id that uniquely identifies the test.
-     *
-     * @return The unique id of the test, never null
-     */
-    Object getId();
-
-    /**
-     * Returns the name of the test.
-     *
-     * @return The name of the test, never null
-     */
-    String getName();
-
-    /**
-     * Returns a human consumable display name for the test.
-     *
-     * @return The display name of the test
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the id of the parent of the test, if any.
-     *
-     * @return The id of the parent of the test, can be null
-     */
-    Object getParentId();
-
+public interface InternalTestDescriptor extends InternalOperationDescriptor {
 }

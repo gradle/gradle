@@ -41,7 +41,7 @@ public class ComponentSelectionRulesProcessor {
             return element.getAction().getInputTypes().isEmpty();
         }
     };
-    private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.not(withNoInputs);
+    private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.negate(withNoInputs);
 
     public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
         if (processRules(specRuleActions, withNoInputs, selection, metadataProvider)) {

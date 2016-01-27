@@ -16,21 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 
-public interface LocalComponentMetaData {
-    ModuleVersionIdentifier getId();
-
-    /**
-     * Converts this component to resolve meta-data.
-     */
-    ComponentResolveMetaData toResolveMetaData();
-
-    /**
-     * Converts this component to publication meta-data.
-     */
-    BuildableIvyModulePublishMetaData toPublishMetaData();
-
+public interface LocalComponentMetaData extends ComponentResolveMetaData {
 }

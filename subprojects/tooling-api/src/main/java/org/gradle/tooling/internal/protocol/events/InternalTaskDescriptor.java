@@ -16,48 +16,16 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.5
  */
-public interface InternalTaskDescriptor extends InternalProtocolInterface {
-
-    /**
-     * Returns the id that uniquely identifies the task.
-     *
-     * @return The unique id of the test, never null
-     */
-    Object getId();
-
-    /**
-     * Returns the name of the task.
-     *
-     * @return The name of the task, never null
-     */
-    String getName();
-
-    /**
-     * Returns a human consumable display name for the task.
-     *
-     * @return The display name of the task
-     */
-    String getDisplayName();
-
+public interface InternalTaskDescriptor extends InternalOperationDescriptor {
     /**
      * Returns the path of the task.
      *
      * @return The path of the task
      */
     String getTaskPath();
-
-    /**
-     * Returns the id of the parent of the task, if any.
-     *
-     * @return The id of the parent of the task, can be null
-     */
-    Object getParentId();
-
 }

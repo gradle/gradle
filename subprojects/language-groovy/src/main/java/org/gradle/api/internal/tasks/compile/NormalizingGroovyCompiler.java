@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -30,6 +31,8 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.gradle.internal.FileUtils.hasExtension;
 
 /**
  * A Groovy {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
@@ -52,10 +55,16 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     }
 
     private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
+        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), new Transformer<String, String>() {
+            @Override
+            public String transform(String extension) {
+                return '.' + extension;
+            }
+        });
         FileCollection filtered = spec.getSource().filter(new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                for (String fileExtension : spec.getGroovyCompileOptions().getFileExtensions()) {
-                    if (element.getName().endsWith("." + fileExtension)) {
+                for (String fileExtension : fileExtensions) {
+                    if (hasExtension(element, fileExtension)) {
                         return true;
                     }
                 }

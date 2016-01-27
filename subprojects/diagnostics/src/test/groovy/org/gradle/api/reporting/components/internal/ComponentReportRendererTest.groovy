@@ -94,7 +94,7 @@ class ComponentReportRendererTest extends Specification {
             getDisplayName() >> "<source set>"
         }
         def component = Stub(ComponentSpec) {
-            getSource() >> Stub(ModelMap) {
+            getSources() >> Stub(ModelMap) {
                 values() >> [sourceSet1]
             }
         }

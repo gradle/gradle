@@ -16,20 +16,37 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
-@ThreadSafe
+import java.net.URI;
+
 public class SourceLocation {
+    private final @Nullable URI uri;
     private final String scriptSourceDescription;
+    private final String expression;
     private final int lineNumber;
     private final int columnNumber;
 
-    public SourceLocation(String scriptSourceDescription, int lineNumber, int columnNumber) {
+    public SourceLocation(@Nullable URI uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
+        this.uri = uri;
         this.scriptSourceDescription = scriptSourceDescription;
+        this.expression = expression;
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
+    }
+
+    /**
+     * Called from generated code. See {@link RuleVisitor#visitGeneratedClosure(org.codehaus.groovy.ast.ClassNode)}
+     */
+    @SuppressWarnings("unused")
+    public SourceLocation(@Nullable String uri, String scriptSourceDescription, String expression, int lineNumber, int columnNumber) {
+        this(uri == null ? null : URI.create(uri), scriptSourceDescription, expression, lineNumber, columnNumber);
+    }
+
+    public String getExpression() {
+        return expression;
     }
 
     public int getLineNumber() {
@@ -40,8 +57,9 @@ public class SourceLocation {
         return columnNumber;
     }
 
-    public String getScriptSourceDescription() {
-        return scriptSourceDescription;
+    @Nullable
+    public URI getUri() {
+        return uri;
     }
 
     @Override
@@ -49,7 +67,7 @@ public class SourceLocation {
         return String.format("%s line %d, column %d", scriptSourceDescription, lineNumber, columnNumber);
     }
 
-    public ModelRuleDescriptor asDescriptor(String val) {
-        return new SimpleModelRuleDescriptor(String.format("%s @ %s", val, toString()));
+    public ModelRuleDescriptor asDescriptor() {
+        return new SimpleModelRuleDescriptor(String.format("%s @ %s", expression, toString()));
     }
 }

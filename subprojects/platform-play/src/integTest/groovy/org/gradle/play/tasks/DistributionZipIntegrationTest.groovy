@@ -18,6 +18,7 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -27,13 +28,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            repositories {
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
+            ${PLAY_REPOSITORIES}
         """
     }
 

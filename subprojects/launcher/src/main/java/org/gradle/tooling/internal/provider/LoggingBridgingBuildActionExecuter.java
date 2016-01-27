@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.Factory;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEvent;
@@ -32,17 +32,15 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
  * request.
  */
 public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
-    private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final LoggingManagerInternal loggingManager;
     private final BuildActionExecuter<ProviderOperationParameters> executer;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ProviderOperationParameters> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ProviderOperationParameters> executer, LoggingManagerInternal loggingManager) {
         this.executer = executer;
-        this.loggingManagerFactory = loggingManagerFactory;
+        this.loggingManager = loggingManager;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
-        LoggingManagerInternal loggingManager = loggingManagerFactory.create();
-        loggingManager.removeAllOutputEventListeners();
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
             loggingManager.attachAnsiConsole(actionParameters.getStandardOutput());
         } else {
@@ -59,9 +57,8 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         loggingManager.setLevel(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
-            return executer.execute(action, buildRequestContext, actionParameters);
+            return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } finally {
-            loggingManager.removeAllOutputEventListeners();
             loggingManager.stop();
         }
     }

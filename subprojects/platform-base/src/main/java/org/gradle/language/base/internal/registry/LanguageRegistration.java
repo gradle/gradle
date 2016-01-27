@@ -17,8 +17,9 @@
 package org.gradle.language.base.internal.registry;
 
 
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.type.ModelType;
+
 
 /**
  * A registered language.
@@ -32,7 +33,5 @@ public interface LanguageRegistration<U extends LanguageSourceSet> {
     /**
      * The interface type of the language source set.
      */
-    Class<U> getSourceSetType();
-
-    NamedDomainObjectFactory<? extends U> getSourceSetFactory(String parentName);
+    ModelType<U> getSourceSetType();
 }

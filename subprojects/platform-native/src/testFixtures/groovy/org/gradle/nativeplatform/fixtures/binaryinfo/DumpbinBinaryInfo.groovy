@@ -74,6 +74,8 @@ class DumpbinBinaryInfo implements BinaryInfo {
                 return Architectures.forInput("x86_64")
             case "IA64":
                 return Architectures.forInput("ia-64")
+            case "ARM":
+                return Architectures.forInput("arm")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

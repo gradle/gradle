@@ -26,6 +26,9 @@ public class SftpResourcesPluginServiceRegistry implements PluginServiceRegistry
         registration.addProvider(new GlobalScopeServices());
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
     }
 

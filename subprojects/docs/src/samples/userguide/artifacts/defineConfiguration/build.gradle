@@ -23,3 +23,13 @@ configurations.compile {
     description = 'compile classpath'
 }
 // END SNIPPET configure-configuration
+
+//START SNIPPET configuration-default-dependencies
+configurations {
+    pluginTool {
+        defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("org.gradle:my-util:1.0"))
+        }
+    }
+}
+//END SNIPPET configuration-default-dependencies

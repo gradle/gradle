@@ -19,23 +19,24 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LogLevel;
 
 public interface LoggingSystem {
+    /**
+     * Snapshots the current state of this logging system.
+     */
     Snapshot snapshot();
 
     /**
-     * Enables logging for this logging system at the given level.
+     * Enables logging for this logging system.
      *
-     * @param level The new level.
+     * @param minimumLevel The minimum log level to produce events for, for those logging systems that have intrinsic levels. This is advisory only, the logging system may generate events at lower
+     * priority, but these will be discarded.
+     * @param defaultLevel The default log level to use, for those logging system that don't have intrinsic levels.
      * @return the state of this logging system immediately before the changes are applied.
      */
-    Snapshot on(LogLevel level);
+    Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel);
 
     /**
-     * Disables logging for this logging system
-     *
-     * @return the state of this logging system immediately before the changes are applied.
+     * Resets this logging system to some previous state.
      */
-    Snapshot off();
-
     void restore(Snapshot state);
 
     interface Snapshot {

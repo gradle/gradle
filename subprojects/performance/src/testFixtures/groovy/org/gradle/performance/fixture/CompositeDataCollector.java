@@ -31,10 +31,10 @@ public class CompositeDataCollector implements DataCollector {
     }
 
     @Override
-    public List<String> getAdditionalGradleOpts(File workingDir) {
+    public List<String> getAdditionalJvmOpts(File workingDir) {
         List<String> additional = Lists.newLinkedList();
         for (DataCollector collector : collectors) {
-            additional.addAll(collector.getAdditionalGradleOpts(workingDir));
+            additional.addAll(collector.getAdditionalJvmOpts(workingDir));
         }
         return additional;
     }
@@ -48,9 +48,9 @@ public class CompositeDataCollector implements DataCollector {
         return additional;
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation) {
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
         for (DataCollector collector : collectors) {
-            collector.collect(testProjectDir, operation);
+            collector.collect(invocationInfo, operation);
         }
     }
 }

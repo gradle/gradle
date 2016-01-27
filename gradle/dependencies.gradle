@@ -19,22 +19,23 @@ ext {
     libraries = [:]
 }
 
-versions.commons_io = 'commons-io:commons-io:1.4'
+versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.3.10"
+versions.groovy = "2.4.4"
 
 versions.bouncycastle = "1.51"
 
-libraries.ant = dependencies.module('org.apache.ant:ant:1.9.4') {
-    dependency 'org.apache.ant:ant-launcher:1.9.4@jar'
+libraries.ant = dependencies.module('org.apache.ant:ant:1.9.3') {
+    dependency 'org.apache.ant:ant-launcher:1.9.3@jar'
 }
 
 libraries.asm =  'org.ow2.asm:asm-all:5.0.3'
+libraries.bndlib = dependencies.module('biz.aQute.bnd:bndlib:2.4.0')
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.1@jar'
-libraries.jsch = "com.jcraft:jsch:0.1.51"
+libraries.jsch = "com.jcraft:jsch:0.1.53"
 libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
     dependency libraries.jsch
 }
@@ -69,11 +70,12 @@ libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
     dependency libraries.servlet_api
 }
 
-libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.2.2') {
-    dependency "org.apache.httpcomponents:httpcore:4.2.2@jar"
+libraries.jcifs = "org.samba.jcifs:jcifs:1.3.17@jar"
+libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.4.1') {
+    dependency "org.apache.httpcomponents:httpcore:4.4.4@jar"
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.6@jar"
-    dependency "org.samba.jcifs:jcifs:1.3.17@jar"
+    dependency libraries.jcifs
 }
 
 libraries += [
@@ -160,7 +162,7 @@ libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:
     dependency libraries.bouncycastle_provider
 }
 
-libraries.joda = 'joda-time:joda-time:2.7@jar'
+libraries.joda = 'joda-time:joda-time:2.8.2@jar'
 
 libraries.awsS3 = [
         'com.amazonaws:aws-java-sdk-s3:1.9.19@jar',

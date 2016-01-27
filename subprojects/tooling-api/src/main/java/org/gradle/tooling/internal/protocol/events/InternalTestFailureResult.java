@@ -21,5 +21,5 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 2.4
  */
-public interface InternalTestFailureResult extends InternalTestResult {
+public interface InternalTestFailureResult extends InternalTestResult, InternalFailureResult {
 }

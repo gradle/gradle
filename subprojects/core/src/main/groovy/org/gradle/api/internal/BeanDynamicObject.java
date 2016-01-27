@@ -47,6 +47,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private BeanDynamicObject(Object bean, boolean includeProperties, boolean implementsMissing) {
+        if (bean == null) {
+            throw new IllegalArgumentException("Value is null");
+        }
         this.bean = bean;
         this.includeProperties = includeProperties;
         this.implementsMissing = implementsMissing;
@@ -177,7 +180,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaClass metaClass = getMetaClass();
             MetaProperty property = metaClass.hasProperty(bean, name);
             if (property == null) {
-                getMetaClass().invokeMissingProperty(bean, name, null, false);
+                getMetaClass().invokeMissingProperty(bean, name, value, false);
+                return;
             }
 
             if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {

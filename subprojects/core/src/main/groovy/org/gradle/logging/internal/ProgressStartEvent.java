@@ -15,34 +15,43 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.progress.OperationIdentifier;
 
 public class ProgressStartEvent extends CategorisedOutputEvent {
-    private long operationId;
-    private Long parentOperationId;
+    private final OperationIdentifier operationId;
+    private final OperationIdentifier parentId;
     private final String description;
     private final String shortDescription;
     private final String loggingHeader;
     private final String status;
 
-    public ProgressStartEvent(long operationId, Long parentOperationId, long timestamp, String category, String description, String shortDescription, String loggingHeader, String status) {
+    public ProgressStartEvent(OperationIdentifier operationId, @Nullable OperationIdentifier parentId, long timestamp, String category, String description, @Nullable String shortDescription, @Nullable String loggingHeader, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.operationId = operationId;
-        this.parentOperationId = parentOperationId;
+        this.parentId = parentId;
         this.description = description;
         this.shortDescription = shortDescription;
         this.loggingHeader = loggingHeader;
         this.status = status;
     }
 
+    @Nullable
+    public OperationIdentifier getParentId() {
+        return parentId;
+    }
+
     public String getDescription() {
         return description;
     }
 
+    @Nullable
     public String getShortDescription() {
         return shortDescription;
     }
 
+    @Nullable
     public String getLoggingHeader() {
         return loggingHeader;
     }
@@ -56,11 +65,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
         return String.format("ProgressStart %s", description);
     }
 
-    public long getOperationId() {
+    public OperationIdentifier getOperationId() {
         return operationId;
-    }
-
-    public Long getParentOperationId() {
-        return parentOperationId;
     }
 }

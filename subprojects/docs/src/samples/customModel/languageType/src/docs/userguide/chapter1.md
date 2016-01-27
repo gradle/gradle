@@ -2,7 +2,7 @@
 
 ## Hello World
 
-This is a hello world example:
+This is a "hello world" example:
 
     task hello << {
         println 'Hello World!'

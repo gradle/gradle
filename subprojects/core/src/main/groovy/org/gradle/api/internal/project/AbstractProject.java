@@ -53,17 +53,23 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.Model;
+import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.manage.binding.StructBindingsStore;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -184,51 +190,78 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         populateModelRegistry(services.get(ModelRegistry.class));
     }
 
+    static class BasicServicesRules extends RuleSource {
+        @Hidden @Model
+        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ITaskFactory.class);
+        }
+
+        @Hidden @Model
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Hidden @Model
+        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ManagedProxyFactory.class);
+        }
+
+        @Hidden @Model
+        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(StructBindingsStore.class);
+        }
+
+        @Hidden @Model
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
+        }
+
+        @Hidden @Model
+        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TypeConverter.class);
+        }
+
+        @Hidden @Model
+        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileOperations.class);
+        }
+    }
+
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        ModelPath taskFactoryPath = ModelPath.path("taskFactory");
-        ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(taskFactoryPath, ITaskFactory.class), services.get(ITaskFactory.class))
-                                                       .descriptor("Project.<init>.taskFactory")
-                                                       .ephemeral(true)
-                                                       .hidden(true)
-                                                       .build();
+        registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
+        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+            @Override
+            public File create() {
+                return getBuildDir();
+            }
+        });
+        registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
+        registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
+    }
 
-        modelRegistry.createOrReplace(taskFactoryCreator);
+    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+        registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
+    }
 
-        modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
-                         .descriptor("Project.<init>.serviceRegistry()")
-                         .ephemeral(true)
-                         .hidden(true)
-                         .build()
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
+        modelRegistry.register(ModelRegistrations
+            .unmanagedInstance(ModelReference.of(path, type), factory)
+            .descriptor(instanceDescriptorFor(path))
+            .hidden(true)
+            .build());
+    }
+
+    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
+        modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
+            .descriptor(descriptor)
+            .build()
         );
+    }
 
-        modelRegistry.createOrReplace(
-            ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
-                public File create() {
-                    return getBuildDir();
-                }
-            })
-                         .descriptor("Project.<init>.buildDir()")
-                         .ephemeral(true)
-                         .hidden(true)
-                         .build()
-        );
-
-        modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
-                         .descriptor("Project.<init>.projectIdentifier()")
-                         .ephemeral(true)
-                         .hidden(true)
-                         .build()
-        );
-
-        modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
-                         .descriptor("Project.<init>.extensions()")
-                         .ephemeral(true)
-                         .hidden(true)
-                         .build()
-        );
+    private String instanceDescriptorFor(String path) {
+        return "Project.<init>." + path + "()";
     }
 
     public ProjectInternal getRootProject() {
@@ -901,12 +934,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected ModelCreatorFactory getModelCreatorFactory() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
@@ -964,16 +991,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return (ExtensionContainerInternal) getConvention();
     }
 
-
+    // Not part of the public API
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
-        ModelSchemaStore modelSchemaStore = getModelSchemaStore();
-        ModelCreatorFactory modelCreatorFactory = getModelCreatorFactory();
-
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, modelCreatorFactory), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {
-            new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore, modelCreatorFactory).configure(modelRules);
+            new NonTransformedModelDslBacking(modelRegistry).configure(modelRules);
         }
     }
 
@@ -991,5 +1015,4 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
     }
-
 }

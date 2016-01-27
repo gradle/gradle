@@ -20,11 +20,13 @@ package org.gradle.nativeplatform.sourceset
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 // TODO:DAZ Test incremental
 // TODO:DAZ Test dependency on functional source set
 // TODO:DAZ Test dependency on source set that is not HeaderExportingSourceSet
 // TODO:DAZ Sad day tests
+@LeaksFileHandles
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "source dependency on source set of same type"() {
@@ -43,7 +45,7 @@ model {
                     source.srcDir "src/library/c"
                     exportedHeaders.srcDir "src/library/headers"
                 }
-                c.lib sources.library
+                c.lib library
             }
         }
     }
@@ -53,7 +55,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source dependency on source set of headers"() {
@@ -80,7 +82,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source dependency on source set of different type"() {
@@ -100,7 +102,7 @@ model {
                     exportedHeaders.srcDir "src/library/headers"
                     source.srcDir "src/library/c"
                 }
-                cpp.lib sources.library
+                cpp.lib library
             }
         }
     }
@@ -110,7 +112,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
     def "source files in depended-on source set are not included"() {

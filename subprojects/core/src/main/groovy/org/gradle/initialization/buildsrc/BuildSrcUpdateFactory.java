@@ -16,11 +16,11 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
 
@@ -46,11 +46,10 @@ public class BuildSrcUpdateFactory implements Factory<DefaultClassPath> {
 
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create(rebuild);
         gradleLauncher.addListener(listener);
-        gradleLauncher.run().rethrowFailure();
+        gradleLauncher.run();
 
         Collection<File> classpath = listener.getRuntimeClasspath();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        LOGGER.info("================================================" + " Finished building buildSrc");
         try {
             markerFile.createNewFile();
         } catch (IOException e) {

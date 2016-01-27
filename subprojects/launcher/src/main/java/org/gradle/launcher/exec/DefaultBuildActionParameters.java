@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.util.GUtil;
 
@@ -30,18 +31,23 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
     private final DaemonUsage daemonUsage;
-    private final boolean continuousModeEnabled;
+    private final boolean continuous;
+    private final boolean interactive;
+    private final ClassPath injectedPluginClasspath;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuousModeEnabled) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive,
+                                        ClassPath injectedPluginClasspath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
-        this.continuousModeEnabled = continuousModeEnabled;
+        this.continuous = continuous;
         assert systemProperties != null;
         assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
         this.daemonUsage = daemonUsage;
+        this.interactive = interactive;
+        this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -63,13 +69,15 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     @Override
     public String toString() {
         return "DefaultBuildActionParameters{"
-                + ", currentDir=" + currentDir
-                + ", systemProperties size=" + systemProperties.size()
-                + ", envVariables size=" + envVariables.size()
-                + ", logLevel=" + logLevel
-                + ", daemonUsage=" + daemonUsage
-                + ", continuousModeEnabled=" + continuousModeEnabled
-                + '}';
+            + ", currentDir=" + currentDir
+            + ", systemProperties size=" + systemProperties.size()
+            + ", envVariables size=" + envVariables.size()
+            + ", logLevel=" + logLevel
+            + ", daemonUsage=" + daemonUsage
+            + ", continuous=" + continuous
+            + ", interactive=" + interactive
+            + ", injectedPluginClasspath=" + injectedPluginClasspath
+            + '}';
     }
 
     @Override
@@ -77,7 +85,15 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         return daemonUsage;
     }
 
-    public boolean isContinuousModeEnabled() {
-        return continuousModeEnabled;
+    public boolean isContinuous() {
+        return continuous;
+    }
+
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    public ClassPath getInjectedPluginClasspath() {
+        return injectedPluginClasspath;
     }
 }

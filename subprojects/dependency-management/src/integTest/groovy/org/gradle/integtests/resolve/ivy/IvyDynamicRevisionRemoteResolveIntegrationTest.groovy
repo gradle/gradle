@@ -672,7 +672,7 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         }
     }
 
-    public void "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
+    def "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")

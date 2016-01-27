@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.fixtures.app.*
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
 // TODO add coverage for mixed sources
+@LeaksFileHandles
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {
@@ -55,7 +57,7 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == expectedOutput
+        executable("build/exe/main/main").exec().out == expectedOutput
         where:
         testApp                                              |   expectedOutput
         new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
@@ -121,7 +123,7 @@ model {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
+        executable("build/exe/main/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
@@ -132,10 +134,10 @@ model {
         testApp.plugins.each{ plugin ->
             buildFile << "apply plugin: '$plugin'\n"
         }
-        buildFile << testApp.extraConfiguration
 
         buildFile << """
 model {
+    ${testApp.extraConfiguration}
     components {
         main(NativeExecutableSpec)
     }
@@ -143,7 +145,7 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        executable("build/exe/main/main").exec().out == "foo1foo2"
         where:
         testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
     }
@@ -170,6 +172,6 @@ model {
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        executable("build/exe/main/main").exec().out == "foo1foo2"
     }
 }

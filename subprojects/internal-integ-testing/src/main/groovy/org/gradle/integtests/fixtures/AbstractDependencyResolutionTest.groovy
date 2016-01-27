@@ -15,21 +15,13 @@
  */
 
 package org.gradle.integtests.fixtures
-
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
-    private M2Installation m2Installation = new M2Installation(testDirectory)
 
     def setup() {
         requireOwnGradleUserHomeDir()
-        executer.beforeExecute m2Installation
-    }
-
-    M2Installation getM2Installation() {
-        m2Installation
     }
 
     IvyFileRepository ivyRepo(def dir = 'ivy-repo') {

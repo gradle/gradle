@@ -40,7 +40,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         this.resolver = resolver;
     }
 
-    public void resolve(TaskDependencyResolveContext context) {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
         LinkedList<Object> queue = new LinkedList<Object>(values);
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
@@ -56,6 +57,10 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (closureResult != null) {
                     queue.add(0, closureResult);
                 }
+            } else if (dependency instanceof RealizableTaskCollection) {
+                RealizableTaskCollection realizableTaskCollection = (RealizableTaskCollection) dependency;
+                realizableTaskCollection.realizeRuleTaskTypes();
+                queue.addAll(0, GUtil.addToCollection(new ArrayList<Object>(), realizableTaskCollection));
             } else if (dependency instanceof Iterable) {
                 Iterable<?> iterable = (Iterable) dependency;
                 queue.addAll(0, GUtil.addToCollection(new ArrayList<Object>(), iterable));

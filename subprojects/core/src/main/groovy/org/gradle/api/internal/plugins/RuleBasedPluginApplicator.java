@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -47,20 +47,11 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
         ModelRegistry modelRegistry = target.getModelRegistry();
         Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
         for (Class<? extends RuleSource> ruleSource : declaredSources) {
-            Iterable<ExtractedModelRule> rules = ruleInspector.extract(ruleSource);
-            for (ExtractedModelRule rule : rules) {
-                for (Class<?> dependency : rule.getRuleDependencies()) {
-                    target.getPluginManager().apply(dependency);
-                }
-
-                if (rule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    modelRegistry.configure(rule.getActionRole(), rule.getAction());
-                } else if (rule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
-                    modelRegistry.create(rule.getCreator());
-                } else if (!rule.getType().equals(ExtractedModelRule.Type.DEPENDENCIES)) {
-                    throw new IllegalStateException("unhandled extracted model rule type: " + rule.getType());
-                }
+            ExtractedRuleSource<?> rules = ruleInspector.extract(ruleSource);
+            for (Class<?> dependency : rules.getRequiredPlugins()) {
+                target.getPluginManager().apply(dependency);
             }
+            modelRegistry.getRoot().applyToSelf(rules);
         }
     }
 

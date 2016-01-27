@@ -209,12 +209,11 @@
         <title>Convention properties</title>
         <para>The Scala plugin does not add any convention properties to the project.</para>
     </section>
-    
+
     <section>
         <title>Source set properties</title>
         <para>The Scala plugin adds the following convention properties to each source set in the project. You can
-            use these properties in your build script as though they were properties of the source set object (see
-            <xref linkend="sub:more_about_convention_objects"/>).</para>
+            use these properties in your build script as though they were properties of the source set object.</para>
         <table>
             <title>Scala plugin - source set properties</title>
             <thead>
@@ -356,7 +355,8 @@
         <para>
             The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
             Gradle will have a default version of the Zinc library, but if you want to override the
-            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.1.4”</literal>.
+            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
+            version 0.3.0 of Zinc and above, although due to a regression in the Zinc library, versions 0.3.2 through 0.3.5.2 cannot be used.
             Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
 
@@ -395,11 +395,16 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:intellij_idea_integration">
         <title>IntelliJ IDEA Integration</title>
         <para>
             When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically,
-            the plugin adds a Scala facet and a Scala compiler library that matches the Scala version on the project's class path.
+            the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path.
+            The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK
+            by configuring <literal>targetVersion</literal> on <apilink class="org.gradle.plugins.ide.idea.model.IdeaModel">IdeaModel</apilink>.
+            <sample id="ideaTargetVersion" dir="userguide/scala/ideaTargetVersion" title="Explicitly specify a target IntelliJ IDEA version">
+                <sourcefile file="build.gradle" snippet="scala-idea-target-version"/>
+            </sample>
         </para>
     </section>
 </chapter>

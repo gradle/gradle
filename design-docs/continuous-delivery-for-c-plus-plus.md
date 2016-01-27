@@ -313,6 +313,33 @@ from the same sources that link against different implementation libraries.
         }
     }
 
+## Story: Support testing of multiple VisualStudio versions
+Currently, the native test infrastructure selects the newest version of VisualStudio installed for testing.  We want to be able to support
+and test multiple versions of Visual Studio.  To avoid having different agents with different VisualStudio installs, we want to be able to
+test all installed versions of VisualStudio as part of a full platformTest build type.
+
+### Implementation
+- Add a "VisualStudioLocator.locateAllVisualStudioVersions()" method which returns a list of search results, one for each version of VS installed.
+Search results should be sorted from highest version to lowest.
+- Rename "VisualStudioLocator.locateVisualStudioInstalls()" to "locateDefaultVisualStudioInstall()" to better reflect its function.
+- Change AvailableToolChains.getToolChains() to use VisualStudioLocator.locateAllVisualStudioVersions() and add a tool chain for each
+installation of Visual Studio found.
+- Change AvailableToolChains.InstalledVisualCpp to accept a version number as part of the constructor and add the version to the toolchain name.
+- Introduce a "highest tested Visual Studio version" in AvailableToolChains such that a version will be considered "unavailable" if it is above
+that version.  This allows us to install a version of Visual Studio without actually including it in the versions we test in the case where
+there are breaking changes between versions and we are not ready to test with that version yet.
+
+### Tests
+- locateAllVisualStudioVersions() returns all VS versions in the registry.
+- locateAllVisualStudioVersions() returns versions sorted from highest to lowest.
+- locateAllVisualStudioVersions() returns a List containing an InstallNotFound searchResult if no installs are located.
+- AvailableToolChains.getToolChains() returns tool chains for all available VS versions.
+- AvailableToolChains.getToolChain(ToolChainRequirement) should return the highest version of VS that meets a requirement
+
+### Open issues
+- Testing multiple versions of Windows SDK and UCRT is out of scope for this story (i.e. the highest available version will always be used).
+- Testing multiple versions of mingw or cygwin is out of scope for this story.
+
 # Later milestones
 
 ## Story: Improved GCC platform targeting
@@ -1164,6 +1191,8 @@ TBD
 
 # Open issues
 
+* Add options for seeing full tool command-line (like make -n)
+* Add configuration hook for command-line tools to configure their environment
 * For incremental build with visual c++, use `dumpbin  /RAWDATA` to strip timestamps from binary files before comparison
 * Add ABI as an aspect of target platform.
 * Output of any custom post link task should be treated as input to anything that depends on the binary.

@@ -16,7 +16,6 @@
 package org.gradle.test.fixtures.file;
 
 import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
 
@@ -29,10 +28,6 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         root = new TestFile(new File("build/tmp/test files"));
     }
 
-    public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
-        return doApply(base, method, target);
-    }
-
     public static TestNameTestDirectoryProvider newInstance() {
         return new TestNameTestDirectoryProvider();
     }
@@ -41,5 +36,10 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
         testDirectoryProvider.init(method.getName(), target.getClass().getSimpleName());
         return testDirectoryProvider;
+    }
+
+    public TestNameTestDirectoryProvider withSuppressCleanup() {
+        suppressCleanup();
+        return this;
     }
 }

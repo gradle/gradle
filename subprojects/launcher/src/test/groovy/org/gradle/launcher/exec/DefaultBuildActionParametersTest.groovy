@@ -17,6 +17,7 @@
 package org.gradle.launcher.exec
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.classpath.ClassPath
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.IMPLICITLY_DISABLED
@@ -25,7 +26,7 @@ public class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {
         given:
-        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, IMPLICITLY_DISABLED, false)
+        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, IMPLICITLY_DISABLED, false, true, ClassPath.EMPTY)
         ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
         when:

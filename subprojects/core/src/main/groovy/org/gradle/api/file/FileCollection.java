@@ -77,13 +77,13 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection plus(FileCollection collection);
 
     /**
-     * <p>Returns a {@code FileCollection} which contains the intersection of this collection and the given collection.
-     * The returned collection is live, and tracks changes to both source collections.</p>
+     * <p>Returns a {@code FileCollection} which contains the difference between this collection and the given
+     * collection. The returned collection is live, and tracks changes to both source collections.</p>
      *
      * <p>You can call this method in your build script using the {@code -} operator.</p>
      *
      * @param collection The other collection. Should not be null.
-     * @return A new collection containing the intersection.
+     * @return A new collection containing the difference.
      */
     FileCollection minus(FileCollection collection);
 

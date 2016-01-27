@@ -31,15 +31,21 @@ public class ExecOutputHandleRunner implements Runnable {
     private final String displayName;
     private final InputStream inputStream;
     private final OutputStream outputStream;
+    private final int bufferSize;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream) {
+        this(displayName, inputStream, outputStream, 2048);
+    }
+
+    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize) {
         this.displayName = displayName;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
+        this.bufferSize = bufferSize;
     }
 
     public void run() {
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[bufferSize];
         try {
             while (true) {
                 int nread = inputStream.read(buffer);

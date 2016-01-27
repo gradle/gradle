@@ -16,7 +16,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
@@ -25,7 +25,7 @@ import spock.lang.Issue
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ForkScalaCompileInDaemonModeFixture daemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
         expect:

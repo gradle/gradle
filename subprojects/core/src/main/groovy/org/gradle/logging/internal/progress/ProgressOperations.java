@@ -16,14 +16,17 @@
 
 package org.gradle.logging.internal.progress;
 
+import org.gradle.api.Nullable;
+import org.gradle.internal.progress.OperationIdentifier;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class ProgressOperations {
 
-    private final Map<Long, ProgressOperation> operationsById = new HashMap<Long, ProgressOperation>();
+    private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
 
-    public ProgressOperation start(String description, String status, long operationId, Long parentOperationId) {
+    public ProgressOperation start(String description, String status, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
@@ -33,7 +36,7 @@ public class ProgressOperations {
         return operation;
     }
 
-    public ProgressOperation progress(String description, long operationId) {
+    public ProgressOperation progress(String description, OperationIdentifier operationId) {
         ProgressOperation op = operationsById.get(operationId);
         if (op == null) {
             throw new IllegalStateException("Received progress event for an unknown operation (id: " + operationId + ")");
@@ -42,7 +45,7 @@ public class ProgressOperations {
         return op;
     }
 
-    public ProgressOperation complete(long operationId) {
+    public ProgressOperation complete(OperationIdentifier operationId) {
         ProgressOperation op = operationsById.remove(operationId);
         if (op == null) {
             throw new IllegalStateException("Received complete event for an unknown operation (id: " + operationId + ")");

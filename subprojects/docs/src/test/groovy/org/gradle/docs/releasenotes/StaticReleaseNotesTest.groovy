@@ -44,20 +44,6 @@ class StaticReleaseNotesTest extends Specification {
         !renderedDocument.body().select("h2#fixed-issues").empty
     }
 
-    def "line length check"() {
-        when:
-        def maxLineLength = 220
-        def tooLongLines = [:] // key is line num, value is line
-        sourceText.eachLine { String line, int num ->
-            if (line.size() > maxLineLength) {
-                tooLongLines[num] = line
-            }
-        }
-
-        then:
-        tooLongLines.isEmpty()
-    }
-
     def "no duplicate ids"() {
         when:
         def groupedElements = renderedDocument.body().allElements.findAll { it.id() }.groupBy { it.id() }

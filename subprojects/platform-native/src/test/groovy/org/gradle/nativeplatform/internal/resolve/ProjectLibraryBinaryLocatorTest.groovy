@@ -15,15 +15,11 @@
  */
 package org.gradle.nativeplatform.internal.resolve
 
-import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.resolve.ProjectModelResolver
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.type.ModelType
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
@@ -32,10 +28,11 @@ import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
 import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
+import static org.gradle.model.internal.type.ModelTypes.modelMap
+
 class ProjectLibraryBinaryLocatorTest extends Specification {
-    def project = Mock(ProjectInternal)
-    def modelRegistry = Mock(ModelRegistry)
-    def projectLocator = Mock(ProjectLocator)
+    def projectModel = Mock(ModelRegistry)
+    def projectLocator = Mock(ProjectModelResolver)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
     def binary = Mock(MockNativeLibraryBinary)
@@ -55,7 +52,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("libName", null)
 
         and:
-        projectLocator.locateProject(null) >> project
+        projectLocator.resolveProjectModel(null) >> projectModel
         findLibraryInProject()
 
         then:
@@ -67,7 +64,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", null)
 
         and:
-        projectLocator.locateProject("other") >> project
+        projectLocator.resolveProjectModel("other") >> projectModel
         findLibraryInProject()
 
         then:
@@ -79,7 +76,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
+        projectLocator.resolveProjectModel("other") >> projectModel
         findLibraryInProject()
 
         then:
@@ -91,7 +88,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("unknown", "libName", "static")
 
         and:
-        projectLocator.locateProject("unknown") >> { throw new UnknownProjectException("unknown")}
+        projectLocator.resolveProjectModel("unknown") >> { throw new UnknownProjectException("unknown")}
 
         and:
         locator.getBinaries(requirement)
@@ -105,15 +102,12 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "unknown", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
-        def libraries = findLibraryContainer(project)
+        projectLocator.resolveProjectModel("other") >> projectModel
+        def libraries = findLibraryContainer(projectModel)
         libraries.get("unknown") >> { null }
 
-        and:
-        locator.getBinaries(requirement)
-
         then:
-        thrown(UnknownDomainObjectException)
+        locator.getBinaries(requirement) == null
     }
 
     def "fails when project does not have libraries"() {
@@ -121,29 +115,22 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
-        project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), ModelTypes.modelMap(NativeLibrarySpec)) >> null
-        project.path >> "project-path"
-
-        and:
-        locator.getBinaries(requirement)
+        projectLocator.resolveProjectModel("other") >> projectModel
+        projectModel.find("components", modelMap(NativeLibrarySpec)) >> null
 
         then:
-        def e = thrown(LibraryResolveException)
-        e.message == "Project does not have a libraries container: 'project-path'"
+        locator.getBinaries(requirement) == null
     }
 
     private void findLibraryInProject() {
-        def libraries = findLibraryContainer(project)
+        def libraries = findLibraryContainer(projectModel)
         libraries.containsKey("libName") >> true
         libraries.get("libName") >> library
     }
 
-    private findLibraryContainer(ProjectInternal project) {
+    private findLibraryContainer(ModelRegistry modelRegistry) {
         def components = Mock(ComponentSpecContainer)
-        project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer)) >> components
+        modelRegistry.find("components", ComponentSpecContainer) >> components
         components.withType(NativeLibrarySpec.class) >> components
         return components
     }

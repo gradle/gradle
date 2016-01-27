@@ -16,12 +16,13 @@
 
 package org.gradle.internal.rules;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Mutate;
+import org.gradle.model.internal.inspect.DefaultRuleSourceValidationProblemCollector;
+import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
+import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -47,39 +48,32 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
                 return element.isAnnotationPresent(Mutate.class);
             }
         });
-        List<String> reasons = Lists.newArrayList();
+        FormattingValidationProblemCollector problemsFormatter = new FormattingValidationProblemCollector("rule source", ruleSourceType);
+        RuleSourceValidationProblemCollector problems = new DefaultRuleSourceValidationProblemCollector(problemsFormatter);
 
         if (mutateMethods.size() == 0) {
-            reasons.add("must have at exactly one method annotated with @org.gradle.model.Mutate");
+            problems.add("Must have at exactly one method annotated with @" + Mutate.class.getName());
         } else {
             if (mutateMethods.size() > 1) {
-                reasons.add("more than one method is annotated with @org.gradle.model.Mutate");
+                problems.add("More than one method is annotated with @" + Mutate.class.getName());
             }
 
             for (Method ruleMethod : mutateMethods) {
                 if (ruleMethod.getReturnType() != Void.TYPE) {
-                    reasons.add(String.format("rule method '%s' must return void", ruleMethod.getName()));
+                    problems.add(ruleMethod, "A rule method must return void");
                 }
                 Type[] parameterTypes = ruleMethod.getGenericParameterTypes();
                 if (parameterTypes.length == 0 || !subjectType.isAssignableFrom(ModelType.of(parameterTypes[0]))) {
-                    reasons.add(String.format("first parameter of rule method '%s' must be of type %s", ruleMethod.getName(), subjectType));
+                    problems.add(ruleMethod, String.format("First parameter of a rule method must be of type %s", subjectType));
                 }
             }
         }
 
-        if (reasons.size() > 0) {
-            throw invalid(ruleSourceType, reasons);
+        if (problemsFormatter.hasProblems()) {
+            throw new RuleActionValidationException(problemsFormatter.format());
         }
 
         return new RuleSourceBackedRuleAction<R, T>(ruleSourceInstance, new JavaMethod<R, T>(ruleSourceType.getConcreteClass(), subjectType.getConcreteClass(), mutateMethods.get(0)));
-    }
-
-    private static RuntimeException invalid(ModelType<?> source, List<String> reasons) {
-        StringBuilder errorString = new StringBuilder(String.format("Type %s is not a valid model rule source: ", source));
-        for (String reason : reasons) {
-            errorString.append(String.format("\n- %s", reason));
-        }
-        return new RuleActionValidationException(null, new InvalidModelRuleDeclarationException(errorString.toString()));
     }
 
     public static List<Class<?>> determineInputTypes(Class<?>[] parameterTypes) {

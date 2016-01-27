@@ -27,8 +27,9 @@ import java.util.Properties;
 public class WrapperExecutor {
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
-    public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
+    public static final String DISTRIBUTION_SHA_256_SUM = "distributionSha256Sum";
+    public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     private final Properties properties;
     private final File propertiesFile;
@@ -56,6 +57,7 @@ public class WrapperExecutor {
                 config.setDistribution(prepareDistributionUri());
                 config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
                 config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
+                config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
                 config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
             } catch (Exception e) {
@@ -128,10 +130,14 @@ public class WrapperExecutor {
     }
 
     private String getProperty(String propertyName) {
-        return getProperty(propertyName, null);
+        return getProperty(propertyName, null, true);
     }
 
     private String getProperty(String propertyName, String defaultValue) {
+        return getProperty(propertyName, defaultValue, true);
+    }
+
+    private String getProperty(String propertyName, String defaultValue, boolean required) {
         String value = properties.getProperty(propertyName);
         if (value != null) {
             return value;
@@ -139,7 +145,11 @@ public class WrapperExecutor {
         if (defaultValue != null) {
             return defaultValue;
         }
-        return reportMissingProperty(propertyName);
+        if (required) {
+            return reportMissingProperty(propertyName);
+        } else {
+            return null;
+        }
     }
 
     private String reportMissingProperty(String propertyName) {

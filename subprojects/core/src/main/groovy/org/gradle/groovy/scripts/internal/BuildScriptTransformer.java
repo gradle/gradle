@@ -26,7 +26,7 @@ import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import java.util.Arrays;
 import java.util.List;
 
-public class BuildScriptTransformer implements Transformer, Factory<Boolean> {
+public class BuildScriptTransformer implements Transformer, Factory<BuildScriptData> {
 
     private final Spec<? super Statement> filter;
     private final ScriptSource scriptSource;
@@ -47,15 +47,14 @@ public class BuildScriptTransformer implements Transformer, Factory<Boolean> {
     public void register(CompilationUnit compilationUnit) {
         new FilteringScriptTransformer(filter).register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);
-        new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
+        new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
-        new ScriptSourceDescriptionTransformer(scriptSource.getDisplayName()).register(compilationUnit);
-        new ModelBlockTransformer().register(compilationUnit);
+        new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getURI()).register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
     }
 
     @Override
-    public Boolean create() {
-        return imperativeStatementDetectingTransformer.create();
+    public BuildScriptData create() {
+        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected());
     }
 }

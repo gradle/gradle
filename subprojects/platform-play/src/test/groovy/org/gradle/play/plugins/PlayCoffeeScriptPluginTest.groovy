@@ -16,39 +16,21 @@
 
 package org.gradle.play.plugins
 
-import org.gradle.api.Action
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
-import org.gradle.model.ModelMap
-import org.gradle.platform.base.internal.ComponentSpecInternal
-import org.gradle.play.PlayApplicationSpec
-import spock.lang.Specification
+import org.gradle.platform.base.PlatformBaseSpecification
 
-class PlayCoffeeScriptPluginTest extends Specification {
+class PlayCoffeeScriptPluginTest extends PlatformBaseSpecification {
     def "adds coffeescript source sets to play components" () {
-        def plugin = new PlayCoffeeScriptPlugin()
-        def components = Mock(ModelMap)
-        def sources = Mock(FunctionalSourceSet)
-        def sourceSet = Mock(CoffeeScriptSourceSet)
-        def sourceDirSet = Mock(SourceDirectorySet)
-
         when:
-        def playApp = Stub(PlayAppInternal) {
-            getName() >> "play"
-            getSources() >> sources
+        dsl {
+            apply plugin: PlayCoffeeScriptPlugin
+            apply plugin: PlayApplicationPlugin
         }
-        _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
-
-        and:
-        plugin.createCoffeeScriptSourceSets(components)
 
         then:
-        1 * sources.create("coffeeScriptAssets", CoffeeScriptSourceSet) >> sourceSet
-        2 * sourceSet.getSource() >> sourceDirSet
-        1 * sourceDirSet.srcDir("app/assets")
-        1 * sourceDirSet.include("**/*.coffee")
+        def component = realizeComponents().play
+        component.sources.coffeeScript instanceof CoffeeScriptSourceSet
+        component.sources.coffeeScript.source.srcDirs == [project.file('app/assets')] as Set
+        component.sources.coffeeScript.source.includes == ["**/*.coffee"] as Set
     }
-
-    interface PlayAppInternal extends PlayApplicationSpec, ComponentSpecInternal {}
 }

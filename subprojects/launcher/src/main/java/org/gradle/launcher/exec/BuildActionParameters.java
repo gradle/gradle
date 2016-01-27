@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 
 import java.io.File;
@@ -32,5 +33,9 @@ public interface BuildActionParameters {
 
     DaemonUsage getDaemonUsage();
 
-    boolean isContinuousModeEnabled();
+    boolean isContinuous();
+
+    boolean isInteractive();
+
+    ClassPath getInjectedPluginClasspath();
 }

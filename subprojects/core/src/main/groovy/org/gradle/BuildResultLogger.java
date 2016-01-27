@@ -26,6 +26,7 @@ import static org.gradle.logging.StyledTextOutput.Style.Success;
 /**
  * A {@link BuildListener} which logs the final result of the build.
  */
+@Deprecated
 public class BuildResultLogger extends BuildAdapter {
     private final StyledTextOutputFactory textOutputFactory;
     private final Clock buildTimeClock;

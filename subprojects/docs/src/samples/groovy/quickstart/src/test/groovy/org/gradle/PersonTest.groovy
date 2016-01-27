@@ -1,7 +1,9 @@
 package org.gradle
 
 import org.junit.Test
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNotNull
 
 class PersonTest {
     @Test public void canConstructAPerson() {
@@ -15,9 +17,9 @@ class PersonTest {
     }
 
     @Test public void usingCorrectVersionOfGroovy() {
-        assertEquals('2.3.10', GroovySystem.version)
+        assertEquals('2.4.4', GroovySystem.version)
     }
-    
+
     @Test public void testResourcesAreAvailable() {
         assertNotNull(getClass().getResource('/testResource.txt'))
         assertNotNull(getClass().getResource('/testScript.groovy'))

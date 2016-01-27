@@ -63,7 +63,7 @@ class Classpath extends XmlPersistableConfigurationObject {
     }
 
     def configure(List newEntries) {
-        def entriesToBeKept = entries.findAll { !isDependency(it) }
+        def entriesToBeKept = entries.findAll { !isDependency(it) && !isJreContainer(it) }
         entries = (entriesToBeKept + newEntries).unique()
     }
 
@@ -101,5 +101,9 @@ class Classpath extends XmlPersistableConfigurationObject {
 
     private boolean isDependency(ClasspathEntry entry) {
         entry instanceof ProjectDependency || entry instanceof AbstractLibrary
+    }
+
+    private boolean isJreContainer(ClasspathEntry entry) {
+        entry instanceof Container && entry.path.startsWith("org.eclipse.jdt.launching.JRE_CONTAINER")
     }
 }

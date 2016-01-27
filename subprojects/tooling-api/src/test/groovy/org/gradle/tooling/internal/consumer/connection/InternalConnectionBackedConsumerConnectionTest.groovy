@@ -125,24 +125,39 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
     def "fails when both tasks and model requested"() {
         given:
         parameters.tasks >> ['a']
+        parameters.entryPointName >> "<api>"
 
         when:
         connection.run(GradleProject.class, parameters)
 
         then:
         UnsupportedOperationConfigurationException e = thrown()
-        e.message.startsWith("Unsupported configuration: modelBuilder.forTasks()")
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api> forTasks() configuration option. Support for this is available in Gradle 1.2 and all later versions./
+    }
+
+    def "fails when arguments specified with 1.0-m8"() {
+        given:
+        parameters.arguments >> ['-thing']
+        parameters.entryPointName >> "<api>"
+
+        when:
+        connection.run(GradleProject.class, parameters)
+
+        then:
+        UnsupportedOperationConfigurationException e = thrown()
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api> withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions./
     }
 
     def "fails when build action requested"() {
         given:
         parameters.tasks >> ['a']
+        parameters.entryPointName >> "<api>"
 
         when:
         connection.run(Stub(BuildAction), parameters)
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions./
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api>. Support for this is available in Gradle 1.8 and all later versions./
     }
 }

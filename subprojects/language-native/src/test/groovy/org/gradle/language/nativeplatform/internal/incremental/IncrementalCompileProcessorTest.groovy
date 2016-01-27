@@ -42,6 +42,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dep3 = sourceFile("dep3")
     def dep4 = sourceFile("dep4")
     def sourceFiles
+    def candidates = [] as Set
 
     Map<TestFile, List<ResolvedInclude>> graph = [:]
     List<TestFile> modified = []
@@ -90,7 +91,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def resolve(TestFile sourceFile) {
         Set<ResolvedInclude> deps = graph[sourceFile]
         SourceIncludes includes = includes(deps)
-        1 * dependencyParser.resolveIncludes(sourceFile, includes) >> deps
+        1 * dependencyParser.resolveIncludes(sourceFile, includes, candidates) >> deps
     }
 
     private static SourceIncludes includes(Set<ResolvedInclude> deps) {
@@ -251,7 +252,7 @@ class IncrementalCompileProcessorTest extends Specification {
         parse(dep5)
         resolve(dep5)
 
-        1 * dependencyParser.resolveIncludes(source2, includes(deps(dep3, dep4))) >> deps(dep3, dep5)
+        1 * dependencyParser.resolveIncludes(source2, includes(deps(dep3, dep4)), candidates) >> deps(dep3, dep5)
 
         then:
         with (state) {

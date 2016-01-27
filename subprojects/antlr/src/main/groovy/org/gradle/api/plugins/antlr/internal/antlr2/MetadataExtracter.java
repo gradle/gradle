@@ -15,10 +15,13 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -47,28 +50,7 @@ public class MetadataExtracter {
         for (File grammarFileFile : sources) {
 
             // determine the package name :(
-            String grammarPackageName = null;
-            try {
-                BufferedReader in = new BufferedReader(new FileReader(grammarFileFile));
-                try {
-                    String line;
-                    while ((line = in.readLine()) != null) {
-                        line = line.trim();
-                        if (line.startsWith("package") && line.endsWith(";")) {
-                            grammarPackageName = line.substring(8, line.length() - 1);
-                            break;
-                        }
-                    }
-                } finally {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            String grammarPackageName = getPackageName(grammarFileFile);
 
             final String grammarFilePath = grammarFileFile.getPath();
             antlr.preprocessor.GrammarFile antlrGrammarFile = hierarchy.getFile(grammarFilePath);
@@ -80,5 +62,42 @@ public class MetadataExtracter {
         }
 
         return xref;
+    }
+
+    @Nullable
+    private String getPackageName(File grammarFileFile) {
+        try {
+            return getPackageName(new FileReader(grammarFileFile));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot read antlr grammar file", e);
+        }
+    }
+
+    String getPackageName(Reader reader) throws IOException {
+        String grammarPackageName = null;
+        BufferedReader in = new BufferedReader(reader);
+        try {
+            String line;
+            while ((line = in.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("package") && line.endsWith(";")) {
+                    grammarPackageName =  line.substring(8, line.length() - 1);
+                }else if(line.startsWith("header")){
+                    Pattern p = Pattern.compile("header \\{\\s*package\\s+(.+);\\s+\\}");
+                    Matcher m = p.matcher(line);
+                    if(m.matches()){
+                        grammarPackageName = m.group(1);
+                    }
+                }
+
+            }
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return grammarPackageName;
     }
 }

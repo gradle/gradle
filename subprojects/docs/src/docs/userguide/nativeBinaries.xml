@@ -1,18 +1,37 @@
-<chapter id='nativeBinaries'>
-    <title>Building native binaries</title>
+<chapter id='native_software'>
+    <title>Building native software</title>
 
     <note>
         <para>
-            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            Support for building native software is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
     <para>
-        The various native binary plugins add support for building native software components, such as executables
+        The native software plugins add support for building native software components, such as executables
         or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist
         for this space of software development, Gradle offers developers its trademark power and flexibility
         together with dependency management practices more traditionally found in the JVM development space.
     </para>
+
+    <para>
+        The native software plugins make use of the Gradle <link linkend="software_model">software model</link>.
+    </para>
+
+    <section>
+        <title>Features</title>
+        <para>The native software plugins provide:</para>
+        <itemizedlist>
+            <listitem><para>Support for building native libraries and applications on Windows, Linux, OS X and other platforms.</para></listitem>
+            <listitem><para>Support for several source languages.</para></listitem>
+            <listitem><para>Support for building different variants of the same software, for different architectures, operating systems, or for any purpose.</para></listitem>
+            <listitem><para>Incremental parallel compilation, precompiled headers.</para></listitem>
+            <listitem><para>Dependency management between native software components.</para></listitem>
+            <listitem><para>Unit test execution.</para></listitem>
+            <listitem><para>Generate Visual studio solution and project files.</para></listitem>
+            <listitem><para>Deep integration with various tool chain, including discovery of installed tool chains.</para></listitem>
+        </itemizedlist>
+    </section>
 
     <section>
         <title>Supported languages</title>
@@ -53,7 +72,7 @@
                 <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010/2012/2013.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later.</td>
@@ -90,10 +109,10 @@
         <title>Tool chain installation</title>
         <note>
             <para>
-                Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This caveat will be removed in a future Gradle version.
+                Note that if you are using GCC then you currently need to install support for C++, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
             </para>
         </note>
-        <para>To build native binaries, you will need to have a compatible tool chain installed:
+        <para>To build native software, you will need to have a compatible tool chain installed:
         </para>
         <section>
             <title>Windows</title>
@@ -120,9 +139,10 @@
     </section>
 
     <section>
-        <title>Component model</title>
+        <title>Native software model</title>
+        <para>The native software model builds on the base Gradle <link linkend="software_model_concepts">software model</link>.</para>
         <para>
-            To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
+            To build native software using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
             executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
         </para>
         <para>
@@ -218,19 +238,19 @@
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>Executable</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>Executable/<replaceable>${component.name}</replaceable></filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/exe/<replaceable>${component.name}</replaceable>/<replaceable>${component.name}</replaceable></filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
-                <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>SharedLibrary/lib<replaceable>${component.name}</replaceable>.so</filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/shared/lib<replaceable>${component.name}</replaceable>.so</filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
                 <td><apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/></td>
                 <td><literal><replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
-                    <td><filename><replaceable>${project.buildDir}</replaceable>/binaries/<replaceable>${component.name}</replaceable>StaticLibrary/<replaceable>${component.name}</replaceable>.a</filename></td>
+                <td><filename><replaceable>${project.buildDir}</replaceable>/libs/<replaceable>${component.name}</replaceable>/static/<replaceable>${component.name}</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -258,7 +278,7 @@
     <section id="native_binaries:languages">
         <title>Language support</title>
         <para>
-            Presently, Gradle supports building native binaries from any combination of source languages listed below.
+            Presently, Gradle supports building native software from any combination of source languages listed below.
             A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
             each of which can contain <literal>LanguageSourceSet</literal>s containing source files, one for each language.
         </para>
@@ -446,7 +466,7 @@
         </sample>
         <para>
             The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
-            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.language.PreprocessingTool"/>.
+            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativeplatform.PreprocessingTool"/>.
         </para>
     </section>
 
@@ -454,7 +474,9 @@
         <title>Library Dependencies</title>
         <para>
             Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
-            binary dependency being used during linking and execution.
+            binary dependency being used during linking and execution. Header files should be organized into subdirectories to prevent clashes of commonly named headers.
+            For instance, if your <literal>mylib</literal> project has a <filename>logging.h</filename> header, it will make it less likely the wrong header is used if you include it as
+            <literal>"mylib/logging.h"</literal> instead of <literal>"logging.h"</literal>.
         </para>
         <section>
            <title>Dependencies within the same project</title>
@@ -469,7 +491,7 @@
                <sourcefile file="build.gradle" snippet="source-library"/>
            </sample>
            <para>
-               Alternatively, a library dependency can be provided directly to the <literal>NativeExecutableBinary</literal> for the <literal>executable</literal>.
+               Alternatively, a library dependency can be provided directly to the <literal>NativeExecutableBinarySpec</literal> for the <literal>executable</literal>.
            </para>
            <sample id="cppBinaryLibrary" dir="native-binaries/custom-layout" title="Providing a library dependency to the binary">
                <sourcefile file="build.gradle" snippet="binary-library"/>
@@ -774,7 +796,7 @@
             <title>CUnit sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component
-                in the project. This source set should contain the cunit test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the cunit test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
             <para>
@@ -817,7 +839,7 @@
             </para>
             <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
-                <output args='-q runFailingOperatorsTestCUnitExe' expectFailure="true"/>
+                <output args='-q runOperatorsTestFailingCUnitExe' expectFailure="true"/>
             </sample>
         </section>
 
@@ -853,7 +875,7 @@
             <title>GoogleTest sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.cpp.CppSourceSet"/> named 'cpp' for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component
-                in the project. This source set should contain the GoogleTest test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the GoogleTest test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cpp</literal>) or can be configured like any other source set.
             </para>
         </section>
@@ -867,7 +889,7 @@
                 <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
-            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests">
+            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="configure-test-binary"/>
             </sample>
             <note>
@@ -883,7 +905,7 @@
                 which will run all of the registered GoogleTest tests.
                 Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
-            <!-- TODO:DAZ Add this back in when we have functional libs -->
+            <!-- Google test sample output is nondeterministic -->
             <!--<sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">-->
                 <!--<sourcefile file="build.gradle" snippet="complete-example"/>-->
                 <!--<output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>-->

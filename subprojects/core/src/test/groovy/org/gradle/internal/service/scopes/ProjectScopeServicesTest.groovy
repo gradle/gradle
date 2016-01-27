@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.api.internal.plugins.PluginRegistry
@@ -51,7 +52,6 @@ import org.gradle.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.persist.ModelRegistryStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -71,9 +71,6 @@ class ProjectScopeServicesTest extends Specification {
         createChild(_) >> Mock(PluginRegistry)
     }
     ModelRegistry modelRegistry = Mock()
-    ModelRegistryStore modelRegistryStore = Mock() {
-        get(_) >> modelRegistry
-    }
     ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
@@ -97,7 +94,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
-        parent.get(ModelRegistryStore) >> modelRegistryStore
+        parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
         registry = new ProjectScopeServices(parent, project)

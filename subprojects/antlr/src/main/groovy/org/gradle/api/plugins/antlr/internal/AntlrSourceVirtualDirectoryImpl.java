@@ -17,8 +17,7 @@ package org.gradle.api.plugins.antlr.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
 import org.gradle.util.ConfigureUtil;
 
@@ -28,9 +27,9 @@ import org.gradle.util.ConfigureUtil;
 public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory {
     private final SourceDirectorySet antlr;
 
-    public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, FileResolver fileResolver) {
+    public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
         final String displayName = String.format("%s Antlr source", parentDisplayName);
-        antlr = new DefaultSourceDirectorySet(displayName, fileResolver);
+        antlr = sourceDirectorySetFactory.create(displayName);
         antlr.getFilter().include("**/*.g");
         antlr.getFilter().include("**/*.g4");  
     }

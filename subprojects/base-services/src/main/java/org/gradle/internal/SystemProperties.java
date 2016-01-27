@@ -86,6 +86,10 @@ public class SystemProperties {
         return System.getProperty("user.home");
     }
 
+    public String getUserName() {
+        return System.getProperty("user.name");
+    }
+
     public String getJavaVersion() {
         return System.getProperty("java.version");
     }
@@ -95,11 +99,14 @@ public class SystemProperties {
     }
 
     public File getJavaHomeDir() {
-        return new File(System.getProperty("java.home"));
-    }
-
-    public void setJavaHomeDir(File javaHomeDir) {
-        System.setProperty("java.home", javaHomeDir.getAbsolutePath());
+        lock.lock();
+        File javaHomeDir;
+        try {
+            javaHomeDir = new File(System.getProperty("java.home"));
+        } finally {
+            lock.unlock();
+        }
+        return javaHomeDir;
     }
 
     /**
@@ -111,14 +118,30 @@ public class SystemProperties {
      * @return Instance created by Factory implementation
      */
     public <T> T withJavaHome(File javaHomeDir, Factory<T> factory) {
+        return withSystemProperty("java.home", javaHomeDir.getAbsolutePath(), factory);
+    }
+
+    /**
+     * Creates an instance for a Factory implementation with a system property set to a given value.  Sets the system property back to the original value (or
+     * clears it if it was never set) after the operation.
+     *
+     * @param propertyName The name of the property to set
+     * @param value The value to temporarily set the property to
+     * @param factory Instance created by the Factory implementation
+     */
+    public <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
         lock.lock();
-        File originalJavaHomeDir = getJavaHomeDir();
-        setJavaHomeDir(javaHomeDir);
+        String originalValue = System.getProperty(propertyName);
+        System.setProperty(propertyName, value);
 
         try {
             return factory.create();
         } finally {
-            setJavaHomeDir(originalJavaHomeDir);
+            if (originalValue != null) {
+                System.setProperty(propertyName, originalValue);
+            } else {
+                System.clearProperty(propertyName);
+            }
             lock.unlock();
         }
     }

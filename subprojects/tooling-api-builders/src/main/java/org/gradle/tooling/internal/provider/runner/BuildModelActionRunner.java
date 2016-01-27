@@ -20,14 +20,12 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
-import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -43,20 +41,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         BuildModelAction buildModelAction = (BuildModelAction) action;
         GradleInternal gradle = buildController.getGradle();
-
-        // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
-        // this allows to send progress events back to the DaemonClient (via short-cut)
-        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
-        ConsumerListenerConfiguration listenerConfiguration = buildModelAction.getConsumerListenerConfiguration();
-        if (listenerConfiguration.isSendTestProgressEvents()) {
-            gradle.addListener(new ClientForwardingTestListener(eventConsumer, listenerConfiguration));
-        }
-        if (listenerConfiguration.isSendTaskProgressEvents()) {
-            gradle.addListener(new ClientForwardingTaskListener(eventConsumer, listenerConfiguration));
-        }
-        if (listenerConfiguration.isSendBuildProgressEvents()) {
-            gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
-        }
 
         if (buildModelAction.isRunTasks()) {
             buildController.run();

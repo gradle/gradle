@@ -18,16 +18,17 @@ package org.gradle.logging.internal;
 
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.progress.OperationIdentifier;
-import org.gradle.internal.progress.OperationsHierarchy;
-import org.gradle.internal.progress.OperationsHierarchyKeeper;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GUtil;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final TimeProvider timeProvider;
-    private final OperationsHierarchyKeeper hierarchyKeeper = new OperationsHierarchyKeeper();
+    private final AtomicLong nextId = new AtomicLong();
+    private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
 
     public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
         this.progressListener = progressListener;
@@ -42,58 +43,71 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         return init(loggerCategory, null);
     }
 
-    public ProgressLogger newOperation(Class loggerCategory, ProgressLogger parent) {
-        return init(loggerCategory.toString(), parent);
+    public ProgressLogger newOperation(Class loggerClass, ProgressLogger parent) {
+        return init(loggerClass.toString(), parent);
     }
 
-    private ProgressLogger init(String loggerCategory, ProgressLogger parentHint) {
-        return new ProgressLoggerImpl(hierarchyKeeper.currentHierarchy(parentHint), loggerCategory, progressListener, timeProvider);
+    private ProgressLogger init(String loggerCategory, ProgressLogger parentOperation) {
+        if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
+            throw new IllegalArgumentException("Unexpected parent logger.");
+        }
+        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, nextId.getAndIncrement(), loggerCategory, progressListener, timeProvider);
     }
 
-    private static class ProgressLoggerImpl implements ProgressLogger {
-        private enum State { idle, started, completed }
+    private enum State { idle, started, completed }
 
-        private final OperationsHierarchy hierarchy;
+    private class ProgressLoggerImpl implements ProgressLogger {
+        private final OperationIdentifier id;
         private final String category;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
+        private ProgressLoggerImpl parent;
         private String description;
         private String shortDescription;
         private String loggingHeader;
         private State state = State.idle;
 
-        public ProgressLoggerImpl(OperationsHierarchy hierarchy, String category, ProgressListener listener, TimeProvider timeProvider) {
-            this.hierarchy = hierarchy;
+        public ProgressLoggerImpl(ProgressLoggerImpl parent, long id, String category, ProgressListener listener, TimeProvider timeProvider) {
+            this.parent = parent;
+            this.id = new OperationIdentifier(id);
             this.category = category;
             this.listener = listener;
             this.timeProvider = timeProvider;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s - %s", category, description);
         }
 
         public String getDescription() {
             return description;
         }
 
-        public void setDescription(String description) {
+        public ProgressLogger setDescription(String description) {
             assertCanConfigure();
             this.description = description;
+            return this;
         }
 
         public String getShortDescription() {
             return shortDescription;
         }
 
-        public void setShortDescription(String shortDescription) {
+        public ProgressLogger setShortDescription(String shortDescription) {
             assertCanConfigure();
             this.shortDescription = shortDescription;
+            return this;
         }
 
         public String getLoggingHeader() {
             return loggingHeader;
         }
 
-        public void setLoggingHeader(String loggingHeader) {
+        public ProgressLogger setLoggingHeader(String loggingHeader) {
             assertCanConfigure();
             this.loggingHeader = loggingHeader;
+            return this;
         }
 
         public ProgressLogger start(String description, String shortDescription) {
@@ -111,19 +125,20 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             if (!GUtil.isTrue(description)) {
                 throw new IllegalStateException("A description must be specified before this operation is started.");
             }
-            if (state == State.started) {
-                throw new IllegalStateException("This operation has already been started.");
-            }
-            assertNotCompleted();
+            assertNotStarted();
             state = State.started;
-            OperationIdentifier id = hierarchy.start();
-            listener.started(new ProgressStartEvent(id.getId(), id.getParentId(), timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            if (parent == null) {
+                parent = current.get();
+            } else {
+                parent.assertRunning();
+            }
+            current.set(this);
+            listener.started(new ProgressStartEvent(id, parent == null ? null : parent.id, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
-            assertStarted();
-            assertNotCompleted();
-            listener.progress(new ProgressEvent(hierarchy.currentOperationId(), timeProvider.getCurrentTime(), category, toStatus(status)));
+            assertRunning();
+            listener.progress(new ProgressEvent(id, timeProvider.getCurrentTime(), category, toStatus(status)));
         }
 
         public void completed() {
@@ -131,36 +146,37 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         public void completed(String status) {
-            assertStarted();
-            assertNotCompleted();
+            assertRunning();
             state = State.completed;
-            listener.completed(new ProgressCompleteEvent(hierarchy.completeCurrentOperation(),
-                    timeProvider.getCurrentTime(), category, description, toStatus(status)));
-        }
-
-        public long currentOperationId() {
-            return hierarchy.currentOperationId();
+            current.set(parent);
+            listener.completed(new ProgressCompleteEvent(id, timeProvider.getCurrentTime(), category, description, toStatus(status)));
         }
 
         private String toStatus(String status) {
             return status == null ? "" : status;
         }
 
-        private void assertNotCompleted() {
-            if (state == ProgressLoggerImpl.State.completed) {
-                throw new IllegalStateException("This operation has completed.");
+        private void assertNotStarted() {
+            if (state == State.started) {
+                throw new IllegalStateException(String.format("This operation (%s) has already been started.", this));
+            }
+            if (state == State.completed) {
+                throw new IllegalStateException(String.format("This operation (%s) has already completed.", this));
             }
         }
 
-        private void assertStarted() {
-            if (state == ProgressLoggerImpl.State.idle) {
-                throw new IllegalStateException("This operation has not been started.");
+        private void assertRunning() {
+            if (state == State.idle) {
+                throw new IllegalStateException(String.format("This operation (%s) has not been started.", this));
+            }
+            if (state == State.completed) {
+                throw new IllegalStateException(String.format("This operation (%s) has already been completed.", this));
             }
         }
 
         private void assertCanConfigure() {
             if (state != State.idle) {
-                throw new IllegalStateException("Cannot configure this operation once it has started.");
+                throw new IllegalStateException(String.format("Cannot configure this operation (%s) once it has started.", this));
             }
         }
     }

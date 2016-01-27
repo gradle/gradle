@@ -18,32 +18,28 @@ package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
-class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
+class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
-
-    def setup() {
-        toolingApi.requireDaemons()
-    }
 
     @TargetGradleVersion(">=2.3")
     def "logging is not sent to System.out or System.err"() {
         file("build.gradle") << """
-project.logger.error("error logging");
-project.logger.warn("warn logging");
-project.logger.lifecycle("lifecycle logging");
-project.logger.quiet("quiet logging");
-project.logger.info ("info logging");
-project.logger.debug("debug logging");
+project.logger.error("error log message");
+project.logger.warn("warn log message");
+project.logger.lifecycle("lifecycle log message");
+project.logger.quiet("quiet log message");
+project.logger.info ("info log message");
+project.logger.debug("debug log message");
 
 task log << {
-    println "task logging"
+    println "task log message"
 }
 """
 
@@ -55,8 +51,8 @@ task log << {
         }
 
         then:
-        !stdOutAndErr.stdOut.contains("logging")
-        !stdOutAndErr.stdErr.contains("logging")
+        !stdOutAndErr.stdOut.contains("log message")
+        !stdOutAndErr.stdErr.contains("log message")
     }
 
     @TargetGradleVersion(">=2.3")

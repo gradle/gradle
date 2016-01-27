@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.continuous
 
+import spock.lang.Ignore
 import spock.lang.Unroll
 
-class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-
-    def "creating zips in continuous mode"() {
+class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    def "creating zips"() {
         given:
         def sourceDir = file("src")
         def subDir = sourceDir.file("subdir")
@@ -33,12 +33,13 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         sourceDir.file("README").text = "README"
         subDir.file("A").text = "A"
         buildFile << """
-    apply plugin: 'base'
-    task zip(type: Zip) {
-        archiveName = "zip.zip"
-        from("src")
-    }
-"""
+            apply plugin: 'base'
+            task zip(type: Zip) {
+                archiveName = "zip.zip"
+                from("src")
+            }
+        """
+
         then:
         succeeds("zip")
         executedAndNotSkipped(":zip")
@@ -49,6 +50,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         when:
         subDir.file("B").text = "B"
+
         then:
         succeeds()
         executedAndNotSkipped(":zip")
@@ -58,13 +60,14 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         when:
         sourceDir.file("newdir").createDir()
+
         then:
         succeeds()
-        skipped(":zip") // GRADLE-2827 - current behaviour, not desired
+        executedAndNotSkipped(":zip")
     }
 
     @Unroll
-    def "using compressed files as inputs - #source"() {
+    def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
@@ -74,36 +77,86 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
             task unpack(type: Sync) {
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
+"""
+        if (readonly) {
+            buildFile << """
+                fileMode 0644
+                dirMode 0755
+            """
+        }
+        buildFile << """
             }
         """
 
         when:
         packDir.file("A").text = "original"
-        packDir.file("subdir").createDir().file("B").text = "B"
-        packDir.file("subdir2").createDir()
+        packDir."$packType"(sourceFile, readonly)
+
+        then:
+        succeeds("unpack")
+        executedAndNotSkipped(":unpack")
+        outputDir.file("A").text == "original"
+
+        when:
+        // adding a new file to the archive instead of modifying 'A' because
+        // zipTo won't update the zip file if Ant's zip task thinks the files
+        // have not changed.
+        packDir.file("B").text = "new-file"
+        packDir."$packType"(sourceFile, readonly)
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":unpack")
+        outputDir.file("A").text == "original"
+        outputDir.file("B").text == "new-file"
+
+        where:
+        type      | packType | source        | readonly
+        "zipTree" | "zipTo"  | "source.zip"  | true
+        "zipTree" | "zipTo"  | "source.zip"  | false
+        "tarTree" | "tarTo"  | "source.tar"  | true
+        "tarTree" | "tarTo"  | "source.tar"  | false
+        "tarTree" | "tgzTo"  | "source.tgz"  | true
+        "tarTree" | "tgzTo"  | "source.tgz"  | false
+        "tarTree" | "tbzTo"  | "source.tbz2" | true
+        "tarTree" | "tbzTo"  | "source.tbz2" | false
+    }
+
+    @Ignore("inputs from resources are ignored")
+    def "using compressed files as inputs from resources - #source"() {
+        given:
+        def packDir = file("pack").createDir()
+        def outputDir = file("unpack")
+        def sourceFile = file(source)
+
+        buildFile << """
+            task unpack(type: Sync) {
+                from($type(resources.$resourceType("${sourceFile.toURI()}")))
+                into("unpack")
+            }
+        """
+
+        when:
+        packDir.file("A").text = "original"
         packDir."$packType"(sourceFile)
 
         then:
         succeeds("unpack")
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original"
-        outputDir.file("subdir/B").exists()
-        outputDir.file("subdir2").exists()
 
         when:
-        packDir.file("A").text = "changed"
+        packDir.file("A") << "-changed"
         packDir."$packType"(sourceFile)
 
         then:
         succeeds()
         executedAndNotSkipped(":unpack")
-        outputDir.file("A").text == "changed"
+        outputDir.file("A").text == "original-changed"
 
         where:
-        type      | packType | source
-        "zipTree" | "zipTo"  | "source.zip"
-        "tarTree" | "tarTo"  | "source.tar"
-        "tarTree" | "tgzTo"  | "source.tgz"
+        type      | packType | resourceType | source
+        "tarTree" | "tgzTo"  | "gzip"       | "source.tgz"
+        "tarTree" | "tbzTo"  | "bzip2"      | "source.tbz2"
     }
-
 }

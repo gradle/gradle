@@ -19,11 +19,16 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.debug.JDWPUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.GradleVersion
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
+    @Rule JDWPUtil jdwpClient = new JDWPUtil(5005)
+
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
     def "provides reasonable failure message when attempting to run under java 5"() {
         def jdk = AvailableJavaHomes.java5
@@ -71,5 +76,17 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         value << ["-1", "0", "foo", " 1"]
+    }
+
+    def "can debug with org.gradle.debug=true"() {
+        when:
+        def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
+
+        then:
+        ConcurrentTestUtil.poll() {
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
+        }
+        gradle.waitForFinish()
     }
 }

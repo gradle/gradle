@@ -21,28 +21,57 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ApplicationBinarySpec;
+import org.gradle.platform.base.Variant;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
 import java.util.Map;
 
 /**
- * Represents a binary artifact that is the result of building a play component.
+ * Represents a binary artifact that is the result of building a Play application software component.
  */
 @Incubating
 @HasInternalProtocol
-public interface PlayApplicationBinarySpec extends BinarySpec {
+public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
+    /**
+     * {@inheritDoc}
+     */
     PlayApplicationSpec getApplication();
 
+    /**
+     * The PlayPlatform this binary is built for.
+     * @return platform for this binary
+     */
+    @Variant
     PlayPlatform getTargetPlatform();
 
+    PlayToolChain getToolChain();
+
+    /**
+     * The application jar file produced for this binary.
+     * @return the application jar file
+     */
     File getJarFile();
 
+    /**
+     * The assets jar file produced for this binary.
+     * @return the assets jar file
+     */
     File getAssetsJarFile();
 
+    /**
+     * A buildable object representing the class files and resources that will be included in the application jar file.
+     * @return the JvmClasses for this binary
+     */
+    // TODO:DAZ Replace this with `JvmAssembly` once that type is public
     JvmClasses getClasses();
 
+    /**
+     * A buildable object representing the public assets that will be included in the assets jar file.
+     * @return the PublicAssets for this binary
+     */
     PublicAssets getAssets();
 
     Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala();

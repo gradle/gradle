@@ -16,26 +16,15 @@
 
 package org.gradle.language.assembler.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.util.GFileUtils
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class AssemblerPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
-
-    ModelMap<ComponentSpec> realizeComponents() {
-        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
-    }
+class AssemblerPluginTest extends PlatformBaseSpecification {
 
     def "creates asm source set with conventional locations for components"() {
         when:
@@ -52,12 +41,13 @@ class AssemblerPluginTest extends Specification {
         then:
         def components = realizeComponents()
         def exe = components.exe
-        exe.sources instanceof FunctionalSourceSet
+        exe.sources instanceof ModelMap
         exe.sources.asm instanceof AssemblerSourceSet
         exe.sources.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
 
         and:
-        project.sources as Set == exe.sources as Set
+        def sources = realizeSourceSets()
+        sources as Set == exe.sources as Set
     }
 
     def "can configure source set locations"() {
@@ -106,7 +96,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        NativeExecutableBinarySpec binary = project.binaries.testExecutable
+        NativeExecutableBinarySpec binary = realizeBinaries().testExecutable
         binary.tasks.withType(Assemble)*.name == ["assembleTestExecutableTestAnotherOne", "assembleTestExecutableTestAsm"]
 
         and:
@@ -149,7 +139,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        SharedLibraryBinarySpec sharedLib = project.binaries.testSharedLibrary
+        SharedLibraryBinarySpec sharedLib = realizeBinaries().testSharedLibrary
         sharedLib.tasks.withType(Assemble)*.name == ["assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm"]
         sharedLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain
@@ -159,7 +149,7 @@ class AssemblerPluginTest extends Specification {
         sharedLinkTask TaskDependencyMatchers.dependsOn("assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm")
 
         and:
-        StaticLibraryBinarySpec staticLib = project.binaries.testStaticLibrary
+        StaticLibraryBinarySpec staticLib = realizeBinaries().testStaticLibrary
         staticLib.tasks.withType(Assemble)*.name == ["assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm"]
         staticLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain
@@ -171,12 +161,5 @@ class AssemblerPluginTest extends Specification {
 
     def touch(String filePath) {
         GFileUtils.touch(project.file(filePath))
-    }
-
-    def dsl(@DelegatesTo(Project) Closure closure) {
-        closure.delegate = project
-        closure()
-        project.tasks.realize()
-        project.bindAllModelRules()
     }
 }

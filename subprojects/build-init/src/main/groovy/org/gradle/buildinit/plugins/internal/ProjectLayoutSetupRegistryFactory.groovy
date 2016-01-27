@@ -28,23 +28,14 @@ class ProjectLayoutSetupRegistryFactory {
     ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
         DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
-
-        // TODO maybe referencing the implementation class here is enough and instantiation
-        // should be defererred when descriptor is requested.
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry)
-
         ProjectInitDescriptor simpleGlobalFilesBuildSettingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(templateOperationBuilder, fileResolver);
-
         registry.add(BuildInitTypeIds.JAVA_LIBRARY,
-                new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor))
-
-
+                new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.SCALA_LIBRARY,
                 new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-
         registry.add(BuildInitTypeIds.GROOVY_LIBRARY,
                         new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-
         registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
         return registry

@@ -58,7 +58,7 @@ class BlockingResultHandler<T> implements ResultHandler<T> {
         if (!currentThreadStack.isEmpty()) {
             adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
         }
-        failure.setStackTrace(adjusted.toArray(new StackTraceElement[adjusted.size()]));
+        failure.setStackTrace(adjusted.toArray(new StackTraceElement[0]));
         return failure;
     }
 

@@ -78,9 +78,9 @@ public class ComparableGradleBuildExecuter {
 
     public ProjectOutcomes executeWith(ProjectConnection connection) {
         List<String> tasksList = getSpec().getTasks();
-        String[] tasks = tasksList.toArray(new String[tasksList.size()]);
+        String[] tasks = tasksList.toArray(new String[0]);
         List<String> argumentsList = getImpliedArguments();
-        String[] arguments = argumentsList.toArray(new String[argumentsList.size()]);
+        String[] arguments = argumentsList.toArray(new String[0]);
 
         if (isCanObtainProjectOutcomesModel()) {
             // Run the build and get the build outcomes model

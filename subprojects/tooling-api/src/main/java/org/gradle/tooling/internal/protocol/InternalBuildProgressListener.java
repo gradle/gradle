@@ -49,9 +49,8 @@ public interface InternalBuildProgressListener {
      * The event types implemented in Gradle 2.5 are:
      *
      * <ul>
-     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent}</li>
-     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalTaskProgressEvent}</li>
-     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalBuildProgressEvent}</li>
+     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalProgressEvent} - used for all operation types: task, test and generic.</li>
+     *     <li>{@link org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent} - test events also implement these types for backwards compatibility</li>
      * </ul>
      *
      * @param event The issued progress event

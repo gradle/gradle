@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
@@ -56,8 +57,8 @@ public class FileCollectionMatchers {
                 }
                 if (expected instanceof CompositeFileCollection) {
                     CompositeFileCollection collection = (CompositeFileCollection) expected;
-                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-                    collection.resolve(context);
+                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(TestFiles.resolver());
+                    collection.visitContents(context);
                     return context.resolveAsFileCollections();
                 }
                 throw new RuntimeException("Cannot get children of " + expected);

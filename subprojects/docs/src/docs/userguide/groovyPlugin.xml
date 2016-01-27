@@ -148,13 +148,13 @@
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
         </section>
-        
+
     </section>
 
     <section>
         <title>Dependency management</title>
         <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
-            with a Groovy library (2.3.3 as of Gradle 2.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
+            with a Groovy library (2.4.4 as of Gradle 2.8). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
             This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler
             and Groovydoc tool, respectively.
         </para>
@@ -225,8 +225,7 @@
     <section>
         <title>Source set properties</title>
         <para>The Groovy plugin adds the following convention properties to each source set in the project. You can
-            use these properties in your build script as though they were properties of the source set object (see
-            <xref linkend="sub:more_about_convention_objects"/>).</para>
+            use these properties in your build script as though they were properties of the source set object.</para>
         <table>
             <title>Groovy plugin - source set properties</title>
             <thead>

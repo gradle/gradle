@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -32,12 +33,13 @@ import java.util.Set;
 
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
-    private final ArtifactsFileCollection files = new ArtifactsFileCollection();
+    private final FileCollection files;
     private final String displayName;
 
-    public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet) {
+    public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
         super(backingSet);
         this.displayName = displayName;
+        this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
     }
 
     @Override
@@ -53,17 +55,13 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
         return builtBy;
     }
 
-    private class ArtifactsFileCollection extends AbstractFileCollection {
-
+    private class ArtifactsFileCollection implements MinimalFileSet {
+        @Override
         public String getDisplayName() {
             return displayName;
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return builtBy;
-        }
-
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<File>();
             for (PublishArtifact artifact : DefaultPublishArtifactSet.this) {
@@ -74,7 +72,8 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
                 context.add(publishArtifact);
             }

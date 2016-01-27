@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -31,7 +32,7 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.*;
 
-public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData {
+public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData, BuildableLocalComponentMetaData {
     private final ModuleVersionIdentifier id;
     private final DefaultModuleDescriptor moduleDescriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
@@ -56,12 +57,11 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addConfiguration(LocalConfigurationMetaData configuration) {
-        Set<String> extendsFrom = configuration.getExtendsFrom();
-        String[] superConfigs = extendsFrom.toArray(new String[extendsFrom.size()]);
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+        String[] superConfigs = extendsFrom.toArray(new String[0]);
         Arrays.sort(superConfigs);
-        Configuration.Visibility visibility = configuration.isVisible() ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE;
-        Configuration conf = new Configuration(configuration.getName(), visibility, configuration.getDescription(), superConfigs, configuration.isTransitive(), null);
+        Configuration.Visibility visibility = visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE;
+        Configuration conf = new Configuration(name, visibility, description, superConfigs, transitive, null);
         moduleDescriptor.addConfiguration(conf);
     }
 
@@ -96,6 +96,15 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         }
     }
 
+    @Override
+    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
+        for (PublishArtifact artifact : artifacts) {
+            MDArtifact ivyArtifact = getOrCreate(DefaultIvyArtifactName.forPublishArtifact(artifact));
+            ivyArtifact.addConfiguration(configuration);
+            addArtifact(ivyArtifact, artifact.getFile());
+        }
+    }
+
     public void addArtifact(Artifact artifact, File file) {
         DefaultIvyModuleArtifactPublishMetaData publishMetaData = new DefaultIvyModuleArtifactPublishMetaData(id, artifact, file);
         artifactsById.put(publishMetaData.getId(), publishMetaData);
@@ -103,13 +112,6 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
 
     public void addArtifact(IvyModuleArtifactPublishMetaData artifact) {
         artifactsById.put(artifact.getId(), artifact);
-    }
-
-    @Override
-    public void addArtifact(String configuration, PublishArtifact publishArtifact) {
-        MDArtifact artifact = getOrCreate(DefaultIvyArtifactName.forPublishArtifact(publishArtifact, getId().getName()));
-        artifact.addConfiguration(configuration);
-        addArtifact(artifact, publishArtifact.getFile());
     }
 
     private MDArtifact getOrCreate(IvyArtifactName ivyName) {

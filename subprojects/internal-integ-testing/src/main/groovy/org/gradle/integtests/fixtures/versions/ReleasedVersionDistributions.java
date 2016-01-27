@@ -24,10 +24,12 @@ import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 
 import static org.gradle.util.CollectionUtils.findFirst;
+import static org.gradle.util.CollectionUtils.sort;
 
 /**
  * Provides access to {@link GradleDistribution}s for versions of Gradle that have been released.
@@ -95,5 +97,16 @@ public class ReleasedVersionDistributions {
                 return element.getVersion().equals(gradleVersion);
             }
         });
+    }
+
+    public GradleDistribution getPrevious(final GradleVersion gradleVersion) {
+        GradleDistribution distribution = getDistribution(gradleVersion);
+        List<GradleDistribution> sortedDistributions = sort(distributions, new Comparator<GradleDistribution>() {
+            public int compare(GradleDistribution dist1, GradleDistribution dist2) {
+                return dist1.getVersion().compareTo(dist2.getVersion());
+            }
+        });
+        int distributionIndex = sortedDistributions.indexOf(distribution) - 1;
+        return distributionIndex >= 0 ? sortedDistributions.get(distributionIndex) : null;
     }
 }

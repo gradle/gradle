@@ -30,7 +30,7 @@ abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrati
         settingsFile << """ rootProject.name = 'js-play-app' """
     }
 
-    abstract String getDefaultSourceSet();
+    abstract TestFile getProcessedJavaScriptDir(String sourceSet)
 
     JarTestFixture getAssetsJar() {
         jar("build/playBinary/lib/js-play-app-assets.jar")
@@ -44,36 +44,25 @@ abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrati
         file("app/assets/${fileName}")
     }
 
-    TestFile copied(String fileName) {
-        return minified(fileName)
+    TestFile getProcessedJavaScriptDir() {
+        getProcessedJavaScriptDir(null)
     }
 
-    TestFile copied(String sourceSet, String fileName) {
-        return minified(sourceSet, fileName)
+    TestFile processedJavaScript(String fileName) {
+        return processedJavaScript(null, fileName)
     }
 
-    TestFile minified(String fileName) {
-        return minified(getDefaultSourceSet(), fileName)
+    TestFile processedJavaScript(String sourceSet, String fileName) {
+        getProcessedJavaScriptDir(sourceSet).file(fileName)
     }
 
-    TestFile minified(String sourceSet, String fileName) {
-        file("build/playBinary/src/minifyPlayBinary${sourceSet}/${fileName}")
-    }
-
-    void matchesExpected(File file) {
+    void hasMinifiedJavaScript(File file) {
+        assert file.exists()
         assert TextUtil.normaliseLineSeparators(file.text) == TextUtil.normaliseLineSeparators(expectedMinifiedJavaScript())
     }
 
-    void matchesExpected(String fileName) {
-        matchesExpected(getDefaultSourceSet(), fileName)
-    }
-
-    void matchesExpected(String sourceSet, String fileName) {
-        assert minified(sourceSet, fileName).exists()
-        matchesExpected(minified(sourceSet, fileName))
-    }
-
-    void matchesExpectedRaw(File file) {
+    void hasExpectedJavaScript(File file) {
+        assert file.exists()
         assert compareWithoutWhiteSpace(file.text, expectedJavaScript())
     }
 

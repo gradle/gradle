@@ -19,17 +19,25 @@ import java.util.List;
 import java.util.Set;
 
 public interface ExecutionResult {
+    /**
+     * Stdout of the Gradle execution, normalized to use new-line char as line separator.
+     */
     String getOutput();
 
+    /**
+     * Stderr of the Gradle execution, normalized to use new-line char as line separator.
+     */
     String getError();
 
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
+
+    ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
      * Returns the tasks have been executed in order (includes tasks that were skipped). Note: ignores buildSrc tasks.
      */
     List<String> getExecutedTasks();
-    
+
     /**
      * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
      */
@@ -39,7 +47,7 @@ public interface ExecutionResult {
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
      */
     Set<String> getSkippedTasks();
-    
+
     /**
      * Asserts that exactly the given set of tasks have been skipped. Note: ignores buildSrc tasks.
      */

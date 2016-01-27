@@ -41,7 +41,7 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
             for (String taskName : excludedTaskNames) {
                 filters.add(taskSelector.getFilter(taskName));
             }
-            gradle.getTaskGraph().useFilter(Specs.and(filters));
+            gradle.getTaskGraph().useFilter(Specs.intersect(filters));
         }
 
         context.proceed();

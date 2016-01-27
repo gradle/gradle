@@ -20,16 +20,22 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A TypeBuilder to configure read the implementation class of a type.
- * @param <C> The component type.
- * */
+ * A TypeBuilder to configure the registration of a type.
+ * @param <T> The registered type.
+ */
 @Incubating
 @HasInternalProtocol
-public interface TypeBuilder<C> {
+public interface TypeBuilder<T> {
 
     /**
      * Allows the plugin to register the implementation type.
      * @param implementation the implementation class.
      */
-    TypeBuilder<C> defaultImplementation(Class<? extends C> implementation);
+    TypeBuilder<T> defaultImplementation(Class<? extends T> implementation);
+
+    /**
+     * Allows type registration rules to add internal views to the registered type.
+     * @param internalView the internal view class
+     */
+    TypeBuilder<T> internalView(Class<?> internalView);
 }

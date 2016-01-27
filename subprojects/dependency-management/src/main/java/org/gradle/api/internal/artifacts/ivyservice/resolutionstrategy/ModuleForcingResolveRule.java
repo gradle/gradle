@@ -19,10 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ModuleDependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,8 +50,8 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
             return;
         }
         ModuleIdentifier key = new DefaultModuleIdentifier(details.getOldRequested().getGroup(), details.getOldRequested().getName());
-        if (forcedModules.containsKey(key) && details instanceof ModuleDependencySubstitutionInternal) {
-            ((ModuleDependencySubstitutionInternal) details).useVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
+        if (forcedModules.containsKey(key) && details.getRequested() instanceof ModuleComponentSelector) {
+            details.useTarget(DefaultModuleComponentSelector.newSelector(key.getGroup(), key.getName(), forcedModules.get(key)), VersionSelectionReasons.FORCED);
         }
     }
 }

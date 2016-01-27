@@ -40,7 +40,6 @@ public interface BuildInvocations extends Model {
      * @return The task selectors.
      * @since 1.12
      */
-    @Incubating
     DomainObjectSet<? extends TaskSelector> getTaskSelectors();
 
     /**
@@ -49,6 +48,5 @@ public interface BuildInvocations extends Model {
      * @return The tasks.
      * @since 1.12
      */
-    @Incubating
     DomainObjectSet<? extends Task> getTasks();
 }

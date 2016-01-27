@@ -31,7 +31,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
  */
-public class NoRepositoriesResolver implements RepositoryChain, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return this;
     }

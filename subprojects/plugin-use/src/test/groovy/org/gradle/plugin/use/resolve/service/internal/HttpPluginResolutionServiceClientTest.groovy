@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import org.gradle.api.GradleException
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
+import org.gradle.internal.resource.transport.http.SslContextFactory
 import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.PluginRequest
 import org.gradle.util.GradleVersion
@@ -28,7 +29,8 @@ import spock.lang.Specification
 class HttpPluginResolutionServiceClientTest extends Specification {
     public static final String PLUGIN_PORTAL_URL = "http://plugin.portal"
     private resourceAccessor = Mock(HttpResourceAccessor)
-    private client = new HttpPluginResolutionServiceClient(resourceAccessor)
+    private sslContextFactory = Mock(SslContextFactory)
+    private client = new HttpPluginResolutionServiceClient(sslContextFactory, resourceAccessor)
     private request = Stub(PluginRequest) {
         getId() >> PluginId.of("foo")
     }

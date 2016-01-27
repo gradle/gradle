@@ -17,11 +17,8 @@
     <title>The SonarQube Runner Plugin</title>
     <note>
         <para>
-            The SonarQube Runner plugin is currently <link linkend="feature_lifecycle">incubating</link>.
-            Please be aware that the DSL and other configuration may change in later Gradle versions.
-        </para>
-        <para>
-            It is intended that this plugin will replace the older <link linkend="sonar_plugin">Sonar Plugin</link> in a future Gradle version.
+            This plugin has been deprecated and superseded by the <ulink url="http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle">official plugin from SonarQube</ulink>.
+            This plugin will be removed in Gradle 3.0.
         </para>
     </note>
     <para>The SonarQube Runner plugin provides integration with <ulink url="http://www.sonarqube.org/">SonarQube</ulink>,

@@ -58,21 +58,20 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
 
         when:
         sample playSample
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        executer.usingInitScript(initScript)
+        executer.usingInitScript(initScript).withStdinPipe()
         GradleHandle gradleHandle = executer.withTasks(":admin:runPlayBinary").start()
+        runningPlayApp.initialize(gradleHandle)
 
         then:
-        available("http://localhost:$httpPort/admin", "Play app", 60000)
+        runningPlayApp.waitForStarted()
 
         and:
         checkAdminModuleContent()
 
         when:
-        stopWithCtrlD(userInput, gradleHandle)
+        gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort/admin")
+        runningPlayApp.verifyStopped('admin')
     }
 }

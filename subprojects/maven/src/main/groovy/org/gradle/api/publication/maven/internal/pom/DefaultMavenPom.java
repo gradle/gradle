@@ -16,7 +16,6 @@
 package org.gradle.api.publication.maven.internal.pom;
 
 import groovy.lang.Closure;
-
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -31,7 +30,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.listener.ActionBroadcast;
 
@@ -44,7 +43,7 @@ import java.util.List;
 public class DefaultMavenPom implements MavenPom {
 
     private PomDependenciesConverter pomDependenciesConverter;
-    private FileResolver fileResolver;
+    private PathToFileResolver fileResolver;
     private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
     private ActionBroadcast<MavenPom> whenConfiguredActions = new ActionBroadcast<MavenPom>();
@@ -52,7 +51,7 @@ public class DefaultMavenPom implements MavenPom {
     private ConfigurationContainer configurations;
 
     public DefaultMavenPom(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMappings, PomDependenciesConverter pomDependenciesConverter,
-                           FileResolver fileResolver) {
+                           PathToFileResolver fileResolver) {
         this.configurations = configurationContainer;
         this.scopeMappings = scopeMappings;
         this.pomDependenciesConverter = pomDependenciesConverter;
@@ -173,11 +172,7 @@ public class DefaultMavenPom implements MavenPom {
         return pomDependenciesConverter;
     }
 
-    public FileResolver getFileResolver() {
-        return fileResolver;
-    }
-
-    public DefaultMavenPom setFileResolver(FileResolver fileResolver) {
+    public DefaultMavenPom setFileResolver(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         return this;
     }

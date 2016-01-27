@@ -22,17 +22,15 @@ import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.*;
 
 import java.util.*;
 
-public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
+public class DefaultLocalComponentMetaData implements LocalComponentMetaData, BuildableLocalComponentMetaData {
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
-    private final Map<String, PublishArtifactSet> allArtifacts = Maps.newHashMap();
+    private final Map<String, Iterable<? extends PublishArtifact>> allArtifacts = Maps.newHashMap();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -49,12 +47,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return id;
     }
 
-    public void addArtifacts(String configuration, PublishArtifactSet artifacts) {
+    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         allArtifacts.put(configuration, artifacts);
     }
 
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive) {
-        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy);
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
         allConfigurations.put(name, conf);
     }
 
@@ -66,91 +64,50 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         allExcludeRules.add(excludeRule);
     }
 
-    public ComponentResolveMetaData toResolveMetaData() {
-        return new DefaultLocalComponentResolveMetaData();
+    @Override
+    public String toString() {
+        return componentIdentifier.getDisplayName();
     }
 
-    public BuildableIvyModulePublishMetaData toPublishMetaData() {
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, status);
-        for (DefaultLocalConfigurationMetaData configuration : allConfigurations.values()) {
-            publishMetaData.addConfiguration(configuration);
-        }
-        for (ExcludeRule excludeRule : allExcludeRules) {
-            publishMetaData.addExcludeRule(excludeRule);
-        }
-        for (DependencyMetaData dependency : allDependencies) {
-            publishMetaData.addDependency(dependency);
-        }
-        for (String configuration : allArtifacts.keySet()) {
-            PublishArtifactSet publishArtifacts = allArtifacts.get(configuration);
-            for (PublishArtifact publishArtifact : publishArtifacts) {
-                publishMetaData.addArtifact(configuration, publishArtifact);
-            }
-        }
-        return publishMetaData;
+    public ModuleSource getSource() {
+        return null;
     }
 
-    private class DefaultLocalComponentResolveMetaData implements LocalComponentResolveMetaData {
-        private ModuleVersionIdentifier moduleVersionIdentifier;
+    public ComponentResolveMetaData withSource(ModuleSource source) {
+        throw new UnsupportedOperationException();
+    }
 
-        public DefaultLocalComponentResolveMetaData() {
-            this.moduleVersionIdentifier = id;
-        }
+    public boolean isGenerated() {
+        return false;
+    }
 
-        @Override
-        public String toString() {
-            return componentIdentifier.getDisplayName();
-        }
+    public boolean isChanging() {
+        return false;
+    }
 
-        public ModuleVersionIdentifier getId() {
-            return moduleVersionIdentifier;
-        }
+    public String getStatus() {
+        return status;
+    }
 
-        public ModuleSource getSource() {
-            return null;
-        }
+    public List<String> getStatusScheme() {
+        return DEFAULT_STATUS_SCHEME;
+    }
 
-        public ComponentResolveMetaData withSource(ModuleSource source) {
-            throw new UnsupportedOperationException();
-        }
+    public ComponentIdentifier getComponentId() {
+        return componentIdentifier;
+    }
 
-        public boolean isGenerated() {
-            return false;
-        }
+    public List<DependencyMetaData> getDependencies() {
+        return allDependencies;
+    }
 
-        public boolean isChanging() {
-            return false;
-        }
+    @Override
+    public Set<String> getConfigurationNames() {
+        return allConfigurations.keySet();
+    }
 
-        public String getStatus() {
-            return status;
-        }
-
-        public List<String> getStatusScheme() {
-            return DEFAULT_STATUS_SCHEME;
-        }
-
-        public ComponentIdentifier getComponentId() {
-            return componentIdentifier;
-        }
-
-        public List<DependencyMetaData> getDependencies() {
-            return allDependencies;
-        }
-
-        @Override
-        public Set<String> getConfigurationNames() {
-            return allConfigurations.keySet();
-        }
-
-        public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
-            return allConfigurations.get(name);
-        }
-
-        @Override
-        public ComponentResolveMetaData toArtifactResolveMetaData() {
-            return new ArtifactOnlyComponentResolveMetaData(id, componentIdentifier, status, allArtifacts, allConfigurations.values());
-        }
+    public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
+        return allConfigurations.get(name);
     }
 
     private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
@@ -160,17 +117,19 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private final boolean visible;
         private final Set<String> hierarchy;
         private final Set<String> extendsFrom;
+        private final TaskDependency buildDependencies;
 
         private List<DependencyMetaData> configurationDependencies;
         private LinkedHashSet<ExcludeRule> configurationExcludeRules;
 
-        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy) {
+        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
             this.visible = visible;
             this.hierarchy = hierarchy;
             this.extendsFrom = extendsFrom;
+            this.buildDependencies = buildDependencies;
         }
 
         @Override
@@ -179,7 +138,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public ComponentResolveMetaData getComponent() {
-            return new DefaultLocalComponentResolveMetaData();
+            return DefaultLocalComponentMetaData.this;
+        }
+
+        @Override
+        public TaskDependency getDirectBuildDependencies() {
+            return buildDependencies;
         }
 
         public String getDescription() {
@@ -257,7 +221,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, getHierarchy(), allArtifacts);
+            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, getHierarchy(), allArtifacts);
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
@@ -267,21 +231,20 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
                 }
             }
 
-            return new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
+            return new MissingLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName);
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, Set<String> configurationHierarchy, Map<String, PublishArtifactSet> allArtifacts) {
-        Set<IvyArtifactName> seen = Sets.newHashSet();
+    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
+        Set<PublishArtifact> seen = Sets.newHashSet();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
 
         for (String config : configurationHierarchy) {
-            PublishArtifactSet publishArtifacts = allArtifacts.get(config);
+            Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(config);
             if (publishArtifacts != null) {
                 for (PublishArtifact publishArtifact : publishArtifacts) {
-                    IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, id.getName());
-                    if (seen.add(ivyArtifact)) {
-                        artifacts.add(new DefaultLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), ivyArtifact, publishArtifact.getFile()));
+                    if (seen.add(publishArtifact)) {
+                        artifacts.add(new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), publishArtifact));
                     }
                 }
             }

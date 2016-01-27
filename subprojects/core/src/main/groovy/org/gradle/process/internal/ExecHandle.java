@@ -41,6 +41,9 @@ public interface ExecHandle {
 
     ExecHandleState getState();
 
+    /**
+     * Aborts the process, blocking until the process has exited.
+     */
     void abort();
 
     /**

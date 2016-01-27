@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.file;
 
 import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
 
@@ -25,10 +24,6 @@ public class TestDistributionDirectoryProvider extends AbstractTestDirectoryProv
     static {
         // NOTE: the space in the directory name is intentional
         root = new TestFile(new File("build/tmp/test distros"));
-    }
-
-    public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
-        return doApply(base, method, target);
     }
 
     public static TestDistributionDirectoryProvider newInstance() {

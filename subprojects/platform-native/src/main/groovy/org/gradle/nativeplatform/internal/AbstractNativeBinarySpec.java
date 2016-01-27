@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -31,7 +33,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
@@ -39,28 +40,42 @@ import java.util.*;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
-    private final DefaultTool linker = new DefaultTool();
-    private final DefaultTool staticLibArchiver = new DefaultTool();
-    private NativeComponentSpec component;
+    private final Tool linker = new DefaultTool();
+    private final Tool staticLibArchiver = new DefaultTool();
+
+    // TODO:HH Use managed views for this, only applied when the respective language is applied
+    private final Tool assembler = new DefaultTool();
+    private final PreprocessingTool cCompiler = new DefaultPreprocessingTool();
+    private final PreprocessingTool cppCompiler = new DefaultPreprocessingTool();
+    private final PreprocessingTool objcCompiler = new DefaultPreprocessingTool();
+    private final PreprocessingTool objcppCompiler = new DefaultPreprocessingTool();
+    private final PreprocessingTool rcCompiler = new DefaultPreprocessingTool();
+    private final Map<String, Tool> toolsByName = ImmutableMap.<String, Tool>builder()
+            .put("assembler", assembler)
+            .put("cCompiler", cCompiler)
+            .put("cppCompiler", cppCompiler)
+            .put("objcCompiler", objcCompiler)
+            .put("objcppCompiler", objcppCompiler)
+            .put("rcCompiler", rcCompiler)
+            .build();
+
     private PlatformToolProvider toolProvider;
-    private BinaryNamingScheme namingScheme;
     private Flavor flavor;
     private NativeToolChain toolChain;
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
     private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
+    private FileCollectionFactory fileCollectionFactory;
 
+    @Override
     public String getDisplayName() {
-        return namingScheme.getDescription();
+        return getNamingScheme().getDescription();
     }
 
+    @Override
     public NativeComponentSpec getComponent() {
-        return component;
-    }
-
-    public void setComponent(NativeComponentSpec component) {
-        this.component = component;
+        return getComponentAs(NativeComponentSpec.class);
     }
 
     public Flavor getFlavor() {
@@ -103,16 +118,36 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return staticLibArchiver;
     }
 
-    public BinaryNamingScheme getNamingScheme() {
-        return namingScheme;
+    public Tool getAssembler() {
+        return assembler;
     }
 
-    public void setNamingScheme(BinaryNamingScheme namingScheme) {
-        this.namingScheme = namingScheme;
+    public PreprocessingTool getcCompiler() {
+        return cCompiler;
+    }
+
+    public PreprocessingTool getCppCompiler() {
+        return cppCompiler;
+    }
+
+    public PreprocessingTool getObjcCompiler() {
+        return objcCompiler;
+    }
+
+    public PreprocessingTool getObjcppCompiler() {
+        return objcppCompiler;
+    }
+
+    public PreprocessingTool getRcCompiler() {
+        return rcCompiler;
+    }
+
+    public Tool getToolByName(String name) {
+        return toolsByName.get(name);
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(getSource().withType(DependentSourceSet.class).values()).getAllResults();
+        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
@@ -124,14 +159,14 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(getSource().withType(DependentSourceSet.class).values()).getAllLibraryBinaries();
+        return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
     public Map<File, PreCompiledHeader> getPrefixFileToPCH() {
         return prefixFileToPCH;
     }
 
-    private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {
+    private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
         Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
@@ -151,6 +186,15 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    protected FileCollectionFactory getFileCollectionFactory() {
+        return fileCollectionFactory;
+    }
+
+    @Override
+    public void setFileCollectionFactory(FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override

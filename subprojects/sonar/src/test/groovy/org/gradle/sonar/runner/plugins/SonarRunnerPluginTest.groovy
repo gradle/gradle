@@ -28,7 +28,9 @@ import org.gradle.sonar.runner.SonarRunnerExtension
 import org.gradle.sonar.runner.SonarRunnerRootExtension
 import org.gradle.sonar.runner.tasks.SonarRunner
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -416,6 +418,7 @@ class SonarRunnerPluginTest extends Specification {
         forkOptions.allJvmArgs.contains('-XX:MaxPermSize=128m')
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "sonar java process is configured properly"() {
 
         when:
@@ -430,6 +433,7 @@ class SonarRunnerPluginTest extends Specification {
         parentProject.tasks.sonarRunner as SonarRunner
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "can choose sonar runner version"() {
 
         parentProject.sonarRunner {

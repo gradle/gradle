@@ -18,17 +18,34 @@ package org.gradle.play.internal.spec;
 
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.play.PlayApplicationBinarySpec;
 
+import javax.inject.Inject;
+import java.io.File;
+
 public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayApplicationBinarySpec> {
-    @Override
-    public Class<PlayApplicationBinarySpec> getTargetType() {
-        return PlayApplicationBinarySpec.class;
+    @Inject
+    public PlayApplicationBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
     }
 
     @Override
     protected void renderDetails(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
-        builder.item("platform", binary.getTargetPlatform().getDisplayName());
-        //builder.item("tool chain", binary.getToolChain().getDisplayName());
+        builder.item("toolchain", binary.getToolChain().getDisplayName());
+    }
+
+    @Override
+    protected void renderOutputs(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
+        builder.item("classes dir", binary.getClasses().getClassesDir());
+        for (File dir : binary.getClasses().getResourceDirs()) {
+            builder.item("resources dir", dir);
+        }
+        builder.item("JAR file", binary.getJarFile());
+    }
+
+    @Override
+    public Class<PlayApplicationBinarySpec> getTargetType() {
+        return PlayApplicationBinarySpec.class;
     }
 }

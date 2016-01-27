@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
 import org.gradle.api.tasks.util.PatternSet;
@@ -28,6 +29,8 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents a subset of the *potential* file system space.
@@ -36,6 +39,7 @@ import java.io.File;
  * That is, no attention is paid to whether a particular file is a directory, regular file or anything else.
  * Instances do not access the filesystem.
  */
+@ThreadSafe
 public class FileSystemSubset {
 
     private final ImmutableCollection<File> files;
@@ -65,6 +69,10 @@ public class FileSystemSubset {
         return new FileSystemSubset(ImmutableList.copyOf(getRoots()), ImmutableList.<ImmutableDirectoryTree>of());
     }
 
+    public boolean isEmpty() {
+        return files.isEmpty() && trees.isEmpty();
+    }
+
     public boolean contains(File file) {
         File absoluteFile = file.getAbsoluteFile();
         String pathWithSeparator = file.getAbsolutePath() + File.separator;
@@ -92,30 +100,63 @@ public class FileSystemSubset {
         return sb.toString();
     }
 
+    @ThreadSafe
     public static class Builder {
         private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
+        private final Lock lock = new ReentrantLock();
 
         private Builder() {
         }
 
+        public Builder add(FileSystemSubset fileSystemSubset) {
+            lock.lock();
+            try {
+                files.addAll(fileSystemSubset.files);
+                trees.addAll(fileSystemSubset.trees);
+                return this;
+            } finally {
+                lock.unlock();
+            }
+        }
+
         public Builder add(File file) {
-            files.add(file.getAbsoluteFile());
-            return this;
+            lock.lock();
+            try {
+                files.add(file.getAbsoluteFile());
+                return this;
+            } finally {
+                lock.unlock();
+            }
         }
 
         public Builder add(DirectoryTree directoryTree) {
-            trees.add(ImmutableDirectoryTree.of(directoryTree));
-            return this;
+            lock.lock();
+            try {
+                trees.add(ImmutableDirectoryTree.of(directoryTree));
+                return this;
+            } finally {
+                lock.unlock();
+            }
         }
 
         public Builder add(File dir, PatternSet patternSet) {
-            trees.add(ImmutableDirectoryTree.of(dir, patternSet));
-            return this;
+            lock.lock();
+            try {
+                trees.add(ImmutableDirectoryTree.of(dir, patternSet));
+                return this;
+            } finally {
+                lock.unlock();
+            }
         }
 
         public FileSystemSubset build() {
-            return new FileSystemSubset(files.build(), trees.build());
+            lock.lock();
+            try {
+                return new FileSystemSubset(files.build(), trees.build());
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

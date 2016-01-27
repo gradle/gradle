@@ -18,23 +18,11 @@ package org.gradle.model.internal.manage.schema;
 
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.ref.WeakReference;
-
-public class ModelMapSchema<T> extends ModelSchema<T> {
-    private final WeakReference<Class<?>> managedImpl;
-    private final ModelType<?> elementType;
-
-    public ModelMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        super(type, Kind.MAP);
-        this.elementType = elementType;
-        this.managedImpl = new WeakReference<Class<?>>(managedImpl);
-    }
-
-    public ModelType<?> getElementType() {
-        return elementType;
-    }
-
-    public Class<?> getManagedImpl() {
-        return managedImpl.get();
+/**
+ * The schema for a {@link org.gradle.model.ModelMap} element.
+ */
+public class ModelMapSchema<T, E> extends CollectionSchema<T, E> implements CompositeSchema<T> {
+    public ModelMapSchema(ModelType<T> type, ModelType<E> elementType) {
+        super(type, elementType);
     }
 }

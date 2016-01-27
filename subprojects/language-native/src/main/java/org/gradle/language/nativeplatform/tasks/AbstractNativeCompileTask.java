@@ -63,6 +63,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
                 return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
             }
         });
+        dependsOn(includes);
     }
 
     @Inject
@@ -82,13 +83,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(getObjectFileDir());
-        spec.include(getIncludes());
+        spec.include(includes);
         spec.source(getSource());
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
+        spec.setIncrementalInputs(inputs);
 
         configureSpec(spec);
 
@@ -158,7 +160,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the header directories to be used for compilation.
      */
-    @InputFiles
+    @Input
     public FileCollection getIncludes() {
         return includes;
     }

@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptExecutionListener listener;
@@ -44,29 +45,45 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         public ScriptRunnerImpl(CompiledScript<T, M> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
             this.compiledScript = compiledScript;
             this.source = source;
-            this.contextClassLoader= contextClassLoader;
+            this.contextClassLoader = contextClassLoader;
         }
 
         @Override
         public T getScript() {
             if (script == null) {
-                script = instantiator.newInstance(compiledScript.loadClass());
+                Class<? extends T> scriptClass = compiledScript.loadClass();
+                script = instantiator.newInstance(scriptClass);
                 script.setScriptSource(source);
                 script.setContextClassloader(contextClassLoader);
+                listener.scriptClassLoaded(source, scriptClass);
             }
             return script;
         }
 
         @Override
-        public CompiledScript<T, M> getCompiledScript() {
-            return compiledScript;
+        public M getData() {
+            return compiledScript.getData();
         }
 
         @Override
-        public void run() throws GradleScriptException {
+        public boolean getRunDoesSomething() {
+            return compiledScript.getRunDoesSomething();
+        }
+
+        @Override
+        public boolean getHasMethods() {
+            return compiledScript.getHasMethods();
+        }
+
+        @Override
+        public void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException {
+            if (!compiledScript.getRunDoesSomething()) {
+                return;
+            }
+
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();
-            listener.beforeScript(script);
+            script.init(target, scriptServices);
             GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
             script.getStandardOutputCapture().start();
@@ -77,7 +94,6 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             }
             script.getStandardOutputCapture().stop();
             Thread.currentThread().setContextClassLoader(originalLoader);
-            listener.afterScript(script, failure);
             if (failure != null) {
                 throw failure;
             }

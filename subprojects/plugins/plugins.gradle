@@ -31,18 +31,16 @@ dependencies {
     compile project(':languageJava')
     compile project(':languageGroovy')
     compile project(':diagnostics')
+    compile project(':testingJvm')
 
     compile libraries.ant
     compile libraries.asm
     compile libraries.commons_io
     compile libraries.commons_lang
-    compile libraries.junit
     compile libraries.slf4j_api
-    compile 'org.testng:testng:6.3.1'
 
     runtime libraries.commons_cli
 
-    testCompile "com.google.inject:guice:2.0@jar"
     testCompile libraries.jsoup
 
     integTestRuntime project(":maven")
@@ -55,12 +53,8 @@ task wrapperJar(type: Copy) {
 }
 sourceSets.main.output.dir generatedResourcesDir, builtBy: wrapperJar
 
-test {
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
-}
-
 useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ':diagnostics')
+

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -29,10 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.WatchService;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WatchServiceFileWatcherBacking {
 
@@ -40,9 +43,11 @@ public class WatchServiceFileWatcherBacking {
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean();
+    private final AtomicBoolean stopped = new AtomicBoolean();
+    private final AtomicReference<SoftReference<Thread>> pollerThreadReference = new AtomicReference<SoftReference<Thread>>();
 
     private final Action<? super Throwable> onError;
-    private final FileWatcherListener listener;
+    private final WatchServiceRegistrar watchServiceRegistrar;
     private final WatchService watchService;
     private final WatchServicePoller poller;
 
@@ -53,14 +58,19 @@ public class WatchServiceFileWatcherBacking {
         }
 
         @Override
+        public void watch(FileSystemSubset fileSystemSubset) throws IOException {
+            WatchServiceFileWatcherBacking.this.watchServiceRegistrar.watch(fileSystemSubset);
+        }
+
+        @Override
         public void stop() {
             WatchServiceFileWatcherBacking.this.stop();
         }
     };
 
-    WatchServiceFileWatcherBacking(FileSystemSubset fileSystemSubset, Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
         this.onError = onError;
-        this.listener = new WatchServiceRegistrar(watchService, fileSystemSubset, listener);
+        this.watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener);
         this.watchService = watchService;
         this.poller = new WatchServicePoller(watchService);
     }
@@ -70,18 +80,23 @@ public class WatchServiceFileWatcherBacking {
             final ListenableFuture<?> runLoopFuture = executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    running.set(true);
-                    try {
+                    if (!stopped.get()) {
+                        pollerThreadReference.set(new SoftReference<Thread>(Thread.currentThread()));
+                        running.set(true);
                         try {
-                            pumpEvents();
-                        } catch (InterruptedException e) {
-                            // just stop
-                        } catch (Throwable t) {
+                            try {
+                                pumpEvents();
+                            } catch (InterruptedException e) {
+                                // just stop
+                            } catch (Throwable t) {
+                                if (!(Throwables.getRootCause(t) instanceof InterruptedException)) {
+                                    stop();
+                                    onError.execute(t);
+                                }
+                            }
+                        } finally {
                             stop();
-                            onError.execute(t);
                         }
-                    } finally {
-                        stop();
                     }
                 }
             });
@@ -112,6 +127,7 @@ public class WatchServiceFileWatcherBacking {
                     deliverEvents(events);
                 }
             } catch (ClosedWatchServiceException e) {
+                LOGGER.debug("Received ClosedWatchServiceException, stopping");
                 stop();
             }
         }
@@ -119,13 +135,14 @@ public class WatchServiceFileWatcherBacking {
 
     private void deliverEvents(List<FileWatcherEvent> events) {
         for (FileWatcherEvent event : events) {
+            if (!isRunning()) {
+                LOGGER.debug("File watching isn't running, breaking out of event delivery.");
+                break;
+            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Received file system event: {}", event);
             }
-            if (!isRunning()) {
-                break;
-            }
-            listener.onChange(fileWatcher, event);
+            watchServiceRegistrar.onChange(fileWatcher, event);
         }
     }
 
@@ -134,13 +151,29 @@ public class WatchServiceFileWatcherBacking {
     }
 
     private void stop() {
-        if (running.compareAndSet(true, false)) {
-            try {
-                watchService.close();
-            } catch (IOException e) {
-                // ignore exception in shutdown
-            } catch (ClosedWatchServiceException e) {
-                // ignore
+        if (stopped.compareAndSet(false, true)) {
+            if (running.compareAndSet(true, false)) {
+                LOGGER.debug("Stopping file watching");
+                interruptPollerThread();
+                try {
+                    watchService.close();
+                } catch (IOException e) {
+                    // ignore exception in shutdown
+                } catch (ClosedWatchServiceException e) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    private void interruptPollerThread() {
+        SoftReference<Thread> threadSoftReference = pollerThreadReference.getAndSet(null);
+        if (threadSoftReference != null) {
+            Thread pollerThread = threadSoftReference.get();
+            if (pollerThread != null && pollerThread != Thread.currentThread()) {
+                // only interrupt poller thread if it's not current thread
+                LOGGER.debug("Interrupting poller thread '{}'", pollerThread.getName());
+                pollerThread.interrupt();
             }
         }
     }

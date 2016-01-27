@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
@@ -50,7 +49,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         }
     }
 
-    private void addPublishedArtifact(IvyModuleArtifactPublishMetaData artifact, BuildableIvyModulePublishMetaData publication) {
+    private void addPublishedArtifact(IvyModuleArtifactPublishMetaData artifact, DefaultIvyModulePublishMetaData publication) {
         if (checkArtifactFileExists(artifact)) {
             publication.addArtifact(artifact);
         }

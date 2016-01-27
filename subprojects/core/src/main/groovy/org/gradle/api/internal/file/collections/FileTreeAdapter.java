@@ -46,7 +46,8 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         return tree.getDisplayName();
     }
 
-    public void resolve(FileCollectionResolveContext context) {
+    @Override
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(tree);
     }
 
@@ -107,5 +108,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public FileTree visit(FileVisitor visitor) {
         tree.visit(visitor);
         return this;
+    }
+
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        getTree().visitTreeOrBackingFile(visitor);
     }
 }

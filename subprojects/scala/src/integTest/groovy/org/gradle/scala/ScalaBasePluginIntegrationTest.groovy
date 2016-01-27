@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.scala
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ScalaCoverage
@@ -24,34 +24,33 @@ import static org.hamcrest.Matchers.startsWith
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
-apply plugin: "scala-base"
+        apply plugin: "scala-base"
 
-sourceSets {
-    custom
-}
+        sourceSets {
+           custom
+        }
 
-repositories {
-    mavenCentral()
-}
+        repositories {
+           mavenCentral()
+        }
 
-dependencies {
-    customCompile "org.scala-lang:scala-library:$version"
-}
+        dependencies {
+           customCompile "org.scala-lang:scala-library:$version"
+        }
 
-task scaladoc(type: ScalaDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
+        task scaladoc(type: ScalaDoc) {
+           classpath = sourceSets.custom.runtimeClasspath
+        }
 
-task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-${version}.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-}
-"""
+        task verify << {
+           assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+           assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+        }
+        """
 
         expect:
         succeeds("verify")

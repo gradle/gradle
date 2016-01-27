@@ -21,6 +21,8 @@ import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
+import org.gradle.util.DeprecationLogger
 
 class ClasspathFactory {
 
@@ -34,7 +36,6 @@ class ClasspathFactory {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             eclipseClasspath.containers.each { container ->
                 Container entry = new Container(container)
-                entry.exported = true
                 entries << entry
             }
         }
@@ -82,6 +83,10 @@ class ClasspathFactory {
         return entries
     }
 
+    Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(EclipseClasspath classpath) {
+        return dependenciesExtractor.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
+    }
+
     private AbstractLibrary createLibraryEntry(
             File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath,
             ModuleVersionIdentifier id) {
@@ -95,8 +100,13 @@ class ClasspathFactory {
 
         out.javadocPath = javadocRef
         out.sourcePath = sourceRef
-        out.exported = true
-        out.declaredConfigurationName = declaredConfigurationName
+        out.exported = false
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            void run() {
+                out.declaredConfigurationName = declaredConfigurationName
+            }
+        })
         out.moduleVersion = id
         out
     }

@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.artifacts
 
-import spock.lang.Specification
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.Task
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.TaskDependency
+import spock.lang.Specification
+
+import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
 
 class DefaultPublishArtifactSetTest extends Specification {
     final store = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact)
-    final set = new DefaultPublishArtifactSet('artifacts', store)
+    final set = new DefaultPublishArtifactSet('artifacts', store, fileCollectionFactory())
 
     def "set is built by the union of the tasks that build the publish artifacts"() {
         PublishArtifact artifact1 = Mock()

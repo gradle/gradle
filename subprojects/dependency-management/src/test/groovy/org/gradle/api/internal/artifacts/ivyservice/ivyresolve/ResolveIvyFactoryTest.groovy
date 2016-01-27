@@ -100,7 +100,7 @@ class ResolveIvyFactoryTest extends Specification {
         assert resolver instanceof UserResolverChain
         resolver.componentSelectionRules == componentSelectionRules
 
-        1 * spyResolver.setRepositoryChain(_) >> { RepositoryChain parentResolver ->
+        1 * spyResolver.setComponentResolvers(_) >> { ComponentResolvers parentResolver ->
             assert parentResolver instanceof ResolveIvyFactory.ParentModuleLookupResolver
             // Validate that the parent repository chain selection rules are different and empty
             def parentComponentSelectionRules = parentResolver.delegate.componentSelectionRules

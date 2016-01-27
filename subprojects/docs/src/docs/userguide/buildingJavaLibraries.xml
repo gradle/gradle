@@ -1,0 +1,479 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='java_software'>
+    <title>Building Java Libraries</title>
+
+    <note>
+        <para>
+            Support for building Java libraries using the new software model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>The Java software plugins are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
+        leverage the Gradle <link linkend="software_model">software model</link> to achieve the best performance, improved expressiveness
+        and support for variant-aware dependency management.
+    </para>
+
+    <section>
+        <title>Features</title>
+        <para>The Java software plugins provide:</para>
+        <itemizedlist>
+            <listitem><para>Support for building Java libraries and other components that run on the JVM.</para></listitem>
+            <listitem><para>Support for several source languages.</para></listitem>
+            <listitem><para>Support for building different variants of the same software, for different Java versions, or for any purpose.</para></listitem>
+            <listitem><para>Build time definition and enforcement of Java library API.</para></listitem>
+            <listitem><para>Compile avoidance.</para></listitem>
+            <listitem><para>Dependency management between Java software components.</para></listitem>
+        </itemizedlist>
+    </section>
+
+    <section>
+        <title>Java Software Model</title>
+        <para>The Java software plugins provide a <firstterm>software model</firstterm> that describes Java based software and how it should be built.
+            This Java software model extends the base Gradle <link linkend="software_model_concepts">software model</link>, to add support for building JVM libraries.
+            A <firstterm>JVM library</firstterm> is a kind of <link linkend="library_definition">library</link> that is built for and runs on the JVM.
+            It may be built from Java source, or from various other languages. All JVM libraries provide an API of some kind.
+        </para>
+    </section>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Java software plugins, include the following in your build script:</para>
+        <sample id="javaLibraryQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the Java software plugins">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Creating a library</title>
+        <para>A library is created by declaring a <apilink class="org.gradle.jvm.JvmLibrarySpec"/> under the <literal>components</literal>
+            element of the <literal>model</literal>:
+        </para>
+        <sample id="javaLibraryQuickstart" dir="javaLibraryPlugin/quickstart" title="Creating a java library">
+            <sourcefile file="build.gradle" snippet="single-lib"/>
+            <output args='build' ignoreExtraLines="true"/>
+        </sample>
+        <para>This example creates a library named <literal>main</literal>, which will implicitly create a <apilink class="org.gradle.language.java.JavaSourceSet"/>
+            named <literal>java</literal>.
+            The conventions of the <link linkend="java_plugin">legacy Java plugin</link> are observed, where Java sources
+            are expected to be found in <filename>src/main/java</filename>,
+            while resources are expected to be found in <filename>src/main/resources</filename>.
+        </para>
+    </section>
+
+    <section id="source_sets">
+        <title>Source Sets</title>
+        <para>Source sets represent logical groupings of source files in a library.  A library can define multiple source sets and all
+            sources will be compiled and included in the resulting binaries.  When a library is added to a build, the following
+            source sets are added by default.</para>
+        <table>
+            <title>Java plugin - default source sets</title>
+            <thead>
+                <tr>
+                    <td>Source Set</td>
+                    <td>Type</td>
+                    <td>Directory</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>java</td>
+                <td><apilink class="org.gradle.language.java.JavaSourceSet"/></td>
+                <td>src/${library.name}/java</td>
+            </tr>
+            <tr>
+                <td>resources</td>
+                <td><apilink class="org.gradle.language.jvm.JvmResourceSet"/></td>
+                <td>src/${library.name}/resources</td>
+            </tr>
+        </table>
+        <para>It is possible to configure an existing <firstterm>source set</firstterm>
+            through the <literal>sources</literal> container:
+        </para>
+        <sample id="javaLibraryQuickstart" dir="javaLibraryPlugin/quickstart" title="Configuring a source set">
+            <sourcefile file="build.gradle" snippet="configure-sourceset"/>
+        </sample>
+        <para>It is also possible to create an additional source set, using the
+            <apilink class="org.gradle.language.java.JavaSourceSet"/>
+            type:
+        </para>
+        <sample id="javaLibraryQuickstart" dir="javaLibraryPlugin/quickstart" title="Creating a new source set">
+            <sourcefile file="build.gradle" snippet="new-sourceset"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>By default, when the plugins above are applied, no new tasks are added to the build.  However, when libraries are defined,
+            conventional tasks are added which build and package each binary of the library.</para>
+
+        <para>For each binary of a library, a single lifecycle task is created which executes all tasks associated with building the binary.
+            To build all binaries, the standard <userinput>build</userinput> lifecycle task can be used.</para>
+        <table id="java_lifecycle_tasks">
+            <title>Java plugin - lifecycle tasks</title>
+            <thead>
+                <tr>
+                    <td>Component Type</td>
+                    <td>Binary Type</td>
+                    <td>Lifecycle Task</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><apilink class="org.gradle.jvm.JvmLibrarySpec"/></td>
+                <td><apilink class="org.gradle.jvm.JvmBinarySpec"/></td>
+                <td>${library.name}${binary.name}</td>
+            </tr>
+        </table>
+
+        <para>For each source set added to a library, tasks are added to compile or process the source files for each binary.</para>
+        <table id="java_sourceset_tasks">
+            <title>Java plugin - source set tasks</title>
+            <thead>
+                <tr>
+                    <td>Source Set Type</td>
+                    <td>Task name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><apilink class="org.gradle.language.java.JavaSourceSet"/></td>
+                <td>compile${library.name}${binary.name}${library.name}${sourceset.name}</td>
+                <td><apilink class="org.gradle.language.java.tasks.PlatformJavaCompile" /></td>
+                <td>Compiles the sources of a given source set.</td>
+            </tr>
+            <tr>
+                <td><apilink class="org.gradle.language.jvm.JvmResourceSet"/></td>
+                <td>process${library.name}${binary.name}${library.name}${sourceset.name}</td>
+                <td><apilink class="org.gradle.language.jvm.tasks.ProcessResources" /></td>
+                <td>Copies the resources in the given source set to the classes output directory.</td>
+            </tr>
+        </table>
+
+        <para>For each binary in a library, a packaging task is added to create the jar for that binary.</para>
+        <table id="java_packaging_tasks">
+            <title>Java plugin - packaging tasks</title>
+            <thead>
+                <tr>
+                    <td>Binary Type</td>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><apilink class="org.gradle.jvm.JvmBinarySpec"/></td>
+                <td>create${library.name}${binary.name}</td>
+                <td>all <apilink class="org.gradle.language.java.tasks.PlatformJavaCompile" /> and <apilink class="org.gradle.language.jvm.tasks.ProcessResources" />
+                tasks associated with the binary</td>
+                <td><apilink class="org.gradle.jvm.tasks.Jar" /></td>
+                <td>Packages the compiled classes and processed resources of the binary.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Finding out more about your project</title>
+        <para>
+            Gradle provides a report that you can run from the command-line that shows details about the components and binaries that your
+            project produces. To use this report, just run <userinput>gradle components</userinput>. Below is an example of running this report for
+            one of the sample projects:
+        </para>
+        <sample id="javaLibraryComponentReport" dir="javaLibraryPlugin/quickstart" title="The components report">
+            <output args='components'/>
+        </sample>
+    </section>
+
+    <section id="dependencies">
+        <title>Dependencies</title>
+        <para>A component in the Java software model can declare dependencies on other Java libraries.
+            If component <literal>main</literal> depends on library <literal>util</literal>, this means that the <firstterm>API</firstterm> of <literal>util</literal>
+            is required when compiling the sources of <literal>main</literal>, and the <firstterm>runtime</firstterm> of <literal>util</literal> is required
+            when running or testing <literal>main</literal>. The terms 'API' and 'runtime' are examples of <firstterm>usages</firstterm> of a Java library.
+        </para>
+        <section>
+            <title>Library usage</title>
+            <para>
+                The 'API' usage of a Java library consists of:
+                <itemizedlist>
+                    <listitem>Artifact(s): the Jar file(s) containing the public classes of that library</listitem>
+                    <listitem>Dependencies: the set of other libraries that are required to compile against that library</listitem>
+                </itemizedlist>
+                When library <literal>main</literal> is compiled with a dependency on <literal>util</literal>,
+                the 'API' dependencies of 'util' are resolved transitively, resulting in the complete set of libraries required to compile.
+                For each of these libraries (including 'util'), the 'API' artifacts will be included in the compile classpath.
+            </para>
+            <para>
+                Similarly, the 'runtime' usage of a Java library consists of artifacts and dependencies.
+                When a Java component is tested or bundled into an application, the runtime usage of any runtime dependencies will be resolved
+                transitively into the set of libraries required at runtime. The runtime artifacts of these libraries will then be included
+                in the testing or runtime classpath.
+            </para>
+        </section>
+        <section>
+            <title>Dependency types</title>
+            <para>
+                Two types of Java library dependencies can be declared:
+                <itemizedlist>
+                    <listitem>Dependencies on a library defined in a local Gradle project</listitem>
+                    <listitem>Dependencies on a library published to a Maven repository</listitem>
+                </itemizedlist>
+                Dependencies onto libraries published to an Ivy repository are not yet supported.
+            </para>
+        </section>
+        <section>
+            <title>Declaring dependencies</title>
+            <para>
+                Dependencies may be declared for a specific <apilink class="org.gradle.language.java.JavaSourceSet">Java source set</apilink>,
+                for an entire <apilink class="org.gradle.jvm.JvmLibrarySpec">Java library component</apilink> or
+                as part of the
+                <apilink class="org.gradle.jvm.JvmApiSpec">API specification</apilink>
+                of a component:
+            </para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library">
+                <sourcefile file="build.gradle" snippet="simple-dependency"/>
+                <output args="serverJar" outputFile="javaLibraryMultiComponents-serverJar.out" ignoreExtraLines="true"/>
+            </sample>
+            <para>
+                Dependencies declared for a source set will only be used for compiling that particular source set.
+            </para>
+            <para>
+                Dependencies declared for a component will be used when compiling all source sets for the component.
+            </para>
+            <para>
+                Dependencies declared for the component <literal>api</literal> are used for compiling all source sets for the component,
+                and are also exported as part of the component's API.
+                See <link linkend="enforcing_api_boundaries">Enforcing API boundaries at compile time</link> for more details.
+            </para>
+            <para>
+                The previous example declares a dependency for the <literal>java</literal> source set of the <literal>server</literal> library
+            onto the <literal>core</literal> library of the same project. However, it is possible to create a dependency on a library in a different
+            project as well:</para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an explicit library">
+                <sourcefile file="build.gradle" snippet="dependency-other-project"/>
+                <output args="clientJar" outputFile="javaLibraryMultiComponents-clientJar.out" ignoreExtraLines="true"/>
+            </sample>
+            <para>When the target project defines a single library, the <literal>library</literal> selector can be omitted altogether:</para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
+                <sourcefile file="build.gradle" snippet="dependency-other-project-implicit-lib"/>
+            </sample>
+    	    <para>Dependencies onto libraries published to Maven repositories can be declared via <literal>module identifiers</literal> consisting of a <literal>group name</literal>,
+            a <literal>module name</literal> plus an optional <literal>version selector</literal>:</para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library published to a Maven repository">
+                <sourcefile file="build.gradle" snippet="dependency-onto-maven-library"/>
+                <output args="verifierJar" outputFile="javaLibraryMultiComponents-verifierJar.out" ignoreExtraLines="true"/>
+            </sample>
+            <para>A shorthand notation for module identifiers can also be used:</para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a module dependency using shorthand notation">
+                <sourcefile file="build.gradle" snippet="shorthand-dependency-onto-maven-library"/>
+            </sample>
+            <para>Module dependencies will be resolved against the configured repositories as usual:</para>
+            <sample id="javaLibraryMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Configuring repositories for dependency resolution">
+                <sourcefile file="build.gradle" snippet="configuring-repositories"/>
+            </sample>
+            <para>The <apilink class="org.gradle.platform.base.DependencySpecContainer"/> class provides a complete reference of the dependencies DSL.</para>
+        </section>
+    </section>
+
+    <section id="defining_api">
+        <title>Defining a Library API</title>
+        <para>
+            Every library has an API, which consists of artifacts and dependencies that are required to compile against the library.
+            The library may be explicitly declared for a component, or may be implied based on other component metadata.
+        </para>
+        <para>
+            By default, all <literal>public</literal> types of a library are considered to be part of its API. In many cases this is not ideal; a library will contain many public types that intended for internal use  within that library.
+            By explicitly declaring an API for a Java library, Gradle can provide compile-time encapsulation of these internal-but-public types. The types to include in a library API are declared at the package level. Packages containing API types are considered to be <emphasis>exported</emphasis>.
+        </para>
+        <para>
+            By default, dependencies of a library are <emphasis>not</emphasis> considered to be part of its API. By explicitly declaring a dependency as part of the library API, this dependency will then be made available to consumers when compiling. Dependencies declared this way are considered to be <emphasis>exported</emphasis>, and are known as 'API dependencies'.
+        </para>
+        <note>
+            <para>
+                JDK 9 will introduce <emphasis>Jigsaw</emphasis>, the reference implementation of the <emphasis>Java Module System</emphasis>. Jigsaw will provide both compile-time and run-time enforcement of API encapsulation.
+            </para>
+            <para>
+                Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing API encapsulation at compile-time. This allows Gradle users to leverage the many benefits of strong encapsulation, and prepare their software projects for migration to JDK 9.
+            </para>
+        </note>
+
+        <section>
+            <title>Some terminology</title>
+            <para>
+                <itemizedlist>
+                    <listitem>An <firstterm>API</firstterm> is a set of classes, interfaces, methods that are exposed to a consumer.</listitem>
+                    <listitem>An <firstterm>API specification</firstterm> is the specification of classes, interfaces or methods that belong to an API, together with the set of dependencies that are part of the API. It can be found in various forms, like <literal>module-info.java</literal> in Jigsaw, or the <literal>api { ... }</literal> block that Gradle defines as part of those stories. Usually, we can simplify this to a list of packages, called <firstterm>exported packages</firstterm>.</listitem>
+                    <listitem>A <firstterm>runtime jar</firstterm> consists of <firstterm>API classes</firstterm> and <firstterm>non-API classes</firstterm> used at execution time. There can be multiple runtime jars depending on combinations of the variant dimensions: target platform, hardware infrastructure, target application server, ...</listitem>
+                    <listitem><firstterm>API classes</firstterm> are classes of a <firstterm>variant</firstterm> which match the <firstterm>API specification</firstterm></listitem>
+                    <listitem><firstterm>Non-API classes</firstterm> are classes of a <firstterm>variant</firstterm> which do not match the <firstterm>API specification</firstterm>.</listitem>
+                    <listitem>A <firstterm>stubbed API class</firstterm> is an <firstterm>API class</firstterm> for which its implementation and non public members have been removed. It is meant to be used when a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
+                    <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
+                    <listitem>A <firstterm>stubbed API jar</firstterm> is a collection of <firstterm>stubbed API classes</firstterm>. There can be multiple stubbed API jars depending on the combinations of variant dimensions.</listitem>
+                    <listitem>An <firstterm>ABI (application binary interface)</firstterm> corresponds to the public signature of an API, that is to say the set of stubbed API classes that it exposes (and their API visible members).</listitem>
+                </itemizedlist>
+                <para>
+                    We avoid the use of the term <firstterm>implementation</firstterm> because it is too vague: both <firstterm>API classes</firstterm> and <firstterm>Non-API classes</firstterm> can have an implementation.
+                    For example, an <firstterm>API class</firstterm> can be an interface, but also a concrete class. Implementation is an overloaded term in the Java ecosystem, and often
+                    refers to a class implementing an interface. This is not the case here: a concrete class can be member of an API, but to compile against an API, you don't
+                    need the implementation of the class: all you need is the signatures.
+                </para>
+            </para>
+        </section>
+        <section>
+            <title>Specifying API classes</title>
+        </section>
+        <sample id="apiSpecification" dir="javaLibraryPlugin/apispec" title="Specifying api packages">
+            <sourcefile file="build.gradle" snippet="specify-library-api"/>
+        </sample>
+        <section>
+            <title>Specifying API dependencies</title>
+        </section>
+        <sample id="apiDependencies" dir="javaLibraryPlugin/multiplecomponents" title="Specifying api dependencies">
+            <sourcefile file="build.gradle" snippet="api-dependency"/>
+        </sample>
+        <section>
+            <title>Compile avoidance</title>
+            <para>When you define an API for your library, Gradle enforces the usage of that API at compile-time. This comes with 3 direct consequences:</para>
+            <para><itemizedlist>
+                <listitem>Trying to use a non-API class in a dependency will now result in a compilation error.</listitem>
+                <listitem>Changing the implementation of an API class will not result in recompilation of consumers if the ABI doesn't change (that is to say, all public methods have the same signature but not necessarily the same body).</listitem>
+                <listitem>Changing the implementation of a non-API class will not result in recompilation of consumers. This means that changes to non-API classes will not trigger recompilation of downstream dependencies, because the ABI of the component doesn't change.</listitem>
+            </itemizedlist>
+            </para>
+            <para>Given a <emphasis>main</emphasis> component that exports <literal>org.gradle</literal>, <literal>org.gradle.utils</literal> and defines those classes:</para>
+            <sample id="apiSpecification-main-classes" dir="javaLibraryPlugin/apispec" title="Main sources">
+                <sourcefile file="src/main/java/org/gradle/Person.java"/>
+                <sourcefile file="src/main/java/org/gradle/internal/PersonInternal.java"/>
+                <sourcefile file="src/main/java/org/gradle/utils/StringUtils.java"/>
+            </sample>
+            <para>Compiling a component <emphasis>client</emphasis> that declares a dependency onto <emphasis>main</emphasis> will succeed:</para>
+            <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Client component">
+                <sourcefile file="build.gradle" snippet="client-api"/>
+                <sourcefile file="src/client/java/org/gradle/Client.java"/>
+                <output args=":clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-first.out"/>
+            </sample>
+            <para>But trying to compile a component <emphasis>brokenclient</emphasis> that declares a dependency onto <emphasis>main</emphasis> but uses an non-API class of <emphasis>main</emphasis> will result in a compile-time error:</para>
+            <sample id="apiSpecification-brokenclient" dir="javaLibraryPlugin/apispec" title="Broken client component">
+                <sourcefile file="src/brokenclient/java/org/gradle/Client.java"/>
+                <output args=":brokenclientJar" expectFailure="true" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-brokenclient.out"/>
+            </sample>
+            <para>On the other hand, if <emphasis>Person.java</emphasis> in <emphasis>client</emphasis> is updated and its API hasn't changed, <emphasis>client</emphasis> will not be recompiled. This is in particular important for incremental builds of large projects, where we can avoid the compilation of dependencies in chain, and then dramatically reduce build duration:</para>
+            <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec-support" title="Recompiling the client">
+                <sourcefile file="src/main/java/org/gradle/Person.java"/>
+                <output args=":updateMainComponent" ignoreExtraLines="true" hidden="true" outputFile="buildingJavaLibraries-updateSources.out"/>
+            </sample>
+            <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Recompiling the client">
+                <output args=":clientJar" ignoreExtraLines="true" outputFile="buildingJavaLibraries-compile-avoid.out"/>
+            </sample>
+        </section>
+    </section>
+
+    <section>
+        <title>Platform aware dependency management</title>
+        <section>
+            <title>Specifying the target platform</title>
+            <para>The software model extracts the target platform as a core concept. In the Java world, this means that a library can be built, or resolved,
+            against a specific version of Java. For example, if you compile a library for Java 5, we know that such a library can be consumed by a library
+            built for Java 6, but the opposite is not true. Gradle lets you define which platforms a library targets, and will take care of:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>generating a binary for each target platform (eg, a Java 5 jar as well as a Java 6 jar)</listitem>
+                    <listitem>resolving dependencies against a matching platform</listitem>
+                </itemizedlist>
+            </para>
+            <para>The <literal>targetPlatform</literal> DSL defines which platforms a library should be built against:</para>
+            <sample id="javaLibraryTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
+                <sourcefile file="core/build.gradle" snippet="declare-target-platforms"/>
+                <output args=":core:build" ignoreExtraLines="true" outputFile="javaLibraryTargetPlatforms.out"/>
+            </sample>
+            <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
+                corresponding to the target versions of Java. These artifacts will participate in dependency resolution as described
+                <link linkend="java_dependency_resolution">here</link>.</para>
+        </section>
+        <section>
+            <title>Binary specific source sets</title>
+            <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
+            is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>main.java6Jar</literal>
+            binary:</para>
+            <sample id="javaLibraryTargetPlatforms-java6MainJar" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
+                <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
+                <output args="clean :core:mainJava6Jar" ignoreExtraLines="true" outputFile="javaLibraryTargetPlatforms-java6MainJar.out"/>
+            </sample>
+        </section>
+        <section id="java_dependency_resolution">
+            <title>Dependency resolution</title>
+            <para>When a library targets multiple versions of Java and depends on another library, Gradle will make its best effort to
+                resolve the dependency to the most appropriate version of the dependency library.  In practice, this means that Gradle chooses
+                the <emphasis>highest compatible</emphasis> version:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>for a binary <literal>B</literal> built for Java <literal>n</literal></listitem>
+                    <listitem>for a dependency binary <literal>D</literal> built for Java <literal>m</literal></listitem>
+                    <listitem><literal>D</literal> is compatible with <literal>B</literal> if <literal>m&lt;=n</literal></listitem>
+                    <listitem>for multiple compatible binaries <literal>D(java 5), D(java 6), ...D(java m)</literal>, choose the compatible D binary with the highest Java version</listitem>
+                </itemizedlist>
+            </para>
+            <sample id="javaLibraryTargetPlatforms-server" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
+                <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
+                <output args="clean :server:build" ignoreExtraLines="true" outputFile="javaLibraryTargetPlatforms-server.out"/>
+            </sample>
+            <para>In the example above, Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
+            and chooses the Java 5 version of the dependency for the Java 5 variant of the <literal>server</literal> component.
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Custom variant resolution</title>
+        <para>The Java plugin, in addition to the target platform resolution, supports resolution of custom variants. Custom variants
+            can be defined on custom binary types, as long as they extend <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
+            in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
+            annotation.</para>
+    </section>
+
+    <section>
+        <title>Testing Java libraries</title>
+        <section>
+            <title>Standalone JUnit test suites</title>
+            <para>The Java software model supports defining standalone JUnit test suites as components of the model. Standalone test suite are components that are self contained, in the sense that there is no component under test: everything being tested must belong to the test suite sources.</para>
+            <para>A test suite is declared by creating a component of type <apilink class="org.gradle.jvm.test.JUnitTestSuiteSpec"/>, which is available when you apply the <literal>junit-test-suite</literal> plugin:</para>
+            <sample id="testing-junit-standalone" dir="javaLibraryPlugin/testing-junit-standalone" title="Using the JUnit plugin">
+                <sourcefile file="build.gradle" snippet="use-plugin"/>
+            </sample>
+            <para>In the example above, <literal>test</literal> is the name of our test suite. By convention, Gradle will create two source sets for the test suite, based on the name of the component: one for Java sources, and the other for resources: <filename>src/test/java</filename> and <filename>src/resources/java</filename>. If the component was named <literal>integTest</literal>, then sources and resources would have been found respectively in <filename>src/integTest/java</filename> and <filename>src/integTest/resources</filename>.</para>
+            <para>Once the component is created, the test suite can be executed running the <literal>&lt;&lt;test suite name&gt;&gt;BinaryTest</literal> task:</para>
+            <sample id="testing-junit-standalone-run" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
+                <sourcefile file="src/test/java/org/gradle/MyTest.java"/>
+                <output args="testBinaryTest" ignoreExtraLines="true" outputFile="junit-standalone.out"/>
+            </sample>
+            <para>It is possible to configure source sets in a <link linkend="source_sets">similar way as libraries</link>.</para>
+            <para>A test suite being a component can also <link linkend="dependencies">declare dependencies onto other components</link>.</para>
+            <para>A test suite can also contain resources, in which case it is possible to configure the resource processing task:</para>
+            <sample id="testing-junit-standalone-resources" dir="javaLibraryPlugin/testing-junit-standalone" title="Executing the test suite">
+                <sourcefile file="build.gradle" snippet="configure-resources"/>
+            </sample>
+        </section>
+        <section>
+            <title>Testing JVM libraries with JUnit</title>
+            <para>It is likely that you will want to test another JVM component. The Java software model supports it exactly like standalone test suites, by just declaring an additional component under test:</para>
+            <sample id="testing-junit-component-under-test" dir="javaLibraryPlugin/testing-junit-component-under-test" title="Declaring a component under test">
+                <sourcefile file="build.gradle" snippet="model"/>
+                <output args="testMainJarBinaryTest" ignoreExtraLines="true" outputFile="junit-component-under-test.out"/>
+            </sample>
+            <para>Note that the syntax to choose the component under test is a reference (<literal>$.</literal>). You can select any <literal>JvmComponentSpec</literal> as the component under test. It's also worth noting that when you declare a component under test, a test suite is created for each binary of the component under test (for example, if the component under test has a Java 7 and Java 8 version, 2 different test suite binaries would be automatically created).</para>
+        </section>
+    </section>
+</chapter>

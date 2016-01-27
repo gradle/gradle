@@ -27,8 +27,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 class WatchServicePoller {
+    private static final int POLL_TIMEOUT_SECONDS = 5;
     private final WatchService watchService;
 
     WatchServicePoller(WatchService watchService) throws IOException {
@@ -37,7 +39,7 @@ class WatchServicePoller {
 
     @Nullable
     public List<FileWatcherEvent> takeEvents() throws InterruptedException {
-        WatchKey watchKey = watchService.take();
+        WatchKey watchKey = watchService.poll(POLL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (watchKey != null) {
             return handleWatchKey(watchKey);
         }
@@ -60,21 +62,12 @@ class WatchServicePoller {
         };
 
         List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
-        final List<FileWatcherEvent> events;
-        if (!watchEvents.isEmpty()) {
-            events = CollectionUtils.collect(watchEvents, watchEventTransformer);
-        } else {
-            // TODO: When deleting directories, we receive a WatchKey without any events.
-            // This seems to be the same thing as a delete event for the Path.
-            // watchKey.reset() also returns false in this case.
-            events = Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
-        }
-
         watchKey.reset();
-//        if (!valid) {
-//            // TODO: What do we do when we're no longer watching a directory that's still an input?
-//        }
-        return events;
+        if (watchEvents.isEmpty()) {
+            return Collections.singletonList(FileWatcherEvent.delete(watchedPath.toFile()));
+        } else {
+            return CollectionUtils.collect(watchEvents, watchEventTransformer);
+        }
     }
 
     private FileWatcherEvent toEvent(WatchEvent.Kind kind, File file) {

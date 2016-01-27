@@ -23,7 +23,7 @@ public class MemoryInfoCollector implements DataCollector {
     String outputFileName
 
     @Override
-    List<String> getAdditionalGradleOpts(File workingDir) {
+    List<String> getAdditionalJvmOpts(File workingDir) {
         return Collections.emptyList();
     }
 
@@ -32,8 +32,8 @@ public class MemoryInfoCollector implements DataCollector {
         return Collections.emptyList();
     }
 
-    public void collect(File testProjectDir, MeasuredOperation operation) {
-        def file = new File(testProjectDir, outputFileName).canonicalFile
+    public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
+        def file = new File(invocationInfo.getProjectDir(), outputFileName).canonicalFile
         if (!file.exists()) {
             throw new RuntimeException("Cannot find $file. Cannot collect memory information if the build hasn't produced one.")
         }

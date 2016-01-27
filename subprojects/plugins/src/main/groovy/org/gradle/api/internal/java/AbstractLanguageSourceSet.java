@@ -17,7 +17,6 @@
 package org.gradle.api.internal.java;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
@@ -27,6 +26,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     private final String name;
     private final String fullName;
     private final String displayName;
+    private final String parentName;
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
@@ -36,6 +36,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         this.fullName = parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
+        this.parentName = parentName;
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -43,7 +44,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return name;
     }
 
-    public String getFullName() {
+    public String getProjectScopedName() {
         return fullName;
     }
 
@@ -76,11 +77,12 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         return getDisplayName();
     }
 
-    public void source(Action<? super SourceDirectorySet> config) {
-        config.execute(getSource());
-    }
-
     public SourceDirectorySet getSource() {
         return source;
+    }
+
+    @Override
+    public String getParentName() {
+        return this.parentName;
     }
 }

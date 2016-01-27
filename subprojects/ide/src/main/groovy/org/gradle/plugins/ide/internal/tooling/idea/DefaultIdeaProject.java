@@ -28,6 +28,7 @@ public class DefaultIdeaProject implements Serializable {
     private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
+    private DefaultIdeaJavaLanguageSettings javaLanguageSettings;
 
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
@@ -81,6 +82,15 @@ public class DefaultIdeaProject implements Serializable {
 
     public Collection<DefaultIdeaModule> getModules() {
         return children;
+    }
+
+    public DefaultIdeaJavaLanguageSettings getJavaLanguageSettings() {
+        return javaLanguageSettings;
+    }
+
+    public DefaultIdeaProject setJavaLanguageSettings(DefaultIdeaJavaLanguageSettings javaLanguageSettings) {
+        this.javaLanguageSettings = javaLanguageSettings;
+        return this;
     }
 
     @Override

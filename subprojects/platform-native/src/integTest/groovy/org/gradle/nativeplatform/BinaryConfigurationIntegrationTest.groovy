@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,6 +29,8 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+
+    @LeaksFileHandles
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
@@ -58,10 +63,11 @@ model {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.exec().out == "Hello!"
     }
 
+    @LeaksFileHandles("can't delete build/binaries/mainExecutable")
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
@@ -97,13 +103,14 @@ model {
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.exec().out == "Hello!"
         executable.assertDebugFileExists()
         // TODO - need to verify that the debug info ended up in the binary
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
@@ -156,103 +163,45 @@ model {
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
-        installation("build/install/mainExecutable").exec().out == "Hello!"
-    }
-
-    def "can configure a binary to use additional source sets"() {
-        given:
-        buildFile << """
-apply plugin: "cpp"
-
-model {
-    components { comp ->
-        util(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    exportedHeaders.srcDir "src/shared/headers"
-                }
-            }
-        }
-        main(NativeExecutableSpec) {
-            sources {
-                cpp {
-                    exportedHeaders.srcDir "src/shared/headers"
-                }
-            }
-            binaries.all {
-                source comp.util.sources.cpp
-            }
-        }
-    }
-}
-"""
-        settingsFile << "rootProject.name = 'test'"
-
-        and:
-        file("src/shared/headers/greeting.h") << """
-            void greeting();
-"""
-
-        file("src/util/cpp/greeting.cpp") << """
-            #include <iostream>
-            #include "greeting.h"
-
-            void greeting() {
-                std::cout << "Hello!";
-            }
-        """
-
-        file("src/main/cpp/helloworld.cpp") << """
-            #include "greeting.h"
-
-            int main() {
-                greeting();
-                return 0;
-            }
-        """
-
-        when:
-        run "mainExecutable"
-
-        then:
-        def executable = executable("build/binaries/mainExecutable/main")
-        executable.exec().out == "Hello!"
+        staticLibrary("build/libs/hello/static/hello").assertExists()
+        installation("build/install/main").exec().out == "Hello!"
     }
 
     def "can customize binaries before and after linking"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
-        buildFile << """
+        buildFile << '''
 apply plugin: 'cpp'
 
 model {
     components {
         main(NativeExecutableSpec)
     }
-}
+    tasks { t ->
+        $.components.main.binaries { binaries ->
+            binaries.values().each { binary ->
+                def preLinkTask = binary.tasks.taskName("preLink")
+                t.create(preLinkTask) {
+                    dependsOn binary.tasks.withType(CppCompile)
+                    doLast {
+                        println "Pre Link"
+                    }
+                }
+                binary.tasks.link.dependsOn preLinkTask
 
-binaries.withType(NativeExecutableBinary) { binary ->
-    def preLink = task("\${binary.name}PreLink") {
-        dependsOn binary.tasks.withType(CppCompile)
-
-        doLast {
-            println "Pre Link"
+                def postLinkTask = binary.tasks.taskName("postLink")
+                t.create(postLinkTask) {
+                    dependsOn binary.tasks.link
+                    doLast {
+                        println "Post Link"
+                    }
+                }
+                binary.tasks.build.dependsOn postLinkTask
+            }
         }
     }
-    binary.tasks.link.dependsOn preLink
-
-    def postLink = task("\${binary.name}PostLink") {
-        dependsOn binary.tasks.link
-
-        doLast {
-            println "Post Link"
-        }
-    }
-
-    binary.builtBy postLink
 }
-"""
+'''
 
         and:
         helloWorldApp.writeSources(file("src/main"))
@@ -261,7 +210,7 @@ binaries.withType(NativeExecutableBinary) { binary ->
         succeeds "mainExecutable"
 
         then:
-        executedTasks == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
+        executedTasks == [":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
     }
 
     @Issue("GRADLE-2973")
@@ -305,9 +254,10 @@ subprojects {
 apply plugin: 'cpp'
 model {
     components {
+        def modPath = { File original -> new File(original.parent + "/new_output/_" + original.name) }
         main(NativeExecutableSpec) {
             binaries.all {
-                executableFile = modPath(executableFile)
+                executable.file = modPath(executableFile)
             }
         }
         hello(NativeLibrarySpec) {
@@ -321,10 +271,6 @@ model {
         }
     }
 }
-
-def modPath(File file) {
-    new File("\${file.parentFile}/new_output/_\${file.name}")
-}
 """
 
         when:
@@ -332,13 +278,14 @@ def modPath(File file) {
 
         then:
         def modPath = {TestFile file -> new TestFile("${file.parentFile}/new_output/_${file.name}")}
-        modPath(executable("build/binaries/mainExecutable/main").file).assertExists()
-        modPath(sharedLibrary("build/binaries/helloSharedLibrary/hello").file).assertExists()
-        modPath(staticLibrary("build/binaries/helloStaticLibrary/hello").file).assertExists()
+        modPath(executable("build/exe/main/main").file).assertExists()
+        modPath(sharedLibrary("build/libs/hello/shared/hello").file).assertExists()
+        modPath(staticLibrary("build/libs/hello/static/hello").file).assertExists()
     }
 
     @Unroll
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()
@@ -350,6 +297,7 @@ def modPath(File file) {
 apply plugin: 'cpp'
 model {
     components {
+        def modPath = { File original -> new File(original.parent + "/new_output/_" + original.name) }
         main(NativeExecutableSpec) {
             sources {
                 cpp.lib library: "hello", linkage: "${linkage}"
@@ -366,19 +314,44 @@ model {
         }
     }
 }
-
-def modPath(File file) {
-    new File("\${file.parentFile}/new_output/_\${file.name}")
-}
 """
 
         when:
         succeeds "installMainExecutable"
 
         then:
-        installation("build/install/mainExecutable").exec().out == app.englishOutput
+        installation("build/install/main").exec().out == app.englishOutput
 
         where:
         linkage << ["static", "shared"]
+    }
+
+    @Issue("GRADLE-3332")
+    @NotYetImplemented
+    def "can create helper task to install buildable executables"() {
+        def helloWorldApp = new CppHelloWorldApp()
+        given:
+        buildFile << '''
+apply plugin: 'cpp'
+
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+task installDeveloperImage {
+    description = "Install all debug executables"
+    binaries.withType(NativeExecutableBinary) {
+        if (it.buildable && buildType == buildTypes.debug) {
+            dependsOn it.tasks.install
+        }
+    }
+}
+'''
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        expect:
+        succeeds "tasks"
     }
 }

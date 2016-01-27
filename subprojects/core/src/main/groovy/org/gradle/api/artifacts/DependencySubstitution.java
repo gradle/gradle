@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Provides means to substitute a different dependency during resolution.
  *
- * @since 2.4
+ * @since 2.5
  */
 @Incubating
 @HasInternalProtocol
@@ -40,11 +40,15 @@ public interface DependencySubstitution {
      * e.g. change group, name or version (or all three of them), or replace it
      * with a project dependency.
      *
+     * Accepted notations are:
+     * <ul>
+     *     <li>Strings encoding group:module:version, like 'org.gradle:gradle-core:2.4'</li>
+     *     <li>Maps like [group: 'org.gradle', name: 'gradle-core', version: '2.4']</li>
+     *     <li>Project instances like <code>project(":api")</code></li>
+     *     <li>Any instance of <code>ModuleComponentSelector</code> or <code>ProjectComponentSelector</code></li>
+     * </ul>
+     *
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
-     * You can pass Strings like 'org.gradle:gradle-core:2.4',
-     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '2.4'],
-     * Projects like <code>project(":api")</code>,
-     * or instances of <code>ModuleComponentSelector</code>.
      */
     void useTarget(Object notation);
 }

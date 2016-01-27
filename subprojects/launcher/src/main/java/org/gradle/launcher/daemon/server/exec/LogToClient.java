@@ -62,7 +62,7 @@ public class LogToClient extends BuildCommandOnly {
         LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingOutput.addOutputEventListener(listener);
         try {
-            LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
+            LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
             execution.proceed();
         } finally {
             loggingOutput.removeOutputEventListener(listener);

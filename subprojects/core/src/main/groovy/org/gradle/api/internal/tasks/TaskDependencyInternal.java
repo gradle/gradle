@@ -18,6 +18,5 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.TaskDependency;
 
-public interface TaskDependencyInternal extends TaskDependency {
-    void resolve(TaskDependencyResolveContext context);
+public interface TaskDependencyInternal extends TaskDependency, TaskDependencyContainer {
 }

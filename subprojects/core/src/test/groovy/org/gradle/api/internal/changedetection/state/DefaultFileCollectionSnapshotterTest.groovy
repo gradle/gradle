@@ -16,7 +16,10 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,13 +30,18 @@ import spock.lang.Specification
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver())
 
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def setup() {
+        fileSnapshotter.snapshot(_) >> { FileTreeElement fileTreeElement ->
+            return Stub(FileSnapshot) {
+                getHash() >> HashUtil.sha1(fileTreeElement.file).asByteArray()
+            }
+        }
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
                 getHash() >> HashUtil.sha1(file).asByteArray()
@@ -54,9 +62,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist))
 
         then:
-        snapshot.files.files as List == [file]
+        snapshot.files as List == [file]
     }
-    
+
     def notifiesListenerWhenFileAdded() {
         given:
         TestFile file1 = tmpDir.createFile('file1')
@@ -101,13 +109,15 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
     def fileHasChangedWhenTypeHasChanged() {
         given:
-        TestFile file = tmpDir.createFile('file')
+        TestFile root = tmpDir.createDir('root')
+        TestFile file = root.createFile('file')
+        def fileCollection = files(root)
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         file.delete()
         file.createDir()
-        snapshotter.snapshot(files(file)).iterateChangesSince(snapshot).next(listener)
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
 
         then:
         1 * listener.changed(file.path)
@@ -150,13 +160,15 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     }
 
     def directoryHasChangedWhenTypeHasChanged() {
-        TestFile dir = tmpDir.createDir('dir')
+        TestFile root = tmpDir.createDir('root')
+        def fileCollection = files(root)
+        TestFile dir = root.createDir('dir')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         dir.deleteDir()
         dir.createFile()
-        snapshotter.snapshot(files(dir)).iterateChangesSince(snapshot).next(listener)
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
 
         then:
         1 * listener.changed(dir.path)
@@ -175,16 +187,32 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * _
     }
 
-    def nonExistentFileIsChangedWhenTypeHasChanged() {
-        TestFile file = tmpDir.file('unknown')
+    def newFileIsAdded() {
+        TestFile root = tmpDir.createDir('root')
+        def fileCollection = files(root)
+        TestFile file = root.file('newfile')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         file.createFile()
-        snapshotter.snapshot(files(file)).iterateChangesSince(snapshot).next(listener)
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
 
         then:
-        1 * listener.changed(file.path)
+        1 * listener.added(file.path)
+    }
+
+    def deletedFileIsRemoved() {
+        TestFile root = tmpDir.createDir('root')
+        def fileCollection = files(root)
+        TestFile file = root.createFile('file')
+
+        when:
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
+        file.delete()
+        snapshotter.snapshot(fileCollection).iterateChangesSince(snapshot).next(listener)
+
+        then:
+        1 * listener.removed(file.path)
     }
 
     def ignoresDuplicatesInFileCollection() {
@@ -343,10 +371,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     }
 
     private FileCollection files(File... files) {
-        FileTree collection = Mock(FileTree.class)
-        _ * collection.asFileTree >> collection
-        _ * collection.getFiles() >> files
-        return collection
+        new SimpleFileCollection(files)
     }
-    
+
 }

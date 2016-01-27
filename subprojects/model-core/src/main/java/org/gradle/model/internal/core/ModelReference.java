@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
@@ -33,7 +34,7 @@ import org.gradle.model.internal.type.ModelType;
  * @param <T> the type of the reference.
  */
 @ThreadSafe
-public class ModelReference<T> extends ModelPredicate {
+public class ModelReference<T> {
     @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
@@ -43,9 +44,9 @@ public class ModelReference<T> extends ModelPredicate {
     @Nullable
     private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, ModelNode.State state, @Nullable String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
-        this.type = type;
+        this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;
         this.description = description;
         this.state = state != null ? state : ModelNode.State.GraphClosed;
@@ -108,13 +109,16 @@ public class ModelReference<T> extends ModelPredicate {
     }
 
     @Nullable
-    @Override
     public ModelPath getPath() {
         return path;
     }
 
+    /**
+     * Return the path of the scope of the node to select, or null if scope is not relevant.
+     *
+     * <p>A node will be selected if its path or its parent's path equals the specified path.</p>
+     */
     @Nullable
-    @Override
     public ModelPath getScope() {
         return scope;
     }
@@ -124,7 +128,6 @@ public class ModelReference<T> extends ModelPredicate {
         return description;
     }
 
-    @Override
     public ModelType<T> getType() {
         return type;
     }

@@ -16,13 +16,10 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
@@ -30,36 +27,34 @@ import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
-    private final ProjectLocator projectLocator;
+    private final ProjectModelResolver projectModelResolver;
 
-    public ProjectLibraryBinaryLocator(ProjectLocator projectLocator) {
-        this.projectLocator = projectLocator;
+    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
+        this.projectModelResolver = projectModelResolver;
     }
 
     // Converts the binaries of a project library into regular binary instances
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
-        ProjectInternal project = findProject(requirement);
-        ModelRegistry modelRegistry = project.getModelRegistry();
-        ComponentSpecContainer components = modelRegistry.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
+        ModelRegistry projectModel = findProject(requirement);
+        ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);
         if (components == null) {
-            throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
+            return null;
         }
         String libraryName = requirement.getLibraryName();
         NativeLibrarySpec library = components.withType(NativeLibrarySpec.class).get(libraryName);
         if (library == null) {
-            throw new UnknownDomainObjectException(String.format("%s with name '%s' not found.", NativeLibrarySpec.class.getSimpleName(), libraryName));
+            return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
-        // TODO:DAZ Convert, don't cast
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }
         return binaries;
     }
 
-    private ProjectInternal findProject(NativeLibraryRequirement requirement) {
-        return projectLocator.locateProject(requirement.getProjectPath());
+    private ModelRegistry findProject(NativeLibraryRequirement requirement) {
+        return projectModelResolver.resolveProjectModel(requirement.getProjectPath());
     }
 
 }

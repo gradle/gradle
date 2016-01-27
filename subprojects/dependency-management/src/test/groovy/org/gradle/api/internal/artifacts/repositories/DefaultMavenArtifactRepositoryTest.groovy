@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -33,16 +34,17 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Stub()
+    final AuthenticationContainer authenticationContainer = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser)
+            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer)
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', null) >> transport()
+        transportFactory.createTransport('file', 'repo', _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -60,7 +62,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('http', 'repo', null) >> transport()
+        transportFactory.createTransport('http', 'repo', _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -82,7 +84,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', null) >> transport()
+        transportFactory.createTransport('http', 'repo', _) >> transport()
 
         and:
         repository.name = 'repo'

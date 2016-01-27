@@ -15,6 +15,7 @@
  */
 package org.gradle.language.jvm.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Copy;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
@@ -23,6 +24,7 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
  * Copies resources from their source to their target directory, potentially processing them.
  * Makes sure no stale resources remain in the target directory.
  */
+@Incubating
 public class ProcessResources extends Copy {
 
     @Override

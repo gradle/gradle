@@ -16,12 +16,14 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@RunWith(FluidDependenciesResolveRunner)
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
         mavenRepo.module("org.other", "externalA", 1.2).publish()
@@ -107,7 +109,8 @@ project(":b") {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:jar"
     }
 
     public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
@@ -147,11 +150,12 @@ project(":b") {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:jar"
     }
 
     @Issue("GRADLE-2899")
-    public void "consuming project can refer to multiple configurations of target project"() {
+    public void "multiple project configurations can refer to different configurations of target project"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -183,7 +187,7 @@ project(':b') {
         configB1 project(path:':a', configuration:'configA1')
         configB2 project(path:':a', configuration:'configA2')
     }
-    task check << {
+    task check(dependsOn: [configurations.configB1, configurations.configB2]) << {
         assert configurations.configB1.collect { it.name } == ['A1.jar']
         assert configurations.configB2.collect { it.name } == ['A2.jar']
     }
@@ -191,10 +195,11 @@ project(':b') {
 """
 
         expect:
-        succeeds "check"
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:A1jar", ":a:A2jar"
     }
 
-    public void "resolved project artifacts reflect project properties changed after task graph is built"() {
+    public void "resolved project artifacts reflect project properties changed after task graph is resolved"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -228,7 +233,8 @@ project(':b') {
 '''
 
         expect:
-        succeeds "test"
+        succeeds ":test"
+        executedAndNotSkipped ":a:aJar", ":b:bJar"
     }
 
     public void "resolved project artifact can be changed by configuration task"() {
@@ -261,12 +267,19 @@ project(':b') {
 '''
 
         expect:
-        succeeds "test"
+        succeeds ":test"
+        executedAndNotSkipped ":a:configureJar", ":a:aJar"
     }
 
-
+    /**
+     * When the set of artifacts for a project is changed during task execution, then a project dependency will not be resolved
+     * fully and/or correctly.
+     * - Without fluid dependencies, the artifacts are included in the resolution result, but the tasks to build them are not executed
+     * - With fluid dependencies, the changed artifacts are _not_ included in the resolution result, nor are the tasks.
+     */
     public void "set of resolved project artifacts can be changed after task graph is resolved"() {
         given:
+        def fluidDependencies = Boolean.getBoolean(FluidDependenciesResolveRunner.ASSUME_FLUID_DEPENDENCIES)
         file('settings.gradle') << "include 'a'"
 
         and:
@@ -281,20 +294,31 @@ project(':b') {
             }
             artifacts { compile tasks.jar1 }
             gradle.taskGraph.whenReady {
-                configurations.compile.artifacts.clear()
                 artifacts { compile tasks.jar2 }
             }
 '''
-        file('build.gradle') << '''
+        file('build.gradle') << """
             configurations { compile }
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
-                assert configurations.compile.collect { it.name } == ['a-2.jar']
+                assert configurations.compile.collect { it.name } == ${fluidDependencies ? "['a-1.jar']" : "['a-1.jar', 'a-2.jar']"}
             }
-'''
+"""
 
-        expect:
-        succeeds "test"
+        when:
+        if (fluidDependencies) {
+            executer.withDeprecationChecksDisabled()
+        }
+        succeeds ":test"
+
+        then:
+        // The added artifact is never added as a task
+        executedAndNotSkipped ":a:jar1" // Should include ":a:jar2" when no fluidDependencies
+
+        and:
+        if (fluidDependencies) {
+            output.contains "Changed artifacts of configuration ':a:compile' after it has been included in dependency resolution"
+        }
     }
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
@@ -314,25 +338,28 @@ allprojects {
 project(":a") {
     configurations { 'default' {} }
     dependencies { 'default' 'group:externalA:1.5' }
-    task aJar(type: Jar) { baseName='a' }
-    task bJar(type: Jar) { baseName='b' }
-    artifacts { 'default' aJar, bJar }
+    task xJar(type: Jar) { baseName='x' }
+    task yJar(type: Jar) { baseName='y' }
+    artifacts { 'default' xJar, yJar }
 }
 
 project(":b") {
     configurations { compile }
-    dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
+    dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
     task test {
         inputs.files configurations.compile
         doFirst {
-            assert configurations.compile.files.collect { it.name } == ['b.jar', 'externalA-1.5.jar']
+            assert configurations.compile.files.collect { it.name } == ['y.jar', 'externalA-1.5.jar']
         }
     }
 }
 """
 
         expect:
-        succeeds 'test'
+        succeeds 'b:test'
+
+        // Demonstrates superfluous task dependencies for project artifacts
+        executedAndNotSkipped ":a:xJar", ":a:yJar" // Should be only the ":a:yJar"
     }
 
     public void "reports project dependency that refers to an unknown artifact"() {
@@ -361,7 +388,7 @@ project(":b") {
 """
 
         expect:
-        fails 'test'
+        fails ':b:test'
 
         and:
         failure.assertResolutionFailure(":b:compile").assertHasCause("Could not find b.jar (test:a:unspecified).")
@@ -390,14 +417,15 @@ project(':b') {
     dependencies {
         compile project(':a'), { transitive = false }
     }
-    task listJars << {
+    task listJars(dependsOn: configurations.compile) << {
         assert configurations.compile.collect { it.name } == ['a.jar']
     }
 }
 '''
 
         expect:
-        succeeds "listJars"
+        succeeds ":b:listJars"
+        executedAndNotSkipped ":a:jar"
     }
 
     public void "can have cycle in project dependencies"() {
@@ -460,7 +488,8 @@ project('c') {
 """
 
         expect:
-        succeeds "listJars"
+        succeeds ":a:listJars"
+        executedAndNotSkipped ":b:jar", ":c:jar"
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -473,7 +502,7 @@ project('c') {
         file("a/build.gradle") << """
             group = "g"
             version = 1.0
-            
+
             apply plugin: 'base'
             task zip(type: Zip) {
                 from "some.txt"
@@ -488,19 +517,19 @@ project('c') {
             dependencies {
                 conf project(":a")
             }
-            
+
             task copyZip(type: Copy) {
                 from configurations.conf
                 into "\$buildDir/copied"
             }
         """
-        
+
         when:
         succeeds ":b:copyZip"
-        
+
         then:
-        ":b:copyZip" in nonSkippedTasks
-        
+        executedAndNotSkipped ":a:zip", ":b:copyZip"
+
         and:
         file("b/build/copied/a-1.0.zip").exists()
     }
@@ -522,18 +551,74 @@ project('c') {
                 }
 
                 task check << {
-                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
-                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+                    assert configurations.conf.state == Configuration.State.UNRESOLVED
+                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
                     configurations.conf.resolve()
 
-                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
-                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_OBSERVED
+                    assert configurations.conf.state == Configuration.State.RESOLVED
+                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+
+                    // Attempt to change the configuration, to demonstrate that is has been observed
+                    project(":api").configurations.conf.dependencies.add(null)
                 }
             }
 """
 
-        expect:
+        when:
+        executer.withDeprecationChecksDisabled()
         succeeds("impl:check")
+
+        then:
+        output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
+    }
+
+    @Issue("GRADLE-3330")
+    @Issue("GRADLE-3362")
+    public void "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+
+        and:
+        buildFile << """
+project(':a') {
+    apply plugin: 'base'
+    configurations {
+        configOne
+        configTwo
+    }
+    task A1jar(type: Jar) {
+        archiveName = 'A1.jar'
+    }
+    task A2jar(type: Jar) {
+        archiveName = 'A2.jar'
+    }
+    task A3jar(type: Jar) {
+        archiveName = 'A3.jar'
+    }
+    artifacts {
+        configOne A1jar
+        configTwo A2jar
+        configTwo A3jar
+    }
+}
+
+project(':b') {
+    configurations {
+        configB
+    }
+    dependencies {
+        configB project(path:':a', configuration:'configOne')
+        configB project(path:':a', configuration:'configTwo')
+    }
+    task check(dependsOn: configurations.configB) << {
+        assert configurations.configB.collect { it.name } == ['A1.jar', 'A2.jar', 'A3.jar']
+    }
+}
+"""
+
+        expect:
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:A1jar", ":a:A2jar", ":a:A3jar"
     }
 }

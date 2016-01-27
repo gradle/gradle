@@ -19,19 +19,19 @@ package org.gradle.api.plugins.sonar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.AutoCleanup
-import spock.lang.Shared
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
-    @Shared
-    AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
+    @Rule
+    ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     @AutoCleanup("stop")
     ServletContainer container
@@ -55,7 +55,7 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
         System.setProperty("SONAR_HOME", sonarHome.path)
         new AntBuilder().unzip(src: zipFile, dest: sonarHome, overwrite: true)
 
-        databasePort = portFinder.nextAvailable
+        databasePort = portFinder.assignPort()
         sonarHome.file("conf/sonar.properties") << """
 sonar.jdbc.username=sonar
 sonar.jdbc.password=sonar
@@ -67,8 +67,9 @@ sonar.embeddedDatabase.port=$databasePort
         container.start()
     }
 
+    @LeaksFileHandles
     def "can run Sonar analysis"() {
-        executer.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons().withDeprecationChecksDisabled()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
         // Problem is that BootStrapClassLoader, although generally isolated from its root(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore

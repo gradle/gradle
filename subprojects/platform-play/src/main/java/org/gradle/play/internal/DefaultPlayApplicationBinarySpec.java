@@ -18,35 +18,46 @@ package org.gradle.play.internal;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Nullable;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.DefaultScalaJvmAssembly;
+import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
+import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.util.CollectionUtils.single;
+
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private final JvmClasses classesDir = new DefaultJvmClasses();
+    private final DefaultScalaJvmAssembly jvmAssembly = new DefaultScalaJvmAssembly();
     private final PublicAssets assets = new DefaultPublicAssets();
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
+    private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
-    private ToolResolver toolResolver;
-    private PlayApplicationSpec application;
 
     @Override
     protected String getTypeName() {
@@ -55,16 +66,19 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public PlayApplicationSpec getApplication() {
-        return application;
-    }
-
-    @Override
-    public void setApplication(PlayApplicationSpec application) {
-        this.application = application;
+        return getComponentAs(PlayApplicationSpec.class);
     }
 
     public PlayPlatform getTargetPlatform() {
         return platform;
+    }
+
+    public PlayToolChainInternal getToolChain() {
+        return toolChain;
+    }
+
+    public ScalaJvmAssembly getAssembly() {
+        return jvmAssembly;
     }
 
     public File getJarFile() {
@@ -73,6 +87,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
+        jvmAssembly.setTargetPlatform(platform.getJavaPlatform());
+        jvmAssembly.setScalaPlatform(platform.getScalaPlatform());
+    }
+
+    public void setToolChain(PlayToolChainInternal toolChain) {
+        this.toolChain = toolChain;
     }
 
     public void setJarFile(File file) {
@@ -88,7 +108,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     public JvmClasses getClasses() {
-        return classesDir;
+        return new JvmClassesAdapter(jvmAssembly);
     }
 
     public PublicAssets getAssets() {
@@ -101,8 +121,25 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     @Override
+    public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        String lssName = String.format("%sScalaSources", input.getName());
+        // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
+        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
+        generatedScalaSources.builtBy();
+        generatedScala.put(input, generatedScalaSources);
+    }
+
+    @Override
     public Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript() {
         return generatedJavaScript;
+    }
+
+    @Override
+    public void addGeneratedJavaScript(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        String lssName = String.format("%sJavaScript", input.getName());
+        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
+        javaScript.builtBy();
+        generatedJavaScript.put(input, javaScript);
     }
 
     @Override
@@ -117,37 +154,57 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public BinaryBuildAbility getBinaryBuildAbility() {
-        return new ToolSearchBuildAbility(toolResolver.checkToolAvailability(getTargetPlatform()));
+        return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
     @Override
-    public void setToolResolver(ToolResolver toolResolver) {
-        this.toolResolver = toolResolver;
+    public boolean hasCodependentSources() {
+        return true;
     }
 
-    @Override
-    public ToolResolver getToolResolver() {
-        return toolResolver;
-    }
+    private static class JvmClassesAdapter implements JvmClasses {
 
-    private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private Set<File> resourceDirs = Sets.newLinkedHashSet();
-        private File classesDir;
+        private final JvmAssembly jvmAssembly;
+
+        private JvmClassesAdapter(JvmAssembly jvmAssembly) {
+            this.jvmAssembly = jvmAssembly;
+        }
 
         public File getClassesDir() {
-            return classesDir;
+            return single(jvmAssembly.getClassDirectories());
         }
 
         public void setClassesDir(File classesDir) {
-            this.classesDir = classesDir;
+            replaceSingleDirectory(jvmAssembly.getClassDirectories(), classesDir);
         }
 
         public Set<File> getResourceDirs() {
-            return resourceDirs;
+            return jvmAssembly.getResourceDirectories();
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(resourceDir);
+            jvmAssembly.getResourceDirectories().add(resourceDir);
+        }
+
+        public void builtBy(Object... tasks) {
+            jvmAssembly.builtBy(tasks);
+        }
+
+        @Nullable
+        public Task getBuildTask() {
+            return jvmAssembly.getBuildTask();
+        }
+
+        public void setBuildTask(Task lifecycleTask) {
+            jvmAssembly.setBuildTask(lifecycleTask);
+        }
+
+        public boolean hasBuildDependencies() {
+            return jvmAssembly.hasBuildDependencies();
+        }
+
+        public TaskDependency getBuildDependencies() {
+            return jvmAssembly.getBuildDependencies();
         }
     }
 

@@ -115,7 +115,7 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
         when:
-        projectDependency.buildDependencies.resolve(context)
+        projectDependency.buildDependencies.visitDependencies(context)
 
         then:
         1 * context.add(conf)
@@ -130,7 +130,7 @@ class DefaultProjectDependencyTest extends Specification {
          projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
 
          when:
-         projectDependency.buildDependencies.resolve(context)
+         projectDependency.buildDependencies.visitDependencies(context)
 
          then:
          0 * _

@@ -79,7 +79,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies production resources into the production classes directory.</td>
+                <td>Copies production resources into the production resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -90,7 +90,7 @@
                     Some plugins add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the production classes directory.</td>
+                <td>Assembles the production classes and resources directories.</td>
             </tr>
             <tr>
                 <td>
@@ -108,7 +108,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies test resources into the test classes directory.</td>
+                <td>Copies test resources into the test resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -119,7 +119,7 @@
                     Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the test classes directory.</td>
+                <td>Assembles the test classes and resources directories.</td>
             </tr>
             <tr>
                 <td>
@@ -209,7 +209,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies the given source set's resources into the classes directory.</td>
+                <td>Copies the given source set's resources into the resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -221,7 +221,7 @@
                     Some plugins add additional compilation tasks for the source set.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the given source set's classes directory.</td>
+                <td>Assembles the given source set's classes and resources directories.</td>
             </tr>
         </table>
 
@@ -449,8 +449,7 @@
         <title>Convention properties</title>
         <para>
             The Java plugin adds a number of convention properties to the project, shown below. You can use these properties
-            in your build script as though they were properties of the project object (see
-            <xref linkend="sub:more_about_convention_objects"/>).
+            in your build script as though they were properties of the project object.
         </para>
 
         <table id='javaconventionDir'>
@@ -1321,7 +1320,7 @@
                 <literal>scanForTestClasses</literal> to false. This will make the test task only use includes /
                 excludes to find test classes. If <literal>scanForTestClasses</literal> is false and no include
                 / exclude patterns are specified, the defaults are
-                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and 
+                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and
                 “<literal>**/Abstract*.class</literal>” for include and exclude, respectively.
             </para>
         </section>
@@ -1350,6 +1349,34 @@
                 <sourcefile file="build.gradle" snippet="test-config"/>
             </sample>
         </section>
+
+        <section id="test_execution_order">
+            <title>Test execution order in TestNG</title>
+            <para>TestNG allows explicit control of the execution order of tests.</para>
+            <para>The <literal>preserveOrder</literal> property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including <literal>@BeforeXXX</literal> and <literal>@AfterXXX</literal>) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with <literal>testng.xml</literal> files, the <ulink url='http://testng.org/javadocs/org/testng/TestNG.html'>TestNG API</ulink>, that is used for running tests programmatically, as well as Gradle&apos;s TestNG integration execute tests in unpredictable order by default.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test ordering when working with <literal>testng.xml</literal> files:
+                        <ulink url='http://testng.org/doc/documentation-main.html#testng-xml'/>.
+                    </para>
+                </footnote>
+            Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the <literal>preserveOrder</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
+            </para>
+            <sample id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+            <para>The <literal>groupByInstance</literal> property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.
+                <footnote>
+                    <para>The TestNG documentation contains more details about grouping tests by instances:
+                        <ulink url='http://testng.org/doc/documentation-main.html#dependencies-with-annotations'/>.
+                    </para>
+                </footnote>
+            Grouping tests by instances was introduced with TestNG version 6.1. Setting the <literal>groupByInstances</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
+            </para>
+            <sample id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+        </section>
+
         <section id="test_reporting">
             <title>Test reporting</title>
 

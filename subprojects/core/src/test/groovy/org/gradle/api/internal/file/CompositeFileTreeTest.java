@@ -21,19 +21,19 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.TestUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class CompositeFileTreeTest {
@@ -47,7 +47,7 @@ public class CompositeFileTreeTest {
         }
 
         @Override
-        public void resolve(FileCollectionResolveContext context) {
+        public void visitContents(FileCollectionResolveContext context) {
             context.add(source1);
             context.add(source2);
         }

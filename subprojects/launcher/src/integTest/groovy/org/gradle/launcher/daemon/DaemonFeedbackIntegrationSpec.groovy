@@ -18,11 +18,13 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
+@LeaksFileHandles
 class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
     def "daemon keeps logging to the file even if the build is stopped"() {
         given:
@@ -48,9 +50,11 @@ task sleep << {
         then:
         sleeper.waitForFailure()
 
-        def log = readLog(executer.daemonBaseDir)
-        assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
-        assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        poll(5, 1) {
+            def log = readLog(executer.daemonBaseDir)
+            assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
+            assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        }
     }
 
     @Timeout(25)
@@ -107,8 +111,8 @@ task sleep << {
             //in theory the client could have received result and complete
             // but the daemon has not yet finished processing hence polling
             def daemonLog = readLog(executer.daemonBaseDir)
-            daemonLog.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
-            daemonLog.findAll(DaemonMessages.FINISHED_BUILD).size() == 1
+            assert daemonLog.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+            assert daemonLog.findAll(DaemonMessages.FINISHED_BUILD).size() == 1
         }
 
         when: "another build requested with the same daemon with --info"

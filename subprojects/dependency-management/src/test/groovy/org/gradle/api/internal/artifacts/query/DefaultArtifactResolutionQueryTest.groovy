@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.query
+
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -25,8 +26,8 @@ import org.gradle.api.component.Component
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
@@ -48,7 +49,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def cacheLockingManager = Mock(CacheLockingManager)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
-    def repositoryChain = Mock(RepositoryChain)
+    def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
     def componentResolveMetaData = Mock(ComponentResolveMetaData)
 
@@ -139,12 +140,12 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     private static class TestComponent implements Component {
     }
 
-    private static class TestArtifact implements Artifact {
+    private static interface TestArtifact extends Artifact {
     }
 
     private static class UnknownComponent implements Component {
     }
 
-    private static class UnknownArtifact implements Artifact {
+    private static interface UnknownArtifact extends Artifact {
     }
 }

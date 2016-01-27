@@ -16,13 +16,24 @@
 
 package org.gradle.launcher.continuous
 
-import spock.lang.Ignore
+import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+    def setup() {
+        if (OperatingSystem.current().isWindows()) {
+            ignoreShutdownTimeoutException = true
+        }
+    }
 
     def "basic smoke test"() {
+        given:
+        def markerFile = file("marker")
+
         when:
-        file("marker").text = "original"
+        markerFile.text = "original"
 
         buildFile << """
             task echo {
@@ -35,11 +46,12 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds("echo")
-        output.contains "Continuous mode is an incubating feature."
+        output.contains "Continuous build is an incubating feature."
         output.contains "value: original"
 
         when:
-        file("marker").text = "changed"
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
 
         then:
         succeeds()
@@ -47,6 +59,9 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     }
 
     def "can recover from build failure"() {
+        given:
+        def markerFile = file("marker")
+
         when:
         executer.withStackTraceChecksDisabled()
         buildFile << """
@@ -62,13 +77,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
               }
             }
         """
-        def markerFile = file("marker") << "original"
+        markerFile << "original"
 
         then:
         succeeds "build"
         output.contains "value: original"
 
         when:
+        waitBeforeModification(markerFile)
         markerFile.delete()
 
         then:
@@ -76,6 +92,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         errorOutput.contains "file does not exist"
 
         when:
+        waitBeforeModification(markerFile)
         markerFile << "changed"
 
         then:
@@ -84,6 +101,9 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     }
 
     def "does not trigger when changes is made to task that is not required"() {
+        given:
+        def aFile = file("a")
+
         when:
         buildFile << """
             task a {
@@ -101,7 +121,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         ":a" in executedTasks
 
         when:
-        file("a") << "original"
+        aFile << "original"
 
         then:
         succeeds()
@@ -112,33 +132,55 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         ":b" in executedTasks
 
         when:
-        file("a").text = "changed"
+        waitBeforeModification(aFile)
+        aFile.text = "changed"
 
         then:
         noBuildTriggered()
     }
 
-    @Ignore("Doesn't exit")
-    def "exits when build fails before any tasks execute"() {
+    def "exits when build fails with compile error"() {
         when:
-
         buildFile << """
-            task a {
-              doLast { }
-            }
-
             'script error
         """
 
         then:
         fails("a")
-        !(":a" in executedTasks)
-        !output.contains("Waiting for a trigger")
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when build fails with configuration error"() {
+        when:
+        buildFile << """
+            throw new Exception("!")
+        """
+
+        then:
+        fails("a")
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+    }
+
+    def "exits when no executed tasks have file system inputs"() {
+        when:
+        buildFile << """
+            task a
+        """
+
+        then:
+        succeeds("a")
+        !gradle.running
+        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
     def "reuses build script classes"() {
+        given:
+        def markerFile = file("marker")
+
         when:
-        file("marker").text = "original"
+        markerFile.text = "original"
 
         buildFile << """
             task echo {
@@ -160,13 +202,29 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "reuse: false"
 
         when:
-        file("marker").text = "changed"
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
 
         then:
         succeeds()
         output.contains "value: changed"
         output.contains "reuse: true"
 
+    }
+
+    def "considered to be long lived process"() {
+        when:
+        buildFile << """
+            task echo {
+              doLast {
+                println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
+              }
+            }
+        """
+
+        then:
+        succeeds("echo")
+        output.contains "isLongLivingProcess: true"
     }
 
     def "failure to determine inputs has a reasonable message"() {
@@ -181,6 +239,58 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         then:
         fails("a")
         failureDescriptionContains("Could not determine the dependencies of task ':a'.")
+    }
+
+    def "failure to determine inputs has a reasonable message when an earlier task succeeds"() {
+        when:
+        buildScript """
+            task a {
+                inputs.files file("inputA")
+                doLast {}
+            }
+            task b {
+                inputs.files files({ throw new Exception("boom") })
+                dependsOn a
+                doLast {}
+            }
+        """
+
+        then:
+        fails("b")
+        failureDescriptionContains("Could not determine the dependencies of task ':b'.")
+    }
+
+    def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
+        when:
+        def bFlag = file("bFlag")
+        buildScript """
+            task a {
+                inputs.files file("inputA")
+                doLast {}
+            }
+            task b {
+                def bFlag = file("bFlag")
+                inputs.files files({
+                    if (!bFlag.exists()) {
+                        return bFlag
+                    }
+
+                    throw new Exception("boom")
+                })
+                dependsOn a
+
+                doLast { }
+            }
+        """
+
+        then:
+        succeeds("b")
+
+        when:
+        bFlag.text = "b executed"
+        then:
+        fails()
+        failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
     def "ignores non source when source is empty"() {
@@ -214,4 +324,63 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         then:
         succeeds()
     }
+
+    def "project directory can be used as input"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when:
+        aFile.text = "A"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when: "file is changed"
+        waitBeforeModification(aFile)
+        aFile.text = "B"
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+
+        when:
+        waitBeforeModification(aFile)
+        aFile.delete()
+
+        then:
+        succeeds()
+        executedAndNotSkipped(":a")
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "exit hint does not mention enter when not on windows"() {
+        when:
+        buildScript "task a { inputs.file 'a'; doLast {} }"
+
+        then:
+        succeeds "a"
+        output.endsWith("(ctrl-d to exit)\n")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "exit hint mentions enter when on windows"() {
+        when:
+        buildScript "task a { inputs.file 'a'; doLast {} }"
+
+        then:
+        succeeds "a"
+        output.endsWith("(ctrl-d then enter to exit)\n")
+    }
+
 }

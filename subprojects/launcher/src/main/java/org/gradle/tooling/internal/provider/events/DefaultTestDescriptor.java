@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 
 import java.io.Serializable;
 
-public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor {
+public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
     private final Object id;
     private final String name;
@@ -30,8 +31,9 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     private final String className;
     private final String methodName;
     private final Object parentId;
+    private String taskPath;
 
-    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId) {
+    public DefaultTestDescriptor(Object id, String name, String displayName, String testKind, String suiteName, String className, String methodName, Object parentId, String taskPath) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -40,6 +42,7 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         this.className = className;
         this.methodName = methodName;
         this.parentId = parentId;
+        this.taskPath = taskPath;
     }
 
     @Override
@@ -82,4 +85,7 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         return parentId;
     }
 
+    public String getTaskPath() {
+        return taskPath;
+    }
 }

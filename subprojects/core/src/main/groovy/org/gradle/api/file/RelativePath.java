@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -30,7 +31,8 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable {
+public class RelativePath implements Serializable, Comparable<RelativePath> {
+    private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -45,16 +47,39 @@ public class RelativePath implements Serializable {
 
     private RelativePath(boolean endsWithFile, RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
-        int sourceLength = 0;
+        int targetOffsetForChildSegments;
         if (parentPath != null) {
             String[] sourceSegments = parentPath.getSegments();
-            sourceLength = sourceSegments.length;
-            segments = new String[sourceLength + childSegments.length];
-            System.arraycopy(sourceSegments, 0, segments, 0, sourceLength);
+            segments = new String[sourceSegments.length + childSegments.length];
+            copySegments(segments, sourceSegments, sourceSegments.length);
+            targetOffsetForChildSegments = sourceSegments.length;
         } else {
             segments = new String[childSegments.length];
+            targetOffsetForChildSegments = 0;
         }
-        System.arraycopy(childSegments, 0, segments, sourceLength, childSegments.length);
+        copyAndInternSegments(segments, targetOffsetForChildSegments, childSegments);
+    }
+
+    private static void copySegments(String[] target, String[] source) {
+        copySegments(target, source, target.length);
+    }
+
+    private static void copySegments(String[] target, String[] source, int length) {
+        // No String instance interning is needed since Strings are from other
+        // RelativePath instances which contain only interned String instances
+        System.arraycopy(source, 0, target, 0, length);
+    }
+
+    private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
+        for (int i = 0; i < source.length; i++) {
+            target[targetOffset + i] = internPathSegment(source[i]);
+        }
+    }
+
+    private static String internPathSegment(String sample) {
+        // Intern all String instances added to RelativePath instances to minimize memory use
+        // by de-duplicating all path segment String instances
+        return PATH_SEGMENT_STRING_INTERNER.intern(sample);
     }
 
     public String[] getSegments() {
@@ -129,7 +154,7 @@ public class RelativePath implements Serializable {
             return null;
         }
         String[] parentSegments = new String[segments.length - 1];
-        System.arraycopy(segments, 0, parentSegments, 0, parentSegments.length);
+        copySegments(parentSegments, segments);
         return new RelativePath(false, parentSegments);
     }
 
@@ -150,8 +175,8 @@ public class RelativePath implements Serializable {
      */
     public RelativePath replaceLastName(String name) {
         String[] newSegments = new String[segments.length];
-        System.arraycopy(segments, 0, newSegments, 0, segments.length);
-        newSegments[segments.length - 1] = name;
+        copySegments(newSegments, segments, segments.length - 1);
+        newSegments[segments.length - 1] = internPathSegment(name);
         return new RelativePath(endsWithFile, newSegments);
     }
 
@@ -194,5 +219,26 @@ public class RelativePath implements Serializable {
      */
     public RelativePath prepend(String... segments) {
         return new RelativePath(false, segments).append(this);
+    }
+
+    @Override
+    public int compareTo(RelativePath o) {
+        int len1 = segments.length;
+        int len2 = o.segments.length;
+        int lim = Math.min(len1, len2);
+        String v1[] = segments;
+        String v2[] = o.segments;
+
+        int k = 0;
+        while (k < lim) {
+            String c1 = v1[k];
+            String c2 = v2[k];
+            int compareResult = c1.compareTo(c2);
+            if (compareResult != 0) {
+                return compareResult;
+            }
+            k++;
+        }
+        return len1 - len2;
     }
 }

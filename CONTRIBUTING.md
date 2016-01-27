@@ -21,7 +21,7 @@ Doing so helps to ensure that:
     1. You understand how your proposed changes fit with the strategic goals of the Gradle project.
     2. You can get feedback on your proposed changes, and suggestions as to the best approach to implementation.
     3. The Gradle core devs can create a [Jira issue](https://issues.gradle.org) for the work if deemed necessary.
-    4. You and the other devs can collaborate in creating a [design document](design-docs) if deemed necessary.
+    4. You and the other devs can collaborate in creating a [design document](design-docs). This is necessary for all changes that affects the behaviour or public API.
 3. All code contributions should be submitted via a [pull request](https://help.github.com/articles/using-pull-requests) from a [forked GitHub repository](https://help.github.com/articles/fork-a-repo).
 4. Once received, the pull request will be reviewed by a Gradle core developer. Your pull request will likely get more attention if you:
     1. Have first discussed the change on the Gradle Developer list.

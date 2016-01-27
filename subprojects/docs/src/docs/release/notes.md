@@ -2,120 +2,52 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Dependency substitution rules
+<!--
+IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
+Add-->
 
-In previous Gradle versions you could use a 'Dependency resolve rule' to replace an external dependency with another:
+<!--
+### Example new and noteworthy
+-->
 
-    resolutionStrategy {
-        eachDependency {
-            if (it.requested.group == 'com.deprecated') {
-                details.useTarget group: 'com.replacement.group', name: it.requested.module, version: it.requested.version
-            }
-        }
-    }
-
-This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
-These rules allow an external dependency to be replaced with a project dependency, and vice-versa.
-
-You replace a project dependency with an external dependency like this:
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withProject(":api") {
-                useTarget group: "org.utils", name: "api", version: "1.3"
-            }
-        }
-    }
-
-And replace an external dependency with an project dependency like this:
+### IDE integration improvements
 
 
-    resolutionStrategy {
-        dependencySubstitution {
-            withModule("com.example:my-module") {
-                useTarget project(":project1")
-            }
-        }
-    }
+#### Idea Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
 
-There are other options available to match module and project dependencies:
+The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA.
+Previous versions of Gradle did not consider any `targetCompatibility` settings for java projects.
+This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest targetCompatibility value for all imported subprojects.
+For a multi-project Gradle build that contains a mix of targetCompatibility values, the generated IDEA module for a sub-project will include an override for the appropriate 'module bytecode version' where it does not match that of the overall generated IDEA project.
 
-    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
-    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
-    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
-    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(":api")) { ProjectDependencySubstitution details -> /* ... */ }
 
-It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).
-Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
+#### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
 
-### Support for Precompiled Headers (i)
+Beginning with IntelliJ IDEA version 14 Scala projects are no longer configured using a project facet and instead use a
+[Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be
+generated. Using the 'idea' plugin in conjunction with Scala projects for newer IDEA version would cause errors due to the Scala facet being unrecognized. The 'idea' plugin
+now by default creates a Scala SDK project library as well as adds this library to all Scala modules. More information can be found in the
+[user guide](https://docs.gradle.org/current/userguide/scala_plugin.html#sec:intellij_idea_integration).
 
-Precompiled headers are a performance optimization for native builds that allows commonly used headers to be compiled only once rather than for
-each file that includes the headers.  Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
+This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
 
-To use a precompiled header, a header file needs to defined containing all of the headers that should be precompiled.  This header file is
-then declared in the build script as a precompiled header.
+### Software model improvements
 
-    model {
-        components {
-            hello(NativeLibrarySpec) {
-                sources {
-                    cpp {
-                        preCompiledHeader "pch.h"
-                    }
-                }
-            }
-        }
-    }
+#### Fine grained application of rules
 
-Each source set can have a single precompiled header defined.  Any source file that includes this header file as the first header will
-be compiled using the precompiled header.  Otherwise, the precompiled header will be ignored and the source file will be compiled in the
-normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_binaries:preCompiledHeaders) for further information.
+TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
 
-### Google Test support (i)
+This kind of method is annotated with `@Rules`. The first parameter defines a `RuleSource` type to apply, and the second parameter defines the target element to apply the rules to.
 
-- TBD
+Two new annotations have been added:
 
-### Continuous Mode (--watch)
+- `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
+- `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
 
-As described in the [Gradle Roadmap](https://discuss.gradle.org/t/the-gradle-roadmap/105), we've been working on adding a 'continuous mode' for
-Gradle builds.
+### The "scala-library" build init type uses the Zinc compiler by default
 
-When you run with the `--watch` command line option, Gradle will not exit at the end of a build.  Instead, Gradle will wait for something to
-change.  When changes are detected, Gradle will re-run the previous build with the same task selection.
-
-For instance, if you run `gradle --watch build` in a typical Java project.  Main and test sources will be built and tests will be run. If
-changes are made to the project's main sources, Gradle will rebuild the main Java sources and re-run the project's tests.  If changes are
-made to the project's test sources, Gradle will only rebuild the test Java sources and re-run the project's tests.
-
-If you run `gradle --watch assemble` in a typical Java project.  Only the main sources will be built.  Tests will not run. If changes are
-made to the project's main sources, Gradle will rebuild the main Java sources.  If changes are made to the project's test sources, Gradle
-will do nothing.
-
-### Task group accessible from the Tooling API
-
-Tasks in Gradle may define a _group_ attribute, but this group wasn't accessible from the Tooling API before. It is now possible to query the
-group of a task through `org.gradle.tooling.model.Task#getGroup`.
-
-### Progress events for build operations through the Tooling API
-
-You can now listen to progress events for various build operations through `org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener)`. You
-will receive all available events as the Gradle build being executed goes through its life-cycle. For example, you will receive events when the
-settings are being loaded, when the task graph is being populated, when the tasks are being executed, when each task is executed, when the tests
-are executed, etc. All operations are part of a single-root hierarchy that can be traversed through the operation descriptors via `org.gradle.tooling.events.ProgressEvent#getDescriptor`
-and `org.gradle.tooling.events.OperationDescriptor#getParent`.
-
-If you are only interested in the progress events for a sub-set of all available operations, you can use
-`org.gradle.tooling.LongRunningOperation.addProgressListener(org.gradle.tooling.events.ProgressListener, java.util.EnumSet<org.gradle.tooling.events.ProgressEventType>)`. For example, you
-can configure to only receive events for the execution of task operations.
-
-Progress events for more fine-grained operations will be added in future releases of Gradle.
-
-### Increased visibility of components in model report
-
-- TBD: Also means finer grained rules and improved performance (more efficient model implementation, rules, etc).
+When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
+The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
 
 ## Promoted features
 
@@ -137,80 +69,29 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-### Changing a configuration after it has been resolved
-
-TODO
-
-### Distribution Plugin changes
-
-Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
-This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
-
-### Deprecation of org.gradle.model.collection.CollectionBuilder
-
-Use org.gradle.model.ModelMap instead.
+<!--
+### Example deprecation
+-->
 
 ## Potential breaking changes
 
-### Configurations that are task inputs are resolved before building the task execution graph
+### Changes to 'idea' plugin Scala projects
 
-### Changes in ComponentModelBasePlugin
+Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targeting versions 14 and newer. Users of IDEA versions older than 14 will need to update
+their build scripts to specify that metadata should be generated for an earlier IDEA version.
 
-#### Removal of `componentSpec` project extension
+    idea {
+        targetVersion = '13'
+    }
 
-As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
-Currently component container can be only accessed using model rules.
-
-#### Changes in `ComponentSpecContainer`
-
-- `ComponentSpecContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>`.
-- `ComponentSpecContainer` now implements `ModelMap<ComponentSpec>`.
-- All configuration done using subject of type `ComponentSpecContainer` is now deferred. In earlier versions of Gradle it was eager.
-
-### Changes in NativeBinariesTestPlugin
-
-- `TestSuiteContainer` no longer implements `ExtensiblePolymorphicDomainObjectContainer<TestSuiteSpec>`.
-- `TestSuiteContainer` now implements `ModelMap<TestSuiteSpec>`.
-- All configuration done using subject of type `TestSuiteContainer` is now deferred. In earlier versions of Gradle it was eager.
-
-### Source sets and binaries cannot be removed from components
-
-### Type of binaries container of `ComponentSpec` has changed from `DomainObjectSet<BinarySpec>` to `NamedDomainObjectSet<BinarySpec>`
-
-### Changes to `ComponentSpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-- `getBinaries()` now returns a `ModelMap<BinarySpec>` instead of `NamedDomainObjectCollection<BinarySpec>`
-- `binaries()` now takes a `Action<? super ModelMap<BinarySpec>>` instead of `Action<? super NamedDomainObjectCollection<BinarySpec>>`
-
-### Changes to source sets container of `BinarySpec`
-- `getSource()` now returns a `ModelMap<LanguageSourceSet>` instead of `DomainObjectSet<LanguageSourceSet>`
-- `sources()` now takes a `Action<? super ModelMap<LanguageSourceSet>>` instead of `Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>>`
-
-### Maven publishing
-
-The [maven-publish](userguide/publishing_maven.html) and [maven](userguide/maven_plugin.html) plugins
-no longer use the Maven 2 based [Maven ant tasks](https://maven.apache.org/ant-tasks/) libraries to publish artifacts.
-Both plugins now use the newer Maven 3 `org.apache.maven` and Aether libraries.
-Whilst the API's exposed by both plugins remain unchanged, the underlying publishing libraries have been upgraded.
-
-### Java stubs annotation processing of Groovy sources
-
-Annotation processing of Java stubs generated from Groovy sources is now disabled by default. If you want Java annotation processors to execute
-on stubs, you need to set the following option in `GroovyCompileOptions`:
-
-    compileGroovy.groovyOptions.javaAnnotationProcessing = true
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Daniel Lacasse](https://github.com/Shad0w1nk) - Support GoogleTest for testing C++ binaries
-* [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
-* [Larry North](https://github.com/LarryNorth) - Build improvements.
-* [Tobias Schulte](https://github.com/tschulte) - Documentation improvements.
-* [Stefan Oehme](https://github.com/oehme) - Addition of `Project.copy(Action)` and `Project.copySpec(Action)`.
-* [Mikolaj Izdebski](https://github.com/mizdebsk) - Upgrade of the Maven publishing mechanisms to use Aether libraries.
+* [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
+
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
 ## Known issues
 

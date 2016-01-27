@@ -20,20 +20,20 @@ import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.ProjectConfigurer
+import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
-import org.gradle.tooling.internal.provider.BuildActionResult
-import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
-import org.gradle.tooling.internal.provider.PayloadSerializer
-import org.gradle.tooling.internal.provider.SerializedPayload
+import org.gradle.tooling.internal.provider.*
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {
-    def action = Mock(SerializedPayload)
     def startParameter = Mock(StartParameter)
+    def action = Mock(SerializedPayload)
+    def clientSubscriptions = Mock(BuildClientSubscriptions)
+    def buildEventConsumer = Mock(BuildEventConsumer)
     def payloadSerializer = Mock(PayloadSerializer)
     def projectConfigurer = Mock(ProjectConfigurer)
     def buildController = Mock(BuildController) {
@@ -41,10 +41,11 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
             getServices() >> Stub(ServiceRegistry) {
                 get(PayloadSerializer) >> payloadSerializer
                 get(ProjectConfigurer) >> projectConfigurer
+                get(BuildEventConsumer) >> buildEventConsumer
             }
         }
     }
-    def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action)
+    def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action, clientSubscriptions)
     def runner = new ClientProvidedBuildActionRunner()
 
     def "can run action and returns result when completed"() {

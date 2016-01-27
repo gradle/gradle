@@ -21,12 +21,14 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VisualCpp)
+@LeaksFileHandles
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
@@ -116,8 +118,8 @@ model {
         run "installMainExecutable"
 
         then:
-        resourceOnlyLibrary("build/binaries/resourcesSharedLibrary/resources").assertExists()
-        installation("build/install/mainExecutable").exec().out == "Hello!"
+        resourceOnlyLibrary("build/libs/resources/shared/resources").assertExists()
+        installation("build/install/main").exec().out == "Hello!"
     }
 
     @Ignore

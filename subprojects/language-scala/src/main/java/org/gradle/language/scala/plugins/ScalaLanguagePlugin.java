@@ -17,19 +17,23 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.JointCompileTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
+import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.scala.toolchain.ScalaToolChain;
 import org.gradle.model.Model;
@@ -42,6 +46,8 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
+
+import static org.gradle.util.CollectionUtils.single;
 
 
 /**
@@ -76,6 +82,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         }
     }
 
+
     private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
         public Class<ScalaLanguageSourceSet> getSourceSetType() {
             return ScalaLanguageSourceSet.class;
@@ -89,43 +96,70 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return JvmByteCode.class;
         }
 
-        public SourceTransformTaskConfig getTransformTask() {
-            return new SourceTransformTaskConfig() {
+        public JointCompileTaskConfig getTransformTask() {
+            return new JointCompileTaskConfig() {
                 public String getTaskPrefix() {
                     return "compile";
+                }
+
+                @Override
+                public boolean canTransform(LanguageSourceSet candidate) {
+                    return candidate instanceof ScalaLanguageSourceSet || candidate instanceof JavaSourceSet;
                 }
 
                 public Class<? extends DefaultTask> getTaskType() {
                     return PlatformScalaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
-                    JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
-                    JavaPlatform javaPlatform = binary.getTargetPlatform();
-                    // TODO RG resolve the scala platform from the binary
+                    configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), String.format("Compiles %s.", sourceSet));
+                    addSourceSetToCompile(compile, sourceSet);
+                    addSourceSetClasspath(compile, (ScalaLanguageSourceSet) sourceSet);
+                }
 
-                    compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
-                    File analysisFile = new File(task.getTemporaryDir(), String.format("compilerAnalysis/%s.analysis", task.getName()));
+                @Override
+                public void configureAdditionalTransform(Task task, LanguageSourceSet sourceSet) {
+                    PlatformScalaCompile compile = (PlatformScalaCompile) task;
+                    addSourceSetToCompile(compile, sourceSet);
+                }
+
+                private void configureScalaTask(PlatformScalaCompile compile, JvmAssembly assembly, String description) {
+                    assembly.builtBy(compile);
+
+                    compile.setDescription(description);
+                    compile.setDestinationDir(single(assembly.getClassDirectories()));
+                    File analysisFile = new File(compile.getProject().getBuildDir(), String.format("tmp/scala/compilerAnalysis/%s.analysis", compile.getName()));
                     compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
-                    compile.setDescription(String.format("Compiles %s.", scalaSourceSet));
-                    compile.setDestinationDir(binary.getClassesDir());
+                    JavaPlatform javaPlatform = assembly.getTargetPlatform();
+                    String targetCompatibility = javaPlatform.getTargetCompatibility().toString();
+                    compile.setTargetCompatibility(targetCompatibility);
+                    compile.setSourceCompatibility(targetCompatibility);
 
-                    compile.setSource(scalaSourceSet.getSource());
-                    compile.setClasspath(scalaSourceSet.getCompileClasspath().getFiles());
-                    compile.setTargetCompatibility(javaPlatform.getTargetCompatibility().toString());
-                    compile.setSourceCompatibility(javaPlatform.getTargetCompatibility().toString());
-
-                    compile.dependsOn(scalaSourceSet);
-                    binary.getTasks().getJar().dependsOn(compile);
+                    if (assembly instanceof ScalaJvmAssembly) {
+                        compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
+                    } else {
+                        // TODO:DAZ Put the default scala platform somewhere else, or enforce that we always have a `ScalaJvmAssembly`
+                        compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                    }
                 }
+
+                private void addSourceSetToCompile(PlatformScalaCompile compile, LanguageSourceSet sourceSet) {
+                    compile.dependsOn(sourceSet);
+                    compile.source(sourceSet.getSource());
+                }
+
+                private void addSourceSetClasspath(PlatformScalaCompile compile, ScalaLanguageSourceSet scalaLanguageSourceSet) {
+                    FileCollection classpath = scalaLanguageSourceSet.getCompileClasspath().getFiles();
+                    compile.setClasspath(classpath);
+                }
+
             };
         }
 
         public boolean applyToBinary(BinarySpec binary) {
-            return binary instanceof JvmBinarySpec;
+            return binary instanceof WithJvmAssembly;
         }
     }
 }

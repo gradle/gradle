@@ -18,12 +18,11 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.DefaultJavaExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
 import javax.inject.Inject;
@@ -36,20 +35,35 @@ import java.util.Map;
 /**
  * Executes a Java application in a child process.
  * <p>
+ * Similar to {@link org.gradle.api.tasks.Exec}, but starts a JVM with the given classpath and application class.
+ * </p>
+ * <pre autoTested=''>
+ * apply plugin: 'java'
+ *
+ * task runApp(type: JavaExec) {
+ *   classpath = sourceSets.main.runtimeClasspath
+ *
+ *   main = 'package.Main'
+ *
+ *   // arguments to pass to the application
+ *   args 'appArg1'
+ * }
+ * </pre>
+ * <p>
  * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
  * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
-    private JavaExecAction javaExecHandleBuilder;
+    private final JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        javaExecHandleBuilder = new DefaultJavaExecAction(getFileResolver());
+        javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected ExecActionFactory getExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 

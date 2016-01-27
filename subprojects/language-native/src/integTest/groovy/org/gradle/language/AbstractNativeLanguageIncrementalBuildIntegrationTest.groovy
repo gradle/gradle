@@ -16,7 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -93,7 +92,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         given:
         run "installMainExecutable"
@@ -105,12 +103,12 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         nonSkippedTasks.empty
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel || !TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
+    @IgnoreIf({!TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         sourceFile.text = app.alternateMainSource.content
@@ -160,12 +158,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             skipped ":mainExecutable"
         }
     }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
         maybeWait()
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         for (int i = 0; i < librarySourceFiles.size(); i++) {
@@ -199,7 +198,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         headerFile << """
             int unused();
 """
-
         run "mainExecutable"
 
         then:
@@ -248,8 +246,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings) 
-    // We saw this behaviour only on linux so far. 
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
                 OperatingSystem.current().isLinux() &&
@@ -261,7 +259,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         run "installMainExecutable"
 
-        def install = installation("build/install/mainExecutable")
+        def install = installation("build/install/main")
 
         when:
         buildFile << """
@@ -329,7 +327,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         run "mainExecutable", "helloStaticLibrary"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         def snapshot = executable.snapshot()
 
         when:
@@ -351,7 +349,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         run "mainExecutable"
 
         when:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         def snapshot = executable.snapshot()
 
         and:
@@ -420,13 +418,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         run "helloStaticLibrary"
 
         then:
-        String objectFilesPath = "build/objs/helloStaticLibrary/hello${sourceType}"
+        String objectFilesPath = "build/objs/hello/static/hello${sourceType}"
         def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
         def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
-        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
 
         when:
         librarySourceFiles.each { rename(it) }
@@ -442,17 +440,21 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         newObjFile.file
 
         and:
-        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(newObjFile.name)
-        assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(newObjFile.name)
+        assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
     @RequiresInstalledToolChain(GccCompatible)
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
-        if(buildingCorCppWithGcc()){
+        if(buildingCorCppWithGcc()) {
             buildFile << """
-                //support for #import on c/cpp is deprecated in gcc
-                binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
+                model {
+                    //support for #import on c/cpp is deprecated in gcc
+                    binaries {
+                        all { ${compilerTool}.args '-Wno-deprecated'; }
+                    }
+                }
             """
         }
 
@@ -484,16 +486,24 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         given:
         buildFile << """
-            binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+            model {
+                binaries {
+                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
+                }
+            }
         """
         run "mainExecutable"
 
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/exe/main/main")
         executable.assertDebugFileExists()
 
         when:
         buildFile << """
-            binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
+            model {
+                binaries {
+                    all { ${compilerTool}.args.clear(); linker.args.clear(); }
+                }
+            }
         """
         run "mainExecutable"
 
@@ -563,7 +573,7 @@ model {
 """
         then:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "HELLO\n"
+        executable("build/exe/main/main").exec().out == "HELLO\n"
 
         when:
         headerFile.text = """
@@ -574,7 +584,6 @@ model {
         and:
         executedAndNotSkipped "compileMainExecutableMainCpp"
     }
-
 
     def buildingCorCppWithGcc() {
         return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")

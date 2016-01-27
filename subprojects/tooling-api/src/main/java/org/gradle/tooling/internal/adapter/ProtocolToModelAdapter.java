@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.adapter;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -100,11 +101,32 @@ public class ProtocolToModelAdapter implements Serializable {
             mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(mapper, new ReflectionMethodInvoker()));
             overrideMethodInvoker = mixInMethodInvoker;
         }
+        if (targetType.isEnum()) {
+            return adaptToEnum(targetType, sourceObject);
+        }
         Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideMethodInvoker, mapper));
         if (mixInMethodInvoker != null) {
             mixInMethodInvoker.setProxy(proxy);
         }
         return wrapperType.cast(proxy);
+    }
+
+    private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
+        try {
+            String literal;
+            if (sourceObject instanceof Enum) {
+                literal = ((Enum<?>) sourceObject).name();
+            } else if (sourceObject instanceof String) {
+                literal = (String) sourceObject;
+            } else {
+                literal = sourceObject.toString();
+            }
+            NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<String, T>(new EnumFromCharSequenceNotationParser(targetType));
+            T parsedLiteral = parser.parseNotation(literal);
+            return targetType.cast(parsedLiteral);
+        } catch (TypeConversionException e) {
+            throw new IllegalArgumentException(String.format("Can't convert '%s' to enum type '%s'", sourceObject, targetType.getSimpleName()), e);
+        }
     }
 
     /**

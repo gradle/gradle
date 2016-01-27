@@ -79,6 +79,8 @@
       -
       - 2. Adding new sections:
       - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
+      -
+      - Add attribute condition='noNavBar' to the section element if the section should not appear in the nav bar.
       -->
 
     <section>
@@ -252,6 +254,38 @@
         </table>
     </section>
 
+    <section condition="noNavBar">
+        <title>Authentication types</title>
+        <para>Credentials and Authentication types for connecting to repositories:</para>
+        <table>
+            <title>Credential and Authentication types</title>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.AuthenticationSupported</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.credentials.Credentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.PasswordCredentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.credentials.AwsCredentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.AuthenticationContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.Authentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.BasicAuthentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.DigestAuthentication</td>
+            </tr>
+        </table>
+    </section>
+
     <section>
         <title>Help Task types</title>
         <para>Below are the task types that are available for every Gradle project.
@@ -290,6 +324,9 @@
             <title>Task types</title>
             <tr>
                 <td>org.gradle.api.plugins.antlr.AntlrTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.Checkstyle</td>
@@ -503,28 +540,10 @@
     </section>
 
     <section>
-        <title>Native binary core types</title>
-        <para>Used to configure components developed with native code.</para>
+        <title>Native software model types</title>
+        <para>Used to configure software components developed with native code.</para>
         <table>
-            <title>Native component core types</title>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutable</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeLibrary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.NativeExecutableBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.SharedLibraryBinary</td>
-            </tr>
-            <tr>
-                <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
-            </tr>
+            <title>Native software types</title>
             <tr>
                 <td>org.gradle.nativeplatform.PrebuiltLibrary</td>
             </tr>
@@ -550,10 +569,16 @@
                 <td>org.gradle.nativeplatform.NativeExecutableBinarySpec</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.NativeLibraryBinarySpec</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.SharedLibraryBinarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.StaticLibraryBinarySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.platform.NativePlatform</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.BuildType</td>
@@ -606,11 +631,29 @@
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
             </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.SharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.StaticLibraryBinary</td>
+            </tr>
         </table>
     </section>
     <section>
         <title>Native binary task types</title>
-        <para>Tasks used to build native binary components.</para>
+        <para>Tasks used to build native binaries.</para>
         <table>
             <title>Native component task types</title>
             <tr>
@@ -648,4 +691,64 @@
             </tr>
         </table>
     </section>
+
+    <section condition="noNavBar">
+        <title>Play Framework model types</title>
+        <para>Used to configure software components developed with the Play Framework.</para>
+        <table>
+            <title>Play Framework model types</title>
+            <tr>
+                <td>org.gradle.play.PlayApplicationBinarySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.PlayApplicationSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.platform.PlayPlatform</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.JvmClasses</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.PublicAssets</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.distribution.PlayDistributionContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.twirl.TwirlSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.routes.RoutesSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.coffeescript.CoffeeScriptSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.javascript.JavaScriptSourceSet</td>
+            </tr>
+        </table>
+    </section>
+
+    <section condition="noNavBar">
+        <title>Play Framework task types</title>
+        <para>Tasks used to build applications using the Play Framework.</para>
+        <table>
+            <title>Play Framework task types</title>
+            <tr>
+                <td>org.gradle.play.tasks.JavaScriptMinify</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.tasks.PlayRun</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.tasks.RoutesCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.play.tasks.TwirlCompile</td>
+            </tr>
+            <!-- add PlatformScalaCompile -->
+        </table>
+    </section>
+
 </book>

@@ -16,7 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.BuildableModelElement;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -37,36 +40,30 @@ public interface BinarySpec extends BuildableModelElement, Named {
     boolean isBuildable();
 
     /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
-     */
-    // TODO:DAZ Remove this
-    void source(Object source);
-
-    /**
      * The source sets used to compile this binary.
+     *
+     * @deprecated This method is replaced with {@link #getInputs()}.
      */
-    ModelMap<LanguageSourceSet> getSource();
+    @Deprecated
+    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
-     * Configures the source sets used to build this binary.
+     * The sources owned by this binary.
+     *
+     * @return the sources owned by the binary.
      */
-    void sources(Action<? super ModelMap<LanguageSourceSet>> action);
+    ModelMap<LanguageSourceSet> getSources();
+
+    /**
+     * Returns all inputs of the binary. This includes source sets owned by the binary,
+     * and other source sets created elsewhere (e.g. inherited from the binary's component).
+     *
+     * @return all inputs of the binary.
+     */
+    DomainObjectSet<LanguageSourceSet> getInputs();
 
     /**
      * The set of tasks associated with this binary.
      */
     BinaryTasksCollection getTasks();
-
-    /**
-     * Configures the tasks that build this binary.
-     */
-    void tasks(Action<? super BinaryTasksCollection> action);
 }

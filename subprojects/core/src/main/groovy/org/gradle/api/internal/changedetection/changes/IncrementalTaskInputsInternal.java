@@ -19,6 +19,21 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.io.File;
+import java.util.Set;
+
 public interface IncrementalTaskInputsInternal extends IncrementalTaskInputs {
     FilesSnapshotSet getInputFilesSnapshot();
+    Set<File> getDiscoveredInputs();
+
+    /**
+     * Registers files as "discovered" inputs to the task. All inputs added this way must be added each time the task is executed.
+     * <p>
+     * Discovered inputs should be derived from inputs registered with {@link org.gradle.api.tasks.TaskInputs}.
+     * <p>
+     * This method may be called at any time.
+     * </p>
+     * @param discoveredInput New input files discovered as part of the task's action.
+     */
+    void newInput(File discoveredInput);
 }

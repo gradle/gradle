@@ -15,7 +15,14 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import java.io.PipedOutputStream;
+
 public interface GradleHandle {
+    /**
+     * Returns the stream for writing to stdin.
+     */
+    PipedOutputStream getStdinPipe();
+
     /**
      * Returns the stdout output currently received from the build. This is live.
      */
@@ -32,6 +39,16 @@ public interface GradleHandle {
     GradleHandle abort();
 
     /**
+     * Cancel a build that was started as a cancellable build by closing stdin.  Does not block until the build has finished.
+     */
+    GradleHandle cancel();
+
+    /**
+     * Cancel a build that was started as a cancellable build by sending EOT (ctrl-d).  Does not block until the build has finished.
+     */
+    GradleHandle cancelWithEOT();
+
+    /**
      * Blocks until the build is complete and assert that the build completed successfully.
      */
     ExecutionResult waitForFinish();
@@ -40,6 +57,11 @@ public interface GradleHandle {
      * Blocks until the build is complete and assert that the build completed with a failure.
      */
     ExecutionFailure waitForFailure();
+
+    /**
+     * Blocks until the build is complete and exits, disregarding the result.
+     */
+    void waitForExit();
 
     /**
      * Returns true if the build is currently running.

@@ -36,220 +36,243 @@ Later work:
 2. Support for runtime dependencies.
 3. TBD - reporting, etc.
 
-# Feature: Build author declares dependencies of Java library
+# Completed work
 
-This feature adds support for compile time dependencies between Java libraries.
+- Feature 1: Build author declares dependencies of Java library
+- Feature 2: Custom component built from Java source
 
-## Story: Build author declares required libraries of Java source set
+[Done](done/dependency-management-for-jvm-components.md)
 
-Add a basic DSL to declare the required libraries of a Java source set:
+## Open issues
 
+- Dependency container is not reachable through a public API.
+- We should have some validation around unmanaged types overriding managed types.
+- Need to test that a managed property of type `ModelMap<ModelMap<UnmanagedType>>` throws an error.
+
+## Feature backlog
+
+- Allow library to expose Jar, classes dir or any combination as its Java API.
+- Allow plugin to use compiled classes from a Java source set to build a custom binary.
+- Plugin declares Jar or classes as intermediate output rather than final output.
+- Add dependency set to JarBinarySpec to allow dependencies to be tweaked.
+- Expose a way to query the resolved compile classpath for a Java source set.
+- Plugin author defines target Java platform for Jar binary
+- Change language transforms implementation to fail at configuration time when no rule is available to transform a given input source set for a binary.
+    - This will require using `LanguageTransform`s in Scala
+    - Windows resource sets on non-windows builds fail with the current `LanguageTransform.applyToBinary()` implementation
+- Fail when no rule is available to define the tasks for a `BinarySpec`.
+    - Will need to change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
+
+
+# Feature: Java library consumes external Java library
+## Story: Build author defines dependencies for an entire component
+
+- Extend the JvmLibrarySpec DSL with a component scoped `dependencies` block with support for the usual dependency selectors:
+
+```groovy
+model {
+    components {
+        A(JvmLibrarySpec) {
+            dependencies {
+                library "B"
+            }
+            sources {
+                core(JavaSourceSet) {
+                    source.srcDir "src/core"
+                }
+            }
+        }
+        B(JvmLibrarySpec) {
+        }
+        C(JvmLibrarySpec) {
+            dependencies {
+                library "A"
+            }
+        }
+    }
+}
+```
+
+- When library A declares a component level dependency on library B, defined in the same project or a different one, then:
+    - library B is considered part of the compile classpath of all source sets in library A
+    - the API of library B is _not_ considered part of the API of library A unless an explicit api dependency is also declared (which renders the component level dependency redundant)
+
+### Test cases
+
+- Given the example above:
+    - ~~source files in all source sets of A can reference public types from library B~~
+    - ~~source files in C fail to compile if they reference public types from library B~~
+    - ~~same tests above for a library B defined in a different project~~
+    - ~~same tests above given A declares component level dependencies on both libraries, B from the same project and B from a different project~~
+- Given a library dependency declared at both the component and api levels:
+    - ~~source files in all source sets can reference public types from said library~~
+    - ~~the API of said library is considered part of the API of the consuming library~~
+- Given a library dependency declared at both the component and source set levels:
+    - ~~source files in all source sets can reference public types from said library~~
+    - ~~the API of said library is _not_ considered part of the API of the consuming library~~
+- Given a library dependency for a library which cannot be found:
+    - ~~compilation should fail with a suitable error message pointing to the dependency declaration~~
+
+## Story: Java library sources are compiled against library Jar resolved from Maven repository
+
+- Extend the dependency DSL to reference external modules:
+
+    ```groovy
     model {
         components {
-            main {
-                sources {
-                    java {
-                        dependencies {
-                            library 'someLib' // Library in same project
-                            project 'otherProject' library 'someLib' // Library in other project
-                            project 'otherProject' // Library in other project, expect exactly one library
-                        }
-                    }
+            main(JvmLibrarySpec) {
+                dependencies {
+                    // external module spec can start with either group or module
+                    group 'com.acme' module 'artifact' version '1.0'
+                    module 'artifact' group 'com.acme' version '1.0'
+
+                    // shorthand module id syntax
+                    module 'com.acme:collections:1.42'
+
+                    // passing a module id to library should fail
+                    library 'com.acme:collections:1.42'
+
+                    // existing usage remains
+                    project ':foo' library 'bar'
+                    library 'bar' project ':foo'
                 }
             }
         }
     }
+    ```
 
-Model `JavaSourceSet.dependencies` as a mutable collection of library requirements (that is libraries that are required, not the requirements of a library),
-with conveniences to add items to the collection.
+- Reuse existing repositories DSL, bridging into model space.
+- Main Jar artifact of maven module is included in compile classpath.
+- Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
+- Assume external library is compatible with all target platforms.
+- Assume external library declares only one variant.
+- Update samples and user guide
+- Update newJavaModel performance test?
 
-It should be possible to query the set of requirements. For example, model `JavaSourceSet.dependencies` as a `ManagedSet`.
+### Test cases
 
-Out of scope:
+- For maven module dependencies
+    - ~~Main Jar artifact of module is included in compile classpath.~~
+    - ~~Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.~~
+    - ~~Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.~~
+- For local component dependencies:
+    - ~~Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.~~
+- ~~Displays a reasonable error message if the external dependency cannot be found in a declared repository~~
+- ~~Displays a reasonable error message if a module id is given to `library`~~
 
-- Resolving or using the dependencies. This story is simply to get a basic DSL in place.
-- Provide any public API or DSL to query the resolved dependencies. Resolution will be internal for this feature.
+### Out of scope
+
+- Rule-based definition of repositories
+- Support for custom `ResolutionStrategy`: forced versions, dependency substitution, etc
+
+## Story: Build author defines repositories using model rules
+
+## Story: Plugin author can specialize how a custom component is shown in the components report
+
+### Motivation
+
+The need for this story came about as @lptr and I were investigating how to get the components report to show the API level and component level dependencies of a java library (`JvmLibrarySpec`).
+
+We've discovered there was no mechanism already in place that would let us specialize the reporting behavior for subtypes of `ComponentSpec` although such a mechanism does exist for subtypes of `BinarySpec` via the `TypeAwareBinaryRenderer` class.
+
+At the same time we were reviewing the tidying up of NodeInitializer semantics and found [some code](https://github.com/gradle/gradle/blob/45d3d3fbb8855638bb797ac34ec792f74aafca2b/subprojects/model-core/src/main/java/org/gradle/model/internal/core/DefaultNodeInitializerRegistry.java#L41) dealing with the same problem in a slightly different way using a chain-of-responsibility.
+
+So here they are, three instances of the same and very common problem. So common in fact that is deserving of its own name, *the expression problem*.
+
+Having slightly different solutions in different modules to the same basic problem adds unnecessary complexity and worse, keeps these subsystems closed to extension by plugin authors.
+
+We should devise a solution to the expression problem suitable to our setting and apply it uniformly throughout.
+
+As food for thought here's a sketch of how one of my favorite solutions to the expression problem, protocols as introduced by clojure, could let plugin authors extend behavior to the different types in a hierarchy.
+
+```java
+
+interface PrettyPrinter<T> {
+    PrettyDocument print(T subject);
+}
+
+class PrettyPrinterProtocolRules extends RuleSource {
+
+    /***
+     * Extends the PrettyPrinter protocol to the ComponentSpec type (and subtypes) relying on the PrettyPrinter
+     * for LanguageSourceSet to pretty print the component sources.
+     */
+    @Protocol PrettyPrinter<ComponentSpec> componentPrettyPrinter(PrettyPrinter<LanguageSourceSet> sourceSetPrinter) {
+        // Calling `sourceSetPrinter.print(sourceSet)` where `sourceSet` is a `JavaLanguageSourceSet`
+        // would trigger the version of the protocol specialized to `JavaLanguageSourceSet` declared below.
+        return new PrettyPrinter { ... };
+    }
+
+    /***
+     * Extends the PrettyPrinter protocol to the JvmLibrarySpec type (and subtypes) delegating common
+     * behavior to the ComponentSpec PrettyPrinter acquired via the Protocol definition / meta type.
+     */
+    @Protocol PrettyPrinter<JvmLibrarySpec> jvmLibraryPrettyPrinter(Protocol<PrettyPrinter<?>> prettyPrinterProtocol) {
+        final PrettyPrinter<ComponentSpec> base = prettyPrinterProtocol.specializedTo(ComponentSpec.class);
+        // Calling `base.print(component)` where `component` is a `JvmLibrarySpec` would still trigger
+        // the `ComponentSpec` version of the protocol defined above.
+        // A call to `prettyPrinterProtocol.specializedTo(JvmLibrarySpec.class)` here would be invalid as it leads to a cycle.
+        return new PrettyPrinter { ... };
+    }
+
+    /***
+     * Extends the PrettyPrinter protocol to the JavaSourceSet type (and subtypes).
+     */
+    @Protocol PrettyPrinter<JavaLanguageSourceSet> javaLanguageSourceSetPrettyPrinter() {
+        return new PrettyPrinter { ... };
+    }
+}
+```
+
+## Story: Components report shows component level and api level dependencies of a Java Library
 
 ### Implementation
 
-- New classes should live in `platformBase` or `platformJvm` projects. Avoid adding classes to `core` or `dependencyManagement`
-
-## Story: Resolve required libraries of Java source set
-
-Resolve enough of the compile time dependency graph for a Java source set to validate that the required libraries exist.
-
-- When a Java library is compiled, fail resolution when that is a dependency declaration for which no matching Java library can be found
-- Error cases:
-    - Not found, error message should include list of available components in target project.
-        - Project dependency, not exactly one Java library in target project.
-        - Project + library dependency, no component with given name.
-    - Unsupported type, error message should include information about supported component types
-- Direct dependencies only.
-- Cycles:
-    - Should be allowed at resolve time. It is entirely possible to handle this case at compile time (using source path, for example). For this feature,
-      the failure can happen later due to the cycle between jar tasks.
-    - Will be required for native support.
-
-Out of scope:
-
-- Building the required library Jars or making the library Jars available at compile time.
-- API or DSL to query the resolved graph.
-- Making any state of `JavaSourceSet` managed.
+The implementation will rely on the extension mechanism defined in `Plugin author can specialize how a custom component is shown in the components report` to specialize how `JvmLibrarySpec` components are shown in the report.
 
 ### Test cases
 
-- Can require a library in the same project.
-- Can require multiple different libraries in another project.
-- Can require self.
-- Can have a cycle in the graph.
-- Exercise the error cases above.
+- Report shows component level dependencies
+- Report shows api dependencies
 
-### Implementation:
 
-The implementation *must* make use of the dependency resolution engine, and refactor the resolution engine where required:
+## Story: Resolve external dependencies from Ivy repositories
 
-- Wire in resolution to Java compilation
-    - Change the `JavaLanguagePlugin.Java` transformation to set the `classpath` to a `FileCollection` implementation that will perform the dependency resolution.
-    - Ignore the existing `JavaSourceSet.classpath` property. It is used by the legacy Java plugin but is empty for the source sets created by rules.
-- Entry point to resolution should be `ArtifactDependencyResolver`.
-    - This is a build scoped service.
-    - Extract some interface out of `ConfigurationInternal` that does not extend `Configuration` and change `ArtifactDependencyResolver` to accept this instead
-      of `ConfigurationInternal`. Change `ConfigurationInternal` to extend this or create an adapter from `ConfigurationInternal` to this new type.
-    - This new type represents a 'resolve context' (for now). There are 2 parts to this:
-        - Some information about the consumer.
-        - Some information about the usage, that is, what is the consumer going to do with the result?
-    - Pass in an implementation that represents the consuming Java source set. Can ignore dependencies at this stage.
-    - Can pass in an empty set of repositories for this feature.
-- Create the resolve meta-data for the consuming library
-    - `DependencyGraphBuilder` currently converts parts of `ConfigurationInternal` into resolve meta-data using a `ModuleToComponentResolver`.
-      Change the signature of this resolver so that it accepts the type introduced above, rather than a `ModuleInternal` and set of `ConfigurationInternal` instances.
-    - Use some composite converter that can build a `ComponentResolveMetaData` for the consuming Java library.
-      Should be able to make use of `DefaultLocalComponentMetaData` to assemble this.
-    - Introduce a new public subtype of `ComponentIdentifier` to represent a library component. Use this as the id in the meta-data.
-    - Currently the meta-data includes a `ModuleVersionIdentifier`, used for conflict resolution. Given that there are currently no external dependencies referenced
-      in the graph, can use something like (project-path, library-name, project-version).
-    - For now, don't attach any dependencies or artifacts to the resolve meta-data. It should be possible at this point to perform the resolve (but receive an empty result).
-- Provide a way to resolve project dependencies
-    - Introduce a new public subtype of `ComponentSelector` to represent a library selector.
-    - For each dependency declared by the source set include a library selector in the component resolve meta-data.
-    - Add a library resolver that implements `DependencyToComponentIdResolver` and `ComponentMetaDataResolver`. This would be used where `ProjectDependencyResolver`
-      currently is used (can also use this as an example). Can include both resolvers in the chain created by `DefaultDependencyResolver`, so don't need to make
-      this configurable.
-    - Library resolver should close the `components` for the target project, then select a matching component. Fail as described above if no match.
-      Can return empty meta-data for the matching component for this story.
+- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
 
-Avoid adding specific knowledge about Java libraries to the `dependencyManagement` project. Instead, the `platformJvm` project should inject this knowledge.
-Can use the service discovery mechanism to do this.
+## Story: Generate a stubbed API jar for external dependencies
 
-## Story: API of required libraries is made available when Java source set is compiled
+- Generate stubbed API for external Jar and use this for compilation. Cache the generated stubbed API jar.
+- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
+- Dependencies report shows external libraries in compile time dependency graph.
 
-Resolve the task dependencies and artifacts for the compile time dependency graph for a Java source set, and make the result available at compile time.
+### Implementation
 
-- When a Java library is to be compiled, determine the tasks required to build the API of its required libraries.
-- When a Java library is compiled, provide a classpath that contains the API of its required libraries.
-- API of a Java library is its Jar binary only.
-- Error cases:
-    - Java library does not have exactly one Jar binary. For example, for a library with multiple target platforms.
-        - Error message should include details of which binaries are available.
-
-Out of scope:
-
-- Transitive API dependencies.
-- API or DSL to query the resolved classpath.
-- Validation of target platform.
+Should reuse the "stub generator" that is used to create an API jar for local projects.
 
 ### Test cases
 
-- Given `a` requires `b` requires `c`.
-    - When the source for `a` is compiled, the compile classpath contains the Jar for `b` but not the Jar for `c`.
-- Reasonable error message when building a library with a dependency cycle.
-- Error cases as above.
+- Dependent classes are not recompiled when method implementation of external dependency has changed
+- Dependent classes are recompiled when signature of external dependency has changed
 
-### Implementation:
 
-The implementation should continue to build on the dependency resolution engine.
+# Feature: Fully featured dependency resolution for local Java libraries
 
-- When the meta-data for a Java library is assembled, attach the Jar
-    - Select the `JarBinarySpec` to use from the Java library's set of binaries. Fail if there aren't exactly one.
-    - Add a `PublishArtifact` implementation for this `JarBinarySpec`.
-
-## Story: Compatible variant of Java library is selected
-
-When a Java library has multiple target Java platforms, select a compatible variant of its dependencies, or fail when none available.
-
-- When compiling Java library variant for Java `n`, then from the target library select the Jar binary with the highest target platform that is <= 'n'
-- Fail when there is no such Jar binary. For example, when building for Java 7, fail if a required library has target platform Java 9.
-
-### Test cases
-
-- Consume a Java library that has different required libraries for each target platform. For example, for Java 7 it requires library 'a' and for Java 9 it requires
-library 'b'.
-
-## Feature backlog
-
-- declare transitive API dependencies
-- use component model terminology in error messages
-- reporting
-- make dependency declarations managed and immutable post resolve
-
-# Feature: Custom component built from Java source
-
-This feature allows a plugin author to define a component type that is built from Java source and Java libraries.
-
-## Story: Plugin author defines a Jar binary built from Java source
-
-Define a custom component that produces a Jar binary from Java source. When the jar is built, the compile time
-dependencies of the source are also built and the source compiled.
-
-Default Java platform and toolchains are used to build the binary.
-
-## Story: Plugin author defines target Java platform for Jar binary
-
-Allow the Java platform to be configured for an ad hoc Jar binary, but not for a Jar binary defined implicitly for Java library.
-Java toolchain should be attached to the Jar binary only after the target platform has been configured.
-
-Add infrastructure to model configuration to support this staged configuration, so that it can be applied elsewhere.
-
-## Feature backlog
-
-- Allow plugin to use compiled classes from a Java source set to build a custom binary.
-- Plugin declares Jar as intermediate output rather than final output.
-- Custom component can be consumed as a Java library.
-- Allow plugin to declare variants of custom component, select matching variant.
-- Expose a way to query the resolved compile classpath for a Java source set
-
-# Later work
-
-# Feature: Java library consumes local Java library
-
-- Same project
-- Other project
-- Not external
-- Not legacy plugins
-- Consumes API dependencies at compile time
-- Consumes runtime dependencies at runtime
-- Select jar binary or classes binary with compatible platform, fail if not exactly one
-- Need an API to query the various classpaths.
-- Handle compile time cycles.
-- Need to be able to configure the resolution strategy for each usage.
-- Declare dependencies at component, source set and binary level
-- Reporting
-- Dependency resolution rules
-- Resolution events
-
-# Feature: Custom Java based component local library
-
-- Java source only
-- Custom component consumes Java library
-- Custom component consumes custom library
-- Java library consumes custom library
-- Select correct variant of custom library
-- Reporting
-
-# Feature: Java library consumes external Java library
-
-- Reporting
-- Remove the need for every component to have a module version id.
+- Declare and consume API & runtime dependencies
+    - ~Need to declare transitive API dependencies~
+    - ~Consumes API dependencies at compile time~
+    - Consumes runtime dependencies at runtime
+    - Handle compile time cycles.
+- Improvements to dependency management
+    - Declare dependencies at component, source set and binary level
+    - Allow a `LibrarySpec` instance to be added as a dependency.
+    - Make dependency declarations managed and immutable post resolve
+- Fully featured dependency resolution
+    - API to query the various resolved classpaths
+    - Configure the resolution strategy for each usage
+    - Configure resolution rules for each usage
+    - Wire in dependency resolution events
+    - Include in dependency reports
 
 # Feature: Legacy JVM language plugins declare and consume JVM library
 
@@ -262,3 +285,4 @@ Add infrastructure to model configuration to support this staged configuration, 
 - Custom component declares additional usages and associated dependencies.
 - Custom binary provides additional usages
 - Reporting
+- use component model terminology in error messages and exception class names.

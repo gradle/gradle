@@ -19,11 +19,13 @@ package org.gradle.messaging.remote.internal.inet;
 import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.RemoteConnection;
-import org.gradle.internal.serialize.ObjectReader;
-import org.gradle.internal.serialize.ObjectWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -37,6 +39,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 public class SocketConnection<T> implements RemoteConnection<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SocketConnection.class);
     private final SocketChannel socket;
     private final SocketInetAddress localAddress;
     private final SocketInetAddress remoteAddress;
@@ -72,15 +75,17 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     public T receive() throws MessageIOException {
         try {
             return objectReader.read();
-        } catch (Exception e) {
-            if (isEndOfStream(e)) {
-                return null;
+        } catch (EOFException e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Discarding EOFException: {}", e.toString());
             }
+            return null;
+        } catch (Exception e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
 
-    private boolean isEndOfStream(Exception e) {
+    private static boolean isEndOfStream(Exception e) {
         if (e instanceof EOFException) {
             return true;
         }
@@ -155,7 +160,17 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                 }
 
                 buffer.clear();
-                int nread = socket.read(buffer);
+                int nread;
+                try {
+                    nread = socket.read(buffer);
+                } catch (IOException e) {
+                    if (isEndOfStream(e)) {
+                        buffer.position(0);
+                        buffer.limit(0);
+                        return -1;
+                    }
+                    throw e;
+                }
                 buffer.flip();
 
                 if (nread < 0) {
@@ -175,16 +190,15 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     }
 
     private static class SocketOutputStream extends OutputStream {
-        private final Selector selector;
+        private static final int RETRIES_WHEN_BUFFER_FULL = 2;
+        private Selector selector;
         private final SocketChannel socket;
         private final ByteBuffer buffer;
         private final byte[] writeBuffer = new byte[1];
 
         public SocketOutputStream(SocketChannel socket) throws IOException {
             this.socket = socket;
-            selector = Selector.open();
-            socket.register(selector, SelectionKey.OP_WRITE);
-            buffer = ByteBuffer.allocateDirect(4096);
+            buffer = ByteBuffer.allocateDirect(32 * 1024);
         }
 
         @Override
@@ -204,28 +218,63 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     remaining -= count;
                     currentPos += count;
                 }
-                if (buffer.remaining() == 0) {
-                    flush();
+                while (buffer.remaining() == 0) {
+                    writeBufferToChannel();
                 }
             }
         }
 
         @Override
         public void flush() throws IOException {
-            buffer.flip();
-            while (buffer.remaining() > 0) {
-                selector.select();
-                if (!selector.isOpen()) {
-                    throw new EOFException();
-                }
-                socket.write(buffer);
+            while (buffer.position() > 0) {
+                writeBufferToChannel();
             }
-            buffer.clear();
+        }
+
+        private void writeBufferToChannel() throws IOException {
+            buffer.flip();
+            int count = writeWithNonBlockingRetry();
+            if (count == 0) {
+                // buffer was still full after non-blocking retries, now block
+                waitForWriteBufferToDrain();
+            }
+            buffer.compact();
+        }
+
+        private int writeWithNonBlockingRetry() throws IOException {
+            int count = 0;
+            int retryCount = 0;
+            while (count == 0 && retryCount++ < RETRIES_WHEN_BUFFER_FULL) {
+                count = socket.write(buffer);
+                if (count < 0) {
+                    throw new EOFException();
+                } else if (count == 0) {
+                    // buffer was full, just call Thread.yield
+                    Thread.yield();
+                }
+            }
+            return count;
+        }
+
+        private void waitForWriteBufferToDrain() throws IOException {
+            if (selector == null) {
+                selector = Selector.open();
+            }
+            SelectionKey key = socket.register(selector, SelectionKey.OP_WRITE);
+            // block until ready for write operations
+            selector.select();
+            // cancel OP_WRITE selection
+            key.cancel();
+            // complete cancelling key
+            selector.selectNow();
         }
 
         @Override
         public void close() throws IOException {
-            selector.close();
+            if (selector != null) {
+                selector.close();
+                selector = null;
+            }
         }
     }
 }

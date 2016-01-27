@@ -16,10 +16,13 @@
 package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildLauncher
 
+@LeaksFileHandles
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
     def "build is executed using specified user home directory"() {
+        toolingApi.requireIsolatedDaemons()
         File userHomeDir = temporaryFolder.createDir('userhomedir')
         projectDir.file('settings.gradle') << 'rootProject.name="test"'
         projectDir.file('build.gradle') << """task gradleBuild << {
@@ -29,6 +32,7 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
 
         when:
+        toolingApi.withUserHome(userHomeDir)
         toolingApi.withConnector { connector ->
             connector.useGradleUserHomeDir(userHomeDir)
         }

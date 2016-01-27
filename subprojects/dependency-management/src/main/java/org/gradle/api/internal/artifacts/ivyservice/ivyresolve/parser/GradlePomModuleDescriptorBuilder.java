@@ -183,7 +183,7 @@ public class GradlePomModuleDescriptorBuilder {
             }
         }
 
-        this.mrid = ModuleRevisionId.newInstance(group, module, effectiveVersion);
+        this.mrid = IvyUtil.createModuleRevisionId(group, module, effectiveVersion);
         ivyModuleDescriptor.setModuleRevisionId(mrid);
 
         if (effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT")) {
@@ -256,7 +256,7 @@ public class GradlePomModuleDescriptorBuilder {
         // inherited from parent POMs if either of the following is true:
         // the <exclusions> element is missing or the <exclusions> element
         // is present, but empty.
-        List /*<ModuleId>*/ excluded = dep.getExcludedModules();
+        List<ModuleId> excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
@@ -275,7 +275,6 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.addDependency(dd);
     }
 
-    // TODO:DAZ Would be better if we held onto the VersionSelector and only rendered it when required
     private String convertVersionFromMavenSyntax(String version) {
         VersionSelector versionSelector = mavenVersionSelectorScheme.parseSelector(version);
         return defaultVersionSelectorScheme.renderSelector(versionSelector);

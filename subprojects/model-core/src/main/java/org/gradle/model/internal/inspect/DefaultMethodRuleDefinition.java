@@ -21,7 +21,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
@@ -40,12 +39,11 @@ import static org.gradle.util.CollectionUtils.findFirst;
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
     private ImmutableList<ModelReference<?>> references;
-
     private final WeaklyTypeReferencingMethod<T, R> method;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
-        this.method = new WeaklyTypeReferencingMethod<T, R>(instanceType, returnType, method);
-        
+        this.method = WeaklyTypeReferencingMethod.of(instanceType, returnType, method);
+
         ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
         for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
             Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
@@ -63,6 +61,10 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
     }
 
+    @Override
+    public WeaklyTypeReferencingMethod<?, R> getMethod() {
+        return method;
+    }
 
     public String getMethodName() {
         return method.getName();
@@ -83,21 +85,18 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return references.size() > 1 ? references.subList(1, references.size()) : Collections.<ModelReference<?>>emptyList();
     }
 
+    @Override
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return getAnnotation(annotationType) != null;
+    }
+
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        for (Annotation annotation : method.getAnnotations()) {
-            if (annotationType.isAssignableFrom(annotation.getClass())) {
-                return Cast.uncheckedCast(annotation);
-            }
-        }
-        return null;
+        return method.getMethod().getAnnotation(annotationType);
     }
 
     public ModelRuleDescriptor getDescriptor() {
         return new MethodModelRuleDescriptor(method);
-    }
-
-    public ModelRuleInvoker<R> getRuleInvoker() {
-        return new DefaultModelRuleInvoker<T, R>(method);
     }
 
     public List<ModelReference<?>> getReferences() {
@@ -110,19 +109,8 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
                 return element.annotationType().equals(Path.class);
             }
         });
-        String path = pathAnnotation == null ? null : pathAnnotation.value();
-        ModelType<?> cast = ModelType.of(method.getGenericParameterTypes()[i]);
-        return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
+        ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
+        ModelType<?> cast = method.getGenericParameterTypes().get(i);
+        return ModelReference.of(path, cast, String.format("parameter %s", i + 1));
     }
-
-    private ModelPath validPath(String path) {
-        try {
-            return ModelPath.validatedPath(path);
-        } catch (ModelPath.InvalidPathException e) {
-            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
-        } catch (ModelPath.InvalidNameException e) {
-            throw new InvalidModelRuleDeclarationException(getDescriptor(), e);
-        }
-    }
-
 }

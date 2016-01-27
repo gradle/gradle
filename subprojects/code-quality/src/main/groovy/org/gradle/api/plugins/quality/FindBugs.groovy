@@ -139,6 +139,21 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     @Optional
     TextResource excludeBugsFilterConfig
 
+    /**
+     * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs.
+     * <p>
+     * Extra arguments are passed to FindBugs after the arguments Gradle understands (like {@code effort} but before the list of classes to analyze.
+     * This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate the arguments
+     * before passing them to FindBugs.
+     * <p>
+     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs TextUICommandLine source</a> for available options.
+     *
+     * @since 2.6
+     */
+    @Input
+    @Optional
+    Collection<String> extraArgs = []
+
     @Nested
     private final FindBugsReportsImpl reports
 
@@ -261,6 +276,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
             .withExcludeFilter(getExcludeFilter())
             .withIncludeFilter(getIncludeFilter())
             .withExcludeBugsFilter(getExcludeBugsFilter())
+            .withExtraArgs(getExtraArgs())
             .configureReports(getReports())
 
         return specBuilder.build()
@@ -290,5 +306,17 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
                 throw new GradleException(message)
             }
         }
+    }
+
+    public FindBugs extraArgs(Iterable<String> arguments) {
+        for ( String argument : arguments ) {
+            extraArgs.add(argument);
+        }
+        return this;
+    }
+
+    public FindBugs extraArgs(String... arguments) {
+        extraArgs.addAll( Arrays.asList(arguments) );
+        return this;
     }
 }

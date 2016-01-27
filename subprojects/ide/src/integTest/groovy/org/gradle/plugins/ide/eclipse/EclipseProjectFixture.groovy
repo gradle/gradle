@@ -19,41 +19,68 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.test.fixtures.file.TestFile
 
 class EclipseProjectFixture {
-    private final TestFile projectDir
-    private Node project
+    private final Node project
 
-    EclipseProjectFixture(TestFile projectDir) {
-        this.projectDir = projectDir
+    private EclipseProjectFixture(Node project) {
+        this.project = project
     }
 
-    private Node getProject() {
-        if (project == null) {
-            TestFile file = projectDir.file('.project')
-            file.assertIsFile()
-            project = new XmlParser().parse(file)
-        }
-        return project
+    static EclipseProjectFixture create(TestFile projectDir) {
+        TestFile file = projectDir.file('.project')
+        file.assertIsFile()
+        new EclipseProjectFixture(new XmlParser().parse(file))
+
     }
+
+    String getProjectName() {
+        return this.project.'name'.text()
+    }
+
+    String getComment() {
+        return this.project.'comment'.text()
+    }
+
+    void assertHasReferencedProjects(String... referencedProjects) {
+        assert this.project.projects.project*.text() == referencedProjects as List
+    }
+
 
     void assertHasJavaFacetNatures() {
         assertHasNatures("org.eclipse.jdt.core.javanature",
-                        "org.eclipse.wst.common.project.facet.core.nature",
-                        "org.eclipse.wst.common.modulecore.ModuleCoreNature",
-                        "org.eclipse.jem.workbench.JavaEMFNature")
+            "org.eclipse.wst.common.project.facet.core.nature",
+            "org.eclipse.wst.common.modulecore.ModuleCoreNature",
+            "org.eclipse.jem.workbench.JavaEMFNature")
     }
 
     void assertHasNatures(String... natures) {
-        assert getProject().natures.nature*.text() == natures as List
+        assert this.project.natures.nature*.text() == natures as List
     }
 
     void assertHasJavaFacetBuilders() {
         assertHasBuilders("org.eclipse.jdt.core.javabuilder",
-                        "org.eclipse.wst.common.project.facet.core.builder",
-                        "org.eclipse.wst.validation.validationbuilder"
-                )
+            "org.eclipse.wst.common.project.facet.core.builder",
+            "org.eclipse.wst.validation.validationbuilder"
+        )
     }
 
     void assertHasBuilders(String... builders) {
-        assert getProject().buildSpec.buildCommand.name*.text() == builders as List
+        assert this.project.buildSpec.buildCommand.name*.text() == builders as List
+    }
+
+    void assertHasLinkedResources(String... names) {
+        assert this.project.linkedResources.link.name*.text() == names as List
+    }
+
+    void assertHasBuilder(String builderName, Map args) {
+        assert this.project.buildSpec.buildCommand.name*.text().contains(builderName)
+        args.each { key, value ->
+            def argument = this.project.buildSpec.buildCommand.find { it.name.text() == builderName }.arguments.dictionary.find { it.key.text() == key }
+            assert argument != null
+            assert argument.value.text() == value
+        }
+    }
+
+    void assertHasLinkedResource(String name, String type, String location) {
+        assert null != this.project.linkedResources.link.findAll { it.name.text() == name && it.type.text() == type && it.location.text() == location }
     }
 }

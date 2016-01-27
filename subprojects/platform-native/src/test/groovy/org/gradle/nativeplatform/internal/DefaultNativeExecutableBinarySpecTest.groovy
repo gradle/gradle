@@ -17,18 +17,14 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.internal.configure.TestNativeBinariesFactory
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -36,19 +32,17 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
-    def instantiator = DirectInstantiator.INSTANCE
-    def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
+    def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
     def taskFactory = Mock(ITaskFactory)
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
 
     def "has useful string representation"() {
         given:
-        def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"),
-                new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
+        def executable = BaseComponentFixtures.createNode(NativeExecutableSpec, DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"))
 
         when:
-        def binary = TestNativeBinariesFactory.create(DefaultNativeExecutableBinarySpec, namingScheme.getLifecycleTaskName(), instantiator, taskFactory, executable, namingScheme,
-                Mock(NativeDependencyResolver), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
+        def binary = TestNativeBinariesFactory.create(NativeExecutableBinarySpec, DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), taskFactory, executable, namingScheme,
+            Mock(NativeDependencyResolver), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
 
         then:
         binary.toString() == "executable 'bigOne:executable'"

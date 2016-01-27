@@ -15,33 +15,39 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
+import com.google.common.collect.Maps;
+import org.gradle.api.execution.internal.InternalTaskExecutionListener;
+import org.gradle.api.execution.internal.TaskOperationInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.provider.ConsumerListenerConfiguration;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ClientForwardingTestListener implements TestListenerInternal {
+class ClientForwardingTestListener implements TestListenerInternal, InternalTaskExecutionListener {
 
     private final BuildEventConsumer eventConsumer;
-    private final ConsumerListenerConfiguration listenerConfiguration;
+    private final BuildClientSubscriptions clientSubscriptions;
+    private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    ClientForwardingTestListener(BuildEventConsumer eventConsumer, ConsumerListenerConfiguration listenerConfiguration) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
-        this.listenerConfiguration = listenerConfiguration;
+        this.clientSubscriptions = clientSubscriptions;
     }
 
     @Override
@@ -72,7 +78,8 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String className = suite.getClassName();
         String methodName = null;
         Object parentId = getParentId(suite);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        final String testTaskPath = getTaskPath(suite);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, testTaskPath);
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
@@ -84,24 +91,28 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = getParentId(test);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        final String taskPath = getTaskPath(test);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, taskPath);
+    }
+
+    private String getTaskPath(TestDescriptorInternal givenDescriptor) {
+        TestDescriptorInternal descriptor = givenDescriptor;
+        while(descriptor.getOwnerBuildOperationId() == null && descriptor.getParent()!=null){
+            descriptor = descriptor.getParent();
+        }
+        return runningTasks.get(descriptor.getOwnerBuildOperationId());
     }
 
     private Object getParentId(TestDescriptorInternal descriptor) {
         TestDescriptorInternal parent = descriptor.getParent();
-        Object parentId = parent != null ? parent.getId() : null;
-        if (parentId == null) {
-            // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
-            if (listenerConfiguration.isSendTaskProgressEvents()) {
-                if (descriptor instanceof DecoratingTestDescriptor) {
-                    descriptor = ((DecoratingTestDescriptor) descriptor).getDescriptor();
-                }
-                if (descriptor instanceof TestMainAction.RootTestSuiteDescriptor) {
-                    parentId = ((TestMainAction.RootTestSuiteDescriptor) descriptor).getTestTaskOperationId();
-                }
-            }
+        if (parent != null) {
+            return parent.getId();
         }
-        return parentId;
+        // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
+        if (clientSubscriptions.isSendTaskProgressEvents()) {
+            return descriptor.getOwnerBuildOperationId();
+        }
+        return null;
     }
 
     private static AbstractTestResult adapt(TestResult result) {
@@ -126,4 +137,15 @@ class ClientForwardingTestListener implements TestListenerInternal {
         return failures;
     }
 
+    @Override
+    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
+        if(taskOperation.getTask() instanceof Test){
+            runningTasks.put(taskOperation.getId(), taskOperation.getTask().getPath());
+        }
+    }
+
+    @Override
+    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
+        runningTasks.remove(taskOperation.getId());
+    }
 }

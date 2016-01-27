@@ -17,51 +17,37 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.service.ServiceRegistry;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.registry.LanguageRegistry;
-import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
-import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
-import org.gradle.platform.base.internal.util.ImplementationTypeDetermer;
 
 import java.util.List;
 
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
-    public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
-
-    public LanguageTypeModelRuleExtractor() {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultLanguageTypeBuilder.class));
+    public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore);
     }
 
     @Override
-    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
-        ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
-        ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
-        if (implementation != null) {
-            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
-            return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
-        }
-        return new DependencyOnlyExtractedModelRule(dependencies);
+    protected <P extends LanguageSourceSet> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
+        return new ExtractedLanguageTypeRule<P>(ruleDefinition, type);
     }
 
-    public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {
+    private static class DefaultLanguageTypeBuilder<PUBLICTYPE extends LanguageSourceSet> extends AbstractTypeBuilder<PUBLICTYPE> implements LanguageTypeBuilder<PUBLICTYPE> {
         private String languageName;
 
-        public DefaultLanguageTypeBuilder() {
-            super(LanguageType.class);
+        private DefaultLanguageTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
+            super(LanguageType.class, schema);
         }
 
         @Override
@@ -69,50 +55,38 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             this.languageName = languageName;
         }
 
-        @Override
         public String getLanguageName() {
             return languageName;
         }
     }
 
-    protected static class RegisterTypeRule implements ModelAction<LanguageRegistry> {
-        private final ModelType<? extends LanguageSourceSet> type;
-        private final ModelType<? extends BaseLanguageSourceSet> implementation;
-        private String languageName;
-        private final ModelRuleDescriptor descriptor;
-        private final ModelReference<LanguageRegistry> subject;
-        private final List<ModelReference<?>> inputs;
-
-        protected RegisterTypeRule(ModelType<? extends LanguageSourceSet> type, ModelType<? extends BaseLanguageSourceSet> implementation, String languageName, ModelRuleDescriptor descriptor) {
-            this.type = type;
-            this.implementation = implementation;
-            this.languageName = languageName;
-            this.descriptor = descriptor;
-
-            subject = ModelReference.of(LanguageRegistry.class);
-            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ServiceRegistry.class));
+    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, DefaultLanguageTypeBuilder<PUBLICTYPE>, LanguageSourceSetFactory> {
+        public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
+            super(ruleDefinition, publicType);
         }
 
-        public ModelReference<LanguageRegistry> getSubject() {
-            return subject;
+        @Override
+        protected DefaultLanguageTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultLanguageTypeBuilder<PUBLICTYPE>(schema);
         }
 
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
+        @Override
+        protected Class<LanguageSourceSetFactory> getRegistryType() {
+            return LanguageSourceSetFactory.class;
         }
 
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
+        @Override
+        protected void register(LanguageSourceSetFactory factory, ModelSchema<PUBLICTYPE> schema, DefaultLanguageTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseLanguageSourceSet> implModelType) {
+            final String languageName = builder.getLanguageName();
+            if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
+                throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
+            }
+            factory.register(languageName, publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
-        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
-            ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            @SuppressWarnings("unchecked")
-            Class<BaseLanguageSourceSet> publicClass = (Class<BaseLanguageSourceSet>) type.getConcreteClass();
-            Class<? extends BaseLanguageSourceSet> implementationClass = implementation.getConcreteClass();
-            languageRegistry.add(new RuleBasedLanguageRegistration<BaseLanguageSourceSet>(languageName, publicClass, implementationClass, instantiator, fileResolver));
+        @Override
+        public List<? extends Class<?>> getRuleDependencies() {
+            return ImmutableList.of(LanguageBasePlugin.class);
         }
     }
 }

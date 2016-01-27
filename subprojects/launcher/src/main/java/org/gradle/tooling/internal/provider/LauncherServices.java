@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -26,12 +27,16 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.*;
+import org.gradle.logging.StyledTextOutputFactory;
 
 import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
@@ -45,10 +50,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory) {
-            List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
+        BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
+            List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-            return new ContinuousModeBuildActionExecuter(delegate, fileWatcherFactory, listenerManager);
+            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
@@ -62,6 +67,7 @@ public class LauncherServices implements PluginServiceRegistry {
         JarCache createJarCache() {
             return new JarCache();
         }
+
     }
 
     static class ToolingBuildScopeServices {

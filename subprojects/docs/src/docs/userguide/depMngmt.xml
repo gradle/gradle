@@ -682,6 +682,155 @@
             </tr>
         </table>
 
+        <section id='sub:maven_central'>
+            <title>Maven central repository</title>
+            <para>To add the central Maven 2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply add this to your build script:
+            </para>
+            <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-central"/>
+            </sample>
+            <para>Now Gradle will look for your dependencies in this repository.</para>
+            <para>
+                <emphasis>Warning:</emphasis> Be aware that the central Maven 2 repository is HTTP only and
+                HTTPS is not supported. If you need a public HTTPS enabled central repository, you can use the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository (see <xref linkend="sub:maven_jcenter"/>).
+            </para>
+        </section>
+
+        <section id='sub:maven_jcenter'>
+            <title>Maven JCenter repository</title>
+            <para><ulink url='http://bintray.com'>Bintray</ulink>'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
+            </para>
+            <para>To add the JCenter Maven repository (<ulink url='https://jcenter.bintray.com'/>) simply add this to your build script:
+            </para>
+            <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-jcenter"/>
+            </sample>
+            <para>Now Gradle will look for your dependencies in the JCenter repository. <emphasis>jcenter()</emphasis> uses HTTPS to connect to the repository.
+                If you want to use HTTP you can configure <literal>jcenter()</literal>:
+            </para>
+            <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Using Bintrays's JCenter with HTTP">
+                <sourcefile file="build.gradle" snippet="maven-jcenter-http"/>
+            </sample>
+        </section>
+
+        <section id='sub:maven_local'>
+            <title>Local Maven repository</title>
+            <para>To use the local Maven cache as a repository you can do:</para>
+            <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
+                <sourcefile file="build.gradle" snippet="maven-local"/>
+            </sample>
+            <para>Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location
+                will be used. The <filename>settings.xml</filename> in <filename><replaceable>USER_HOME</replaceable>/.m2</filename> takes precedence over the <filename>settings.xml</filename>
+                in <filename><replaceable>M2_HOME</replaceable>/conf</filename>. If no <filename>settings.xml</filename> is available, Gradle uses the default location
+                <filename><replaceable>USER_HOME</replaceable>/.m2/repository</filename>.
+            </para>
+        </section>
+
+        <section id='sub:maven_repo'>
+            <title>Maven repositories</title>
+            <para>For adding a custom Maven repository you can do:
+            </para>
+            <sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository" title="Adding custom Maven repository">
+                <sourcefile file="build.gradle" snippet="maven-like-repo"/>
+            </sample>
+
+            <para>Sometimes a repository will have the POMs published to one location, and the JARs and other artifacts published at another location.
+                To define such a repository, you can do:
+            </para>
+            <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
+                <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
+            </sample>
+            <para>Gradle will look at the first URL for the POM and the JAR. If the JAR can't be found there, the artifact URLs are used to look for JARs.
+            </para>
+            <section>
+                <title>Accessing password protected Maven repositories</title>
+                <para>To access a Maven repository which uses basic authentication, you specify the username and password to use when you define the repository:
+                </para>
+                <sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password protected Maven repository">
+                    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
+                </sample>
+                <para>It is advisable to keep your username and password in <filename>gradle.properties</filename> rather than directly in the build file.
+                </para>
+            </section>
+        </section>
+
+        <section id='sec:flat_dir_resolver'>
+            <title>Flat directory repository</title>
+            <para>If you want to use a (flat) filesystem directory as a repository, simply type:
+            </para>
+            <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
+                <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
+            </sample>
+            <para>This adds repositories which look into one or more directories for finding dependencies. Note that
+                this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead,
+                Gradle will dynamically generate a module descriptor (without any dependency information) based on the
+                presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from
+                real meta-data rather than being generated, flat directory repositories cannot be used to override
+                artifacts with real meta-data from other repositories. So, for example, if Gradle finds only
+                <filename>jmxri-1.2.1.jar</filename> in a flat directory repository, but <filename>jmxri-1.2.1.pom</filename>
+                in another repository that supports meta-data, it will use the second repository to provide the module.
+                For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository
+                instead whose URL points to a local directory.
+                If you only work with flat directory repositories you don't need to set all attributes of a dependency.
+                See <xref linkend='para:dependencies_with_empty_attributes'/>.
+            </para>
+        </section>
+
+        <section id="sec:ivy_repositories">
+            <title>Ivy repositories</title>
+            <section>
+                <title>Defining an Ivy repository with a standard layout</title>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="ivy-repo"/>
+                </sample>
+            </section>
+            <section>
+                <title>Defining a named layout for an Ivy repository</title>
+                <para>
+                    You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with named layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
+                </sample>
+                <para>
+                    Valid named layout values are <literal>'gradle'</literal> (the default), <literal>'maven'</literal>, <literal>'ivy'</literal> and <literal>'pattern'</literal>.
+                    See <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" method="layout(java.lang.String, groovy.lang.Closure)"/> in the API documentation for details of these named layouts.
+                </para>
+            </section>
+            <section>
+                <title>Defining custom pattern layout for an Ivy repository</title>
+                <para>To define an Ivy repository with a non-standard layout, you can define a 'pattern' layout for the repository:
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with pattern layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-pattern-layout"/>
+                </sample>
+                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations,
+                    you can define separate patterns to use to locate the Ivy files and artifacts:
+                </para>
+                <para>
+                    Each <literal>artifact</literal> or <literal>ivy</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern to use.
+                    The patterns are used in the order that they are defined.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with multiple custom patterns">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
+                </sample>
+                <para>Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with
+                    forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal> would then be represented as <literal>my/company</literal>.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
+                </sample>
+            </section>
+            <section>
+                <title>Accessing password protected Ivy repositories</title>
+                <para>To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
+                </sample>
+            </section>
+        </section>
+
         <section id='sub:supported_transport_protocols'>
             <title>Supported repository transport protocols</title>
             <para>Maven and Ivy repositories support the use of various transport protocols. At the moment the following protocols are supported:
@@ -691,7 +840,7 @@
                 <thead>
                     <tr>
                         <td>Type</td>
-                        <td>Authentication schemes</td>
+                        <td>Credential types</td>
                     </tr>
                 </thead>
                 <tr>
@@ -833,153 +982,52 @@
                     </itemizedlist>
                 </note>
             </section>
-        </section>
 
-        <section id='sub:maven_central'>
-            <title>Maven central repository</title>
-            <para>To add the central Maven 2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply add this to your build script:
-            </para>
-            <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-central"/>
-            </sample>
-            <para>Now Gradle will look for your dependencies in this repository.</para>
-            <para>
-                <emphasis>Warning:</emphasis> Be aware that the central Maven 2 repository is HTTP only and
-                HTTPS is not supported. If you need a public HTTPS enabled central repository, you can use the <ulink url='http://jcenter.bintray.com'>JCenter</ulink> public repository (see <xref linkend="sub:maven_jcenter"/>).
-            </para>
-        </section>
-
-        <section id='sub:maven_jcenter'>
-            <title>Maven JCenter repository</title>
-            <para><ulink url='http://bintray.com'>Bintray</ulink>'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
-            </para>
-            <para>To add the JCenter Maven repository (<ulink url='https://jcenter.bintray.com'/>) simply add this to your build script:
-            </para>
-            <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-jcenter"/>
-            </sample>
-            <para>Now Gradle will look for your dependencies in the JCenter repository. <emphasis>jcenter()</emphasis> uses HTTPS to connect to the repository.
-                If you want to use HTTP you can configure <literal>jcenter()</literal>:
-            </para>
-            <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Using Bintrays's JCenter with HTTP">
-                <sourcefile file="build.gradle" snippet="maven-jcenter-http"/>
-            </sample>
-        </section>
-
-        <section id='sub:maven_local'>
-            <title>Local Maven repository</title>
-            <para>To use the local Maven cache as a repository you can do:</para>
-            <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
-                <sourcefile file="build.gradle" snippet="maven-local"/>
-            </sample>
-            <para>Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location
-                will be used. The <filename>settings.xml</filename> in <filename><replaceable>USER_HOME</replaceable>/.m2</filename> takes precedence over the <filename>settings.xml</filename>
-                in <filename><replaceable>M2_HOME</replaceable>/conf</filename>. If no <filename>settings.xml</filename> is available, Gradle uses the default location
-                <filename><replaceable>USER_HOME</replaceable>/.m2/repository</filename>.
-            </para>
-        </section>
-
-        <section id='sub:maven_repo'>
-            <title>Maven repositories</title>
-            <para>For adding a custom Maven repository you can do:
-            </para>
-            <sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository" title="Adding custom Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-like-repo"/>
-            </sample>
-
-            <para>Sometimes a repository will have the POMs published to one location, and the JARs and other artifacts published at another location.
-                To define such a repository, you can do:
-            </para>
-            <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
-                <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
-            </sample>
-            <para>Gradle will look at the first URL for the POM and the JAR. If the JAR can't be found there, the artifact URLs are used to look for JARs.
-            </para>
-            <section>
-                <title>Accessing password protected Maven repositories</title>
-                <para>To access a Maven repository which uses basic authentication, you specify the username and password to use when you define the repository:
-                </para>
-                <sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password protected Maven repository">
-                    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
-                </sample>
-                <para>It is advisable to keep your username and password in <filename>gradle.properties</filename> rather than directly in the build file.
-                </para>
-            </section>
-        </section>
-
-        <section id='sec:flat_dir_resolver'>
-            <title>Flat directory repository</title>
-            <para>If you want to use a (flat) filesystem directory as a repository, simply type:
-            </para>
-            <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
-                <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
-            </sample>
-            <para>This adds repositories which look into one or more directories for finding dependencies. Note that
-                this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead,
-                Gradle will dynamically generate a module descriptor (without any dependency information) based on the
-                presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from
-                real meta-data rather than being generated, flat directory repositories cannot be used to override
-                artifacts with real meta-data from other repositories. So, for example, if Gradle finds only
-                <filename>jmxri-1.2.1.jar</filename> in a flat directory repository, but <filename>jmxri-1.2.1.pom</filename>
-                in another repository that supports meta-data, it will use the second repository to provide the module.
-                For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository
-                instead whose URL points to a local directory.
-                If you only work with flat directory repositories you don't need to set all attributes of a dependency.
-                See <xref linkend='para:dependencies_with_empty_attributes'/>.
-            </para>
-        </section>
-
-        <section id="sec:ivy_repositories">
-            <title>Ivy repositories</title>
-            <section>
-                <title>Defining an Ivy repository with a standard layout</title>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
-                    <sourcefile file="build.gradle" snippet="ivy-repo"/>
-                </sample>
-            </section>
-            <section>
-                <title>Defining a named layout for an Ivy repository</title>
+            <section id="sub:authentication_schemes">
+                <title>Configuring HTTP authentication schemes</title>
                 <para>
-                    You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
+                    When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that
+                    are supported by the Apache HttpClient library, <ulink url="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625">documented here</ulink>.
+                    In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly
+                    declared, only those schemes are used when authenticating to a remote repository. The following example show how to configure a repository to use only digest authentication:
                 </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with named layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
+                <sample id="digestAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use only digest authentication">
+                    <sourcefile file="build.gradle" snippet="digest-authentication"/>
                 </sample>
                 <para>
-                    Valid named layout values are <literal>'gradle'</literal> (the default), <literal>'maven'</literal> and <literal>'ivy'</literal>.
-                    See <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" method="layout(java.lang.String, groovy.lang.Closure)"/> in the API documentation for details of these named layouts.
+                    Currently supported authentication schemes are:
                 </para>
+                <table>
+                    <title>Authentication schemes</title>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><apilink class="org.gradle.authentication.http.BasicAuthentication"/></td>
+                            <td>Basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.</td>
+                        </tr>
+                        <tr>
+                            <td><apilink class="org.gradle.authentication.http.DigestAuthentication"/></td>
+                            <td>Digest access authentication over HTTP.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </section>
-            <section>
-                <title>Defining custom pattern layout for an Ivy repository</title>
-                <para>To define an Ivy repository with a non-standard layout, you can define a 'pattern' layout for the repository:
-                </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with pattern layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-pattern-layout"/>
-                </sample>
-                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations,
-                    you can define separate patterns to use to locate the Ivy files and artifacts:
-                </para>
+
+            <section id="sub:preemptive_authentication">
+                <title>Using preemptive authentication</title>
                 <para>
-                    Each <literal>artifact</literal> or <literal>ivy</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern to use.
-                    The patterns are used in the order that they are defined.
+                    Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases,
+                    the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this
+                    behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the
+                    <apilink class="org.gradle.authentication.http.BasicAuthentication"/> scheme:
                 </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with multiple custom patterns">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
-                </sample>
-                <para>Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with
-                    forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal> would then be represented as <literal>my/company</literal>.
-                </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
-                </sample>
-            </section>
-            <section>
-                <title>Accessing password protected Ivy repositories</title>
-                <para>To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
-                </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
-                    <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
+                <sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
+                    <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
                 </sample>
             </section>
         </section>
@@ -1182,56 +1230,104 @@ someroot/[artifact]-[revision].[ext]
                     </sample>
                 </para>
             </section>
-            <section id='sec:module_replacement'>
-                <title>Declaring that a legacy library is replaced by a new one</title>
+        </section>
+        <section id="dependency_substitution_rules">
+            <title>Dependency Substitution Rules</title>
+            <para>
+                Dependency substitution rules work similarly to dependency resolve rules.  In fact, many capabilities of dependency resolve rules
+                can be implemented with dependency substitution rules.  They allow project and module dependencies to be transparently substituted with
+                specified replacements.
+                Unlike dependency resolve rules, dependency substitution rules allow project and module dependencies to be substituted interchangeably.
+            </para>
+            <note>
                 <para>
-                    A good example when a new library replaced a legacy one is the "google-collections" -> "guava" migration.
-                    The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava".
-                    This a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates.
-                    Renaming of the module coordinates has impact on conflict resolution.
+                    <emphasis>NOTE: Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved.</emphasis>
+                    Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected
+                    consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during
+                    execution of another task.
                 </para>
+
                 <para>
-                    To explain the impact on conflict resolution, let's consider the "google-collections" -> "guava" scenario.
-                    It may happen that both libraries are pulled into the same dependency graph.
-                    For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections.
-                    This can cause runtime errors, for example during test or application execution.
-                    Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict".
-                    It's because the module coordinates for both libraries are completely different and conflict resolution is activated when
-                    "group" and "name" coordinates are the same but there are different versions available in the dependency graph
-                    (for more info, please refer to the section on conflict resolution).
-                    Traditional remedies to this problem are:
+                    To explain:
                     <itemizedlist>
-                        <listitem>Declare exclusion rule to avoid pulling in "google-collections" to graph. It is probably the most popular approach.</listitem>
-                        <listitem>Avoid dependencies that pull in legacy libraries.</listitem>
-                        <listitem>Upgrade the dependency version if the new version no longer pulls in a legacy library.</listitem>
-                        <listitem>Downgrade to "google-collections". It's not recommended, just mentioned for completeness.</listitem>
+                        <listitem>A <literal>Configuration</literal> can be declared as an input to any Task, and that configuration can include project dependencies when it is resolved.</listitem>
+                        <listitem>If a project dependency is an input to a Task (via a configuration), then tasks to built the project artifacts must be added to the task dependencies.</listitem>
+                        <listitem>In order to determine the project dependencies that are inputs to a task, Gradle needs to resolve the <literal>Configuration</literal> inputs.</listitem>
+                        <listitem>Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.</listitem>
                     </itemizedlist>
-                    Traditional approaches work but they are not general enough.
-                    For example, an organisation wants to resolve the google-collections VS guava conflict resolution problem in all projects.
-                    Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other.
-                    This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem
-                    holistically for all Gradle-powered projects in the enterprise.
-                    <sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
-                        <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
-                    </sample>
-                    For more examples and detailed API, please refer to the DSL reference for <apilink class="org.gradle.api.artifacts.dsl.ComponentMetadataHandler"/>.
                 </para>
                 <para>
-                    What happens when we declare that "google-collections" are replaced by "guava"?
-                    Gradle can use this information for conflict resolution.
-                    Gradle will consider every version of "guava" newer/better than any version of "google-collections".
-                    Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list.
-                    Please note that if only "google-collections" appears in the dependency graph (e.g. no "guava")
-                    Gradle will not eagerly replace it with "guava".
-                    Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict
-                    (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+                    In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency.
+                    This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal.
+                    With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
+                </para>
+            </note>
+            <section id='sec:module_to_project_substitution'>
+                <title>Substituting an external module dependency with a project dependency</title>
+                <para>
+                    One use case for dependency substitution is to use a locally developed version of a module in place of one that is downloaded from
+                    an external repository. This could be useful for testing a local, patched version of a dependency.
                 </para>
                 <para>
-                    Currently it is not possible to declare that certain modules is replaced by a set of modules.
-                    However, it is possible to declare that multiple modules are replaced by a single module.
+                    The module to be replaced can be declared with or without a version specified.
+                </para>
+                <sample id="module_to_project_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a module with a project">
+                    <sourcefile file="build.gradle" snippet="module_to_project_substitution"/>
+                </sample>
+                <para>
+                    Note that a project that is substituted must be included in the multi-project build (via settings.gradle).  Dependency substitution
+                    rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies,
+                    but do not implicitly include the project in the build.
                 </para>
             </section>
-
+            <section id='sec:project_to_module_substitution'>
+                <title>Substituting a project dependency with a module replacement</title>
+                <para>
+                    Another way to use substitution rules is to replace a project dependency with a module in a multi-project build.
+                    This can be useful to speed up development with a large multi-project build, by allowing a subset of the project
+                    dependencies to be downloaded from a repository rather than being built.
+                </para>
+                <para>
+                    The module to be used as a replacement must be declared with a version specified.
+                </para>
+                <sample id="project_to_module_substitution" dir="userguide/artifacts/dependency-substitution" title="Substituting a project with a module">
+                    <sourcefile file="build.gradle" snippet="project_to_module_substitution"/>
+                </sample>
+                <para>
+                    When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build.
+                    However, tasks to build the replaced dependency will not be executed in order to build the resolve the depending <literal>Configuration</literal>.
+                </para>
+            </section>
+            <section id='sec:conditional_dependency_substitution'>
+                <title>Conditionally substituting a dependency</title>
+                <para>
+                    A common use case for dependency substitution is to allow more flexible assembly of sub-projects within a multi-project build.
+                    This can be useful for developing a local, patched version of an external dependency or for building a subset of the modules within
+                    a large multi-project build.
+                </para>
+                <para>
+                    The following example uses a dependency substitution rule to replace any module dependency with the group "org.example", but
+                    only if a local project matching the dependency name can be located.
+                </para>
+                <sample id="project_substitution" dir="dependency-substitution" title="Conditionally substituting a dependency">
+                    <sourcefile file="build.gradle" snippet="project_substitution"/>
+                </sample>
+                <para>
+                    Note that a project that is substituted must be included in the multi-project build (via settings.gradle).  Dependency substitution
+                    rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
+                </para>
+            </section>
+        </section>
+        <section id="sec:configuration_defaults">
+            <title>Specifying default dependencies for a configuration</title>
+            <para>
+                A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration.
+                A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override.  By specifying
+                default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+            </para>
+            <sample id="configuration_default_dependencies" dir="userguide/artifacts/defineConfiguration" title="Specifying default dependencies on a configuration">
+                <sourcefile file="build.gradle" snippet="configuration-default-dependencies"/>
+            </sample>
         </section>
         <section id="ivy_dynamic_resolve_mode">
             <title>Enabling Ivy dynamic resolve mode</title>
@@ -1372,6 +1468,56 @@ someroot/[artifact]-[revision].[ext]
             <sample id="componentSelectionRulesRuleSource" dir="componentSelectionRules" title="Component selection rule using a rule source object">
                 <sourcefile file="build.gradle" snippet="api-component-selection" />
             </sample>
+        </section>
+        <section id='sec:module_replacement'>
+            <title>Module replacement rules</title>
+            <para>
+                Module replacement rules allow a build to declare that a legacy library has been replaced by a new one.
+                A good example when a new library replaced a legacy one is the "google-collections" -> "guava" migration.
+                The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava".
+                This a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates.
+                Renaming of the module coordinates has impact on conflict resolution.
+            </para>
+            <para>
+                To explain the impact on conflict resolution, let's consider the "google-collections" -> "guava" scenario.
+                It may happen that both libraries are pulled into the same dependency graph.
+                For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections.
+                This can cause runtime errors, for example during test or application execution.
+                Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict".
+                It's because the module coordinates for both libraries are completely different and conflict resolution is activated when
+                "group" and "name" coordinates are the same but there are different versions available in the dependency graph
+                (for more info, please refer to the section on conflict resolution).
+                Traditional remedies to this problem are:
+                <itemizedlist>
+                    <listitem>Declare exclusion rule to avoid pulling in "google-collections" to graph. It is probably the most popular approach.</listitem>
+                    <listitem>Avoid dependencies that pull in legacy libraries.</listitem>
+                    <listitem>Upgrade the dependency version if the new version no longer pulls in a legacy library.</listitem>
+                    <listitem>Downgrade to "google-collections". It's not recommended, just mentioned for completeness.</listitem>
+                </itemizedlist>
+                Traditional approaches work but they are not general enough.
+                For example, an organisation wants to resolve the google-collections VS guava conflict resolution problem in all projects.
+                Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other.
+                This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem
+                holistically for all Gradle-powered projects in the enterprise.
+                <sample id="module_replacement_declaration" dir="userguide/artifacts/componentModuleMetadata" title="Declaring module replacement">
+                    <sourcefile file="build.gradle" snippet="module_replacement_declaration"/>
+                </sample>
+                For more examples and detailed API, please refer to the DSL reference for <apilink class="org.gradle.api.artifacts.dsl.ComponentMetadataHandler"/>.
+            </para>
+            <para>
+                What happens when we declare that "google-collections" are replaced by "guava"?
+                Gradle can use this information for conflict resolution.
+                Gradle will consider every version of "guava" newer/better than any version of "google-collections".
+                Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list.
+                Please note that if only "google-collections" appears in the dependency graph (e.g. no "guava")
+                Gradle will not eagerly replace it with "guava".
+                Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict
+                (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+            </para>
+            <para>
+                Currently it is not possible to declare that certain modules is replaced by a set of modules.
+                However, it is possible to declare that multiple modules are replaced by a single module.
+            </para>
         </section>
     </section>
     <section id='sec:dependency_cache'>

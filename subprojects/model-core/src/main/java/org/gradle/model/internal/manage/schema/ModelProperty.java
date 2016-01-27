@@ -16,51 +16,96 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
+import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasSetter;
 
 @ThreadSafe
 public class ModelProperty<T> {
 
     private final String name;
     private final ModelType<T> type;
-    private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
-    private final boolean unmanaged;
+    private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
+    private ModelSchema<T> schema;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
+    public ModelProperty(ModelType<T> type, String name, Set<ModelType<?>> declaredBy,
+                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
         this.name = name;
         this.type = type;
-        this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
-        this.unmanaged = unmanaged;
-    }
-
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
-        return new ModelProperty<T>(type, name, writable, declaredBy, unmanaged);
+        this.accessors = Maps.immutableEnumMap(accessors);
     }
 
     public String getName() {
         return name;
     }
 
-    public boolean isUnmanaged() {
-        return unmanaged;
-    }
-
     public ModelType<T> getType() {
         return type;
     }
 
+    public ModelSchema<T> getSchema() {
+        return schema;
+    }
+
+    public void setSchema(ModelSchema<T> schema) {
+        this.schema = schema;
+    }
+
     public boolean isWritable() {
-        return writable;
+        return hasSetter(accessors.keySet());
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
         return declaredBy;
+    }
+
+    @Nullable
+    public WeaklyTypeReferencingMethod<?, ?> getAccessor(PropertyAccessorType accessorType) {
+        return accessors.get(accessorType);
+    }
+
+    public Collection<WeaklyTypeReferencingMethod<?, ?>> getAccessors() {
+        return accessors.values();
+    }
+
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.GET_GETTER))
+            || isAnnotationPresent(annotationType, getAccessor(PropertyAccessorType.IS_GETTER));
+    }
+
+    private boolean isAnnotationPresent(Class<? extends Annotation> annotationType, WeaklyTypeReferencingMethod<?, ?> getter) {
+        return getter != null && getter.getMethod().isAnnotationPresent(annotationType);
+    }
+
+    public <I> T getPropertyValue(I instance) {
+        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getGetter()).invoke(instance);
+    }
+
+    public WeaklyTypeReferencingMethod<?, ?> getGetter() {
+        WeaklyTypeReferencingMethod<?, ?> getter = getAccessor(PropertyAccessorType.GET_GETTER);
+        if (getter == null) {
+            getter = getAccessor(PropertyAccessorType.IS_GETTER);
+        }
+        if (getter == null) {
+            throw new IllegalStateException("No getter for property" + this);
+        }
+        return getter;
     }
 
     @Override
@@ -74,15 +119,21 @@ public class ModelProperty<T> {
 
         ModelProperty<?> that = (ModelProperty<?>) o;
 
-
-        return name.equals(that.name) && type.equals(that.type) && writable == that.writable;
+        return Objects.equal(this.name, that.name)
+            && Objects.equal(this.type, that.type)
+            && isWritable() == that.isWritable();
     }
 
     @Override
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
-        result = 31 * result + Boolean.valueOf(writable).hashCode();
+        result = 31 * result + Boolean.valueOf(isWritable()).hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return getName() + "(" + getType().getDisplayName() + ")";
     }
 }

@@ -17,9 +17,20 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.Ignore
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+@Category(BasicPerformanceTest) @Ignore
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+
+    @Override
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
+        super.defaultSpec(builder)
+    }
 
     @Unroll
     def "#size project using variants #scenario build"() {
@@ -28,22 +39,12 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl()
+                tasksToRun(task).useDaemon()
             }
         }
         runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(task).useToolingApi().enableTransformedModelDsl().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+            projectName("${size}VariantsNewModel").displayName("new model (tooling api)").invocation {
+                tasksToRun(task).useToolingApi()
             }
         }
         runner.baseline {
@@ -54,11 +55,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.baseline {
             projectName("${size}VariantsOldModel").displayName("old model (tooling api)").invocation {
                 tasksToRun(task).useToolingApi()
-            }
-        }
-        runner.baseline {
-            projectName("${size}VariantsOldModel").displayName("old model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().disableDaemonLogging()
             }
         }
 
@@ -84,22 +80,12 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+                tasksToRun(*tasks).useDaemon()
             }
         }
         runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableTransformedModelDsl().enableModelReuse()
-            }
-        }
-        runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+            projectName("variantsNewModelMultiproject").displayName("new model (tooling api)").invocation {
+                tasksToRun(*tasks).useToolingApi()
             }
         }
         runner.baseline {
@@ -112,11 +98,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useToolingApi()
             }
         }
-        runner.baseline {
-            projectName("variantsOldModelMultiproject").displayName("old model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
-            }
-        }
 
         then:
         runner.run()
@@ -125,6 +106,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         scenario                      | tasks
         "single variant"              | [":project1:flavour1type1_t1"]
         "all variants single project" | [":project1:allVariants"]
-        "all variants all projects"   | ["allVariants"]
+        // This is causing the performance test process to die and the build to hang: disabling for now.
+//        "all variants all projects"   | ["allVariants"]
     }
 }

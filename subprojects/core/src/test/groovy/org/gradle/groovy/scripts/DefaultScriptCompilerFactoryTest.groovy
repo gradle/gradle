@@ -45,14 +45,14 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     def "compiles script into class and wraps instance in script runner"() {
         when:
         def compiler = factory.createCompiler(source)
-        def result = compiler.compile(Script, operation, classLoader, "buildscript", verifier)
+        def result = compiler.compile(Script, operation, classLoader, verifier)
 
         then:
         result == runner
 
         1 * scriptClassCompiler.compile({
             it instanceof CachingScriptSource
-        }, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, "buildscript", Script, verifier) >> compiledScript
+        }, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource }, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

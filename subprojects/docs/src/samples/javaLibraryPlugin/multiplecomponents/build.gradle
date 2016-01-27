@@ -1,0 +1,88 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// START SNIPPET simple-dependency
+model {
+    components {
+        server(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'core'
+                    }
+                }
+            }
+        }
+
+        core(JvmLibrarySpec) {
+            dependencies {
+                library 'commons'
+            }
+        }
+
+// START SNIPPET api-dependency
+        commons(JvmLibrarySpec) {
+            api {
+                dependencies {
+                    library 'collections'
+                }
+            }
+        }
+// END SNIPPET api-dependency
+
+        collections(JvmLibrarySpec)
+    }
+}
+// END SNIPPET simple-dependency
+
+model {
+    components {
+// START SNIPPET dependency-other-project
+        client(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':util' library 'main'
+                    }
+// END SNIPPET dependency-other-project
+// START SNIPPET dependency-other-project-implicit-lib
+                    dependencies {
+                        project ':util'
+                    }
+// END SNIPPET dependency-other-project-implicit-lib
+// START SNIPPET dependency-other-project
+                }
+            }
+        }
+// END SNIPPET dependency-other-project
+    }
+}
+
+model {
+    components {
+// START SNIPPET dependency-onto-maven-library
+        verifier(JvmLibrarySpec) {
+            dependencies {
+                module 'asm'          group 'org.ow2.asm' version '5.0.4'
+                module 'asm-analysis' group 'org.ow2.asm'
+            }
+        }
+// END SNIPPET dependency-onto-maven-library
+        verifier {
+// START SNIPPET shorthand-dependency-onto-maven-library
+            dependencies {
+                module 'org.ow2.asm:asm:5.0.4'
+                module 'org.ow2.asm:asm-analysis'
+            }
+// END SNIPPET shorthand-dependency-onto-maven-library
+        }
+    }
+}
+
+// START SNIPPET configuring-repositories
+repositories {
+    mavenCentral()
+}
+// END SNIPPET configuring-repositories

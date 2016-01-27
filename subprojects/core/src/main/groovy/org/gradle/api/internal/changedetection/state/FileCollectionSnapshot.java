@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
+
+import java.io.File;
+import java.util.Collection;
 
 /**
  * An immutable snapshot of the contents of a collection of files.
@@ -28,11 +30,13 @@ public interface FileCollectionSnapshot {
 
     Diff changesSince(FileCollectionSnapshot oldSnapshot);
 
-    FileCollection getFiles();
+    Collection<File> getFiles();
+
+    Collection<File> getAllFiles();
 
     FilesSnapshotSet getSnapshot();
 
-    public interface Diff {
+    interface Diff {
         /**
          * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.
          * Removes any removed files in this diff from the given snapshot.
@@ -53,7 +57,7 @@ public interface FileCollectionSnapshot {
         FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot);
     }
 
-    public interface Merge {
+    interface Merge {
         void ignore();
     }
 

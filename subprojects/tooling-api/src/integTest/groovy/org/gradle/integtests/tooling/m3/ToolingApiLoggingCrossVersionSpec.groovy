@@ -18,18 +18,14 @@ package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
-class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-
-    def setup() {
-        toolingApi.requireDaemons()
-    }
 
     def "logging is live"() {
         def waitingMessage = "logging task: connecting to ${server.uri}"
@@ -50,7 +46,6 @@ task log << {
             def build = connection.newBuild()
             build.standardOutput = output
             build.forTasks("log")
-            build.withArguments("-d", "-s")
             build.run(resultHandler)
             server.waitFor()
             ConcurrentTestUtil.poll {

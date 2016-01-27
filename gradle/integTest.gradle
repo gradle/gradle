@@ -19,11 +19,17 @@ dependencies {
 
     //so that implicit help tasks are available:
     integTestRuntime project(':diagnostics')
+
+    //So that the wrapper and init task are added when integTests are run via commandline
+    integTestRuntime project(':buildInit')
     //above can be removed when we implement the auto-apply plugins
 }
 
 ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
+/**
+ * Clean up cache files for older versions that aren't multi-process safe.
+ */
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
         for (File cacheDir : dir.listFiles()) {
@@ -41,6 +47,22 @@ def removeDodgyCacheFiles(File dir) {
     }
 }
 
+
+/**
+ * Clean up daemon log files produced in integration tests.
+ */
+def removeDaemonLogFiles(File dir) {
+    if (dir.directory) {
+        def daemonLogFiles = fileTree(dir) {
+            include '**/*.log'
+        }
+        delete daemonLogFiles
+    }
+}
+
+/**
+ * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
+ */
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
@@ -104,6 +126,9 @@ project(":") {
 
             // Remove caches that weren't multi-process safe and may be corrupt
             removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
+
+            // Remove old daemon log files
+            removeDaemonLogFiles(file("intTestHomeDir/worker-1/daemon"))
         }
     }
 }
@@ -111,27 +136,49 @@ project(":") {
 def forEachJavaProcess(Closure action) {
     String queryString = "(?i)${Pattern.quote(File.separator)}(java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
+    def error = new ByteArrayOutputStream()
     def pidPattern
+    def result
     if (org.gradle.internal.os.OperatingSystem.current().windows) {
-        exec {
-            commandLine('wmic', 'process' ,'get', 'processid,commandline')
+        result = exec {
+            commandLine('wmic', 'process', 'get', 'processid,commandline')
             standardOutput = output
+            errorOutput = error
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)\s*$/
     } else {
-        exec {
+        result = exec {
             commandLine('ps', 'x')
             standardOutput = output
+            errorOutput = output
+            ignoreExitValue = true
         }
         pidPattern = /([0-9]+)/
     }
+    if (result.exitValue != 0) {
+        def errorLog = file("${rootProject.buildDir}/errorLogs/process-list-${System.currentTimeMillis()}.log")
+        project.mkdir(errorLog.parent)
+        errorLog.text = "[Output]\n${output.toString()}\n[Error Output]\n${error.toString()}"
+        logger.quiet "Error obtaining process list, output log created at $errorLog"
+        result.assertNormalExitValue()
+    }
     output.toString().readLines().each { String line ->
+        if(isCiServer && line.contains('java')) {
+            logger.quiet "Java Process: $line"
+        }
+
         def processMatcher = line =~ queryString
         if (processMatcher.find()) {
-            def pidMatcher = line =~pidPattern
+            def pidMatcher = line =~ pidPattern
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
+
+                if(isCiServer) {
+                    logger.quiet "-> Parsed PID: $pid, Parsed process: $process"
+                }
+
                 action.call(pid, process)
             }
         }
@@ -174,7 +221,7 @@ project(":") {
     }
 
     task cleanUpDaemons {
-        ext.suspiciousDaemons = [:].withDefault {[].asSynchronized()}.asSynchronized()
+        ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
         ext.daemonPids = ([] as Set).asSynchronized()
         doLast {
             Set alreadyKilled = []
@@ -197,23 +244,24 @@ allprojects {
 }
 
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', ':cleanUpCaches'
+    dependsOn ':intTestImage'
+    dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
 
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {
@@ -238,8 +286,8 @@ integTestTasks.all { Test task ->
         def daemonPids = rootProject.cleanUpDaemons.daemonPids
         def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
         daemonListener = [
-            beforeTest : {test -> },
-            afterTest  : { test, result ->},
+            beforeTest : { test -> },
+            afterTest  : { test, result -> },
             beforeSuite: { suite ->
                 forEachJavaProcess { pid, process ->
                     // processes that exist before the test suite execution should
@@ -270,6 +318,9 @@ task integTest(type: Test) {
         systemProperties['org.gradle.integtest.debug'] = 'true'
         testLogging.showStandardStreams = true
     }
+    if (project.hasProperty('org.gradle.integtest.verbose')) {
+        testLogging.showStandardStreams = true
+    }
 }
 check.dependsOn(integTest)
 
@@ -293,6 +344,15 @@ releasedVersions.allVersions.each { targetVersion ->
         include '**/*CrossVersion*'
     }
 }
+
+task testKitVersionCompatibilityIntegTest(type: Test) {
+    description "Runs the TestKit version compatibility tests"
+    systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+    include 'org/gradle/testkit/**/*'
+}
+
+crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
     idea {

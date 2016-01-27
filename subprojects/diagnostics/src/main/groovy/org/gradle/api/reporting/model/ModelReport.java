@@ -20,29 +20,34 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.reporting.model.internal.*;
+import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
+import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import javax.inject.Inject;
 
-import static org.gradle.api.reporting.model.internal.ReportDetail.BARE;
-import static org.gradle.api.reporting.model.internal.ReportFormat.TEXT;
-
 /**
  * Displays some details about the configuration model of the project.
+ * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
 @Incubating
 public class ModelReport extends DefaultTask {
 
-    @Option(description = "The level of detail to include on the model report")
-    protected ReportDetail detail = ReportDetail.VERBOSE;
+    private boolean showHidden;
 
-    @Option(description = "The format of the model report")
-    protected ReportFormat format = TEXT;
+    @Option(option = "showHidden", description = "Show hidden model elements.")
+    public void setShowHidden(boolean showHidden) {
+        this.showHidden = showHidden;
+    }
+
+    public boolean isShowHidden() {
+        return showHidden;
+    }
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -58,31 +63,20 @@ public class ModelReport extends DefaultTask {
     public void report() {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelNodeDescriptor modelNodeDescriptor = getModelNodeDescriptor();
-        ModelNodeRenderer renderer = new ModelNodeRenderer(modelNodeDescriptor);
+        ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden());
+
         TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
+
         textModelReportRenderer.setOutput(textOutput);
         textModelReportRenderer.startProject(project);
-        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+
+        ModelRegistry modelRegistry = getModelRegistry();
+        ModelNode rootNode = modelRegistry.realizeNode(ModelPath.ROOT);
+        // Ensure binding validation has been done. This should happen elsewhere
+        modelRegistry.bindAllReferences();
+        textModelReportRenderer.render(rootNode);
+
         textModelReportRenderer.completeProject(project);
         textModelReportRenderer.complete();
-    }
-
-    public ModelNodeDescriptor getModelNodeDescriptor() {
-        ModelNodeDescriptor modelNodeDescriptor;
-        if (detail == BARE) {
-            modelNodeDescriptor = new BareStringNodeDescriptor();
-        } else {
-            modelNodeDescriptor = new BasicStringNodeDescriptor();
-        }
-        return modelNodeDescriptor;
-    }
-
-    public void setDetail(ReportDetail detail) {
-        this.detail = detail;
-    }
-
-    public void setFormat(ReportFormat format) {
-        this.format = format;
     }
 }

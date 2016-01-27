@@ -13,11 +13,11 @@ model {
                 headers.srcDir "3rd-party-lib/util/src/util/headers"
                 binaries.withType(StaticLibraryBinary) {
                     def libName = targetPlatform.operatingSystem.windows ? 'util.lib' : 'libutil.a'
-                    staticLibraryFile = file("3rd-party-lib/util/build/binaries/utilStaticLibrary/${buildType.name}/${libName}")
+                    staticLibraryFile = file("3rd-party-lib/util/build/libs/util/static/${buildType.name}/${libName}")
                 }
                 binaries.withType(SharedLibraryBinary) {
                     def os = targetPlatform.operatingSystem
-                    def baseDir = "3rd-party-lib/util/build/binaries/utilSharedLibrary/${buildType.name}"
+                    def baseDir = "3rd-party-lib/util/build/libs/util/shared/${buildType.name}"
                     if (os.windows) {
                         // Windows uses a .dll file, with a different link file if it exists (not Cygwin or MinGW)
                         sharedLibraryFile = file("${baseDir}/util.dll")

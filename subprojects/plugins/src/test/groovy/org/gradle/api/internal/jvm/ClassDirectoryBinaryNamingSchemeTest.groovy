@@ -38,16 +38,28 @@ class ClassDirectoryBinaryNamingSchemeTest extends Specification {
         "test" | "compile" | "java"      | "compileTestJava"
     }
 
-    def "generates base name and output directory"() {
+    def "generates binary name and output directory"() {
         def namer = new ClassDirectoryBinaryNamingScheme(baseName)
 
         expect:
-        namer.getLifecycleTaskName() == lifecycleName
-        namer.getOutputDirectoryBase() == outputDir
+        namer.binaryName == binaryName
+        namer.outputDirectoryBase == outputDir
 
         where:
-        baseName | lifecycleName | outputDir
-        "main"   | "classes"     | "main"
-        "test"   | "testClasses" | "test"
+        baseName | binaryName | outputDir
+        "main"   | "main"     | "main"
+        "test"   | "test"     | "test"
+    }
+
+    def "generates description"() {
+        def namer = new ClassDirectoryBinaryNamingScheme(baseName)
+
+        expect:
+        namer.description == description
+
+        where:
+        baseName | description
+        "main"   | "classes 'main'"
+        "test"   | "classes 'test'"
     }
 }

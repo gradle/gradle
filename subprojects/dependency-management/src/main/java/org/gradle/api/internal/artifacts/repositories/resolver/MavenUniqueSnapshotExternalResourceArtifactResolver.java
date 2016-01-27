@@ -37,10 +37,6 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
         return delegate.resolveArtifact(timestamp(artifact), result);
     }
 
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
-        return delegate.resolveMetaDataArtifact(timestamp(artifact), result);
-    }
-
     protected ModuleComponentArtifactMetaData timestamp(ModuleComponentArtifactMetaData artifact) {
         MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier =
                 new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), timestamp);

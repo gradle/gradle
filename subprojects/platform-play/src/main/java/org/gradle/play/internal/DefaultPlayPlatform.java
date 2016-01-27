@@ -20,6 +20,7 @@ import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 
 public class DefaultPlayPlatform implements PlayPlatformInternal {
+    public final static String DEFAULT_PLAY_VERSION = "2.3.9";
     private final String playVersion;
     private final ScalaPlatform scalaPlatform;
     private final JavaPlatform javaPlatform;
@@ -60,5 +61,10 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
     @Override
     public String getDependencyNotation(String playModule) {
         return String.format("com.typesafe.play:%s_%s:%s", playModule, scalaPlatform.getScalaCompatibilityVersion(), playVersion);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 }

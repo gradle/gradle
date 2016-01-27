@@ -41,7 +41,7 @@ public class SingletonFileTree implements MinimalFileTree {
     }
 
     public void visit(FileVisitor visitor) {
-        visitor.visitFile(new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem));
+        visitor.visitFile(new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, false));
     }
 
     @Override
@@ -49,4 +49,8 @@ public class SingletonFileTree implements MinimalFileTree {
         builder.add(file);
     }
 
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
 }

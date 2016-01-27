@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.util.UsesNativeServices
@@ -28,7 +29,7 @@ import java.util.concurrent.Callable
 
 @UsesNativeServices
 class DefaultFileCollectionResolveContextTest extends Specification {
-    final FileResolver resolver = Mock()
+    final FileResolver resolver = Mock() { getPatternSetFactory() >> TestFiles.getPatternSetFactory() }
     final DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver)
 
     def resolveAsFileCollectionReturnsEmptyListWhenContextIsEmpty() {
@@ -149,7 +150,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolveAsFileTreesDelegatesToACompositeFileCollection() {
@@ -162,7 +163,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolveAsMinimalFileCollectionsDelegatesToACompositeFileCollection() {
@@ -175,7 +176,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolvesCompositeFileCollectionsInDepthwiseOrder() {
@@ -192,8 +193,8 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [child1, child2, child3]
-        1 * parent1.resolve(!null) >> { it[0].add(child1); it[0].add(parent2) }
-        1 * parent2.resolve(!null) >> { it[0].add(child2) }
+        1 * parent1.visitContents(!null) >> { it[0].add(child1); it[0].add(parent2) }
+        1 * parent2.visitContents(!null) >> { it[0].add(child2) }
     }
 
     def recursivelyResolvesReturnValueOfAClosure() {

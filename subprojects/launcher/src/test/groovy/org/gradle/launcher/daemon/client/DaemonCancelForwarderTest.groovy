@@ -52,7 +52,7 @@ class DaemonCancelForwarderTest extends ConcurrentSpecification {
 
     def "cancel is forwarded when received before stop"() {
         when:
-        cancellationToken.doCancel()
+        cancellationToken.cancel()
         forwarder.stop()
 
         then:
@@ -62,7 +62,7 @@ class DaemonCancelForwarderTest extends ConcurrentSpecification {
     def "cancel is ignored after stop"() {
         when:
         forwarder.stop()
-        cancellationToken.doCancel()
+        cancellationToken.cancel()
 
         then:
         0 * dispatch._

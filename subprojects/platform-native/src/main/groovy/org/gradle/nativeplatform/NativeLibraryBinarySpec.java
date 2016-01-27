@@ -16,21 +16,23 @@
 
 package org.gradle.nativeplatform;
 
+import org.gradle.api.Incubating;
 import org.gradle.platform.base.LibraryBinarySpec;
 
 /**
  * Represents a binary artifact that is the result of building a native library component.
  */
+@Incubating
 public interface NativeLibraryBinarySpec extends NativeBinarySpec, LibraryBinarySpec {
     /**
      * {@inheritDoc}
      */
     @Override
-    NativeLibrarySpec getLibrary();
+    NativeLibrarySpec getComponent();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    NativeLibrarySpec getComponent();
+    NativeLibrarySpec getLibrary();
 }

@@ -45,33 +45,39 @@ model {
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
 // START SNIPPET build-type-config
-binaries.all {
-    if (toolChain in Gcc && buildType == buildTypes.debug) {
-        cppCompiler.args "-g"
-    }
-    if (toolChain in VisualCpp && buildType == buildTypes.debug) {
-        cppCompiler.args '/Zi'
-        cppCompiler.define 'DEBUG'
-        linker.args '/DEBUG'
+model {
+    binaries {
+        all {
+            if (toolChain in Gcc && buildType == buildTypes.debug) {
+                cppCompiler.args "-g"
+            }
+            if (toolChain in VisualCpp && buildType == buildTypes.debug) {
+                cppCompiler.args '/Zi'
+                cppCompiler.define 'DEBUG'
+                linker.args '/DEBUG'
+            }
+        }
     }
 }
 // END SNIPPET build-type-config
 
-// Apply custom arguments for different target platforms
-binaries.all {
-    if (toolChain in Gcc && targetPlatform == platforms.x86) {
-        cppCompiler.args '-O3'
+model {
+    // Apply custom arguments for different target platforms
+    binaries {
+        all {
+            if (toolChain in Gcc && targetPlatform == platforms.x86) {
+                cppCompiler.args '-O3'
+            }
+        }
     }
-}
 
-// Tasks to build all binaries for a tool chain
-task gccExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
-        it.toolChain in Gcc
-    }
-}
-task visualCppExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
-        it.toolChain in VisualCpp
+    // Tasks to build all binaries for a tool chain
+    tasks {
+        gccExecutables(Task) {
+            dependsOn $.binaries.findAll { it.toolChain in Gcc }
+        }
+        visualCppExecutables(Task) {
+            dependsOn $.binaries.findAll { it.toolChain in VisualCpp }
+        }
     }
 }

@@ -23,6 +23,9 @@ import java.io.File;
 import java.util.Collection;
 
 public interface TextReportBuilder {
+    /**
+     * Outputs the heading for the current item. This should be called before any of the {@code item} methods are called.
+     */
     void heading(String heading);
 
     void subheading(String heading);
@@ -31,7 +34,11 @@ public interface TextReportBuilder {
 
     <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer);
 
+    <T> void item(T value, ReportRenderer<T, TextReportBuilder> renderer);
+
     void item(String title, String value);
+
+    void item(String title, Iterable<String> values);
 
     void item(String title, File value);
 

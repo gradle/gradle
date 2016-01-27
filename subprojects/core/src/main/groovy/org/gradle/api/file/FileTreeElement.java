@@ -38,16 +38,14 @@ public interface FileTreeElement {
     boolean isDirectory();
 
     /**
-     * Returns the last modified time of this file. Generally, calling this method is more performant than calling
-     * {@code getFile().lastModified()}
+     * Returns the last modified time of this file at the time of file traversal.
      *
      * @return The last modified time.
      */
     long getLastModified();
 
     /**
-     * Returns the size of this file. Generally, calling this method is more performant than calling {@code
-     * getFile().length()}.
+     * Returns the size of this file at the time of file traversal.
      *
      * @return The size, in bytes.
      */
@@ -65,9 +63,9 @@ public interface FileTreeElement {
      * Copies the content of this file to an output stream. Generally, calling this method is more performant than
      * calling {@code new FileInputStream(getFile())}.
      *
-     * @param outstr The output stream to write to. The caller is responsible for closing this stream.
+     * @param output The output stream to write to. The caller is responsible for closing this stream.
      */
-    void copyTo(OutputStream outstr);
+    void copyTo(OutputStream output);
 
     /**
      * Copies this file to the given target file. Does not copy the file if the target is already a copy of this file.

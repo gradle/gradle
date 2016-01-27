@@ -17,17 +17,12 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "model block can be used in nested context in build script - #code"() {
@@ -85,14 +80,12 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "model block rules in nested context cannot use inputs - #code"() {
+    def "model block rules in nested context cannot reference inputs using dollar method expressions - #code"() {
         given:
         settingsFile << "include 'a', 'b'"
 
         when:
         buildScript """
-            ${testPluginImpl()}
-
             allprojects { apply type: TestPlugin }
 
             $code {
@@ -103,10 +96,12 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
+            ${testPluginImpl()}
         """
 
         then:
         fails "printStrings"
+        failure.assertHasLineNumber(7)
         failure.assertHasCause(NonTransformedModelDslBacking.ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE)
 
         where:
@@ -117,11 +112,42 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    def "model block used in init script cannot use inputs"() {
+    @Unroll
+    def "model block rules in nested context cannot reference inputs using dollar path expressions - #code"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        buildScript """
+            allprojects { apply type: TestPlugin }
+
+            $code {
+                model {
+                    strings {
+                        add \$.foo
+                    }
+                }
+            }
+
+            ${testPluginImpl()}
+        """
+
+        then:
+        fails "printStrings"
+        failure.assertHasLineNumber(7)
+        failure.assertThatCause(containsString('Invalid variable name. Must include a letter but only found: $'))
+
+        where:
+        code << [
+                "subprojects",
+                "project(':a')",
+                "if (true)"
+        ]
+    }
+
+    def "model block used in init script cannot reference inputs using dollar method expressions"() {
         when:
         file("init.gradle") << """
-            ${testPluginImpl()}
-
             allprojects {
                 apply type: TestPlugin
 
@@ -131,15 +157,18 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
                     }
                 }
             }
+
+            ${testPluginImpl()}
         """
 
         then:
         args("-I", file("init.gradle").absolutePath)
         fails "printStrings"
+        failure.assertHasLineNumber(7)
         failure.assertHasCause(NonTransformedModelDslBacking.ATTEMPTED_INPUT_SYNTAX_USED_MESSAGE)
     }
 
-    def "model block must received transformed closure"() {
+    def "model block must receive transformed closure"() {
         when:
         buildScript """
             ${testPluginImpl()}
@@ -148,7 +177,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
             def c = {
                 strings {
-                    add \$("foo")
+                    add foo
                 }
             }
 
@@ -166,9 +195,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         return """
             class TestPlugin {
                 static class Rules extends org.gradle.model.RuleSource {
-                    @org.gradle.model.Model String foo() { "foo" }
-                    @org.gradle.model.Model List<String> strings() { [] }
-                    @org.gradle.model.Mutate void addTask(org.gradle.model.ModelMap<Task> tasks, List<String> strings) {
+                    @Model String foo() { "foo" }
+                    @Model List<String> strings() { [] }
+                    @Mutate void addTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printStrings") { it.doLast { println "strings: " + strings } }
                     }
                 }

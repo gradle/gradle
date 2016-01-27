@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.util.GUtil;
 
@@ -45,8 +44,8 @@ public abstract class WorkerProcessBuilder {
     private String baseName = "Gradle Worker";
     private File gradleUserHomeDir;
 
-    public WorkerProcessBuilder(FileResolver fileResolver) {
-        javaCommand = new JavaExecHandleBuilder(fileResolver);
+    public WorkerProcessBuilder(JavaExecHandleBuilder javaCommand) {
+        this.javaCommand = javaCommand;
     }
 
     public WorkerProcessBuilder setBaseName(String baseName) {

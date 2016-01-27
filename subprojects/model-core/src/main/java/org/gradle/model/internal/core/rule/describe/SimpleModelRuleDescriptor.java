@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 
@@ -30,6 +31,10 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this.descriptor = descriptor;
     }
 
+    public SimpleModelRuleDescriptor(String descriptor, Object... args) {
+        this(String.format(descriptor, args));
+    }
+
     public void describeTo(Appendable appendable) {
         try {
             appendable.append(descriptor);
@@ -38,4 +43,20 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SimpleModelRuleDescriptor that = (SimpleModelRuleDescriptor) o;
+        return Objects.equal(descriptor, that.descriptor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(descriptor);
+    }
 }

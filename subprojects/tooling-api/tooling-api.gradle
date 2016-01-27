@@ -18,6 +18,7 @@ dependencies {
     integTestRuntime project(':buildComparison')
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
+
     integTestRuntime project(":toolingApiBuilders")
 }
 
@@ -25,7 +26,13 @@ useTestFixtures()
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+}
 
+integTest {
+    jvmArgs "-XX:MaxPermSize=500m"
+}
+
+forkingIntegTest {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
     }

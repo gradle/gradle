@@ -22,43 +22,42 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
-import java.util.List;
+
+import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
 
 @ThreadSafe
 public abstract class TypeCompatibilityModelProjectionSupport<M> implements ModelProjection {
 
     private final ModelType<M> type;
-    private final boolean canBeViewedAsReadOnly;
-    private final boolean canBeViewedAsWritable;
 
-    public TypeCompatibilityModelProjectionSupport(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
+    public TypeCompatibilityModelProjectionSupport(ModelType<M> type) {
         this.type = type;
-        this.canBeViewedAsReadOnly = canBeViewedAsReadOnly;
-        this.canBeViewedAsWritable = canBeViewedAsWritable;
     }
 
     protected ModelType<M> getType() {
         return type;
     }
 
-    public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
-        return canBeViewedAsWritable && targetType.isAssignableFrom(type);
+    @Override
+    public <T> boolean canBeViewedAs(ModelType<T> targetType) {
+        return canBeAssignedTo(targetType);
     }
 
-    public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
-        return canBeViewedAsReadOnly && targetType.isAssignableFrom(type);
+    private <T> boolean canBeAssignedTo(ModelType<T> targetType) {
+        return targetType.isAssignableFrom(type)
+            || (targetType == ModelType.UNTYPED && isPrimitiveType(type));
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-        if (canBeViewedAsWritable(type)) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+        if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
         } else {
             return null;
         }
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        if (canBeViewedAsReadOnly(type)) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+        if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, false));
         } else {
             return null;
@@ -67,23 +66,23 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
 
     protected abstract ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable);
 
-    public Iterable<String> getWritableTypeDescriptions(MutableModelNode node) {
-        if (canBeViewedAsWritable) {
-            return Collections.singleton(description(type));
-        } else {
-            return Collections.emptySet();
-        }
+    @Override
+    public Iterable<String> getTypeDescriptions(MutableModelNode node) {
+        return Collections.singleton(description(type));
     }
 
-    public Iterable<String> getReadableTypeDescriptions(MutableModelNode node) {
-        if (canBeViewedAsReadOnly) {
-            return Collections.singleton(description(type));
-        } else {
-            return Collections.emptySet();
+    protected String toStringValueDescription(Object instance) {
+        String valueDescription = instance.toString();
+        if (valueDescription != null) {
+            return valueDescription;
         }
+        return new StringBuilder(type.toString()).append("#toString() returned null").toString();
     }
 
     public static String description(ModelType<?> type) {
+        if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
+            return type.toString();
+        }
         return type.toString() + " (or assignment compatible type thereof)";
     }
 
@@ -97,14 +96,16 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         }
 
         TypeCompatibilityModelProjectionSupport<?> that = (TypeCompatibilityModelProjectionSupport<?>) o;
-        return canBeViewedAsReadOnly == that.canBeViewedAsReadOnly && canBeViewedAsWritable == that.canBeViewedAsWritable && type.equals(that.type);
+        return type.equals(that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + (canBeViewedAsReadOnly ? 1 : 0);
-        result = 31 * result + (canBeViewedAsWritable ? 1 : 0);
-        return result;
+        return type.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + type + "]";
     }
 }

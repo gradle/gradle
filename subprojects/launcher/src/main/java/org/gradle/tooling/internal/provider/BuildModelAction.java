@@ -16,21 +16,17 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.invocation.BuildAction;
 
-import java.io.Serializable;
-
-public class BuildModelAction implements BuildAction, Serializable {
+public class BuildModelAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-    private final ConsumerListenerConfiguration consumerListenerConfiguration;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, ConsumerListenerConfiguration consumerListenerConfiguration) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+        super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
-        this.consumerListenerConfiguration = consumerListenerConfiguration;
     }
 
     @Override
@@ -46,7 +42,4 @@ public class BuildModelAction implements BuildAction, Serializable {
         return runTasks;
     }
 
-    public ConsumerListenerConfiguration getConsumerListenerConfiguration() {
-        return consumerListenerConfiguration;
-    }
 }

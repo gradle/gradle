@@ -26,6 +26,9 @@
             <tr>
                 <td>credentials</td>
             </tr>
+            <tr>
+                <td>authentication</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -38,6 +41,9 @@
             </thead>
             <tr>
                 <td>credentials</td>
+            </tr>
+            <tr>
+                <td>authentication</td>
             </tr>
         </table>
     </section>

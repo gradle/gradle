@@ -23,9 +23,11 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 // TODO:DAZ Test incremental
+@LeaksFileHandles
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
@@ -198,7 +200,9 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-                c.lib library: 'hello', linkage: 'api'
+                c {
+                lib library: 'hello', linkage: 'api'
+                }
             }
         }
         hello(NativeLibrarySpec) {
@@ -338,7 +342,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#configureGeneratedSourceSets("
+        failure.assertHasCause "Exception thrown while executing model rule: NativeComponentModelPlugin.Rules#configureGeneratedSourceSets"
         failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
     }
 
@@ -455,7 +459,7 @@ model {
 
     def executableBuilt(def app) {
         succeeds "mainExecutable"
-        assert executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        assert executable("build/exe/main/main").exec().out == app.englishOutput
         true
     }
 }

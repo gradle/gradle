@@ -17,55 +17,68 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.type.ModelType;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Deque;
 
+@Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
-    private static String createPathString(ModelSchemaExtractionContext<?> extractionContext) {
+    private static void createPathString(DefaultModelSchemaExtractionContext<?> extractionContext, StringBuilder out) {
         StringBuilder prefix = new StringBuilder("  ");
-        StringWriter out = new StringWriter();
-        PrintWriter writer = new PrintWriter(out);
 
         Deque<String> descriptions = Lists.newLinkedList();
-        ModelSchemaExtractionContext<?> current = extractionContext;
+        DefaultModelSchemaExtractionContext<?> current = extractionContext;
         while (current != null) {
             descriptions.push(current.getDescription());
             current = current.getParent();
         }
 
-        writer.println(descriptions.pop());
+        out.append(descriptions.pop());
+        out.append('\n');
 
         while (!descriptions.isEmpty()) {
-            writer.print(prefix);
-            writer.print("\\--- ");
-            writer.print(descriptions.pop());
+            out.append(prefix);
+            out.append("\\--- ");
+            out.append(descriptions.pop());
 
             if (!descriptions.isEmpty()) {
-                writer.println();
+                out.append('\n');
                 prefix.append("  ");
             }
+        }
+    }
+
+    private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext, String message) {
+        ModelType<?> type = extractionContext.getType();
+        StringBuilder out = new StringBuilder();
+        out.append("Invalid managed model type ").append(type).append(": ").append(message);
+
+        if (extractionContext.getParent() != null) {
+            out.append('\n');
+            out.append("The type was analyzed due to the following dependencies:\n");
+            createPathString(extractionContext, out);
         }
 
         return out.toString();
     }
 
-    private static String getMessage(ModelSchemaExtractionContext<?> extractionContext, String message) {
-        ModelType<?> type = extractionContext.getType();
-        StringWriter out = new StringWriter();
-        PrintWriter writer = new PrintWriter(out);
-        writer.print("Invalid managed model type " + type + ": " + message);
+    private static String getMessage(DefaultModelSchemaExtractionContext<?> extractionContext) {
+        StringBuilder out = new StringBuilder();
+        out.append(extractionContext.getProblems().format());
 
         if (extractionContext.getParent() != null) {
-            writer.println();
-            writer.println("The type was analyzed due to the following dependencies:");
-            writer.print(createPathString(extractionContext));
+            out.append("\n\n");
+            out.append("The type was analyzed due to the following dependencies:\n");
+            createPathString(extractionContext, out);
         }
 
         return out.toString();
+    }
+
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext) {
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext), null);
     }
 
     public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
@@ -73,7 +86,7 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
     }
 
     public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
-        super(getMessage(extractionContext, message), throwable);
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext, message), throwable);
     }
 
 }

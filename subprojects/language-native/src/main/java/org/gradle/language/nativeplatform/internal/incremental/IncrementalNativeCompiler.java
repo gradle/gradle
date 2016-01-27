@@ -16,10 +16,17 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
@@ -45,6 +52,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotter fileSnapshotter;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
+    private final Logger logger = Logging.getLogger(IncrementalNativeCompiler.class);
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
@@ -71,6 +79,10 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
+        final IncrementalTaskInputsInternal taskInputs = (IncrementalTaskInputsInternal) spec.getIncrementalInputs();
+
+        handleDiscoveredInputs(spec, compilation, taskInputs);
+
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
             workResult = doIncrementalCompile(compilation, spec);
@@ -88,11 +100,47 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         return workResult;
     }
 
+    protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
+        for (File includeFile : compilation.getIncludeCandidates()) {
+            taskInputs.newInput(includeFile);
+        }
+
+        if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
+            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
+            for (final File includeRoot : spec.getIncludeRoots()) {
+                logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
+                new DirectoryFileTree(includeRoot).visit(new EmptyFileVisitor() {
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        taskInputs.newInput(fileDetails.getFile());
+                    }
+                });
+            }
+        }
+    }
+
     private Map<File, SourceIncludes> mapIncludes(Collection<File> files, final CompilationState compilationState) {
         return CollectionUtils.collectMapValues(files, new Transformer<SourceIncludes, File>() {
             @Override
             public SourceIncludes transform(File file) {
                 return compilationState.getState(file).getSourceIncludes();
+            }
+        });
+    }
+
+    private boolean sourceFilesUseMacroIncludes(Collection<File> files, final CompilationState compilationState) {
+        // If we couldn't determine all dependencies of some files due to macros, we have to scan all include directories.
+        return CollectionUtils.any(files, new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File file) {
+                // If a macro was used for any #includes
+                return CollectionUtils.any(compilationState.getState(file).getResolvedIncludes(), new Spec<ResolvedInclude>() {
+                    @Override
+                    public boolean isSatisfiedBy(ResolvedInclude element) {
+                        // Using macro
+                        return element.isMaybeMacro();
+                    }
+                });
             }
         });
     }

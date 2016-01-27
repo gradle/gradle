@@ -19,8 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -51,8 +49,8 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             apply plugin: 'java'
@@ -72,17 +70,17 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         run "dependencyInsight", "--dependency", "unknown"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 No dependencies matching given input were found in configuration ':compile'
-"""))
+"""
     }
 
     def "indicates that requested dependency cannot be found for custom configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             apply plugin: 'java'
@@ -102,9 +100,9 @@ No dependencies matching given input were found in configuration ':compile'
         run "dependencyInsight", "--dependency", "unknown", "--configuration", "conf"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 No dependencies matching given input were found in configuration ':conf'
-"""))
+"""
     }
 
     def "shows basic single tree with repeated dependency"() {
@@ -112,9 +110,9 @@ No dependencies matching given input were found in configuration ':conf'
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
 
-        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
 
-        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
         file("build.gradle") << """
             repositories {
@@ -136,7 +134,7 @@ No dependencies matching given input were found in configuration ':conf'
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf2:1.0
 +--- org:middle:1.0
 |    \\--- org:top:1.0
@@ -144,7 +142,7 @@ org:leaf2:1.0
 \\--- org:top:1.0 (*)
 
 (*) - dependencies omitted (listed previously)
-"""))
+"""
     }
 
     def "basic dependency insight with conflicting versions"() {
@@ -156,16 +154,16 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        mavenRepo.module("org", "middle1").dependsOn('leaf1', 'leaf2').publish()
-        mavenRepo.module("org", "middle2").dependsOn('leaf3', 'leaf4').publish()
-        mavenRepo.module("org", "middle3").dependsOn('leaf2').publish()
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
 
-        mavenRepo.module("org", "toplevel").dependsOn("middle1", "middle2").publish()
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
 
         mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
         mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
 
-        mavenRepo.module("org", "toplevel4").dependsOn("middle3").publish()
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
         file("build.gradle") << """
             repositories {
@@ -184,7 +182,7 @@ org:leaf2:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf2:2.5 (conflict resolution)
 \\--- org:toplevel3:1.0
      \\--- conf
@@ -200,7 +198,7 @@ org:leaf2:1.0 -> 2.5
 org:leaf2:1.5 -> 2.5
 \\--- org:toplevel2:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows forced version"() {
@@ -232,7 +230,7 @@ org:leaf2:1.5 -> 2.5
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.0 (forced)
 \\--- org:foo:1.0
      \\--- conf
@@ -240,7 +238,7 @@ org:leaf:1.0 (forced)
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows multiple outgoing dependencies"() {
@@ -279,7 +277,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.0
 \\--- org:middle:1.0
      \\--- org:top:1.0
@@ -294,10 +292,10 @@ org:leaf:latest.integration -> 1.0
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
-"""))
+"""
     }
 
-    def "shows substituted versions"() {
+    def "shows versions substitute by resolve rule"() {
         given:
         mavenRepo.module("org", "leaf", 1.0).publish()
         mavenRepo.module("org", "leaf", 2.0).publish()
@@ -327,7 +325,7 @@ org:leaf:latest.integration -> 1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.0 (selected by rule)
 \\--- org:foo:1.0
      \\--- conf
@@ -335,14 +333,14 @@ org:leaf:1.0 (selected by rule)
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows substituted modules"() {
         given:
         mavenRepo.module("org", "new-leaf", 77).publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "foo", 2.0).dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
@@ -351,7 +349,10 @@ org:leaf:2.0 -> 1.0
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useTarget('org:new-leaf:77') } }
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('org:leaf') with module('org:new-leaf:77')
+                        substitute module('org:foo') with module('org:foo:2.0')
+                    }
                 }
             }
             dependencies {
@@ -367,17 +368,17 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:new-leaf:77 (selected by rule)
 
 org:leaf:1.0 -> org:new-leaf:77
-\\--- org:foo:1.0
+\\--- org:foo:2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
 \\--- org:bar:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows version resolved from dynamic selectors"() {
@@ -409,7 +410,7 @@ org:leaf:2.0 -> org:new-leaf:77
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.6
 
 org:leaf:1.+ -> 1.6
@@ -423,7 +424,7 @@ org:leaf:[1.5,1.9] -> 1.6
 org:leaf:latest.integration -> 1.6
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "forced version matches the conflict resolution"() {
@@ -455,7 +456,7 @@ org:leaf:latest.integration -> 1.6
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:2.0 (forced)
 \\--- org:bar:1.0
      \\--- conf
@@ -463,7 +464,7 @@ org:leaf:2.0 (forced)
 org:leaf:1.0 -> 2.0
 \\--- org:foo:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "forced version does not match anything in the graph"() {
@@ -496,7 +497,7 @@ org:leaf:1.0 -> 2.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.5 (forced)
 
 org:leaf:1.0 -> 1.5
@@ -506,7 +507,7 @@ org:leaf:1.0 -> 1.5
 org:leaf:2.0 -> 1.5
 \\--- org:bar:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "forced version at dependency level"() {
@@ -540,7 +541,7 @@ org:leaf:2.0 -> 1.5
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.0 (forced)
 +--- conf
 \\--- org:foo:1.0
@@ -549,7 +550,7 @@ org:leaf:1.0 (forced)
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows decent failure when inputs missing"() {
@@ -615,7 +616,7 @@ org:leaf:2.0 -> 1.0
 
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
-        mavenRepo.module("org", "top").dependsOn("middle").publish()
+        mavenRepo.module("org", "top").dependsOnModules("middle").publish()
 
         file("build.gradle") << """
             repositories {
@@ -637,11 +638,11 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:middle:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
@@ -673,13 +674,13 @@ org:middle:1.0 FAILED
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:middle:2.0 (forced) FAILED
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
@@ -708,14 +709,14 @@ org:middle:1.0 -> 2.0 FAILED
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:middle:2.0 (conflict resolution) FAILED
 \\--- conf
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "marks modules that can't be resolved after substitution as 'FAILED'"() {
@@ -729,7 +730,9 @@ org:middle:1.0 -> 2.0 FAILED
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'middle') { it.useVersion('2.0+') } }
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("org:middle") with module("org:middle:2.0+")
+                    }
                 }
             }
             dependencies {
@@ -745,13 +748,13 @@ org:middle:1.0 -> 2.0 FAILED
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:middle:2.0+ (selected by rule) FAILED
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     @Ignore
@@ -784,7 +787,7 @@ org:middle:1.0 -> 2.0+ FAILED
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.5 (conflict resolution)
 
 org:leaf:1.0 -> 1.5
@@ -798,7 +801,7 @@ org:leaf:0.8+ -> 1.5
 org:leaf:[1.5,1.9] -> 1.5
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "shows multiple failed outgoing dependencies"() {
@@ -829,7 +832,7 @@ org:leaf:[1.5,1.9] -> 1.5
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
@@ -841,13 +844,13 @@ org:leaf:1.6+ FAILED
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
      \\--- conf
-"""))
+"""
     }
 
     def "deals with dependency cycles"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf1").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf1").publish()
 
         file("build.gradle") << """
             repositories {
@@ -869,12 +872,12 @@ org:leaf:[1.5,2.0] FAILED
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf2:1.0
 \\--- org:leaf1:1.0
      +--- conf
      \\--- org:leaf2:1.0 (*)
-"""))
+"""
     }
 
     def "deals with dependency cycle to root"() {
@@ -906,17 +909,17 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 project :
 \\--- project :impl
      \\--- project : (*)
-"""))
+"""
     }
 
     def "selects a module component dependency with a given name"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -948,18 +951,18 @@ project :
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf2:1.0
 \\--- org:leaf1:1.0
      \\--- project :impl
           \\--- compile
-"""))
+"""
     }
 
     def "selects a project component dependency with a given project path"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -991,16 +994,16 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 project :impl
 \\--- compile
-"""))
+"""
     }
 
     def "selects a module component dependency with a given name with dependency command line option"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
@@ -1035,17 +1038,17 @@ project :impl
         run "dependencyInsight", "--dependency", "leaf4"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf4:1.0
 \\--- project :impl
      \\--- compile
-"""))
+"""
     }
 
     def "selects a project component dependency with a given name with dependency command line option"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
@@ -1080,17 +1083,17 @@ org:leaf4:1.0
         run "dependencyInsight", "--dependency", ":api"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 project :api
 \\--- project :impl
      \\--- compile
-"""))
+"""
     }
 
     def "renders tree with a mix of project and external dependencies"() {
         given:
-        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
-        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
         file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
@@ -1124,7 +1127,7 @@ project :api
         run "dependencyInsight", "--dependency", "leaf3"
 
         then:
-        output.contains(toPlatformLineSeparators("""
+        output.contains """
 org:leaf3:1.0
 \\--- org:leaf2:1.0
      +--- project :api
@@ -1132,6 +1135,6 @@ org:leaf3:1.0
      |         \\--- compile
      \\--- org:leaf1:1.0
           \\--- project :impl (*)
-"""))
+"""
     }
 }

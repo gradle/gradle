@@ -42,11 +42,18 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class DistributionFactory {
     private final Factory<? extends ExecutorService> executorFactory;
+    private File distributionBaseDir;
 
     public DistributionFactory(Factory<? extends ExecutorService> executorFactory) {
         this.executorFactory = Preconditions.checkNotNull(executorFactory);
+    }
+
+    public void setDistributionBaseDir(File distributionBaseDir) {
+        this.distributionBaseDir = distributionBaseDir;
     }
 
     /**
@@ -56,7 +63,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory);
+            return new ZippedDistribution(wrapper.getConfiguration(), executorFactory, distributionBaseDir);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -82,7 +89,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, executorFactory);
+        return new ZippedDistribution(configuration, executorFactory, distributionBaseDir);
     }
 
     /**
@@ -101,10 +108,12 @@ public class DistributionFactory {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final Factory<? extends ExecutorService> executorFactory;
+        private final File distributionBaseDir;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Factory<? extends ExecutorService> executorFactory, File distributionBaseDir) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.executorFactory = executorFactory;
+            this.distributionBaseDir = distributionBaseDir;
         }
 
         public String getDisplayName() {
@@ -117,7 +126,7 @@ public class DistributionFactory {
                     public File call() throws Exception {
                         File installDir;
                         try {
-                            File realUserHomeDir = userHomeDir != null ? userHomeDir : GradleUserHomeLookup.gradleUserHome();
+                            File realUserHomeDir = determineRealUserHomeDir(userHomeDir);
                             Install install = new Install(new Logger(false), new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(realUserHomeDir));
                             installDir = install.createDist(wrapperConfiguration);
                         } catch (FileNotFoundException e) {
@@ -159,6 +168,14 @@ public class DistributionFactory {
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
             return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir, cancellationToken);
+        }
+
+        private File determineRealUserHomeDir(final File userHomeDir) {
+            if(distributionBaseDir != null) {
+                return distributionBaseDir;
+            }
+
+            return userHomeDir != null ? userHomeDir : GradleUserHomeLookup.gradleUserHome();
         }
     }
 
@@ -220,7 +237,7 @@ public class DistributionFactory {
             }
             LinkedHashSet<File> files = new LinkedHashSet<File>();
             for (File file : libDir.listFiles()) {
-                if (file.getName().endsWith(".jar")) {
+                if (hasExtension(file, ".jar")) {
                     files.add(file);
                 }
             }

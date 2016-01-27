@@ -27,6 +27,9 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
     }
@@ -38,11 +41,14 @@ public class JvmPluginServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class ComponentRegistrationAction {
-        public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
-            // TODO There should be a more explicit way to execute an action against existing services
-            // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
-            componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
-                    .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
+        /***
+         * @param registration unused parameter required by convention, see {@link org.gradle.internal.service.DefaultServiceRegistry}.
+         */
+        public void configure(ServiceRegistration registration,
+                              ComponentTypeRegistry componentTypeRegistry) {
+            componentTypeRegistry
+                .maybeRegisterComponentType(JvmLibrary.class)
+                .registerArtifactType(SourcesArtifact.class, ArtifactType.SOURCES);
         }
     }
 }

@@ -65,7 +65,7 @@ public class InstalledJvmLocator {
         }
         if (!installs.containsKey(currentJvm.getJavaHome())) {
             // TODO - this isn't quite right
-            boolean isJdk = !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
+            boolean isJdk = currentJvm.getJre() == null || !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
             installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), isJdk, toArch(System.getProperty("os.arch"))));
         }
 

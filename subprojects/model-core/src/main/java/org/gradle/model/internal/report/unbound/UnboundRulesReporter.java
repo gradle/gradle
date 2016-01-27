@@ -34,57 +34,63 @@ public class UnboundRulesReporter {
     }
 
     public void reportOn(Iterable<? extends UnboundRule> rules) {
-        boolean first = true;
         for (UnboundRule rule : rules) {
-            if (!first) {
-                writer.println();
-            }
-            first = false;
-
             writer.print(prefix);
-
-            writer.print(rule.getDescriptor());
+            writer.println(rule.getDescriptor());
             if (rule.getMutableInputs().size() > 0) {
-                heading("Mutable:");
+                heading("subject:");
                 reportInputs(rule.getMutableInputs());
             }
             if (rule.getImmutableInputs().size() > 0) {
-                heading("Immutable:");
+                heading("inputs:");
                 reportInputs(rule.getImmutableInputs());
             }
+            writer.println();
         }
+        writer.println("[*] - indicates that a model item could not be found for the path or type.");
     }
 
     private void reportInputs(Iterable<? extends UnboundRuleInput> inputs) {
         for (UnboundRuleInput input : inputs) {
-            item();
-            writer.print(input.isBound() ? "+ " : "- ");
-            String path = input.getPath() == null ? "<unspecified>" : input.getPath();
-            writer.print(String.format("%s (%s)", path, input.getType()));
+            writer.print(indent(2));
+            writer.write("- ");
+            writer.write(input.getPath() == null ? "<no path>" : input.getPath());
+            writer.write(" ");
+            writer.write(input.getType() == null ? "<untyped>" : input.getType());
             if (input.getDescription() != null) {
-                writer.print(String.format(" %s", input.getDescription()));
+                writer.write(" ");
+                writer.write("(");
+                writer.write(input.getDescription());
+                writer.write(")");
             }
+            if (!input.isBound()) {
+                writer.write(" ");
+                writer.write("[*]");
+            }
+            writer.println();
             if (input.getPath() == null && input.getScope() != null) {
-                writer.print(String.format(" in scope of '%s'", input.getScope()));
+                writer.write(indent(4));
+                writer.write("scope: ");
+                writer.println(input.getScope());
             }
             if (input.getSuggestedPaths().size() > 0) {
-                writer.print(" - suggestions: ");
-                writer.print(Joiner.on(", ").join(input.getSuggestedPaths()));
+                writer.write(indent(4));
+                writer.write("suggestions: ");
+                writer.println(Joiner.on(", ").join(input.getSuggestedPaths()));
             }
         }
     }
 
-    private void item() {
-        writer.println();
-        writer.print(prefix);
-        writer.print(INDENT);
-        writer.print(INDENT);
+    private void heading(String heading) {
+        writer.print(indent(1));
+        writer.println(heading);
     }
 
-    private void heading(String heading) {
-        writer.println();
-        writer.print(prefix);
-        writer.print(INDENT);
-        writer.print(heading);
+    private String indent(int times) {
+        StringBuffer buff = new StringBuffer(prefix);
+        for (int i = 0; i < times; i++) {
+            buff.append(INDENT);
+        }
+        return buff.toString();
     }
 }

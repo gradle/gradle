@@ -17,4 +17,5 @@
 /**
  * Types for Scala language support.
  */
+@org.gradle.api.Incubating
 package org.gradle.language.scala;

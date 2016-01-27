@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.googletest
-
+import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppPlugin
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestPlugin
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestConventionPlugin
+import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class GoogleTestTest extends Specification {
     final def project = TestUtil.createRootProject();
 
-    def "check the correct binary type are created for the test suite"() {
+    def "creates a test suite for each library under test"() {
         given:
         project.apply(plugin: CppPlugin)
-        project.apply(plugin: GoogleTestPlugin)
+        project.apply(plugin: GoogleTestConventionPlugin)
         project.model {
             components {
                 main(NativeLibrarySpec)
@@ -39,9 +39,16 @@ class GoogleTestTest extends Specification {
         project.evaluate()
 
         when:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelTypes.modelMap(TestSuiteSpec)).get("mainTest").binaries.values()
+        GoogleTestTestSuiteSpec testSuite = project.modelRegistry.realize("testSuites", modelMap(TestSuiteSpec)).mainTest
+        def sources = testSuite.sources.values()
+        def binaries = testSuite.binaries.values()
 
         then:
-        binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()
+        sources.size() == 1
+        sources.every { it instanceof CppSourceSet }
+
+        and:
+        binaries.size() == 1
+        binaries.every { it instanceof GoogleTestTestSuiteBinarySpec }
     }
 }

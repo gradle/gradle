@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.wagon.Wagon;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -65,7 +64,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         private final RepositoryTransportFactory repositoryTransportFactory;
 
         public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(pomFile);
+            super(pomFile, null);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
 
@@ -92,8 +91,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         }
 
         private RepositoryTransportWagonAdapter createAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getConfiguredCredentials();
-            RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), credentials);
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(),
+                    ((AuthenticationSupportedInternal)artifactRepository).getConfiguredAuthentication());
             URI rootUri = artifactRepository.getUrl();
             return new RepositoryTransportWagonAdapter(transport, rootUri);
         }

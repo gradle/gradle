@@ -79,7 +79,7 @@ class DaemonEventSequenceBuilder {
     private finishCheckpoint() {
         if (currentState == null) {
             if (!actions.empty) {
-                currentState = DaemonsState.getWildcard()
+                currentState = DaemonsState.getWildcardState()
                 finishCheckpoint()
             }
         } else {

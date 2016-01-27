@@ -19,12 +19,12 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.PreprocessingTool
+import org.gradle.nativeplatform.PreprocessingTool
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
-import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.NativeDependencySet
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -40,10 +40,8 @@ class VisualStudioProjectConfigurationTest extends Specification {
     def exe = Mock(NativeExecutableSpec) {
         getFlavors() >> flavors
     }
-    def extensions = Mock(ExtensionContainer)
     def platform = Mock(NativePlatform)
     def exeBinary = Mock(TestExecutableBinary) {
-        getExtensions() >> extensions
         getFlavor() >> flavor
         getComponent() >> exe
         getTargetPlatform() >> platform
@@ -81,10 +79,8 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "compiler defines are taken from cpp compiler configuration"() {
         when:
-        1 * extensions.findByName('cCompiler') >> null
-        1 * extensions.findByName('cppCompiler') >> cppCompiler
-        1 * extensions.findByName('rcCompiler') >> null
         cppCompiler.macros >> [foo: "bar", empty: null]
+        exeBinary.getToolByName("cppCompiler") >> cppCompiler
 
         then:
         configuration.compilerDefines == ["foo=bar", "empty"]
@@ -92,10 +88,8 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "compiler defines are taken from c compiler configuration"() {
         when:
-        1 * extensions.findByName('cCompiler') >> cCompiler
-        1 * extensions.findByName('cppCompiler') >> null
-        1 * extensions.findByName('rcCompiler') >> null
         cCompiler.macros >> [foo: "bar", another: null]
+        exeBinary.getToolByName("cCompiler") >> cCompiler
 
         then:
         configuration.compilerDefines == ["foo=bar", "another"]
@@ -103,10 +97,9 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "resource defines are taken from rcCompiler config"() {
         when:
-        1 * extensions.findByName('cCompiler') >> null
-        1 * extensions.findByName('cppCompiler') >> null
-        1 * extensions.findByName('rcCompiler') >> rcCompiler
         rcCompiler.macros >> [foo: "bar", empty: null]
+        exeBinary.getToolByName("rcCompiler") >> rcCompiler
+
 
         then:
         configuration.compilerDefines == ["foo=bar", "empty"]
@@ -114,30 +107,22 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
     def "compiler defines are taken from cpp, c and rc compiler configurations combined"() {
         when:
-        1 * extensions.findByName('cppCompiler') >> null
-        1 * extensions.findByName('cCompiler') >> null
-        1 * extensions.findByName('rcCompiler') >> null
-
-        then:
-        configuration.compilerDefines == []
-
-        when:
-        1 * extensions.findByName('cCompiler') >> cCompiler
-        1 * extensions.findByName('cppCompiler') >> cppCompiler
-        1 * extensions.findByName('rcCompiler') >> rcCompiler
         cCompiler.macros >> [_c: null]
         cppCompiler.macros >> [foo: "bar", _cpp: null]
         rcCompiler.macros >> [rc: "defined", rc_empty: null]
+        exeBinary.getToolByName('cCompiler') >> cCompiler
+        exeBinary.getToolByName('cppCompiler') >> cppCompiler
+        exeBinary.getToolByName('rcCompiler') >> rcCompiler
 
         then:
         configuration.compilerDefines == ["_c", "foo=bar", "_cpp", "rc=defined", "rc_empty"]
     }
 
     def "include paths include component headers"() {
-        def sourceSets = []
+        final inputs = new DefaultDomainObjectSet(LanguageSourceSet)
 
         when:
-        exeBinary.source >> headerSourceSetModelMap(sourceSets)
+        exeBinary.inputs >> inputs
         exeBinary.libs >> []
 
         then:
@@ -147,8 +132,14 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def file1 = Mock(File)
         def file2 = Mock(File)
         def file3 = Mock(File)
-        sourceSets.add(headerSourceSet(file1, file2))
-        sourceSets.add(headerSourceSet(file3))
+        def sourceSet = Mock(LanguageSourceSet)
+        def sourceSet1 = headerSourceSet(file1, file2)
+        def sourceSet2 = headerSourceSet(file3)
+        inputs.addAll(sourceSet, sourceSet1, sourceSet2)
+
+        and:
+        exeBinary.inputs >> inputs
+        exeBinary.libs >> []
 
         then:
         configuration.includePaths == [file1, file2, file3]
@@ -163,23 +154,11 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def deps1 = dependencySet(file1, file2)
         def deps2 = dependencySet(file3)
 
-        exeBinary.source >> emptyHeaderSourceSetModelMap()
+        exeBinary.inputs >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
         exeBinary.libs >> [deps1, deps2]
 
         then:
         configuration.includePaths == [file1, file2, file3]
-    }
-
-    private ModelMap emptyHeaderSourceSetModelMap() {
-        headerSourceSetModelMap([])
-    }
-
-    private ModelMap headerSourceSetModelMap(Collection<HeaderExportingSourceSet> sourceSets) {
-        Mock(ModelMap) {
-            withType(HeaderExportingSourceSet) >> Mock(ModelMap) {
-                values() >> (sourceSets as List)
-            }
-        }
     }
 
     private HeaderExportingSourceSet headerSourceSet(File... files) {

@@ -87,8 +87,8 @@ model {
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :install${it.name.capitalize()}MainExecutable"
-            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/mainExecutable/${it.name}/lib/main")
+            assert it.buildCommand == "gradle :installMain${it.name.capitalize()}Executable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.outputDir}/lib/main")
         }
 
         and:
@@ -119,8 +119,8 @@ model {
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :${it.name}MainSharedLibrary"
-            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/binaries/mainSharedLibrary/${it.name}/main")
+            assert it.buildCommand == "gradle :main${it.name.capitalize()}SharedLibrary"
+            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/libs/main/shared/${it.outputDir}/main")
         }
 
         and:
@@ -166,7 +166,7 @@ model {
         both(NativeLibrarySpec)
         staticOnly(NativeLibrarySpec) {
             binaries.withType(SharedLibraryBinarySpec) {
-                buildable false
+                buildable = false
             }
         }
     }
@@ -597,10 +597,12 @@ model {
     components {
         main(NativeExecutableSpec)
     }
-}
-binaries.all {
-    rcCompiler.define "TEST"
-    rcCompiler.define "foo", "bar"
+    binaries {
+        all {
+            rcCompiler.define "TEST"
+            rcCompiler.define "foo", "bar"
+        }
+    }
 }
 """
 

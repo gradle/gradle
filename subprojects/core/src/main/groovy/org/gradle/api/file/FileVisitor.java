@@ -24,12 +24,12 @@ public interface FileVisitor {
      *
      * @param dirDetails Meta-info about the directory.
      */
-    public void visitDir(FileVisitDetails dirDetails);
+    void visitDir(FileVisitDetails dirDetails);
 
     /**
      * Visits a file.
      *
      * @param fileDetails Meta-info about the file.
      */
-    public void visitFile(FileVisitDetails fileDetails);
+    void visitFile(FileVisitDetails fileDetails);
 }

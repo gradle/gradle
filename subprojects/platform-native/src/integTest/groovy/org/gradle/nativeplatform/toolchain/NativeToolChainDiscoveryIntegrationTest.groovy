@@ -16,10 +16,12 @@
 package org.gradle.nativeplatform.toolchain
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 /**
  * Test that each available tool chain can be discovered and used without configuration, assuming it is in the path.
  */
+@LeaksFileHandles
 class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new CppCompilerDetectingTestApp()
@@ -53,7 +55,7 @@ model {
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.expectedOutput(toolChain)
 
@@ -83,7 +85,7 @@ model {
         run "mainExecutable"
 
         then:
-        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.expectedOutput(toolChain)
     }

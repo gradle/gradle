@@ -29,6 +29,10 @@
                 <td><literal>project.pmd.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>rulePriority</td>
+                <td><literal>project.pmd.rulePriority</literal></td>
+            </tr>
+            <tr>
                 <td>consoleOutput</td>
                 <td><literal>project.pmd.consoleOutput</literal></td>
             </tr>
@@ -43,6 +47,10 @@
             <tr>
                 <td>reports</td>
                 <td></td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+                <td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td>
             </tr>
         </table>
     </section>

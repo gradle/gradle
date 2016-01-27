@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeExecutableBinary;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableSpec;
+import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
@@ -29,24 +27,32 @@ import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
-    private File executableFile;
+    private final NativeInstallationSpec installation = new NativeInstallationSpec();
+    private final NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
 
     @Override
     public NativeExecutableSpec getComponent() {
-        return (NativeExecutableSpec) super.getComponent();
+        return getComponentAs(NativeExecutableSpec.class);
     }
 
     @Override
     public NativeExecutableSpec getApplication() {
-        return getComponent();
+        return getComponentAs(NativeExecutableSpec.class);
     }
 
+    @Override
+    public NativeExecutableFileSpec getExecutable() {
+        return executable;
+    }
+
+    @Override
     public File getExecutableFile() {
-        return executableFile;
+        return getExecutable().getFile();
     }
 
-    public void setExecutableFile(File executableFile) {
-        this.executableFile = executableFile;
+    @Override
+    public NativeInstallationSpec getInstallation() {
+        return installation;
     }
 
     public File getPrimaryOutput() {
@@ -58,6 +64,7 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return tasks.getLink();
     }
 
+    @Override
     public NativeExecutableBinarySpec.TasksCollection getTasks() {
         return tasks;
     }

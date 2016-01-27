@@ -295,10 +295,10 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void reportsConstructionFailure() {
         try {
-            generator.newInstance(UnconstructableBean.class);
+            generator.newInstance(UnconstructibleBean.class);
             fail();
         } catch (ObjectInstantiationException e) {
-            assertThat(e.getCause(), sameInstance(UnconstructableBean.failure));
+            assertThat(e.getCause(), sameInstance(UnconstructibleBean.failure));
         }
 
         try {
@@ -1235,10 +1235,10 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static class UnconstructableBean {
+    public static class UnconstructibleBean {
         static Throwable failure = new UnsupportedOperationException();
 
-        public UnconstructableBean() throws Throwable {
+        public UnconstructibleBean() throws Throwable {
             throw failure;
         }
     }

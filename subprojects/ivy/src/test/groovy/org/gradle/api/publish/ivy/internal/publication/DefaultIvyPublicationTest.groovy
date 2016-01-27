@@ -17,15 +17,13 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.*
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
@@ -36,11 +34,9 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
 class DefaultIvyPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
@@ -103,7 +99,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.configurations.size() == 2
         publication.configurations.runtime.extends == [] as Set
         publication.configurations."default".extends == ["runtime"] as Set
-        
+
         publication.dependencies.empty
     }
 
@@ -112,6 +108,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
         def artifact = Mock(DependencyArtifact)
+        def exclude = Mock(ExcludeRule)
 
         when:
         moduleDependency.group >> "org"
@@ -119,6 +116,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.version >> "version"
         moduleDependency.configuration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
+        moduleDependency.excludeRules >> [exclude]
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -137,6 +135,7 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "version"
             confMapping == "runtime->dep-configuration"
             artifacts == [artifact]
+            excludeRules == [exclude]
         }
     }
 
@@ -144,10 +143,12 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
+        def exclude = Mock(ExcludeRule)
 
         and:
         projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.configuration >> "dep-configuration"
+        projectDependency.excludeRules >> [exclude]
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -166,6 +167,7 @@ class DefaultIvyPublicationTest extends Specification {
             revision == "pub-revision"
             confMapping == "runtime->dep-configuration"
             artifacts == []
+            excludeRules == [exclude]
         }
     }
 
@@ -257,7 +259,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver)
+        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver, TestFiles.fileCollectionFactory())
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }

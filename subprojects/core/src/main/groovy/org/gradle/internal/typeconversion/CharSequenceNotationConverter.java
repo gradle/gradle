@@ -19,9 +19,9 @@ package org.gradle.internal.typeconversion;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 class CharSequenceNotationConverter<N, T> implements NotationConverter<N, T> {
-    private final NotationConverter<String, ? extends T> delegate;
+    private final NotationConverter<? super String, ? extends T> delegate;
 
-    public CharSequenceNotationConverter(NotationConverter<String, ? extends T> delegate) {
+    public CharSequenceNotationConverter(NotationConverter<? super String, ? extends T> delegate) {
         this.delegate = delegate;
     }
 

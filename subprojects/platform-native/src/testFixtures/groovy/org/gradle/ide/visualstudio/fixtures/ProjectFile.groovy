@@ -86,6 +86,10 @@ class ProjectFile {
             return ProjectFile.this
         }
 
+        String getOutputDir() {
+            return name.replaceFirst("(\\p{Upper})", "/\$1").toLowerCase()
+        }
+
         String getMacros() {
             buildConfiguration.NMakePreprocessorDefinitions[0].text()
         }

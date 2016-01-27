@@ -17,14 +17,9 @@
 package org.gradle.language.jvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ResourceOnlyJvmLibraryIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "can define a library containing resources only"() {
         buildFile << '''
@@ -38,7 +33,9 @@ model {
     }
     tasks {
         create("validate") {
-            def components = $("components")
+            def components = $.components
+            def sources = $.sources
+            def binaries = $.binaries
             doLast {
                 def myLib = components.myLib
                 assert myLib instanceof JvmLibrarySpec
@@ -46,10 +43,10 @@ model {
                 assert myLib.sources.size() == 1
                 assert myLib.sources.resources instanceof JvmResourceSet
 
-                assert project.sources as Set == myLib.sources as Set
+                assert sources as Set == myLib.sources as Set
 
-                project.binaries.withType(JarBinarySpec) { jvmBinary ->
-                    assert jvmBinary.source.values() == myLib.source.values()
+                binaries.withType(JarBinarySpec).each { jvmBinary ->
+                    assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
                 }
             }
         }
@@ -80,7 +77,7 @@ model {
         run 'assemble'
 
         then:
-        def jar = jarFile('build/jars/myLibJar/myLib.jar')
+        def jar = jarFile('build/jars/myLib/jar/myLib.jar')
         jar.hasDescendants("org/gradle/thing.txt")
         jar.assertFilePresent("org/gradle/thing.txt", "hi")
     }
@@ -109,7 +106,7 @@ model {
         run 'assemble'
 
         then:
-        def jar = jarFile('build/jars/myLibJar/myLib.jar')
+        def jar = jarFile('build/jars/myLib/jar/myLib.jar')
         jar.hasDescendants("thing.txt", "org/gradle/thing.txt")
         jar.assertFilePresent("thing.txt", "hi")
         jar.assertFilePresent("org/gradle/thing.txt", "hi")

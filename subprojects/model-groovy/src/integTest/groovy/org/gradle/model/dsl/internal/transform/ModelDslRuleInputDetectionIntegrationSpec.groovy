@@ -17,23 +17,223 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.model.internal.report.unbound.UnboundRule
-import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import spock.lang.Unroll
 
-import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-        EnableModelDsl.enable(executer)
+    @Unroll
+    def "can reference input using dollar method expression - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks {
+                def v = $syntax
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + v
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$("thing.value")',
+            '$("thing").value',
+            '$("thing").getValue()',
+            "(\$('thing')).value",
+            "(\$('thing')).(value)",
+            '$("thing")."${"value"}"',
+            "\$('thing').'value'",
+            "\$('thing').value.toUpperCase().toLowerCase()",
+            "\$('thing').value[0] + 'oo'",
+            "(true ? \$('thing.value') : 'bar')",
+            "new String(\$('thing.value'))",
+        ]
     }
 
     @Unroll
-    def "only literal strings can be given to dollar - #code"() {
+    def "can reference input using dollar var expression - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks {
+                def v = $syntax
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + v
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$.thing.value',
+            '$."thing"."value"',
+            '$.thing.getValue()',
+            "\$.'thing'.'value'",
+            '$.thing.value.toUpperCase().toLowerCase()',
+            '(true ? $.thing.value : "bar")',
+            "new String(\$.thing.value)",
+        ]
+    }
+
+    @Unroll
+    def "can inject input as parameter of rule closure - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks { t, v = $syntax ->
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + v
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$("thing.value")',
+            '$("thing").value',
+            '$("thing.value").toString()',
+            '$.thing.value'
+        ]
+    }
+
+    @Unroll
+    def "input reference can be used as expression statement - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            tasks {
+                $syntax
+                println "tasks configured"
+            }
+            thing(Thing) {
+                println "thing configured"
+            }
+          }
+        """
+
+        then:
+        succeeds "tasks"
+        result.output.contains '''thing configured
+tasks configured
+'''
+
+        where:
+        syntax << [
+            '$.thing.value',
+            '$("thing.value")'
+        ]
+    }
+
+    @Unroll
+    def "dollar var must be followed by property expression - #code"() {
+        when:
+        buildScript """
+        model {
+          foo {
+            $code
+          }
+        }
+        """
+
+        then:
+        fails "tasks"
+        failure.assertHasLineNumber 4
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasDescription("Could not compile build file '${buildFile}'")
+        failure.assertThatCause(containsString('Invalid variable name. Must include a letter but only found: $'))
+
+        where:
+        code << [
+            '$',
+            '$.toString()',
+            '$.$("foo")',
+            '$."${ 1 + 2}"',
+            '$*.things',
+            '$?.things',
+        ]
+    }
+
+    def "path for dollar var expression ends with first non-property reference"() {
+        when:
+        buildScript '''
+        @Managed
+        interface Thing {
+            List<String> getValues()
+        }
+        model {
+            thing(Thing) {
+                values.addAll(['', '2', '3'])
+            }
+            tasks {
+                echo(Task) {
+                    doLast {
+                        println "values: " + $.thing.values*.empty
+                        println "values: " + $.thing.values?.empty
+                    }
+                }
+            }
+        }
+        '''
+
+        then:
+        succeeds "echo"
+        output.contains "values: [true, false, false]"
+    }
+
+    @Unroll
+    def "only literal strings can be given to dollar method - #code"() {
         when:
         buildScript """
         model {
@@ -51,14 +251,14 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                '$(1)',
-                '$("$name")',
-                '$("a" + "b")',
-                'def a = "foo"; $(a)',
-                '$("foo", "bar")',
-                '$()',
-                '$(null)',
-                '$("")'
+            '$(1)',
+            '$("$name")',
+            '$("a" + "b")',
+            'def a = "foo"; $(a)',
+            '$("foo", "bar")',
+            '$()',
+            '$(null)',
+            '$("")'
         ]
     }
 
@@ -89,12 +289,46 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'something.$(1)',
-//                'this.$("$name")',
-//                'foo.bar().$("a" + "b")',
+            'something.$(1)',
+            'this.$("$name")',
+            'foo.bar().$("a" + "b")',
         ]
     }
 
+    @Unroll
+    def "dollar var is only detected with no explicit receiver - #code"() {
+        when:
+        buildScript """
+            class MyPlugin {
+              static class Rules extends RuleSource {
+                @Model
+                String foo() {
+                  "foo"
+                }
+              }
+            }
+
+            apply type: MyPlugin
+
+            model {
+              foo {
+                $code
+              }
+            }
+        """
+
+        then:
+        succeeds "tasks" // succeeds because we don't fail on invalid usage, and don't fail due to unbound inputs
+
+        where:
+        code << [
+            'something.$.foo',
+            'this.$.foo',
+            'foo.bar().$.foo'
+        ]
+    }
+
+    @Unroll
     def "input references are found in nested code - #code"() {
         when:
         buildScript """
@@ -140,15 +374,22 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'if (true) { add $("foo") }',
-                'if (false) {} else if (true) { add $("foo") }',
-                'if (false) {} else { add $("foo") }',
-                'def i = true; while(i) { add $("foo"); i = false }',
-                '[1].each { add $("foo") }',
-                'add "${$("foo")}"',
-                'def v = $("foo"); add(v)',
-                'add($("foo"))',
-                'add($("foo").toString())',
+            'if (true) { add $.foo }',
+            'if (true) { add $("foo") }',
+            'if (false) {} else if (true) { add $("foo") }',
+            'if (false) {} else { add $("foo") }',
+            'def i = true; while(i) { add $("foo"); i = false }',
+            '[1].each { add $("foo") }',
+            'add "${$("foo")}"',
+            'def v = $("foo"); add(v)',
+            'add($("foo"))',
+            'add($("foo").toString())',
+            '''
+def cl = { foo = $("foo") -> add(foo) }
+cl.call()
+''',
+            '{ foo = true ? $("foo") : "bar" -> add(foo) }.call()',
+            '{ foo = true ? $.foo : "bar" -> add(foo) }.call()'
         ]
     }
 
@@ -181,6 +422,54 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
     }
 
+    def "location and suggestions are provided for unbound rule subject specified using a name"() {
+        given:
+        buildScript '''
+            class MyPlugin extends RuleSource {
+                @Model
+                String foobar() {
+                    return "value"
+                }
+                @Model
+                String raboof() {
+                    return "value"
+                }
+            }
+
+            apply type: MyPlugin
+
+            model {
+                foonar {
+                }
+                foobah {
+                }
+                fooar {
+                }
+            }
+        '''
+
+        when:
+        fails "tasks"
+
+        then:
+        failureCauseContains('''
+  fooar { ... } @ build.gradle line 20, column 17
+    subject:
+      - fooar Object [*]
+          suggestions: foobar
+
+  foobah { ... } @ build.gradle line 18, column 17
+    subject:
+      - foobah Object [*]
+          suggestions: foobar
+
+  foonar { ... } @ build.gradle line 16, column 17
+    subject:
+      - foonar Object [*]
+          suggestions: foobar
+''')
+    }
+
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
         buildScript '''
@@ -197,10 +486,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             apply type: MyPlugin
 
             model {
-                foo {
+                tasks.raboof {
                     $('tasks.foonar')
                     $('tasks.fooar')
-                    $('tasks.foonar')
+                    $.tasks.foobarr
                 }
             }
         '''
@@ -209,28 +498,32 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.foo", buildFile, 15, 17)
-                        .mutableInput(UnboundRuleInput.type(Object).path("foo"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 16"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 17"))
-        ))
+        failureCauseContains('''
+  tasks.raboof { ... } @ build.gradle line 15, column 17
+    subject:
+      - tasks.raboof Object
+    inputs:
+      - tasks.foonar Object (@ line 16) [*]
+          suggestions: tasks.foobar
+      - tasks.fooar Object (@ line 17) [*]
+          suggestions: tasks.foobar
+      - tasks.foobarr Object (@ line 18) [*]
+          suggestions: tasks.foobar
+''')
     }
 
-    def "can not access project or script from rule"() {
+    // This is temporary. Will be closed once more progress on DSL has been made
+    def "can access project and script from rule"() {
         when:
         buildScript """
+            def a = '12'
             model {
                 tasks {
-                    assert owner == null
-                    assert this == null
-
-                    try {
-                        project.tasks
-                        assert false : "should not reach here"
-                    } catch (MissingPropertyException ignore) {
-
-                    }
+                    project.tasks
+                    println project.tasks
+                    files('thing')
+                    a = files('thing')
+                    a = '9'
                 }
             }
         """
@@ -238,4 +531,5 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         then:
         succeeds "tasks"
     }
+
 }

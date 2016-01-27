@@ -42,6 +42,14 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
         return new RelativeFileNameTransformer(rootDir, currentDirectory);
     }
 
+    public static Transformer<String, File> from(File file) {
+        if (file.isFile()) {
+            File parentFile = file.getParentFile();
+            return new RelativeFileNameTransformer(parentFile, parentFile);
+        }
+        return new RelativeFileNameTransformer(file, file);
+    }
+
     public String transform(File file) {
         String canonicalRoot;
         String canonicalFrom;

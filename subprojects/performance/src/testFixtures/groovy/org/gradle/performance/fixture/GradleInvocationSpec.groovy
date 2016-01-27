@@ -15,13 +15,10 @@
  */
 
 package org.gradle.performance.fixture
-
-import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.launcher.daemon.configuration.GradleProperties
-import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
 @CompileStatic
 @EqualsAndHashCode
@@ -31,40 +28,63 @@ class GradleInvocationSpec {
     final File workingDirectory
     final List<String> tasksToRun
     final List<String> args
-    final List<String> gradleOpts
+    final List<String> jvmOpts
     final boolean useDaemon
     final boolean useToolingApi
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> gradleOpts, boolean useDaemon, boolean useToolingApi) {
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.args = args
-        this.gradleOpts = gradleOpts
+        this.jvmOpts = jvmOpts
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
+    }
+
+    boolean getBuildWillRunInDaemon() {
+        return useDaemon || useToolingApi
     }
 
     static Builder builder() {
         return new Builder()
     }
 
-    GradleInvocationSpec withAdditionalGradleOpts(List<String> additionalGradleOpts) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(gradleOpts).addAll(additionalGradleOpts).build(), useDaemon, useToolingApi)
+    Builder withBuilder() {
+        Builder builder = new Builder()
+        builder.distribution(gradleDistribution)
+        builder.workingDirectory(workingDirectory)
+        builder.tasksToRun.addAll(this.tasksToRun)
+        builder.args.addAll(args)
+        builder.gradleOptions.addAll(jvmOpts)
+        builder.useDaemon = useDaemon
+        builder.useToolingApi = useToolingApi
+        builder
+    }
+
+    GradleInvocationSpec withAdditionalJvmOpts(List<String> additionalJvmOpts) {
+        Builder builder = withBuilder()
+        builder.gradleOptions.addAll(additionalJvmOpts)
+        return builder.build()
     }
 
     GradleInvocationSpec withAdditionalArgs(List<String> additionalArgs) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), gradleOpts, useDaemon, useToolingApi)
+        Builder builder = withBuilder()
+        builder.args.addAll(additionalArgs)
+        return builder.build()
     }
 
     static class Builder {
+        Profiler profiler = new YourKitProfiler()
         GradleDistribution gradleDistribution
         File workingDirectory
         List<String> tasksToRun = []
         List<String> args = []
         List<String> gradleOptions = []
+        Map<String, Object> profilerOpts = [:]
         boolean useDaemon
         boolean useToolingApi
+        boolean useProfiler
 
         Builder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
@@ -102,6 +122,9 @@ class GradleInvocationSpec {
 
         Builder useToolingApi() {
             useToolingApi(true)
+            // Can't use tooling API with profiler yet
+            assert !isUseProfiler()
+            this
         }
 
         Builder useToolingApi(boolean flag) {
@@ -109,28 +132,45 @@ class GradleInvocationSpec {
             this
         }
 
-        Builder enableModelReuse() {
-            gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true")
-        }
-
-        Builder disableDaemonLogging() {
-            gradleOpts("-Dorg.gradle.daemon.disable-output=true")
-        }
-
-        Builder enableTransformedModelDsl() {
-            gradleOpts("-Dorg.gradle.model.dsl=true")
-        }
-
         Builder disableParallelWorkers() {
             gradleOpts("-D${GradleProperties.WORKERS_PROPERTY}=1")
+        }
+
+        Builder useProfiler() {
+            useProfiler = true
+            // Can't use tooling API with profiler yet
+            assert !isUseToolingApi()
+            this
+        }
+
+        Builder useProfiler(Profiler profiler) {
+            useProfiler()
+            this.profiler = profiler
+            this
+        }
+
+        Builder profilerOpts(Map<String, Object> profilerOpts) {
+            this.profilerOpts.putAll(profilerOpts)
+            this
+        }
+
+        Builder buildInfo(String displayName, String projectName) {
+            this.profilerOpts.put("sessionname", "$projectName $displayName".replace(' ', "_").toString())
+            this
         }
 
         GradleInvocationSpec build() {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), useDaemon, useToolingApi)
-        }
+            profiler.addProfilerDefaults(this)
+            Set<String> jvmOptsSet = new LinkedHashSet<String>()
+            jvmOptsSet.addAll(gradleOptions)
+            if (useProfiler) {
+                jvmOptsSet.addAll(profiler.profilerArguments(profilerOpts))
+            }
 
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), useDaemon, useToolingApi)
+        }
     }
 }

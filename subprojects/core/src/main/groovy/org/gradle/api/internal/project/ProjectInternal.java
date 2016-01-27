@@ -31,7 +31,6 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -39,7 +38,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal extends Project, ProjectIdentifier, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ and ‘ui’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
@@ -92,6 +91,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ClassLoaderScope getClassLoaderScope();
 
     ClassLoaderScope getBaseClassLoaderScope();
+
+    void setScript(groovy.lang.Script script);
 
     void addDeferredConfiguration(Runnable configuration);
 

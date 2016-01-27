@@ -32,21 +32,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
-    private final ModelType<T> target;
+    private final ModelType<T> declaringType;
     private final ModelType<R> returnType;
-    private final ModelType<?> declaringType;
     private final String name;
     private final ImmutableList<ModelType<?>> paramTypes;
     private final int modifiers;
 
-
-    public WeaklyTypeReferencingMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
-        this.target = target;
+    private WeaklyTypeReferencingMethod(ModelType<T> declaringType, ModelType<R> returnType, Method method) {
+        if (declaringType.getRawClass() != method.getDeclaringClass()) {
+            throw new IllegalArgumentException("Unexpected target class.");
+        }
+        this.declaringType = declaringType;
         this.returnType = returnType;
-        this.declaringType = ModelType.of(method.getDeclaringClass());
         this.name = method.getName();
         paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
             public ModelType<?> apply(Type type) {
@@ -56,12 +57,16 @@ public class WeaklyTypeReferencingMethod<T, R> {
         modifiers = method.getModifiers();
     }
 
+    public static WeaklyTypeReferencingMethod<?, ?> of(Method method) {
+        return of(ModelType.declaringType(method), ModelType.returnType(method), method);
+    }
+
     public static <T, R> WeaklyTypeReferencingMethod<T, R> of(ModelType<T> target, ModelType<R> returnType, Method method) {
         return new WeaklyTypeReferencingMethod<T, R>(target, returnType, method);
     }
 
-    public ModelType<T> getTarget() {
-        return target;
+    public ModelType<T> getDeclaringType() {
+        return declaringType;
     }
 
     public ModelType<R> getReturnType() {
@@ -76,26 +81,18 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return modifiers;
     }
 
-    public Class<?> getDeclaringClass() {
-        return declaringType.getRawClass();
-    }
-
     public Annotation[] getAnnotations() {
         //we could retrieve annotations at construction time and hold references to them but unfortunately
         //in IBM JDK strong references are held from annotation instance to class in which it is used so we have to reflect
-        return findMethod().getAnnotations();
+        return getMethod().getAnnotations();
     }
 
-    public Type[] getGenericParameterTypes() {
-        return Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Type>() {
-            public Type apply(ModelType<?> modelType) {
-                return modelType.getType();
-            }
-        }), Type.class);
+    public List<ModelType<?>> getGenericParameterTypes() {
+        return paramTypes;
     }
 
     public R invoke(T target, Object... args) {
-        Method method = findMethod();
+        Method method = getMethod();
         method.setAccessible(true);
         try {
             Object result = method.invoke(target, args);
@@ -107,37 +104,23 @@ public class WeaklyTypeReferencingMethod<T, R> {
         }
     }
 
-    private Method findMethod() {
-        ModelType<Class<?>> classType = new ModelType<Class<?>>() {
-        };
+    public Method getMethod() {
         Class<?>[] paramTypesArray = Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Class<?>>() {
             public Class<?> apply(ModelType<?> modelType) {
                 return modelType.getRawClass();
             }
-        }), classType.getConcreteClass());
-
-        return findMethod(target.getRawClass(), paramTypesArray);
-    }
-
-    private Method findMethod(Class<?> currentTarget, Class<?>[] paramTypes) {
-        for (Method method : currentTarget.getDeclaredMethods()) {
-            if (method.getName().equals(name) && Arrays.equals(paramTypes, method.getParameterTypes())) {
-                return method;
-            }
-        }
-
-        Class<?> parent = currentTarget.getSuperclass();
-        if (parent == null) {
-            throw new org.gradle.internal.reflect.NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, Joiner.on(", ").join(paramTypes), target.getRawClass().getSimpleName()));
-        } else {
-            return findMethod(parent, paramTypes);
+        }), Class.class);
+        try {
+            return declaringType.getRawClass().getDeclaredMethod(name, paramTypesArray);
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(target)
+                .append(declaringType)
                 .append(returnType)
                 .append(name)
                 .append(paramTypes)
@@ -156,10 +139,24 @@ public class WeaklyTypeReferencingMethod<T, R> {
         WeaklyTypeReferencingMethod<?, ?> other = Cast.uncheckedCast(obj);
 
         return new EqualsBuilder()
-                .append(target, other.target)
+                .append(declaringType, other.declaringType)
                 .append(returnType, other.returnType)
                 .append(name, other.name)
                 .append(paramTypes, other.paramTypes)
                 .isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s.%s(%s)",
+            declaringType.getDisplayName(),
+            name,
+            Joiner.on(", ").join(Iterables.transform(paramTypes, new Function<ModelType<?>, String>() {
+                @Override
+                public String apply(ModelType<?> paramType) {
+                    return paramType.getDisplayName();
+                }
+            }))
+        );
     }
 }

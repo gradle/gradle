@@ -47,4 +47,13 @@ public interface ClassDetails {
      * Includes inherited methods.
      */
     List<Method> getInstanceMethods();
+
+    /**
+     * The ordered super types of this type.
+     *
+     * Entries are ordered by their “distance” from the target type, nearest to furthest.
+     * Superclasses are considered nearer than implemented interfaces.
+     * Interfaces are ordered by declaration order.
+     */
+    Set<Class<?>> getSuperTypes();
 }

@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeDependencySet;
 
 import java.io.File;
@@ -29,9 +31,11 @@ import java.util.Set;
 
 public class SourceSetNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public SourceSetNativeDependencyResolver(NativeDependencyResolver delegate) {
+    public SourceSetNativeDependencyResolver(NativeDependencyResolver delegate, FileCollectionFactory fileCollectionFactory) {
         this.delegate = delegate;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
@@ -46,7 +50,7 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
 
     private NativeDependencySet createNativeDependencySet(LanguageSourceSet sourceSet) {
         if (sourceSet instanceof HeaderExportingSourceSet) {
-            return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet);
+            return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
         }
         return new EmptyNativeDependencySet();
     }
@@ -71,27 +75,32 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
 
     private static class LanguageSourceSetNativeDependencySet extends EmptyNativeDependencySet {
         private final HeaderExportingSourceSet sourceSet;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet) {
+        private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
             this.sourceSet = sourceSet;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         public FileCollection getIncludeRoots() {
-            return new AbstractFileCollection() {
-                @Override
-                public String getDisplayName() {
-                    return "Include roots of " + sourceSet.getName();
-                }
+            return fileCollectionFactory.create(new HeaderFileCollection());
+        }
 
-                public Set<File> getFiles() {
-                    return sourceSet.getExportedHeaders().getSrcDirs();
-                }
+        private class HeaderFileCollection implements MinimalFileSet, Buildable {
+            @Override
+            public String getDisplayName() {
+                return "Include roots of " + sourceSet.getName();
+            }
 
-                @Override
-                public TaskDependency getBuildDependencies() {
-                    return sourceSet.getBuildDependencies();
-                }
-            };
+            @Override
+            public Set<File> getFiles() {
+                return sourceSet.getExportedHeaders().getSrcDirs();
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return sourceSet.getBuildDependencies();
+            }
         }
     }
 }

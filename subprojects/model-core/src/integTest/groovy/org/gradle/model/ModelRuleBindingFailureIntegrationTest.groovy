@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 /**
  * Tests the information provided when a model rule fails to bind.
@@ -26,11 +25,7 @@ import org.gradle.integtests.fixtures.EnableModelDsl
  */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
-
-    def "unbound rules are reported"() {
+    def "unbound rule by-type subject and inputs are reported"() {
         given:
         buildScript """
             class MyPlugin {
@@ -44,10 +39,12 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                         new MyThing1()
                     }
 
-
                     @Mutate
-                    void mutateThing2(MyThing2 thing2, MyThing3 thing3) {
+                    void mutateThing2(MyThing2 thing2, MyThing3 thing3n, String someOtherThing, Integer intParam) {
+                    }
 
+                    @Defaults
+                    void subjectOnly(MyThing2 thing2) {
                     }
                 }
             }
@@ -59,39 +56,103 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  MyPlugin\$Rules#mutateThing2(MyPlugin\$MyThing2, MyPlugin\$MyThing3)
-    Mutable:
-      - <unspecified> (MyPlugin\$MyThing2) parameter 1
-    Immutable:
-      - <unspecified> (MyPlugin\$MyThing3) parameter 2
-  MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)
-    Immutable:
-      - <unspecified> (MyPlugin\$MyThing2) parameter 1""")
+        failureCauseContains '''
+  MyPlugin.Rules#mutateThing2
+    subject:
+      - <no path> MyPlugin.MyThing2 (parameter 1) [*]
+    inputs:
+      - <no path> MyPlugin.MyThing3 (parameter 2) [*]
+      - <no path> String (parameter 3) [*]
+      - <no path> Integer (parameter 4) [*]
+
+  MyPlugin.Rules#subjectOnly
+    subject:
+      - <no path> MyPlugin.MyThing2 (parameter 1) [*]
+
+  MyPlugin.Rules#thing1
+    inputs:
+      - <no path> MyPlugin.MyThing2 (parameter 1) [*]
+'''
     }
 
-    def "unbound dsl rules are reported"() {
+    def "unbound rule by-path subject and inputs are reported"() {
         given:
         buildScript """
+            class MyPlugin {
+                static class MyThing1 {}
+                static class MyThing2 {}
+                static class MyThing3 {}
 
-            model {
-                foo.bar {
+                static class Rules extends RuleSource {
+                    @Model
+                    MyThing1 thing1(@Path("foo.bar.baz") MyThing2 thing2) {
+                        new MyThing1()
+                    }
 
+                    @Mutate
+                    void mutateThing2(@Path("foo") MyThing2 thing2, @Path("foo.bar") MyThing3 thing3n, String someOtherThing, Integer intParam) {
+                    }
                 }
             }
+
+            apply type: MyPlugin
         """
 
         when:
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  model.foo.bar @ build file '${buildFile}' line 4, column 17
-    Mutable:
-      - foo.bar (java.lang.Object)""")
+        failureCauseContains '''
+  MyPlugin.Rules#mutateThing2
+    subject:
+      - foo MyPlugin.MyThing2 (parameter 1) [*]
+    inputs:
+      - foo.bar MyPlugin.MyThing3 (parameter 2) [*]
+      - <no path> String (parameter 3) [*]
+      - <no path> Integer (parameter 4) [*]
+
+  MyPlugin.Rules#thing1
+    inputs:
+      - foo.bar.baz MyPlugin.MyThing2 (parameter 1) [*]
+'''
     }
 
-    def "suggestions are provided for unbound rules"() {
+    def "unbound dsl rule by-path subject and inputs are reported"() {
+        given:
+        buildScript '''
+            @Managed interface Thing { }
+
+            model {
+                foo.bar {
+                    // Subject only
+                }
+                foo.bla {
+                    println $.unknown.thing
+                    println $.unknown.thing2
+                }
+                thing1(Thing) {
+                    println $.unknown.thing
+                }
+            }
+        '''
+
+        when:
+        fails "tasks"
+
+        then:
+        // TODO - should report unknown inputs as well
+        failureCauseContains """
+  foo.bar { ... } @ build.gradle line 5, column 17
+    subject:
+      - foo.bar Object [*]
+
+  foo.bla { ... } @ build.gradle line 8, column 17
+    subject:
+      - foo.bla Object [*]
+"""
+    }
+
+    def "suggestions are provided for unbound by-path references"() {
         given:
         buildScript """
             class MyPlugin {
@@ -116,13 +177,15 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.foonar @ build file '${buildFile}' line 15, column 17
-    Mutable:
-      - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
+        failureCauseContains '''
+  tasks.foonar { ... } @ build.gradle line 15, column 17
+    subject:
+      - tasks.foonar Object [*]
+          suggestions: tasks.foobar
+'''
     }
 
-    def "ambiguous binding integration test"() {
+    def "fails on ambiguous by-type reference"() {
         given:
         buildScript """
             class Plugin1 {
@@ -161,14 +224,14 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("There is a problem with model rule Plugin3\$Rules#m(java.lang.String).")
+        failure.assertHasDescription("A problem occurred configuring root project")
+        failure.assertHasCause("There is a problem with model rule Plugin3.Rules#m.")
         failure.assertHasCause("""Type-only model reference of type java.lang.String (parameter 1) is ambiguous as multiple model elements are available for this type:
-  - s1 (created by: Plugin1\$Rules#s1())
-  - s2 (created by: Plugin2\$Rules#s2())""")
+  - s1 (created by: Plugin1.Rules#s1)
+  - s2 (created by: Plugin2.Rules#s2)""")
     }
 
-    def "incompatible type binding"() {
+    def "fails on incompatible by-type reference"() {
         given:
         buildScript """
             class Plugin1 {
@@ -187,46 +250,117 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("There is a problem with model rule Plugin1\$Rules#addTasks(java.lang.Integer).")
+        failure.assertHasCause("There is a problem with model rule Plugin1.Rules#addTasks.")
         failure.assertHasCause("""Model reference to element 'tasks' with type java.lang.Integer (parameter 1) is invalid due to incompatible types.
 This element was created by Project.<init>.tasks() and can be mutated as the following types:
   - org.gradle.model.ModelMap<org.gradle.api.Task>
-  - org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>
   - org.gradle.api.tasks.TaskContainer (or assignment compatible type thereof)""")
     }
 
-    def "unbound inputs for creator are reported"() {
+    def "reports failure to bind subject or input due to null reference"() {
         given:
         buildScript """
-            class Rules extends RuleSource {
-                @Model
-                Integer foo(@Path("bar") Integer bar) {
-                    22
+@Managed interface Person extends Named {
+    Person getParent()
+    void setParent(Person p)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void person(Person p) { }
+
+    @Model
+    String name(@Path("person.parent.parent") Person grandParent, @Path("person.parent.parent.parent.parent") Person ancestor) {
+        throw new RuntimeException("broken")
+    }
+
+    @Validate
+    void checkName(@Path("person.parent.parent") Person grandParent, @Path("person.parent.parent.parent.parent") Person ancestor) {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    person.parent.name {
+        throw new RuntimeException("broken")
+    }
+    person.parent.parent.parent.parent.parent.name {
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails()
+
+        then:
+        failureCauseContains """
+  MyPlugin#checkName
+    subject:
+      - person.parent.parent Person (parameter 1) [*]
+    inputs:
+      - person.parent.parent.parent.parent Person (parameter 2) [*]
+
+  MyPlugin#name
+    inputs:
+      - person.parent.parent Person (parameter 1) [*]
+      - person.parent.parent.parent.parent Person (parameter 2) [*]
+
+  person.parent.name { ... } @ build.gradle line 25, column 5
+    subject:
+      - person.parent.name Object [*]
+
+  person.parent.parent.parent.parent.parent.name { ... } @ build.gradle line 28, column 5
+    subject:
+      - person.parent.parent.parent.parent.parent.name Object [*]
+"""
+    }
+
+    def "partially bound rules are reported and the report includes the elements bound to"() {
+        given:
+        buildScript """
+            class MyPlugin {
+                static class MyThing1 {}
+                static class MyThing2 {}
+                static class MyThing3 {}
+
+                static class Rules extends RuleSource {
+                    @Model
+                    MyThing1 thing1() {
+                        new MyThing1()
+                    }
+
+                    @Mutate
+                    void thing1(MyThing1 t1, MyThing3 t3) {
+                    }
+
+                    @Mutate
+                    void mutateThing2(MyThing2 t2, MyThing1 t1) {
+                    }
                 }
             }
 
-            apply type: Rules
+            apply type: MyPlugin
         """
 
         when:
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules are unbound:
-  Rules#foo(java.lang.Integer)
-    Immutable:
-      - bar (java.lang.Integer) parameter 1""")
-    }
+        failureCauseContains '''
+  MyPlugin.Rules#mutateThing2
+    subject:
+      - <no path> MyPlugin.MyThing2 (parameter 1) [*]
+    inputs:
+      - thing1 MyPlugin.MyThing1 (parameter 2)
 
-    def "unbound rule for project that has no needed tasks does not cause error"() {
-        when:
-        settingsFile << "include 'a', 'b'"
-        file("a/build.gradle") << "model { foo {} }"
-
-        then:
-        succeeds ":b:dependencies"
-        fails ":a:dependencies"
-        failure.assertHasDescription("A problem occurred configuring project ':a'")
-        failure.assertHasCause("The following model rules are unbound:")
+  MyPlugin.Rules#thing1
+    subject:
+      - thing1 MyPlugin.MyThing1 (parameter 1)
+    inputs:
+      - <no path> MyPlugin.MyThing3 (parameter 2) [*]
+'''
     }
 }

@@ -44,7 +44,7 @@ class EclipsePluginTest extends Specification {
         when:
         eclipsePlugin.apply(project)
         project.apply(plugin: 'java-base')
-
+        project.evaluate()
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
@@ -65,7 +65,7 @@ class EclipsePluginTest extends Specification {
         when:
         eclipsePlugin.apply(project)
         project.apply(plugin: 'scala-base')
-        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
+        project.evaluate()
 
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
@@ -85,6 +85,7 @@ class EclipsePluginTest extends Specification {
         when:
         eclipsePlugin.apply(project)
         project.apply(plugin: 'groovy-base')
+        project.evaluate()
 
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
@@ -132,6 +133,9 @@ class EclipsePluginTest extends Specification {
         assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.outputFile == project.file('.project')
+
+        assert project.eclipse.project.buildCommands == buildCommands
+        assert project.eclipse.project.natures == natures
     }
 
     private void checkEclipseClasspath(def configurations, def additionalContainers = []) {
@@ -146,7 +150,8 @@ class EclipsePluginTest extends Specification {
         assert classpath.sourceSets == project.sourceSets
         assert classpath.plusConfigurations == configurations
         assert classpath.minusConfigurations == []
-        assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] + additionalContainers as Set
+
+        assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${project.eclipse.jdt.getJavaRuntimeName()}/"] + additionalContainers as Set
         assert classpath.defaultOutputDir == new File(project.projectDir, 'bin')
     }
 

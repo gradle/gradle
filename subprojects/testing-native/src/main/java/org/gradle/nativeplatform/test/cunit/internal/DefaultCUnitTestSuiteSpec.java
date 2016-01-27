@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.test.cunit.internal;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.ComponentSpec;
 
-public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec implements CUnitTestSuiteSpec, ComponentSpecInternal {
+public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec implements CUnitTestSuiteSpec {
     private NativeComponentSpec testedComponent;
 
     public String getDisplayName() {
@@ -31,7 +31,9 @@ public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec imple
         return testedComponent;
     }
 
-    public void setTestedComponent(NativeComponentSpec testedComponent) {
-        this.testedComponent = testedComponent;
+    @Override
+    public void testing(ComponentSpec testedComponent) {
+        this.testedComponent = (NativeComponentSpec) testedComponent;
     }
+
 }

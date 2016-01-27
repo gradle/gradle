@@ -142,7 +142,8 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(22)
-        failureHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'process' must be of type org.gradle.api.artifacts.ComponentMetadataDetails")
+        failureHasCause("""Type BadRuleSource is not a valid rule source:
+- Method process(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
 
     }
 

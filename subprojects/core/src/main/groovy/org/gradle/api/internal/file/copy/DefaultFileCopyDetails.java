@@ -89,11 +89,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         }
     }
 
-    public void copyTo(OutputStream outstr) {
+    public void copyTo(OutputStream output) {
         if (filterChain.hasFilters()) {
-            super.copyTo(outstr);
+            super.copyTo(output);
         } else {
-            fileDetails.copyTo(outstr);
+            fileDetails.copyTo(output);
         }
     }
 

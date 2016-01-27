@@ -17,28 +17,45 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.Managed
-import org.gradle.model.collection.ManagedSet
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.ModelSet
+import org.gradle.model.internal.manage.schema.ManagedImplStructSchema
+import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
-import spock.util.concurrent.PollingConditions
 
 import java.beans.Introspector
+import java.util.concurrent.CopyOnWriteArraySet
 
-class DefaultModelSchemaStoreTest extends Specification {
+class DefaultModelSchemaStoreTest extends ConcurrentSpec {
+    def extractor = DefaultModelSchemaExtractor.withDefaultStrategies()
+    def store = new DefaultModelSchemaStore(extractor)
 
-    def store = new DefaultModelSchemaStore()
-
-    def "can get schema"() {
+    def "caches schema for a type"() {
         // intentionally use two different “instances” of the same type
         def type1 = ModelType.of(SimpleManagedType)
         def type2 = ModelType.of(SimpleManagedType)
 
         expect:
         store.getSchema(type1).is(store.getSchema(type2))
+    }
+
+    def "each thread receives same schema object"() {
+        def seen = new CopyOnWriteArraySet()
+
+        when:
+        async {
+            5.times {
+                start {
+                    seen << store.getSchema(SimpleManagedType)
+                }
+            }
+        }
+
+        then:
+        seen.size() == 1
     }
 
     @Unroll
@@ -54,7 +71,7 @@ class DefaultModelSchemaStoreTest extends Specification {
         cl.clearCache()
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             store.cleanUp()
             store.size() == 0
@@ -64,18 +81,18 @@ class DefaultModelSchemaStoreTest extends Specification {
         impl << [
                 "class SomeThing {}",
                 "@${Managed.name} interface SomeThing { SomeThing getThing() }",
-                "@${Managed.name} interface SomeThing { ${ManagedSet.name}<SomeThing> getThings() }",
-                "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ManagedSet.name}<Child> getThings() }",
+                "@${Managed.name} interface SomeThing { ${ModelSet.name}<SomeThing> getThings() }",
+                "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ModelSet.name}<Child> getThings() }",
         ]
     }
 
     @Unroll
     def "does not hold strong reference to a managed #type type"() {
         given:
-        def modelType = ModelType.of(new GroovyClassLoader(getClass().classLoader).parseClass("@${Managed.name} $type ManagedType {}"))
+        def cl = new GroovyClassLoader(getClass().classLoader)
 
         when:
-        def schema = store.getSchema(modelType)
+        def schema = addClass(cl, "@${Managed.name} $type ManagedType {}")
 
         then:
         store.cache.size() > 0
@@ -84,11 +101,10 @@ class DefaultModelSchemaStoreTest extends Specification {
         forcefullyClearReferences(schema)
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             store.cleanUp()
             store.size() == 0
-            schema.managedImpl == null // collected too
         }
 
         where:
@@ -97,28 +113,23 @@ class DefaultModelSchemaStoreTest extends Specification {
 
     @CompileStatic
     // must be compile static to avoid call sites being created with soft class refs
-    private static void forcefullyClearReferences(ModelStructSchema schema) {
+    private static void forcefullyClearReferences(ManagedImplStructSchema schema) {
         // Remove strong internal circular ref
         (schema.type.rawClass.classLoader as GroovyClassLoader).clearCache()
 
         // Remove soft references (dependent on Groovy internals)
-        def f = ClassInfo.getDeclaredField("globalClassSet")
-        f.setAccessible(true)
-        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
-        globalClassSet.remove(schema.type.rawClass)
-        globalClassSet.remove(schema.managedImpl)
+        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.type.rawClass)
 
         // Remove soft references
         Introspector.flushFromCaches(schema.type.rawClass)
-        Introspector.flushFromCaches(schema.managedImpl)
     }
 
     def "canonicalizes introspection for different sites of generic type"() {
         when:
         def cl = new GroovyClassLoader()
         addClass(cl, "@${Managed.name} interface Thing {}")
-        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing> getThings() }")
-        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ModelSet.name}<Thing> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ModelSet.name}<Thing> getThings() }")
 
         then:
         store.cache.size() == 4
@@ -129,14 +140,14 @@ class DefaultModelSchemaStoreTest extends Specification {
         def cl = new GroovyClassLoader()
         addClass(cl, "@${Managed.name} interface Thing1 {}")
         addClass(cl, "@${Managed.name} interface Thing2 {}")
-        addClass(cl, "@${Managed.name} interface Container1 { ${ManagedSet.name}<Thing1> getThings() }")
-        addClass(cl, "@${Managed.name} interface Container2 { ${ManagedSet.name}<Thing2> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container1 { ${ModelSet.name}<Thing1> getThings() }")
+        addClass(cl, "@${Managed.name} interface Container2 { ${ModelSet.name}<Thing2> getThings() }")
 
         then:
         store.cache.size() == 6
     }
 
-    private void addClass(GroovyClassLoader cl, String impl) {
+    private ModelSchema addClass(GroovyClassLoader cl, String impl) {
         def type = cl.parseClass(impl)
         store.getSchema(ModelType.of(type))
     }

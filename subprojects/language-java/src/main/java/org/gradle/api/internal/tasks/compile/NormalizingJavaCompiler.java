@@ -30,6 +30,8 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.List;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 /**
  * A Java {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
@@ -55,7 +57,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         // which silently excludes files not ending in .java
         FileCollection javaOnly = spec.getSource().filter(new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                return element.getName().endsWith(".java");
+                return hasExtension(element, ".java");
             }
         });
 

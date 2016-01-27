@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.test.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
@@ -28,27 +29,9 @@ import org.gradle.util.TestPrecondition
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
+@ToolingApiVersion("=2.4")
+@TargetGradleVersion(">=2.4")
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=1.0-milestone-8 <2.4")
-    def "ignores listeners when Gradle version does not generate test events"() {
-        given:
-        goodCode()
-
-        when:
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener {
-                    throw new RuntimeException()
-                }.run()
-        }
-
-        then:
-        noExceptionThrown()
-    }
-
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events when requesting a model"() {
         given:
         goodCode()
@@ -66,8 +49,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events when launching a build"() {
         given:
         goodCode()
@@ -85,52 +66,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
-    def "build aborts if a test listener throws an exception"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.run()
-        }
-
-        then: "build aborts if the test listener throws an exception"
-        thrown(GradleConnectionException)
-    }
-
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
-    def "receive current test progress event even if one of multiple test listeners throws an exception"() {
-        given:
-        goodCode()
-
-        when: "launching a build"
-        List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
-        List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
-                    resultsOfFirstListener.add(event)
-                }.addTestProgressListener { TestProgressEvent event ->
-                    throw new IllegalStateException("Throwing an exception on purpose")
-                }.addTestProgressListener { TestProgressEvent event ->
-                    resultsOfLastListener.add(event)
-                }.run()
-        }
-
-        then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
-        thrown(GradleConnectionException)
-        resultsOfFirstListener.size() == 1
-        resultsOfLastListener.size() == 1
-    }
-
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
@@ -249,8 +184,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
@@ -376,8 +309,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootFailedEvent.result.failures.size() == 0
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
@@ -492,8 +423,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             rootSucceededEvent.result.endTime == rootSucceededEvent.eventTime
     }
 
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test workers"() {
         given:
         buildFile << """
@@ -568,10 +497,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
+        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
+            toolingApi.requireDaemons()
+        }
         projectDir.createFile('settings.gradle') << """
             include ':sub1'
             include ':sub2'
@@ -645,6 +575,42 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         then: "names for root suites and worker suites are consistent"
         result.findAll { it.descriptor.name =~ 'Gradle Test Run :sub[1|2]:test' }.toSet().size() == 4  // 2 root suites for 2 tasks (start & finish events)
         result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
+    }
+
+    @ToolingApiVersion("=2.4")
+    @TargetGradleVersion(">=2.5")
+    def "stops dispatching events to progress listeners when a listener fails and continues with build"() {
+        given:
+        goodCode()
+
+        when: "launching a build"
+        List<ProgressEvent> resultsOfFirstListener = []
+        List<ProgressEvent> resultsOfLastListener = []
+        def failure = new IllegalStateException("Throwing an exception on purpose")
+        def stdout = new ByteArrayOutputStream()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener { TestProgressEvent event ->
+                    resultsOfFirstListener.add(event)
+                }.addTestProgressListener { TestProgressEvent event ->
+                    throw failure
+                }.addTestProgressListener{ TestProgressEvent event ->
+                    resultsOfLastListener.add(event)
+                }.setStandardOutput(stdout).run()
+        }
+
+        then: "build completes with an exception but events are received"
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("Could not execute build using Gradle installation")
+        e.cause.message == "One or more progress listeners failed with an exception."
+        e.cause.cause == failure
+
+        and: "expected events received"
+        resultsOfFirstListener.size() == 1
+        resultsOfLastListener.size() == 1
+
+        and: "build execution is successful"
+        stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     def goodCode() {

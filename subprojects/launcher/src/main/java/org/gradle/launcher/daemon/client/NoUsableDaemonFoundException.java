@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
-public class NoUsableDaemonFoundException extends GradleException {
-    public NoUsableDaemonFoundException(String message) {
-        super(message);
+public class NoUsableDaemonFoundException extends DefaultMultiCauseException {
+    public NoUsableDaemonFoundException(String message, Iterable<? extends Throwable> causes) {
+        super(message, causes);
     }
 }

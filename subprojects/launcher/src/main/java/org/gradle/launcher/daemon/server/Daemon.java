@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -58,7 +58,7 @@ public class Daemon implements Stoppable {
 
     /**
      * Creates a new daemon instance.
-     * 
+     *
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
@@ -81,7 +81,7 @@ public class Daemon implements Stoppable {
 
     /**
      * Starts the daemon, receiving connections asynchronously (i.e. returns immediately).
-     * 
+     *
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
@@ -125,7 +125,7 @@ public class Daemon implements Stoppable {
             stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
             connectorAddress = connector.start(connectionHandler);
-            LOGGER.debug("Daemon starting at: " + new Date() + ", with address: " + connectorAddress);
+            LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {
             lifecyleLock.unlock();

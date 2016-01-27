@@ -16,11 +16,14 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 /**
  * A Provider of {@link ToolChain}s.
  * @param <P>
  * @param <T>
  */
+@Incubating
 public interface ToolChainRegistry<P extends Platform, T extends ToolChain> {
     /**
      * Returns the best tool chain to build for the target platform.

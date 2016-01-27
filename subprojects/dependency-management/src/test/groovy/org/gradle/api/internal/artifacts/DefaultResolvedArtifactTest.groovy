@@ -16,28 +16,32 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.internal.Factory
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class DefaultResolvedArtifactTest extends Specification {
     final Factory artifactSource = Mock()
 
-    def "artifacts are equal when module and name are equal"() {
+    def "artifacts are equal when module and artifact identifier are equal"() {
         def dependency = dep("group", "module1", "1.2")
         def dependencySameModule = dep("group", "module1", "1.2")
         def dependency2 = dep("group", "module2", "1-beta")
-        def ivyArt = Stub(IvyArtifactName)
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactSource)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource)
-        def differentName = new DefaultResolvedArtifact(dependency, Stub(IvyArtifactName), artifactSource)
+        def ivyArt = Mock(IvyArtifactName)
+        def artifactId = Stub(ComponentArtifactIdentifier)
+        def otherArtifactId = Stub(ComponentArtifactIdentifier)
+
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactId, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactId, artifactSource)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactId, artifactSource)
+        def differentId = new DefaultResolvedArtifact(dependency, ivyArt, otherArtifactId, artifactSource)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
         artifact != differentModule
-        artifact != differentName
+        artifact != differentId
     }
 
     def dep(String group, String moduleName, String version) {

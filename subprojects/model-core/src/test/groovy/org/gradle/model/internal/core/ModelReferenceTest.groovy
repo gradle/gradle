@@ -25,7 +25,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.any()
         reference.scope == null
-        reference.parent == null
         reference.path == null
         reference.type == ModelType.of(Object)
         reference.untyped
@@ -36,7 +35,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.of("some.path")
         reference.scope == null
-        reference.parent == null
         reference.path == ModelPath.path("some.path")
         reference.type == ModelType.of(Object)
         reference.untyped
@@ -47,7 +45,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.of(String)
         reference.scope == null
-        reference.parent == null
         reference.path == null
         reference.type == ModelType.of(String)
         !reference.untyped
@@ -58,7 +55,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.of("some.path", String).atState(ModelNode.State.Mutated)
         reference.scope == null
-        reference.parent == null
         reference.path == ModelPath.path("some.path")
         reference.type == ModelType.of(String)
         !reference.untyped
@@ -72,7 +68,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.of(ModelPath.path("some.path"), ModelType.of(String), ModelNode.State.Mutated).withPath(ModelPath.path("other.path"))
         reference.scope == null
-        reference.parent == null
         reference.path == ModelPath.path("other.path")
         reference.type == ModelType.of(String)
         !reference.untyped
@@ -83,7 +78,6 @@ class ModelReferenceTest extends Specification {
         expect:
         def reference = ModelReference.of(String).inScope(ModelPath.path("some.scope"))
         reference.scope == ModelPath.path("some.scope")
-        reference.parent == null
         reference.path == null
         reference.type == ModelType.of(String)
         !reference.untyped

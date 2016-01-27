@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -29,7 +30,8 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        def lock = new RandomAccessFile(file("build/newFile").createFile(), "rw").channel.lock()
+        def channel = new RandomAccessFile(file("build/newFile").createFile(), "rw").channel
+        def lock = channel.lock()
 
         when:
         fails "clean"
@@ -39,6 +41,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         cleanup:
         lock?.release()
+        channel?.close()
     }
 
     def "can define 'build' and 'check' tasks when applying plugin"() {
@@ -66,4 +69,16 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "CUSTOM BUILD"
     }
 
+
+    def "can define 'default' and 'archives' configurations prior to applying plugin"() {
+        buildFile << """
+            configurations {
+                "default"
+                archives
+            }
+            apply plugin: 'base'
+"""
+        expect:
+        succeeds "tasks"
+    }
 }

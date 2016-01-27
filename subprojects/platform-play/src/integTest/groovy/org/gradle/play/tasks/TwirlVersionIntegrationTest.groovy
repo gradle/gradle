@@ -17,6 +17,8 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.play.internal.DefaultPlayPlatform
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def baseBuildFile = """
@@ -24,14 +26,10 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        repositories{
-            jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-        }
+        ${PLAY_REPOSITORIES}
     """
+
+    def twirlOutputDir = "build/src/play/binary/twirlTemplatesScalaSources"
 
     def setup() {
         settingsFile << """ rootProject.name = 'twirl-play-app' """
@@ -45,20 +43,20 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion("2.3.7")
+        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
     }
 
     def "changing between twirl-compatible versions of play does NOT cause Twirl to recompile" () {
@@ -69,18 +67,18 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion("2.3.7")
+        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:
-        skipped(":twirlCompileTwirlTemplatesPlayBinary")
-        executedAndNotSkipped(":scalaCompilePlayBinary")
+        skipped(":compilePlayBinaryPlayTwirlTemplates")
+        executedAndNotSkipped(":compilePlayBinaryScala")
     }
 
     def withPlayVersion(String playVersion) {

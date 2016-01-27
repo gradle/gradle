@@ -26,8 +26,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Issue
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.3'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.3', '2.4.4'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -57,6 +59,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "", // no Java
@@ -74,6 +80,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "", // no Java
@@ -163,6 +173,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "$annotationText public class Java {}",
@@ -202,6 +216,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "$annotationText public class Java {}",
@@ -398,6 +416,29 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         then:
         fails("compileGroovy")
         compileErrorOutput.contains("unable to resolve class ${gradleBaseServicesClass.name}")
+    }
+
+    @Ignore
+    @Issue("https://issues.gradle.org/browse/GRADLE-3377")
+    @Requires(TestPrecondition.ONLINE)
+    def "can compile with Groovy library resolved by classifier"() {
+        def gradleBaseServicesClass = Action
+        buildScript """
+            apply plugin: 'groovy'
+            repositories { mavenCentral() }
+            dependencies {
+                compile 'org.codehaus.groovy:groovy:2.4.3:grooid'
+            }
+        """
+
+        when:
+        file("src/main/groovy/Groovy.groovy") << """
+            import ${gradleBaseServicesClass.name}
+            class Groovy {}
+        """
+
+        then:
+        succeeds("compileGroovy")
     }
 
     protected ExecutionResult run(String... tasks) {

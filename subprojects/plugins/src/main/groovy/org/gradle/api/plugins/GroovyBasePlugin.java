@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -42,14 +42,14 @@ import java.util.concurrent.Callable;
 public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
-    private final FileResolver fileResolver;
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public GroovyBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
     public void apply(Project project) {
@@ -83,7 +83,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private void configureSourceSetDefaults(final JavaBasePlugin javaBasePlugin) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), fileResolver);
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));

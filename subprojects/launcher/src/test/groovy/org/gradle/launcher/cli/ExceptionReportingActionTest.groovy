@@ -18,7 +18,7 @@ package org.gradle.launcher.cli
 import org.gradle.api.Action
 import spock.lang.Specification
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.launcher.exec.ReportedException
+import org.gradle.initialization.ReportedException
 
 class ExceptionReportingActionTest extends Specification {
     final Action<ExecutionListener> target = Mock()

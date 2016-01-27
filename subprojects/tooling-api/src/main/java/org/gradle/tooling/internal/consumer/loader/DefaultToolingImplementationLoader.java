@@ -32,6 +32,7 @@ import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof StoppableConnection) {
+            if (connection instanceof InternalTestExecutionConnection){
+                adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
+            } else if (connection instanceof StoppableConnection) {
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalCancellableConnection) {
                 adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
@@ -79,7 +82,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else if (connection instanceof InternalConnection) {
                 adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                return new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter);
+                return new UnsupportedOlderVersionConnection(distribution, connection, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             if (!adaptedConnection.getVersionDetails().supportsCancellation()) {

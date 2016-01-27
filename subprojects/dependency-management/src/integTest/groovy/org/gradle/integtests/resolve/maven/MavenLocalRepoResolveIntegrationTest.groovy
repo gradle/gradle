@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.containsString
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
+        using m2
         buildFile << """
                 repositories {
                     mavenLocal()
@@ -41,7 +42,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "can resolve artifacts from local m2 when user settings.xml does not exist"() {
         given:
-        def moduleA = m2Installation.mavenRepo().module('group', 'projectA', '1.2').publish()
+        def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
 
         when:
         run 'retrieve'
@@ -53,7 +54,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     def "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
         given:
         def artifactRepo = mavenLocal("artifactrepo")
-        m2Installation.generateUserSettingsFile(artifactRepo)
+        m2.generateUserSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
@@ -66,7 +67,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def sysPropRepo = mavenLocal("artifactrepo")
-        m2Installation.generateGlobalSettingsFile(sysPropRepo)
+        m2.generateGlobalSettingsFile(sysPropRepo)
         def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
 
         when:
@@ -93,7 +94,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         given:
         def globalRepo = mavenLocal("globalArtifactRepo")
         def userRepo = mavenLocal("userArtifactRepo")
-        m2Installation.generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
+        m2.generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
         def moduleA = userRepo.module('group', 'projectA', '1.2').publish()
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
@@ -107,7 +108,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     def "local repository in System Property take precedence over the local repository user settings"() {
         given:
         def userRepo = mavenLocal("userArtifactRepo")
-        m2Installation.generateUserSettingsFile(userRepo)
+        m2.generateUserSettingsFile(userRepo)
         def sysPropRepo = mavenLocal("artifactrepo")
         def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
         userRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
@@ -122,13 +123,13 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     def "fail with meaningful error message if settings.xml is invalid"() {
         given:
-        m2Installation.userSettingsFile << "invalid content"
+        m2.userSettingsFile << "invalid content"
 
         when:
         runAndFail 'retrieve'
 
         then:
-        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2Installation.userSettingsFile.absolutePath)));
+        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
     }
 
     def "mavenLocal is ignored if no local maven repository exists"() {
@@ -153,7 +154,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     @Issue('GRADLE-2034')
     def "mavenLocal fails to resolve artifact if contains pom but not artifact"() {
         given:
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2').publishPom()
 
         when:
         runAndFail 'retrieve'
@@ -163,7 +164,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     }
 
     def "mavenLocal reports and recovers from missing module"() {
-        def module = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+        def module = m2.mavenRepo().module('group', 'projectA', '1.2')
 
         when:
         runAndFail 'retrieve'
@@ -187,7 +188,7 @@ Required by:
     def "mavenLocal skipped if contains pom but no artifact and there is another repository available"() {
         given:
         def anotherRepo = maven("another-local-repo")
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2').publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2').publishPom()
         def moduleARemote = anotherRepo.module('group', 'projectA', '1.2').publish()
 
         and:
@@ -206,8 +207,8 @@ Required by:
 
     def "mavenLocal includes jar for module with packaging 'pom'"() {
         given:
-        m2Installation.mavenRepo().module('group', 'projectB', '1.2').publish()
-        def pomModule = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+        m2.mavenRepo().module('group', 'projectB', '1.2').publish()
+        def pomModule = m2.mavenRepo().module('group', 'projectA', '1.2')
         pomModule.packaging = 'pom'
         pomModule.dependsOn('group', 'projectB', '1.2')
         pomModule.artifact(type: "jar")
@@ -223,8 +224,8 @@ Required by:
 
     def "mavenLocal ignores missing jar for module with packaging 'pom'"() {
         given:
-        m2Installation.mavenRepo().module('group', 'projectB', '1.2').publish()
-        def pomModule = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+        m2.mavenRepo().module('group', 'projectB', '1.2').publish()
+        def pomModule = m2.mavenRepo().module('group', 'projectA', '1.2')
         pomModule.packaging = 'pom'
         pomModule.dependsOn('group', 'projectB', '1.2')
         pomModule.publishPom()
@@ -240,7 +241,7 @@ Required by:
     @Issue('GRADLE-2034')
     def "mavenLocal fails to resolve snapshot artifact if contains pom but not artifact"() {
         given:
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
 
         and:
         buildFile.text = """
@@ -267,7 +268,7 @@ Required by:
     @Issue('GRADLE-2034')
     def "mavenLocal fails to resolve non-unique snapshot artifact if contains pom but not artifact"() {
         given:
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
 
         and:
         buildFile.text = """
@@ -295,7 +296,7 @@ Required by:
     def "mavenLocal skipped if contains pom but no artifact for snapshot"() {
         given:
         def anotherRepo = maven("another-local-repo")
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
         def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish()
 
         and:
@@ -326,7 +327,7 @@ Required by:
     def "mavenLocal skipped if contains pom but no artifact for non-unique snapshot"() {
         given:
         def anotherRepo = maven("another-local-repo")
-        m2Installation.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
+        m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()
         def moduleARemote = anotherRepo.module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
 
         and:

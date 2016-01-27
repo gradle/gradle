@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -27,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -43,6 +45,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -59,12 +62,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public DefaultMavenPublication(
             String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
-            ProjectDependencyPublicationResolver projectDependencyResolver
+            ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory
     ) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
-        mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
+        mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
 
@@ -110,7 +113,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
-        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
+        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {

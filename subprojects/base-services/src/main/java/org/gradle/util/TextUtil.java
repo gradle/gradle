@@ -123,4 +123,8 @@ public class TextUtil {
             return s2;
         }
     }
+
+    public static String normaliseFileAndLineSeparators(String in) {
+        return normaliseLineSeparators(normaliseFileSeparators(in));
+    }
 }

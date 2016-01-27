@@ -16,8 +16,8 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.execution.internal.InternalTaskExecutionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
-    def executionListener = Mock(InternalTaskExecutionListener)
+    def worker = Mock(Action)
     def executor = new DefaultTaskPlanExecutor()
 
     def "executes tasks until no further tasks remain"() {
@@ -39,13 +39,11 @@ class DefaultTaskPlanExecutorTest extends Specification {
         def taskInfo = new TaskInfo(task)
 
         when:
-        executor.process(taskPlan, executionListener)
+        executor.process(taskPlan, worker)
 
         then:
         1 * taskPlan.taskToExecute >> taskInfo
-        1 * executionListener.beforeExecute(_)
-        1 * task.executeWithoutThrowingTaskFailure()
-        1 * executionListener.afterExecute(_)
+        1 * worker.execute(task)
         1 * taskPlan.taskComplete(taskInfo)
         1 * taskPlan.taskToExecute >> null
         1 * taskPlan.awaitCompletion()
@@ -58,7 +56,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         _ * taskPlan.awaitCompletion() >> { throw failure }
 
         when:
-        executor.process(taskPlan, executionListener)
+        executor.process(taskPlan, worker)
 
         then:
         def e = thrown(RuntimeException)

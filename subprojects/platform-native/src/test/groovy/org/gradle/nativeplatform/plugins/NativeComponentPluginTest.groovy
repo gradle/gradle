@@ -17,20 +17,28 @@
 package org.gradle.nativeplatform.plugins
 
 import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
+import org.gradle.platform.base.BinarySpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def setup() {
         project.pluginManager.apply(NativeComponentPlugin)
+    }
+
+    ModelMap<BinarySpec> realizeBinaries() {
+        project.modelRegistry.find("binaries", modelMap(BinarySpec))
     }
 
     def "creates link and install task for executable"() {
@@ -40,11 +48,13 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeExecutableSpec)
             }
         }
+
         project.tasks.realize()
+        def binaries = realizeBinaries()
         project.bindAllModelRules()
 
         then:
-        def testExecutable = project.binaries.testExecutable
+        def testExecutable = binaries.testExecutable
         with(project.tasks.linkTestExecutable) {
             it instanceof LinkExecutable
             it == testExecutable.tasks.link
@@ -68,11 +78,13 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeLibrarySpec)
             }
         }
+
         project.tasks.realize()
+        def binaries = realizeBinaries()
         project.bindAllModelRules()
 
         then:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        def sharedLibraryBinary = binaries.testSharedLibrary
         with(project.tasks.linkTestSharedLibrary) {
             it instanceof LinkSharedLibrary
             it == sharedLibraryBinary.tasks.link
@@ -86,7 +98,7 @@ class NativeComponentPluginTest extends Specification {
         sharedLibTask TaskDependencyMatchers.dependsOn("linkTestSharedLibrary")
 
         and:
-        def staticLibraryBinary = project.binaries.testStaticLibrary
+        def staticLibraryBinary = binaries.testStaticLibrary
         with(project.tasks.createTestStaticLibrary) {
             it instanceof CreateStaticLibrary
             it == staticLibraryBinary.tasks.createStaticLib

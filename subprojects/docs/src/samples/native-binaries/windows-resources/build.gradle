@@ -14,17 +14,17 @@ model {
             }
         }
     }
-}
 
-binaries.all {
-    linker.args "user32.lib"
-}
+    binaries {
+        all {
+            linker.args "user32.lib"
+        }
 
-// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
-binaries.withType(SharedLibraryBinarySpec) {
-    if (toolChain in VisualCpp) {
-        cppCompiler.define "DLL_EXPORT"
+        // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cppCompiler.define "DLL_EXPORT"
+            }
+        }
     }
 }
-
-

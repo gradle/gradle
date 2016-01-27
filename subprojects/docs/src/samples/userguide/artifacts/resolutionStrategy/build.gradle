@@ -12,7 +12,7 @@ configurations.all {
 
 //START SNIPPET releasable-unit
 configurations.all {
-    resolutionStrategy.dependencySubstitution.eachModule { ModuleDependencySubstitution details ->
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.gradle') {
             details.useVersion '1.4'
         }
@@ -22,9 +22,9 @@ configurations.all {
 
 //START SNIPPET custom-versioning-scheme
 configurations.all {
-    resolutionStrategy.dependencySubstitution.eachModule { ModuleDependencySubstitution details ->
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.version == 'default') {
-            def version = findDefaultVersionInCatalog(details.requested.group, details.requested.module)
+            def version = findDefaultVersionInCatalog(details.requested.group, details.requested.name)
             details.useVersion version
         }
     }
@@ -38,8 +38,8 @@ def findDefaultVersionInCatalog(String group, String name) {
 
 //START SNIPPET blacklisting_version
 configurations.all {
-    resolutionStrategy.dependencySubstitution.eachModule { ModuleDependencySubstitution details ->
-        if (details.requested.group == 'org.software' && details.requested.module == 'some-library' && details.requested.version == '1.2') {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.software' && details.requested.name == 'some-library' && details.requested.version == '1.2') {
             //prefer different version which contains some necessary fixes
             details.useVersion '1.2.1'
         }
@@ -49,12 +49,12 @@ configurations.all {
 
 //START SNIPPET module_substitution
 configurations.all {
-    resolutionStrategy.dependencySubstitution.eachModule { ModuleDependencySubstitution details ->
-        if (details.requested.module == 'groovy-all') {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.name == 'groovy-all') {
             //prefer 'groovy' over 'groovy-all':
             details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
         }
-        if (details.requested.module == 'log4j') {
+        if (details.requested.name == 'log4j') {
             //prefer 'log4j-over-slf4j' over 'log4j', with fixed version:
             details.useTarget "org.slf4j:log4j-over-slf4j:1.7.10"
         }

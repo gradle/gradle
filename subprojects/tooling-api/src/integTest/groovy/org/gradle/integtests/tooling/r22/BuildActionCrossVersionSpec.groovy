@@ -21,13 +21,21 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
 @ToolingApiVersion(">=1.8")
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
+    def setup() {
+        // disable URL caching
+        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
+        new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)
+    }
+
     @TargetGradleVersion(">=2.2")
+    @LeaksFileHandles("cl1 and cl2 hold action-impl.jar open")
     def "can change the implementation of an action"() {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()
@@ -48,8 +56,6 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
     }
 }
 """
-        // Discard the impl jar from the jvm's jar file cache and rebuild
-        forceJarClose(implJar)
         builder.buildJar(implJar)
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action1 = cl1.loadClass("ActionImpl").newInstance()
@@ -64,10 +70,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         actualJar1.name == implJar.name
 
         when:
-        // Discard the impl jar from the jvm's jar file cache
-        forceJarClose(implJar)
-        workDir.deleteDir()
-        builder.sourceFile('ActionImpl.java') << """
+        builder.sourceFile('ActionImpl.java').text = """
 public class ActionImpl implements ${BuildAction.name}<String> {
     public String execute(${BuildController.name} controller) {
         return getClass().getProtectionDomain().getCodeSource().getLocation().toString();
@@ -87,14 +90,5 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         actualJar2 != implJar
         actualJar2 != actualJar1
         actualJar2.name == implJar.name
-    }
-
-    def forceJarClose(File jar) {
-        if (!jar.exists()) {
-            return
-        }
-        def factory = new sun.net.www.protocol.jar.JarFileFactory()
-        def file = factory.get(jar.toURI().toURL())
-        factory.close(file)
     }
 }

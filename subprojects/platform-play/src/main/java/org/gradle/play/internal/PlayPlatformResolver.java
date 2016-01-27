@@ -27,7 +27,7 @@ import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.GUtil;
 
-// TODO:DAZ Resolve the JavaPlatform and ScalaPlatform, rather than instantiating directly
+// TODO Resolve the JavaPlatform and ScalaPlatform from their PlatformResolvers, rather than instantiating directly
 public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
     @Override
     public Class<PlayPlatform> getType() {

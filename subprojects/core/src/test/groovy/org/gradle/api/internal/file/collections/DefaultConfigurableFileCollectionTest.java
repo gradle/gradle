@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -42,7 +42,6 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
@@ -285,27 +284,7 @@ public class DefaultConfigurableFileCollectionTest {
             one(nestedContext).add(collection.getFrom());
         }});
 
-        collection.resolve(resolveContext);
-    }
-
-    @Test
-    public void resolveBuildDependenciesWhenNoEmpty() {
-        final FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext.class);
-        final FileCollectionResolveContext nestedContext = context.mock(FileCollectionResolveContext.class);
-        final FileCollection fileCollectionMock = context.mock(FileCollection.class);
-
-        collection.from("file");
-        collection.builtBy("classes");
-        collection.from(fileCollectionMock);
-
-        context.checking(new Expectations() {{
-            one(resolveContext).push(resolverMock);
-            will(returnValue(nestedContext));
-            one(nestedContext).add(with(notNullValue(TaskDependency.class)));
-            one(nestedContext).add(collection.getFrom());
-        }});
-
-        collection.resolve(resolveContext);
+        collection.visitContents(resolveContext);
     }
 
     @Test
@@ -335,7 +314,7 @@ public class DefaultConfigurableFileCollectionTest {
 
     @Test
     public void taskDependenciesContainsUnionOfDependenciesOfNestedFileCollectionsPlusOwnDependencies() {
-        final FileCollection fileCollectionMock = context.mock(FileCollection.class);
+        final FileCollectionInternal fileCollectionMock = context.mock(FileCollectionInternal.class);
 
         collection.from(fileCollectionMock);
         collection.from("f");

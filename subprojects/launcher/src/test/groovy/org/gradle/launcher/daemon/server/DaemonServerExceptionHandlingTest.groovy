@@ -20,9 +20,11 @@ import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.client.StubDaemonHealthServices
@@ -48,7 +50,8 @@ class DaemonServerExceptionHandlingTest extends Specification {
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false)
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false, false, ClassPath.EMPTY)
+    def contextServices = Stub(ServiceRegistry)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter
@@ -68,7 +71,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, buildRequestContext, parameters)
+        client.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(MessageIOException)
@@ -80,7 +83,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(get(BuildExecuter),
+                return new DefaultDaemonCommandExecuter(get(BuildExecuter), this,
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
@@ -104,7 +107,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(Throwable)
@@ -120,7 +123,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(OutOfMemoryError)

@@ -20,9 +20,11 @@ package org.gradle.integtests.tooling.r15
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion(">=1.5")
+@LeaksFileHandles
 class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

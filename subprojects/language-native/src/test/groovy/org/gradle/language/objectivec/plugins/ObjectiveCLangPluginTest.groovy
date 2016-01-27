@@ -22,12 +22,12 @@ import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 class ObjectiveCLangPluginTest extends AbstractLanguagePluginSpec {
 
     @Override
-    def getPluginClass() {
+    Class getPluginClass() {
         return ObjectiveCLangPlugin
     }
 
     @Override
-    def getLanguageSourceSet() {
+    Class getLanguageSourceSet() {
         return ObjectiveCSourceSet
     }
 

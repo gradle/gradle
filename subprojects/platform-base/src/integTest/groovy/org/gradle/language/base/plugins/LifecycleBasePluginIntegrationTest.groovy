@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -56,37 +57,5 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         taskName << ["check", "build"]
-    }
-
-    def "binaries are built when build task execution is requested"() {
-        buildFile << """
-            import org.gradle.model.ModelMap
-
-            interface SampleBinary extends BinarySpec {
-            }
-
-            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-            }
-
-            class SampleBinaryPlugin extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
-                    builder.defaultImplementation(DefaultSampleBinary)
-                }
-
-                @Mutate
-                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
-                    binarySpecs.create("sampleBinary")
-                }
-            }
-
-            apply plugin: SampleBinaryPlugin
-        """
-
-        when:
-        succeeds "build"
-
-        then:
-        ":sampleBinary" in executedTasks
     }
 }

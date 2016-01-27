@@ -35,6 +35,12 @@ import org.gradle.api.Incubating;
  * <li>{@link Mutate}</li>
  * <li>{@link Finalize}</li>
  * <li>{@link Validate}</li>
+ * <li>{@link Rules}</li>
+ * <li>{@link org.gradle.platform.base.ComponentType}</li>
+ * <li>{@link org.gradle.platform.base.BinaryType}</li>
+ * <li>{@link org.gradle.platform.base.LanguageType}</li>
+ * <li>{@link org.gradle.platform.base.ComponentBinaries}</li>
+ * <li>{@link org.gradle.platform.base.BinaryTasks}</li>
  * </ul>
  * <p>
  * Each annotation specifies the type of the rule, which affects when it will be executed.
@@ -67,8 +73,8 @@ import org.gradle.api.Incubating;
  * <ul>
  * <li>Constructors are not allowed.</li>
  * <li>Inheritance hierarchies are not allowed (i.e. all rules sources must directly extend {@link RuleSource}).</li>
- * <li>Instance variables are now allowed.</li>
- * <li>Non-final static variables are now allowed (i.e. constants are allowed).</li>
+ * <li>Instance variables are not allowed.</li>
+ * <li>Non-final static variables are not allowed (i.e. constants are allowed).</li>
  * <li>Methods cannot be overloaded.</li>
  * <li>Implementations cannot be generic (i.e. cannot use type parameters).</li>
  * </ul>

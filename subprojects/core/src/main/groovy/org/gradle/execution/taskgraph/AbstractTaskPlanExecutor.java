@@ -16,31 +16,27 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
-import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.progress.BuildOperationType;
-import org.gradle.internal.progress.OperationIdGenerator;
 
 import static org.gradle.util.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
-    private final Object lock = new Object();
 
-    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskListener);
+    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker);
     }
 
-    private class TaskExecutorWorker implements Runnable {
+    private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
-        private final InternalTaskExecutionListener taskListener;
+        private final Action<? super TaskInternal> taskWorker;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, InternalTaskExecutionListener taskListener) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
             this.taskExecutionPlan = taskExecutionPlan;
-            this.taskListener = taskListener;
+            this.taskWorker = taskWorker;
         }
 
         public void run() {
@@ -54,39 +50,24 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
                 processTask(task);
                 long taskDuration = System.currentTimeMillis() - startTask;
                 busy += taskDuration;
-                LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                }
             }
             long total = System.currentTimeMillis() - start;
             //TODO SF it would be nice to print one-line statement that concludes the utilisation of the worker threads
-            LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy), prettyTime(total - busy));
+            }
         }
 
         protected void processTask(TaskInfo taskInfo) {
             try {
-                executeTask(taskInfo);
+                taskWorker.execute(taskInfo.getTask());
             } catch (Throwable e) {
                 taskInfo.setExecutionFailure(e);
             } finally {
                 taskExecutionPlan.taskComplete(taskInfo);
-            }
-        }
-
-        // TODO:PARALLEL It would be good to move this logic into a TaskExecuter wrapper, but we'd need a way to give it a TaskExecutionListener that
-        // is wired to the various add/remove listener methods on TaskExecutionGraph
-        private void executeTask(TaskInfo taskInfo) {
-            TaskInternal task = taskInfo.getTask();
-            Object id = OperationIdGenerator.generateId(task);
-            Object parentId = OperationIdGenerator.generateId(BuildOperationType.EXECUTING_TASKS, task.getProject().getGradle());
-            TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentId, task);
-            synchronized (lock) {
-                taskListener.beforeExecute(taskOperation);
-            }
-            try {
-                task.executeWithoutThrowingTaskFailure();
-            } finally {
-                synchronized (lock) {
-                    taskListener.afterExecute(taskOperation);
-                }
             }
         }
     }

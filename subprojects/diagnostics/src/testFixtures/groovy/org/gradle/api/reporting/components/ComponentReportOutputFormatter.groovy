@@ -17,14 +17,12 @@
 package org.gradle.api.reporting.components
 
 import org.gradle.api.Transformer
-import org.gradle.internal.SystemProperties
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
 
     @Override
     String transform(String original) {
          return original
-                .replace("\n", SystemProperties.instance.lineSeparator)
                 .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 }

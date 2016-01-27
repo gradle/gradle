@@ -24,6 +24,7 @@ class HashUtilTest extends Specification {
     String stringToHash = "a test string"
     String md5HashString = "b1a4cf30d3f4095f0a7d2a6676bcae77"
     String sha1HashString = "2da75da5c85478df42df0f917700241ed282f599"
+    String sha256HashString = "b830543dc5d1466110538736d35c37cc61d32076a69de65c42913dfbb1961f46"
 
     def "createHash from String returns MD5 hash" () {
         expect:
@@ -39,7 +40,7 @@ class HashUtilTest extends Specification {
         HashUtil.createHash(file, "MD5").asHexString() == md5HashString
 
         cleanup:
-        file.delete()
+        file?.delete()
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
@@ -104,6 +105,28 @@ class HashUtilTest extends Specification {
         HashUtil.sha1(file).asHexString() == sha1HashString
 
         cleanup:
-        file.delete()
+        file?.delete()
+    }
+
+    def "sha256 from byteArray returns SHA-256 hash" () {
+        expect:
+        HashUtil.sha256(stringToHash.bytes).asHexString() == sha256HashString
+    }
+
+    def "sha256 from InputStream returns SHA-256 hash" () {
+        expect:
+        HashUtil.sha256(new ByteArrayInputStream(stringToHash.bytes)).asHexString() == sha256HashString
+    }
+
+    def "sha256 from File returns SHA-256 hash" () {
+        setup:
+        File file = File.createTempFile("HashUtilTest", null)
+        file << stringToHash
+
+        expect:
+        HashUtil.sha256(file).asHexString() == sha256HashString
+
+        cleanup:
+        file?.delete()
     }
 }

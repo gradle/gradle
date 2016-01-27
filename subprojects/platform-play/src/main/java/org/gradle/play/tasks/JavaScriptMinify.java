@@ -32,9 +32,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
-import org.gradle.platform.base.internal.toolchain.ResolvedTool;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.play.internal.javascript.DefaultJavaScriptCompileSpec;
 import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -48,7 +50,7 @@ import java.util.List;
 @Incubating
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
-    private ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool;
+    private PlayPlatform playPlatform;
     private BaseForkOptions forkOptions;
 
     public JavaScriptMinify() {
@@ -61,18 +63,17 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Returns the tool chain that will be used to compile the javascript source.
+     * Returns the tool chain that will be used to compile the JavaScript source.
      *
      * @return The tool chain.
      */
-    @Incubating
     @Inject
     public PlayToolChain getToolChain() {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Returns the output directory that processed javascript is written to.
+     * Returns the output directory that processed JavaScript is written to.
      *
      * @return The output directory.
      */
@@ -82,7 +83,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Sets the output directory where processed javascript should be written.
+     * Sets the output directory where processed JavaScript should be written.
      *
      * @param destinationDir The output directory.
      */
@@ -90,14 +91,24 @@ public class JavaScriptMinify extends SourceTask {
         this.destinationDir = destinationDir;
     }
 
-    public void setCompilerTool(ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool) {
-        this.compilerTool = compilerTool;
+    /**
+     * Sets the target Play platform.
+     *
+     * @param playPlatform The target Play platform.
+     */
+    public void setPlayPlatform(PlayPlatform playPlatform) {
+        this.playPlatform = playPlatform;
+    }
+
+    private Compiler<JavaScriptCompileSpec> getCompiler() {
+        ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
+        return select.newCompiler(JavaScriptCompileSpec.class);
     }
 
     /**
-     * The fork options to be applied to the javascript compiler.
+     * The fork options to be applied to the JavaScript compiler.
      *
-     * @return The fork options for the javascript compiler.
+     * @return The fork options for the JavaScript compiler.
      */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
@@ -116,7 +127,7 @@ public class JavaScriptMinify extends SourceTask {
         getSource().visit(visitor);
 
         JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
-        compilerTool.get().execute(spec);
+        getCompiler().execute(spec);
     }
 
     /**

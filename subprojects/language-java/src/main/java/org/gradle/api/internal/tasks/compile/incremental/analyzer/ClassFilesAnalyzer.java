@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDa
 
 import java.io.File;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public class ClassFilesAnalyzer implements FileVisitor {
 
     private final ClassDependenciesAnalyzer analyzer;
@@ -43,7 +45,7 @@ public class ClassFilesAnalyzer implements FileVisitor {
 
     public void visitFile(FileVisitDetails fileDetails) {
         File file = fileDetails.getFile();
-        if (!file.getName().endsWith(".class")) {
+        if (!hasExtension(file, ".class")) {
             return;
         }
         String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");

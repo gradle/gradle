@@ -19,6 +19,8 @@ package org.gradle.internal.serialize
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.CharBuffer
+
 abstract class AbstractCodecTest extends Specification {
     def "can encode and decode raw bytes using Stream view"() {
         expect:
@@ -443,13 +445,13 @@ abstract class AbstractCodecTest extends Specification {
 
         where:
         value                            | _
-//        ""                               | _
-//        "all ascii"                      | _
+        ""                               | _
+        "all ascii"                      | _
         "\u0000\u0101\u3100"             | _
-//        "${1 + 2}"                       | _
-//        new StringBuilder("some string") | _
-//        CharBuffer.wrap("a string")      | _
-//        (0..1000).join("-")              | _
+        "${1 + 2}"                       | _
+        new StringBuilder("some string") | _
+        CharBuffer.wrap("a string")      | _
+        (0..1000).join("-")              | _
     }
 
     def "decode fails when string cannot be fully read"() {

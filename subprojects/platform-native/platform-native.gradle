@@ -18,25 +18,25 @@ dependencies {
     compile libraries.groovy
     compile libraries.commons_io
     compile project(':core')
-    compile project(":platformBase")
-    compile project(":diagnostics")
+    compile project(':platformBase')
+    compile project(':diagnostics')
 
-    integTestRuntime project(":maven")
+    integTestRuntime project(':maven')
     // Required to test visual studio project file generation for generated sources
-    integTestRuntime project(":ideNative")
+    integTestRuntime project(':ideNative')
 
-    testFixturesCompile project(":internalIntegTesting")
+    testFixturesCompile project(':internalIntegTesting')
 }
 
 useTestFixtures()
-useTestFixtures(project: ":messaging")
-useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":modelCore")
-useTestFixtures(project: ":diagnostics")
+useTestFixtures(project: ':messaging')
+useTestFixtures(sourceSet: 'testFixtures')
+useTestFixtures(project: ':platformBase')
+useTestFixtures(project: ':modelCore')
+useTestFixtures(project: ':diagnostics')
 
 strictCompile()
-useClassycle(exclude: ["org/gradle/nativeplatform/plugins/**",
-                       "org/gradle/nativeplatform/tasks/**",
-                       "org/gradle/nativeplatform/internal/resolve/**",
-                       "org/gradle/nativeplatform/toolchain/internal/**"])
+useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',
+                       'org/gradle/nativeplatform/tasks/**',
+                       'org/gradle/nativeplatform/internal/resolve/**',
+                       'org/gradle/nativeplatform/toolchain/internal/**'])

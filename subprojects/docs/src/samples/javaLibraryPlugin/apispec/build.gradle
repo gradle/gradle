@@ -1,0 +1,47 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// START SNIPPET specify-library-api
+model {
+    components {
+        main(JvmLibrarySpec) {
+            api {
+                exports 'org.gradle'
+                exports 'org.gradle.utils'
+            }
+        }
+    }
+}
+// END SNIPPET specify-library-api
+
+// START SNIPPET client-api
+model {
+    components {
+        client(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET client-api
+
+model {
+    components {
+        brokenclient(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
+    }
+}
