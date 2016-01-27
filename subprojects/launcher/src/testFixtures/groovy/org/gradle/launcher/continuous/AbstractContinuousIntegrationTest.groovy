@@ -41,6 +41,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
     boolean ignoreShutdownTimeoutException
+    List<ExecutionResult> results = []
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -172,8 +173,36 @@ $lastOutput
         standardOutputBuildMarker = gradle.standardOutput.length()
         errorOutputBuildMarker = gradle.errorOutput.length()
 
+        parseResults(out, err)
+        result = results.last()
+    }
+
+    private OutputScrapingExecutionResult createExecutionResult(String out, String err) {
         //noinspection GroovyConditionalWithIdenticalBranches
-        result = out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+        out.contains("BUILD SUCCESSFUL") ? new OutputScrapingExecutionResult(out, err) : new OutputScrapingExecutionFailure(out, err)
+    }
+
+    void parseResults(String out, String err) {
+        if(!out) {
+            results << createExecutionResult(out, err)
+            return
+        }
+        int startPos = 0
+        int endPos = findChangesDetectedIndex(out, startPos)
+        while (startPos < out.length()) {
+            if (endPos == -1) {
+                endPos = out.length()
+            }
+            results << createExecutionResult(out.substring(startPos, endPos), err)
+            startPos = endPos
+            endPos = findChangesDetectedIndex(out, startPos)
+        }
+    }
+
+    private int findChangesDetectedIndex(String out, int startIndex) {
+        int waitingForChangesIndex = out.indexOf(WAITING_FOR_CHANGES_OUTPUT, startIndex)
+        int changesDetectedIndex = waitingForChangesIndex > -1 ? out.indexOf(CHANGE_DETECTED_OUTPUT, waitingForChangesIndex + WAITING_FOR_CHANGES_OUTPUT.length()) : -1
+        changesDetectedIndex
     }
 
     private long monotonicClockMillis() {

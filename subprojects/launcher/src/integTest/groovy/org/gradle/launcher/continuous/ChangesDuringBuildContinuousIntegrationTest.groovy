@@ -88,10 +88,12 @@ gradle.taskGraph.afterTask { Task task ->
         """
 
         then:
-        def result = succeeds("d")
+        succeeds("d")
         sendEOT()
-        result.executedTasks == [':a', ':b', ':c', ':d', ':a', ':b', ':c', ':d']
-        result.assertOutputContains('Change detected, executing build...')
+        results.size() == 2
+        results.each {
+            assert it.executedTasks == [':a', ':b', ':c', ':d']
+        }
 
         where:
         changingInput << ['a', 'b', 'c', 'd']
@@ -133,10 +135,12 @@ gradle.taskGraph.afterTask { Task task ->
         """
 
         then:
-        def result = succeeds("d")
+        succeeds("d")
         sendEOT()
-        result.executedTasks == [':a', ':b', ':c', ':d', ':a', ':b', ':c', ':d']
-        result.assertOutputContains('Change detected, executing build...')
+        results.size() == 2
+        results.each {
+            assert it.executedTasks == [':a', ':b', ':c', ':d']
+        }
 
         where:
         changingInput << ['a', 'b', 'c', 'd']
