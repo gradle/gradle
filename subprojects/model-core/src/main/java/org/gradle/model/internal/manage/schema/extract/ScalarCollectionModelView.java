@@ -30,15 +30,15 @@ public abstract class ScalarCollectionModelView<E, C extends Collection<E>> impl
     protected final ModelType<E> elementType;
     protected final ModelType<C> type;
     protected final MutableModelNode modelNode;
-    protected final boolean readOnly;
+    protected final boolean overwritable;
     protected final DefaultModelViewState state;
 
-    public ScalarCollectionModelView(ModelPath path, ModelType<C> type, ModelType<E> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean readOnly, boolean mutable) {
+    public ScalarCollectionModelView(ModelPath path, ModelType<C> type, ModelType<E> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
         this.path = path;
         this.type = type;
         this.elementType = elementType;
         this.modelNode = modelNode;
-        this.readOnly = readOnly;
+        this.overwritable = overwritable;
         this.state = new DefaultModelViewState(path, type, descriptor, mutable, false);
     }
 
@@ -68,7 +68,7 @@ public abstract class ScalarCollectionModelView<E, C extends Collection<E>> impl
     public C getInstance() {
         Collection<?> delegate = getBackingValue();
         if (delegate == null) {
-            if (readOnly || state.isCanMutate()) {
+            if (overwritable || state.isCanMutate()) {
                 // if the collection is a read-only property, it must be initialized first (it will never be null)
                 // if the collection is *not* read-only, then we will initialize it only if the collection is the
                 // subject of a rule, that is to say that it can be mutated. This may look strange, if a read-write
