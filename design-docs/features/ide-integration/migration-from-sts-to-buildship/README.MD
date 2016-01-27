@@ -1,12 +1,11 @@
 # Story: Detect STS Gradle installation and notify the user
 
-Query the list of installed Eclipse plugins, and if STS Gradle is installed then notify the user about it being superceded by Buildship.
-The notification should contain a link to a document outlining the steps required for migration, including uninstalling the STS plugin.
+Document the migration steps from STS Gradle integration to Buildship. Provide contribution to the STS plugin to show a dialog that the development is discontinued and users should use Buildship. The migration document should be accessible from the dialog.
 
 ## Estimate
 
 - Migration guide - 1 day
-- Detect STS installation - 2 days
+- Detect STS installation - 3 days
 
 ## Implementation
 
@@ -18,21 +17,19 @@ It should reference the relevant points from the [STS plugin documentation](http
         - Buildship stores absolute locations in the `.settings/gradle.prefs` import preference file. This makes the ‘Import existing project’ wizard unusable, and makes it difficult to share a fully configured Buildship workspace.
     - Import subset of modules from a multi-module build.
     - Support renaming for eclipse projects, or deduplicate naming conflicts with a non-Gradle project.
-- Query the list of installed Eclipse plugins when Eclipse is started up.
-    - If only Buildship is installed, do nothing.
-    - If Buildship and the STS Gradle plugin are detected, render a message for the user.
-        - Inform that the STS Gradle plugin is discontinued and that Pivotal will stop supporting it.
+The document should be published as a wiki page in Buildship GitHub repository
+- Contribute feature to STS plugin to render a message that users should migrate to Buildship
+    - Contact The STS plugin developers in advance to express our intent and check if they will accept our contribution
+    - Implement contribution
+        - Upon plugin startup inform the user that the STS Gradle plugin is discontinued and that Pivotal will stop supporting it.
         - Add a link to the migration guide.
         - Add checkbox 'Don't show this message again'.
 
 ## Test cases
 
-- Can detect if STS plugin is installed in Eclipse
-- STS plugin detection is activated upon startup
+- Dialog is presented to the user upon startup
      - If the user does not check the option, then the dialog will continue to be rendered upon startup
 - User can directly click on the link in the dialog and a browser will be opened
-
-Note: Eclipse provides an API to install-uninstall bundles in the current runtime. We'll make use of this feature to provide integration tests verifying how Buildship behaves when STS is installed.
 
 ## Open issues
 
