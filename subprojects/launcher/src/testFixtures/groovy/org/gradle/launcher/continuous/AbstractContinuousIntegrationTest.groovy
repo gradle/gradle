@@ -67,13 +67,17 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
                 def startAt = System.nanoTime()
                 gradle.buildFinished {
                     long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                    if (sinceStart > 0 && sinceStart < 2000) {
-                      sleep(2000 - sinceStart)
+                    if (sinceStart > 0 && sinceStart < $minimumBuildTimeMillis) {
+                      sleep($minimumBuildTimeMillis - sinceStart)
                     }
                 }
             """
             withArgument("-I").withArgument(initScript.absolutePath)
         }
+    }
+
+    protected int getMinimumBuildTimeMillis() {
+        2000
     }
 
     @Override
