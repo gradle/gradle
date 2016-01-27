@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.*
+import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
@@ -653,6 +654,7 @@ model {
         solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
+    @Ignore
     def "visual studio project includes headers co-located with sources"() {
         when:
         // Write headers so they sit with sources
