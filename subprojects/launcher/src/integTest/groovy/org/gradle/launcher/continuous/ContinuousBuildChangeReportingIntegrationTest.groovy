@@ -36,7 +36,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         inputDir = file("inputDir").createDir()
     }
 
-    def "should report the absolute file path of the file added when 1 file is added to the input directory"() {
+    def "should report the absolute file path of the created file when a single file is created in the input directory"() {
         given:
         def inputFile = inputDir.file("input.txt")
         when:
@@ -49,7 +49,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }
 
-    def "should report the absolute file path of the file added when 3 files are added to the input directory"() {
+    def "should report the absolute file path of the created files when the number of files added to the input directory is at the limit"() {
         given:
         def inputFiles = (1..changesLimit).collect { inputDir.file("input${it}.txt") }
         when:
@@ -62,7 +62,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) })
     }
 
-    def "should report the absolute file path of the first 3 changes and report the number of other changes when more that 3 files are added to the input directory of each task"() {
+    def "should report the absolute file path of the created files up to the limit and 'and some more changes' when the number of files added to the input directory is over the limit"() {
         given:
         def inputFiles = (1..9).collect { inputDir.file("input${it}.txt") }
         when:
@@ -113,7 +113,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         changesCount << [1, changesLimit, 11]
     }
 
-    def "should report the changes when directories are added"(changesCount) {
+    def "should report the changes when directories are created"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
         boolean expectMoreChanges = (changesCount > changesLimit)
