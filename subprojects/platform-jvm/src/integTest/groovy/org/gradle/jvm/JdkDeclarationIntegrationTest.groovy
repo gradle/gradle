@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm
 
+import groovy.json.StringEscapeUtils
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -34,7 +35,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         def jdks = AvailableJavaHomes.availableJdks.indexed().collect { i, jdk ->
             """
                     jdk$i(JdkSpec) {
-                        path '$jdk.javaHome'
+                        path '${StringEscapeUtils.escapeJava(jdk.javaHome.toString())}'
                     }
             """
         }.join('')
@@ -52,7 +53,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def report = ModelReportOutput.from(output)
         AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
-            assert report.modelNode.installedJdks."jdk$i".javaHome.@nodeValue == ["$jdk.javaHome"]
+            assert report.modelNode.installedJdks."jdk$i".javaHome.@nodeValue == [jdk.javaHome.toString()]
         }
     }
 }
