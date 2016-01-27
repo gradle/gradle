@@ -147,7 +147,7 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("install-dir") >> file("vs")
-        visualStudioLocator.locateVisualStudioInstalls(file("vs")) >> visualStudioLookup
+        visualStudioLocator.locateDefaultVisualStudioInstall(file("vs")) >> visualStudioLookup
         visualStudioLookup.available >> true
 
         and:
