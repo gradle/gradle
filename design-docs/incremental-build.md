@@ -103,16 +103,6 @@ This story adds a way for an incremental task to register additional inputs once
 
 ### Implementation
 
-- Add `void newInput(File)` to IncrementalTaskInputs
-- Add `Set<File> getDiscoveredInputs()` to IncrementalTaskInputsInternal
-- StatefulIncrementalTaskInputs will implement `newInput` and `getDiscoveredInputs` to capture discovered inputs.
-- Add new getDiscoveredInputFilesSnapshot/setDiscoveredInputFilesSnapshot methods to TaskExecution and LazyTaskExecution to record a separate discovered FileCollectionSnapshot. This means a task has 3 snapshots (inputs, outputs, discovered inputs).
-- Update LazyTaskExecution and CacheBackedTaskHistoryRepository to handle the new discovered inputs snapshot. Maybe there's a higher level extraction that could be done here? The code for inputs/outputs/discovered are all similar.
-- Add new DiscoveredInputFilesStateChangeRule that behaves identical to InputFilesStateChangeRule, except there is no input snapshot. Instead, the input snapshot is calculated by getting the hash of all files in the previousExecution's DiscoveredInputFilesSnapshot.
-- DiscoveredInputFilesStateChangeRule's snapshotAfterTask action is to take the snapshot of all discovered files and add it to the current execution.
-- TaskUpToDateState will use DiscoveredInputFilesStateChangeRule to create another source of TaskStateChanges.  This ties discovered inputs into the up-to-date checks.
-- DefaultTaskArtifactStateRepository will be responsible for tying the discovered inputs from IncrementalTaskInputs to the discovered input snapshotting in snapshotAfterTask().
-
 ### Test coverage
 
 - Discovered inputs must be Files (not directories).
@@ -123,14 +113,20 @@ This story adds a way for an incremental task to register additional inputs once
 - The set of discovered inputs after the task executes represents the inputs discovered for that execution, so if on build#1 discovered inputs are A, B, C and on build#2 discovered inputs are D, E, F.  Discovered inputs after #2 should be D, E, F (not a combination).
 - A task that is up-to-date should not lose its discovered inputs. Following an up-to-date build, a change in a discovered inputs should cause a task to be out of date.  i.e., A task that discovers inputs A, B, C in build#1, is up-to-date in build #2, should still have discovered inputs A, B, C in build#3.
 
-### Open issues
+### Open issues to make feature public
 
-- If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem? -- currently this is a fatal problem (files must exist)
-- Any change to discovered inputs causes all inputs to be out-of-date -- currently, task is still incremental
-- It would be nice to perform discovery incrementally.
-- It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
-- The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
+- Finalize API (should it remain on IncrementalTaskInputs or move somewhere else).
+- Any change to discovered inputs should cause all inputs to be out-of-date -- currently, a task's IncrementalTaskInputs are still marked as incremental when discovered inputs change.  Incremental native compiler relies on `incremental` flag to do any incremental builds. 
+    - If task has inputs [A,B,C]. If only A changes, IncrementalTaskInputs will only report A as changed and incremental=true.  The task may do a "incremental execution".
+    - If task has input property foo.  If foo changes, IncrementalTaskInputs will have incremental=false and the task should do a "full execution".
+    - If a task has discovered inputs [X,Y,Z], if any discovered input changes, IncrementalTaskInputs will report _no_ files as changed and incremental=true (this is partially wrong).
+    - If we change discovered inputs to be more like regular inputs, we need to decide on the behavior of the set of files changed (as seen by `outOfDate`) and incremental=true or false.
+    - If we make the task non-incremental (incremental=false), IncrementalNativeCompiler needs to handle this by always doing a scan of all files and incremental build (this pushes the hard work down into the task that wants to use discovered inputs).
+    - If we make the task incremental (incremental=true), do we also include discovered inputs in the `outOfDate` list? IncrementalNativeCompiler ignores this list right now.
 - Discovered inputs do not work with continuous build.
+- The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
+- It would be nice to perform discovery incrementally.
+- Eventually be pretty much anything that you can use as a declared input for a task (including non-file properties and objects) should be able to be treated as "discovered inputs".
 
 ## ~~Story: Use source #include information as discovered inputs~~
 
