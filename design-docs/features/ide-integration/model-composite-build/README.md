@@ -203,37 +203,37 @@ Buildship:
 
 ### Story - Model for a composite does not include duplicate eclipse project names
 
-Individual projects in a composite might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are
-uniquely identified.
+Individual projects in a composite might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are uniquely identified.
 
 ##### Implementation
 
-- If an `Set<ModelResult<EclipseProject>>` would include two projects with the same project name, an algorithm will de-duplicate the Eclipse project names. De-duped Eclipse project names are only logic
-references to the original projects. The actual project name stays unchanged.
+- If an `Set<ModelResult<EclipseProject>>` would include two projects with the same project name, an algorithm will de-duplicate the Eclipse project names. The name of the referenced `GradleProject` stays unchanged.
 - Gradle core implements a similar algorithm for the IDE plugins. This implementation will be reused. The current implementation would have to be refactored and moved to an internal
 package in the tooling-api subproject. The de-duplication implementation should use Tooling API's `HierarchicalElement` interface to access the name and hierarchy of projects. The IDE
 subproject already depends on tooling-api and it's easy to adapt the current code to use the `HierarchicalElement` interface in de-duplication so that the implementation can be shared.
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current `ModuleNameDeduper` implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider
   rewriting the implementation.
+- Project names must remain stable, i.e. de-duping renames projects in the order of the composite's participants. As a result, Buildship will rename newly imported projects in favor of renaming already existing projects.
 
 ##### Test cases
 
-- Any refactorings to the current de-duping logic does not have side-effects on existing logic that already uses it.
 - If the names of all imported projects are unique, de-duping doesn't have to kick in.
-- If at least two imported projects have the same name, de-dupe the names. De-duped project names still reference the original project.
-should be rendered in Eclipse's project view section.
+- If at least two imported projects have the same name, de-dupe the `EclipseProject` names. The names of the `GradleProject`s are unaffected
 - De-duping may be required for more that one duplicate project name.
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names.
 
-#### Open issues
+### Story - Model for a composite does not contain project names that conflict with non-Gradle projects
 
-- Do we need to keep the original project name for a de-duped project for further process in Buildship e.g. visual hints original -> new?
-- The Eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates.
-This isn't specific to the composite build and should be solved for ordinary builds as well.
-- Project names should remain stable, i.e. de-duping renames newly added projects in favor of renaming previously imported projects.
+The Eclipse workspace might contain existing projects that are not Gradle projects. Their names are taken and cannot be changed by Buildship. The composite build API needs to be enhanced to allow passing reserved names for the de-duplication algorithm.
+
+##### API
+TBD
+
+##### Test cases
+TBD
 
 ### Story - Model for a composite substitutes source project dependencies for external module dependencies
 
