@@ -192,7 +192,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                     build using task: :myComponentMyBinary
                     source sets:
                         $sourceType 'myComponent:myBinarySource'
-                            srcDir: src/myComponent/myBinarySource
+                            srcDir: src${File.separator}myComponent${File.separator}myBinarySource
             """.stripIndent()
 
         where:
