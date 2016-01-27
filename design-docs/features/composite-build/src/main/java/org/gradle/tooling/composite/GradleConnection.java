@@ -87,7 +87,7 @@ public interface GradleConnection {
      * @param <T>
      * @throws IllegalStateException
      */
-    <T> void getModel(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException;
+    <T> void getModels(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException;
 
     /**
      * Creates a builder which can be used to query the model of the given type for all projects in the composite.
