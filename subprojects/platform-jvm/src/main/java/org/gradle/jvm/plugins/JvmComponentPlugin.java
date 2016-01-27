@@ -16,8 +16,12 @@
 
 package org.gradle.jvm.plugins;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -29,18 +33,22 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
+import org.gradle.jvm.toolchain.JdkSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.jvm.toolchain.internal.InstalledJdk;
+import org.gradle.jvm.toolchain.internal.InstalledJdkInternal;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -87,9 +95,50 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return new ProjectLayout(projectIdentifier, buildDir);
         }
 
+        @Model
+        public void jdks(ModelMap<JdkSpec> jdks) {
+        }
+
+        @Model
+        public void installedJdks(ModelMap<InstalledJdk> installedJdks) {
+        }
+
+        @Validate
+        public void validateJDKs(ModelMap<JdkSpec> jdks) {
+            ImmutableListMultimap<String, JdkSpec> jdksByPath = indexByPath(jdks);
+            List<String> errors = Lists.newArrayList();
+            for (String path : jdksByPath.keySet()) {
+                checkDuplicateForPath(jdksByPath, path, errors);
+            }
+            if (!errors.isEmpty()) {
+                throw new InvalidModelException(String.format("Duplicate JDK declared:\n%s", Joiner.on("\n").join(errors)));
+            }
+        }
+
         @Mutate
         public void registerPlatformResolver(PlatformResolvers platformResolvers) {
             platformResolvers.register(new JavaPlatformResolver());
+        }
+
+        @Model
+        @Hidden
+        JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
+            return new JavaInstallationProbe(serviceRegistry.get(ExecActionFactory.class));
+        }
+
+        @Defaults
+        public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            for (final JdkSpec jdk : jdks) {
+                installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+                    @Override
+                    public void execute(InstalledJdkInternal installedJdk) {
+                        EnumMap<JavaInstallationProbe.Type, String> metadata = probe.getMetadata(jdk.getPath());
+                        installedJdk.setJavaHome(jdk.getPath());
+                        installedJdk.setJavaVersion(JavaVersion.toVersion(metadata.get(JavaInstallationProbe.Type.VERSION)));
+                        installedJdk.setDisplayName(String.format("%s %s", metadata.get(JavaInstallationProbe.Type.VENDOR), metadata.get(JavaInstallationProbe.Type.VM)));
+                    }
+                });
+            }
         }
 
         @ComponentBinaries
@@ -196,6 +245,44 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     ? binaryName.substring(0, binaryName.length() - 3)
                     : binaryName;
             return libName + "ApiJar";
+        }
+
+        private static void checkDuplicateForPath(ImmutableListMultimap<String, JdkSpec> index, String path, List<String> errors) {
+            ImmutableList<JdkSpec> jdkSpecs = index.get(path);
+            if (jdkSpecs.size() > 1) {
+                errors.add(String.format("   - %s are both pointing to the same JDK installation path: %s",
+                    Joiner.on(", ").join(Iterables.transform(jdkSpecs, new Function<JdkSpec, String>() {
+                        @Override
+                        public String apply(JdkSpec input) {
+                            return input.getName();
+                        }
+                    })), path));
+            }
+        }
+
+        private static ImmutableListMultimap<String, JdkSpec> indexByPath(ModelMap<JdkSpec> jdks) {
+            return Multimaps.index(toImmutableJdkList(jdks), new Function<JdkSpec, String>() {
+                @Override
+                public String apply(JdkSpec input) {
+                    try {
+                        return input.getPath().getCanonicalPath().toString();
+                    } catch (IOException e) {
+                        UncheckedException.throwAsUncheckedException(e);
+                    }
+                    return null;
+                }
+            });
+        }
+
+        private static List<JdkSpec> toImmutableJdkList(ModelMap<JdkSpec> jdks) {
+            final List<JdkSpec> asImmutable = Lists.newArrayList();
+            jdks.afterEach(new Action<JdkSpec>() {
+                @Override
+                public void execute(JdkSpec jdkSpec) {
+                    asImmutable.add(jdkSpec);
+                }
+            });
+            return asImmutable;
         }
 
         @Defaults
