@@ -32,7 +32,7 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
 
@@ -124,7 +124,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
             return Lists.newArrayList();
         }
 
-        final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
+        final IncludeDirectives includes = spec.getSourceFileIncludeDirectives().get(sourceFile);
         final String header = spec.getPreCompiledHeader();
 
         List<Include> headers = includes.getIncludesAndImports();

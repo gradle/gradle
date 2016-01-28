@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,12 +91,12 @@ public class IncrementalCompileProcessor {
 
             if (!sameHash(previousState, newState)) {
                 changed = true;
-                newState.setSourceIncludes(sourceIncludesParser.parseIncludes(file));
+                newState.setIncludeDirectives(sourceIncludesParser.parseIncludes(file));
             } else {
-                newState.setSourceIncludes(previousState.getSourceIncludes());
+                newState.setIncludeDirectives(previousState.getIncludeDirectives());
             }
 
-            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, newState.getSourceIncludes());
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, newState.getIncludeDirectives());
             newState.setResolvedIncludes(resolutionResult.getResolvedIncludes());
             discoveredInputs.addAll(resolutionResult.getCheckedLocations());
 
@@ -130,8 +130,8 @@ public class IncrementalCompileProcessor {
             return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
         }
 
-        private SourceIncludesResolver.ResolvedSourceIncludes resolveIncludes(File file, SourceIncludes sourceIncludes) {
-            return sourceIncludesResolver.resolveIncludes(file, sourceIncludes);
+        private SourceIncludesResolver.ResolvedSourceIncludes resolveIncludes(File file, IncludeDirectives includeDirectives) {
+            return sourceIncludesResolver.resolveIncludes(file, includeDirectives);
         }
 
         public List<File> getModifiedSources() {

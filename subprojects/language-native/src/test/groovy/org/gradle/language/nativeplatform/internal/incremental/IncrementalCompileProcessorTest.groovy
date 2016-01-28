@@ -19,8 +19,8 @@ import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashUtil
-import org.gradle.language.nativeplatform.internal.SourceIncludes
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes
+import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -83,18 +83,18 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def parse(TestFile sourceFile) {
         final Set<ResolvedInclude> deps = graph[sourceFile]
-        SourceIncludes includes = includes(deps)
+        IncludeDirectives includes = includes(deps)
         1 * includesParser.parseIncludes(sourceFile) >> includes
     }
 
     def resolve(TestFile sourceFile) {
         Set<ResolvedInclude> deps = graph[sourceFile]
-        SourceIncludes includes = includes(deps)
+        IncludeDirectives includes = includes(deps)
         1 * dependencyParser.resolveIncludes(sourceFile, includes) >> resolveDeps(deps)
     }
 
-    private static SourceIncludes includes(Set<ResolvedInclude> deps) {
-        def includes = new DefaultSourceIncludes()
+    private static IncludeDirectives includes(Set<ResolvedInclude> deps) {
+        def includes = new DefaultIncludeDirectives()
         includes.addAll(deps.collect { '<' + it.file.name + '>' })
         return includes
     }

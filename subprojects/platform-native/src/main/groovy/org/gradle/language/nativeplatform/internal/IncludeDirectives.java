@@ -17,7 +17,7 @@ package org.gradle.language.nativeplatform.internal;
 
 import java.util.List;
 
-public interface SourceIncludes {
+public interface IncludeDirectives {
     List<Include> getQuotedIncludes();
     List<Include> getSystemIncludes();
     List<Include> getMacroIncludes();

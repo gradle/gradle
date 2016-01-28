@@ -18,14 +18,14 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultSourceIncludes implements SourceIncludes, Serializable {
+public class DefaultIncludeDirectives implements IncludeDirectives, Serializable {
     private final List<Include> allIncludes = new ArrayList<Include>();
 
     public void addAll(List<Include> includes) {
@@ -81,7 +81,7 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
             return false;
         }
 
-        DefaultSourceIncludes that = (DefaultSourceIncludes) o;
+        DefaultIncludeDirectives that = (DefaultIncludeDirectives) o;
 
         if (!allIncludes.equals(that.allIncludes)) {
             return false;

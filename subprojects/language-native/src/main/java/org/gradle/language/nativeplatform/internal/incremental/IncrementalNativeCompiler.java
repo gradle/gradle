@@ -32,7 +32,7 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
@@ -77,7 +77,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             }
         });
 
-        spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
+        spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
         final IncrementalTaskInputsInternal taskInputs = (IncrementalTaskInputsInternal) spec.getIncrementalInputs();
 
@@ -119,11 +119,11 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         }
     }
 
-    private Map<File, SourceIncludes> mapIncludes(Collection<File> files, final CompilationState compilationState) {
-        return CollectionUtils.collectMapValues(files, new Transformer<SourceIncludes, File>() {
+    private Map<File, IncludeDirectives> mapIncludes(Collection<File> files, final CompilationState compilationState) {
+        return CollectionUtils.collectMapValues(files, new Transformer<IncludeDirectives, File>() {
             @Override
-            public SourceIncludes transform(File file) {
-                return compilationState.getState(file).getSourceIncludes();
+            public IncludeDirectives transform(File file) {
+                return compilationState.getState(file).getIncludeDirectives();
             }
         });
     }

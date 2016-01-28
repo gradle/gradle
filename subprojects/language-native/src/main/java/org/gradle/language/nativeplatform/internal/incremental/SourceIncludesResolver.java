@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 import java.util.Set;
@@ -32,5 +32,5 @@ public interface SourceIncludesResolver {
          */
         Set<File> getCheckedLocations();
     }
-    ResolvedSourceIncludes resolveIncludes(File sourceFile, SourceIncludes includes);
+    ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes);
 }

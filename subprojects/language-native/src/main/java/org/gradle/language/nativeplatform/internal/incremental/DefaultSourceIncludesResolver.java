@@ -17,7 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.Sets;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         this.includePaths = includePaths;
     }
 
-    public ResolvedSourceIncludes resolveIncludes(File sourceFile, SourceIncludes includes) {
+    public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes) {
         BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
         searchForDependencies(prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), resolvedSourceIncludes);
         searchForDependencies(includePaths, includes.getSystemIncludes(), resolvedSourceIncludes);
