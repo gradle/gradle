@@ -96,6 +96,7 @@ After this milestone, a Build author can define a homogeneous composite and use 
     - Command-line switch to target a particular project within the composite (likely the same switch)
     - All directories in the current directory are considered to be builds participating in a composite
 - [ ] Developer declares composite participants using composite descriptor
+- More TBD...
 
 
 ## Later
