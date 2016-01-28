@@ -20,12 +20,15 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class InputFileChange extends FileChange implements InputFileDetails {
 
-    public InputFileChange(String path, ChangeType change) {
+    private final String fileType;
+
+    public InputFileChange(String path, ChangeType change, String fileType) {
         super(path, change);
+        this.fileType = fileType;
     }
 
     @Override
     protected String getFileType() {
-        return "Input";
+        return fileType;
     }
 }

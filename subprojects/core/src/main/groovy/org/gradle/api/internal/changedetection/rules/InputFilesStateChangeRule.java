@@ -27,11 +27,13 @@ import java.util.Iterator;
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
+    private static final String INPUT_FILE_TYPE = "Input";
+
     public static TaskStateChanges create(final TaskExecution previousExecution, final TaskExecution currentExecution, final FileCollectionSnapshot inputFilesSnapshot) {
         return new TaskStateChanges() {
             public Iterator<TaskStateChange> iterator() {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    return Collections.<TaskStateChange>singleton(new DescriptiveChange("Input file history is not available.")).iterator();
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange(INPUT_FILE_TYPE + " file history is not available.")).iterator();
                 }
 
                 return new AbstractIterator<TaskStateChange>() {
@@ -58,15 +60,15 @@ class InputFilesStateChangeRule {
         public InputFileChange lastChange;
 
         public void added(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.ADDED);
+            lastChange = new InputFileChange(fileName, ChangeType.ADDED, INPUT_FILE_TYPE);
         }
 
         public void removed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.REMOVED);
+            lastChange = new InputFileChange(fileName, ChangeType.REMOVED, INPUT_FILE_TYPE);
         }
 
         public void changed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED);
+            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED, INPUT_FILE_TYPE);
         }
     }
 }

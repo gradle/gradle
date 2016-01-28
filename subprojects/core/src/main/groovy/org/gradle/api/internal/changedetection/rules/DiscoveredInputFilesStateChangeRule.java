@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DiscoveredInputFilesStateChangeRule {
+    private static final String DISCOVERED_INPUT_FILE_TYPE = "Discovered input";
+
     private final FileCollectionSnapshotter inputFilesSnapshotter;
     private final FileCollectionFactory fileCollectionFactory;
 
@@ -46,7 +48,7 @@ public class DiscoveredInputFilesStateChangeRule {
 
             public Iterator<TaskStateChange> iterator() {
                 if (previousExecution.getDiscoveredInputFilesSnapshot() == null) {
-                    return Collections.<TaskStateChange>singleton(new DescriptiveChange("Discovered input file history is not available.")).iterator();
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange(DISCOVERED_INPUT_FILE_TYPE + " file history is not available.")).iterator();
                 }
 
                 Iterables.addAll(discoveredFiles, previousExecution.getDiscoveredInputFilesSnapshot().getFiles());
@@ -82,15 +84,15 @@ public class DiscoveredInputFilesStateChangeRule {
         public InputFileChange lastChange;
 
         public void added(String fileName) {
-            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.ADDED);
+            lastChange = new InputFileChange(fileName, ChangeType.ADDED, DISCOVERED_INPUT_FILE_TYPE);
         }
 
         public void removed(String fileName) {
-            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.REMOVED);
+            lastChange = new InputFileChange(fileName, ChangeType.REMOVED, DISCOVERED_INPUT_FILE_TYPE);
         }
 
         public void changed(String fileName) {
-            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.MODIFIED);
+            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED, DISCOVERED_INPUT_FILE_TYPE);
         }
     }
 }
