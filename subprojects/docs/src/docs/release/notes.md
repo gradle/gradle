@@ -35,7 +35,7 @@ This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbo
 
 #### Model data report
 
-The model report can very verbose by default: for each node of the model, it will show you the types of the properties as well as the rules that created or mutated them. However, you might only want to see the data that the model contains, and only the data, for example to validate your build configuration. In that case, you can now do this by calling `gradle model --format=short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format=full`.
+The model report can be very verbose by default: for each node of the model, it will show you the types of the properties as well as the rules that created or mutated them. However, you might only want to see the data that the model contains, and only the data, for example to validate your build configuration. In that case, you can now do this by calling `gradle model --format=short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format=full`.
 
 #### Fine grained application of rules
 
