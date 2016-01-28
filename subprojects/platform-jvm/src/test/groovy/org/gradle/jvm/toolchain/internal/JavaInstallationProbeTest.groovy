@@ -102,6 +102,7 @@ class JavaInstallationProbeTest extends Specification {
         'ibmJdk7'                             | ibmJdk('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true   | false | IS_JDK
         'ibmJdk8'                             | ibmJdk('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'    | true   | false | IS_JDK
         'ibmJdk9'                             | ibmJdk('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'    | true   | false | IS_JDK
+        'zulu8'                               | zulu('8')        | JavaVersion.VERSION_1_8 | 'Zulu 8'       | true   | false | IS_JDK
         'binary that has invalid output'      | invalidOutput()  | null                    | null           | true   | false | INVALID_JDK
         'binary that returns unknown version' | invalidVersion() | null                    | null           | true   | false | INVALID_JDK
 
@@ -155,6 +156,16 @@ class JavaInstallationProbeTest extends Specification {
          'java.vm.name': "IBM J9 VM",
          'java.vm.version': "2.4",
          'java.runtime.name': "Java(TM) SE Runtime Environment"
+        ]
+    }
+
+   private static Map<String, String> zulu(String version) {
+        ['java.version': "1.${version}.0_66",
+         'java.vendor': "Azul Systems, Inc.",
+         'os.arch': "amd64",
+         'java.vm.name': "OpenJDK 64-Bit Server VM",
+         'java.vm.version': "25.66-b17",
+         'java.runtime.name': "OpenJDK Runtime Environment"
         ]
     }
 

@@ -180,16 +180,19 @@ public class JavaInstallationProbe {
             vendor = vendor.toLowerCase();
         }
         if (vendor.contains("apple")) {
-            jdkName = "Apple JDK";
+            return "Apple JDK";
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
-            jdkName = "Oracle JDK";
+            String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
+            if (vm != null && vm.contains("OpenJDK")) {
+                return "OpenJDK";
+            }
+            return "Oracle JDK";
         } else if (vendor.contains("ibm")) {
-            jdkName = "IBM JDK";
+            return "IBM JDK";
+        } else if (vendor.contains("azul systems")) {
+            return "Zulu";
         }
-        String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
-        if (vm != null && vm.contains("OpenJDK")) {
-            jdkName = "OpenJDK";
-        }
+
         return jdkName;
     }
 
