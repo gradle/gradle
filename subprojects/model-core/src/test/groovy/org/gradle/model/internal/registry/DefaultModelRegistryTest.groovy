@@ -1544,9 +1544,29 @@ foo
         EachBeanViaDirectRule | "direct rule"
         EachBeanViaRuleSource | "rule source"
     }
-    
+
     @Unroll
     def "#description is not applied to scope element"() {
+        registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
+        registry.mutate {
+            it.path "bean1" node {
+                it.addLinkInstance("bean1.bean2", new Bean(name: "bean2 unmodified"))
+            }
+        }
+        registry.root.getLink("bean1").applyToSelf(rules)
+
+        expect:
+        // Rule is not applied to scope node
+        registry.realize("bean1", Bean).name == "bean1 unmodified"
+        // Rule is applied to child of scope node
+        registry.realize("bean1.bean2", Bean).name == "bean"
+
+        where:
+        rules                 | description
+        EachBeanViaDirectRule | "direct rule"
+        EachBeanViaRuleSource | "rule source"
+    }
+
     static class Bean {
         String name
         String value
