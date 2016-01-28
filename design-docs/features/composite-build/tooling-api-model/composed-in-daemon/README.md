@@ -41,6 +41,7 @@ The launcher module already depends on tooling-api and core modules. Therefore u
 ### Documentation
 
 ### Open issues
+
 - Should we spawn a daemon process to 'coordinate' a composite build with a single participant?
   - If a composite build is declared with a single participant, no _coordination_ is needed.
 - Do we need an 'embedded' implementation of the coordinator that is used for development?
