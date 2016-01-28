@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import spock.lang.Unroll
 
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -70,6 +71,45 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
                     myJDK(JdkSpec) {
                         path 'no-luck'
                     }
+                }
+            }
+        '''
+
+        when:
+        fails 'model'
+
+        then:
+        failure.assertHasCause "Path to JDK 'myJDK' doesn't exist"
+    }
+
+    @Unroll
+    def "pointing to an existent file or directory but not a JDK home throws reasonable error message"() {
+        given:
+        buildFile << """
+            model {
+                jdks {
+                    myJDK(JdkSpec) {
+                        path '$path'
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'model'
+
+        then:
+        failure.assertHasCause "JDK 'myJDK' is not a valid JDK installation"
+
+        where:
+        path << ['.', 'build.gradle']
+    }
+
+    def "Current Gradle JDK appears in installations"() {
+        given:
+        buildFile << '''
+            model {
+                jdks {
                 }
             }
         '''

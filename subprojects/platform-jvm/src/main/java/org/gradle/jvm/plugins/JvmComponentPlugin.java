@@ -48,7 +48,10 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -137,14 +140,23 @@ public class JvmComponentPlugin implements Plugin<Project> {
             File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
             for (final JdkSpec jdk : jdks) {
                 final File javaHome = canonicalFile(jdk.getPath());
-                if (!javaHome.equals(currentJavaHome) && probe.isValidInstallation(javaHome)) {
-                    installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
-                        @Override
-                        public void execute(InstalledJdkInternal installedJdk) {
-                            installedJdk.setJavaHome(javaHome);
-                            probe.configure(javaHome, installedJdk);
+                JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
+                switch (probeResult) {
+                    case VALID_JDK:
+                        if (!javaHome.equals(currentJavaHome)) {
+                            installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+                                @Override
+                                public void execute(InstalledJdkInternal installedJdk) {
+                                    installedJdk.setJavaHome(javaHome);
+                                    probe.configure(javaHome, installedJdk);
+                                }
+                            });
                         }
-                    });
+                        break;
+                    case NO_SUCH_DIRECTORY:
+                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
+                    case INVALID_JDK:
+                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
                 }
             }
         }

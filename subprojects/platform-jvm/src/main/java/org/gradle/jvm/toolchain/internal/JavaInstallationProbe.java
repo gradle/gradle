@@ -91,6 +91,12 @@ public class JavaInstallationProbe {
 
     }
 
+    public enum ProbeResult {
+        VALID_JDK,
+        NO_SUCH_DIRECTORY,
+        INVALID_JDK;
+    }
+
     public JavaInstallationProbe(ExecActionFactory factory) {
         this.factory = factory;
     }
@@ -99,15 +105,22 @@ public class JavaInstallationProbe {
         configureInstall(currentJava, SysProp.current());
     }
 
-    public boolean isValidInstallation(File jdkPath) {
+    public ProbeResult checkJdk(File jdkPath) {
+        if (!jdkPath.exists()) {
+            return ProbeResult.NO_SUCH_DIRECTORY;
+        }
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
+        if (UNKNOWN.equals(version)) {
+            return ProbeResult.INVALID_JDK;
+        }
         try {
-            return (!UNKNOWN.equals(version)) && JavaVersion.toVersion(version) != null;
+            JavaVersion.toVersion(version);
         } catch (IllegalArgumentException ex) {
             // if the version string cannot be parsed
-            return false;
+            return ProbeResult.INVALID_JDK;
         }
+        return ProbeResult.VALID_JDK;
     }
 
     public void configure(File jdkPath, InstalledJdkInternal installedJdk) {
