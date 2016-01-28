@@ -61,8 +61,8 @@ On completion of this story, it will be possible to convert Buildship to use thi
      */
     public abstract class CompositeBuildConnector {
          public static CompositeBuildConnector newComposite() { ... }
-         protected abstract CompositeParticipant withParticipant(CompositeParticipant participant) { ... }
-         protected abstract CompositeBuildConnection connect() throws GradleConnectionException { ... }
+         public abstract CompositeParticipant withParticipant(CompositeParticipant participant) { ... }
+         public abstract CompositeBuildConnection connect() throws GradleConnectionException { ... }
     }
 
     /**
@@ -77,8 +77,9 @@ On completion of this story, it will be possible to convert Buildship to use thi
      * For now, the only model type supported is EclipseProject.
      */
     public interface CompositeBuildConnection {
-         <T> Set<ModelResult<T>> getModels(Class<T> modelType);
-         void close();
+        <T> Set<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException, IllegalArgumentException;
+        <T> ModelBuilder<Set<ModelResult<T>>> models(Class<T> modelType) throws GradleConnectionException, IllegalStateException, IllegalArgumentException;
+        void close();
     }
 
 ##### Usage
@@ -123,7 +124,7 @@ contains a single project of type `EclipseProject`. The `EclipseProject` properl
 - A composite can be built with a single participating build containing a hierarchy of Gradle projects. The requested `Set<ModelResult<EclipseProject>>` model
 contains all projects of the hierarchy (including the root project) with type `EclipseProject`. The `EclipseProject` properly populates the model
 (e.g. name, path, classpath and project dependencies).
-- If the `ProjectConnection` points to a subproject of a multi-project build hierarchy, the requested `Set<ModelResult<EclipseProject>>` model determines the root project and traverses the whole hierarchy.
+- If the `ProjectConnection` points to a sub-project of a multi-project build hierarchy, the requested `Set<ModelResult<EclipseProject>>` model determines the root project and traverses the whole hierarchy.
 The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hierarchy.
 - If a composite contains at least two projects with the same name at the time of building it, an `IllegalStateException` is thrown.
 - The `ProjectConnection` uses the Gradle distribution passed in from the `CompositeParticipant`.
@@ -136,6 +137,7 @@ The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hi
 - An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 - An exception is thrown if any of the resolved `EclipseProject`s have the same name.
 - An exception is thrown if a dependency cycle is detected e.g. project A depends on B and B depends on A.
+- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException` is thrown.
 
 ##### Open issues
 
