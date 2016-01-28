@@ -102,7 +102,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             installedJdks.create("currentGradleJDK", InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
                 @Override
                 public void execute(InstalledJdkInternal installedJdkInternal) {
-                    configureInstalledJdk(installedJdkInternal, JavaInstallationProbe.current());
+                    probe.current(installedJdkInternal);
                 }
             });
         }
@@ -133,47 +133,16 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Defaults
         public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
             for (final JdkSpec jdk : jdks) {
-                EnumMap<JavaInstallationProbe.SysProp, String> metadata = probe.getMetadata(jdk.getPath());
-                if (!JavaInstallationProbe.UNKNOWN.equals(metadata.get(JavaInstallationProbe.SysProp.VERSION))) {
+                if (probe.isValidInstallation(jdk.getPath())) {
                     installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
                         @Override
                         public void execute(InstalledJdkInternal installedJdk) {
-                            EnumMap<JavaInstallationProbe.SysProp, String> metadata = probe.getMetadata(jdk.getPath());
                             installedJdk.setJavaHome(jdk.getPath());
-                            configureInstalledJdk(installedJdk, metadata);
+                            probe.configure(jdk.getPath(), installedJdk);
                         }
                     });
                 }
             }
-        }
-
-        private void configureInstalledJdk(InstalledJdkInternal installedJdk, EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
-            JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(JavaInstallationProbe.SysProp.VERSION));
-            installedJdk.setJavaVersion(javaVersion);
-            String jdkName = computeJdkName(metadata);
-            installedJdk.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
-        }
-
-        private static String computeJdkName(EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
-            String jdkName = "JDK";
-            String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
-            if (vendor == null) {
-                return jdkName;
-            } else {
-                vendor = vendor.toLowerCase();
-            }
-            if (vendor.contains("apple")) {
-                jdkName = "Apple JDK";
-            } else if (vendor.contains("oracle") || vendor.contains("sun")) {
-                jdkName = "Oracle JDK";
-            } else if (vendor.contains("ibm")) {
-                jdkName = "IBM JDK";
-            }
-            String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
-            if (vm != null && vm.contains("OpenJDK")) {
-                jdkName = "OpenJDK";
-            }
-            return jdkName;
         }
 
         @ComponentBinaries

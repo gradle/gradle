@@ -20,6 +20,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.process.ExecResult;
@@ -45,15 +46,7 @@ public class JavaInstallationProbe {
 
     private final ExecActionFactory factory;
 
-    public static EnumMap<SysProp, String> current() {
-        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-        for (SysProp type : SysProp.values()) {
-            result.put(type, System.getProperty(type.sysProp, UNKNOWN));
-        }
-        return result;
-    }
-
-    public enum SysProp {
+    private enum SysProp {
         VERSION("java.version"),
         VENDOR("java.vendor"),
         ARCH("os.arch"),
@@ -68,8 +61,11 @@ public class JavaInstallationProbe {
         }
 
         private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
             String[] split = probeResult.split(System.getProperty("line.separator"));
+            if (split.length != SysProp.values().length) {
+                return unknown();
+            }
+            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
             for (SysProp type : SysProp.values()) {
                 result.put(type, split[type.ordinal()]);
             }
@@ -84,14 +80,47 @@ public class JavaInstallationProbe {
             return result;
         }
 
+        private static EnumMap<SysProp, String> current() {
+            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+            for (SysProp type : SysProp.values()) {
+                result.put(type, System.getProperty(type.sysProp, UNKNOWN));
+            }
+            return result;
+        }
+
     }
 
     public JavaInstallationProbe(ExecActionFactory factory) {
         this.factory = factory;
     }
 
-    public EnumMap<SysProp, String> getMetadata(File jdkPath) {
-        return cache.getUnchecked(jdkPath);
+    public void current(InstalledJdkInternal currentJava) {
+        configureInstall(currentJava, SysProp.current());
+    }
+
+    public boolean isValidInstallation(File jdkPath) {
+        EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
+        String version = metadata.get(SysProp.VERSION);
+        try {
+            return (!UNKNOWN.equals(version)) && JavaVersion.toVersion(version) != null;
+        } catch (IllegalArgumentException ex) {
+            // if the version string cannot be parsed
+            return false;
+        }
+    }
+
+    public void configure(File jdkPath, InstalledJdkInternal installedJdk) {
+        EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
+        if (!UNKNOWN.equals(metadata.get(SysProp.VERSION))) {
+            configureInstall(installedJdk, metadata);
+        }
+    }
+
+    private void configureInstall(InstalledJdkInternal installedJdk, EnumMap<SysProp, String> metadata) {
+        JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
+        installedJdk.setJavaVersion(javaVersion);
+        String jdkName = computeJdkName(metadata);
+        installedJdk.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
     }
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
@@ -119,6 +148,28 @@ public class JavaInstallationProbe {
                 throw new GradleException("Unable to delete temp directory", e);
             }
         }
+    }
+
+    private static String computeJdkName(EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
+        String jdkName = "JDK";
+        String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
+        if (vendor == null) {
+            return jdkName;
+        } else {
+            vendor = vendor.toLowerCase();
+        }
+        if (vendor.contains("apple")) {
+            jdkName = "Apple JDK";
+        } else if (vendor.contains("oracle") || vendor.contains("sun")) {
+            jdkName = "Oracle JDK";
+        } else if (vendor.contains("ibm")) {
+            jdkName = "IBM JDK";
+        }
+        String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
+        if (vm != null && vm.contains("OpenJDK")) {
+            jdkName = "OpenJDK";
+        }
+        return jdkName;
     }
 
     private static void writeProbe(File workingDir) {
