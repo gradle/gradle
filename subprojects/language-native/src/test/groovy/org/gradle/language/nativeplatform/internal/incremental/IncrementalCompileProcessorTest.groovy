@@ -409,15 +409,15 @@ class IncrementalCompileProcessorTest extends Specification {
         dep.collect {new ResolvedInclude(it.name, it)} as Set
     }
 
-    SourceIncludesResolver.SourceIncludesResolutionResult resolveDeps(Set<ResolvedInclude> deps) {
-        new SourceIncludesResolver.SourceIncludesResolutionResult() {
+    SourceIncludesResolver.ResolvedSourceIncludes resolveDeps(Set<ResolvedInclude> deps) {
+        new SourceIncludesResolver.ResolvedSourceIncludes() {
             @Override
-            Set<ResolvedInclude> getDependencies() {
+            Set<ResolvedInclude> getResolvedIncludes() {
                 return deps
             }
 
             @Override
-            Set<File> getIncludeFileCandidates() {
+            Set<File> getCheckedLocations() {
                 return [] as Set
             }
         }

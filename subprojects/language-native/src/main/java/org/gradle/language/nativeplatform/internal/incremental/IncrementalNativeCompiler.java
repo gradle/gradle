@@ -101,7 +101,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
-        for (File includeFile : compilation.getIncludeFileCandidates()) {
+        for (File includeFile : compilation.getDiscoveredInputs()) {
             taskInputs.newInput(includeFile);
         }
 

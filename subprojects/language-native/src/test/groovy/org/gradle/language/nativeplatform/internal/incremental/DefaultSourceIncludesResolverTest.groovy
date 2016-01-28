@@ -47,11 +47,11 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getDependencies() as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getResolvedIncludes() as List
     }
 
     def getCandidates() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getIncludeFileCandidates() as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getCheckedLocations() as List
     }
 
     def "handles source file with no includes"() {

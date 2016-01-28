@@ -21,9 +21,16 @@ import java.io.File;
 import java.util.Set;
 
 public interface SourceIncludesResolver {
-    interface SourceIncludesResolutionResult {
-        Set<ResolvedInclude> getDependencies();
-        Set<File> getIncludeFileCandidates();
+    interface ResolvedSourceIncludes {
+        /**
+         * Each include directive resolved to a file.
+         */
+        Set<ResolvedInclude> getResolvedIncludes();
+
+        /**
+         * Every file path searched as part of resolution.
+         */
+        Set<File> getCheckedLocations();
     }
-    SourceIncludesResolutionResult resolveIncludes(File sourceFile, SourceIncludes includes);
+    ResolvedSourceIncludes resolveIncludes(File sourceFile, SourceIncludes includes);
 }

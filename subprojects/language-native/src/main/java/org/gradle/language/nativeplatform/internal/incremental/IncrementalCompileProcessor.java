@@ -49,17 +49,17 @@ public class IncrementalCompileProcessor {
             result.processSource(sourceFile);
         }
 
-        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), result.getCandidates());
+        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
     }
 
     private class IncrementalCompileFiles {
 
-        private final List<File> recompile = new ArrayList<File>();
-
         private final CompilationState previous;
         private final CompilationState current = new CompilationState();
+
         private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
-        private final Set<File> candidates = Sets.newHashSet();
+        private final List<File> toRecompile = new ArrayList<File>();
+        private final Set<File> discoveredInputs = Sets.newHashSet();
 
         public IncrementalCompileFiles(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
@@ -68,7 +68,7 @@ public class IncrementalCompileProcessor {
         public void processSource(File sourceFile) {
             current.addSourceInput(sourceFile);
             if (checkChangedAndUpdateState(sourceFile) || !previous.getSourceInputs().contains(sourceFile)) {
-                recompile.add(sourceFile);
+                toRecompile.add(sourceFile);
             }
         }
 
@@ -96,9 +96,9 @@ public class IncrementalCompileProcessor {
                 newState.setSourceIncludes(previousState.getSourceIncludes());
             }
 
-            SourceIncludesResolver.SourceIncludesResolutionResult resolutionResult = resolveIncludes(file, newState.getSourceIncludes());
-            newState.setResolvedIncludes(resolutionResult.getDependencies());
-            candidates.addAll(resolutionResult.getIncludeFileCandidates());
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, newState.getSourceIncludes());
+            newState.setResolvedIncludes(resolutionResult.getResolvedIncludes());
+            discoveredInputs.addAll(resolutionResult.getCheckedLocations());
 
             // Compare the previous resolved includes with resolving now.
             if (!sameResolved(previousState, newState)) {
@@ -130,16 +130,12 @@ public class IncrementalCompileProcessor {
             return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
         }
 
-        private SourceIncludesResolver.SourceIncludesResolutionResult resolveIncludes(File file, SourceIncludes sourceIncludes) {
+        private SourceIncludesResolver.ResolvedSourceIncludes resolveIncludes(File file, SourceIncludes sourceIncludes) {
             return sourceIncludesResolver.resolveIncludes(file, sourceIncludes);
         }
 
         public List<File> getModifiedSources() {
-            return recompile;
-        }
-
-        public Set<File> getCandidates() {
-            return candidates;
+            return toRecompile;
         }
 
         public List<File> getRemovedSources() {
@@ -150,6 +146,10 @@ public class IncrementalCompileProcessor {
                 }
             }
             return removed;
+        }
+
+        public Set<File> getDiscoveredInputs() {
+            return discoveredInputs;
         }
     }
 }

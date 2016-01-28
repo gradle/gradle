@@ -32,16 +32,15 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         this.includePaths = includePaths;
     }
 
-    public SourceIncludesResolutionResult resolveIncludes(File sourceFile, SourceIncludes includes) {
-        Set<File> candidates = Sets.newLinkedHashSet();
-        Set<ResolvedInclude> dependencies = Sets.newLinkedHashSet();
-        searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), candidates);
-        searchForDependencies(dependencies, includePaths, includes.getSystemIncludes(), candidates);
+    public ResolvedSourceIncludes resolveIncludes(File sourceFile, SourceIncludes includes) {
+        BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
+        searchForDependencies(prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), resolvedSourceIncludes);
+        searchForDependencies(includePaths, includes.getSystemIncludes(), resolvedSourceIncludes);
         if (!includes.getMacroIncludes().isEmpty()) {
-            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null));
+            resolvedSourceIncludes.resolved(includes.getMacroIncludes().get(0).getValue(), null);
         }
 
-        return new DefaultSourceIncludesResolutionResult(dependencies, candidates);
+        return resolvedSourceIncludes;
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
@@ -51,39 +50,43 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return quotedSearchPath;
     }
 
-    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<Include> includes, Set<File> candidates) {
+    private void searchForDependencies(List<File> searchPath, List<Include> includes, BuildableResolvedSourceIncludes dependencies) {
         for (Include include : includes) {
-            searchForDependency(dependencies, searchPath, include.getValue(), candidates);
+            searchForDependency(searchPath, include.getValue(), dependencies);
         }
     }
 
-    private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include, Set<File> candidates) {
+    private void searchForDependency(List<File> searchPath, String include, BuildableResolvedSourceIncludes dependencies) {
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
-            candidates.add(candidate);
+            dependencies.searched(candidate);
             if (candidate.isFile()) {
-                dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
+                dependencies.resolved(include, candidate);
                 return;
             }
         }
     }
 
-    private static class DefaultSourceIncludesResolutionResult implements SourceIncludesResolutionResult {
-        private final Set<ResolvedInclude> dependencies;
-        private final Set<File> candidates;
+    private static class BuildableResolvedSourceIncludes implements ResolvedSourceIncludes {
+        private final Set<ResolvedInclude> dependencies = Sets.newLinkedHashSet();
+        private final Set<File> candidates = Sets.newLinkedHashSet();
 
-        private DefaultSourceIncludesResolutionResult(Set<ResolvedInclude> dependencies, Set<File> candidates) {
-            this.dependencies = dependencies;
-            this.candidates = candidates;
+        void searched(File candidate) {
+            candidates.add(candidate);
+        }
+
+        void resolved(String rawInclude, File resolved) {
+            File dependencyFile = resolved == null ? null : GFileUtils.canonicalise(resolved);
+            dependencies.add(new ResolvedInclude(rawInclude, dependencyFile));
         }
 
         @Override
-        public Set<ResolvedInclude> getDependencies() {
+        public Set<ResolvedInclude> getResolvedIncludes() {
             return dependencies;
         }
 
         @Override
-        public Set<File> getIncludeFileCandidates() {
+        public Set<File> getCheckedLocations() {
             return candidates;
         }
     }
