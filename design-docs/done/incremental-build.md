@@ -235,7 +235,7 @@ example of using `BuildExperimentListener` for testing
     - 1 compiler option changed
 
 
-#### Test coverage
+### Test coverage
 
 - Test with --parallel --max-workers=4
 - add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
@@ -335,4 +335,17 @@ Goal: manage the cache instance in Gradle infrastructure instead of a singleton 
 - Make the Gradle infrastructure manage the CachingPatternSpecFactory instance.
 - Create a new PatternSet subclass that takes the PatternSpecFactory instance in the constructor.
 - Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSpecFactory instance to the instances of the new PatternSet subclass.
+
+## ~~Story: Use source #include information as discovered inputs~~
+
+This story adds an internal mechanism way for native complication tasks task to register additional inputs that are discovered when parsing the source file inputs.  At the end of execution, the discovered inputs are recorded in the task's execution history, and will be compared when performing up-to-date checks for the next task execution.
+
+During native compilation, the source file parser searches the include path for any `#include` directives. Each header file found will be registered as a discovered input. In addition, each file location that is inspected as a candidate header file will be registered as a discovered input: the fact that a file is _not_ present will also be recorded as an input.
+
+A subsequent story will be required to turn "discovered inputs" into a generally available public feature.
+
+### Test coverage
+
+- Reuse existing test coverage for incremental native compilation
+- Measure improvement/regression with native perf tests
 

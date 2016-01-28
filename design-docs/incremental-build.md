@@ -2,82 +2,6 @@
 
 This spec defines some improvements to improve incremental build and task up-to-date checks
 
-# General Speed-ups
-
-These are general speed ups that improve all builds.
-
-## Story: Add "discovered" inputs to incremental tasks
-
-This story adds a way for an incremental task to register additional inputs once execution has started.  At the end of execution, the discovered inputs are recorded in the task's execution history.
-
-    void perform(IncrementalTaskInputs inputs) {
-      getInputs().getFiles.each { source ->
-        File discoveredInput = complicatedAnalysis(source)
-        inputs.newInput(discoveredInput)
-      }
-      if (inputs.incremental) {
-        inputs.outOfDate {
-          // do stuff
-        }
-      }
-    }
-
-### Implementation
-
-### Test coverage
-
-- Discovered inputs must be Files (not directories).
-- On the first build, no discovered inputs are known, so discovered inputs are not needed for up-to-date checks.
-- On the second build, discovered inputs from previous build for a task are checked for up-to-date-ness.
-- When a discovered input is modified, the task is out of date on the next build.
-- When a discovered input is deleted, the task is out of date on the next build.
-- The set of discovered inputs after the task executes represents the inputs discovered for that execution, so if on build#1 discovered inputs are A, B, C and on build#2 discovered inputs are D, E, F.  Discovered inputs after #2 should be D, E, F (not a combination).
-- A task that is up-to-date should not lose its discovered inputs. Following an up-to-date build, a change in a discovered inputs should cause a task to be out of date.  i.e., A task that discovers inputs A, B, C in build#1, is up-to-date in build #2, should still have discovered inputs A, B, C in build#3.
-
-### Open issues to make feature public
-
-- Finalize API (should it remain on IncrementalTaskInputs or move somewhere else).
-- Any change to discovered inputs should cause all inputs to be out-of-date -- currently, a task's IncrementalTaskInputs are still marked as incremental when discovered inputs change.  Incremental native compiler relies on `incremental` flag to do any incremental builds. 
-    - If task has inputs [A,B,C]. If only A changes, IncrementalTaskInputs will only report A as changed and incremental=true.  The task may do a "incremental execution".
-    - If task has input property foo.  If foo changes, IncrementalTaskInputs will have incremental=false and the task should do a "full execution".
-    - If a task has discovered inputs [X,Y,Z], if any discovered input changes, IncrementalTaskInputs will report _no_ files as changed and incremental=true (this is partially wrong).
-    - If we change discovered inputs to be more like regular inputs, we need to decide on the behavior of the set of files changed (as seen by `outOfDate`) and incremental=true or false.
-    - If we make the task non-incremental (incremental=false), IncrementalNativeCompiler needs to handle this by always doing a scan of all files and incremental build (this pushes the hard work down into the task that wants to use discovered inputs).
-    - If we make the task incremental (incremental=true), do we also include discovered inputs in the `outOfDate` list? IncrementalNativeCompiler ignores this list right now.
-- Discovered inputs do not work with continuous build.
-- The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
-- It would be nice to perform discovery incrementally.
-- Eventually be pretty much anything that you can use as a declared input for a task (including non-file properties and objects) should be able to be treated as "discovered inputs".
-
-## ~~Story: Use source #include information as discovered inputs~~
-
-Based on IncrementalNativeCompiler's #include extractor, add header files as discovered inputs to compile tasks.
-
-### Implementation
-
-- From IncrementalNativeCompiler, add resolved includes to NativeCompileSpec
-- From AbstractNativeCompileTask, add resolved includes as discovered inputs to incremental task inputs
-- In AbstractNativeCompileTask, use @Input for getIncludes()
-- Remove "include hack" from perf tests for 2.10+.  Keep "include hack" for 2.8/2.9, unless they'll build within a reasonable time due to all of the other changes.
-
-### Test coverage
-
-- Reuse existing test coverage
-- Measure improvement/regression with native perf tests
-
-### Open issues
-
-- How to deal with missing #include files (macros and missing files)
-
-
-# Unprioritized
-
-## Story: Profiling for native incremental build where some files require recompilation
-
-- Profile and find performance hotspots for the 1 file / few files changed scenarios introduced in the "Performance test for native incremental build where some files require recompilation" story.
-- Spike changes for optimizing biggest bottlenecks to be able to find more hotspots that only show up in profiling after reducing/removing the current bottlenecks.
-- Document the findings and add stories for doing improvements.
-
 ## Story: not loading the file snapshots in up-to-date checking
 
 - Add hash based pre-check phase to up-to-date checking
@@ -235,24 +159,52 @@ level cache, and reducing the cache size.
 - Add internal support for `DefaultSourceDirectorySet`-like class for use with `LanguageSourceSet`.  It would not use the default Ant exclude patterns.
 - We should try to leverage the existing PatternSet caching where that makes sense.
 
-## Story: Making "discovered" inputs a public feature
+## Story: Allow a task to register inputs "discovered" during task execution
 
-We currently use discovered inputs to extract #include headers from native source files. This is an internal feature of `IncrementalTaskInputs` and is only used by the `IncrementalNativeCompiler`. To make this a public feature that build authors can use to add their own discovered inputs, we need to make this feature more friendly.
+This story adds a way for a task to register additional inputs once execution has started.  At the end of execution, the discovered inputs are recorded in the task's execution history.
+
+    void perform(IncrementalTaskInputs inputs) {
+      getInputs().getFiles.each { source ->
+        File discoveredInput = complicatedAnalysis(source)
+        inputs.newInput(discoveredInput)
+      }
+      if (inputs.incremental) {
+        inputs.outOfDate {
+          // do stuff
+        }
+      }
+    }
+
+An initial implementation of "discovered inputs" was put in place to improve performance of native incremental compile. Extracted header files are registered as discovered inputs. This is an internal feature of `IncrementalTaskInputs` and is only used by the `IncrementalNativeCompiler`. To make this a public feature that build authors can use to add their own discovered inputs, we need to make this feature more friendly.
+
+### Test coverage
+
+- Discovered inputs must be Files (not directories).
+- On the first build, no discovered inputs are known, so discovered inputs are not needed for up-to-date checks.
+- On the second build, discovered inputs from previous build for a task are checked for up-to-date-ness.
+- When a discovered input is modified, the task is out of date on the next build.
+- When a discovered input is deleted, the task is out of date on the next build.
+- The set of discovered inputs after the task executes represents the inputs discovered for that execution, so if on build#1 discovered inputs are A, B, C and on build#2 discovered inputs are D, E, F.  Discovered inputs after #2 should be D, E, F (not a combination).
+- A task that is up-to-date should not lose its discovered inputs. Following an up-to-date build, a change in a discovered inputs should cause a task to be out of date.  i.e., A task that discovers inputs A, B, C in build#1, is up-to-date in build #2, should still have discovered inputs A, B, C in build#3.
 
 ### Open Issues
 
 - When discovered inputs changed, without knowing which source files contributed to the discovered inputs, we should mark the task inputs as incremental=false and treat it like a rebuild.  We don't do this because `IncrementalNativeCompiler` doesn't handle this case.
 - When discovering inputs, we should make sure that all source files are visited each time or provide a way to incrementally discover inputs.
-- We may want to revisit the API so that we know the mapping between source and discovered inputs better.
+- We may want to revisit the API to better model the relationship between a particular source file input and it's discovered inputs.
+    - Finalize API (should it remain on IncrementalTaskInputs or move somewhere else).
 - We should provide documentation/samples for using discovered inputs.
-
-## Story: TBD
-
-TBD
-
-### Test coverage
-
-- TBD
+- Any change to discovered inputs should cause all inputs to be out-of-date -- currently, a task's IncrementalTaskInputs are still marked as incremental when discovered inputs change.  Incremental native compiler relies on `incremental` flag to do any incremental builds.
+    - If task has inputs [A,B,C]. If only A changes, IncrementalTaskInputs will only report A as changed and incremental=true.  The task may do a "incremental execution".
+    - If task has input property foo.  If foo changes, IncrementalTaskInputs will have incremental=false and the task should do a "full execution".
+    - If a task has discovered inputs [X,Y,Z], if any discovered input changes, IncrementalTaskInputs will report _no_ files as changed and incremental=true (this is partially wrong).
+    - If we change discovered inputs to be more like regular inputs, we need to decide on the behavior of the set of files changed (as seen by `outOfDate`) and incremental=true or false.
+    - If we make the task non-incremental (incremental=false), IncrementalNativeCompiler needs to handle this by always doing a scan of all files and incremental build (this pushes the hard work down into the task that wants to use discovered inputs).
+    - If we make the task incremental (incremental=true), do we also include discovered inputs in the `outOfDate` list? IncrementalNativeCompiler ignores this list right now.
+- Discovered inputs do not work with continuous build.
+- The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
+- It would be nice to perform discovery incrementally.
+- Eventually be pretty much anything that you can use as a declared input for a task (including non-file properties and objects) should be able to be treated as "discovered inputs".
 
 
 ## Background information about the in-memory caches
