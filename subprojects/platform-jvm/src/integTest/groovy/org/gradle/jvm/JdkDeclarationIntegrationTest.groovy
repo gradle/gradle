@@ -51,12 +51,12 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'model'
+        succeeds 'model', '--format=short'
 
         then:
         def report = ModelReportOutput.from(output)
         AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
-            assert report.modelNode.installedJdks."jdk$i".javaHome.@nodeValue == [jdk.javaHome.toString()]
+            assert report.modelNode.installedJdks."jdk$i".@javaHome == [jdk.javaHome.toString()]
         }
     }
 }
