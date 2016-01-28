@@ -88,14 +88,14 @@ public interface ResolutionStrategy {
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
-     *   resolutionStrategy.disableProjectPriorityOnVersionConflict()
+     *   resolutionStrategy.disableProjectPriority()
      * }
      * </pre>
      *
      * @return this resolution strategy instance
      * @since 2.11
      */
-    ResolutionStrategy disableProjectPriorityOnVersionConflict();
+    ResolutionStrategy disableProjectPriority();
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.

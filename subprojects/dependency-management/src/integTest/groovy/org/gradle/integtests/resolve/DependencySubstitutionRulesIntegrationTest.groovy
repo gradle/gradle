@@ -837,12 +837,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Unroll
-    void "project dependency substituted for an external dependency participates in conflict resolution (version #apiProjectVersion)"()
+    void "project dependency (#apiProjectVersion) vs external dependency (2.0) resolved in favor of #winner, when disableProjectPriority=#disableProjectPriority"()
     {
         mavenRepo.module("org.utils", "api", '2.0').publish()
         settingsFile << 'include "api", "impl"'
 
-        def resulutionStrategySetting = disableProjectPriority ? 'disableProjectPriorityOnVersionConflict()' : ''
+        def resulutionStrategySetting = disableProjectPriority ? 'disableProjectPriority()' : ''
         buildFile << """
             $common
 

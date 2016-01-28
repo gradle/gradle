@@ -637,7 +637,7 @@ dependencies {
 }
 
 configurations.all {
-    resolutionStrategy.disableProjectPriorityOnVersionConflict()
+    resolutionStrategy.disableProjectPriority()
 }
 """
 
