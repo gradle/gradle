@@ -33,6 +33,10 @@ This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbo
 
 ### Software model improvements
 
+#### Model data report
+
+The model report can very verbose by default: for each node of the model, it will show you the types of the properties as well as the rules that created or mutated them. However, you might only want to see the data that the model contains, and only the data, for example to validate your build configuration. In that case, you can now do this by calling `gradle model --format=short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format=full`.
+
 #### Fine grained application of rules
 
 TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
