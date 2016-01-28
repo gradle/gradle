@@ -227,7 +227,7 @@ subproject already depends on tooling-api and it's easy to adapt the current cod
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names.
-- Three projects with the name foo:bar = > the first project gets name "bar", the second project gets the name "foo:bar", the third project gets the name "foo:bar2"
+- Three projects with the path foo:bar = > the first project gets name "bar", the second project gets the name "foo-bar", the third project gets the name "foo-bar2"
 
 ### Story - Model for a composite does not contain project names that conflict with non-Gradle projects
 
