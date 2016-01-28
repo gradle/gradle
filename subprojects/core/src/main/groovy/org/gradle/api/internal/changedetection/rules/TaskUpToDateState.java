@@ -19,6 +19,10 @@ package org.gradle.api.internal.changedetection.rules;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.*;
+import org.gradle.api.internal.file.FileCollectionFactory;
+
+import java.io.File;
+import java.util.Set;
 
 /**
  * Represents the complete changes in a tasks state
@@ -32,7 +36,9 @@ public class TaskUpToDateState {
     private SummaryTaskStateChanges allTaskChanges;
     private SummaryTaskStateChanges rebuildChanges;
 
-    public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history, FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter, DiscoveredInputFilesStateChangeRule discoveredInputFilesStateChangeRule) {
+    public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
+                             FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
+                             FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
@@ -59,6 +65,7 @@ public class TaskUpToDateState {
 
         // Capture discovered inputs state from previous execution
         try {
+            DiscoveredInputFilesStateChangeRule discoveredInputFilesStateChangeRule = new DiscoveredInputFilesStateChangeRule(discoveredInputsSnapshotter, fileCollectionFactory);
             discoveredInputFilesState = discoveredInputFilesStateChangeRule.create(lastExecution, thisExecution);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
@@ -88,7 +95,7 @@ public class TaskUpToDateState {
         return inputFilesSnapshot;
     }
 
-    public DiscoveredTaskStateChanges getDiscoveredInputFilesChanges() {
-        return discoveredInputFilesState;
+    public void newInputs(Set<File> discoveredInputs) {
+        discoveredInputFilesState.newInputs(discoveredInputs);
     }
 }
