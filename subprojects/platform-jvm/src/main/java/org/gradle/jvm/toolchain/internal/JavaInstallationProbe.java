@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -121,7 +122,10 @@ public class JavaInstallationProbe {
             // if the version string cannot be parsed
             return ProbeResult.INVALID_JDK;
         }
-        return ProbeResult.IS_JDK;
+        if (javaExe(jdkPath, "javac").exists()) {
+            return ProbeResult.IS_JDK;
+        }
+        return ProbeResult.IS_JRE;
     }
 
     public void configure(File jdkPath, InstalledJdk installedJdk) {
@@ -140,7 +144,7 @@ public class JavaInstallationProbe {
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
         JavaExecAction exec = factory.newJavaExecAction();
-        exec.executable(javaExe(jdkPath));
+        exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
         exec.setWorkingDir(workingDir);
         try {
@@ -203,10 +207,9 @@ public class JavaInstallationProbe {
         }
     }
 
-    private static File javaExe(File jdkPath) {
-        return new File(new File(jdkPath, "bin"), "java");
+    private static File javaExe(File jdkPath, String command) {
+        return new File(new File(jdkPath, "bin"), OperatingSystem.current().getExecutableName(command));
     }
-
 
     /**
      * This is the ASM version of a probe class that is the equivalent of the following source code:

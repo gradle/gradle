@@ -17,16 +17,22 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.JavaExecAction
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult.*
 
 class JavaInstallationProbeTest extends Specification {
-    @Unroll("Can probe version of #jdk")
+    @Rule
+    TemporaryFolder temporaryFolder
+
+    @Unroll("Can probe version of #jdk is #expectedResult")
     def "probes java installation"() {
         given:
         def execFactory = Mock(ExecActionFactory)
@@ -48,7 +54,17 @@ class JavaInstallationProbeTest extends Specification {
 
         when:
         def probe = new JavaInstallationProbe(execFactory)
-        def javaHome = new JavaHome(jdk, exists)
+        File javaHome = new File(jdk)
+        if (exists) {
+            javaHome = temporaryFolder.newFolder(jdk)
+            if (!jre) {
+                def binDir = new File(javaHome, "bin")
+                if (binDir.mkdir()) {
+                    File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
+                    javac << 'dummy'
+                }
+            }
+        }
         def probeResult = probe.checkJdk(javaHome)
         if (expectedResult == IS_JDK) {
             probe.configure(javaHome, install)
@@ -62,29 +78,32 @@ class JavaInstallationProbeTest extends Specification {
         }
 
         where:
-        jdk                                   | systemProperties | javaVersion             | displayName    | exists | expectedResult
-        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | true   | IS_JDK
-        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | false  | NO_SUCH_DIRECTORY
-        'openJdk4'                            | openJdk('4')     | JavaVersion.VERSION_1_4 | 'OpenJDK 4'    | true   | IS_JDK
-        'openJdk5'                            | openJdk('5')     | JavaVersion.VERSION_1_5 | 'OpenJDK 5'    | true   | IS_JDK
-        'openJdk6'                            | openJdk('6')     | JavaVersion.VERSION_1_6 | 'OpenJDK 6'    | true   | IS_JDK
-        'openJdk7'                            | openJdk('7')     | JavaVersion.VERSION_1_7 | 'OpenJDK 7'    | true   | IS_JDK
-        'openJdk8'                            | openJdk('8')     | JavaVersion.VERSION_1_8 | 'OpenJDK 8'    | true   | IS_JDK
-        'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | IS_JDK
-        'oracleJdk4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JDK 4' | true   | IS_JDK
-        'oracleJdk5'                          | oracleJdk('5')   | JavaVersion.VERSION_1_5 | 'Oracle JDK 5' | true   | IS_JDK
-        'oracleJdk6'                          | oracleJdk('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6' | true   | IS_JDK
-        'oracleJdk7'                          | oracleJdk('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7' | true   | IS_JDK
-        'oracleJdk8'                          | oracleJdk('8')   | JavaVersion.VERSION_1_8 | 'Oracle JDK 8' | true   | IS_JDK
-        'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | IS_JDK
-        'ibmJdk4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'    | true   | IS_JDK
-        'ibmJdk5'                             | ibmJdk('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'    | true   | IS_JDK
-        'ibmJdk6'                             | ibmJdk('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'    | true   | IS_JDK
-        'ibmJdk7'                             | ibmJdk('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true   | IS_JDK
-        'ibmJdk8'                             | ibmJdk('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'    | true   | IS_JDK
-        'ibmJdk9'                             | ibmJdk('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'    | true   | IS_JDK
-        'binary that has invalid output'      | invalidOutput()  | null                    | null           | true   | INVALID_JDK
-        'binary that returns unknown version' | invalidVersion() | null                    | null           | true   | INVALID_JDK
+        jdk                                   | systemProperties | javaVersion             | displayName    | exists | jre   | expectedResult
+        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | true   | false | IS_JDK
+        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | true   | true  | IS_JRE
+        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | false  | false | NO_SUCH_DIRECTORY
+        'openJdk4'                            | openJdk('4')     | JavaVersion.VERSION_1_4 | 'OpenJDK 4'    | true   | false | IS_JDK
+        'openJdk5'                            | openJdk('5')     | JavaVersion.VERSION_1_5 | 'OpenJDK 5'    | true   | false | IS_JDK
+        'openJdk6'                            | openJdk('6')     | JavaVersion.VERSION_1_6 | 'OpenJDK 6'    | true   | false | IS_JDK
+        'openJdk7'                            | openJdk('7')     | JavaVersion.VERSION_1_7 | 'OpenJDK 7'    | true   | false | IS_JDK
+        'openJdk8'                            | openJdk('8')     | JavaVersion.VERSION_1_8 | 'OpenJDK 8'    | true   | false | IS_JDK
+        'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | false | IS_JDK
+        'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | true  | IS_JRE
+        'oracleJdk4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JDK 4' | true   | false | IS_JDK
+        'oracleJdk5'                          | oracleJdk('5')   | JavaVersion.VERSION_1_5 | 'Oracle JDK 5' | true   | false | IS_JDK
+        'oracleJdk6'                          | oracleJdk('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6' | true   | false | IS_JDK
+        'oracleJdk7'                          | oracleJdk('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7' | true   | false | IS_JDK
+        'oracleJdk8'                          | oracleJdk('8')   | JavaVersion.VERSION_1_8 | 'Oracle JDK 8' | true   | false | IS_JDK
+        'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | false | IS_JDK
+        'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | true  | IS_JRE
+        'ibmJdk4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'    | true   | false | IS_JDK
+        'ibmJdk5'                             | ibmJdk('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'    | true   | false | IS_JDK
+        'ibmJdk6'                             | ibmJdk('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'    | true   | false | IS_JDK
+        'ibmJdk7'                             | ibmJdk('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true   | false | IS_JDK
+        'ibmJdk8'                             | ibmJdk('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'    | true   | false | IS_JDK
+        'ibmJdk9'                             | ibmJdk('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'    | true   | false | IS_JDK
+        'binary that has invalid output'      | invalidOutput()  | null                    | null           | true   | false | INVALID_JDK
+        'binary that returns unknown version' | invalidVersion() | null                    | null           | true   | false | INVALID_JDK
 
     }
 
@@ -146,18 +165,4 @@ class JavaInstallationProbeTest extends Specification {
         File javaHome
     }
 
-    private static class JavaHome extends File {
-
-        private final exists
-
-        JavaHome(String pathname, boolean exists) {
-            super(pathname)
-            this.exists = exists
-        }
-
-        @Override
-        boolean exists() {
-            exists
-        }
-    }
 }
