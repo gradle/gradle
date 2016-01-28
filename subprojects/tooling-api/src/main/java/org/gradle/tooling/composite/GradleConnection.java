@@ -74,7 +74,7 @@ public interface GradleConnection {
          *
          * @param rootProjectDirectory Root directory of Gradle build
          * @param gradleDistribution The distribution to use.
-         * 
+         *
          * @return this
          */
         Builder addBuild(File rootProjectDirectory, URI gradleDistribution);
@@ -91,7 +91,7 @@ public interface GradleConnection {
     /**
      * Fetches a Set of snapshots of the model of the given type for this composite. This method blocks until the model is available.
      *
-     * <p>This method is simply a convenience for calling {@code model(modelType).get()}</p>
+     * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
      *
      * @param modelType
      * @param <T>
@@ -111,7 +111,7 @@ public interface GradleConnection {
      * <p>An operation will fail if there is a problem fetching the model from any of the composite's builds.
      * The handler's {@code onFailure} method will only be called one time with the first failure.</p>
      *
-     * <p>This method is simply a convenience for calling {@code model(modelType).get(handler)}</p>
+     * <p>This method is simply a convenience for calling {@code models(modelType).get(handler)}</p>
      *
      * @param modelType
      * @param handler
