@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Cast;
@@ -89,8 +90,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
+        spec.setDiscoveredInputRecorder((DiscoveredInputRecorder) inputs);
         spec.setOperationLogger(operationLogger);
-        spec.setIncrementalInputs(inputs);
 
         configureSpec(spec);
 

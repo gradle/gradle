@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
@@ -83,6 +83,7 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map);
 
-    void setIncrementalInputs(IncrementalTaskInputs inputs);
-    IncrementalTaskInputs getIncrementalInputs();
+    DiscoveredInputRecorder getDiscoveredInputRecorder();
+
+    void setDiscoveredInputRecorder(DiscoveredInputRecorder inputs);
 }

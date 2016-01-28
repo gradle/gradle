@@ -19,7 +19,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -79,9 +79,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
-        final IncrementalTaskInputsInternal taskInputs = (IncrementalTaskInputsInternal) spec.getIncrementalInputs();
-
-        handleDiscoveredInputs(spec, compilation, taskInputs);
+        handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
 
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
@@ -100,9 +98,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         return workResult;
     }
 
-    protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
+    protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
         for (File includeFile : compilation.getDiscoveredInputs()) {
-            taskInputs.newInput(includeFile);
+            discoveredInputRecorder.newInput(includeFile);
         }
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
@@ -112,7 +110,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
                 new DirectoryFileTree(includeRoot).visit(new EmptyFileVisitor() {
                     @Override
                     public void visitFile(FileVisitDetails fileDetails) {
-                        taskInputs.newInput(fileDetails.getFile());
+                        discoveredInputRecorder.newInput(fileDetails.getFile());
                     }
                 });
             }
