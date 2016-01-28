@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
@@ -34,7 +32,6 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can declare an installed JDK and model report shows the resolved installed JDK"() {
         given:
         def jdks = AvailableJavaHomes.availableJdks.indexed().collect { i, jdk ->
@@ -60,9 +57,11 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         // for each declared JDK, there must be *at least* one installed JDK which Java Home corresponds
         // to the one declared. There may be less because they are deduplicated
         AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
-            assert report.modelNode.installedJdks.'**'.@javaHome.any {
+            assert (report.modelNode.installedJdks.'**'.@javaHome.any {
                 it == jdk.javaHome.canonicalFile.absolutePath
-            }
+            } || report.modelNode.installedJres.'**'.@javaHome.any {
+                it == jdk.javaHome.canonicalFile.absolutePath
+            })
         }
     }
 
