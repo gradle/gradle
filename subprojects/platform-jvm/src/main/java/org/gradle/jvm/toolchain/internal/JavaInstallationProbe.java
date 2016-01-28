@@ -25,6 +25,7 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.JavaExecAction;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -140,6 +141,8 @@ public class JavaInstallationProbe {
             if (exitValue == 0) {
                 return SysProp.parseExecOutput(baos.toString());
             }
+            return SysProp.unknown();
+        } catch (ExecException ex) {
             return SysProp.unknown();
         } finally {
             try {

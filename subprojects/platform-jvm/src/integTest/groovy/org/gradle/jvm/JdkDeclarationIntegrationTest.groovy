@@ -16,6 +16,7 @@
 package org.gradle.jvm
 
 import groovy.json.StringEscapeUtils
+import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -59,5 +60,27 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 it == jdk.javaHome.canonicalFile.absolutePath
             }
         }
+    }
+
+    def "pointing to a non existent installation doesn't resolve to a JDK"() {
+        given:
+        buildFile << '''
+            model {
+                jdks {
+                    myJDK(JdkSpec) {
+                        path 'no-luck'
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds 'model', '--format=short'
+
+        then:
+        def report = ModelReportOutput.from(output)
+        // only uses the JDK that Gradle runs on
+        assert report.modelNode.installedJdks[0].children().size() == 1
+        assert report.modelNode.installedJdks.currentGradleJDK.@javaVersion == [JavaVersion.current().toString()]
     }
 }
