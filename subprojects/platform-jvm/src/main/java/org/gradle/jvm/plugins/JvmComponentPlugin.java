@@ -43,7 +43,6 @@ import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -128,7 +127,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Model
         @Hidden
         JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
-            return new JavaInstallationProbe(serviceRegistry.get(ExecActionFactory.class));
+            return serviceRegistry.get(JavaInstallationProbe.class);
         }
 
         @Defaults
