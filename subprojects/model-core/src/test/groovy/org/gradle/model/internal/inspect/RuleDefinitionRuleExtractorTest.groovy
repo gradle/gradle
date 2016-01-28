@@ -16,10 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.Each
-import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.RuleSource
-import org.gradle.model.Rules
+import org.gradle.model.*
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
 class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
@@ -84,6 +81,21 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
         def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${InvalidEachAnnotationOnRuleSource.name} is not a valid rule source:
 - Method rules($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #1 should not be annotated with @Each."""
+    }
+
+    static class InvalidEachAndPathAnnotation extends RuleSource {
+        @Rules
+        void mutate(SomeRuleSource rules, @Each @Path("value") String value, Integer input) {}
+    }
+
+    def "both @Each and @Path annotations are not allowed"() {
+        when:
+        extractor.extract InvalidEachAndPathAnnotation
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
+- Method mutate($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 
 }

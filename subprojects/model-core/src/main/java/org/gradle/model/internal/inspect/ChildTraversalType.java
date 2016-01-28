@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.Each;
+import org.gradle.model.Path;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -45,8 +46,11 @@ public enum ChildTraversalType {
         ChildTraversalType result = null;
         for (int paramIndex = 0; paramIndex < parameterAnnotations.size(); paramIndex++) {
             List<Annotation> annotations = parameterAnnotations.get(paramIndex);
-            boolean annotatedWithEach = containsEach(annotations);
+            boolean annotatedWithEach = hasAnnotation(annotations, Each.class);
             if (paramIndex == subjectParamIndex) {
+                if (hasAnnotation(annotations, Path.class)) {
+                    problems.add(ruleDefinition, "Rule subject must not be annotated with both @Path and @Each.");
+                }
                 result = annotatedWithEach ? DESCENDANTS : SELF;
             } else if (annotatedWithEach) {
                 problems.add(ruleDefinition, String.format("Rule parameter #%d should not be annotated with @Each.", paramIndex + 1));
@@ -56,9 +60,9 @@ public enum ChildTraversalType {
         return result;
     }
 
-    private static boolean containsEach(Iterable<Annotation> annotations) {
+    private static boolean hasAnnotation(Iterable<Annotation> annotations, Class<? extends Annotation> annotationType) {
         for (Annotation annotation : annotations) {
-            if (annotation instanceof Each) {
+            if (annotationType.isInstance(annotation)) {
                 return true;
             }
         }

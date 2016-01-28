@@ -789,6 +789,21 @@ ${ManagedWithNonManageableParents.name}
 - Method mutate(java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #2 should not be annotated with @Each."""
     }
 
+    static class InvalidEachAndPathAnnotation extends RuleSource {
+        @Mutate
+        void mutate(@Each @Path("value") String value, Integer input) {}
+    }
+
+    def "both @Each and @Path annotations are not allowed"() {
+        when:
+        extract InvalidEachAndPathAnnotation
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
+- Method mutate(java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
+    }
+
     private void forcefullyClearReferences(Class<?> clazz) {
         ModelStoreTestUtils.removeClassFromGlobalClassSet(clazz)
 
