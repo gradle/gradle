@@ -92,7 +92,8 @@ public class JavaInstallationProbe {
     }
 
     public enum ProbeResult {
-        VALID_JDK,
+        IS_JDK,
+        IS_JRE,
         NO_SUCH_DIRECTORY,
         INVALID_JDK;
     }
@@ -101,7 +102,7 @@ public class JavaInstallationProbe {
         this.factory = factory;
     }
 
-    public void current(InstalledJdkInternal currentJava) {
+    public void current(LocalJavaInstallation currentJava) {
         configureInstall(currentJava, SysProp.current());
     }
 
@@ -120,17 +121,17 @@ public class JavaInstallationProbe {
             // if the version string cannot be parsed
             return ProbeResult.INVALID_JDK;
         }
-        return ProbeResult.VALID_JDK;
+        return ProbeResult.IS_JDK;
     }
 
-    public void configure(File jdkPath, InstalledJdkInternal installedJdk) {
+    public void configure(File jdkPath, InstalledJdk installedJdk) {
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         if (!UNKNOWN.equals(metadata.get(SysProp.VERSION))) {
             configureInstall(installedJdk, metadata);
         }
     }
 
-    private void configureInstall(InstalledJdkInternal installedJdk, EnumMap<SysProp, String> metadata) {
+    private void configureInstall(LocalJavaInstallation installedJdk, EnumMap<SysProp, String> metadata) {
         JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
         installedJdk.setJavaVersion(javaVersion);
         String jdkName = computeJdkName(metadata);

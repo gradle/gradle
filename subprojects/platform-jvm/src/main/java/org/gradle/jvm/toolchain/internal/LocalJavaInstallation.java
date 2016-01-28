@@ -15,9 +15,21 @@
  */
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.model.Managed;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Named;
 
-@Managed
-public interface InstalledJdk extends LocalJavaInstallation {
+import java.io.File;
 
+public interface LocalJavaInstallation extends Named {
+    JavaVersion getJavaVersion();
+
+    File getJavaHome();
+
+    String getDisplayName();
+
+    void setJavaVersion(JavaVersion javaVersion);
+
+    void setDisplayName(String displayName);
+
+    void setJavaHome(File javaHome);
 }

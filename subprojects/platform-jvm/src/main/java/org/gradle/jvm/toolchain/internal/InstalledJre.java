@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.model.Managed;
 
-import java.io.File;
-
 @Managed
-public interface InstalledJdkInternal extends InstalledJdk {
-    void setJavaVersion(JavaVersion javaVersion);
+public interface InstalledJre extends LocalJavaInstallation {
 
-    void setDisplayName(String displayName);
-
-    void setJavaHome(File javaHome);
 }

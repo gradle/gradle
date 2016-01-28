@@ -37,7 +37,6 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.JdkSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.InstalledJdk;
-import org.gradle.jvm.toolchain.internal.InstalledJdkInternal;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
@@ -103,11 +102,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Model
         public void installedJdks(ModelMap<InstalledJdk> installedJdks, final JavaInstallationProbe probe) {
-            installedJdks.create("currentGradleJDK", InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+            installedJdks.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
                 @Override
-                public void execute(InstalledJdkInternal installedJdkInternal) {
-                    installedJdkInternal.setJavaHome(Jvm.current().getJavaHome());
-                    probe.current(installedJdkInternal);
+                public void execute(InstalledJdk installedJdk) {
+                    installedJdk.setJavaHome(Jvm.current().getJavaHome());
+                    probe.current(installedJdk);
                 }
             });
         }
@@ -142,11 +141,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 final File javaHome = canonicalFile(jdk.getPath());
                 JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
                 switch (probeResult) {
-                    case VALID_JDK:
+                    case IS_JDK:
                         if (!javaHome.equals(currentJavaHome)) {
-                            installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+                            installedJdks.create(jdk.getName(), InstalledJdk.class, new Action<InstalledJdk>() {
                                 @Override
-                                public void execute(InstalledJdkInternal installedJdk) {
+                                public void execute(InstalledJdk installedJdk) {
                                     installedJdk.setJavaHome(javaHome);
                                     probe.configure(javaHome, installedJdk);
                                 }
