@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.gradle.model.Each;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 public enum ChildTraversalType {
     /**
@@ -33,17 +32,36 @@ public enum ChildTraversalType {
      */
     DESCENDANTS;
 
-    public static ChildTraversalType of(MethodRuleDefinition<?, ?> ruleDefinition, Iterable<Annotation> subjectAnnotations) {
-        boolean each = Iterables.any(subjectAnnotations, new Predicate<Annotation>() {
-            @Override
-            public boolean apply(Annotation annotation) {
-                return annotation instanceof Each;
-            }
-        });
-        if (each) {
-            return DESCENDANTS;
-        } else {
-            return SELF;
+    /**
+     * Detects if the subject of the rule has been annotated with {@literal @}{@link Each}.
+     *
+     * @throws IndexOutOfBoundsException If the rule definition has too few parameters.
+     */
+    public static ChildTraversalType subjectTraversalOf(RuleSourceValidationProblemCollector problems, MethodRuleDefinition<?, ?> ruleDefinition, int subjectParamIndex) {
+        List<List<Annotation>> parameterAnnotations = ruleDefinition.getParameterAnnotations();
+        if (subjectParamIndex >= parameterAnnotations.size()) {
+            throw new IndexOutOfBoundsException("Rule definition should have at least " + (subjectParamIndex + 1) + " parameters");
         }
+        ChildTraversalType result = null;
+        for (int paramIndex = 0; paramIndex < parameterAnnotations.size(); paramIndex++) {
+            List<Annotation> annotations = parameterAnnotations.get(paramIndex);
+            boolean annotatedWithEach = containsEach(annotations);
+            if (paramIndex == subjectParamIndex) {
+                result = annotatedWithEach ? DESCENDANTS : SELF;
+            } else if (annotatedWithEach) {
+                problems.add(ruleDefinition, String.format("Rule parameter #%d should not be annotated with @Each.", paramIndex + 1));
+            }
+        }
+        assert result != null;
+        return result;
+    }
+
+    private static boolean containsEach(Iterable<Annotation> annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof Each) {
+                return true;
+            }
+        }
+        return false;
     }
 }

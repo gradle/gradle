@@ -26,7 +26,6 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,27 +50,28 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
-        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
+        ChildTraversalType childTraversal = ChildTraversalType.subjectTraversalOf(context, ruleDefinition, 1);
+        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor(), childTraversal);
     }
 
     private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
+        private final ChildTraversalType childTraversal;
 
-        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor, ChildTraversalType childTraversal) {
             super(ruleDefinition);
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
+            this.childTraversal = childTraversal;
         }
 
         @Override
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
-            List<Annotation> targetAnnotations = ruleDefinition.getParameterAnnotations().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
             RuleSourceApplicationAction ruleAction = new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor);
-            ChildTraversalType childTraversal = ChildTraversalType.of(ruleDefinition, targetAnnotations);
             RuleExtractorUtils.configureRuleAction(context, childTraversal, ModelActionRole.Defaults, ruleAction);
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.model.Each
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
 import org.gradle.model.Rules
@@ -51,4 +52,38 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 - Method broken1(java.lang.String, ${RuleSource.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of ${RuleSource.name}
 - Method broken2() is not a valid rule method: A method annotated with @Rules must have at least two parameters"""
     }
+
+    static class SomeRuleSource extends RuleSource {}
+
+    static class InvalidEachAnnotationOnParameter extends RuleSource {
+        @Rules
+        void input(SomeRuleSource rules, String value, @Each Integer input) {}
+    }
+
+    def "invalid @Each annotations on parameters are not allowed"() {
+        when:
+        extractor.extract InvalidEachAnnotationOnParameter
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAnnotationOnParameter.name} is not a valid rule source:
+- Method input($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #3 should not be annotated with @Each."""
+    }
+
+
+    static class InvalidEachAnnotationOnRuleSource extends RuleSource {
+        @Rules
+        void rules(@Each SomeRuleSource rules, String value, Integer input) {}
+    }
+
+    def "invalid @Each annotations on rule sources are not allowed"() {
+        when:
+        extractor.extract InvalidEachAnnotationOnRuleSource
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAnnotationOnRuleSource.name} is not a valid rule source:
+- Method rules($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #1 should not be annotated with @Each."""
+    }
+
 }

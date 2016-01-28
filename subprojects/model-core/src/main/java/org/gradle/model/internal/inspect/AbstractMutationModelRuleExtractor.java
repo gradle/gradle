@@ -36,25 +36,26 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         if (context.hasProblems()) {
             return null;
         }
-        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition);
+        ChildTraversalType childTraversal = ChildTraversalType.subjectTraversalOf(context, ruleDefinition, 0);
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition, childTraversal);
     }
 
     protected abstract ModelActionRole getMutationType();
 
     private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
+        private final ChildTraversalType childTraversal;
 
-        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, ChildTraversalType childTraversal) {
             super(ruleDefinition);
             this.mutationType = mutationType;
+            this.childTraversal = childTraversal;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
-            List<Annotation> subjectAnnotations = ruleDefinition.getParameterAnnotations().get(0);
             MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
-            ChildTraversalType childTraversal = ChildTraversalType.of(ruleDefinition, subjectAnnotations);
             RuleExtractorUtils.configureRuleAction(context, childTraversal, mutationType, ruleAction);
         }
 
