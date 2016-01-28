@@ -22,6 +22,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
 import java.net.URI;
@@ -77,18 +78,31 @@ public class DefaultGradleConnection implements GradleConnection {
 
     @Override
     public <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
+        checkSupportedModelType(modelType);
         return models(modelType).get();
     }
 
     @Override
     public <T> void getModels(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException {
+        checkSupportedModelType(modelType);
         models(modelType).get(handler);
     }
 
     @Override
     public <T> ModelBuilder<Set<T>> models(Class<T> modelType) {
-        // TODO: When this moves, specialize the ConnectionParams?
-        return new CompositeModelBuilder<T>(modelType, participants, null);
+        checkSupportedModelType(modelType);
+        return new CompositeModelBuilder<T>(modelType, participants);
+    }
+
+    private <T> void checkSupportedModelType(Class<T> modelType) {
+        if (!modelType.isInterface()) {
+            throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
+        }
+
+        // TODO: Remove
+        if (!modelType.equals(EclipseProject.class)) {
+            throw new IllegalArgumentException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
+        }
     }
 
     @Override

@@ -67,10 +67,10 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
     }
 
     private ProjectConnection connect() {
-        return GradleConnector.newConnector().forProjectDirectory(getProjectDir()).connect();
+        return configureDistribution(GradleConnector.newConnector().forProjectDirectory(getProjectDir())).connect();
     }
 
-    private void configureDistribution(GradleConnector connector) {
+    private GradleConnector configureDistribution(GradleConnector connector) {
         if (gradleDistribution==null) {
             if (gradleHome==null) {
                 if (gradleVersion==null) {
@@ -84,5 +84,7 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
         } else {
             connector.useDistribution(gradleDistribution);
         }
+
+        return connector;
     }
 }

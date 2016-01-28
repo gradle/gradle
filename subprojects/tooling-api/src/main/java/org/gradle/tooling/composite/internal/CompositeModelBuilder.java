@@ -17,18 +17,21 @@
 package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
-import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -37,8 +40,9 @@ public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<Compo
     private final Class<T> modelType;
     private final Set<GradleParticipantBuild> participants;
 
-    protected CompositeModelBuilder(Class<T> modelType, Set<GradleParticipantBuild> participants, ConnectionParameters parameters) {
-        super(parameters);
+    protected CompositeModelBuilder(Class<T> modelType, Set<GradleParticipantBuild> participants) {
+        // TODO: When this moves, specialize the ConnectionParams?
+        super(null);
         this.modelType = modelType;
         this.participants = participants;
     }
@@ -64,33 +68,18 @@ public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<Compo
 
     @Override
     public Set<T> get() throws GradleConnectionException, IllegalStateException {
-        ResultHandler<Set<T>> handler = null;
+        BlockingResultHandler<T> handler = new BlockingResultHandler();
         get(handler);
-        return null; // handler.getResult();
+        return handler.getResult();
     }
 
     @Override
     public void get(ResultHandler<? super Set<T>> handler) throws IllegalStateException {
-        // TODO: Doesn't work yet
-        final Set<T> results = Sets.newLinkedHashSet();
+        final Set<T> results = Sets.newConcurrentHashSet();
         final AtomicReference<Throwable> firstFailure = new AtomicReference<Throwable>();
-        final ResultHandlerAdapter<T> adaptedHandler = new ResultHandlerAdapter(handler);
+        final ResultHandlerVersion1<Set<T>> adaptedHandler = new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
 
-        for (GradleParticipantBuild participant : participants) {
-            participant.getConnection().getModel(modelType, new ResultHandler<T>() {
-                @Override
-                public void onComplete(T result) {
-                    results.add(result);
-                }
-
-                @Override
-                public void onFailure(GradleConnectionException failure) {
-                    firstFailure.compareAndSet(null, failure);
-                }
-            });
-        }
-
-        new CyclicBarrier(participants.size(), new Runnable() {
+        final CyclicBarrier barrier = new CyclicBarrier(participants.size(), new Runnable() {
             @Override
             public void run() {
                 if (firstFailure.get()==null) {
@@ -100,23 +89,60 @@ public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<Compo
                 }
             }
         });
+
+        for (GradleParticipantBuild participant : participants) {
+            participant.getConnection().getModel(modelType, new ResultHandler<T>() {
+                @Override
+                public void onComplete(T result) {
+                    results.add(result);
+                    waitForFinish();
+                }
+
+                private void waitForFinish() {
+                    try {
+                        barrier.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (BrokenBarrierException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(GradleConnectionException failure) {
+                    firstFailure.compareAndSet(null, failure);
+                    waitForFinish();
+                }
+            });
+        }
     }
 
-    private class HierarchialResultAdapter<T> implements ResultHandler<Set<T>> {
-        private final ResultHandler<Set<T>> delegate;
+    private class HierarchialResultAdapter<T> implements ResultHandlerVersion1<Set<T>> {
+        private final ResultHandlerVersion1<Set<T>> delegate;
 
-        private HierarchialResultAdapter(ResultHandler<Set<T>> delegate) {
+        private HierarchialResultAdapter(ResultHandlerVersion1<Set<T>> delegate) {
             this.delegate = delegate;
         }
 
         @Override
         public void onComplete(Set<T> results) {
-            Collection<? extends HierarchicalElement> hierarchicalSet = CollectionUtils.checkedCast(HierarchicalElement.class, results);
-            Set<T> fullSet = Sets.newLinkedHashSet();
-            for (HierarchicalElement element : hierarchicalSet) {
-                accumulate(element, fullSet);
+            if (HierarchicalElement.class.isAssignableFrom(modelType)) {
+                Set<T> fullSet = Sets.newLinkedHashSet();
+                Collection<? extends HierarchicalElement> hierarchicalSet =
+                    CollectionUtils.checkedCast(HierarchicalElement.class, results);
+
+                for (HierarchicalElement element : hierarchicalSet) {
+                    accumulate(element, fullSet);
+                }
+                delegate.onComplete(fullSet);
+            } else {
+                delegate.onComplete(results);
             }
-            delegate.onComplete(fullSet);
+        }
+
+        @Override
+        public void onFailure(Throwable failure) {
+            delegate.onFailure(failure);
         }
 
         private void accumulate(HierarchicalElement element, Set acc) {
@@ -124,11 +150,6 @@ public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<Compo
             for (HierarchicalElement child : element.getChildren().getAll()) {
                 accumulate(child, acc);
             }
-        }
-
-        @Override
-        public void onFailure(GradleConnectionException failure) {
-            delegate.onFailure(failure);
         }
     }
     private class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Set<T>> {
@@ -145,6 +166,43 @@ public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<Compo
                 message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
             }
             return message;
+        }
+    }
+
+    private class BlockingResultHandler<T> implements ResultHandler<Set<T>> {
+        private final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
+
+        public Set<T> getResult() {
+            Object result;
+            try {
+                result = queue.take();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            if (result instanceof Throwable) {
+                throw UncheckedException.throwAsUncheckedException(attachCallerThreadStackTrace((Throwable) result));
+            }
+            return (Set<T>)result;
+        }
+
+        private Throwable attachCallerThreadStackTrace(Throwable failure) {
+            List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
+            adjusted.addAll(Arrays.asList(failure.getStackTrace()));
+            List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
+            if (!currentThreadStack.isEmpty()) {
+                adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
+            }
+            failure.setStackTrace(adjusted.toArray(new StackTraceElement[0]));
+            return failure;
+        }
+
+        public void onComplete(Set<T> result) {
+            queue.add(result);
+        }
+
+        public void onFailure(GradleConnectionException failure) {
+            queue.add(failure);
         }
     }
 }
