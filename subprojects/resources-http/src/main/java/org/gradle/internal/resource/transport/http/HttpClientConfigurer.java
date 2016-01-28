@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.Lists;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -32,6 +33,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.auth.*;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -50,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -98,19 +101,17 @@ public class HttpClientConfigurer {
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        String proxyScheme = "https";
-        HttpProxySettings.HttpProxy proxy = httpSettings.getSecureProxySettings().getProxy();
-        if (proxy == null) {
-            proxy = httpSettings.getProxySettings().getProxy();
-            proxyScheme = "http";
-        }
+        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
+        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
 
-        if (proxy != null) {
-            if (proxy.credentials != null) {
-                useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+        for (HttpProxySettings.HttpProxy proxy : Lists.newArrayList(httpProxy, httpsProxy)) {
+            if (proxy != null) {
+                if (proxy.credentials != null) {
+                    useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+                }
             }
-            builder.setProxy(new HttpHost(proxy.host, proxy.port, proxyScheme));
         }
+        builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
     }
 
     private void useCredentials(CredentialsProvider credentialsProvider, String host, int port, Collection<? extends Authentication> authentications) {
