@@ -53,9 +53,8 @@ import java.util.*;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Base plugin for JVM component support. Applies the
- * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers the {@link JvmLibrarySpec} library type for the components container.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
+ * container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -100,7 +99,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        public void installedJdks(ModelMap<InstalledJdk> installedJdks) {
+        public void installedJdks(ModelMap<InstalledJdk> installedJdks, final JavaInstallationProbe probe) {
+            installedJdks.create("currentGradleJDK", InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+                @Override
+                public void execute(InstalledJdkInternal installedJdkInternal) {
+                    configureInstalledJdk(installedJdkInternal, JavaInstallationProbe.current());
+                }
+            });
         }
 
         @Validate
@@ -129,16 +134,47 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @Defaults
         public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
             for (final JdkSpec jdk : jdks) {
-                installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
-                    @Override
-                    public void execute(InstalledJdkInternal installedJdk) {
-                        EnumMap<JavaInstallationProbe.Type, String> metadata = probe.getMetadata(jdk.getPath());
-                        installedJdk.setJavaHome(jdk.getPath());
-                        installedJdk.setJavaVersion(JavaVersion.toVersion(metadata.get(JavaInstallationProbe.Type.VERSION)));
-                        installedJdk.setDisplayName(String.format("%s %s", metadata.get(JavaInstallationProbe.Type.VENDOR), metadata.get(JavaInstallationProbe.Type.VM)));
-                    }
-                });
+                EnumMap<JavaInstallationProbe.SysProp, String> metadata = probe.getMetadata(jdk.getPath());
+                if (!JavaInstallationProbe.UNKNOWN.equals(metadata.get(JavaInstallationProbe.SysProp.VERSION))) {
+                    installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
+                        @Override
+                        public void execute(InstalledJdkInternal installedJdk) {
+                            EnumMap<JavaInstallationProbe.SysProp, String> metadata = probe.getMetadata(jdk.getPath());
+                            installedJdk.setJavaHome(jdk.getPath());
+                            configureInstalledJdk(installedJdk, metadata);
+                        }
+                    });
+                }
             }
+        }
+
+        private void configureInstalledJdk(InstalledJdkInternal installedJdk, EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
+            JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(JavaInstallationProbe.SysProp.VERSION));
+            installedJdk.setJavaVersion(javaVersion);
+            String jdkName = computeJdkName(metadata);
+            installedJdk.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+        }
+
+        private static String computeJdkName(EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
+            String jdkName = "JDK";
+            String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
+            if (vendor == null) {
+                return jdkName;
+            } else {
+                vendor = vendor.toLowerCase();
+            }
+            if (vendor.contains("apple")) {
+                jdkName = "Apple JDK";
+            } else if (vendor.contains("oracle") || vendor.contains("sun")) {
+                jdkName = "Oracle JDK";
+            } else if (vendor.contains("ibm")) {
+                jdkName = "IBM JDK";
+            }
+            String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
+            if (vm != null && vm.contains("OpenJDK")) {
+                jdkName = "OpenJDK";
+            }
+            return jdkName;
         }
 
         @ComponentBinaries
@@ -192,9 +228,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         private BinaryNamingScheme namingSchemeFor(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             return DefaultBinaryNamingScheme.component(jvmLibrary.getName())
-                    .withBinaryType("Jar")
-                    .withRole("jar", true)
-                    .withVariantDimension(platform, selectedPlatforms);
+                .withBinaryType("Jar")
+                .withRole("jar", true)
+                .withVariantDimension(platform, selectedPlatforms);
         }
 
         @BinaryTasks
@@ -242,8 +278,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         private String apiJarTaskName(JarBinarySpecInternal binary) {
             String binaryName = binary.getProjectScopedName();
             String libName = binaryName.endsWith("Jar")
-                    ? binaryName.substring(0, binaryName.length() - 3)
-                    : binaryName;
+                ? binaryName.substring(0, binaryName.length() - 3)
+                : binaryName;
             return libName + "ApiJar";
         }
 

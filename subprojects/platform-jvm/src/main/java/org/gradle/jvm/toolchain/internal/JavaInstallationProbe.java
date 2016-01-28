@@ -15,6 +15,10 @@
  */
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
@@ -26,56 +30,95 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.EnumMap;
 
 public class JavaInstallationProbe {
+    public static final String UNKNOWN = "unknown";
+
+    private final LoadingCache<File, EnumMap<SysProp, String>> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, EnumMap<SysProp, String>>() {
+        @Override
+        public EnumMap<SysProp, String> load(File javaHome) throws Exception {
+            return getMetadataInternal(javaHome);
+        }
+    });
+
     private final ExecActionFactory factory;
 
-    public enum Type {
+    public static EnumMap<SysProp, String> current() {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, System.getProperty(type.sysProp, UNKNOWN));
+        }
+        return result;
+    }
+
+    public enum SysProp {
         VERSION("java.version"),
         VENDOR("java.vendor"),
         ARCH("os.arch"),
-        VM("java.vm.name");
+        VM("java.vm.name"),
+        VM_VERSION("java.vm.version"),
+        RUNTIME("java.runtime.name");
 
         private final String sysProp;
 
-        Type(String sysProp) {
+        SysProp(String sysProp) {
             this.sysProp = sysProp;
         }
 
-        private static EnumMap<Type, String> parseExecOutput(String probeResult) {
-            EnumMap<Type, String> result = new EnumMap<Type, String>(Type.class);
+        private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
+            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
             String[] split = probeResult.split(System.getProperty("line.separator"));
-            for (Type type : Type.values()) {
+            for (SysProp type : SysProp.values()) {
                 result.put(type, split[type.ordinal()]);
             }
             return result;
         }
+
+        private static EnumMap<SysProp, String> unknown() {
+            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+            for (SysProp type : SysProp.values()) {
+                result.put(type, UNKNOWN);
+            }
+            return result;
+        }
+
     }
 
     public JavaInstallationProbe(ExecActionFactory factory) {
         this.factory = factory;
     }
 
-    public EnumMap<Type, String> getMetadata(File jdkPath) {
+    public EnumMap<SysProp, String> getMetadata(File jdkPath) {
+        return cache.getUnchecked(jdkPath);
+    }
+
+    private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
         JavaExecAction exec = factory.newJavaExecAction();
         exec.executable(javaExe(jdkPath));
-        writeProbe(exec.getWorkingDir());
-        exec.setMain(JavaProbe.CLASSNAME);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        exec.setStandardOutput(baos);
-        exec.setErrorOutput(new ByteArrayOutputStream());
-        exec.setIgnoreExitValue(true);
-        ExecResult result = exec.execute();
-        int exitValue = result.getExitValue();
-        if (exitValue == 0) {
-            return Type.parseExecOutput(baos.toString());
+        File workingDir = Files.createTempDir();
+        exec.setWorkingDir(workingDir);
+        try {
+            writeProbe(workingDir);
+            exec.setMain(JavaProbe.CLASSNAME);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            exec.setStandardOutput(baos);
+            exec.setErrorOutput(new ByteArrayOutputStream());
+            exec.setIgnoreExitValue(true);
+            ExecResult result = exec.execute();
+            int exitValue = result.getExitValue();
+            if (exitValue == 0) {
+                return SysProp.parseExecOutput(baos.toString());
+            }
+            return SysProp.unknown();
+        } finally {
+            try {
+                org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
+            } catch (IOException e) {
+                throw new GradleException("Unable to delete temp directory", e);
+            }
         }
-        return null;
     }
 
     private static void writeProbe(File workingDir) {
@@ -100,19 +143,11 @@ public class JavaInstallationProbe {
     /**
      * This is the ASM version of a probe class that is the equivalent of the following source code:
      *
-     * <code>
-     * public static class Probe {
-     *    public static void main(String[] args) {
-     *      System.out.println(System.getProperty("java.version", "unknown"));
-     *      System.out.println(System.getProperty("java.vendor", "unknown"));
-     *   }
-     * }
-     * </code>
+     * <code> public static class Probe { public static void main(String[] args) { System.out.println(System.getProperty("java.version", "unknown"));
+     * System.out.println(System.getProperty("java.vendor", "unknown")); } } </code>
      *
-     * We're using ASM because we need to generate a class which bytecode level is compatible with the lowest JDK version supported (1.1),
-     * while being practical to add to classpath when executing the probe. You can add new system properties to be probed just by changing
-     * the {@link Type} enum.
-     *
+     * We're using ASM because we need to generate a class which bytecode level is compatible with the lowest JDK version supported (1.1), while being practical to add to classpath when executing the
+     * probe. You can add new system properties to be probed just by changing the {@link SysProp} enum.
      */
     private static class JavaProbe implements Opcodes {
 
@@ -139,7 +174,7 @@ public class JavaInstallationProbe {
             mv.visitCode();
             Label l0 = new Label();
             mv.visitLabel(l0);
-            for (Type type : Type.values()) {
+            for (SysProp type : SysProp.values()) {
                 dumpProperty(mv, type.sysProp);
             }
             mv.visitInsn(RETURN);
@@ -154,7 +189,7 @@ public class JavaInstallationProbe {
 
             mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
             mv.visitLdcInsn(property);
-            mv.visitLdcInsn("unknown");
+            mv.visitLdcInsn(UNKNOWN);
             mv.visitMethodInsn(INVOKESTATIC, "java/lang/System", "getProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", false);
             mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
 
