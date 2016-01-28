@@ -22,6 +22,7 @@ import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -102,6 +103,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             installedJdks.create("currentGradleJDK", InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
                 @Override
                 public void execute(InstalledJdkInternal installedJdkInternal) {
+                    installedJdkInternal.setJavaHome(Jvm.current().getJavaHome());
                     probe.current(installedJdkInternal);
                 }
             });
@@ -132,13 +134,15 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Defaults
         public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
             for (final JdkSpec jdk : jdks) {
-                if (probe.isValidInstallation(jdk.getPath())) {
+                final File javaHome = canonicalFile(jdk.getPath());
+                if (!javaHome.equals(currentJavaHome) && probe.isValidInstallation(javaHome)) {
                     installedJdks.create(jdk.getName(), InstalledJdkInternal.class, new Action<InstalledJdkInternal>() {
                         @Override
                         public void execute(InstalledJdkInternal installedJdk) {
-                            installedJdk.setJavaHome(jdk.getPath());
-                            probe.configure(jdk.getPath(), installedJdk);
+                            installedJdk.setJavaHome(javaHome);
+                            probe.configure(javaHome, installedJdk);
                         }
                     });
                 }
@@ -164,6 +168,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jarBinary.setDependencies(dependencies);
                     }
                 });
+            }
+        }
+
+        private static File canonicalFile(File f) {
+            try {
+                return f.getCanonicalFile();
+            } catch (IOException e) {
+                return f;
             }
         }
 

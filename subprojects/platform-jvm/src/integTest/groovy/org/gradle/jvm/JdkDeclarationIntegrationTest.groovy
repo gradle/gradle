@@ -55,8 +55,12 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def report = ModelReportOutput.from(output)
+        // for each declared JDK, there must be *at least* one installed JDK which Java Home corresponds
+        // to the one declared. There may be less because they are deduplicated
         AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
-            assert report.modelNode.installedJdks."jdk$i".@javaHome == [jdk.javaHome.toString()]
+            assert report.modelNode.installedJdks.'**'.@javaHome.any {
+                it == jdk.javaHome.canonicalFile.absolutePath
+            }
         }
     }
 }
