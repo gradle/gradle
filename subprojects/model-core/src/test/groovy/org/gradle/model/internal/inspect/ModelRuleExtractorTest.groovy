@@ -791,7 +791,10 @@ ${ManagedWithNonManageableParents.name}
 
     static class InvalidEachAndPathAnnotation extends RuleSource {
         @Mutate
-        void mutate(@Each @Path("value") String value, Integer input) {}
+        void valid(@Path("value") String value, Integer input) {}
+
+        @Mutate
+        void invalid(@Each @Path("value") String value, Integer input) {}
     }
 
     def "both @Each and @Path annotations are not allowed"() {
@@ -801,7 +804,7 @@ ${ManagedWithNonManageableParents.name}
         then:
         def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
-- Method mutate(java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
+- Method invalid(java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 
     private void forcefullyClearReferences(Class<?> clazz) {

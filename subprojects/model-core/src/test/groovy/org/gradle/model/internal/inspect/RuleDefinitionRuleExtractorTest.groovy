@@ -85,7 +85,10 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 
     static class InvalidEachAndPathAnnotation extends RuleSource {
         @Rules
-        void mutate(SomeRuleSource rules, @Each @Path("value") String value, Integer input) {}
+        void valid(SomeRuleSource rules, @Path("value") String value, Integer input) {}
+
+        @Rules
+        void invalid(SomeRuleSource rules, @Each @Path("value") String value, Integer input) {}
     }
 
     def "both @Each and @Path annotations are not allowed"() {
@@ -95,7 +98,7 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
         then:
         def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
-- Method mutate($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
+- Method invalid($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 
 }

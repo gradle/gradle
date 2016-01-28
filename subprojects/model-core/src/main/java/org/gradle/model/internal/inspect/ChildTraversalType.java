@@ -48,7 +48,7 @@ public enum ChildTraversalType {
             List<Annotation> annotations = parameterAnnotations.get(paramIndex);
             boolean annotatedWithEach = hasAnnotation(annotations, Each.class);
             if (paramIndex == subjectParamIndex) {
-                if (hasAnnotation(annotations, Path.class)) {
+                if (annotatedWithEach && hasAnnotation(annotations, Path.class)) {
                     problems.add(ruleDefinition, "Rule subject must not be annotated with both @Path and @Each.");
                 }
                 result = annotatedWithEach ? DESCENDANTS : SELF;
