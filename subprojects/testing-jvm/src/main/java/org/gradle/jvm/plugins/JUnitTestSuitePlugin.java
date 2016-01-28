@@ -18,7 +18,6 @@ package org.gradle.jvm.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
@@ -28,7 +27,6 @@ import org.gradle.jvm.test.internal.JvmTestSuiteBinarySpecInternal;
 import org.gradle.jvm.test.internal.JvmTestSuiteRules;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.*;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultModuleDependencySpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -65,12 +63,10 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
 
         @ComponentBinaries
         public static void createJvmTestSuiteBinaries(ModelMap<BinarySpec> testBinaries,
-                                                      ServiceRegistry registry,
                                                       PlatformResolvers platformResolver,
                                                       JvmTestSuiteSpec testSuite,
-                                                      JavaToolChainRegistry toolChains,
-                                                      ModelSchemaStore modelSchemaStore) {
-            JvmTestSuiteRules.createJvmTestSuiteBinaries(testBinaries, registry, platformResolver, testSuite, toolChains, modelSchemaStore, JUnitTestSuiteBinarySpec.class);
+                                                      JavaToolChainRegistry toolChains) {
+            JvmTestSuiteRules.createJvmTestSuiteBinaries(testBinaries, platformResolver, testSuite, toolChains, JUnitTestSuiteBinarySpec.class);
         }
 
         @Validate

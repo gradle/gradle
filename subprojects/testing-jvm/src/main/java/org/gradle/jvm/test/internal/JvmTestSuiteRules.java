@@ -17,7 +17,6 @@ package org.gradle.jvm.test.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmComponentSpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
@@ -27,7 +26,6 @@ import org.gradle.jvm.test.JvmTestSuiteBinarySpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.*;
@@ -43,20 +41,18 @@ public class JvmTestSuiteRules {
      * specific plugins. See usages for example.
      */
     public static void createJvmTestSuiteBinaries(ModelMap<BinarySpec> testBinaries,
-                                                  ServiceRegistry registry,
                                                   PlatformResolvers platformResolver,
                                                   JvmTestSuiteSpec testSuite,
                                                   JavaToolChainRegistry toolChains,
-                                                  ModelSchemaStore modelSchemaStore,
                                                   Class<? extends JvmTestSuiteBinarySpec> testSuiteBinary) {
         JvmComponentSpec testedComponent = testSuite.getTestedComponent();
         if (testedComponent == null) {
             // standalone test suite
-            createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, null, toolChains, platformResolver, registry, modelSchemaStore);
+            createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, null, toolChains, platformResolver);
         } else {
             // component under test
             for (final JvmBinarySpec testedBinary : testedBinariesOf(testSuite)) {
-                createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, testedBinary, toolChains, platformResolver, registry, modelSchemaStore);
+                createJvmTestSuiteBinary(testBinaries, testSuiteBinary, testSuite, testedBinary, toolChains, platformResolver);
             }
         }
     }
@@ -66,9 +62,7 @@ public class JvmTestSuiteRules {
                                                                                     final JvmTestSuiteSpec testSuite,
                                                                                     final JvmBinarySpec testedBinary,
                                                                                     final JavaToolChainRegistry toolChains,
-                                                                                    PlatformResolvers platformResolver,
-                                                                                    final ServiceRegistry serviceRegistry,
-                                                                                    final ModelSchemaStore modelSchemaStore) {
+                                                                                    PlatformResolvers platformResolver) {
 
         final List<JavaPlatform> javaPlatforms = resolvePlatforms(platformResolver);
         final JavaPlatform platform = testedBinary != null ? testedBinary.getTargetPlatform() : javaPlatforms.get(0);
