@@ -33,7 +33,6 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def includesParser = Mock(SourceIncludesParser)
     def includes
     def includePaths = [ ]
-    Set<File> candidates = [] as Set
 
     def setup() {
         includes = Mock(SourceIncludes)
@@ -48,7 +47,11 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes, candidates) as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getDependencies() as List
+    }
+
+    def getCandidates() {
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getIncludeFileCandidates() as List
     }
 
     def "handles source file with no includes"() {

@@ -26,5 +26,5 @@ public interface IncrementalCompilation {
 
     CompilationState getFinalState();
 
-    Set<File> getIncludeCandidates();
+    Set<File> getIncludeFileCandidates();
 }

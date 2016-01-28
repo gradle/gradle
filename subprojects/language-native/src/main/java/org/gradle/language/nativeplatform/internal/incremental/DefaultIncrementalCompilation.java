@@ -44,7 +44,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
         return finalState;
     }
 
-    public Set<File> getIncludeCandidates() {
+    public Set<File> getIncludeFileCandidates() {
         return includeCandidates;
     }
 }

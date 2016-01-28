@@ -15,13 +15,13 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.Sets;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,15 +32,16 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         this.includePaths = includePaths;
     }
 
-    public Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes, Set<File> candidates) {
-        Set<ResolvedInclude> dependencies = new LinkedHashSet<ResolvedInclude>();
+    public SourceIncludesResolutionResult resolveIncludes(File sourceFile, SourceIncludes includes) {
+        Set<File> candidates = Sets.newLinkedHashSet();
+        Set<ResolvedInclude> dependencies = Sets.newLinkedHashSet();
         searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), candidates);
         searchForDependencies(dependencies, includePaths, includes.getSystemIncludes(), candidates);
         if (!includes.getMacroIncludes().isEmpty()) {
             dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null));
         }
 
-        return dependencies;
+        return new DefaultSourceIncludesResolutionResult(dependencies, candidates);
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
@@ -64,6 +65,26 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
                 return;
             }
+        }
+    }
+
+    private static class DefaultSourceIncludesResolutionResult implements SourceIncludesResolutionResult {
+        private final Set<ResolvedInclude> dependencies;
+        private final Set<File> candidates;
+
+        private DefaultSourceIncludesResolutionResult(Set<ResolvedInclude> dependencies, Set<File> candidates) {
+            this.dependencies = dependencies;
+            this.candidates = candidates;
+        }
+
+        @Override
+        public Set<ResolvedInclude> getDependencies() {
+            return dependencies;
+        }
+
+        @Override
+        public Set<File> getIncludeFileCandidates() {
+            return candidates;
         }
     }
 }

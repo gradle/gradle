@@ -110,7 +110,7 @@ class IncrementalNativeCompilerTest extends Specification {
         def compilation = Mock(IncrementalCompilation)
         def taskInputs = Mock(IncrementalTaskInputsInternal)
         def includedFile = temporaryFolder.file("include")
-        compilation.includeCandidates >> [ includedFile ]
+        compilation.includeFileCandidates >> [ includedFile ]
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
@@ -138,7 +138,7 @@ class IncrementalNativeCompilerTest extends Specification {
         def sourceState = Mock(CompilationFileState)
 
         finalState.setState(sourceFile, sourceState)
-        compilation.includeCandidates >> [ includedFile ]
+        compilation.includeFileCandidates >> [ includedFile ]
         compilation.getFinalState() >> finalState
         sourceState.getResolvedIncludes() >> [ new ResolvedInclude("MACRO", null) ]
 

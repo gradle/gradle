@@ -101,12 +101,12 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
-        for (File includeFile : compilation.getIncludeCandidates()) {
+        for (File includeFile : compilation.getIncludeFileCandidates()) {
             taskInputs.newInput(includeFile);
         }
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
+            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
                 logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
                 new DirectoryFileTree(includeRoot).visit(new EmptyFileVisitor() {
