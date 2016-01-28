@@ -13,7 +13,6 @@ For this story:
 
 - The only supported model type is `EclipseProject`.
 - The version of Gradle used for the coordinator process will not be user-configurable, and will match the Gradle version of the Tooling API client. (It may be necessary to provide an internal API for specifying a local Gradle installation to use.)
-- If a composite build is declared with a single participant, no _coordination_ is needed and the Tooling API client should use a direct `ProjectConnection` to the participating build.
 - Models for the actual participant builds will be obtained via separate Tooling API connections (no change from previous story)
 
 ### API
@@ -26,7 +25,7 @@ On the client side, the idea is to extend the current Tooling API client and reu
 The implementation involves the Tooling API client "consumer" and "provider" parts besides the daemon part. The provider and daemon execution code is in the launcher module.
 
 The execution of composite build models needs a composite build specific `BuildActionExecuter`.
-The contextual information of the composite build, like participant builds, should be passed in `ConsumerOperationParameters`/`ProviderOperationParameters` parameter. These parameters should be mapped to a `BuildActionParameters` implementation that contains the composite build related contextual information in an instance of a `CompositeParameters` type. When the composite parameters are available, the `BuildActionExecuter` implementation should be chosen accordingly.
+The contextual information of the composite build, like participant builds, should be passed in the `ConsumerOperationParameters`/`ProviderOperationParameters` parameter. These parameters should be mapped to a `BuildActionParameters` implementation that contains the composite build related contextual information in an instance of a `CompositeParameters` type. When the composite parameters are available, the `BuildActionExecuter` implementation should be chosen accordingly.
 
 Internally a `SetOfEclipseProjects` type will be used to workaround the lack of support for collection types in existing infrastructure.
 
@@ -43,6 +42,7 @@ The launcher module already depends on tooling-api and core modules. Therefore u
 
 ### Open issues
 - Should we spawn a daemon process to 'coordinate' a composite build with a single participant?
+  - If a composite build is declared with a single participant, no _coordination_ is needed.
 - Do we need an 'embedded' implementation of the coordinator that is used for development?
     - Faster testing of composite build features
     - Debugging of composite build features
