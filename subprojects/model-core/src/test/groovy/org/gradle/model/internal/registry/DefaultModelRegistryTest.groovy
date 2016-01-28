@@ -1465,6 +1465,43 @@ foo
         bean.value == '12'
     }
 
+    static class EachBeanViaDirectRule extends RuleSource {
+        @Mutate
+        void mutateBeans(@Each Bean bean) {
+            bean.name = "bean"
+        }
+    }
+
+    static class EachBeanViaRuleSource extends RuleSource {
+        @Rules
+        void mutateBeans(BeanRules rules, @Each Bean bean) {
+        }
+    }
+
+    @Unroll
+    def "can apply #description to each element matching type in root scope"() {
+        def mmType = ModelTypes.modelMap(Bean)
+
+        registry.registerInstance("foo", "foo")
+        registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
+        registry.registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it + " unmodified") } }
+        registry.mutate {
+            it.path "beans" type mmType action { beans ->
+                beans.create("bean2")
+            }
+        }
+        registry.root.applyToSelf(rules)
+
+        expect:
+        registry.realize("bean1", Bean).name == "bean"
+        registry.realize("beans.bean2", Bean).name == "bean"
+
+        where:
+        rules                 | description
+        EachBeanViaDirectRule | "direct rule"
+        EachBeanViaRuleSource | "rule source"
+    }
+
     static class Bean {
         String name
         String value
