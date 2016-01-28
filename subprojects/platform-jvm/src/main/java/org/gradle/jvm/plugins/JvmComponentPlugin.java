@@ -35,9 +35,7 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.JdkSpec;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
-import org.gradle.jvm.toolchain.internal.InstalledJdk;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.*;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
@@ -111,6 +109,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
         }
 
+        @Model
+        public void installedJres(ModelMap<InstalledJre> installedJres, final JavaInstallationProbe probe) {
+        }
+
         @Validate
         public void validateJDKs(ModelMap<JdkSpec> jdks) {
             ImmutableListMultimap<String, JdkSpec> jdksByPath = indexByPath(jdks);
@@ -136,26 +138,37 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Defaults
         public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            resolveJavaInstall(installedJdks, jdks, probe, InstalledJdk.class);
+        }
+
+        @Defaults
+        public void resolveJREs(final ModelMap<InstalledJre> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            resolveJavaInstall(installedJdks, jdks, probe, InstalledJre.class);
+        }
+
+        private static <T extends LocalJavaInstallation> void resolveJavaInstall(final ModelMap<T> installed, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe, final Class<T> clazz) {
             File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
             for (final JdkSpec jdk : jdks) {
                 final File javaHome = canonicalFile(jdk.getPath());
                 JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
-                switch (probeResult) {
-                    case IS_JDK:
-                        if (!javaHome.equals(currentJavaHome)) {
-                            installedJdks.create(jdk.getName(), InstalledJdk.class, new Action<InstalledJdk>() {
-                                @Override
-                                public void execute(InstalledJdk installedJdk) {
-                                    installedJdk.setJavaHome(javaHome);
-                                    probe.configure(javaHome, installedJdk);
-                                }
-                            });
-                        }
-                        break;
-                    case NO_SUCH_DIRECTORY:
-                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
-                    case INVALID_JDK:
-                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
+                JavaInstallationProbe.ProbeResult kind = clazz == InstalledJdk.class ? JavaInstallationProbe.ProbeResult.IS_JDK : JavaInstallationProbe.ProbeResult.IS_JRE;
+                if (probeResult == kind) {
+                    if (!javaHome.equals(currentJavaHome)) {
+                        installed.create(jdk.getName(), clazz, new Action<T>() {
+                            @Override
+                            public void execute(T installedJdk) {
+                                installedJdk.setJavaHome(javaHome);
+                                probe.configure(javaHome, installedJdk);
+                            }
+                        });
+                    }
+                } else {
+                    switch (probeResult) {
+                        case NO_SUCH_DIRECTORY:
+                            throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
+                        case INVALID_JDK:
+                            throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
+                    }
                 }
             }
         }

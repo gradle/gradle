@@ -128,7 +128,7 @@ public class JavaInstallationProbe {
         return ProbeResult.IS_JRE;
     }
 
-    public void configure(File jdkPath, InstalledJdk installedJdk) {
+    public void configure(File jdkPath, LocalJavaInstallation installedJdk) {
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         if (!UNKNOWN.equals(metadata.get(SysProp.VERSION))) {
             configureInstall(installedJdk, metadata);
