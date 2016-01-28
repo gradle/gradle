@@ -159,7 +159,7 @@ The `ToolingClient` will be expanded to provide methods for managing and queryin
     }
 
     public interface CompositeModelRequest {
-        List<ProjectIdentifier> getProjects();
+        List<GradleBuildIdentifier> getParticipants();
     }
 
 A new `CompositeModelRepository` will be added in order to query composites from Buildship
@@ -175,7 +175,7 @@ A new `CompositeModelRepository` will be added in order to query composites from
     }
 
     public interface OmniEclipseWorkspace {
-        Set<OmniEclipseGradleBuild> getGradleBuilds();
+        Set<OmniEclipseProject> getOpenEclipseProjects();
     }
 
 ##### Implementation
@@ -187,12 +187,12 @@ A new `CompositeModelRepository` will be added in order to query composites from
 ##### Test cases
 
 tooling-commons:
-- executing a `CompositeModelRequest` with no `ProjectIdentifier` throws an `IllegalArgumentException`
-- a `CompositeModelRequest` can only request an `EclipseWorkspace`, requesting any other Model throws an `UnsupportedModelException`
-- executing a `CompositeModelRequest` for a single project returns an `OmniEclipseWorkspace` containing the corresponding `OmniEclipseGradleBuild`
-- executing a `CompositeModelRequest` for a multi-project build returns an `OmniEclipseWorkspace` containing all the `OmniEclipseGradleBuild`s contained in that project
-- executing a `CompositeModelRequest` for a several multi-project build returns an `OmniEclipseWorkspace` containing the union of all the `OmniEclipseGradleBuild`s contained in those projects.
-- an exception is thrown if any of the `OmniGradleBuild`s cannot be obtained
+- executing a `CompositeModelRequest` with no `GradleBuildIdentifier` throws an `IllegalArgumentException`
+- a `CompositeModelRequest` can only request a `EclipseProject`s, requesting any other Model throws an `UnsupportedModelException`
+- the `OmniEclipseWorkspace` for a single project build contains exactly one `OmniEclipseProject`
+- the `OmniEclipseWorkspace` for a multi-project build contains all the `EclipseProject`s contained in that project
+- the `OmniEclipseWorkspace` for multiple multi-project builds contains the union of all the `OmniEclipseProject`s contained in those projects.
+- an exception is thrown if any of the `OmniEclipseProject`s cannot be obtained
 
 Buildship:
 - adding two projects to the workspace -> both are part of the composite afterwards
