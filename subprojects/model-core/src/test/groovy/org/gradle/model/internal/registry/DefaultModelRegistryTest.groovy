@@ -1545,6 +1545,8 @@ foo
         EachBeanViaRuleSource | "rule source"
     }
     
+    @Unroll
+    def "#description is not applied to scope element"() {
     static class Bean {
         String name
         String value
