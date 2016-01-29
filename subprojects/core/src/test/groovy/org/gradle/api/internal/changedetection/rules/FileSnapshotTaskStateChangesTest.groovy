@@ -19,16 +19,13 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
-public class FileSnapshotStateChangeRuleTest extends Specification {
-    def snapshotAccess = Mock(SnapshotAccess)
+public class FileSnapshotTaskStateChangesTest extends Specification {
     def previousInputSnapshot = Mock(FileCollectionSnapshot)
     def inputSnapshot = Mock(FileCollectionSnapshot)
     FileCollectionSnapshot.ChangeIterator<String> changeIterator = Mock()
 
     TaskStateChanges createStateChanges() {
-        snapshotAccess.previous >> previousInputSnapshot
-        snapshotAccess.current >> inputSnapshot
-        return FileSnapshotStateChangeRule.create(snapshotAccess, "TYPE")
+        return new TestFileSnapshotTaskStateChanges()
     }
 
     def "emits change for no previous input snapshot"() {
@@ -59,5 +56,32 @@ public class FileSnapshotStateChangeRuleTest extends Specification {
 
         and:
         messages == ["TYPE file one has been added.", "TYPE file two has been removed.", "TYPE file three has changed."]
+    }
+
+    private class TestFileSnapshotTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
+
+        private TestFileSnapshotTaskStateChanges() {
+            super("TASK")
+        }
+
+        @Override
+        protected String getInputFileType() {
+            return "TYPE"
+        }
+
+        @Override
+        protected FileCollectionSnapshot getPrevious() {
+            return previousInputSnapshot
+        }
+
+        @Override
+        protected FileCollectionSnapshot getCurrent() {
+            return inputSnapshot
+        }
+
+        @Override
+        protected void saveCurrent() {
+
+        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
@@ -26,16 +27,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-class DiscoveredInputFilesSnapshotAccess implements SnapshotAccess, DiscoveredInputsListener {
-    private final FileCollectionSnapshotter inputFilesSnapshotter;
+public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskStateChanges implements DiscoveredInputsListener {
+    private final FileCollectionSnapshotter snapshotter;
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskExecution previous;
     private final TaskExecution current;
     private Collection<File> discoveredFiles = Collections.emptySet();
 
-    public DiscoveredInputFilesSnapshotAccess(FileCollectionSnapshotter inputFilesSnapshotter, FileCollectionFactory fileCollectionFactory,
-                                              TaskExecution previous, TaskExecution current) {
-        this.inputFilesSnapshotter = inputFilesSnapshotter;
+    public DiscoveredInputsTaskStateChanges(TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, FileCollectionFactory fileCollectionFactory,
+                                            TaskInternal task) {
+        super(task.getName());
+        this.snapshotter = snapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.previous = previous;
         this.current = current;
@@ -49,16 +51,21 @@ class DiscoveredInputFilesSnapshotAccess implements SnapshotAccess, DiscoveredIn
     @Override
     public FileCollectionSnapshot getCurrent() {
         // Get the current state of the files from the previous execution
-        return inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()));
+        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()));
     }
 
     @Override
     public void saveCurrent() {
-        FileCollectionSnapshot discoveredFilesSnapshot = inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
+        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
         current.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
 
     public void newInputs(Set<File> files) {
         this.discoveredFiles = files;
+    }
+
+    @Override
+    protected String getInputFileType() {
+        return "Discovered input";
     }
 }

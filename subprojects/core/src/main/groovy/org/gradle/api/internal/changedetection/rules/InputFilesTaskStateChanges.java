@@ -16,18 +16,21 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-class InputFilesSnapshotAccess implements SnapshotAccess {
+public class InputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
     private final TaskExecution previous;
     private final TaskExecution current;
     private final FileCollectionSnapshot inputFilesSnapshot;
 
-    public InputFilesSnapshotAccess(TaskExecution previous, TaskExecution current, FileCollectionSnapshot inputFilesSnapshot) {
+    public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter) {
+        super(task.getName());
         this.previous = previous;
         this.current = current;
-        this.inputFilesSnapshot = inputFilesSnapshot;
+        inputFilesSnapshot = createSnapshot(snapshotter, task.getInputs().getFiles());
     }
 
     @Override
@@ -44,5 +47,10 @@ class InputFilesSnapshotAccess implements SnapshotAccess {
     public void saveCurrent() {
         // Inputs are considered to be unchanged during task execution
         current.setInputFilesSnapshot(inputFilesSnapshot);
+    }
+
+    @Override
+    protected String getInputFileType() {
+        return "Input";
     }
 }

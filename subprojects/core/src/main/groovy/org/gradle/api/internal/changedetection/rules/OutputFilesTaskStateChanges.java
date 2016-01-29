@@ -22,19 +22,25 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 
-class OutputFilesSnapshotAccess implements SnapshotAccess {
+public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
     private final TaskInternal task;
     private final FileCollectionSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshot outputFilesBefore;
 
-    public OutputFilesSnapshotAccess(TaskExecution previousExecution, TaskExecution currentExecution, final TaskInternal task, final FileCollectionSnapshotter outputFilesSnapshotter) {
+    public OutputFilesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, FileCollectionSnapshotter outputFilesSnapshotter) {
+        super(task.getName());
         this.previousExecution = previousExecution;
         this.currentExecution = currentExecution;
         this.task = task;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
-        outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+        outputFilesBefore = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
+    }
+
+    @Override
+    protected String getInputFileType() {
+        return "Output";
     }
 
     @Override
@@ -70,7 +76,7 @@ class OutputFilesSnapshotAccess implements SnapshotAccess {
                         // Update any files which were change since the task was last executed
                     }
                 });
-        FileCollectionSnapshot outputFilesAfter = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+        FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
         currentExecution.setOutputFilesSnapshot(outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles));
     }
 }
