@@ -80,7 +80,7 @@ class InitBuild extends DefaultTask {
         initDescriptor.generate(testFramework)
     }
 
-    @Option(option = "type", description = "Set type of build to create.")
+    @Option(option = "type", description = "Set type of build to create.", order = 0)
     public void setType(String type) {
         this.type = type;
     }
@@ -90,7 +90,7 @@ class InitBuild extends DefaultTask {
         return getProjectLayoutRegistry().getSupportedTypes();
     }
 
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 1)
     public void setTestFramework(String with) {
         this.testFramework = with
     }

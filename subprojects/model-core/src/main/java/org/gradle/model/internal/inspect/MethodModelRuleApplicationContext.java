@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 public interface MethodModelRuleApplicationContext {
@@ -31,5 +32,7 @@ public interface MethodModelRuleApplicationContext {
      *
      * The returned action invokes the provided action with a {@link ModelRuleInvoker} contextualized with implicit inputs.
      */
-    ModelAction contextualize(MethodRuleDefinition<?, ?> ruleDefinition, MethodRuleAction action);
+    ModelAction contextualize(MethodRuleAction action);
+
+    ModelPath getScope();
 }

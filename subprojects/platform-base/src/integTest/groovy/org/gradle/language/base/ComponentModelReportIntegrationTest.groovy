@@ -35,32 +35,30 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.Rules#components
+                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 90, column 5
                 + myComponent
                       | Type:   	UnmanagedComponent
                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9
                       | Rules:
-                         ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
-                         ⤷ ComponentRules#applyDefaultSourceConventions
-                         ⤷ ComponentRules#initializeSourceSets
-                         ⤷ ComponentRules#inputRules
+                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
+                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
+                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9
                           | Rules:
-                             ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
                         + myBinary
                               | Type:   	UnmanagedBinary
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ BinaryBasePlugin.apply()
                                  ⤷ DeclarationRules#mutateMyBinary
-                                 ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets > withType()
-                                 ⤷ BaseBinaryRules#defineBuildLifecycleTask
-                                 ⤷ BaseBinaryRules#addSourceSetsOwnedByBinariesToTheirInputs
+                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets > withType()
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask
+                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
                                   | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
@@ -70,6 +68,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
                                   | Value:  	[]
@@ -83,8 +82,8 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > afterEach()
-                                 ⤷ ComponentRules#applyDefaultSourceConventions > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
         """.stripIndent().trim()
     }
 
@@ -102,32 +101,30 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.Rules#components
+                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 90, column 5
                 + myComponent
                       | Type:   	ManagedComponent
                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                       | Rules:
-                         ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
-                         ⤷ ComponentRules#applyDefaultSourceConventions
-                         ⤷ ComponentRules#initializeSourceSets
-                         ⤷ ComponentRules#inputRules
+                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
+                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
+                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9
                           | Rules:
-                             ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
                         + myBinary
                               | Type:   	ManagedBinary
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ BinaryBasePlugin.apply()
                                  ⤷ DeclarationRules#mutateMyBinary
-                                 ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets > withType()
-                                 ⤷ BaseBinaryRules#defineBuildLifecycleTask
-                                 ⤷ BaseBinaryRules#addSourceSetsOwnedByBinariesToTheirInputs
+                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets > withType()
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask
+                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my binary
@@ -140,6 +137,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
                                     + data
                                           | Type:   	java.lang.String
                                           | Value:  	my binary sources
@@ -160,8 +158,8 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 91, column 9 > create(myComponentSource)
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentRules#addSourcesSetsToProjectSourceSet > afterEach()
-                                 ⤷ ComponentRules#applyDefaultSourceConventions > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources
@@ -194,7 +192,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                     build using task: :myComponentMyBinary
                     source sets:
                         $sourceType 'myComponent:myBinarySource'
-                            No source directories
+                            srcDir: src${File.separator}myComponent${File.separator}myBinarySource
             """.stripIndent()
 
         where:

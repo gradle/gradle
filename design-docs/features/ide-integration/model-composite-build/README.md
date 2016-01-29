@@ -2,15 +2,21 @@
 
 This feature allows a developer to work in a single IDE session on multiple projects that would normally be independent.
 
-A typical workflow for a developer that has to work on 2 independent projects would be to make a change to project A, publish its artifact and build project B with the changed dependency. For developers this workflow is cumbersome and time-consuming. This feature allows a developer to work on multiple projects in a single IDE session that would normally be independent.
+A typical workflow for a developer that has to work on 2 independent projects would be to make a change to project A, publish its artifact and build project B with the
+changed dependency. For developers this workflow is cumbersome and time-consuming. This feature allows a developer to work on multiple projects in a single IDE session
+that would normally be independent.
 
 ## 'Gradle Composite'
 
-The defined stories introduce the concept of a ‘Gradle composite build’ to the tooling API. This is simply a collection of Gradle projects that the IDE user is working on. These projects may come from different Gradle builds.
+The defined stories introduce the concept of a ‘Gradle composite build’ to the tooling API. This is simply a collection of Gradle projects that the IDE user is working on.
+These projects may come from different Gradle builds.
 
-A tooling API client will be able to define a composite and query it in a similar way to how a `ProjectConnection` can be queried. While the projects contained in a composite may come from separate Gradle builds, where possible the composite will present as if it were a single, unified Gradle build containing all of the projects for each participating Gradle build.
+A tooling API client will be able to define a composite and query it in a similar way to how a `ProjectConnection` can be queried. While the projects contained in a composite
+may come from separate Gradle builds, where possible the composite will present as if it were a single, unified Gradle build containing all of the projects for each participating
+Gradle build.
 
-This will provide the developer with a view of all the projects in the composite, so that the developer can search for usages or make changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle (such as task execution) will not operate on a composite build, as these actions will not (yet) be composite-aware.
+This will provide the developer with a view of all the projects in the composite, so that the developer can search for usages or make changes to any of these projects. When the
+ developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle (such as task execution) will not operate on a composite build, as these actions will not (yet) be composite-aware.
 
 In scope are changes to Buildship to define and use a composite build. Out of scope are changes to IDEA.
 
@@ -18,100 +24,112 @@ In scope are changes to Buildship to define and use a composite build. Out of sc
 
 Where possible, binary dependencies will be replaced with source dependencies between IDE modules.
 
-So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same composite, however, application A would have a source dependency on library B.
+So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on
+library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same composite, however, application A would have
+a source dependency on library B.
 
 ## Stories
 
-### Story - Tooling Commons provides EclipseWorkspace model for a composite containing a single or multiple Gradle builds
+### Story - Tooling Commons provides model result for a composite containing a single or multiple Gradle builds
 
-Introduce `EclipseWorkspace` to the Tooling Commons. This represents a collection of eclipse projects based on the Gradle builds that the IDE user is working on.
-For this story, all Gradle projects for an `EclipseWorkspace` will be sourced from a single Gradle build. As such, this story merely provides a convenience for
-obtaining a flattened collection of `EclipseProject` instances for a single or multiple Gradle builds.
+Introduce `ModelResult` to the Tooling Commons. This represents a collection of eclipse projects based on the Gradle builds that the IDE user is working on.
+For this story, all Gradle projects for an `ModelResult` will be sourced from a single or  multiple Gradle builds. As such, this story merely provides a convenience for
+obtaining a flattened collection of `EclipseProject` instances.
 
-On completion of this story, it will be possible to convert Buildship to use this new API for project import and refresh, preparing for the next story which provides
-an `EclipseWorkspace` model for a composite of Gradle builds. Converting Buildship is the subject of the next story.
+On completion of this story, it will be possible to convert Buildship to use this new API for project import and refresh. Converting Buildship is the subject of the next story.
 
 ##### API
 
-    /*
-     * Marker interface indicating a installed, version-based or URI-located Gradle distribution.
+    /**
+     * Indicates that a Gradle distribution can be used for executing the composite operation.
      */
-    public interface GradleDistribution {
-    }
-
-    /*
-     * The identity of a Gradle build defined by its root directory and the Gradle distribution used
-     * for building it.
-     */
-    public interface GradleBuildIdentity {
-        File getProjectRootDir();
-        GradleDistribution getDistribution();
-    }
-
-    public abstract class GradleCompositeBuilder {
-         public static GradleCompositeBuilder newComposite() { ... }
-         protected abstract GradleCompositeBuilder withParticipant(GradleBuildIdentity participant) { ... }
-         protected abstract GradleCompositeBuilder withGradleDistribution(GradleDistribution distribution) { ... }
-         protected abstract GradleComposite build() { ... }
+    public interface GradleDistributionAware {
+        void useInstallation(File gradleHome);
+        void useGradleVersion(String gradleVersion);
+        void useDistribution(URI location);
     }
 
     /**
-     * For now, the only model type supported is EclipseWorkspace.
+     * Represents a participating build for a composite.
      */
-    public interface GradleComposite {
-        <T> T getModel(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
-        <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
-        <T> ModelBuilder<T> model(Class<T> modelType);
+    public interface CompositeParticipant extends GradleDistributionAware {
+        File getRootProjectDirectory();
     }
 
-    public interface EclipseWorkspace {
-        /**
-         * A flattened set of all projects in the Eclipse workspace.
-         * These project models are fully configured, and may be expensive to calculate.
-         * Note that not all projects necessarily share the same root.
-         */
-        Set<EclipseProject> getOpenProjects();
+    /**
+     * The main entry point for create a composite build.
+     */
+    public abstract class CompositeBuildConnector {
+         public static CompositeBuildConnector newComposite() { ... }
+         public abstract CompositeParticipant withParticipant(CompositeParticipant participant) { ... }
+         public abstract CompositeBuildConnection connect() throws GradleConnectionException { ... }
     }
 
-    GradleBuildIdentity buildIdentity1 = new DefaultGradleBuildIdentity(new File("myProject1"), new VersionBasedGradleDistribution("2.10"));
-    GradleBuildIdentity buildIdentity2 = new DefaultGradleBuildIdentity(new File("myProject2"), new InstalledGradleDistribution(new File("/dev/gradle-2.11")));
-    GradleComposite composite = GradleCompositeBuilder.newComposite().withParticipant(connection1).withParticipant(buildIdentity1).withParticipant(buildIdentity2).build();
-    EclipseWorkspace eclipseWorkspace = composite.model(EclipseWorkspace.class);
+    /**
+     * Provides the response for a model request.
+     */
+    public interface ModelResult<T> {
+        T getModel();
+    }
+
+    /**
+     * Represents a long-lived connection to a composite of Gradle project(s).
+     * For now, the only model type supported is EclipseProject.
+     */
+    public interface CompositeBuildConnection {
+        <T> Set<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException, IllegalArgumentException;
+        <T> ModelBuilder<Set<ModelResult<T>>> models(Class<T> modelType) throws GradleConnectionException, IllegalStateException, IllegalArgumentException;
+        void close();
+    }
+
+##### Usage
+
+    CompositeBuildConnection connection = CompositeBuildConnector.newComposite()
+        .withParticipant("project-1")
+        .withParticipant("project-2")
+        .connect();
+
+    try {
+        Set<ModelResult<EclipseProject>> modelResult = connection.getModels(EclipseProject.class);
+
+        for (ModelResult modelResult : modelResult) {
+            EclipseProject eclipseProject = modelResult.getModel();
+            System.out.println(eclipseProject.getName());
+        }
+    } finally {
+        connection.close();
+    }
 
 ##### Implementation
 
-- The `CompositeBuilder` provides a means to define a composite build via the Tooling Commons. Each `GradleBuildIdentity` added to the composite specifies a Gradle build that
+- The `CompositeBuildConnector` provides a means to define a composite build via the Tooling Commons. Each `CompositeParticipant` added to the composite specifies a Gradle build that
 participates in the composite.
-    - Adding any `GradleBuildIdentity` effectively adds the Gradle build that _contains_ the referenced project to the composite.
-    - For each `GradleBuildIdentity` a new `ProjectConnection` is created internally.
-- The only model type that can be requested for a `GradleComposite` is `EclipseWorkspace`
-    - On request for an `EclipseWorkspace`, the `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects
-    for the Gradle build.
-    - The instance of `EclipseWorkspace` will be constructed directly by the `GradleComposite` instance, by traversing the hierarchy of the `EclipseProject` obtained.
+    - Adding any `CompositeParticipant` effectively adds the Gradle build that _contains_ the referenced project to the composite.
+    - For each `CompositeParticipant` a new `ProjectConnection` is created internally.
+- The only model type that can be requested for a `CompositeBuildConnection` is `EclipseProject`
+    - On request for a `EclipseProject`, the underlying `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects
+    for all participating Gradle builds of a composite.
+    - The instance of `ModelResult` will be constructed directly by the `CompositeBuildConnection` instance, by traversing the hierarchy of the `EclipseProject` obtained.
     - The `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display them in a hierarchical layout.
-    - A delegating implementation of `ModelBuilder` will be required.
 
 ##### Test cases
 
-- A composite cannot be built without assigning at least one participating project. If the `GradleCompositeBuilder.build()` method is called without assigning at least one participant
+- A composite cannot be built without assigning at least one participating project. If the `CompositeBuildConnector.connect()` method is called without assigning at least one participant
 an `IllegalStateException` is thrown.
-- A composite can only add a single participating project via `GradleCompositeBuilder.withParticipant()`. If `GradleCompositeBuilder.withParticipant()` is called twice, a `IllegalStateException` is thrown.
-- Requesting a model by calling any of the methods in `GradleComposite` with a type that's not an interface will throw a `IllegalArgumentException`.
-- A model for `GradleComposite` can be retrieved with any of the provided model methods.
-- A model can only be requested for the type `EclipseWorkspace`. Providing any other type throws a `IllegalArgumentException`.
-- A composite can be built with a single participating project if the hierarchy of the participating project only contains a single Gradle project. The requested `EclipseWorkspace` model
+- A composite can add a one or many participating projects via `CompositeBuildConnector.withParticipant()`.
+- Requesting a model by calling any of the methods in `CompositeBuildConnection` with a type that's not an interface will throw a `IllegalArgumentException`.
+- A model can only be requested for the type `EclipseProject`. Providing any other type throws a `IllegalArgumentException`.
+- A composite can be built with a single participating build if the hierarchy of the participating build only contains a single Gradle project. The requested `Set<ModelResult<EclipseProject>>` model
 contains a single project of type `EclipseProject`. The `EclipseProject` properly populates the model (e.g. name, path, classpath and project dependencies).
-- A composite can be built with a single participating project containing a hierarchy of Gradle projects. The requested `EclipseWorkspace` model
+- A composite can be built with a single participating build containing a hierarchy of Gradle projects. The requested `Set<ModelResult<EclipseProject>>` model
 contains all projects of the hierarchy (including the root project) with type `EclipseProject`. The `EclipseProject` properly populates the model
 (e.g. name, path, classpath and project dependencies).
-- If the `ProjectConnection` points to a subproject of a multi-project build hierarchy, the requested `EclipseWorkspace` model determines the root project and traverses the whole hierarchy.
-The `EclipseWorkspace` contains all `EclipseProject`s of that hierarchy.
+- If the `ProjectConnection` points to a sub-project of a multi-project build hierarchy, the requested `Set<ModelResult<EclipseProject>>` model determines the root project and traverses the whole hierarchy.
+The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hierarchy.
 - If a composite contains at least two projects with the same name at the time of building it, an `IllegalStateException` is thrown.
-- The `GradleCompositeBuilder` uses the provided Gradle distribution to build the` GradleComposite`. This distribution is not used for the underlying `ProjectConnection`s. If no distribution
-is provided, determine the distribution based on the runtime classpath.
-- The `ProjectConnection` uses the Gradle distribution passed in from the `GradleBuildIdentity`.
-- Adding a second `GradleBuildIdentity` instance for the same project directory is a no-op.
-- Adding a second `GradleBuildIdentity` instance for a project within the same Gradle build is a no-op.
+- The `ProjectConnection` uses the Gradle distribution passed in from the `CompositeParticipant`.
+- Adding a second `CompositeParticipant` instance for the same project directory is a no-op.
+- Adding a second `CompositeParticipant` instance for a project within the same Gradle build is a no-op.
 - A composite can be built for `ProjectConnection`s that resolve to
     - multiple single project builds
     - multiple multi-project builds
@@ -119,16 +137,16 @@ is provided, determine the distribution based on the runtime classpath.
 - An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 - An exception is thrown if any of the resolved `EclipseProject`s have the same name.
 - An exception is thrown if a dependency cycle is detected e.g. project A depends on B and B depends on A.
+- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException` is thrown.
 
 ##### Open issues
 
-- A Gradle workspace can only contain a Gradle project. A future story will also need to address building a workspace with homogeneous project types (e.g. Maven, Ant or any other type of
+- A composite can only contain a Gradle project. A future story will also need to address building a workspace with homogeneous project types (e.g. Maven, Ant or any other type of
 project that does not have access to the Gradle API).
 
-### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for an imported Gradle build
+### Story - Buildship queries model result to determine set of Eclipse projects for multiple imported Gradle builds
 
-By switching to use the new `EclipseWorkspace` model, Buildship (and tooling-commons) will no longer need to traverse the hierarchy of eclipse projects.
-This change will enable Buildship to later take advantage of project substitution and name de-duplication for composite builds.
+By switching to use the new model result, Buildship (and tooling-commons) will no longer need to traverse the hierarchy of eclipse projects. This change will enable Buildship to later take advantage of project substitution and name de-duplication for composite builds. When importing a new Gradle build, projects for all previously imported Gradle builds will need to be refreshed. If implemented correctly, the development of project name deduplication and project dependency substitution support in Gradle will automatically be reflected in functionality within Buildship.
 
 ##### API
 
@@ -143,7 +161,7 @@ The `ToolingClient` will be expanded to provide methods for managing and queryin
     }
 
     public interface CompositeModelRequest {
-        List<ProjectIdentifier> getProjects();
+        List<GradleBuildIdentifier> getParticipants();
     }
 
 A new `CompositeModelRepository` will be added in order to query composites from Buildship
@@ -159,41 +177,24 @@ A new `CompositeModelRepository` will be added in order to query composites from
     }
 
     public interface OmniEclipseWorkspace {
-        Set<OmniEclipseGradleBuild> getGradleBuilds();
+        Set<OmniEclipseProject> getOpenEclipseProjects();
     }
 
 ##### Implementation
 
- Buildship will query for an `OmniEclipseWorkspace` containing exactly one root project instead of querying for that root project directly. The rest of the synchronization logic can remain unchanged.
+ The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of the new `CompositeModelRepository` to query for the `EclipseWorkspace` model. If the set of projects contained in the workspace change, the `ToolingClient` will rebuild the `GradleComposite` from scratch.
 
-##### Test cases
-
-- executing a `CompositeModelRequest` with no `ProjectIdentifier` throws an `IllegalArgumentException`
-- a `CompositeModelRequest` can only request an `EclipseWorkspace`, requesting any other Model throws an `UnsupportedModelException`
-- executing a `CompositeModelRequest` for a single project returns an `OmniEclipseWorkspace` containing the corresponding `OmniEclipseGradleBuild`
-- executing a `CompositeModelRequest` for a multi-project build returns an `OmniEclipseWorkspace` containing all the `OmniEclipseGradleBuild`s contained in that project
-- executing a `CompositeModelRequest` for more than one root project throws an `IllegalArgumentException`
-- all Buildship tests must pass unaltered
-
-### Story - Buildship queries `EclipseWorkspace` to determine set of Eclipse projects for multiple imported Gradle builds
-
-This story builds on the previous by converting Buildship to create and use a single `GradleComposite` instance where multiple Gradle projects have been imported into Eclipse.
-
-When importing a new Gradle build, projects for all previously imported Gradle builds will need to be refreshed.
-
-If implemented correctly, the development of project name deduplication and project dependency substitution support in Gradle will automatically be reflected in functionality within Buildship.
-
-##### Implementation
-
-The current approach of synchronizing individual projects will be replaced with one `SynchronizeWorkspaceJob`. This job will make use of the new `CompositeModelRepository` to query for the `EclipseWorkspace` model. If the set of Projects contained in the workspace change, the `ToolingClient` will rebuild the `GradleComposite` from scratch.
-
-The project synchronization methods will be changed to take an additional `EclipseWorkspace` argument. This especially affects the `ClasspathUpdater`, because to support the upcoming substitution story, it now needs to search for project dependencies across the whole workspace.
+ The project synchronization methods will be changed to take an additional `EclipseWorkspace` argument. This especially affects the `ClasspathUpdater`, because to support the upcoming substitution story, it now needs to search for project dependencies across the whole workspace.
 
 ##### Test cases
 
 tooling-commons:
-- executing a `CompositeModelRequest` for a several multi-project build returns an `OmniEclipseWorkspace` containing the union of all the `OmniEclipseGradleBuild`s contained in those projects.
-- an exception is thrown if any of the `OmniGradleBuild`s cannot be obtained
+- executing a `CompositeModelRequest` with no `GradleBuildIdentifier` throws an `IllegalArgumentException`
+- a `CompositeModelRequest` can only request a `EclipseProject`s, requesting any other Model throws an `UnsupportedModelException`
+- the `OmniEclipseWorkspace` for a single project build contains exactly one `OmniEclipseProject`
+- the `OmniEclipseWorkspace` for a multi-project build contains all the `EclipseProject`s contained in that project
+- the `OmniEclipseWorkspace` for multiple multi-project builds contains the union of all the `OmniEclipseProject`s contained in those projects.
+- an exception is thrown if any of the `OmniEclipseProject`s cannot be obtained
 
 Buildship:
 - adding two projects to the workspace -> both are part of the composite afterwards
@@ -202,41 +203,44 @@ Buildship:
 - all other Buildship tests must still pass, as this story should not change the user facing behavior
 - the model for one project cannot be built -> no project is synchronized
 
-### Story - `EclipseWorkspace` model for a composite does not include duplicate eclipse project names
+### Story - Model for a composite does not include duplicate eclipse project names
 
-Individual projects in a composite might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are
-uniquely identified.
+Individual projects in a composite might have the same project name. This story implements a de-duping mechanism for the Eclipse model, such that the generated eclipse projects are uniquely identified.
 
 ##### Implementation
 
-- If an `EclipseWorkspace` would include two projects with the same project name, an algorithm will de-duplicate the Eclipse project names. De-duped Eclipse project names are only logic
-references to the original projects. The actual project name stays unchanged.
+- If an `Set<ModelResult<EclipseProject>>` would include two projects with the same project name, an algorithm will de-duplicate the Eclipse project names. The name of the referenced `GradleProject` stays unchanged.
 - Gradle core implements a similar algorithm for the IDE plugins. This implementation will be reused. The current implementation would have to be refactored and moved to an internal
 package in the tooling-api subproject. The de-duplication implementation should use Tooling API's `HierarchicalElement` interface to access the name and hierarchy of projects. The IDE
 subproject already depends on tooling-api and it's easy to adapt the current code to use the `HierarchicalElement` interface in de-duplication so that the implementation can be shared.
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current `ModuleNameDeduper` implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider
   rewriting the implementation.
+- Project names must remain stable, i.e. de-duping renames projects in the order of the composite's participants. As a result, Buildship will rename newly imported projects in favor of renaming already existing projects.
+- the renaming algorithm will prepend the root project name when a duplicate name is found. If prepending the root project name still does not yield a unique name, then it appends an increasing counter.
+- the algorithm should be implemented completely in Java (the existing one is partially written in Groovy)
 
 ##### Test cases
 
-- Any refactorings to the current de-duping logic does not have side-effects on existing logic that already uses it.
 - If the names of all imported projects are unique, de-duping doesn't have to kick in.
-- If at least two imported projects have the same name, de-dupe the names. De-duped project names still reference the original project.
-should be rendered in Eclipse's project view section.
+- If at least two imported projects have the same name, de-dupe the `EclipseProject` names. The names of the `GradleProject`s are unaffected
 - De-duping may be required for more that one duplicate project name.
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names.
+- Three projects with the path foo:bar = > the first project gets name "bar", the second project gets the name "foo-bar", the third project gets the name "foo-bar2"
 
-#### Open issues
+### Story - Model for a composite does not contain project names that conflict with non-Gradle projects
 
-- Do we need to keep the original project name for a de-duped project for further process in Buildship e.g. visual hints original -> new?
-- The Eclipse workspace might contain existing projects. There should be a way to pass the names of the existing projects so that de-duplication could rename any duplicates.
-This isn't specific to the composite build and should be solved for ordinary builds as well.
-- Project names should remain stable, i.e. de-duping renames newly added projects in favor of renaming previously imported projects.
+The Eclipse workspace might contain existing projects that are not Gradle projects. Their names are taken and cannot be changed by Buildship. The composite build API needs to be enhanced to allow passing reserved names for the de-duplication algorithm.
 
-### Story - `EclipseWorkspace` model for a composite substitutes source project dependencies for external module dependencies
+##### API
+TBD
+
+##### Test cases
+TBD
+
+### Story - Model for a composite substitutes source project dependencies for external module dependencies
 
 If a composite contains a projectA and projectB, where projectA has a binary (external) dependency on projectB, then the `EclipseProject` model for projectA should contain a
 reference to projectB via `EclipseProject.getProjectDependencies()`. The `EclipseProject.getClasspath()` should not contain a reference to projectB.
@@ -302,7 +306,7 @@ the projects name is changed to match the one assigned by the deduper
 ### Story - Tooling API provides IdeaProject model for a composite containing multiple Gradle builds
 
 This story provides an API that will allow the IDEA developers to define and model a build composite for multiple imported Gradle builds. The provided feature will be the exact
-analogue of the `EclipseWorkspace` model provided for Buildship.
+analogue of the model provided for Buildship.
 
 ## Open issues
 
@@ -313,9 +317,10 @@ analogue of the `EclipseWorkspace` model provided for Buildship.
 - What about projects that depend on an older version of themselves? Or more generally, a set of projects that have a cycle when not taking versions into account? Using the current logic (which ignores versions), these would lead to cyclic project dependencies.
 - How will Buildship identify projects? Using rootDir + path allows moving projects without renaming. Using projectDir allows renaming projects without moving. Neither can handle both at the same time.
 - What if two projects could be substituted for the same external dependency? Unlikely, but the behavior should at least be stable (e.g. always use the first one)
-- The order of projects that the `EclipseWorkspace` returns should be stable (in the order the ProjectConnections were added)
+- The order of projects that the `Set<ModelResult<EclipseProject>>` returns should be stable (in the order the ProjectConnections were added)
 - Since this is a big change and we probably won't get all the details right in the first iteration, it should be an opt-in feature in Buildship
-- In the prototype the projects returned by the `EclipseWorkspace` are decorated (for de-duping and substitution),
+- In the prototype the projects returned by the `Set<ModelResult<EclipseProject>>` are decorated (for de-duping and substitution),
 but their `getParent()` and `getChildren()` methods return undecorated projects.
 - There are a lot of details and test cases about the flattening, but it is not really helpful to Buildship.
 A `getRootProjects()` method would need less explanation and work just as well for Buildship
+- Refreshing all projects in the workspace might be too costly for some power users. Buildship could allow the user to define composites explicitly, in order to reduce the number of affected projects

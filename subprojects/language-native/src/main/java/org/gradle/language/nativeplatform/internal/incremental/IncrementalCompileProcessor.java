@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,34 +43,32 @@ public class IncrementalCompileProcessor {
 
     public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
         CompilationState previousCompileState = previousCompileStateCache.get();
-        final Set<File> candidates = Sets.newHashSet();
-        final IncrementalCompileFiles result = new IncrementalCompileFiles(previousCompileState, candidates);
+        final IncrementalCompileFiles result = new IncrementalCompileFiles(previousCompileState);
 
         for (File sourceFile : sourceFiles) {
             result.processSource(sourceFile);
         }
 
-        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), candidates);
+        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
     }
 
     private class IncrementalCompileFiles {
 
-        private final List<File> recompile = new ArrayList<File>();
-
         private final CompilationState previous;
         private final CompilationState current = new CompilationState();
-        private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
-        private final Set<File> candidates;
 
-        public IncrementalCompileFiles(CompilationState previousCompileState, Set<File> candidates) {
-            this.candidates = candidates;
+        private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
+        private final List<File> toRecompile = new ArrayList<File>();
+        private final Set<File> discoveredInputs = Sets.newHashSet();
+
+        public IncrementalCompileFiles(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
         }
 
         public void processSource(File sourceFile) {
             current.addSourceInput(sourceFile);
             if (checkChangedAndUpdateState(sourceFile) || !previous.getSourceInputs().contains(sourceFile)) {
-                recompile.add(sourceFile);
+                toRecompile.add(sourceFile);
             }
         }
 
@@ -93,12 +91,15 @@ public class IncrementalCompileProcessor {
 
             if (!sameHash(previousState, newState)) {
                 changed = true;
-                newState.setSourceIncludes(sourceIncludesParser.parseIncludes(file));
+                newState.setIncludeDirectives(sourceIncludesParser.parseIncludes(file));
             } else {
-                newState.setSourceIncludes(previousState.getSourceIncludes());
+                newState.setIncludeDirectives(previousState.getIncludeDirectives());
             }
 
-            newState.setResolvedIncludes(resolveIncludes(file, newState.getSourceIncludes(), candidates));
+            SourceIncludesResolver.ResolvedSourceIncludes resolutionResult = resolveIncludes(file, newState.getIncludeDirectives());
+            newState.setResolvedIncludes(resolutionResult.getResolvedIncludes());
+            discoveredInputs.addAll(resolutionResult.getCheckedLocations());
+
             // Compare the previous resolved includes with resolving now.
             if (!sameResolved(previousState, newState)) {
                 changed = true;
@@ -129,12 +130,12 @@ public class IncrementalCompileProcessor {
             return previousState != null && newState.getResolvedIncludes().equals(previousState.getResolvedIncludes());
         }
 
-        private Set<ResolvedInclude> resolveIncludes(File file, SourceIncludes sourceIncludes, Set<File> candidates) {
-            return sourceIncludesResolver.resolveIncludes(file, sourceIncludes, candidates);
+        private SourceIncludesResolver.ResolvedSourceIncludes resolveIncludes(File file, IncludeDirectives includeDirectives) {
+            return sourceIncludesResolver.resolveIncludes(file, includeDirectives);
         }
 
         public List<File> getModifiedSources() {
-            return recompile;
+            return toRecompile;
         }
 
         public List<File> getRemovedSources() {
@@ -145,6 +146,10 @@ public class IncrementalCompileProcessor {
                 }
             }
             return removed;
+        }
+
+        public Set<File> getDiscoveredInputs() {
+            return discoveredInputs;
         }
     }
 }

@@ -1465,6 +1465,108 @@ foo
         bean.value == '12'
     }
 
+    static class EachBeanViaDirectRule extends RuleSource {
+        @Mutate
+        void mutateBeans(@Each Bean bean) {
+            bean.name = "bean"
+        }
+    }
+
+    static class EachBeanViaRuleSource extends RuleSource {
+        @Rules
+        void mutateBeans(BeanRules rules, @Each Bean bean) {
+        }
+    }
+
+    @Unroll
+    def "can apply #description to each element matching type in root scope"() {
+        def mmType = ModelTypes.modelMap(Bean)
+
+        registry.registerInstance("foo", "foo")
+        registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
+        registry.registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it + " unmodified") } }
+        registry.mutate {
+            it.path "beans" type mmType action { beans ->
+                beans.create("bean2")
+            }
+        }
+        registry.root.applyToSelf(rules)
+
+        expect:
+        registry.realize("bean1", Bean).name == "bean"
+        registry.realize("beans.bean2", Bean).name == "bean"
+
+        where:
+        rules                 | description
+        EachBeanViaDirectRule | "direct rule"
+        EachBeanViaRuleSource | "rule source"
+    }
+
+    @Unroll
+    def "#description is not applied to descendants accessible only via references"() {
+        def mmType = ModelTypes.modelMap(Bean)
+
+        registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
+        registry.registerInstance("beans", new Bean(name: "beans"))
+        registry.registerModelMap("otherBeans", Bean) { it.registerFactory(Bean) { new Bean(name: it + " unmodified") } }
+        registry.mutate {
+            it.path "otherBeans" type mmType action { beans ->
+                beans.create("bean3")
+            }
+        }
+
+        registry.mutate {
+            it.path "beans" node {
+                it.addLinkInstance("beans.bean2", new Bean(name: "bean2 unmodified"))
+                it.addReference("beanRef", Bean, registry.root.getLink("bean1"))
+                it.addReference("otherBeansRef", Bean, registry.root.getLink("otherBeans"))
+            }
+        }
+
+        def scope = registry.root.getLink("beans")
+        scope.applyToSelf(rules)
+
+        expect:
+        // Rule gets applied to node in scope
+        registry.realize("beans.bean2", Bean).name == "bean"
+
+        // Rule doesn't get applied to node outside scope
+        registry.realize("bean1", Bean).name == "bean1 unmodified"
+
+        // Rule is not applied to referenced node
+        registry.realize("beans.beanRef", Bean).name == "bean1 unmodified"
+
+        // Rule is not applied to descendant node of referenced node (via "beans.otherBeans")
+        registry.realize("otherBeans.bean3", Bean).name == "bean3 unmodified"
+
+        where:
+        rules                 | description
+        EachBeanViaDirectRule | "direct rule"
+        EachBeanViaRuleSource | "rule source"
+    }
+
+    @Unroll
+    def "#description is not applied to scope element"() {
+        registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
+        registry.mutate {
+            it.path "bean1" node {
+                it.addLinkInstance("bean1.bean2", new Bean(name: "bean2 unmodified"))
+            }
+        }
+        registry.root.getLink("bean1").applyToSelf(rules)
+
+        expect:
+        // Rule is not applied to scope node
+        registry.realize("bean1", Bean).name == "bean1 unmodified"
+        // Rule is applied to child of scope node
+        registry.realize("bean1.bean2", Bean).name == "bean"
+
+        where:
+        rules                 | description
+        EachBeanViaDirectRule | "direct rule"
+        EachBeanViaRuleSource | "rule source"
+    }
+
     static class Bean {
         String name
         String value

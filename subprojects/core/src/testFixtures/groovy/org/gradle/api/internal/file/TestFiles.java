@@ -21,6 +21,9 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
@@ -65,6 +68,18 @@ public class TestFiles {
 
     public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
         return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory());
+    }
+
+    public static ExecActionFactory execActionFactory() {
+        return new DefaultExecActionFactory(resolver());
+    }
+
+    public static ExecHandleFactory execHandleFactory() {
+        return new DefaultExecActionFactory(resolver());
+    }
+
+    public static ExecHandleFactory execHandleFactory(File baseDir) {
+        return new DefaultExecActionFactory(resolver(baseDir));
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {

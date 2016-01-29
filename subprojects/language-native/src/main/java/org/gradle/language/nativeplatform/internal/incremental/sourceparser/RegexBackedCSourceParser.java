@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.*;
 import java.util.List;
@@ -35,8 +35,8 @@ public class RegexBackedCSourceParser implements CSourceParser {
         this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
 
-    public SourceIncludes parseSource(File sourceFile) {
-        DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes();
+    public IncludeDirectives parseSource(File sourceFile) {
+        DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives();
         sourceIncludes.addAll(parseFile(sourceFile));
         return sourceIncludes;
     }

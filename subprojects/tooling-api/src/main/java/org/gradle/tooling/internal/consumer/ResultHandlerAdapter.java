@@ -31,10 +31,10 @@ import org.gradle.tooling.TestExecutionException;
  *
  * @param <T> The result type.
  */
-abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
+public abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
     private final ResultHandler<? super T> handler;
 
-    ResultHandlerAdapter(ResultHandler<? super T> handler) {
+    protected ResultHandlerAdapter(ResultHandler<? super T> handler) {
         this.handler = handler;
     }
 

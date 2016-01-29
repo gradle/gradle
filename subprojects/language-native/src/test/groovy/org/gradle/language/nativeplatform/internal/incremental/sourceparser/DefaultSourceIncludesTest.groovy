@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesTest extends Specification {
     List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { DefaultInclude.parse(it, false) }
-    DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes()
+    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives()
 
     def "can filter includes" () {
         given:

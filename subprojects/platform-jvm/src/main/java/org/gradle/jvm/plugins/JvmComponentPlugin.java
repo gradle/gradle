@@ -16,8 +16,13 @@
 
 package org.gradle.jvm.plugins;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -29,43 +34,33 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.jvm.toolchain.JdkSpec;
+import org.gradle.jvm.toolchain.internal.*;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
-import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
-import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
- * Base plugin for JVM component support. Applies the
- * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers the {@link JvmLibrarySpec} library type for the components container.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
+ * container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public JvmComponentPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -99,9 +94,83 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return new ProjectLayout(projectIdentifier, buildDir);
         }
 
+        @Model
+        public void jdks(ModelMap<JdkSpec> jdks) {
+        }
+
+        @Model
+        public void installedJdks(ModelMap<InstalledJdk> installedJdks, final JavaInstallationProbe probe) {
+            installedJdks.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
+                @Override
+                public void execute(InstalledJdk installedJdk) {
+                    installedJdk.setJavaHome(Jvm.current().getJavaHome());
+                    probe.current(installedJdk);
+                }
+            });
+        }
+
+        @Model
+        public void installedJres(ModelMap<InstalledJre> installedJres, final JavaInstallationProbe probe) {
+        }
+
+        @Validate
+        public void validateJDKs(ModelMap<JdkSpec> jdks) {
+            ImmutableListMultimap<String, JdkSpec> jdksByPath = indexByPath(jdks);
+            List<String> errors = Lists.newArrayList();
+            for (String path : jdksByPath.keySet()) {
+                checkDuplicateForPath(jdksByPath, path, errors);
+            }
+            if (!errors.isEmpty()) {
+                throw new InvalidModelException(String.format("Duplicate JDK declared:\n%s", Joiner.on("\n").join(errors)));
+            }
+        }
+
         @Mutate
         public void registerPlatformResolver(PlatformResolvers platformResolvers) {
             platformResolvers.register(new JavaPlatformResolver());
+        }
+
+        @Model
+        @Hidden
+        JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(JavaInstallationProbe.class);
+        }
+
+        @Defaults
+        public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            resolveJavaInstall(installedJdks, jdks, probe, InstalledJdk.class);
+        }
+
+        @Defaults
+        public void resolveJREs(final ModelMap<InstalledJre> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
+            resolveJavaInstall(installedJdks, jdks, probe, InstalledJre.class);
+        }
+
+        private static <T extends LocalJavaInstallation> void resolveJavaInstall(final ModelMap<T> installed, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe, final Class<T> clazz) {
+            File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
+            for (final JdkSpec jdk : jdks) {
+                final File javaHome = canonicalFile(jdk.getPath());
+                JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
+                JavaInstallationProbe.ProbeResult kind = clazz == InstalledJdk.class ? JavaInstallationProbe.ProbeResult.IS_JDK : JavaInstallationProbe.ProbeResult.IS_JRE;
+                if (probeResult == kind) {
+                    if (!javaHome.equals(currentJavaHome)) {
+                        installed.create(jdk.getName(), clazz, new Action<T>() {
+                            @Override
+                            public void execute(T installedJdk) {
+                                installedJdk.setJavaHome(javaHome);
+                                probe.configure(javaHome, installedJdk);
+                            }
+                        });
+                    }
+                } else {
+                    switch (probeResult) {
+                        case NO_SUCH_DIRECTORY:
+                            throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
+                        case INVALID_JDK:
+                            throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
+                    }
+                }
+            }
         }
 
         @ComponentBinaries
@@ -123,6 +192,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jarBinary.setDependencies(dependencies);
                     }
                 });
+            }
+        }
+
+        private static File canonicalFile(File f) {
+            try {
+                return f.getCanonicalFile();
+            } catch (IOException e) {
+                return f;
             }
         }
 
@@ -155,9 +232,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         private BinaryNamingScheme namingSchemeFor(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             return DefaultBinaryNamingScheme.component(jvmLibrary.getName())
-                    .withBinaryType("Jar")
-                    .withRole("jar", true)
-                    .withVariantDimension(platform, selectedPlatforms);
+                .withBinaryType("Jar")
+                .withRole("jar", true)
+                .withVariantDimension(platform, selectedPlatforms);
         }
 
         @BinaryTasks
@@ -205,9 +282,64 @@ public class JvmComponentPlugin implements Plugin<Project> {
         private String apiJarTaskName(JarBinarySpecInternal binary) {
             String binaryName = binary.getProjectScopedName();
             String libName = binaryName.endsWith("Jar")
-                    ? binaryName.substring(0, binaryName.length() - 3)
-                    : binaryName;
+                ? binaryName.substring(0, binaryName.length() - 3)
+                : binaryName;
             return libName + "ApiJar";
+        }
+
+        private static void checkDuplicateForPath(ImmutableListMultimap<String, JdkSpec> index, String path, List<String> errors) {
+            ImmutableList<JdkSpec> jdkSpecs = index.get(path);
+            if (jdkSpecs.size() > 1) {
+                errors.add(String.format("   - %s are both pointing to the same JDK installation path: %s",
+                    Joiner.on(", ").join(Iterables.transform(jdkSpecs, new Function<JdkSpec, String>() {
+                        @Override
+                        public String apply(JdkSpec input) {
+                            return input.getName();
+                        }
+                    })), path));
+            }
+        }
+
+        private static ImmutableListMultimap<String, JdkSpec> indexByPath(ModelMap<JdkSpec> jdks) {
+            return Multimaps.index(toImmutableJdkList(jdks), new Function<JdkSpec, String>() {
+                @Override
+                public String apply(JdkSpec input) {
+                    try {
+                        return input.getPath().getCanonicalPath().toString();
+                    } catch (IOException e) {
+                        UncheckedException.throwAsUncheckedException(e);
+                    }
+                    return null;
+                }
+            });
+        }
+
+        private static List<JdkSpec> toImmutableJdkList(ModelMap<JdkSpec> jdks) {
+            final List<JdkSpec> asImmutable = Lists.newArrayList();
+            jdks.afterEach(new Action<JdkSpec>() {
+                @Override
+                public void execute(JdkSpec jdkSpec) {
+                    asImmutable.add(jdkSpec);
+                }
+            });
+            return asImmutable;
+        }
+
+        @Defaults
+        void configureJvmBinaries(@Each JvmBinarySpecInternal jvmBinary, ProjectLayout projectLayout) {
+            File buildDir = projectLayout.getBuildDir();
+            BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
+            jvmBinary.setClassesDir(namingScheme.getOutputDirectory(buildDir, "classes"));
+            jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(buildDir, "resources"));
+        }
+
+        @Defaults
+        void configureJarBinaries(@Each JarBinarySpecInternal jarBinary, ProjectLayout projectLayout, JavaToolChainRegistry toolChains) {
+            String libraryName = jarBinary.getId().getLibraryName();
+            File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
+            jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
+            jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
+            jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
         }
     }
 }

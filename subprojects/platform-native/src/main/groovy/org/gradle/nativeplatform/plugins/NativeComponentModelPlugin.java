@@ -37,13 +37,13 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.model.*;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.NativeComponentRules;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
+import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
@@ -59,20 +59,15 @@ import org.gradle.platform.base.internal.PlatformResolvers;
 import javax.inject.Inject;
 import java.io.File;
 
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
-
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
-    private final ModelRegistry modelRegistry;
 
     @Inject
-    public NativeComponentModelPlugin(ModelRegistry modelRegistry, Instantiator instantiator) {
-        this.modelRegistry = modelRegistry;
+    public NativeComponentModelPlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
@@ -82,8 +77,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("buildTypes", DefaultBuildTypeContainer.class, instantiator);
         project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
         project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
-
-        modelRegistry.getRoot().applyTo(allDescendants(withType(NativeComponentSpec.class)), NativeComponentRules.class);
     }
 
     static class Rules extends RuleSource {
@@ -186,44 +179,29 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Mutate
-        void configureGeneratedSourceSets(ModelMap<NativeComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
-                @Override
-                public void execute(NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(LanguageSourceSetInternal.class).afterEach(new Action<LanguageSourceSetInternal>() {
-                        @Override
-                        public void execute(LanguageSourceSetInternal languageSourceSet) {
-                            Task generatorTask = languageSourceSet.getGeneratorTask();
-                            if (generatorTask != null) {
-                                languageSourceSet.builtBy(generatorTask);
-                                maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
-                                if (languageSourceSet instanceof HeaderExportingSourceSet) {
-                                    maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
-                                }
-                            }
-                        }
-                    });
+        @Finalize
+        void configureGeneratedSourceSets(@Each LanguageSourceSetInternal languageSourceSet) {
+            Task generatorTask = languageSourceSet.getGeneratorTask();
+            if (generatorTask != null) {
+                languageSourceSet.builtBy(generatorTask);
+                maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                    maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
                 }
-            });
+            }
         }
 
-        @Mutate
-        void configurePrefixHeaderFiles(ModelMap<NativeComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
-            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
+        @Defaults
+        void configurePrefixHeaderFiles(@Each final NativeComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
+            componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
                 @Override
-                public void execute(final NativeComponentSpec componentSpec) {
-                    componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
-                        @Override
-                        public void execute(DependentSourceSetInternal dependentSourceSet) {
-                            if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
-                                File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
-                                File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
-                                dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
-                            }
-                        }
-                    });
+                public void execute(DependentSourceSetInternal dependentSourceSet) {
+                    if (dependentSourceSet.getPreCompiledHeader() != null) {
+                        String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
+                        File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
+                        File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
+                        dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
+                    }
                 }
             });
         }
@@ -331,6 +309,30 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             for (NativeExecutableBinarySpecInternal binary : binaries.withType(NativeExecutableBinarySpecInternal.class).values()) {
                 NativeComponents.createInstallTask(binary, binary.getInstallation(), binary.getExecutable(), binary.getNamingScheme());
             }
+        }
+
+        @Finalize
+        void applyHeaderSourceSetConventions(@Each HeaderExportingSourceSet headerSourceSet) {
+            // Only apply default locations when none explicitly configured
+            if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+                headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", headerSourceSet.getParentName()));
+            }
+
+            headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+            headerSourceSet.getImplicitHeaders().include("**/*.h");
+        }
+
+        @Finalize
+        void createBinaries(@Each TargetedNativeComponentInternal nativeComponent,
+                            PlatformResolvers platforms,
+                            BuildTypeContainer buildTypes,
+                            FlavorContainer flavors,
+                            ServiceRegistry serviceRegistry
+        ) {
+            NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
+            NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
+            FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
+            NativeComponentRules.createBinariesImpl(nativeComponent, platforms, buildTypes, flavors, nativePlatforms, nativeDependencyResolver, fileCollectionFactory);
         }
     }
 

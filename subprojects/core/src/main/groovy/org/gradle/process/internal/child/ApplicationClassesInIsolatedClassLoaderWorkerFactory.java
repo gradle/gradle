@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.remote.Address;
-import org.gradle.process.JavaExecSpec;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.IsolatedGradleWorkerMain;
 import org.gradle.util.GUtil;
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A factory for a worker process which loads application classes using an isolated ClassLoader.
@@ -56,25 +57,14 @@ import java.util.Collection;
  *
  */
 public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements WorkerFactory {
-    private final Object workerId;
-    private final String displayName;
-    private final WorkerProcessBuilder processBuilder;
-    private final Collection<URL> implementationClassPath;
-    private final Address serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
-    public ApplicationClassesInIsolatedClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
-                                            Collection<URL> implementationClassPath, Address serverAddress,
-                                            ClassPathRegistry classPathRegistry) {
-        this.workerId = workerId;
-        this.displayName = displayName;
-        this.processBuilder = processBuilder;
-        this.implementationClassPath = implementationClassPath;
-        this.serverAddress = serverAddress;
+    public ApplicationClassesInIsolatedClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry) {
         this.classPathRegistry = classPathRegistry;
     }
 
-    public void prepareJavaCommand(JavaExecSpec execSpec) {
+    @Override
+    public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
         execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
         Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
@@ -88,19 +78,17 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
             for (URI entry : applicationClassPath) {
                 outstr.writeUTF(entry.toString());
             }
+
             // Write serialized worker
-            GUtil.serialize(create(), outstr);
+            ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
+                    displayName, serverAddress, processBuilder.getGradleUserHomeDir());
+            ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
+                    processBuilder.getSharedPackages(), implementationClassPath, GUtil.serialize(injectedWorker));
+            GUtil.serialize(worker, outstr);
             outstr.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
-    }
-
-    private ImplementationClassLoaderWorker create() {
-        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
-                displayName, serverAddress, processBuilder.getGradleUserHomeDir());
-        return new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
-                processBuilder.getSharedPackages(), implementationClassPath, GUtil.serialize(injectedWorker));
     }
 }

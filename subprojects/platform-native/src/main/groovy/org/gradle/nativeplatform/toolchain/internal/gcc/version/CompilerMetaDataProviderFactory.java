@@ -16,9 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.version;
 
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.process.internal.DefaultExecAction;
-import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -30,14 +27,9 @@ public class CompilerMetaDataProviderFactory {
     private final CachingCompilerMetaDataProvider gcc;
     private final CachingCompilerMetaDataProvider clang;
 
-    public CompilerMetaDataProviderFactory(final FileLookup fileLookup) {
-        ExecActionFactory factory = new ExecActionFactory() {
-            public ExecAction newExecAction() {
-                return new DefaultExecAction(fileLookup.getFileResolver());
-            }
-        };
-        gcc = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forGcc(factory));
-        clang = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forClang(factory));
+    public CompilerMetaDataProviderFactory(ExecActionFactory execActionFactory) {
+        gcc = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forGcc(execActionFactory));
+        clang = new CachingCompilerMetaDataProvider(GccVersionDeterminer.forClang(execActionFactory));
     }
 
     public CompilerMetaDataProvider gcc() {

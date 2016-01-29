@@ -38,4 +38,6 @@ public interface OptionElement {
     void apply(Object object, List<String> parameterValues) throws TypeConversionException;
 
     String getDescription();
+
+    int getOrder();
 }

@@ -56,6 +56,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Defaults
+        // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
         void attachTestedBinarySourcesToTestBinaries(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
             binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
                 @Override
@@ -70,6 +71,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Defaults
+        // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
         void configureRunTask(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
             binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
                 @Override

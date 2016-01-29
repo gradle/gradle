@@ -20,16 +20,16 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
+    private final CompilationState finalState;
     private final List<File> recompile;
     private final List<File> removed;
-    private CompilationState finalState;
-    private final Set<File> includeCandidates;
+    private final Set<File> discoveredInputs;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> includeCandidates) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
-        this.includeCandidates = includeCandidates;
+        this.discoveredInputs = discoveredInputs;
     }
 
     public List<File> getRecompile() {
@@ -44,7 +44,7 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
         return finalState;
     }
 
-    public Set<File> getIncludeCandidates() {
-        return includeCandidates;
+    public Set<File> getDiscoveredInputs() {
+        return discoveredInputs;
     }
 }

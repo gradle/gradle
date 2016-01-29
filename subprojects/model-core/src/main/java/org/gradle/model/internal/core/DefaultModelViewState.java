@@ -79,9 +79,4 @@ public class DefaultModelViewState implements ModelViewState {
     public boolean isCanMutate() {
         return mutable && !closed;
     }
-
-    @Override
-    public boolean isCanReadChildren() {
-        return canReadChildren;
-    }
 }

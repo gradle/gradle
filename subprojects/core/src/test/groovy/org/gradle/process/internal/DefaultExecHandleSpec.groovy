@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
@@ -302,7 +303,7 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     private ExecHandleBuilder handle() {
-        new ExecHandleBuilder()
+        new ExecHandleBuilder(TestFiles.resolver())
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory());

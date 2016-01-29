@@ -25,14 +25,17 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.plugins.JavaLanguagePlugin;
 import org.gradle.language.javascript.JavaScriptSourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -49,12 +52,8 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.util.VersionNumber;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Date;
-
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
@@ -63,12 +62,6 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
     public static final String RUN_GROUP = "Run";
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public PlayApplicationPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
 
     @Override
     public void apply(Project project) {
@@ -78,8 +71,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(PlayRoutesPlugin.class);
 
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
-
-        modelRegistry.getRoot().applyTo(allDescendants(withType(PlayApplicationSpec.class)), PlaySourceSetRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -134,31 +125,22 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failOnMultipleTargetPlatforms(ModelMap<PlayApplicationSpec> playApplications) {
-            playApplications.withType(PlayPlatformAwareComponentSpecInternal.class).afterEach(new Action<PlayPlatformAwareComponentSpecInternal>() {
-                public void execute(PlayPlatformAwareComponentSpecInternal playApplication) {
-                    if (playApplication.getTargetPlatforms().size() > 1) {
-                        throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
-                    }
-                }
-            });
+        void failOnMultipleTargetPlatforms(@Each PlayPlatformAwareComponentSpecInternal playApplication) {
+            if (playApplication.getTargetPlatforms().size() > 1) {
+                throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+            }
         }
 
         @Validate
-        void failIfInjectedRouterIsUsedWithOldVersion(ModelMap<PlayApplicationBinarySpec> playApplicationBinaries) {
-            playApplicationBinaries.afterEach(new Action<PlayApplicationBinarySpec>() {
-                @Override
-                public void execute(PlayApplicationBinarySpec playApplicationBinary) {
-                    if (playApplicationBinary.getApplication().getInjectedRoutesGenerator()) {
-                        final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
-                        VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
-                        VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
-                        if (playVersion.compareTo(minSupportedVersion) < 0) {
-                            throw new GradleException("Injected routers are only supported in Play 2.4 or newer.");
-                        }
-                    }
+        void failIfInjectedRouterIsUsedWithOldVersion(@Each PlayApplicationBinarySpec playApplicationBinary) {
+            if (playApplicationBinary.getApplication().getInjectedRoutesGenerator()) {
+                final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
+                VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
+                VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
+                if (playVersion.compareTo(minSupportedVersion) < 0) {
+                    throw new GradleException("Injected routers are only supported in Play 2.4 or newer.");
                 }
-            });
+            }
         }
 
         @ComponentBinaries
@@ -198,6 +180,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
+        // TODO:LPTR This should be like @Finalize void generatedSourcesAreInputs(@Each PlayApplicationBinarySpecInternal binary)
         void generatedSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
             binaries.afterEach(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
@@ -302,6 +285,55 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     }
                 });
             }
+        }
+
+        @Defaults
+        void createJvmSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("scala", ScalaLanguageSourceSet.class, new Action<ScalaLanguageSourceSet>() {
+                @Override
+                public void execute(ScalaLanguageSourceSet scalaSources) {
+                    scalaSources.getSource().srcDir("app");
+                    scalaSources.getSource().include("**/*.scala");
+                }
+            });
+
+            playComponent.getSources().create("java", JavaSourceSet.class, new Action<JavaSourceSet>() {
+                @Override
+                public void execute(JavaSourceSet javaSources) {
+                    javaSources.getSource().srcDir("app");
+                    javaSources.getSource().include("**/*.java");
+                }
+            });
+
+            playComponent.getSources().create("resources", JvmResourceSet.class, new Action<JvmResourceSet>() {
+                @Override
+                public void execute(JvmResourceSet appResources) {
+                    appResources.getSource().srcDirs("conf");
+                }
+            });
+        }
+
+        @Defaults
+        void createTwirlSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("twirlTemplates", TwirlSourceSet.class, new Action<TwirlSourceSet>() {
+                @Override
+                public void execute(TwirlSourceSet twirlSourceSet) {
+                    twirlSourceSet.getSource().srcDir("app");
+                    twirlSourceSet.getSource().include("**/*.html");
+                }
+            });
+        }
+
+        @Defaults
+        void createRoutesSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("routes", RoutesSourceSet.class, new Action<RoutesSourceSet>() {
+                @Override
+                public void execute(RoutesSourceSet routesSourceSet) {
+                    routesSourceSet.getSource().srcDir("conf");
+                    routesSourceSet.getSource().include("routes");
+                    routesSourceSet.getSource().include("*.routes");
+                }
+            });
         }
     }
 }

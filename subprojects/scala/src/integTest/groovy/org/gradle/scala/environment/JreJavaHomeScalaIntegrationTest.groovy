@@ -27,7 +27,7 @@ import spock.lang.Unroll
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll

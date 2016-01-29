@@ -246,7 +246,7 @@ model {
         output.contains("p1 = default")
     }
 
-    def "elements referenced by @RuleInput property is treated as implicit input of rules on RuleSource"() {
+    def "elements referenced by @RuleInput property are treated as implicit input of rules on RuleSource"() {
         buildFile << '''
 @Managed
 interface SomeThings {
@@ -324,7 +324,7 @@ model {
         output.contains("thingC = thing c from rule")
     }
 
-    def "element referenced by @RuleTarget property is treated target of RuleSource"() {
+    def "element referenced by @RuleTarget property is treated as target of RuleSource"() {
         buildFile << '''
 @Managed
 interface SomeThings {

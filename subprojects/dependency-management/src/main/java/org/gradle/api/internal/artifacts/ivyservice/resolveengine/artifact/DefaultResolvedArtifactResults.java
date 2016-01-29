@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
 public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     // Transient state: held between resolving graph and resolving actual artifacts
-    private Map<Long, ArtifactSet> artifactSets = Maps.newLinkedHashMap();
+    private Map<Long, ArtifactSet> artifactSets = newLinkedHashMap();
 
     // Artifact State : held for the life of a build
     private Set<ResolvedArtifact> artifacts;
@@ -35,7 +35,7 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     @Override
     public Set<ResolvedArtifact> getArtifacts() {
         assertArtifactsResolved();
-        return new LinkedHashSet<ResolvedArtifact>(artifacts);
+        return newLinkedHashSet(artifacts);
     }
 
     @Override
@@ -52,8 +52,8 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
 
     public void resolveNow() {
         if (artifacts == null) {
-            artifacts = new LinkedHashSet<ResolvedArtifact>();
-            resolvedArtifactsById = new LinkedHashMap<Long, Set<ResolvedArtifact>>();
+            artifacts = newLinkedHashSet();
+            resolvedArtifactsById = newLinkedHashMap();
             for (Map.Entry<Long, ArtifactSet> entry : artifactSets.entrySet()) {
                 Set<ResolvedArtifact> resolvedArtifacts = entry.getValue().getArtifacts();
                 artifacts.addAll(resolvedArtifacts);

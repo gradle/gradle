@@ -19,9 +19,9 @@ import java.io.File;
 import java.util.Map;
 
 public interface IGradlePropertiesLoader {
-    public static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
+    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
-    public static final String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
+    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
     Map<String, String> mergeProperties(Map<String, String> properties);
 

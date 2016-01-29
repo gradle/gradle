@@ -100,8 +100,8 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private static class ListModelView<T> extends ScalarCollectionModelView<T, List<T>> {
 
-        public ListModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean readOnly, boolean mutable) {
-            super(path, ModelTypes.list(elementType), elementType, modelNode, descriptor, readOnly, mutable);
+        public ListModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
+            super(path, ModelTypes.list(elementType), elementType, modelNode, descriptor, overwritable, mutable);
         }
 
         @Override
@@ -117,8 +117,8 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     private static class SetModelView<T> extends ScalarCollectionModelView<T, Set<T>> {
 
-        public SetModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean readOnly, boolean mutable) {
-            super(path, ModelTypes.set(elementType), elementType, modelNode, descriptor, readOnly, mutable);
+        public SetModelView(ModelPath path, ModelType<T> elementType, MutableModelNode modelNode, ModelRuleDescriptor descriptor, boolean overwritable, boolean mutable) {
+            super(path, ModelTypes.set(elementType), elementType, modelNode, descriptor, overwritable, mutable);
         }
 
         @Override

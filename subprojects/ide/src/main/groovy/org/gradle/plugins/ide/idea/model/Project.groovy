@@ -218,6 +218,9 @@ class Project extends XmlPersistableConfigurationObject {
         if (modulePaths != project.modulePaths) {
             return false
         }
+        if (projectLibraries != project.projectLibraries) {
+            return false
+        }
         if (wildcards != project.wildcards) {
             return false
         }
@@ -230,9 +233,9 @@ class Project extends XmlPersistableConfigurationObject {
 
     int hashCode() {
         int result;
-
         result = (modulePaths != null ? modulePaths.hashCode() : 0);
         result = 31 * result + (wildcards != null ? wildcards.hashCode() : 0);
+        result = 31 * result + (projectLibraries != null ? projectLibraries.hashCode() : 0);
         result = 31 * result + (jdk != null ? jdk.hashCode() : 0);
         result = 31 * result + (vcs != null ? vcs.hashCode() : 0);
         return result;

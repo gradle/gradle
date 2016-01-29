@@ -32,7 +32,7 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
@@ -77,7 +77,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             }
         });
 
-        spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
+        spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
         final IncrementalTaskInputsInternal taskInputs = (IncrementalTaskInputsInternal) spec.getIncrementalInputs();
 
@@ -101,12 +101,12 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final IncrementalTaskInputsInternal taskInputs) {
-        for (File includeFile : compilation.getIncludeCandidates()) {
+        for (File includeFile : compilation.getDiscoveredInputs()) {
             taskInputs.newInput(includeFile);
         }
 
         if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
-            logger.info("The path to some #include files could not be determined.  Falling back to slow path which includes all files in the include search path as inputs for {}.", task.getName());
+            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
                 logger.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
                 new DirectoryFileTree(includeRoot).visit(new EmptyFileVisitor() {
@@ -119,11 +119,11 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         }
     }
 
-    private Map<File, SourceIncludes> mapIncludes(Collection<File> files, final CompilationState compilationState) {
-        return CollectionUtils.collectMapValues(files, new Transformer<SourceIncludes, File>() {
+    private Map<File, IncludeDirectives> mapIncludes(Collection<File> files, final CompilationState compilationState) {
+        return CollectionUtils.collectMapValues(files, new Transformer<IncludeDirectives, File>() {
             @Override
-            public SourceIncludes transform(File file) {
-                return compilationState.getState(file).getSourceIncludes();
+            public IncludeDirectives transform(File file) {
+                return compilationState.getState(file).getIncludeDirectives();
             }
         });
     }

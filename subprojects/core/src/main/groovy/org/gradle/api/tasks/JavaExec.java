@@ -18,12 +18,11 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.DefaultJavaExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
 import javax.inject.Inject;
@@ -57,14 +56,14 @@ import java.util.Map;
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
-    private JavaExecAction javaExecHandleBuilder;
+    private final JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        javaExecHandleBuilder = new DefaultJavaExecAction(getFileResolver());
+        javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected ExecActionFactory getExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 

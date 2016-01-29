@@ -25,10 +25,11 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     boolean scalaProject
     boolean createTestComponent = true
     Closure createPackageName = { testProject, fileNumber ->
-        def pkg = "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}"
-        pkg.toString()
+        "org.gradle.test.performance${testProject.subprojectNumber}_${(int) (fileNumber / filesPerPackage) + 1}"
     }
-    Closure createFileName = { testProject, prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
+    Closure createFileName = { testProject, prefix, fileNumber ->
+        "${prefix}${testProject.subprojectNumber}_${fileNumber + 1}"
+    }
     Closure createExtendsAndImplementsClause = { testProject, prefix, fileNumber -> '' }
     Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
 
@@ -90,8 +91,8 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
             String packageName = createPackageName(it)
             Map classArgs = args + [
                 packageName: packageName,
-                productionClassName: createFileName(classFilePrefix, it),
-                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                productionClassName: createFileName(classFilePrefix, it).toString(),
+                extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it).toString(),
                 extraFields: extraFields(classFilePrefix, it)
             ]
             generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
@@ -101,9 +102,9 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
                 String packageName = createPackageName(it)
                 Map classArgs = args + [
                     packageName               : packageName,
-                    productionClassName       : createFileName(classFilePrefix, it),
-                    testClassName             : createFileName(testFilePrefix, it),
-                    extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it),
+                    productionClassName       : createFileName(classFilePrefix, it).toString(),
+                    testClassName             : createFileName(testFilePrefix, it).toString(),
+                    extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it).toString(),
                     extraFields               : extraFields(classFilePrefix, it)]
                 generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
             }

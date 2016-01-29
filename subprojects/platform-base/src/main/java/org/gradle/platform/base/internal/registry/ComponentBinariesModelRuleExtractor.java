@@ -72,22 +72,21 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
     }
 
-    private static class ExtractedComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> implements ExtractedModelRule {
+    private static class ExtractedComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> extends AbstractExtractedModelRule {
         private final ModelType<C> componentType;
         private final ModelType<S> binaryType;
-        private final MethodRuleDefinition<?, ?> ruleDefinition;
 
         public ExtractedComponentBinariesRule(ModelType<C> componentType, ModelType<S> binaryType, MethodRuleDefinition<?, ?> ruleDefinition) {
+            super(ruleDefinition);
             this.componentType = componentType;
             this.binaryType = binaryType;
-            this.ruleDefinition = ruleDefinition;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<C> subject = ModelReference.of(componentType);
-            ComponentBinariesRule<S, C> componentBinariesRule = new ComponentBinariesRule<S, C>(subject, componentType, binaryType, ruleDefinition);
-            ModelAction componentBinariesAction = context.contextualize(ruleDefinition, componentBinariesRule);
+            ComponentBinariesRule<S, C> componentBinariesRule = new ComponentBinariesRule<S, C>(subject, componentType, binaryType, getRuleDefinition());
+            ModelAction componentBinariesAction = context.contextualize(componentBinariesRule);
             target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesAction);
         }
 

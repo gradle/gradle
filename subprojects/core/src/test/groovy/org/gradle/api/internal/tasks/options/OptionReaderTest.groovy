@@ -172,6 +172,15 @@ class OptionReaderTest extends Specification {
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
+    def "reads custom order"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new WithCustomOrder())
+
+        then:
+        options[0].order == 0
+        options[1].order == 1
+    }
+
     public static class TestClass1{
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
@@ -300,10 +309,20 @@ class OptionReaderTest extends Specification {
         static List<String> getValues(String someParam) { return Arrays.asList("something")}
     }
 
-
-    public class SomeOptionValues{
+    public class SomeOptionValues {
         @OptionValues("someOption")
         List<String> getValues() { return Arrays.asList("something")}
+    }
+
+    public static class WithCustomOrder {
+
+        @Option(option = "option0", description = "desc", order = 0)
+        public void setOption0(String value) {
+        }
+
+        @Option(option = "option1", description = "desc", order = 1)
+        public void setOption1(String value) {
+        }
     }
 
     enum TestEnum {

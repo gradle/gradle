@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -23,9 +24,13 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
-import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
@@ -33,19 +38,18 @@ import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
-import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
-import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
+import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * Base plugin for language support.
@@ -56,22 +60,14 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants;
  */
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<Project> {
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
 
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);
-
-        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), ComponentRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static class Rules extends RuleSource {
+    static class PluginRules extends RuleSource {
         @Hidden @Model
         ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
             return new ComponentSpecFactory("components", projectIdentifier);
@@ -189,6 +185,72 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                     formatter.endChildren();
                     throw new GradleException(formatter.toString());
                 }
+            }
+        }
+
+        @Defaults
+        void initializeComponentSourceSets(@Each ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
+            for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
+                registerLanguageTypes(component, languageRegistration, languageTransforms);
+            }
+        }
+
+        @Finalize
+        void applyFallbackSourceConventions(@Each LanguageSourceSet languageSourceSet, ProjectIdentifier projectIdentifier) {
+            // Only apply default locations when none explicitly configured
+            if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                File baseDir = projectIdentifier.getProjectDir();
+                String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
+                languageSourceSet.getSource().srcDir(defaultSourceDir);
+            }
+        }
+
+        @Defaults
+        // TODO:LPTR We should collect all source sets in the project source set, however this messes up ComponentReportRenderer
+        void addComponentSourcesSetsToProjectSourceSet(@Each ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+            component.getSources().afterEach(new Action<LanguageSourceSet>() {
+                @Override
+                public void execute(LanguageSourceSet languageSourceSet) {
+                    projectSourceSet.add(languageSourceSet);
+                }
+            });
+        }
+
+        // If there is a transform for the language into one of the component inputs, add a default source set
+        private <U extends LanguageSourceSet> void registerLanguageTypes(ComponentSpecInternal component, LanguageRegistration<U> languageRegistration, LanguageTransformContainer languageTransforms) {
+            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
+                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
+                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
+                    return;
+                }
+            }
+        }
+
+        @Rules
+        void inputRules(AttachInputs attachInputs, @Each ComponentSpec component) {
+            attachInputs.setBinaries(component.getBinaries());
+            attachInputs.setSources(component.getSources());
+        }
+
+        static abstract class AttachInputs extends RuleSource {
+            @RuleTarget
+            abstract ModelMap<BinarySpec> getBinaries();
+            abstract void setBinaries(ModelMap<BinarySpec> binaries);
+
+            @RuleInput
+            abstract ModelMap<LanguageSourceSet> getSources();
+            abstract void setSources(ModelMap<LanguageSourceSet> sources);
+
+            @Mutate
+            void initializeBinarySourceSets(ModelMap<BinarySpec> binaries) {
+                // TODO - sources is not actual an input to binaries, it's an input to each binary
+                binaries.withType(BinarySpecInternal.class, new Action<BinarySpecInternal>() {
+                    @Override
+                    public void execute(BinarySpecInternal binary) {
+                        binary.getInputs().addAll(getSources().values());
+                    }
+                });
             }
         }
     }

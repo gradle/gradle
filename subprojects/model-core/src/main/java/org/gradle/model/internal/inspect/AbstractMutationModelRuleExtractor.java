@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
 
@@ -35,25 +36,27 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         if (context.hasProblems()) {
             return null;
         }
-        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition);
+        ChildTraversalType childTraversal = ChildTraversalType.subjectTraversalOf(context, ruleDefinition, 0);
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition, childTraversal);
     }
 
     protected abstract ModelActionRole getMutationType();
 
-    private static class ExtractedMutationRule<S> implements ExtractedModelRule {
+    private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
-        private final MethodRuleDefinition<?, S> ruleDefinition;
+        private final ChildTraversalType childTraversal;
 
-        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, ChildTraversalType childTraversal) {
+            super(ruleDefinition);
             this.mutationType = mutationType;
-            this.ruleDefinition = ruleDefinition;
+            this.childTraversal = childTraversal;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
-            context.getRegistry().configure(mutationType,
-                    context.contextualize(ruleDefinition,
-                            new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())));
+            MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
+            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
+            RuleExtractorUtils.configureRuleAction(context, childTraversal, mutationType, ruleAction);
         }
 
         @Override

@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.internal.streams.SafeStreams
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
@@ -86,7 +86,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
             throw new RuntimeException("This implementation does not know how to forcefully kill the daemon on os: " + OperatingSystem.current())
         }
         def output = new ByteArrayOutputStream()
-        def e = new ExecHandleBuilder()
+        def e = TestFiles.execHandleFactory().newExec()
                 .commandLine(killArgs(pid))
                 .redirectErrorStream()
                 .setStandardInput(killScript(pid))

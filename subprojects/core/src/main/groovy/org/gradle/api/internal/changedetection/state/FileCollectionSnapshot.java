@@ -32,8 +32,6 @@ public interface FileCollectionSnapshot {
 
     Collection<File> getFiles();
 
-    Collection<File> getAllFiles();
-
     FilesSnapshotSet getSnapshot();
 
     interface Diff {

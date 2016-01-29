@@ -65,11 +65,8 @@ class MinimalFileSetSnapshotterTest extends Specification {
         !findSnapshot(notIncluded)
 
         and:
-        // getAllFiles() returns missing file snapshots and existing file snapshots, but not directories
-        snapshot.allFiles.sort() == [ included, missing ]
-
-        // getFiles() returns only existing file snapshots
-        snapshot.files == [ included ]
+        // getFiles() returns missing file snapshots and existing file snapshots, but not directories
+        snapshot.files.sort() == [ included, missing ]
     }
 
     DefaultFileCollectionSnapshotter.IncrementalFileSnapshot findSnapshot(File file) {

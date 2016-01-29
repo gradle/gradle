@@ -380,7 +380,7 @@ task smallJavaSwModelProject(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelProject(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
@@ -390,7 +390,7 @@ task smallJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelCompileAvoidanceWithApi(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
@@ -400,7 +400,7 @@ task smallJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
 }
 
 task largeJavaSwModelCompileAvoidanceWithoutApi(type: JvmProjectGeneratorTask) {
-    projects = 100
+    projects = 50
     sourceFiles = 1000
 }
 
@@ -415,7 +415,6 @@ configure([smallJavaSwModelProject, largeJavaSwModelProject,
            tinyJavaSwApiJarStubbingWithoutApi]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
-    useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'java-sw-model-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
@@ -455,7 +454,6 @@ configure([smallJavaSwModelCompileAvoidanceWithApi,
     templateArgs.useApiDependencies = true
     numberOfExternalDependencies = 0
     createTestComponent = false
-    sourceFiles = 300
     dependencyGraph {
         size = 0
     }
@@ -563,6 +561,7 @@ Pattern buildReceiptPattern = Pattern.compile(".*?build receipt.*?")
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
     inputs.files sourceSets.testFixtures.runtimeClasspath
+    inputs.dir file("${System.getProperty("user.home")}/.gradle-performance-test-data")
     outputs.dir reportDir
 
     doLast {

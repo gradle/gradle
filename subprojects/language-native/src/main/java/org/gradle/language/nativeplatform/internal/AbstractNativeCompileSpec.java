@@ -36,7 +36,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
-    private Map<File, SourceIncludes> sourceFileIncludes;
+    private Map<File, IncludeDirectives> sourceFileIncludeDirectives;
     private String preCompiledHeader;
     private IncrementalTaskInputs incrementalTaskInputs;
 
@@ -162,14 +162,12 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         this.oplogger = oplogger;
     }
 
-    @Override
-    public Map<File, SourceIncludes> getSourceFileIncludes() {
-        return sourceFileIncludes;
+    public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
+        return sourceFileIncludeDirectives;
     }
 
-    @Override
-    public void setSourceFileIncludes(Map<File, SourceIncludes> map) {
-        this.sourceFileIncludes = map;
+    public void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map) {
+        this.sourceFileIncludeDirectives = map;
     }
 
     public void setIncrementalInputs(IncrementalTaskInputs inputs) {

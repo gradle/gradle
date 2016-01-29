@@ -37,4 +37,11 @@ public @interface Option {
      * @return The description.
      */
     String description();
+
+    /**
+     * The order of this option for displaying in help command output. Allows overriding default alphabetical order.
+     *
+     * @return The order.
+     */
+    int order() default 0;
 }

@@ -77,6 +77,7 @@ public class PlayTwirlPlugin extends RuleSource {
     }
 
     @Mutate
+    // TODO:LPTR This should be @Defaults @Each PlayApplicationBinarySpecInternal
     void addPlayJavaDependencyIfNeeded(ModelMap<PlayApplicationBinarySpecInternal> binaries, final PlayPluginConfigurations configurations, final PlatformResolvers platforms) {
         binaries.beforeEach(new Action<PlayApplicationBinarySpecInternal>() {
             @Override

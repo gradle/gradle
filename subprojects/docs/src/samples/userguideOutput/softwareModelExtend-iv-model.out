@@ -7,10 +7,10 @@ Root project
       | Type:   	org.gradle.platform.base.BinaryContainer
       | Creator: 	BinaryBasePlugin.Rules#binaries
       | Rules:
-         ⤷ ComponentModelBasePlugin.Rules#collectBinaries
+         ⤷ ComponentModelBasePlugin.PluginRules#collectBinaries
 + components
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
-      | Creator: 	ComponentModelBasePlugin.Rules#components
+      | Creator: 	ComponentModelBasePlugin.PluginRules#components
       | Rules:
          ⤷ components { ... } @ build.gradle line 42, column 5
          ⤷ MyPlugin#mutateMyComponents
@@ -18,16 +18,15 @@ Root project
           | Type:   	MyComponent
           | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
           | Rules:
-             ⤷ ComponentRules#addSourcesSetsToProjectSourceSet
-             ⤷ ComponentRules#applyDefaultSourceConventions
-             ⤷ ComponentRules#initializeSourceSets
-             ⤷ ComponentRules#inputRules
+             ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
+             ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
+             ⤷ ComponentModelBasePlugin.PluginRules#inputRules
              ⤷ MyPlugin#mutateMyComponents > all()
         + binaries
               | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
               | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
               | Rules:
-                 ⤷ ComponentRules.AttachInputs#initializeBinarySourceSets
+                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
         + publicData
               | Type:   	java.lang.String
               | Value:  	Some PUBLIC data
@@ -38,7 +37,7 @@ Root project
 + platforms
       | Type:   	org.gradle.platform.base.PlatformContainer
       | Value:  	[]
-      | Creator: 	ComponentModelBasePlugin.Rules#platforms
+      | Creator: 	ComponentModelBasePlugin.PluginRules#platforms
 + sources
       | Type:   	org.gradle.language.base.ProjectSourceSet
       | Value:  	[]
@@ -48,14 +47,14 @@ Root project
       | Creator: 	Project.<init>.tasks()
       | Rules:
          ⤷ BinaryBasePlugin.Rules#copyBinaryTasksToTaskContainer
-         ⤷ ComponentModelBasePlugin.Rules#createSourceTransformTasks
+         ⤷ ComponentModelBasePlugin.PluginRules#createSourceTransformTasks
     + assemble
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':assemble'
           | Creator: 	tasks.addPlaceholderAction(assemble)
           | Rules:
              ⤷ copyToTaskContainer
-             ⤷ ComponentModelBasePlugin.Rules#attachBinariesToAssembleLifecycle
+             ⤷ ComponentModelBasePlugin.PluginRules#attachBinariesToAssembleLifecycle
     + build
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':build'

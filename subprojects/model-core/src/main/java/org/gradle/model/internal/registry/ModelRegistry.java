@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -103,6 +104,10 @@ public interface ModelRegistry {
     ModelRegistry register(ModelRegistration registration);
 
     ModelRegistry configure(ModelActionRole role, ModelAction action);
+
+    ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
+
+    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
 
     MutableModelNode getRoot();
 }

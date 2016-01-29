@@ -31,6 +31,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,18 +39,22 @@ import static org.gradle.util.CollectionUtils.findFirst;
 
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
-    private ImmutableList<ModelReference<?>> references;
+    private List<ModelReference<?>> references;
+    private List<List<Annotation>> parameterAnnotations;
     private final WeaklyTypeReferencingMethod<T, R> method;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
         this.method = WeaklyTypeReferencingMethod.of(instanceType, returnType, method);
 
         ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
+        ImmutableList.Builder<List<Annotation>> parameterAnnotationsBuilder = ImmutableList.builder();
         for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
-            Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
+            List<Annotation> paramAnnotations = Arrays.asList(method.getParameterAnnotations()[i]);
+            parameterAnnotationsBuilder.add(paramAnnotations);
             referencesBuilder.add(reference(paramAnnotations, i));
         }
         this.references = referencesBuilder.build();
+        this.parameterAnnotations = parameterAnnotationsBuilder.build();
     }
 
     public static <T> MethodRuleDefinition<?, ?> create(Class<T> source, Method method) {
@@ -66,10 +71,12 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return method;
     }
 
+    @Override
     public String getMethodName() {
         return method.getName();
     }
 
+    @Override
     public ModelType<R> getReturnType() {
         return method.getReturnType();
     }
@@ -95,15 +102,22 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return method.getMethod().getAnnotation(annotationType);
     }
 
+    @Override
     public ModelRuleDescriptor getDescriptor() {
         return new MethodModelRuleDescriptor(method);
     }
 
+    @Override
     public List<ModelReference<?>> getReferences() {
         return references;
     }
 
-    private ModelReference<?> reference(Annotation[] annotations, int i) {
+    @Override
+    public List<List<Annotation>> getParameterAnnotations() {
+        return parameterAnnotations;
+    }
+
+    private ModelReference<?> reference(List<Annotation> annotations, int i) {
         Path pathAnnotation = (Path) findFirst(annotations, new Spec<Annotation>() {
             public boolean isSatisfiedBy(Annotation element) {
                 return element.annotationType().equals(Path.class);

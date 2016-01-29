@@ -31,11 +31,13 @@ import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.process.internal.ExecActionFactory;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -59,6 +61,10 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     private class BuildScopeServices {
         LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ServiceRegistry registry) {
             return new LocalLibraryDependencyResolverFactory(projectModelResolver, registry);
+        }
+
+        JavaInstallationProbe createJavaInstallationProve(ExecActionFactory factory) {
+            return new JavaInstallationProbe(factory);
         }
     }
 

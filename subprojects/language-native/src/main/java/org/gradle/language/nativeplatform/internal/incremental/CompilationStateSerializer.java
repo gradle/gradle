@@ -18,9 +18,9 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import org.gradle.internal.serialize.*;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
 
 import java.io.File;
 import java.util.Set;
@@ -60,19 +60,19 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     private class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
         private final Serializer<byte[]> hashSerializer = new HashSerializer();
         private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer());
-        private final Serializer<SourceIncludes> sourceIncludesSerializer = new SourceIncludesSerializer();
+        private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
 
         public CompilationFileState read(Decoder decoder) throws Exception {
             CompilationFileState fileState = new CompilationFileState(hashSerializer.read(decoder));
             fileState.setResolvedIncludes(resolveIncludesSerializer.read(decoder));
-            fileState.setSourceIncludes(sourceIncludesSerializer.read(decoder));
+            fileState.setIncludeDirectives(sourceIncludesSerializer.read(decoder));
             return fileState;
         }
 
         public void write(Encoder encoder, CompilationFileState value) throws Exception {
             hashSerializer.write(encoder, value.getHash());
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
-            sourceIncludesSerializer.write(encoder, value.getSourceIncludes());
+            sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
         }
     }
 
@@ -111,17 +111,17 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         }
     }
 
-    private class SourceIncludesSerializer implements Serializer<SourceIncludes> {
+    private class SourceIncludesSerializer implements Serializer<IncludeDirectives> {
         private final Serializer<Include> includeSerializer = new IncludeSerializer();
         private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(includeSerializer);
 
-        public SourceIncludes read(Decoder decoder) throws Exception {
-            DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes();
+        public IncludeDirectives read(Decoder decoder) throws Exception {
+            DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives();
             sourceIncludes.addAll(includeListSerializer.read(decoder));
             return sourceIncludes;
         }
 
-        public void write(Encoder encoder, SourceIncludes value) throws Exception {
+        public void write(Encoder encoder, IncludeDirectives value) throws Exception {
             includeListSerializer.write(encoder, value.getIncludesAndImports());
         }
     }

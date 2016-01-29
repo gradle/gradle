@@ -22,7 +22,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
@@ -36,6 +36,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 
@@ -63,25 +64,26 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
-    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                                       FileResolver fileResolver) {
+    Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
+                                                             TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
             classPathRegistry,
-            fileResolver,
             new LongIdGenerator(),
-            startParameter.getGradleUserHomeDir());
+            startParameter.getGradleUserHomeDir(),
+            temporaryFileProvider,
+            execHandleFactory);
     }
 
-    protected ClassPathRegistry createClassPathRegistry() {
+    ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
-            new DefaultClassPathProvider(get(ModuleRegistry.class)),
-            get(WorkerProcessClassPathProvider.class)
+                new DefaultClassPathProvider(get(ModuleRegistry.class)),
+                get(WorkerProcessClassPathProvider.class)
         );
     }
 
-    protected WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
+    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
     }
 }
