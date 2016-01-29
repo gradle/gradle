@@ -36,7 +36,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    //@Requires(TestPrecondition.NOT_WINDOWS)
     def "can declare an installed JDK and model report shows the resolved installed JDK"() {
         given:
         def jdks = discoveredJavaInstalls().indexed().collect { i, jdk ->
@@ -69,7 +69,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private List<JavaInfo> discoveredJavaInstalls() {
-        AvailableJavaHomes.availableJdks.unique(false) { it.javaHome.canonicalPath }
+        AvailableJavaHomes.availableJvms.unique(false) { it.javaHome.canonicalPath }
     }
 
     def "pointing to a non existent installation doesn't resolve to a JDK"() {

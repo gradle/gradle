@@ -155,7 +155,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     case NO_SUCH_DIRECTORY:
                         throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", candidate.getName(), javaHome));
                     case INVALID_JDK:
-                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", candidate.getName(), javaHome));
+                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, probeResult.getError()));
                 }
 
                 if (!javaHome.equals(currentJavaHome)) {

@@ -54,7 +54,8 @@ public class JavaInstallationProbe {
         ARCH("os.arch"),
         VM("java.vm.name"),
         VM_VERSION("java.vm.version"),
-        RUNTIME("java.runtime.name");
+        RUNTIME("java.runtime.name"),
+        Z_ERROR("Internal"); // This line MUST be last!
 
         private final String sysProp;
 
@@ -65,20 +66,30 @@ public class JavaInstallationProbe {
     }
 
     public static class ProbeResult {
-        private final InstallType installType;
         private final EnumMap<SysProp, String> metadata;
+        private final InstallType installType;
+        private final String error;
 
-        public ProbeResult(InstallType installType, EnumMap<SysProp, String> metadata) {
+        public static ProbeResult success(InstallType installType, EnumMap<SysProp, String> metadata) {
+            return new ProbeResult(installType, metadata, null);
+        }
+
+        public static ProbeResult failure(InstallType installType, String error) {
+            return new ProbeResult(installType, null, error);
+        }
+
+        private ProbeResult(InstallType installType, EnumMap<SysProp, String> metadata, String error) {
             this.installType = installType;
             this.metadata = metadata;
+            this.error = error;
         }
 
         public InstallType getInstallType() {
             return installType;
         }
 
-        public EnumMap<SysProp, String> getMetadata() {
-            return metadata;
+        public String getError() {
+            return error;
         }
 
         public void configure(LocalJavaInstallation install) {
@@ -101,28 +112,28 @@ public class JavaInstallationProbe {
     }
 
     public void current(LocalJavaInstallation currentJava) {
-        new ProbeResult(InstallType.IS_JDK, current()).configure(currentJava);
+        ProbeResult.success(InstallType.IS_JDK, current()).configure(currentJava);
     }
 
     public ProbeResult checkJdk(File jdkPath) {
         if (!jdkPath.exists()) {
-            return new ProbeResult(InstallType.NO_SUCH_DIRECTORY, unknown());
+            return ProbeResult.failure(InstallType.NO_SUCH_DIRECTORY, "No such directory: "+jdkPath);
         }
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
         if (UNKNOWN.equals(version)) {
-            return new ProbeResult(InstallType.INVALID_JDK, metadata);
+            return ProbeResult.failure(InstallType.INVALID_JDK, metadata.get(SysProp.Z_ERROR));
         }
         try {
             JavaVersion.toVersion(version);
         } catch (IllegalArgumentException ex) {
             // if the version string cannot be parsed
-            return new ProbeResult(InstallType.INVALID_JDK, metadata);
+            return ProbeResult.failure(InstallType.INVALID_JDK, "Cannot parse version number: " +version);
         }
         if (javaExe(jdkPath, "javac").exists()) {
-            return new ProbeResult(InstallType.IS_JDK, metadata);
+            return ProbeResult.success(InstallType.IS_JDK, metadata);
         }
-        return new ProbeResult(InstallType.IS_JRE, metadata);
+        return ProbeResult.success(InstallType.IS_JRE, metadata);
     }
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
@@ -142,9 +153,9 @@ public class JavaInstallationProbe {
             if (exitValue == 0) {
                 return parseExecOutput(baos.toString());
             }
-            return unknown();
+            return error("Command returned unexpected result code: "+exitValue);
         } catch (ExecException ex) {
-            return unknown();
+            return error(ex.getMessage());
         } finally {
             try {
                 org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
@@ -232,7 +243,9 @@ public class JavaInstallationProbe {
             Label l0 = new Label();
             mv.visitLabel(l0);
             for (SysProp type : SysProp.values()) {
-                dumpProperty(mv, type.sysProp);
+                if (type != SysProp.Z_ERROR) {
+                    dumpProperty(mv, type.sysProp);
+                }
             }
             mv.visitInsn(RETURN);
             Label l3 = new Label();
@@ -271,21 +284,24 @@ public class JavaInstallationProbe {
 
     private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
         String[] split = probeResult.split(System.getProperty("line.separator"));
-        if (split.length != SysProp.values().length) {
-            return unknown();
+        if (split.length != SysProp.values().length - 1) { // -1 because of Z_ERROR
+            return error("Unexpected command output: \n" + probeResult);
         }
         EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
         for (SysProp type : SysProp.values()) {
-            result.put(type, split[type.ordinal()]);
+            if (type!=SysProp.Z_ERROR) {
+                result.put(type, split[type.ordinal()]);
+            }
         }
         return result;
     }
 
-    private static EnumMap<SysProp, String> unknown() {
+    private static EnumMap<SysProp, String> error(String message) {
         EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
         for (SysProp type : SysProp.values()) {
             result.put(type, UNKNOWN);
         }
+        result.put(SysProp.Z_ERROR, message);
         return result;
     }
 
