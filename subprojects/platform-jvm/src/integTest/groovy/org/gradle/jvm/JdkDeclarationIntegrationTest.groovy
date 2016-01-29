@@ -36,7 +36,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    //@Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can declare an installed JDK and model report shows the resolved installed JDK"() {
         given:
         def jdks = discoveredJavaInstalls().indexed().collect { i, jdk ->
