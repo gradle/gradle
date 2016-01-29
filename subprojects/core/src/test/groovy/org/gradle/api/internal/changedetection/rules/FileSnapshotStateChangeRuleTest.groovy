@@ -19,7 +19,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
-public class InputFilesStateChangeRuleTest extends Specification {
+public class FileSnapshotStateChangeRuleTest extends Specification {
     def snapshotAccess = Mock(SnapshotAccess)
     def previousInputSnapshot = Mock(FileCollectionSnapshot)
     def inputSnapshot = Mock(FileCollectionSnapshot)
@@ -28,7 +28,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
     TaskStateChanges createStateChanges() {
         snapshotAccess.previous >> previousInputSnapshot
         snapshotAccess.current >> inputSnapshot
-        return InputFilesStateChangeRule.create(snapshotAccess, "TYPE")
+        return FileSnapshotStateChangeRule.create(snapshotAccess, "TYPE")
     }
 
     def "emits change for no previous input snapshot"() {

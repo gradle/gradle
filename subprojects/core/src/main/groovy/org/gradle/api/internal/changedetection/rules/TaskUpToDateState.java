@@ -49,7 +49,8 @@ public class TaskUpToDateState {
         // Capture outputs state
         TaskStateChanges outputFileChanges;
         try {
-            outputFileChanges = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
+            SnapshotAccess outputFileSnapshotAccess = new OutputFilesSnapshotAccess(lastExecution, thisExecution, task, outputFilesSnapshotter);
+            outputFileChanges = caching(FileSnapshotStateChangeRule.create(outputFileSnapshotAccess, "Output"));
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.", task.getName()), e);
         }
@@ -59,7 +60,7 @@ public class TaskUpToDateState {
         try {
             FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
             this.inputFilesSnapshot = inputFilesSnapshot.getSnapshot();
-            inputFileChanges = caching(InputFilesStateChangeRule.create(new InputFilesSnapshotAccess(lastExecution, thisExecution, inputFilesSnapshot), "Input"));
+            inputFileChanges = caching(FileSnapshotStateChangeRule.create(new InputFilesSnapshotAccess(lastExecution, thisExecution, inputFilesSnapshot), "Input"));
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
@@ -69,7 +70,7 @@ public class TaskUpToDateState {
         try {
             DiscoveredInputFilesSnapshotAccess discoveredInputFilesSnapshotAccess = new DiscoveredInputFilesSnapshotAccess(discoveredInputsSnapshotter, fileCollectionFactory, lastExecution, thisExecution);
             this.discoveredInputsListener = discoveredInputFilesSnapshotAccess;
-            discoveredInputFilesChanges = InputFilesStateChangeRule.create(discoveredInputFilesSnapshotAccess, "Discovered input");
+            discoveredInputFilesChanges = FileSnapshotStateChangeRule.create(discoveredInputFilesSnapshotAccess, "Discovered input");
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }

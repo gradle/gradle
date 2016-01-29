@@ -23,9 +23,9 @@ import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * A rule which detects changes in the input files of a task.
+ * A rule which detects changes in the a set of files for a task (inputs/outputs/discovered-inputs).
  */
-class InputFilesStateChangeRule {
+class FileSnapshotStateChangeRule {
     public static TaskStateChanges create(final SnapshotAccess snapshotAccess, final String inputFileType) {
         return new TaskStateChanges() {
             public Iterator<TaskStateChange> iterator() {
@@ -54,7 +54,7 @@ class InputFilesStateChangeRule {
     }
 
     private static class ChangeListenerAdapter implements ChangeListener<String> {
-        public InputFileChange lastChange;
+        public FileChange lastChange;
         private final String inputFileType;
 
         private ChangeListenerAdapter(String inputFileType) {
@@ -62,15 +62,15 @@ class InputFilesStateChangeRule {
         }
 
         public void added(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.ADDED, inputFileType);
+            lastChange = new FileChange(fileName, ChangeType.ADDED, inputFileType);
         }
 
         public void removed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.REMOVED, inputFileType);
+            lastChange = new FileChange(fileName, ChangeType.REMOVED, inputFileType);
         }
 
         public void changed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED, inputFileType);
+            lastChange = new FileChange(fileName, ChangeType.MODIFIED, inputFileType);
         }
     }
 }
