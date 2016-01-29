@@ -23,11 +23,11 @@ import org.gradle.model.Managed;
 import java.io.File;
 
 /**
- * A local JDK installation.
+ * A local JDK, JRE or Java 9+ installation.
  */
 @Incubating
 @Managed
-public interface JdkSpec extends Named {
+public interface LocalJava extends Named {
     File getPath();
     void setPath(File path);
 }

@@ -34,54 +34,74 @@ A command-line client will be able to point to a composite build definition, and
 
 After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` model for each included project.
 
-##### Stories
+##### Core stories
 
 - [ ] [Tooling client provides model for "composite" with one multi-project participant](tooling-api-model/single-build)
 - [ ] [Tooling client provides model for composite containing multiple participants](tooling-api-model/multiple-builds)
 - [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
 
-##### Open Questions
+##### Further stories
 
-- Is `GradleConnection` or `GradleBuildConnection` a better name than `CompositeBuildConnection`?
-    - This API will be useful to connect an individual Gradle build (single project or multi-project)
-    - Implementation _may_ be different for a single-build connection: no need to have a separate daemon process involved
+- [ ] Tooling client cancels composite model request
+- [ ] Tooling client provides progress listener for composite model request
+- [ ] Tooling client specifies stdout and stderr for composite model request
+- [ ] Tooling client provides common args, JVM args and stdin for in composite model request
+- [ ] Tooling client provides separate args, JVM args and stdin for each participant in composite model request
 
-### Milestone: IDE models for composite build include dependency substitution
+##### Open questions
 
-After this milestone, a Tooling client can define a _homogeneous_ composite build (one where all participants have same Gradle version), and the `EclipseProject` model returned will have external dependencies replaced with project dependencies.
+### Milestone: IDE models for homogeneous composite include dependency substitution
+
+After this milestone, when a Tooling client defines a _homogeneous_ composite build (one where all participants use the same, recent version of Gradle),  the `EclipseProject` model returned will have external dependencies replaced with project dependencies.
 
 ##### Stories:
 
 Tooling client defines a homogeneous composite and:
 
-- [ ] IDE models have external dependencies directly replaced with dependencies on composite project publications
-    - Naive implementation of dependency substitution: metadata is not considered
-    - Retrieve the `ProjectPublications` instance for every `EclipseProject` in the composite
-    - Adapt the returned set of `EclipseProject` instances by replacing Classpath entries with project dependencies
-- [ ] IDE models are resolved with project dependencies substituted for external dependencies
-    - Implement real dependency substitution for composite build (all participants must have the same Gradle version)
-    - Provide a "Composite Context" (containing all project publication information) when requesting `EclipseProject` model from each build
-    - Likely remove the use of Tooling API to communicate with each participant
+- [ ] [IDE models have external dependencies directly replaced with project dependencies](dependency-substitution/direct-replacement)
+- [ ] [IDE models are resolved with project dependencies substituted for external dependencies](dependency-substitution/resolved-substitution)
+
+##### Open questions
+
+- Gracefully degrade for heterogeneous composites:
+    - Same Gradle version, different JVM args or java versions
+    - Different Gradle versions >= 2.12
+    - Gradle versions < 2.12 (Do we do naive substitution, or no substitution?)
+- Will need to report 'capabilities' of composite back to client
 
 ### Milestone: Tooling client can define composite and execute tasks
 
-After this milestone, a Tooling client can define a homogeneous composite build, and execute tasks for projects within the composite. When performing dependency resolution for tasks, external dependencies will be replaced with appropriate project dependencies.
+After this milestone, a Tooling client can define a composite build, and execute tasks for projects within the composite. Where possible, external dependencies will be replaced with appropriate project dependencies when performing dependency resolution for tasks.
 
 ##### Stories:
 
 Tooling client defines a composite and:
 
-- [ ] Executes `dependencies` task for project, demonstrating appropriate dependency substitution
+- [ ] Executes task in a single project within a heterogeneous composite
+    - Need API that provides a `BuildLauncher` for a particular project
+- [ ] Executes `dependencies` task for a single project, demonstrating appropriate dependency substitution
 - [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
 - [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
+
+##### Further stories
+
+- [ ] Execute all tasks with name across all projects in composite
 
 ### Milestone: Command-line user can execute tasks in composite build
 
 After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
+
+- [ ] Developer executes tasks in a single project with implicit composite defined by directory
+    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
+    - Command-line switch to target a particular project within the composite (likely the same switch)
+    - All directories in the current directory are considered to be builds participating in a composite
+- [ ] Developer declares composite participants using composite descriptor
+- More TBD...
+
 
 ## Later
 
 - Model/task support for heterogeneous composites (different versions of Gradle)
 - Model/task support for older Gradle versions
 - Support for composite builds in Gradle TestKit
-- 
+

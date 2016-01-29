@@ -26,13 +26,13 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.ProbeResult.*
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.*
 
 class JavaInstallationProbeTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
 
-    @Unroll("Can probe version of #jdk is #expectedResult")
+    @Unroll("Can probe version of #jdk is #displayName")
     def "probes java installation"() {
         given:
         def execFactory = Mock(ExecActionFactory)
@@ -67,11 +67,11 @@ class JavaInstallationProbeTest extends Specification {
         }
         def probeResult = probe.checkJdk(javaHome)
         if (expectedResult == IS_JDK) {
-            probe.configure(javaHome, install)
+            probeResult.configure(install)
         }
 
         then:
-        probeResult == expectedResult
+        probeResult.installType == expectedResult
         if (expectedResult == IS_JDK) {
             assert install.javaVersion == javaVersion
             assert displayName == null || install.displayName == displayName
@@ -90,6 +90,7 @@ class JavaInstallationProbeTest extends Specification {
         'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | false | IS_JDK
         'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | true  | IS_JRE
         'oracleJdk4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JDK 4' | true   | false | IS_JDK
+        'oracleJre4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JRE 4' | true   | true  | IS_JRE
         'oracleJdk5'                          | oracleJdk('5')   | JavaVersion.VERSION_1_5 | 'Oracle JDK 5' | true   | false | IS_JDK
         'oracleJdk6'                          | oracleJdk('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6' | true   | false | IS_JDK
         'oracleJdk7'                          | oracleJdk('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7' | true   | false | IS_JDK
@@ -97,6 +98,7 @@ class JavaInstallationProbeTest extends Specification {
         'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | false | IS_JDK
         'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | true  | IS_JRE
         'ibmJdk4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'    | true   | false | IS_JDK
+        'ibmJre4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JRE 4'    | true   | true  | IS_JRE
         'ibmJdk5'                             | ibmJdk('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'    | true   | false | IS_JDK
         'ibmJdk6'                             | ibmJdk('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'    | true   | false | IS_JDK
         'ibmJdk7'                             | ibmJdk('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true   | false | IS_JDK
@@ -159,7 +161,7 @@ class JavaInstallationProbeTest extends Specification {
         ]
     }
 
-   private static Map<String, String> zulu(String version) {
+    private static Map<String, String> zulu(String version) {
         ['java.version': "1.${version}.0_66",
          'java.vendor': "Azul Systems, Inc.",
          'os.arch': "amd64",
