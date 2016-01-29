@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -74,7 +73,7 @@ public abstract class AvailableJavaHomes {
             .transform(new Function<JvmInstallation, JavaInfo>() {
                 @Override
                 public JavaInfo apply(@javax.annotation.Nullable JvmInstallation input) {
-                    return  Jvm.forHome(input.getJavaHome());
+                    return Jvm.forHome(input.getJavaHome());
                 }
             }).toList();
     }
