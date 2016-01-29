@@ -117,7 +117,7 @@ public class JavaInstallationProbe {
 
     public ProbeResult checkJdk(File jdkPath) {
         if (!jdkPath.exists()) {
-            return ProbeResult.failure(InstallType.NO_SUCH_DIRECTORY, "No such directory: "+jdkPath);
+            return ProbeResult.failure(InstallType.NO_SUCH_DIRECTORY, "No such directory: " + jdkPath);
         }
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
@@ -128,7 +128,7 @@ public class JavaInstallationProbe {
             JavaVersion.toVersion(version);
         } catch (IllegalArgumentException ex) {
             // if the version string cannot be parsed
-            return ProbeResult.failure(InstallType.INVALID_JDK, "Cannot parse version number: " +version);
+            return ProbeResult.failure(InstallType.INVALID_JDK, "Cannot parse version number: " + version);
         }
         if (javaExe(jdkPath, "javac").exists()) {
             return ProbeResult.success(InstallType.IS_JDK, metadata);
@@ -146,14 +146,15 @@ public class JavaInstallationProbe {
             exec.setMain(JavaProbe.CLASSNAME);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             exec.setStandardOutput(baos);
-            exec.setErrorOutput(new ByteArrayOutputStream());
+            ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+            exec.setErrorOutput(errorOutput);
             exec.setIgnoreExitValue(true);
             ExecResult result = exec.execute();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
                 return parseExecOutput(baos.toString());
             }
-            return error("Command returned unexpected result code: "+exitValue);
+            return error("Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
         } catch (ExecException ex) {
             return error(ex.getMessage());
         } finally {
@@ -166,7 +167,7 @@ public class JavaInstallationProbe {
     }
 
     private static String computeJdkName(InstallType result, EnumMap<SysProp, String> metadata) {
-        String basename = result == InstallType.IS_JDK?"JDK":"JRE";
+        String basename = result == InstallType.IS_JDK ? "JDK" : "JRE";
         String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
         if (vendor == null) {
             return basename;
@@ -174,15 +175,15 @@ public class JavaInstallationProbe {
             vendor = vendor.toLowerCase();
         }
         if (vendor.contains("apple")) {
-            return "Apple "+basename;
+            return "Apple " + basename;
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {
                 return "OpenJDK";
             }
-            return "Oracle "+basename;
+            return "Oracle " + basename;
         } else if (vendor.contains("ibm")) {
-            return "IBM "+basename;
+            return "IBM " + basename;
         } else if (vendor.contains("azul systems")) {
             return "Zulu";
         }
@@ -289,7 +290,7 @@ public class JavaInstallationProbe {
         }
         EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
         for (SysProp type : SysProp.values()) {
-            if (type!=SysProp.Z_ERROR) {
+            if (type != SysProp.Z_ERROR) {
                 result.put(type, split[type.ordinal()]);
             }
         }
