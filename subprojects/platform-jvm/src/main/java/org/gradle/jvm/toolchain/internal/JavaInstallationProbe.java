@@ -62,37 +62,34 @@ public class JavaInstallationProbe {
             this.sysProp = sysProp;
         }
 
-        private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
-            String[] split = probeResult.split(System.getProperty("line.separator"));
-            if (split.length != SysProp.values().length) {
-                return unknown();
-            }
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, split[type.ordinal()]);
-            }
-            return result;
-        }
-
-        private static EnumMap<SysProp, String> unknown() {
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, UNKNOWN);
-            }
-            return result;
-        }
-
-        private static EnumMap<SysProp, String> current() {
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, System.getProperty(type.sysProp, UNKNOWN));
-            }
-            return result;
-        }
-
     }
 
-    public enum ProbeResult {
+    public static class ProbeResult {
+        private final InstallType installType;
+        private final EnumMap<SysProp, String> metadata;
+
+        public ProbeResult(InstallType installType, EnumMap<SysProp, String> metadata) {
+            this.installType = installType;
+            this.metadata = metadata;
+        }
+
+        public InstallType getInstallType() {
+            return installType;
+        }
+
+        public EnumMap<SysProp, String> getMetadata() {
+            return metadata;
+        }
+
+        public void configure(LocalJavaInstallation install) {
+            JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
+            install.setJavaVersion(javaVersion);
+            String jdkName = computeJdkName(installType, metadata);
+            install.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+        }
+    }
+
+    public enum InstallType {
         IS_JDK,
         IS_JRE,
         NO_SUCH_DIRECTORY,
@@ -104,42 +101,28 @@ public class JavaInstallationProbe {
     }
 
     public void current(LocalJavaInstallation currentJava) {
-        configureInstall(currentJava, SysProp.current());
+        new ProbeResult(InstallType.IS_JDK, current()).configure(currentJava);
     }
 
     public ProbeResult checkJdk(File jdkPath) {
         if (!jdkPath.exists()) {
-            return ProbeResult.NO_SUCH_DIRECTORY;
+            return new ProbeResult(InstallType.NO_SUCH_DIRECTORY, unknown());
         }
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
         if (UNKNOWN.equals(version)) {
-            return ProbeResult.INVALID_JDK;
+            return new ProbeResult(InstallType.INVALID_JDK, metadata);
         }
         try {
             JavaVersion.toVersion(version);
         } catch (IllegalArgumentException ex) {
             // if the version string cannot be parsed
-            return ProbeResult.INVALID_JDK;
+            return new ProbeResult(InstallType.INVALID_JDK, metadata);
         }
         if (javaExe(jdkPath, "javac").exists()) {
-            return ProbeResult.IS_JDK;
+            return new ProbeResult(InstallType.IS_JDK, metadata);
         }
-        return ProbeResult.IS_JRE;
-    }
-
-    public void configure(File jdkPath, LocalJavaInstallation installedJdk) {
-        EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
-        if (!UNKNOWN.equals(metadata.get(SysProp.VERSION))) {
-            configureInstall(installedJdk, metadata);
-        }
-    }
-
-    private void configureInstall(LocalJavaInstallation installedJdk, EnumMap<SysProp, String> metadata) {
-        JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
-        installedJdk.setJavaVersion(javaVersion);
-        String jdkName = computeJdkName(metadata);
-        installedJdk.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+        return new ProbeResult(InstallType.IS_JRE, metadata);
     }
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
@@ -157,11 +140,11 @@ public class JavaInstallationProbe {
             ExecResult result = exec.execute();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
-                return SysProp.parseExecOutput(baos.toString());
+                return parseExecOutput(baos.toString());
             }
-            return SysProp.unknown();
+            return unknown();
         } catch (ExecException ex) {
-            return SysProp.unknown();
+            return unknown();
         } finally {
             try {
                 org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
@@ -171,29 +154,29 @@ public class JavaInstallationProbe {
         }
     }
 
-    private static String computeJdkName(EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
-        String jdkName = "JDK";
+    private static String computeJdkName(InstallType result, EnumMap<SysProp, String> metadata) {
+        String basename = result == InstallType.IS_JDK?"JDK":"JRE";
         String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
         if (vendor == null) {
-            return jdkName;
+            return basename;
         } else {
             vendor = vendor.toLowerCase();
         }
         if (vendor.contains("apple")) {
-            return "Apple JDK";
+            return "Apple "+basename;
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {
                 return "OpenJDK";
             }
-            return "Oracle JDK";
+            return "Oracle "+basename;
         } else if (vendor.contains("ibm")) {
-            return "IBM JDK";
+            return "IBM "+basename;
         } else if (vendor.contains("azul systems")) {
             return "Zulu";
         }
 
-        return jdkName;
+        return basename;
     }
 
     private static void writeProbe(File workingDir) {
@@ -286,4 +269,31 @@ public class JavaInstallationProbe {
         }
     }
 
+    private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
+        String[] split = probeResult.split(System.getProperty("line.separator"));
+        if (split.length != SysProp.values().length) {
+            return unknown();
+        }
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, split[type.ordinal()]);
+        }
+        return result;
+    }
+
+    private static EnumMap<SysProp, String> unknown() {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, UNKNOWN);
+        }
+        return result;
+    }
+
+    private static EnumMap<SysProp, String> current() {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, System.getProperty(type.sysProp, UNKNOWN));
+        }
+        return result;
+    }
 }

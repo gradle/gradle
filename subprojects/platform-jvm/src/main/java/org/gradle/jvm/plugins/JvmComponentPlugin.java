@@ -143,9 +143,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
             validateNoDuplicate(localJavaInstalls);
             for (final LocalJava candidate : localJavaInstalls) {
                 final File javaHome = canonicalFile(candidate.getPath());
-                JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
+                final JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
                 Class<? extends LocalJavaInstallation> clazz = null;
-                switch (probeResult) {
+                switch (probeResult.getInstallType()) {
                     case IS_JDK:
                         clazz = InstalledJdkInternal.class;
                         break;
@@ -163,7 +163,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         @Override
                         public void execute(LocalJavaInstallation installedJdk) {
                             installedJdk.setJavaHome(javaHome);
-                            probe.configure(javaHome, installedJdk);
+                            probeResult.configure(installedJdk);
                         }
                     });
                 }
