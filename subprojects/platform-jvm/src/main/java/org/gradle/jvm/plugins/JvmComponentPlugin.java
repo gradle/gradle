@@ -18,10 +18,12 @@ package org.gradle.jvm.plugins;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -111,9 +113,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
         }
 
-        @Validate
-        public void validateJDKs(ModelMap<LocalJava> jdks) {
-            ImmutableListMultimap<String, LocalJava> jdksByPath = indexByPath(jdks);
+        private static void validateNoDuplicate(ModelMap<LocalJava> jdks) {
+            ListMultimap<String, LocalJava> jdksByPath = indexByPath(jdks);
             List<String> errors = Lists.newArrayList();
             for (String path : jdksByPath.keySet()) {
                 checkDuplicateForPath(jdksByPath, path, errors);
@@ -135,10 +136,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Defaults
-        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> jdks, final JavaInstallationProbe probe) {
+        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> localJavaInstalls, final JavaInstallationProbe probe) {
             File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
-            for (final LocalJava jdk : jdks) {
-                final File javaHome = canonicalFile(jdk.getPath());
+            // TODO:Cedric The following validation should in theory happen in its own rule, but it is not possible now because
+            // there's no way to iterate on the map as subject of a `@Validate` rule without Gradle thinking you're trying to mutate it
+            validateNoDuplicate(localJavaInstalls);
+            for (final LocalJava candidate : localJavaInstalls) {
+                final File javaHome = canonicalFile(candidate.getPath());
                 JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
                 Class<? extends LocalJavaInstallation> clazz = null;
                 switch (probeResult) {
@@ -149,13 +153,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         clazz = InstalledJre.class;
                         break;
                     case NO_SUCH_DIRECTORY:
-                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
+                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", candidate.getName(), javaHome));
                     case INVALID_JDK:
-                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
+                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", candidate.getName(), javaHome));
                 }
 
                 if (!javaHome.equals(currentJavaHome)) {
-                    installedJdks.create(jdk.getName(), clazz, new Action<LocalJavaInstallation>() {
+                    installedJdks.create(candidate.getName(), clazz, new Action<LocalJavaInstallation>() {
                         @Override
                         public void execute(LocalJavaInstallation installedJdk) {
                             installedJdk.setJavaHome(javaHome);
@@ -280,31 +284,29 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return libName + "ApiJar";
         }
 
-        private static void checkDuplicateForPath(ImmutableListMultimap<String, LocalJava> index, String path, List<String> errors) {
-            ImmutableList<LocalJava> localJavas = index.get(path);
+        private static void checkDuplicateForPath(ListMultimap<String, LocalJava> index, String path, List<String> errors) {
+            List<LocalJava> localJavas = index.get(path);
             if (localJavas.size() > 1) {
                 errors.add(String.format("   - %s are both pointing to the same JDK installation path: %s",
                     Joiner.on(", ").join(Iterables.transform(localJavas, new Function<LocalJava, String>() {
                         @Override
                         public String apply(LocalJava input) {
-                            return input.getName();
+                            return "'" + input.getName() + "'";
                         }
                     })), path));
             }
         }
 
-        private static ImmutableListMultimap<String, LocalJava> indexByPath(ModelMap<LocalJava> jdks) {
-            return Multimaps.index(toImmutableJdkList(jdks), new Function<LocalJava, String>() {
-                @Override
-                public String apply(LocalJava input) {
-                    try {
-                        return input.getPath().getCanonicalPath().toString();
-                    } catch (IOException e) {
-                        UncheckedException.throwAsUncheckedException(e);
-                    }
-                    return null;
+        private static ListMultimap<String, LocalJava> indexByPath(ModelMap<LocalJava> localJavaInstalls) {
+            final ListMultimap<String, LocalJava> index = ArrayListMultimap.create();
+            for (LocalJava localJava : localJavaInstalls) {
+                try {
+                    index.put(localJava.getPath().getCanonicalPath(), localJava);
+                } catch (IOException e) {
+                    // ignore this installation for validation, it will be caught later
                 }
-            });
+            }
+            return index;
         }
 
         private static List<LocalJava> toImmutableJdkList(ModelMap<LocalJava> jdks) {

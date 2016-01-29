@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.JavaInfo
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Unroll
 
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
@@ -34,7 +36,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can declare an installed JDK and model report shows the resolved installed JDK"() {
         given:
-        def jdks = AvailableJavaHomes.availableJdks.indexed().collect { i, jdk ->
+        def jdks = discoveredJavaInstalls().indexed().collect { i, jdk ->
             """
                     jdk$i(LocalJava) {
                         path '${StringEscapeUtils.escapeJava(jdk.javaHome.toString())}'
@@ -56,11 +58,15 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         def report = ModelReportOutput.from(output)
         // for each declared JDK, there must be *at least* one installed JDK which Java Home corresponds
         // to the one declared. There may be less because they are deduplicated
-        AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
+        discoveredJavaInstalls().eachWithIndex { jdk, i ->
             assert report.modelNode.javaToolChains.'**'.@javaHome.any {
                 it == jdk.javaHome.canonicalFile.absolutePath
             }
         }
+    }
+
+    private List<JavaInfo> discoveredJavaInstalls() {
+        AvailableJavaHomes.availableJdks.unique(false) { it.javaHome.canonicalPath }
     }
 
     def "pointing to a non existent installation doesn't resolve to a JDK"() {
@@ -122,5 +128,30 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         // only uses the JDK that Gradle runs on
         assert report.modelNode.javaToolChains[0].children().size() == 1
         assert report.modelNode.javaToolChains.currentGradleJDK.@javaVersion == [JavaVersion.current().toString()]
+    }
+
+    def "Cannot declare the same JDK twice"() {
+        given:
+        def home = Jvm.current().javaHome.absolutePath
+        buildFile << """
+            model {
+                javaInstallations {
+                    openJdk(LocalJava) {
+                        path "${StringEscapeUtils.escapeJava(home)}"
+                    }
+                    superJdk(LocalJava) {
+                        path "${StringEscapeUtils.escapeJava(home)}"
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'model'
+
+        then:
+        failure.assertThatCause(containsNormalizedString('''Duplicate Java installation found:
+   - 'openJdk', 'superJdk' are both pointing to the same JDK installation path:'''))
+
     }
 }

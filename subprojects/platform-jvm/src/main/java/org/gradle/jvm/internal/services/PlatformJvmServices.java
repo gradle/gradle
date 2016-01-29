@@ -63,7 +63,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
             return new LocalLibraryDependencyResolverFactory(projectModelResolver, registry);
         }
 
-        JavaInstallationProbe createJavaInstallationProve(ExecActionFactory factory) {
+        JavaInstallationProbe createJavaInstallationProbe(ExecActionFactory factory) {
             return new JavaInstallationProbe(factory);
         }
     }
