@@ -34,7 +34,7 @@ public class ProgressEvent extends CategorisedOutputEvent {
 
     @Override
     public String toString() {
-        return String.format("Progress %s", status);
+        return "Progress " + status;
     }
 
     public OperationIdentifier getOperationId() {
