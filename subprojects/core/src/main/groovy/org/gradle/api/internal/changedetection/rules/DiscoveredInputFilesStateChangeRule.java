@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
@@ -47,15 +46,15 @@ public class DiscoveredInputFilesStateChangeRule {
             private final Collection<File> discoveredFiles = Sets.newHashSet();
 
             public Iterator<TaskStateChange> iterator() {
-                if (previousExecution.getDiscoveredInputFilesSnapshot() == null) {
+                final FileCollectionSnapshot stateAfterPreviousExecution = previousExecution.getDiscoveredInputFilesSnapshot();
+                if (stateAfterPreviousExecution == null) {
                     return Collections.<TaskStateChange>singleton(new DescriptiveChange(DISCOVERED_INPUT_FILE_TYPE + " file history is not available.")).iterator();
                 }
 
-                Iterables.addAll(discoveredFiles, previousExecution.getDiscoveredInputFilesSnapshot().getFiles());
-                final FileCollectionSnapshot discoveredFileSnapshot = inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
+                final FileCollectionSnapshot stateBeforeCurrentExecution = inputFilesSnapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", stateAfterPreviousExecution.getFiles()));
 
                 return new AbstractIterator<TaskStateChange>() {
-                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = discoveredFileSnapshot.iterateChangesSince(previousExecution.getDiscoveredInputFilesSnapshot());
+                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = stateBeforeCurrentExecution.iterateChangesSince(stateAfterPreviousExecution);
                     final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter();
 
                     @Override
