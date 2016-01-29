@@ -21,6 +21,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.os.OperatingSystem;
@@ -141,6 +142,7 @@ public class JavaInstallationProbe {
         exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
         exec.setWorkingDir(workingDir);
+        exec.setClasspath(new SimpleFileCollection(workingDir));
         try {
             writeProbe(workingDir);
             exec.setMain(JavaProbe.CLASSNAME);
