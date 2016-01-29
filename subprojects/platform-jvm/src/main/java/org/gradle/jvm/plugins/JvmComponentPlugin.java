@@ -84,6 +84,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
+        @Hidden
         public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
             return new DefaultJavaToolChainRegistry(toolChain);
@@ -99,6 +100,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
+        @Hidden
         public void javaToolChains(ModelMap<LocalJavaInstallation> javaInstallations, final JavaInstallationProbe probe) {
             javaInstallations.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
                 @Override

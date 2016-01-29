@@ -50,7 +50,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'model', '--format=short'
+        succeeds 'model', '--format=short', '--showHidden'
 
         then:
         def report = ModelReportOutput.from(output)
@@ -115,7 +115,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        succeeds 'model', '--format=short'
+        succeeds 'model', '--format=short', '--showHidden'
 
         then:
         def report = ModelReportOutput.from(output)
