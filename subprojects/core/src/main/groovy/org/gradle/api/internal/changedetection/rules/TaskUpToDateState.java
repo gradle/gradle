@@ -31,8 +31,8 @@ public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
     private final FilesSnapshotSet inputFilesSnapshot;
 
-    private TaskStateChanges inputFilesState;
-    private DiscoveredTaskStateChanges discoveredInputFilesState;
+    private TaskStateChanges inputFileChanges;
+    private DiscoveredInputsListener discoveredInputsListener;
     private SummaryTaskStateChanges allTaskChanges;
     private SummaryTaskStateChanges rebuildChanges;
 
@@ -47,32 +47,36 @@ public class TaskUpToDateState {
         TaskStateChanges inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
 
         // Capture outputs state
-        TaskStateChanges outputFilesState;
+        TaskStateChanges outputFileChanges;
         try {
-            outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
+            outputFileChanges = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of output files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture inputs state
+        TaskStateChanges inputFileChanges;
         try {
             FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
             this.inputFilesSnapshot = inputFilesSnapshot.getSnapshot();
-            inputFilesState = caching(InputFilesStateChangeRule.create(lastExecution, thisExecution, inputFilesSnapshot));
+            inputFileChanges = caching(InputFilesStateChangeRule.create(new InputFilesSnapshotAccess(lastExecution, thisExecution, inputFilesSnapshot), "Input"));
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
         // Capture discovered inputs state from previous execution
+        TaskStateChanges discoveredInputFilesChanges;
         try {
-            DiscoveredInputFilesStateChangeRule discoveredInputFilesStateChangeRule = new DiscoveredInputFilesStateChangeRule(discoveredInputsSnapshotter, fileCollectionFactory);
-            discoveredInputFilesState = discoveredInputFilesStateChangeRule.create(lastExecution, thisExecution);
+            DiscoveredInputFilesSnapshotAccess discoveredInputFilesSnapshotAccess = new DiscoveredInputFilesSnapshotAccess(discoveredInputsSnapshotter, fileCollectionFactory, lastExecution, thisExecution);
+            this.discoveredInputsListener = discoveredInputFilesSnapshotAccess;
+            discoveredInputFilesChanges = InputFilesStateChangeRule.create(discoveredInputFilesSnapshotAccess, "Discovered input");
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of input files for task '%s' during up-to-date check.", task.getName()), e);
         }
 
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState, caching(discoveredInputFilesState));
-        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
+        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges);
+        rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges);
+        this.inputFileChanges = inputFileChanges;
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -80,7 +84,7 @@ public class TaskUpToDateState {
     }
 
     public TaskStateChanges getInputFilesChanges() {
-        return inputFilesState;
+        return inputFileChanges;
     }
 
     public TaskStateChanges getAllTaskChanges() {
@@ -96,6 +100,6 @@ public class TaskUpToDateState {
     }
 
     public void newInputs(Set<File> discoveredInputs) {
-        discoveredInputFilesState.newInputs(discoveredInputs);
+        discoveredInputsListener.newInputs(discoveredInputs);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import java.io.File;
-import java.util.Set;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 
-public interface DiscoveredTaskStateChanges extends TaskStateChanges {
-    void newInputs(Set<File> files);
+/**
+ * Provides access to snapshots of files of a particular type: e.g. inputs, outputs, discovered-inputs
+ */
+interface SnapshotAccess {
+    FileCollectionSnapshot getPrevious();
+    FileCollectionSnapshot getCurrent();
+    void saveCurrent();
 }

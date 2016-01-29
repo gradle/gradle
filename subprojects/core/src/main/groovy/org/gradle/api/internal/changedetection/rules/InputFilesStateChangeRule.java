@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 
 import java.util.Collections;
@@ -27,18 +26,16 @@ import java.util.Iterator;
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
-    private static final String INPUT_FILE_TYPE = "Input";
-
-    public static TaskStateChanges create(final TaskExecution previousExecution, final TaskExecution currentExecution, final FileCollectionSnapshot inputFilesSnapshot) {
+    public static TaskStateChanges create(final SnapshotAccess snapshotAccess, final String inputFileType) {
         return new TaskStateChanges() {
             public Iterator<TaskStateChange> iterator() {
-                if (previousExecution.getInputFilesSnapshot() == null) {
-                    return Collections.<TaskStateChange>singleton(new DescriptiveChange(INPUT_FILE_TYPE + " file history is not available.")).iterator();
+                if (snapshotAccess.getPrevious() == null) {
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange(inputFileType + " file history is not available.")).iterator();
                 }
 
                 return new AbstractIterator<TaskStateChange>() {
-                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = inputFilesSnapshot.iterateChangesSince(previousExecution.getInputFilesSnapshot());
-                    final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter();
+                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = snapshotAccess.getCurrent().iterateChangesSince(snapshotAccess.getPrevious());
+                    final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter(inputFileType);
 
                     @Override
                     protected TaskStateChange computeNext() {
@@ -51,24 +48,29 @@ class InputFilesStateChangeRule {
             }
 
             public void snapshotAfterTask() {
-                currentExecution.setInputFilesSnapshot(inputFilesSnapshot);
+                snapshotAccess.saveCurrent();
             }
         };
     }
 
     private static class ChangeListenerAdapter implements ChangeListener<String> {
         public InputFileChange lastChange;
+        private final String inputFileType;
+
+        private ChangeListenerAdapter(String inputFileType) {
+            this.inputFileType = inputFileType;
+        }
 
         public void added(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.ADDED, INPUT_FILE_TYPE);
+            lastChange = new InputFileChange(fileName, ChangeType.ADDED, inputFileType);
         }
 
         public void removed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.REMOVED, INPUT_FILE_TYPE);
+            lastChange = new InputFileChange(fileName, ChangeType.REMOVED, inputFileType);
         }
 
         public void changed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED, INPUT_FILE_TYPE);
+            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED, inputFileType);
         }
     }
 }

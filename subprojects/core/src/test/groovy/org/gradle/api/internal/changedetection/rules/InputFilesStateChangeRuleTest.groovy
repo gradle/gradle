@@ -15,22 +15,20 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
-
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
 public class InputFilesStateChangeRuleTest extends Specification {
-    def inputSnapshot = Mock(FileCollectionSnapshot)
+    def snapshotAccess = Mock(SnapshotAccess)
     def previousInputSnapshot = Mock(FileCollectionSnapshot)
+    def inputSnapshot = Mock(FileCollectionSnapshot)
     FileCollectionSnapshot.ChangeIterator<String> changeIterator = Mock()
 
     TaskStateChanges createStateChanges() {
-        def previousExecution = Stub(TaskExecution) {
-            getInputFilesSnapshot() >> previousInputSnapshot
-        }
-        return InputFilesStateChangeRule.create(previousExecution, Mock(TaskExecution), inputSnapshot)
+        snapshotAccess.previous >> previousInputSnapshot
+        snapshotAccess.current >> inputSnapshot
+        return InputFilesStateChangeRule.create(snapshotAccess, "TYPE")
     }
 
     def "emits change for no previous input snapshot"() {
@@ -39,7 +37,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        messages == ["Input file history is not available."]
+        messages == ["TYPE file history is not available."]
     }
 
     def "emits change for file changes since previous input snapshot"() {
@@ -60,6 +58,6 @@ public class InputFilesStateChangeRuleTest extends Specification {
         } >> false
 
         and:
-        messages == ["Input file one has been added.", "Input file two has been removed.", "Input file three has changed."]
+        messages == ["TYPE file one has been added.", "TYPE file two has been removed.", "TYPE file three has changed."]
     }
 }
