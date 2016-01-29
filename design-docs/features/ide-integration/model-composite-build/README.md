@@ -278,6 +278,98 @@ if the model of the project registered a publication.
     - Adding matching project dependency via `EclipseProject.getProjectDependencies().add(...)`
 - In Buildship show visual hints that a module was substituted e.g. icon, tooltip etc.
 
+### Story - Composite returns information about build environment for each participant
+
+Buildship heavily relies on information exposed by the Tooling API for rendering or enabling/disabling specific functionality. One example for functionality exposed by the
+Tooling API is the task view. Not only does Buildship render the tasks available for a project, it also indicates whether they are "public" or not. "Public" is determined
+as a task that is not assigned to a group. The Tooling API provides information through the method `org.gradle.tooling.model.Launchable.isPublic()`. This method was introduced
+with Gradle 2.3 which means that older versions of the Tooling API won't be able to provide the information. So far the composite model does not return information about
+the Gradle versions used to build a participating build. The goal of this story is to expose information about the build environment for any participant of a composite.
+
+_Use cases:_
+
+- Buildship uses the Gradle version for project preview and task visibility.
+- Buildship uses the Java home directory for project preview.
+
+##### API
+
+    public class BuildEnvironment {
+        GradleEnvironment getGradleEnvironment();
+        JavaEnvironment getJavaEnvironment();
+    }
+
+    public class GradleEnvironment {
+        String getGradleVersion();
+    }
+
+    public class JavaEnvironment {
+        File getJavaHome();
+        List<String> getJvmArguments();
+    }
+
+    public interface ModelResult<T> {
+        BuildEnvironment getBuildEnvironment();
+    }
+
+##### Implementation
+
+- Add a new method to `ModelResult` that exposes the build environment.
+- The build environment will expose information about the Gradle and the Java runtime.
+- The only information exposed is the Gradle versions used for a participant.
+- When building the model of a participant, the Tooling API needs to be queried for `org.gradle.tooling.model.build.BuildEnvironment`. It then populates the `ModelResult`.
+- The returned build environment information is used in Buildship for the use cases mentioned above.
+
+##### Test cases
+
+- The `ModelResult` of a participating build always provides `BuildEnvironment`.
+- Gradle environment and Java environment are always populated.
+- The Gradle version lines up with the version of the provided Gradle distribution or the Gradle version provided by the build.
+- The Java environment represents the Java runtime used to build the participant.
+- Manually verify that Buildship uses the Gradle version for project preview and task visibility.
+- Manually verify that Buildship uses the Java home directory for project preview.
+
+##### Open issues
+
+- Do we render all task as "public" in the task view before implementing this story?
+- Alternative implementations:
+    - Buildship just query for this information with "new" `ProjectConnection`s based on the returned `EclipseProject`. This would come with a performance cost or the
+      composite API would need to expose a method for retrieving the already open `ProjectConnection`s.
+    - The composite API exposes another model that can query for the information.
+
+### Story - Composite participants can specify operational parameters
+
+A participant of a composite requires to specify the root project directory upon creation. It can also provide a Gradle distribution used to build that project. There are other
+use cases that require additional parameter for creating the model of a build.
+
+_Use cases:_
+
+- A participating build contains a lot of sub-projects. The underlying `BuildLauncher` needs more memory defined via JVM args.
+- A participating build requires arguments e.g. project properties. The underlying `BuildLauncher` needs use these argument.
+
+##### API
+
+    public interface BuildArguments {
+        String getJvmArgs();
+        String getArguments();
+    }
+
+    public interface CompositeParticipant extends GradleDistributionAware, BuildArguments {
+        ...
+    }
+
+##### Implementation
+
+- Introduce a new interface `BuildArguments`.
+- `CompositeParticipant` extend the new interface.
+- The `BuildLauncher` calls `setJvmArguments(Iterable<String>)` for JVM arguments provided for a participant.
+- The `BuildLauncher` calls `withArguments(Iterable<String>)` for arguments provided for a participant.
+
+##### Test cases
+
+- A participant can be built without providing any JVM arguments or arguments.
+- When building the model for a participant JVM arguments and/or arguments are taken into consideration.
+- JVM arguments can be provided independent from arguments and vice versa.
+
 ### Story - Move composite implementation from Tooling Commons to Tooling API
 
 ##### Implementation
