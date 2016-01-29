@@ -34,7 +34,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.jvm.toolchain.JdkSpec;
+import org.gradle.jvm.toolchain.LocalJava;
 import org.gradle.jvm.toolchain.internal.*;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
@@ -95,12 +95,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Model
-        public void jdks(ModelMap<JdkSpec> jdks) {
+        public void javaInstallations(ModelMap<LocalJava> jdks) {
         }
 
         @Model
-        public void installedJdks(ModelMap<InstalledJdk> installedJdks, final JavaInstallationProbe probe) {
-            installedJdks.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
+        public void javaToolChains(ModelMap<LocalJavaInstallation> javaInstallations, final JavaInstallationProbe probe) {
+            javaInstallations.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
                 @Override
                 public void execute(InstalledJdk installedJdk) {
                     installedJdk.setJavaHome(Jvm.current().getJavaHome());
@@ -109,19 +109,15 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
         }
 
-        @Model
-        public void installedJres(ModelMap<InstalledJre> installedJres, final JavaInstallationProbe probe) {
-        }
-
         @Validate
-        public void validateJDKs(ModelMap<JdkSpec> jdks) {
-            ImmutableListMultimap<String, JdkSpec> jdksByPath = indexByPath(jdks);
+        public void validateJDKs(ModelMap<LocalJava> jdks) {
+            ImmutableListMultimap<String, LocalJava> jdksByPath = indexByPath(jdks);
             List<String> errors = Lists.newArrayList();
             for (String path : jdksByPath.keySet()) {
                 checkDuplicateForPath(jdksByPath, path, errors);
             }
             if (!errors.isEmpty()) {
-                throw new InvalidModelException(String.format("Duplicate JDK declared:\n%s", Joiner.on("\n").join(errors)));
+                throw new InvalidModelException(String.format("Duplicate Java installation found:\n%s", Joiner.on("\n").join(errors)));
             }
         }
 
@@ -137,38 +133,33 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Defaults
-        public void resolveJDKs(final ModelMap<InstalledJdk> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
-            resolveJavaInstall(installedJdks, jdks, probe, InstalledJdk.class);
-        }
-
-        @Defaults
-        public void resolveJREs(final ModelMap<InstalledJre> installedJdks, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe) {
-            resolveJavaInstall(installedJdks, jdks, probe, InstalledJre.class);
-        }
-
-        private static <T extends LocalJavaInstallation> void resolveJavaInstall(final ModelMap<T> installed, ModelMap<JdkSpec> jdks, final JavaInstallationProbe probe, final Class<T> clazz) {
+        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> jdks, final JavaInstallationProbe probe) {
             File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
-            for (final JdkSpec jdk : jdks) {
+            for (final LocalJava jdk : jdks) {
                 final File javaHome = canonicalFile(jdk.getPath());
                 JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
-                JavaInstallationProbe.ProbeResult kind = clazz == InstalledJdk.class ? JavaInstallationProbe.ProbeResult.IS_JDK : JavaInstallationProbe.ProbeResult.IS_JRE;
-                if (probeResult == kind) {
-                    if (!javaHome.equals(currentJavaHome)) {
-                        installed.create(jdk.getName(), clazz, new Action<T>() {
-                            @Override
-                            public void execute(T installedJdk) {
-                                installedJdk.setJavaHome(javaHome);
-                                probe.configure(javaHome, installedJdk);
-                            }
-                        });
-                    }
-                } else {
-                    switch (probeResult) {
-                        case NO_SUCH_DIRECTORY:
-                            throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
-                        case INVALID_JDK:
-                            throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
-                    }
+                Class<? extends LocalJavaInstallation> clazz = null;
+                switch (probeResult) {
+                    case IS_JDK:
+                        clazz = InstalledJdkInternal.class;
+                        break;
+                    case IS_JRE:
+                        clazz = InstalledJre.class;
+                        break;
+                    case NO_SUCH_DIRECTORY:
+                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", jdk.getName(), javaHome));
+                    case INVALID_JDK:
+                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s", jdk.getName(), javaHome));
+                }
+
+                if (!javaHome.equals(currentJavaHome)) {
+                    installedJdks.create(jdk.getName(), clazz, new Action<LocalJavaInstallation>() {
+                        @Override
+                        public void execute(LocalJavaInstallation installedJdk) {
+                            installedJdk.setJavaHome(javaHome);
+                            probe.configure(javaHome, installedJdk);
+                        }
+                    });
                 }
             }
         }
@@ -287,23 +278,23 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return libName + "ApiJar";
         }
 
-        private static void checkDuplicateForPath(ImmutableListMultimap<String, JdkSpec> index, String path, List<String> errors) {
-            ImmutableList<JdkSpec> jdkSpecs = index.get(path);
-            if (jdkSpecs.size() > 1) {
+        private static void checkDuplicateForPath(ImmutableListMultimap<String, LocalJava> index, String path, List<String> errors) {
+            ImmutableList<LocalJava> localJavas = index.get(path);
+            if (localJavas.size() > 1) {
                 errors.add(String.format("   - %s are both pointing to the same JDK installation path: %s",
-                    Joiner.on(", ").join(Iterables.transform(jdkSpecs, new Function<JdkSpec, String>() {
+                    Joiner.on(", ").join(Iterables.transform(localJavas, new Function<LocalJava, String>() {
                         @Override
-                        public String apply(JdkSpec input) {
+                        public String apply(LocalJava input) {
                             return input.getName();
                         }
                     })), path));
             }
         }
 
-        private static ImmutableListMultimap<String, JdkSpec> indexByPath(ModelMap<JdkSpec> jdks) {
-            return Multimaps.index(toImmutableJdkList(jdks), new Function<JdkSpec, String>() {
+        private static ImmutableListMultimap<String, LocalJava> indexByPath(ModelMap<LocalJava> jdks) {
+            return Multimaps.index(toImmutableJdkList(jdks), new Function<LocalJava, String>() {
                 @Override
-                public String apply(JdkSpec input) {
+                public String apply(LocalJava input) {
                     try {
                         return input.getPath().getCanonicalPath().toString();
                     } catch (IOException e) {
@@ -314,12 +305,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
         }
 
-        private static List<JdkSpec> toImmutableJdkList(ModelMap<JdkSpec> jdks) {
-            final List<JdkSpec> asImmutable = Lists.newArrayList();
-            jdks.afterEach(new Action<JdkSpec>() {
+        private static List<LocalJava> toImmutableJdkList(ModelMap<LocalJava> jdks) {
+            final List<LocalJava> asImmutable = Lists.newArrayList();
+            jdks.afterEach(new Action<LocalJava>() {
                 @Override
-                public void execute(JdkSpec jdkSpec) {
-                    asImmutable.add(jdkSpec);
+                public void execute(LocalJava localJava) {
+                    asImmutable.add(localJava);
                 }
             });
             return asImmutable;

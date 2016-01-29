@@ -36,14 +36,14 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         given:
         def jdks = AvailableJavaHomes.availableJdks.indexed().collect { i, jdk ->
             """
-                    jdk$i(JdkSpec) {
+                    jdk$i(LocalJava) {
                         path '${StringEscapeUtils.escapeJava(jdk.javaHome.toString())}'
                     }
             """
         }.join('')
         buildFile << """
             model {
-                jdks {
+                javaInstallations {
                     $jdks
                 }
             }
@@ -57,11 +57,9 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         // for each declared JDK, there must be *at least* one installed JDK which Java Home corresponds
         // to the one declared. There may be less because they are deduplicated
         AvailableJavaHomes.availableJdks.eachWithIndex { jdk, i ->
-            assert (report.modelNode.installedJdks.'**'.@javaHome.any {
+            assert report.modelNode.javaToolChains.'**'.@javaHome.any {
                 it == jdk.javaHome.canonicalFile.absolutePath
-            } || report.modelNode.installedJres.'**'.@javaHome.any {
-                it == jdk.javaHome.canonicalFile.absolutePath
-            })
+            }
         }
     }
 
@@ -69,8 +67,8 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             model {
-                jdks {
-                    myJDK(JdkSpec) {
+                javaInstallations {
+                    myJDK(LocalJava) {
                         path 'no-luck'
                     }
                 }
@@ -89,8 +87,8 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             model {
-                jdks {
-                    myJDK(JdkSpec) {
+                javaInstallations {
+                    myJDK(LocalJava) {
                         path '$path'
                     }
                 }
@@ -111,7 +109,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             model {
-                jdks {
+                javaInstallations {
                 }
             }
         '''
@@ -122,7 +120,7 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def report = ModelReportOutput.from(output)
         // only uses the JDK that Gradle runs on
-        assert report.modelNode.installedJdks[0].children().size() == 1
-        assert report.modelNode.installedJdks.currentGradleJDK.@javaVersion == [JavaVersion.current().toString()]
+        assert report.modelNode.javaToolChains[0].children().size() == 1
+        assert report.modelNode.javaToolChains.currentGradleJDK.@javaVersion == [JavaVersion.current().toString()]
     }
 }
