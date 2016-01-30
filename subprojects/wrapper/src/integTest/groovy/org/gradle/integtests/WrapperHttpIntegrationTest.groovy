@@ -106,7 +106,7 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
     public void "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
-        prepareWrapper("http://not.a.real.domain")
+        prepareWrapper("http://test:${server.port}")
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
@@ -125,11 +125,10 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
 
     public void "downloads wrapper via authenticated proxy"() {
         given:
-        proxyServer.start()
-        proxyServer.requireAuthentication('my_user', 'my_password')
+        proxyServer.start('my_user', 'my_password')
 
         and:
-        prepareWrapper("http://not.a.real.domain")
+        prepareWrapper("http://test:${server.port}")
         server.expectGet("/gradlew/dist", distribution.binDistribution)
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost

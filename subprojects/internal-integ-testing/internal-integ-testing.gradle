@@ -20,9 +20,9 @@ dependencies {
     compile project(':launcher')
     compile project(':native')
     compile libraries.jetty
-    compile module("org.littleshoot:littleproxy:0.4") {
+    compile module("org.littleshoot:littleproxy:1.1.0-beta1") {
         dependency libraries.slf4j_api
-        dependency "org.jboss.netty:netty:3.2.4.Final"
+        dependency "io.netty:netty-all:4.0.23.Final"
     }
     compile libraries.sshd
     compile libraries.gson
