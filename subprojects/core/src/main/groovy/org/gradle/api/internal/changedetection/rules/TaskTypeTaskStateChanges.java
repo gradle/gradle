@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection.rules;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,23 +22,24 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import java.util.List;
 
-/**
- * A rule which detects changes in the task implementation class.
- */
-class TaskTypeStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
+    private final String taskClass;
+    private final TaskExecution previousExecution;
+    private final TaskInternal task;
+
+    public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         final String taskClass = task.getClass().getName();
         currentExecution.setTaskClass(taskClass);
-
-        return new SimpleTaskStateChanges() {
-            @Override
-            protected void addAllChanges(List<TaskStateChange> changes) {
-                if (!taskClass.equals(previousExecution.getTaskClass())) {
-                    changes.add(new DescriptiveChange("%s has changed type from '%s' to '%s'.",
-                            StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
-                }
-            }
-        };
+        this.taskClass = taskClass;
+        this.previousExecution = previousExecution;
+        this.task = task;
     }
 
+    @Override
+    protected void addAllChanges(List<TaskStateChange> changes) {
+        if (!taskClass.equals(previousExecution.getTaskClass())) {
+            changes.add(new DescriptiveChange("%s has changed type from '%s' to '%s'.",
+                    StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
+        }
+    }
 }

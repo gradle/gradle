@@ -21,6 +21,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.os.OperatingSystem;
@@ -54,7 +55,8 @@ public class JavaInstallationProbe {
         ARCH("os.arch"),
         VM("java.vm.name"),
         VM_VERSION("java.vm.version"),
-        RUNTIME("java.runtime.name");
+        RUNTIME("java.runtime.name"),
+        Z_ERROR("Internal"); // This line MUST be last!
 
         private final String sysProp;
 
@@ -62,37 +64,44 @@ public class JavaInstallationProbe {
             this.sysProp = sysProp;
         }
 
-        private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
-            String[] split = probeResult.split(System.getProperty("line.separator"));
-            if (split.length != SysProp.values().length) {
-                return unknown();
-            }
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, split[type.ordinal()]);
-            }
-            return result;
-        }
-
-        private static EnumMap<SysProp, String> unknown() {
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, UNKNOWN);
-            }
-            return result;
-        }
-
-        private static EnumMap<SysProp, String> current() {
-            EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
-            for (SysProp type : SysProp.values()) {
-                result.put(type, System.getProperty(type.sysProp, UNKNOWN));
-            }
-            return result;
-        }
-
     }
 
-    public enum ProbeResult {
+    public static class ProbeResult {
+        private final EnumMap<SysProp, String> metadata;
+        private final InstallType installType;
+        private final String error;
+
+        public static ProbeResult success(InstallType installType, EnumMap<SysProp, String> metadata) {
+            return new ProbeResult(installType, metadata, null);
+        }
+
+        public static ProbeResult failure(InstallType installType, String error) {
+            return new ProbeResult(installType, null, error);
+        }
+
+        private ProbeResult(InstallType installType, EnumMap<SysProp, String> metadata, String error) {
+            this.installType = installType;
+            this.metadata = metadata;
+            this.error = error;
+        }
+
+        public InstallType getInstallType() {
+            return installType;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public void configure(LocalJavaInstallation install) {
+            JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
+            install.setJavaVersion(javaVersion);
+            String jdkName = computeJdkName(installType, metadata);
+            install.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+        }
+    }
+
+    public enum InstallType {
         IS_JDK,
         IS_JRE,
         NO_SUCH_DIRECTORY,
@@ -104,42 +113,28 @@ public class JavaInstallationProbe {
     }
 
     public void current(LocalJavaInstallation currentJava) {
-        configureInstall(currentJava, SysProp.current());
+        ProbeResult.success(InstallType.IS_JDK, current()).configure(currentJava);
     }
 
     public ProbeResult checkJdk(File jdkPath) {
         if (!jdkPath.exists()) {
-            return ProbeResult.NO_SUCH_DIRECTORY;
+            return ProbeResult.failure(InstallType.NO_SUCH_DIRECTORY, "No such directory: " + jdkPath);
         }
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
         if (UNKNOWN.equals(version)) {
-            return ProbeResult.INVALID_JDK;
+            return ProbeResult.failure(InstallType.INVALID_JDK, metadata.get(SysProp.Z_ERROR));
         }
         try {
             JavaVersion.toVersion(version);
         } catch (IllegalArgumentException ex) {
             // if the version string cannot be parsed
-            return ProbeResult.INVALID_JDK;
+            return ProbeResult.failure(InstallType.INVALID_JDK, "Cannot parse version number: " + version);
         }
         if (javaExe(jdkPath, "javac").exists()) {
-            return ProbeResult.IS_JDK;
+            return ProbeResult.success(InstallType.IS_JDK, metadata);
         }
-        return ProbeResult.IS_JRE;
-    }
-
-    public void configure(File jdkPath, LocalJavaInstallation installedJdk) {
-        EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
-        if (!UNKNOWN.equals(metadata.get(SysProp.VERSION))) {
-            configureInstall(installedJdk, metadata);
-        }
-    }
-
-    private void configureInstall(LocalJavaInstallation installedJdk, EnumMap<SysProp, String> metadata) {
-        JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
-        installedJdk.setJavaVersion(javaVersion);
-        String jdkName = computeJdkName(metadata);
-        installedJdk.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+        return ProbeResult.success(InstallType.IS_JRE, metadata);
     }
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {
@@ -147,21 +142,23 @@ public class JavaInstallationProbe {
         exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
         exec.setWorkingDir(workingDir);
+        exec.setClasspath(new SimpleFileCollection(workingDir));
         try {
             writeProbe(workingDir);
             exec.setMain(JavaProbe.CLASSNAME);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             exec.setStandardOutput(baos);
-            exec.setErrorOutput(new ByteArrayOutputStream());
+            ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+            exec.setErrorOutput(errorOutput);
             exec.setIgnoreExitValue(true);
             ExecResult result = exec.execute();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
-                return SysProp.parseExecOutput(baos.toString());
+                return parseExecOutput(baos.toString());
             }
-            return SysProp.unknown();
+            return error("Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput);
         } catch (ExecException ex) {
-            return SysProp.unknown();
+            return error(ex.getMessage());
         } finally {
             try {
                 org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
@@ -171,29 +168,29 @@ public class JavaInstallationProbe {
         }
     }
 
-    private static String computeJdkName(EnumMap<JavaInstallationProbe.SysProp, String> metadata) {
-        String jdkName = "JDK";
+    private static String computeJdkName(InstallType result, EnumMap<SysProp, String> metadata) {
+        String basename = result == InstallType.IS_JDK ? "JDK" : "JRE";
         String vendor = metadata.get(JavaInstallationProbe.SysProp.VENDOR);
         if (vendor == null) {
-            return jdkName;
+            return basename;
         } else {
             vendor = vendor.toLowerCase();
         }
         if (vendor.contains("apple")) {
-            return "Apple JDK";
+            return "Apple " + basename;
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {
                 return "OpenJDK";
             }
-            return "Oracle JDK";
+            return "Oracle " + basename;
         } else if (vendor.contains("ibm")) {
-            return "IBM JDK";
+            return "IBM " + basename;
         } else if (vendor.contains("azul systems")) {
             return "Zulu";
         }
 
-        return jdkName;
+        return basename;
     }
 
     private static void writeProbe(File workingDir) {
@@ -249,7 +246,9 @@ public class JavaInstallationProbe {
             Label l0 = new Label();
             mv.visitLabel(l0);
             for (SysProp type : SysProp.values()) {
-                dumpProperty(mv, type.sysProp);
+                if (type != SysProp.Z_ERROR) {
+                    dumpProperty(mv, type.sysProp);
+                }
             }
             mv.visitInsn(RETURN);
             Label l3 = new Label();
@@ -286,4 +285,34 @@ public class JavaInstallationProbe {
         }
     }
 
+    private static EnumMap<SysProp, String> parseExecOutput(String probeResult) {
+        String[] split = probeResult.split(System.getProperty("line.separator"));
+        if (split.length != SysProp.values().length - 1) { // -1 because of Z_ERROR
+            return error("Unexpected command output: \n" + probeResult);
+        }
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            if (type != SysProp.Z_ERROR) {
+                result.put(type, split[type.ordinal()]);
+            }
+        }
+        return result;
+    }
+
+    private static EnumMap<SysProp, String> error(String message) {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, UNKNOWN);
+        }
+        result.put(SysProp.Z_ERROR, message);
+        return result;
+    }
+
+    private static EnumMap<SysProp, String> current() {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            result.put(type, System.getProperty(type.sysProp, UNKNOWN));
+        }
+        return result;
+    }
 }

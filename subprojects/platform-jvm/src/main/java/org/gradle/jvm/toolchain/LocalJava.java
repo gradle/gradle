@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.jvm.toolchain;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.model.Managed;
 
 import java.io.File;
-import java.util.Set;
 
-public interface DiscoveredTaskStateChanges extends TaskStateChanges {
-    void newInputs(Set<File> files);
+/**
+ * A local JDK, JRE or Java 9+ installation.
+ */
+@Incubating
+@Managed
+public interface LocalJava extends Named {
+    File getPath();
+    void setPath(File path);
 }

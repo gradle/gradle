@@ -16,27 +16,29 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.tasks.incremental.InputFileDetails;
+
 import java.io.File;
 
-abstract class FileChange implements TaskStateChange {
+class FileChange implements TaskStateChange, InputFileDetails {
     private final String path;
     private final ChangeType change;
+    private final String fileType;
 
-    public FileChange(String path, ChangeType change) {
+    public FileChange(String path, ChangeType change, String fileType) {
         this.path = path;
         this.change = change;
+        this.fileType = fileType;
     }
 
     public String getMessage() {
-        return String.format("%s file %s %s.", getFileType(), path, change.describe());
+        return String.format("%s file %s %s.", fileType, path, change.describe());
     }
 
     @Override
     public String toString() {
         return getMessage();
     }
-
-    protected abstract String getFileType();
 
     public String getPath() {
         return path;

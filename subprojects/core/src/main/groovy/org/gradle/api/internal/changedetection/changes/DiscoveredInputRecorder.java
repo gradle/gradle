@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.model.Managed;
+package org.gradle.api.internal.changedetection.changes;
 
 import java.io.File;
 
-/**
- * A local JDK installation.
- */
-@Incubating
-@Managed
-public interface JdkSpec extends Named {
-    File getPath();
-    void setPath(File path);
+public interface DiscoveredInputRecorder {
+    /**
+     * Registers files as "discovered" inputs to the task. All inputs added this way must be added each time the task is executed.
+     * <p>
+     * Discovered inputs should be derived from inputs registered with {@link org.gradle.api.tasks.TaskInputs}.
+     * <p>
+     * This method may be called at any time.
+     * </p>
+     * @param discoveredInput New input files discovered as part of the task's action.
+     */
+    void newInput(File discoveredInput);
 }

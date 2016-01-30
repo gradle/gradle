@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import java.util.List;
 
-class NoHistoryStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution) {
-        return new SimpleTaskStateChanges() {
-            @Override
-            protected void addAllChanges(List<TaskStateChange> changes) {
-                if (previousExecution == null) {
-                    changes.add(new DescriptiveChange("No history is available."));
-                }
-            }
-        };
+class NoHistoryTaskStateChanges extends SimpleTaskStateChanges {
+    private final TaskExecution previousExecution;
+
+    public NoHistoryTaskStateChanges(TaskExecution previousExecution) {
+        this.previousExecution = previousExecution;
+    }
+
+    @Override
+    protected void addAllChanges(List<TaskStateChange> changes) {
+        if (previousExecution == null) {
+            changes.add(new DescriptiveChange("No history is available."));
+        }
     }
 }

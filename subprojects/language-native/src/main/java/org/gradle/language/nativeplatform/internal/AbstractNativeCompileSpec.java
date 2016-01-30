@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -38,7 +38,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File preCompiledHeaderObjectFile;
     private Map<File, IncludeDirectives> sourceFileIncludeDirectives;
     private String preCompiledHeader;
-    private IncrementalTaskInputs incrementalTaskInputs;
+    private DiscoveredInputRecorder discoveredInputRecorder;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -170,11 +170,11 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         this.sourceFileIncludeDirectives = map;
     }
 
-    public void setIncrementalInputs(IncrementalTaskInputs inputs) {
-        this.incrementalTaskInputs = inputs;
+    public void setDiscoveredInputRecorder(DiscoveredInputRecorder inputs) {
+        this.discoveredInputRecorder = inputs;
     }
 
-    public IncrementalTaskInputs getIncrementalInputs() {
-        return incrementalTaskInputs;
+    public DiscoveredInputRecorder getDiscoveredInputRecorder() {
+        return discoveredInputRecorder;
     }
 }

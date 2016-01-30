@@ -16,7 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -108,7 +108,7 @@ class IncrementalNativeCompilerTest extends Specification {
         given:
         def spec = Mock(NativeCompileSpec)
         def compilation = Mock(IncrementalCompilation)
-        def taskInputs = Mock(IncrementalTaskInputsInternal)
+        def taskInputs = Mock(DiscoveredInputRecorder)
         def includedFile = temporaryFolder.file("include")
         compilation.discoveredInputs >> [includedFile ]
 
@@ -125,7 +125,7 @@ class IncrementalNativeCompilerTest extends Specification {
         given:
         def spec = Mock(NativeCompileSpec)
 
-        def taskInputs = Mock(IncrementalTaskInputsInternal)
+        def taskInputs = Mock(DiscoveredInputRecorder)
 
         def includeDir = temporaryFolder.createDir("includes")
         def includedFile = includeDir.createFile("include")

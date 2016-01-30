@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,17 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
-
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.TaskExecution
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
-class DiscoveredInputFilesStateChangeRuleTest extends Specification {
-    def currentExecution = Mock(TaskExecution)
+public class FileSnapshotTaskStateChangesTest extends Specification {
     def previousInputSnapshot = Mock(FileCollectionSnapshot)
-    def discoveredFileSnapshot = Mock(FileCollectionSnapshot)
+    def inputSnapshot = Mock(FileCollectionSnapshot)
     FileCollectionSnapshot.ChangeIterator<String> changeIterator = Mock()
 
     TaskStateChanges createStateChanges() {
-        def previousExecution = Stub(TaskExecution) {
-            getDiscoveredInputFilesSnapshot() >> previousInputSnapshot
-        }
-        def inputSnapshotter = Stub(FileCollectionSnapshotter) {
-            snapshot(_) >> discoveredFileSnapshot
-        }
-        return new DiscoveredInputFilesStateChangeRule(inputSnapshotter, TestFiles.fileCollectionFactory()).create(previousExecution, currentExecution)
+        return new TestFileSnapshotTaskStateChanges()
     }
 
     def "emits change for no previous input snapshot"() {
@@ -45,7 +34,7 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        messages == ["Discovered input file history is not available."]
+        messages == ["TYPE file history is not available."]
     }
 
     def "emits change for file changes since previous input snapshot"() {
@@ -53,10 +42,8 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * previousInputSnapshot.getFiles() >> []
-        1 * discoveredFileSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
+        1 * inputSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
         4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
-            // added probably doesn't make sense for discovered inputs...
             listener.added("one")
             true
         } >> { ChangeListener listener ->
@@ -68,6 +55,33 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         } >> false
 
         and:
-        messages == ["Discovered input file one has been added.", "Discovered input file two has been removed.", "Discovered input file three has changed."]
+        messages == ["TYPE file one has been added.", "TYPE file two has been removed.", "TYPE file three has changed."]
+    }
+
+    private class TestFileSnapshotTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
+
+        private TestFileSnapshotTaskStateChanges() {
+            super("TASK")
+        }
+
+        @Override
+        protected String getInputFileType() {
+            return "TYPE"
+        }
+
+        @Override
+        protected FileCollectionSnapshot getPrevious() {
+            return previousInputSnapshot
+        }
+
+        @Override
+        protected FileCollectionSnapshot getCurrent() {
+            return inputSnapshot
+        }
+
+        @Override
+        protected void saveCurrent() {
+
+        }
     }
 }
