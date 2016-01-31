@@ -23,6 +23,7 @@ dependencies {
     compile module("org.littleshoot:littleproxy:1.1.0-beta1") {
         dependency libraries.slf4j_api
         dependency "io.netty:netty-all:4.0.23.Final"
+        dependency "org.apache.commons:commons-lang3:3.4" 
     }
     compile libraries.sshd
     compile libraries.gson

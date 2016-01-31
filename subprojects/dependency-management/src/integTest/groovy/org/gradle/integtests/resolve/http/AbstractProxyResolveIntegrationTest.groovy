@@ -99,7 +99,6 @@ repositories {
 
     def configureProxy(String userName=null, String password=null) {
         configureProxyHostFor(proxyScheme)
-        executer.withArgument("-D${proxyScheme}.nonProxyHosts=")
         if (userName) {
             executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
         }

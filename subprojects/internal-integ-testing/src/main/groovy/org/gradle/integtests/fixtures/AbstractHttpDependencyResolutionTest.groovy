@@ -15,23 +15,14 @@
  */
 
 package org.gradle.integtests.fixtures
-
-import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.GradleVersion
 import org.junit.Rule
-
-import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractHttpDependencyResolutionTest extends AbstractDependencyResolutionTest {
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
-
-    def setup() {
-        server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
-        server.start()
-    }
 
     IvyHttpRepository getIvyHttpRepo() {
         return new IvyHttpRepository(server, "/repo", ivyRepo)
