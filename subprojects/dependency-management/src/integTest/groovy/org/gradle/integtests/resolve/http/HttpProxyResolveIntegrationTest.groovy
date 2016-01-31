@@ -94,4 +94,23 @@ repositories {
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
+
+    def "can resolve from https repo with http proxy configured"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "https://repo1.maven.org/maven2/" }
+}
+"""
+        when:
+        configureProxy()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 0
+    }
 }

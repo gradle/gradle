@@ -51,4 +51,23 @@ repositories {
         and:
         proxyServer.requestCount == 1 // just tunnelling
     }
+
+    def "can resolve from http repo with https proxy configured"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "http://repo1.maven.org/maven2/" }
+}
+"""
+        when:
+        configureProxy()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 0
+    }
 }
