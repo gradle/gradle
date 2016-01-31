@@ -19,8 +19,10 @@ package org.gradle.integtests.resolve.http
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.TestProxyServer
+import spock.lang.Ignore
 
 @LeaksFileHandles
+@Ignore
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
     private TestKeyStore testKeyStore
 
