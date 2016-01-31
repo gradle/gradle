@@ -15,12 +15,12 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import io.netty.channel.ChannelHandlerContext
-import io.netty.handler.codec.http.HttpRequest
 import org.gradle.util.ports.FixedAvailablePortAllocator
+import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource
 import org.littleshoot.proxy.*
-import org.littleshoot.proxy.impl.DefaultHttpProxyServer
+
+import javax.net.ssl.TrustManager
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
@@ -31,6 +31,8 @@ class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
     private HttpServer httpServer
     private portFinder = FixedAvailablePortAllocator.getInstance()
+    private File keyStore
+    private String keyStorePassword
 
     int port
     int requestCount
@@ -39,37 +41,30 @@ class TestProxyServer extends ExternalResource {
         this.httpServer = httpServer
     }
 
+    TestProxyServer(HttpServer httpServer, File keyStore, String keyStorePassword) {
+        this(httpServer)
+        this.keyStore = keyStore
+        this.keyStorePassword = keyStorePassword
+    }
+
     @Override
     protected void after() {
         stop()
     }
 
-    void start(final String expectedUsername=null, final String expectedPassword=null) {
+    void start() {
         port = portFinder.assignPort()
-
-        def filters = new HttpFiltersSourceAdapter() {
-            HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
+        String remote = "localhost:${httpServer.port}"
+        KeyStoreManager keyStoreManager = null
+        if (keyStore != null) {
+            keyStoreManager = new TestKeyStoreManager(keyStore, keyStorePassword)
+        }
+        proxyServer = new DefaultHttpProxyServer(port, [:], remote, keyStoreManager, new HttpRequestFilter() {
+            void filter(HttpRequest httpRequest) {
                 requestCount++
-                return super.filterRequest(originalRequest, ctx)
             }
-        }
-
-        def proxyAuthenticator = null
-        if (expectedUsername!=null && expectedPassword!=null) {
-            proxyAuthenticator = new ProxyAuthenticator() {
-                @Override
-                boolean authenticate(String userName, String password) {
-                    return userName == expectedUsername && password == expectedPassword
-                }
-            }
-        }
-
-        proxyServer = DefaultHttpProxyServer.bootstrap().
-            withPort(port).
-            withFiltersSource(filters).
-            withServerResolver(new TestHostResolver()).
-            withProxyAuthenticator(proxyAuthenticator).
-            start()
+        })
+        proxyServer.start()
     }
 
     void stop() {
@@ -77,13 +72,54 @@ class TestProxyServer extends ExternalResource {
         portFinder.releasePort(port)
     }
 
-    static class TestHostResolver extends DefaultHostResolver {
-        @Override
-        InetSocketAddress resolve(String host, int port) throws UnknownHostException {
-            if (host == "test") {
-                return new InetSocketAddress("localhost", port)
+    void requireAuthentication(final String expectedUsername, final String expectedPassword) {
+        proxyServer.addProxyAuthenticationHandler(new ProxyAuthorizationHandler() {
+            boolean authenticate(String username, String password) {
+                return username == expectedUsername && password == expectedPassword
             }
-            return super.resolve(host, port)
+        })
+    }
+
+    private static class TestKeyStoreManager implements KeyStoreManager {
+        private File keyStore
+        private String keyStorePassword
+
+        TestKeyStoreManager(File keyStore, String keyStorePassword) {
+            this.keyStore = keyStore
+            this.keyStorePassword = keyStorePassword
+        }
+
+        @Override
+        void addBase64Cert(String alias, String base64Cert) throws IOException { }
+
+        @Override
+        String getBase64Cert() {
+            return null
+        }
+
+        @Override
+        InputStream keyStoreAsInputStream() {
+            return new FileInputStream(keyStore)
+        }
+
+        @Override
+        char[] getCertificatePassword() {
+            return keyStorePassword.toCharArray()
+        }
+
+        @Override
+        char[] getKeyStorePassword() {
+            return keyStorePassword.toCharArray()
+        }
+
+        @Override
+        TrustManager[] getTrustManagers() {
+            return null
+        }
+
+        @Override
+        InputStream trustStoreAsInputStream() {
+            return null
         }
     }
 }
