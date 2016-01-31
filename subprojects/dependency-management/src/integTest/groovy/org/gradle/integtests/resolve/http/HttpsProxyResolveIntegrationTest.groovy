@@ -15,39 +15,59 @@
  */
 
 package org.gradle.integtests.resolve.http
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.TestProxyServer
-import spock.lang.Ignore
 
 @LeaksFileHandles
-@Ignore
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
-    private TestKeyStore testKeyStore
 
     @Override
-    TestProxyServer getProxyServer() {
-        if (testProxyServer == null) {
-            testProxyServer = new TestProxyServer(server, getTestKeyStore().trustStore, getTestKeyStore().trustStorePassword)
-        }
-        return testProxyServer
-    }
-
-    @Override
-    protected void addAdditionalArguments() {
-        getTestKeyStore().configureServerCert(executer)
-    }
-
-    @Override
-    protected String getProxyScheme() {
+    String getProxyScheme() {
         return 'https'
     }
 
-    TestKeyStore getTestKeyStore() {
-        if (testKeyStore == null) {
-            testKeyStore = TestKeyStore.init(testDirectory)
-        }
-        return testKeyStore
+    @Override
+    String getRepoServerUrl() {
+        "https://repo1.maven.org/maven2/"
+    }
+
+    boolean isTunnel() { true }
+
+    def "uses configured proxy to access remote HTTP repository when both https.proxy and http.proxy are specified"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy()
+        configureProxyHostFor("http")
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 1 // just tunnelling
+    }
+
+    def "can resolve from http repo with https proxy configured"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "http://repo1.maven.org/maven2/" }
+}
+"""
+        when:
+        configureProxy()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 0
     }
 }

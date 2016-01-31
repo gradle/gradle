@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.http
-
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
@@ -34,133 +31,80 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
         return testProxyServer
     }
 
-    public void "uses configured proxy to access remote HTTP repository"() {
-        proxyServer.start()
+    abstract String getProxyScheme()
+    abstract String getRepoServerUrl()
+    abstract boolean isTunnel()
 
+    def setup() {
+        buildFile << """
+configurations { compile }
+dependencies { compile 'log4j:log4j:1.2.17' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
+}
+"""
+    }
+
+    def "uses configured proxy to access remote HTTP repository"() {
         given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
+        proxyServer.start()
         and:
         buildFile << """
 repositories {
-    ivy { url "http://not.a.real.domain/repo" }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    maven { url "${repoServerUrl}" }
 }
 """
-
         when:
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}")
-        addAdditionalArguments()
-
-        and:
-        module.ivy.expectGet()
-        module.jar.expectGet()
+        configureProxy()
 
         then:
         succeeds('listJars')
 
         and:
-        proxyServer.requestCount == 2
-    }
-
-    public void "uses authenticated proxy to access remote HTTP repository"() {
-        proxyServer.start()
-
-        given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy {
-        url "http://not.a.real.domain/repo"
-    }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-}
-"""
-
-        when:
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}", "-D${proxyScheme}.nonProxyHosts=foo",
-                               "-D${proxyScheme}.proxyUser=proxyUser", "-D${proxyScheme}.proxyPassword=proxyPassword")
-        addAdditionalArguments()
-
-        and:
-        proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
-
-        and:
-        module.ivy.expectGet()
-        module.jar.expectGet()
-
-        then:
-        succeeds('listJars')
-
-        and:
-        proxyServer.requestCount == 2
-    }
-
-    @Unroll
-    public void "passes target credentials to #authScheme authenticated server via proxy"() {
-        proxyServer.start()
-
-        given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy {
-        url "http://not.a.real.domain/repo"
-        credentials {
-            username 'targetUser'
-            password 'targetPassword'
+        if (isTunnel()) {
+            proxyServer.requestCount == 1
+        } else {
+            proxyServer.requestCount == 2
         }
     }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+
+    def "uses authenticated proxy to access remote HTTP repository"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
 }
 """
-
         when:
-        server.authenticationScheme = authScheme
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}", "-D${proxyScheme}.proxyUser=proxyUser", "-D${proxyScheme}.proxyPassword=proxyPassword")
-        addAdditionalArguments()
-
-        and:
-        proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
-
-        and:
-        module.ivy.expectGet('targetUser', 'targetPassword')
-        module.jar.expectGet('targetUser', 'targetPassword')
+        configureProxy(proxyUserName, proxyPassword)
 
         then:
         succeeds('listJars')
 
         and:
-        // 1 extra request for authentication
-        proxyServer.requestCount == 3
-
-        where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        if (isTunnel()) {
+            proxyServer.requestCount == 1
+        } else {
+            proxyServer.requestCount == 2
+        }
     }
 
-    protected abstract String getProxyScheme();
+    def configureProxyHostFor(String scheme) {
+        executer.withArgument("-D${scheme}.proxyHost=localhost")
+        executer.withArgument("-D${scheme}.proxyPort=${proxyServer.port}")
+    }
 
-    protected void addAdditionalArguments() {}
+    def configureProxy(String userName=null, String password=null) {
+        configureProxyHostFor(proxyScheme)
+        executer.withArgument("-D${proxyScheme}.nonProxyHosts=")
+        if (userName) {
+            executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
+        }
+        if (password) {
+            executer.withArgument("-D${proxyScheme}.proxyPassword=${password}")
+        }
+    }
 }
