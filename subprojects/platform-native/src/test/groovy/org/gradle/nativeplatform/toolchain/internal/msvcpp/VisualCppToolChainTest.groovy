@@ -44,7 +44,7 @@ class VisualCppToolChainTest extends Specification {
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
-        locateVisualStudioInstalls(_) >> visualStudioLookup
+        locateDefaultVisualStudioInstall(_) >> visualStudioLookup
     }
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
