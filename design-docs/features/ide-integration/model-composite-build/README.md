@@ -61,7 +61,7 @@ On completion of this story, it will be possible to convert Buildship to use thi
      */
     public abstract class CompositeBuildConnector {
          public static CompositeBuildConnector newComposite() { ... }
-         public abstract CompositeParticipant withParticipant(CompositeParticipant participant) { ... }
+         public abstract CompositeParticipant addParticipant(File rootProjectDirectory) { ... }
          public abstract CompositeBuildConnection connect() throws GradleConnectionException { ... }
     }
 
