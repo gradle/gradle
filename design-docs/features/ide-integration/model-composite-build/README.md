@@ -84,12 +84,13 @@ On completion of this story, it will be possible to convert Buildship to use thi
 
 ##### Usage
 
-    CompositeBuildConnection connection = CompositeBuildConnector.newComposite()
-    connection.addParticipant('project-1')
-    connection.addParticipant('project-2').useGradleVersion('2.8')
-    connection.connect();
+    CompositeBuildConnection connection = null;
 
     try {
+        connection = CompositeBuildConnector.newComposite();
+        connection.addParticipant("project-1");
+        connection.addParticipant("project-2").useGradleVersion("2.8");
+        connection.connect();
         Set<ModelResult<EclipseProject>> modelResult = connection.getModels(EclipseProject.class);
 
         for (ModelResult modelResult : modelResult) {
@@ -97,7 +98,9 @@ On completion of this story, it will be possible to convert Buildship to use thi
             System.out.println(eclipseProject.getName());
         }
     } finally {
-        connection.close();
+        if (connection != null) {
+            connection.close();
+        }
     }
 
 ##### Implementation
