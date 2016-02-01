@@ -24,8 +24,6 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
- * This proxy server will forward all requests to the supplied HttpServer. The true target of the request is ignored.
- * This is necessary because we can't force java to use a proxy for localhost addresses (using the default java ProxySelector).
  */
 class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
