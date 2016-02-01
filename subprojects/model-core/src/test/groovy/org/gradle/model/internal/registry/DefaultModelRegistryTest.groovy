@@ -1465,19 +1465,6 @@ foo
         bean.value == '12'
     }
 
-    static class EachBeanViaDirectRule extends RuleSource {
-        @Mutate
-        void mutateBeans(@Each Bean bean) {
-            bean.name = "bean"
-        }
-    }
-
-    static class EachBeanViaRuleSource extends RuleSource {
-        @Rules
-        void mutateBeans(BeanRules rules, @Each Bean bean) {
-        }
-    }
-
     @Unroll
     def "can apply #description to each element matching type in root scope"() {
         def mmType = ModelTypes.modelMap(Bean)
