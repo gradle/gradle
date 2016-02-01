@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.http
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
@@ -34,6 +37,7 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
     abstract String getProxyScheme()
     abstract String getRepoServerUrl()
     abstract boolean isTunnel()
+    abstract void setupServer()
 
     def setup() {
         buildFile << """
@@ -45,7 +49,8 @@ task listJars << {
 """
     }
 
-    def "uses configured proxy to access remote HTTP repository"() {
+    @Unroll
+    def "uses configured proxy to access remote #targetServerScheme repository"() {
         given:
         proxyServer.start()
         and:
@@ -66,9 +71,13 @@ repositories {
         } else {
             proxyServer.requestCount == 2
         }
+
+        where:
+        targetServerScheme = new URL(repoServerUrl).protocol
     }
 
-    def "uses authenticated proxy to access remote HTTP repository"() {
+    @Unroll
+    def "uses authenticated proxy to access remote #targetServerScheme repository"() {
         given:
         def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
         proxyServer.start(proxyUserName, proxyPassword)
@@ -90,11 +99,110 @@ repositories {
         } else {
             proxyServer.requestCount == 2
         }
+
+        where:
+        targetServerScheme = new URL(repoServerUrl).protocol
+    }
+
+    @Unroll
+    def "uses configured proxy to access remote #targetServerScheme repository when both https.proxy and http.proxy are specified"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy()
+        configureProxyHostFor(targetServerScheme)
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == (tunnel ? 1 : 2)
+
+        where:
+        targetServerScheme = new URL(repoServerUrl).protocol
+    }
+
+    @Unroll
+    def "can resolve from #targetServerScheme repo with #proxyServerScheme proxy configured"() {
+        given:
+        proxyServer.start()
+        and:
+        buildFile << """
+repositories {
+    maven { url "${targetServerScheme}://repo1.maven.org/maven2/" }
+}
+"""
+        when:
+        configureProxy()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 0
+
+        where:
+        proxyServerScheme | targetServerScheme
+        proxyScheme       | (proxyScheme == 'https' ? 'http' : 'https')
+    }
+
+    @Unroll
+    def "passes target credentials to #authScheme authenticated server via proxy"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        def (repoUserName, repoPassword) = ['targetUser', 'targetPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${proxyScheme}://localhost:${proxyScheme == 'https' ? server.sslPort : server.port}/repo"
+        credentials {
+            username '$repoUserName'
+            password '$repoPassword'
+        }
+    }
+}
+"""
+        and:
+        def repo = mavenHttpRepo
+        def module = repo.module('log4j', 'log4j', '1.2.17')
+        module.publish()
+
+        when:
+        server.authenticationScheme = authScheme
+        configureProxy(proxyUserName, proxyPassword)
+
+        and:
+        module.pom.expectGet(repoUserName, repoPassword)
+        module.artifact.expectGet(repoUserName, repoPassword)
+
+        then:
+        succeeds('listJars')
+
+        and:
+        // authentication
+        // pom and jar requests
+        proxyServer.requestCount == (tunnel ? 1 : requestCount)
+
+        where:
+        authScheme                   | requestCount
+        HttpServer.AuthScheme.BASIC  | 3
+        HttpServer.AuthScheme.DIGEST | 3
+        HttpServer.AuthScheme.NTLM   | 4
     }
 
     def configureProxyHostFor(String scheme) {
         executer.withArgument("-D${scheme}.proxyHost=localhost")
         executer.withArgument("-D${scheme}.proxyPort=${proxyServer.port}")
+        executer.withArgument("-Dhttp.nonProxyHosts=") // use proxy even when accessing localhost
     }
 
     def configureProxy(String userName=null, String password=null) {

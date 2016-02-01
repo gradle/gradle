@@ -59,27 +59,16 @@ class TestProxyServer extends ExternalResource {
             }
         }
 
-        proxyServer = DefaultHttpProxyServer.bootstrap().
-            withPort(port).
-            withFiltersSource(filters).
-            withServerResolver(new TestHostResolver()).
-            withProxyAuthenticator(proxyAuthenticator).
-            start()
+        proxyServer = DefaultHttpProxyServer.bootstrap()
+            .withPort(port)
+            .withFiltersSource(filters)
+            .withProxyAuthenticator(proxyAuthenticator)
+            .start()
     }
 
     void stop() {
         proxyServer?.stop()
         portFinder.releasePort(port)
-    }
-
-    static class TestHostResolver extends DefaultHostResolver {
-        @Override
-        InetSocketAddress resolve(String host, int port) throws UnknownHostException {
-            if (host == "test") {
-                return new InetSocketAddress("localhost", port)
-            }
-            return super.resolve(host, port)
-        }
     }
 }
 

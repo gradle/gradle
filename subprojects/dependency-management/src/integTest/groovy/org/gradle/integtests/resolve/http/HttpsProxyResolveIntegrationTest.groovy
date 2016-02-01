@@ -15,12 +15,16 @@
  */
 
 package org.gradle.integtests.resolve.http
+
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.server.http.HttpServer
-import spock.lang.Unroll
+import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.junit.Rule
 
 @LeaksFileHandles
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
+    @Rule TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
 
     @Override
     String getProxyScheme() {
@@ -32,87 +36,13 @@ class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTe
         "https://repo1.maven.org/maven2/"
     }
 
+    @Override
     boolean isTunnel() { true }
 
-    def "uses configured proxy to access remote HTTP repository when both https.proxy and http.proxy are specified"() {
-        given:
-        proxyServer.start()
-        and:
-        buildFile << """
-repositories {
-    maven { url "${repoServerUrl}" }
-}
-"""
-        when:
-        configureProxy()
-        configureProxyHostFor("http")
-
-        then:
-        succeeds('listJars')
-
-        and:
-        proxyServer.requestCount == 1 // just tunnelling
-    }
-
-    @Unroll
-    def "passes target credentials to #authScheme authenticated server via proxy"() {
-        given:
-        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
-        def (repoUserName, repoPassword) = ['targetUser', 'targetPassword']
-        proxyServer.start(proxyUserName, proxyPassword)
-        and:
-        buildFile << """
-repositories {
-    maven {
-        url "${proxyScheme}://test:${server.port}/repo"
-        credentials {
-            username '$repoUserName'
-            password '$repoPassword'
-        }
-    }
-}
-"""
-        and:
-        def repo = mavenHttpRepo
-        def module = repo.module('log4j', 'log4j', '1.2.17')
-        module.publish()
-
-        when:
-        server.authenticationScheme = authScheme
-        configureProxy(proxyUserName, proxyPassword)
-
-        and:
-        module.pom.expectGet(repoUserName, repoPassword)
-        module.artifact.expectGet(repoUserName, repoPassword)
-
-        then:
-        succeeds('listJars')
-
-        and:
-        // authentication
-        // pom and jar requests
-        proxyServer.requestCount == 3
-
-        where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-    }
-
-    def "can resolve from http repo with https proxy configured"() {
-        given:
-        proxyServer.start()
-        and:
-        buildFile << """
-repositories {
-    maven { url "http://repo1.maven.org/maven2/" }
-}
-"""
-        when:
-        configureProxy()
-
-        then:
-        succeeds('listJars')
-
-        and:
-        proxyServer.requestCount == 0
+    @Override
+    void setupServer() {
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
     }
 }
