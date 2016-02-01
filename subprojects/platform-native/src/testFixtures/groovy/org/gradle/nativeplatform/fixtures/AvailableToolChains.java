@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Nullable;
@@ -47,10 +46,6 @@ import java.util.List;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
-
-    // This enables us to install a version of VisualStudio without testing it if there are breaking changes
-    // 12.0 => VisualStudio 2013
-    private static final VersionNumber VISUALSTUDIO_MAX_VERSION = VersionNumber.parse("12.0");
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
@@ -88,7 +83,7 @@ public class AvailableToolChains {
         if (toolChains == null) {
             List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
             if (OperatingSystem.current().isWindows()) {
-                compilers.addAll(findVisualCpps());
+                compilers.add(findVisualCpp());
                 compilers.add(findMinGW());
                 compilers.add(findCygwin());
             } else {
@@ -108,29 +103,16 @@ public class AvailableToolChains {
         return new UnavailableToolChain("clang");
     }
 
-    static private boolean isSupportedVisualStudioVersion(VersionNumber version) {
-        return version.compareTo(VISUALSTUDIO_MAX_VERSION) <= 0;
-    }
-
-    static private List<ToolChainCandidate> findVisualCpps() {
+    static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
         VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class));
-        final List<VisualStudioLocator.SearchResult> searchResults = vsLocator.locateAllVisualStudioVersions();
-
-        List<ToolChainCandidate> toolChains = Lists.newArrayList();
-
-        for (VisualStudioLocator.SearchResult searchResult : searchResults) {
+        VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
+        if (searchResult.isAvailable()) {
             VisualStudioInstall install = searchResult.getVisualStudio();
-            if (isSupportedVisualStudioVersion(install.getVersion()) && searchResult.isAvailable()) {
-                toolChains.add(new InstalledVisualCpp(install.getVersion()).withInstall(install));
-            }
+            return new InstalledVisualCpp().withInstall(install);
         }
 
-        if (toolChains.isEmpty()) {
-            toolChains.add(new UnavailableToolChain("visual c++"));
-        }
-
-        return toolChains;
+        return new UnavailableToolChain("visual c++");
     }
 
     static private ToolChainCandidate findMinGW() {
@@ -190,7 +172,7 @@ public class AvailableToolChains {
         public abstract void resetEnvironment();
 
    }
-
+    
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
@@ -378,8 +360,8 @@ public class AvailableToolChains {
         private VersionNumber version;
         private File installDir;
 
-        public InstalledVisualCpp(VersionNumber version) {
-            super("visual c++ " + version.toString());
+        public InstalledVisualCpp() {
+            super("visual c++");
         }
 
         @Override

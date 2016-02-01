@@ -16,15 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.Transformer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -82,45 +79,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         this.systemInfo = systemInfo;
     }
 
-    @Override
-    public List<SearchResult> locateAllVisualStudioVersions() {
-        initializeVisualStudioInstalls();
-
-        List<VisualStudioInstall> sortedInstalls = CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
-            @Override
-            public int compare(VisualStudioInstall o1, VisualStudioInstall o2) {
-                return o2.getVersion().compareTo(o1.getVersion());
-            }
-        });
-
-        if (sortedInstalls.isEmpty()) {
-            return Lists.newArrayList((SearchResult)new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path."));
-        } else {
-            return CollectionUtils.collect(sortedInstalls, new Transformer<SearchResult, VisualStudioInstall>() {
-                @Override
-                public SearchResult transform(VisualStudioInstall visualStudioInstall) {
-                    return new InstallFound(visualStudioInstall);
-                }
-            });
+    public SearchResult locateVisualStudioInstalls(File candidate) {
+        if (!initialised) {
+            locateInstallsInRegistry();
+            locateInstallInPath();
+            initialised = true;
         }
-    }
-
-    public SearchResult locateDefaultVisualStudioInstall(File candidate) {
-        initializeVisualStudioInstalls();
 
         if (candidate != null) {
             return locateUserSpecifiedInstall(candidate);
         }
 
         return determineDefaultInstall();
-    }
-
-    private void initializeVisualStudioInstalls() {
-        if (!initialised) {
-            locateInstallsInRegistry();
-            locateInstallInPath();
-            initialised = true;
-        }
     }
 
     private void locateInstallsInRegistry() {
@@ -303,7 +273,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             if (!binaryPaths.containsKey(architecture)) {
                 File binPath = new File(basePath, binPaths[i]);
                 File libPath = new File(basePath, libPaths[i]);
-
+    
                 if (binPath.isDirectory() && libPath.isDirectory()) {
                     Map<String, String> definitionsList = new LinkedHashMap<String, String>();
                     List<File> pathsList = new ArrayList<File>();

@@ -114,7 +114,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
-        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateDefaultVisualStudioInstall(installDir);
+        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
             visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();

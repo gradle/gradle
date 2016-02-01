@@ -18,13 +18,10 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 import java.io.File;
-import java.util.List;
 
 public interface VisualStudioLocator {
 
-    List<SearchResult> locateAllVisualStudioVersions();
-
-    SearchResult locateDefaultVisualStudioInstall(File candidate);
+    SearchResult locateVisualStudioInstalls(File candidate);
 
     interface SearchResult extends ToolSearchResult {
         VisualStudioInstall getVisualStudio();

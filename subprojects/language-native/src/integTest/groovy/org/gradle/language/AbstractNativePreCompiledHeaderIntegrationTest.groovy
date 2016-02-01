@@ -529,7 +529,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getSuffix() {
-        return toolChain.typeDisplayName == "visual c++" ? "pch" : "h.gch"
+        return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
     }
 
     String getUniquePragmaOutput(String message) {
