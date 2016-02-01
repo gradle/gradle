@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
+import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
@@ -86,6 +87,12 @@ public class JUnitTestClassExecuter {
 
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
+
+        if (runner instanceof Enclosed) {
+            // Exclude all tests, because otherwise the inner classes will be found and the tests will run twice.
+            filters.add(NONE_FILTER);
+        }
+
         if (runner instanceof Filterable) {
             Filterable filterable = (Filterable) runner;
             for (Filter filter : filters) {
@@ -138,8 +145,22 @@ public class JUnitTestClassExecuter {
             return matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description));
         }
 
+        @Override
         public String describe() {
             return "Includes matching test methods";
         }
     }
+
+    private static final Filter NONE_FILTER = new org.junit.runner.manipulation.Filter() {
+
+      @Override
+      public boolean shouldRun(Description description) {
+          return false;
+      }
+
+      @Override
+      public String describe() {
+          return "Includes nothing";
+      }
+    };
 }
