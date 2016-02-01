@@ -33,6 +33,7 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":compilePlayBinaryTests",
+                ":processPlayBinaryTestResources",
                 ":testPlayBinary")
 
         then:
@@ -49,6 +50,7 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":compilePlayBinaryTests",
+                ":processPlayBinaryTestResources",
                 ":testPlayBinary")
     }
 
