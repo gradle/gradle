@@ -29,15 +29,10 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer
  */
 class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
-    private HttpServer httpServer
     private portFinder = FixedAvailablePortAllocator.getInstance()
 
     int port
     int requestCount
-
-    TestProxyServer(HttpServer httpServer) {
-        this.httpServer = httpServer
-    }
 
     @Override
     protected void after() {

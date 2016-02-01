@@ -26,7 +26,7 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
     @Rule
     TestProxyServer getProxyServer() {
         if (testProxyServer == null) {
-            testProxyServer = new TestProxyServer(server)
+            testProxyServer = new TestProxyServer()
         }
         return testProxyServer
     }

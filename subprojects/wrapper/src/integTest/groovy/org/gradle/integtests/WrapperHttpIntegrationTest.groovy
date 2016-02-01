@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat
 @LeaksFileHandles
 class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
-    @Rule TestProxyServer proxyServer = new TestProxyServer(server)
+    @Rule TestProxyServer proxyServer = new TestProxyServer()
 
     void setup() {
         assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"

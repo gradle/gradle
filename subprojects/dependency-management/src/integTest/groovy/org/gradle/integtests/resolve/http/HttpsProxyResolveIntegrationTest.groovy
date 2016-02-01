@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.http
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.HttpServer
+import spock.lang.Unroll
 
 @LeaksFileHandles
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
@@ -50,6 +52,49 @@ repositories {
 
         and:
         proxyServer.requestCount == 1 // just tunnelling
+    }
+
+    @Unroll
+    def "passes target credentials to #authScheme authenticated server via proxy"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        def (repoUserName, repoPassword) = ['targetUser', 'targetPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${proxyScheme}://test:${server.port}/repo"
+        credentials {
+            username '$repoUserName'
+            password '$repoPassword'
+        }
+    }
+}
+"""
+        and:
+        def repo = mavenHttpRepo
+        def module = repo.module('log4j', 'log4j', '1.2.17')
+        module.publish()
+
+        when:
+        server.authenticationScheme = authScheme
+        configureProxy(proxyUserName, proxyPassword)
+
+        and:
+        module.pom.expectGet(repoUserName, repoPassword)
+        module.artifact.expectGet(repoUserName, repoPassword)
+
+        then:
+        succeeds('listJars')
+
+        and:
+        // authentication
+        // pom and jar requests
+        proxyServer.requestCount == 3
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
 
     def "can resolve from http repo with https proxy configured"() {
