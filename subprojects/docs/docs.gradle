@@ -235,7 +235,8 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
 
 task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
     metaDataFile = dslMetaData.destFile
-    destFile = new File(generatedResourcesDir, "default-imports.txt")
+    importsDestFile = new File(generatedResourcesDir, "default-imports.txt")
+    mappingDestFile = new File(generatedResourcesDir, "api-mapping.txt")
     // These are part of the API, but not the DSL
     excludePackage 'org.gradle.tooling.**'
     excludePackage 'org.gradle.testfixtures.**'

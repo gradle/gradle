@@ -16,6 +16,11 @@
 
 package org.gradle.configuration;
 
+import java.util.List;
+import java.util.Map;
+
 public interface ImportsReader {
     String[] getImportPackages();
+
+    Map<String, List<String>> getSimpleNameToFullClassNamesMapping();
 }
