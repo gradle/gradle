@@ -85,9 +85,9 @@ On completion of this story, it will be possible to convert Buildship to use thi
 ##### Usage
 
     CompositeBuildConnection connection = CompositeBuildConnector.newComposite()
-        .withParticipant("project-1")
-        .withParticipant("project-2")
-        .connect();
+    connection.addParticipant('project-1')
+    connection.addParticipant('project-2').useGradleVersion('2.8')
+    connection.connect();
 
     try {
         Set<ModelResult<EclipseProject>> modelResult = connection.getModels(EclipseProject.class);
@@ -106,11 +106,16 @@ On completion of this story, it will be possible to convert Buildship to use thi
 participates in the composite.
     - Adding any `CompositeParticipant` effectively adds the Gradle build that _contains_ the referenced project to the composite.
     - For each `CompositeParticipant` a new `ProjectConnection` is created internally.
+    - A `CompositeParticipant` can provide a Gradle distribution for use with the underlying `ProjectConnection`. If no Gradle distribution is provided, the Gradle distribution of the
+    build is used.
 - The only model type that can be requested for a `CompositeBuildConnection` is `EclipseProject`
     - On request for a `EclipseProject`, the underlying `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects
     for all participating Gradle builds of a composite.
     - The instance of `ModelResult` will be constructed directly by the `CompositeBuildConnection` instance, by traversing the hierarchy of the `EclipseProject` obtained.
     - The `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display them in a hierarchical layout.
+- The order in which participants are added doesn't not make any guarantees over the order of returned model results.
+- The method on `CompositeBuildConnection` returning a `ModelBuilder` does only allow for providing a cancellation token or a progress listener. Any other method on the `ModelBuilder`
+interface is not supported. The returned `ModelBuilder` can provide a `ResultHandler` when retrieving the model.
 
 ##### Test cases
 
@@ -134,10 +139,14 @@ The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hi
     - multiple single project builds
     - multiple multi-project builds
     - a combination of both
+- A participant uses the provided Gradle distribution to resolve the model.
 - An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 - An exception is thrown if any of the resolved `EclipseProject`s have the same name.
-- An exception is thrown if a dependency cycle is detected e.g. project A depends on B and B depends on A.
-- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException` is thrown.
+- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException`
+is thrown.
+- When building a composite, a progress listener can be provided. The progress listener captures the relevant events.
+- Unsupported methods of the `ModelBuilder` throw an `UnsupportedMethodException`.
+- A result handler can be used to capture the result of the operation upon completion or the exception of the failed operation.
 
 ##### Open issues
 
