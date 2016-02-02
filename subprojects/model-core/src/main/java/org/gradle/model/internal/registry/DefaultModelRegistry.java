@@ -41,13 +41,15 @@ import static org.gradle.model.internal.core.ModelNode.State.*;
 public class DefaultModelRegistry implements ModelRegistryInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
+    private final String projectPath;
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
 
-    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath) {
         this.ruleExtractor = ruleExtractor;
+        this.projectPath = projectPath;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(this, rootRegistration, null));
         ruleBindings = new RuleBindings();
@@ -70,7 +72,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
-        LOGGER.debug("Registering model element '{}' (hidden = {})", node.getPath(), node.isHidden());
+        LOGGER.debug("Project {} - Registering model element '{}' (hidden = {})", projectPath, node.getPath(), node.isHidden());
         addRuleBindings(node, actions);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
@@ -412,7 +414,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 
-        LOGGER.debug("Transitioning model element '{}' from state {} to {}", path, state.name(), desired.name());
+        LOGGER.debug("Project {} - Transitioning model element '{}' from state {} to {}", projectPath, path, state.name(), desired.name());
 
         if (desired.ordinal() < state.ordinal()) {
             if (laterOk) {
@@ -437,7 +439,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
-        LOGGER.debug("Mutating {} using {}", node.getPath(), descriptor);
+        LOGGER.debug("Project {} - Mutating {} using {}", projectPath, node.getPath(), descriptor);
 
         try {
             RuleContext.run(descriptor, new Runnable() {
@@ -688,7 +690,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             if (!node.getState().equals(getTargetState().previous())) {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
-            LOGGER.debug("Transitioning model element '{}' to state {}.", node.getPath(), getTargetState().name());
+            LOGGER.debug("Project {} - Transitioning model element '{}' to state {}.", projectPath, node.getPath(), getTargetState().name());
             node.setState(getTargetState());
         }
 
@@ -1141,7 +1143,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         void apply() {
-            LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
+            LOGGER.debug("Project {} - Running model element '{}' rule action {}", projectPath, getPath(), binder.getDescriptor());
             fireAction(binder);
             node.notifyFired(binder);
         }

@@ -159,7 +159,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor);
+        return new DefaultModelRegistry(ruleExtractor, project.getPath());
     }
 
     protected ScriptHandler createScriptHandler() {
