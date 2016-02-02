@@ -327,7 +327,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
      */
     // TODO - reuse graph, discard state once not required
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
-        LinkedList<ModelGoal> queue = new LinkedList<ModelGoal>();
+        Deque<ModelGoal> queue = new ArrayDeque<ModelGoal>();
         queue.add(targetGoal);
         List<ModelGoal> newDependencies = new ArrayList<ModelGoal>();
         while (!queue.isEmpty()) {
@@ -370,12 +370,12 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                     queue.addFirst(dependency);
                     continue;
                 }
-                throw ruleCycle(dependency, queue);
+                throw ruleCycle(dependency, Lists.newArrayList(queue));
             }
         }
     }
 
-    private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, LinkedList<ModelGoal> queue) {
+    private ConfigurationCycleException ruleCycle(ModelGoal brokenGoal, List<ModelGoal> queue) {
         List<String> path = new ArrayList<String>();
         int pos = queue.indexOf(brokenGoal);
         ListIterator<ModelGoal> iterator = queue.listIterator(pos + 1);
