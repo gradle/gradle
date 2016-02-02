@@ -172,9 +172,12 @@ The `ToolingClient` will be expanded to provide methods for managing and queryin
         public abstract <T> CompositeModelRequest<T> newCompositeModelRequest(Class<T> modelType);
     }
 
-    public interface CompositeModelRequest {
-        List<GradleBuildIdentifier> getParticipants();
-    }
+The `CompositeModelRequest` clients can specify the composite participants in a write-only manner
+
+     public interface CompositeModelRequest {
+         CompositeRequest<T> participants(GradleBuildIdentifier... buildIdentifiers);
+         CompositeRequest<T> addParticipants(GradleBuildIdentifier... buildIdentifiers);
+     }
 
 A new `CompositeModelRepository` will be added in order to query composites from Buildship
 
