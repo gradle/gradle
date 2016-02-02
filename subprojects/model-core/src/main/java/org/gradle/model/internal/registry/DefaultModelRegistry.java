@@ -70,7 +70,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     public void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions) {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
-        LOGGER.debug("Registering model element '{}'", node.getPath());
+        LOGGER.debug("Registering model element '{}' (hidden = {})", node.getPath(), node.isHidden());
         addRuleBindings(node, actions);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
