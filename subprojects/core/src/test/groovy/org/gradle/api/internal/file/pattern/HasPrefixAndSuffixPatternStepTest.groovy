@@ -23,32 +23,32 @@ class HasPrefixAndSuffixPatternStepTest extends Specification {
         def step = new HasPrefixAndSuffixPatternStep("pre", "suf", true)
 
         expect:
-        step.matches("pre-suf")
-        step.matches("presufsuf")
-        step.matches("presuf")
-        !step.matches("")
-        !step.matches("pre")
-        !step.matches("pre-su")
-        !step.matches("pre-s")
-        !step.matches("suf")
-        !step.matches("re-suf")
-        !step.matches("e-suf")
-        !step.matches("Pre-Suf")
-        !step.matches("")
-        !step.matches("something else")
+        step.matches("pre-suf", true)
+        step.matches("presufsuf", true)
+        step.matches("presuf", true)
+        !step.matches("", true)
+        !step.matches("pre", true)
+        !step.matches("pre-su", true)
+        !step.matches("pre-s", true)
+        !step.matches("suf", true)
+        !step.matches("re-suf", true)
+        !step.matches("e-suf", true)
+        !step.matches("Pre-Suf", true)
+        !step.matches("", true)
+        !step.matches("something else", true)
     }
 
     def "matches name case insensitive"() {
         def step = new HasPrefixAndSuffixPatternStep("pre", "suf", false)
 
         expect:
-        step.matches("pre-suf")
-        step.matches("PRE-SUF")
-        step.matches("Pre-Suf")
-        !step.matches("PRE")
-        !step.matches("SUF")
-        !step.matches("PRSU")
-        !step.matches("")
-        !step.matches("something else")
+        step.matches("pre-suf", true)
+        step.matches("PRE-SUF", true)
+        step.matches("Pre-Suf", true)
+        !step.matches("PRE", true)
+        !step.matches("SUF", true)
+        !step.matches("PRSU", true)
+        !step.matches("", true)
+        !step.matches("something else", true)
     }
 }

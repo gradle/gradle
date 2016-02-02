@@ -23,31 +23,31 @@ class HasPrefixPatternStepTest extends Specification {
         def step = new HasPrefixPatternStep(".abc", true)
 
         expect:
-        step.matches(".abcd")
-        step.matches(".abc")
-        !step.matches(".")
-        !step.matches(".a")
-        !step.matches(".ab")
-        !step.matches(".b")
-        !step.matches(".bcd")
-        !step.matches("_abc")
-        !step.matches("")
-        !step.matches("something else")
+        step.matches(".abcd", true)
+        step.matches(".abc", true)
+        !step.matches(".", true)
+        !step.matches(".a", true)
+        !step.matches(".ab", true)
+        !step.matches(".b", true)
+        !step.matches(".bcd", true)
+        !step.matches("_abc", true)
+        !step.matches("", true)
+        !step.matches("something else", true)
     }
 
     def "matches name case insensitive"() {
         def step = new HasPrefixPatternStep(".abc", false)
 
         expect:
-        step.matches(".abc")
-        step.matches(".ABC")
-        step.matches(".Abc")
-        step.matches(".aBCD")
-        !step.matches(".A")
-        !step.matches(".Ab")
-        !step.matches(".BCD")
-        !step.matches("ABC")
-        !step.matches("")
-        !step.matches("something else")
+        step.matches(".abc", true)
+        step.matches(".ABC", true)
+        step.matches(".Abc", true)
+        step.matches(".aBCD", true)
+        !step.matches(".A", true)
+        !step.matches(".Ab", true)
+        !step.matches(".BCD", true)
+        !step.matches("ABC", true)
+        !step.matches("", true)
+        !step.matches("something else", true)
     }
 }
