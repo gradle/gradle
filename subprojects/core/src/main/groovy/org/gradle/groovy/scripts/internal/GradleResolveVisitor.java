@@ -504,7 +504,9 @@ public class GradleResolveVisitor extends ResolveVisitor {
             String name = type.getName();
             List<String> fqn = simpleNameToFQN.get(type.getName());
             if (fqn != null) {
-                return fqn.size() == 1 && resolveFromResolver(type, fqn.get(0));
+                if (fqn.size() == 1 && resolveFromResolver(type, fqn.get(0))) {
+                    return true;
+                }
             }
             for (String packagePrefix : DEFAULT_IMPORTS) {
                 // We limit the inner class lookups here by using ConstructedClassWithPackage.
