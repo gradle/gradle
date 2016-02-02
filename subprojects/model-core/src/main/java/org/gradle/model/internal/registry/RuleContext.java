@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class RuleContext {
@@ -27,7 +27,7 @@ public class RuleContext {
     private static final ThreadLocal<Deque<ModelRuleDescriptor>> STACK = new ThreadLocal<Deque<ModelRuleDescriptor>>() {
         @Override
         protected Deque<ModelRuleDescriptor> initialValue() {
-            return Lists.newLinkedList();
+            return new ArrayDeque<ModelRuleDescriptor>();
         }
     };
 
