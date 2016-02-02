@@ -50,8 +50,8 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         this.ruleExtractor = ruleExtractor;
         ModelRegistration rootRegistration = ModelRegistrations.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(this, rootRegistration, null));
-        modelGraph.getRoot().setState(Created);
         ruleBindings = new RuleBindings();
+        transition(modelGraph.getRoot(), Created, false);
     }
 
     @Override
