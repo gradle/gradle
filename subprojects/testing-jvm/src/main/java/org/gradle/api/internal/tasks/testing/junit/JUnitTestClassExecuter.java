@@ -80,12 +80,19 @@ public class JUnitTestClassExecuter {
             ));
         }
 
-        if (!options.getIncludedTests().isEmpty()) {
-            filters.add(new MethodNameFilter(options.getIncludedTests()));
-        }
-
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
+
+        if (!options.getIncludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
+
+            // For test suites (including suite-like custom Runners), if the test suite class
+            // matches the filter, run the entire suite instead of filtering away its contents.
+            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+                filters.add(new MethodNameFilter(matcher));
+            }
+        }
+
         if (runner instanceof Filterable) {
             Filterable filterable = (Filterable) runner;
             for (Filter filter : filters) {
@@ -129,13 +136,23 @@ public class JUnitTestClassExecuter {
 
         private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(Iterable<String> includedTests) {
-            matcher = new TestSelectionMatcher(includedTests);
+        public MethodNameFilter(TestSelectionMatcher matcher) {
+            this.matcher = matcher;
         }
 
         @Override
         public boolean shouldRun(Description description) {
-            return matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description));
+            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
+                return true;
+            }
+
+            for (Description child : description.getChildren()) {
+                if (shouldRun(child)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public String describe() {
