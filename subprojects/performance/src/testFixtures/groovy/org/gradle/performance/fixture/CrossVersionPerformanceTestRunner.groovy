@@ -79,21 +79,24 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             testTime: System.currentTimeMillis())
 
         def releasedDistributions = new ReleasedVersionDistributions()
-        def releasedVersions = releasedDistributions.all*.version.version
         def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
+        def mostRecentSnapshot = releasedDistributions.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.findAll { it != 'last' } as LinkedHashSet
+        def baselineVersions = targetVersions.findAll { it != 'last' && it != 'nightly' } as LinkedHashSet
 
-        // Always include the most recent final release
-        allVersions.add(mostRecentFinalRelease)
+        if (!targetVersions.find { it == 'nightly'}) {
+            // Include the most recent final release if we're not testing against a nightly
+            baselineVersions.add(mostRecentFinalRelease)
+        } else {
+            baselineVersions.add(mostRecentSnapshot)
+        }
 
         // A target version may be something that is yet unreleased, so filter that out
-        allVersions.remove(currentBaseVersion)
-        allVersions.removeAll { !releasedVersions.contains(it) }
+        baselineVersions.remove(currentBaseVersion)
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
-        allVersions.each { it ->
+        baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression

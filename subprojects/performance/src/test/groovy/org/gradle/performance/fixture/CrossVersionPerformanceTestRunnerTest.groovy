@@ -30,7 +30,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
-    final mostRecentRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+    final distributions = new ReleasedVersionDistributions()
+    final mostRecentRelease = distributions.mostRecentFinalRelease.version.version
+    final mostRecentSnapshot = distributions.mostRecentSnapshot.version.version
     final currentVersionBase = GradleVersion.current().baseVersion.version
 
     @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
@@ -99,6 +101,23 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+    }
+
+    def "can use 'nightly' baseline version to refer to most recently snapshot version"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['nightly']
+
+        when:
+        def results = runner.run()
+
+        then:
+        results.baselineVersions*.version == [mostRecentSnapshot]
+
+        and:
+        2 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
         }
     }
