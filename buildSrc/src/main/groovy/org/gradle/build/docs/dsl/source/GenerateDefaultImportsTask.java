@@ -60,11 +60,11 @@ public class GenerateDefaultImportsTask extends DefaultTask {
 
     @OutputFile
     public File getMappingDestFile() {
-        return importsDestFile;
+        return mappingDestFile;
     }
 
     public void setMappingDestFile(File destFile) {
-        this.importsDestFile = destFile;
+        this.mappingDestFile = destFile;
     }
 
     @Input
