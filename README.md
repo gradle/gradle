@@ -20,7 +20,7 @@ To build the entire Gradle project, you should run the following in the root of 
 
 This will compile all the code, generate all the documentation and run all the tests. It can take several hours because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and Javadoc snippets, daemon process capabilities, etc.
 
-In order to for this build to pass, you will need a supported native tool chain installed. See the [Gradle userguide](https://docs.gradle.org/current/userguide/nativeBinaries.html#native-binaries:tool-chain-support) for a list of supported tool chains.
+In order to for this build to pass, you will need a supported native tool chain installed. See the [Gradle userguide](https://docs.gradle.org/current/userguide/native_software.html#native-binaries:tool-chain-support) for a list of supported tool chains.
 
 ### Installing from source
 
@@ -99,4 +99,3 @@ This command generates Eclipse metadata that allows importing the project into E
 With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`.
 
 Build is run via right-click on `build.gradle` <kbd>Run As -> gradle build Gradle Build</kbd>
-
