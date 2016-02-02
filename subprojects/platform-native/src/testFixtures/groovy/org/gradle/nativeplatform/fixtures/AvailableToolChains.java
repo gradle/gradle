@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -49,8 +50,9 @@ public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
 
     // This enables us to install a version of VisualStudio without testing it if there are breaking changes
-    // 12.0 => VisualStudio 2013
-    private static final VersionNumber VISUALSTUDIO_MAX_VERSION = VersionNumber.parse("12.0");
+    // This also deals with the issue that installing VS2013 also installs an unusable version of VS2012
+    private static final VersionNumber VISUALSTUDIO_2013 = VersionNumber.parse("12.0");
+    private static final List<VersionNumber> VISUALSTUDIO_TESTABLE_VERSIONS = ImmutableList.of(VISUALSTUDIO_2013);
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
@@ -108,8 +110,8 @@ public class AvailableToolChains {
         return new UnavailableToolChain("clang");
     }
 
-    static private boolean isSupportedVisualStudioVersion(VersionNumber version) {
-        return version.compareTo(VISUALSTUDIO_MAX_VERSION) <= 0;
+    static private boolean isTestableVisualStudioVersion(VersionNumber version) {
+        return VISUALSTUDIO_TESTABLE_VERSIONS.contains(version);
     }
 
     static private List<ToolChainCandidate> findVisualCpps() {
@@ -121,7 +123,7 @@ public class AvailableToolChains {
 
         for (VisualStudioLocator.SearchResult searchResult : searchResults) {
             VisualStudioInstall install = searchResult.getVisualStudio();
-            if (isSupportedVisualStudioVersion(install.getVersion()) && searchResult.isAvailable()) {
+            if (isTestableVisualStudioVersion(install.getVersion()) && searchResult.isAvailable()) {
                 toolChains.add(new InstalledVisualCpp(install.getVersion()).withInstall(install));
             }
         }
@@ -402,7 +404,7 @@ public class AvailableToolChains {
                 case VisualCpp:
                     return true;
                 case VisualCpp2013:
-                    return version.compareTo(VersionNumber.parse("12.0")) >= 0;
+                    return version.compareTo(VISUALSTUDIO_2013) >= 0;
                 default:
                     return false;
             }
