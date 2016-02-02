@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -202,7 +203,8 @@ repositories {
     def configureProxyHostFor(String scheme) {
         executer.withArgument("-D${scheme}.proxyHost=localhost")
         executer.withArgument("-D${scheme}.proxyPort=${proxyServer.port}")
-        executer.withArgument("-Dhttp.nonProxyHosts=") // use proxy even when accessing localhost
+        // use proxy even when accessing localhost
+        executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
     }
 
     def configureProxy(String userName=null, String password=null) {

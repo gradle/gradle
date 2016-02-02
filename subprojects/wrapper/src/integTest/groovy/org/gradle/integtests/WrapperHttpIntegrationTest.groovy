@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -110,7 +111,7 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
+    systemProp.http.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}
 """
         server.expectGet("/gradlew/dist", distribution.binDistribution)
 
@@ -134,7 +135,7 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
+    systemProp.http.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}
     systemProp.http.proxyUser=my_user
     systemProp.http.proxyPassword=my_password
 """
