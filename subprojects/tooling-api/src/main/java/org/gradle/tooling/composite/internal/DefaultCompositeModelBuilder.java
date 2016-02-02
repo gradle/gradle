@@ -19,8 +19,8 @@ package org.gradle.tooling.composite.internal;
 import com.google.common.collect.Sets;
 import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.model.HierarchicalElement;
@@ -35,37 +35,24 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CompositeModelBuilder<T> extends AbstractLongRunningOperation<CompositeModelBuilder<T>> implements ModelBuilder<Set<T>> {
+public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements CompositeModelBuilder<T> {
 
     private final Class<T> modelType;
     private final Set<GradleParticipantBuild> participants;
 
-    protected CompositeModelBuilder(Class<T> modelType, Set<GradleParticipantBuild> participants) {
+    protected DefaultCompositeModelBuilder(Class<T> modelType, Set<GradleParticipantBuild> participants) {
         // TODO: When this moves, specialize the ConnectionParams?
         super(null);
         this.modelType = modelType;
         this.participants = participants;
     }
 
-    // TODO: Make all configuration methods configure underlying model builders
-
     @Override
-    protected CompositeModelBuilder<T> getThis() {
+    protected DefaultCompositeModelBuilder<T> getThis() {
         return this;
     }
 
-    @Override
-    public ModelBuilder<Set<T>> forTasks(String... tasks) {
-        throw new UnsupportedOperationException("Not implemented");
-        // TODO: return getThis();
-    }
-
-    @Override
-    public ModelBuilder<Set<T>> forTasks(Iterable<String> tasks) {
-        throw new UnsupportedOperationException("Not implemented");
-        // TODO: return getThis();
-    }
-
+    // TODO: Make all configuration methods configure underlying model builders
     @Override
     public Set<T> get() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<T> handler = new BlockingResultHandler();

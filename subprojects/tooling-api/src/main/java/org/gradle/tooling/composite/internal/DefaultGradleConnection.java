@@ -19,8 +19,8 @@ package org.gradle.tooling.composite.internal;
 import com.google.common.collect.Sets;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
@@ -89,9 +89,9 @@ public class DefaultGradleConnection implements GradleConnection {
     }
 
     @Override
-    public <T> ModelBuilder<Set<T>> models(Class<T> modelType) {
+    public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
-        return new CompositeModelBuilder<T>(modelType, participants);
+        return new DefaultCompositeModelBuilder<T>(modelType, participants);
     }
 
     private <T> void checkSupportedModelType(Class<T> modelType) {

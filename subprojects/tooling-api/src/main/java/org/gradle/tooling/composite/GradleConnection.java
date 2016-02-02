@@ -18,7 +18,6 @@ package org.gradle.tooling.composite;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 
 import java.io.File;
@@ -130,7 +129,7 @@ public interface GradleConnection {
      * @param <T>
      * @return
      */
-    <T> ModelBuilder<Set<T>> models(Class<T> modelType);
+    <T> CompositeModelBuilder<T> models(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
