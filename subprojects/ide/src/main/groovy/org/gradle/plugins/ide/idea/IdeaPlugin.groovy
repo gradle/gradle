@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -27,6 +29,7 @@ import org.gradle.plugins.ide.idea.model.*
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
+
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -92,7 +95,9 @@ class IdeaPlugin extends IdePlugin {
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
                 ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
                 ideaProject.conventionMapping.languageLevel = {
-                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor {it.sourceCompatibility}
+                    JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor { Project p ->
+                        p.convention.getPlugin(JavaPluginConvention).sourceCompatibility
+                    }
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
 //                ideaProject.conventionMapping.targetBytecodeVersion = {

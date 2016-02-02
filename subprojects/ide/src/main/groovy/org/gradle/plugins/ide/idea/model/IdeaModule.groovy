@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
@@ -286,7 +287,7 @@ class IdeaModule {
     @Incubating
     IdeaLanguageLevel getLanguageLevel() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            def moduleLanguageLevel = new IdeaLanguageLevel(project.sourceCompatibility)
+            def moduleLanguageLevel = new IdeaLanguageLevel(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility)
             if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
                 return moduleLanguageLevel;
             }
@@ -303,7 +304,7 @@ class IdeaModule {
     @Incubating
     JavaVersion getTargetBytecodeVersion() {
         if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            JavaVersion moduleTargetBytecodeLevel = project.targetCompatibility
+            JavaVersion moduleTargetBytecodeLevel = project.convention.getPlugin(JavaPluginConvention).targetCompatibility
             if (includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel)) {
                 return moduleTargetBytecodeLevel;
             }
