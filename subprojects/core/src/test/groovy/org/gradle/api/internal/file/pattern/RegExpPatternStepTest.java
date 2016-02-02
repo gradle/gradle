@@ -36,57 +36,57 @@ public class RegExpPatternStepTest {
     @Test public void testEscapeSet() {
         String testChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\"<>,/";
         RegExpPatternStep step = new RegExpPatternStep(testChars, true);
-        assertTrue(step.matches(testChars));
+        assertTrue(step.matches(testChars, true));
     }
 
     @Test public void testLiteralMatches() {
         RegExpPatternStep step = new RegExpPatternStep("literal", true);
-        assertTrue(step.matches("literal"));
-        assertFalse(step.matches("Literal"));
-        assertFalse(step.matches("literally"));
-        assertFalse(step.matches("aliteral"));
+        assertTrue(step.matches("literal", true));
+        assertFalse(step.matches("Literal", true));
+        assertFalse(step.matches("literally", true));
+        assertFalse(step.matches("aliteral", true));
     }
 
     @Test public void testSingleCharWildcard() {
         RegExpPatternStep step = new RegExpPatternStep("a?c", true);
-        assertTrue(step.matches("abc"));
-        assertTrue(step.matches("a$c"));
-        assertTrue(step.matches("a?c"));
+        assertTrue(step.matches("abc", true));
+        assertTrue(step.matches("a$c", true));
+        assertTrue(step.matches("a?c", true));
 
-        assertFalse(step.matches("ac"));
-        assertFalse(step.matches("abcd"));
-        assertFalse(step.matches("abd"));
-        assertFalse(step.matches("a"));
+        assertFalse(step.matches("ac", true));
+        assertFalse(step.matches("abcd", true));
+        assertFalse(step.matches("abd", true));
+        assertFalse(step.matches("a", true));
     }
 
     @Test public void testMultiCharWildcard() {
         RegExpPatternStep step = new RegExpPatternStep("a*c", true);
-        assertTrue(step.matches("abc"));
-        assertTrue(step.matches("abrac"));
-        assertFalse(step.matches("abcd"));
-        assertFalse(step.matches("ab"));
-        assertFalse(step.matches("a"));
+        assertTrue(step.matches("abc", true));
+        assertTrue(step.matches("abrac", true));
+        assertFalse(step.matches("abcd", true));
+        assertFalse(step.matches("ab", true));
+        assertFalse(step.matches("a", true));
 
         step = new RegExpPatternStep("*", true);
-        assertTrue(step.matches("asd;flkj"));
-        assertTrue(step.matches(""));
+        assertTrue(step.matches("asd;flkj", true));
+        assertTrue(step.matches("", true));
     }
 
     @Test public void testCase() {
         RegExpPatternStep step = new RegExpPatternStep("MiXeD", true);
-        assertTrue(step.matches("MiXeD"));
-        assertFalse(step.matches("mixed"));
+        assertTrue(step.matches("MiXeD", true));
+        assertFalse(step.matches("mixed", true));
 
         step = new RegExpPatternStep("MiXeD", false);
-        assertTrue(step.matches("MiXeD"));
-        assertTrue(step.matches("mixed"));
+        assertTrue(step.matches("MiXeD", true));
+        assertTrue(step.matches("mixed", true));
 
         step = new RegExpPatternStep("MiXeD?", true);
-        assertTrue(step.matches("MiXeD1"));
-        assertFalse(step.matches("mixed1"));
+        assertTrue(step.matches("MiXeD1", true));
+        assertFalse(step.matches("mixed1", true));
 
         step = new RegExpPatternStep("MiXeD?", false);
-        assertTrue(step.matches("MiXeD1"));
-        assertTrue(step.matches("mixed1"));
+        assertTrue(step.matches("MiXeD1", true));
+        assertTrue(step.matches("mixed1", true));
     }
 }

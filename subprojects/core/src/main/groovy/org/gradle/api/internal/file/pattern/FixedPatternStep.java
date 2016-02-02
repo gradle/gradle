@@ -28,7 +28,7 @@ public class FixedPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
-    public boolean matches(String candidate) {
+    public boolean matches(String candidate, boolean isFile) {
         return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }
 }

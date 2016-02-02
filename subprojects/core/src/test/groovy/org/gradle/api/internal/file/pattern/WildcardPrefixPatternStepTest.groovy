@@ -18,24 +18,29 @@ package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
 
-class FixedPatternStepTest extends Specification {
+class WildcardPrefixPatternStepTest extends Specification {
     def "matches name case sensitive"() {
-        def step = new FixedPatternStep("name", true)
+        def step = new WildcardPrefixPatternStep(".java", true)
 
         expect:
-        step.matches("name", true)
-        !step.matches("Name", true)
+        step.matches("thing.java", true)
+        step.matches(".java", true)
+        !step.matches("thing.JAVA", true)
+        !step.matches("thing.jav", true)
+        !step.matches("thing.c", true)
         !step.matches("", true)
         !step.matches("something else", true)
     }
 
     def "matches name case insensitive"() {
-        def step = new FixedPatternStep("name", false)
+        def step = new WildcardPrefixPatternStep(".java", false)
 
         expect:
-        step.matches("name", true)
-        step.matches("Name", true)
-        step.matches("NAME", true)
+        step.matches("thing.java", true)
+        step.matches(".java", true)
+        step.matches("thing.JAVA", true)
+        !step.matches("thing.jav", true)
+        !step.matches("thing.c", true)
         !step.matches("", true)
         !step.matches("something else", true)
     }

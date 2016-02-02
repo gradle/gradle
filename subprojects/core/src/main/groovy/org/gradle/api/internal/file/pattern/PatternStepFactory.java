@@ -16,9 +16,10 @@
 package org.gradle.api.internal.file.pattern;
 
 public class PatternStepFactory {
-    private static final AnyWildcardPatternStep ANY_WILDCARD_PATTERN_STEP = new AnyWildcardPatternStep();
+    private static final AnyWildcardPatternStep ANY_WILDCARD_PATTERN_STEP = new AnyWildcardPatternStep(true);
+    private static final AnyWildcardPatternStep FILE_WILDCARD_PATTERN_STEP = new AnyWildcardPatternStep(false);
 
-    public static PatternStep getStep(String source, boolean caseSensitive) {
+    public static PatternStep getStep(String source, boolean caseSensitive, boolean lastStep) {
         if (source.length() == 0) {
             return new FixedPatternStep(source, caseSensitive);
         }
@@ -45,7 +46,8 @@ public class PatternStepFactory {
 
         if (endPrefixWildcard == source.length()) {
             // Only * characters: matches #1 above
-            return ANY_WILDCARD_PATTERN_STEP;
+            return endPrefixWildcard == 1 && lastStep
+                ? FILE_WILDCARD_PATTERN_STEP : ANY_WILDCARD_PATTERN_STEP;
         }
 
         // Zero or more * characters followed by at least one !*

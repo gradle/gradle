@@ -81,7 +81,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet);
             fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), relativePath.toArray(new String[0])));
         } else if (segment.contains("*") || segment.contains("?")) {
-            PatternStep step = PatternStepFactory.getStep(segment, false);
+            PatternStep step = PatternStepFactory.getStep(segment, false, segmentIndex + 1 == patternSegments.size());
             File[] children = file.listFiles();
             if (children == null) {
                 if (!file.canRead()) {
@@ -95,7 +95,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
                     break;
                 }
                 String childName = child.getName();
-                if (step.matches(childName)) {
+                if (step.matches(childName, child.isFile())) {
                     relativePath.addLast(childName);
                     doVisitDirOrFile(visitor, child, relativePath, segmentIndex + 1, stopFlag);
                     relativePath.removeLast();

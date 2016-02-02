@@ -35,33 +35,33 @@ class GreedyPathMatcherTest extends Specification {
         def matcher = new GreedyPathMatcher(matchesLastOrSecondLast("c"))
 
         expect:
-        !matcher.matches(["a"] as String[], 0)
-        !matcher.matches(["a", "c", "d", "b"] as String[], 0)
+        !matcher.matches(["a"] as String[], 0, true)
+        !matcher.matches(["a", "c", "d", "b"] as String[], 0, true)
 
-        matcher.matches(["c"] as String[], 0)
-        matcher.matches(["prefix", "c"] as String[], 1)
-        matcher.matches(["a", "c"] as String[], 0)
-        matcher.matches(["a", "c", "d"] as String[], 0)
-        matcher.matches(["a", "b", "c", "d"] as String[], 0)
-        matcher.matches(["a", "b", "c", "d"] as String[], 1)
+        matcher.matches(["c"] as String[], 0, true)
+        matcher.matches(["prefix", "c"] as String[], 1, true)
+        matcher.matches(["a", "c"] as String[], 0, true)
+        matcher.matches(["a", "c", "d"] as String[], 0, true)
+        matcher.matches(["a", "b", "c", "d"] as String[], 0, true)
+        matcher.matches(["a", "b", "c", "d"] as String[], 1, true)
     }
 
     def "every path is a prefix"() {
         def matcher = new GreedyPathMatcher(matchesLastOrSecondLast("c"))
 
         expect:
-        matcher.isPrefix(["a"] as String[], 0)
-        matcher.isPrefix(["a", "b"] as String[], 1)
+        matcher.isPrefix(["a"] as String[], 0, true)
+        matcher.isPrefix(["a", "b"] as String[], 1, true)
     }
 
     def matchesLastOrSecondLast(String value) {
         return Stub(PathMatcher) {
             getMinSegments() >> 1
             getMaxSegments() >> 2
-            matches(_, _) >> { String[] segments, int index ->
+            matches(_, _, _) >> { String[] segments, int index, boolean isFile ->
                 return segments[index] == value && segments.length - index <= 2
             }
-            isPrefix(_, _) >> { String[] segments, int index ->
+            isPrefix(_, _, _) >> { String[] segments, int index, boolean isFile ->
                 return segments[index] == value;
             }
         }

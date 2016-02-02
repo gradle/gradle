@@ -31,18 +31,18 @@ public class GreedyPathMatcher implements PathMatcher {
         return next.getMinSegments();
     }
 
-    public boolean matches(String[] segments, int startIndex) {
+    public boolean matches(String[] segments, int startIndex, boolean isFile) {
         int pos = segments.length - next.getMinSegments();
         int minPos = Math.max(startIndex, segments.length - next.getMaxSegments());
         for (; pos >= minPos; pos--) {
-            if (next.matches(segments, pos)) {
+            if (next.matches(segments, pos, isFile)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isPrefix(String[] segments, int startIndex) {
+    public boolean isPrefix(String[] segments, int startIndex, boolean isFile) {
         return true;
     }
 }
