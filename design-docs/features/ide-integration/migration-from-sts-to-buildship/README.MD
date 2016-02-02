@@ -30,6 +30,13 @@ Document the migration steps from STS Gradle integration to Buildship. Provide c
 - Add the new plugin to the Buildship feature.
 - Ask Pivotal to include the new plugin in the STS Gradle integration feature too.
 
+**Implementation plan for the notification plugin**
+- Add two new plugins to buildship `org.eclipse.buidship.stsmigration` and `org.eclipse.buidship.stsmigration.test`.
+- Add new `org.eclipse.ui.startup` extension with the `StartupHandler` class in the plugin to ensure the plugin is always activated.
+- Implement `StsMigrationDialog` to show the UI elements.
+- Implement `StsMigrationService` to 1) check if STS is installed 2) checks if the notification is muted and 3) shows the dialog if necessary.
+- Call `StsMigrationService.run()` from `StartupHandler`.
+
 ## Test cases
 - Can detect if STS plugin is installed in Eclipse.
 - STS plugin detection is activated upon startup.
