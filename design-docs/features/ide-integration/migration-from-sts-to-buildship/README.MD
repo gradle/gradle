@@ -40,5 +40,3 @@ Document the migration steps from STS Gradle integration to Buildship. Provide c
  -Note: Eclipse provides an API to install-uninstall bundles in the current runtime. We'll make use of this feature to provide integration tests verifying how Buildship behaves when STS is installed.
 
 ## Open issues
-
-- We have contacted Pivotal to ask their feedback on this spec, now we wait for the response.
