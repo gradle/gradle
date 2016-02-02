@@ -89,6 +89,24 @@ their build scripts to specify that metadata should be generated for an earlier 
     }
 
 
+### Change in exclude file pattern matching (May Exclude Fewer!)
+
+Projects which use wildcards in patterns to `exclude` files from certain tasks may notice that fewer files are excluded than in previous versions of Gradle.
+
+For example, if the project had a directory structure like:
+
+    files/ignoreMe.txt
+    files/valid/Some.class
+    file/alsoValid/Some.Java
+
+Then the following `fileTree` would contain no files with previous versions of Gradle.
+
+    fileTree('files') {
+        exclude('*')
+    }
+
+This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.gradle.org/browse/GRADLE-3182)) so that `fileTree` will contain all of the files except for `files/ignoreMe.txt`. This behavior is consistent with how `include` patterns already work.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
