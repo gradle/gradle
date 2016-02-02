@@ -24,6 +24,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -58,8 +59,8 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         DefaultModelSchemaExtractionContext<T> context = DefaultModelSchemaExtractionContext.root(type);
-        List<DefaultModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
-        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
+        List<DefaultModelSchemaExtractionContext<?>> validations = Lists.newArrayList();
+        Queue<DefaultModelSchemaExtractionContext<?>> unsatisfiedDependencies = new ArrayDeque<DefaultModelSchemaExtractionContext<?>>();
         DefaultModelSchemaExtractionContext<?> extractionContext = context;
         validations.add(extractionContext);
 
