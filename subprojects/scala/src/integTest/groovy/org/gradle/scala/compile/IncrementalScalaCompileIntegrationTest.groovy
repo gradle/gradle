@@ -52,6 +52,25 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
+    def compilesAllScalaCodeWhenForced() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala") << "class Person"
+        args("-i")
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() != old(other.lastModified())
+    }
+
     @Issue("GRADLE-2548")
     @Ignore
     def recompilesScalaWhenJavaChanges() {
