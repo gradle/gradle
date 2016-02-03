@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
@@ -125,10 +124,10 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return toOnOffString(isOptimize());
         }
         if (fieldName.equals("loggingPhases")) {
-            return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
+            return AntScalaCommandLineWriter.toCommaSeparatedArg(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(getAdditionalParameters());
+            return AntScalaCommandLineWriter.toCommandLineArg(getAdditionalParameters());
         }
         return value;
     }
