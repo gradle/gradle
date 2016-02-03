@@ -15,6 +15,8 @@
  */
 
 package org.gradle.plugins.ide.idea
+
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.junit.Rule
@@ -281,6 +283,30 @@ idea {
         assert ipr.bytecodeTargetLevel.module.size() == 2
         assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.6"
         assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
+    }
+
+    void "language levels specified in properties files is ignored"() {
+        given:
+        file('gradle.properties') << """
+sourceCompatibility=1.3
+targetCompatibility=1.3
+"""
+
+        buildFile << """
+allprojects {
+    apply plugin:'idea'
+    apply plugin:'java'
+}
+"""
+        when:
+        succeeds "idea"
+
+        then:
+        ipr.languageLevel == JavaVersion.current().name().replace('VERSION', 'JDK')
+        iml('root').languageLevel == null
+        iml('child1').languageLevel == null
+        iml('child2').languageLevel == null
+        iml('child3').languageLevel == null
     }
 
     def getIpr() {
