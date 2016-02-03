@@ -19,10 +19,11 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")
@@ -63,7 +64,7 @@ configure(project(':a')){
 }'''
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadEclipseProjectModel()
 
         then:
         rootProject.projectDependencies.find {it.targetProject.name == "a"}.exported ==false
@@ -116,7 +117,7 @@ configure(project(':c')) {
 """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadEclipseProjectModel()
         EclipseProject aProject = rootProject.children.find { it.name == 'a'}
         EclipseProject bProject = rootProject.children.find { it.name == 'b'}
         EclipseProject cProject = rootProject.children.find { it.name == 'c'}
@@ -125,4 +126,5 @@ configure(project(':c')) {
         bProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
         cProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
     }
+
 }

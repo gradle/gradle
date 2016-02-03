@@ -19,12 +19,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.11')
 @TargetGradleVersion(">=2.11")
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
 
     def setup() {
         settingsFile << "rootProject.name = 'root'"
@@ -155,7 +156,4 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         subprojectC.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_3
     }
 
-    private EclipseProject loadEclipseProjectModel() {
-        withConnection { connection -> connection.getModel(EclipseProject) }
-    }
 }

@@ -16,11 +16,12 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-class ToolingApiBuildableEclipseModelFixesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiBuildableEclipseModelFixesCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should not show not executable tasks"() {
@@ -51,7 +52,7 @@ project(':api') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadEclipseProjectModel()
 
         then:
         def rootTasks = eclipseProject.gradleProject.tasks.collect { it.name }

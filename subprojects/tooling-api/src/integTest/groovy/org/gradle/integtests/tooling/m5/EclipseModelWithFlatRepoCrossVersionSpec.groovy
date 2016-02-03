@@ -17,10 +17,11 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
+class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
 
     @Issue("GRADLE-1621")
     def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {
@@ -40,9 +41,7 @@ dependencies {
         """
 
         when:
-        EclipseProject project = toolingApi.withConnection { connection ->
-            connection.getModel(EclipseProject.class)
-        }
+        EclipseProject project = loadEclipseProjectModel()
 
         then:
         project.classpath[0].file != null

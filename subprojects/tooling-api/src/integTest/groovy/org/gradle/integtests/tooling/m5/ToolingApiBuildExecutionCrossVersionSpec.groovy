@@ -16,12 +16,13 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
     def "can build the set of tasks for a project"() {
         file('build.gradle') << '''
 task a {
@@ -109,7 +110,7 @@ task c
 '''
 
         when:
-        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject project = loadEclipseProjectModel()
 
         then:
         def taskA = project.gradleProject.tasks.find { it.name == 'a' }

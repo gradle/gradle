@@ -17,9 +17,10 @@
 package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
     def "can build linked resources"() {
 
         file('build.gradle').text = '''
@@ -32,7 +33,7 @@ eclipse.project {
 }
 '''
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { it.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject.linkedResources.size() == 2

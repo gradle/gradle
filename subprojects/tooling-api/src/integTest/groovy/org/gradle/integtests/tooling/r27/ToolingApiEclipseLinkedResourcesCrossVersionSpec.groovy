@@ -15,13 +15,16 @@
  */
 
 package org.gradle.integtests.tooling.r27
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.EclipseProject
+
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseFileSeparators
 
 @TargetGradleVersion(">=2.7")
-class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
 
     def "can references sibling source folders"() {
         given:
@@ -54,7 +57,7 @@ sourceSets {
 }
 """
         when:
-        EclipseProject rootProject = withConnection { it.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadEclipseProjectModel()
         EclipseProject subprojectA = rootProject.children.find {EclipseProject project -> project.name == "subprojectA"}
         then:
         subprojectA.linkedResources.size() == 4

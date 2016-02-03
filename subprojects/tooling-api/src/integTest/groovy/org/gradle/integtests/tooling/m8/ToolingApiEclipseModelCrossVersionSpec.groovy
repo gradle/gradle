@@ -16,9 +16,10 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
     def "can customize model late in the configuration phase"() {
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
@@ -32,7 +33,7 @@ dependencies {
 """
 
         when:
-        EclipseProject project = withConnection { it.getModel(EclipseProject.class) }
+        EclipseProject project = loadEclipseProjectModel()
 
         then:
         project.classpath[0].file.name == 'commons-lang-2.5.jar'
