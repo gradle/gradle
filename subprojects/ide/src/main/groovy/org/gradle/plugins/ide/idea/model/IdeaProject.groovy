@@ -19,6 +19,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
@@ -129,7 +130,7 @@ class IdeaProject {
     @Incubating
     JavaVersion getTargetBytecodeVersion() {
         List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
-            it.targetCompatibility
+            it.convention.getPlugin(JavaPluginConvention).targetCompatibility
         }
         JavaVersion maxBytecodeVersion = allTargetCompatibilities.isEmpty() ? JavaVersion.VERSION_1_6 : Collections.max(allTargetCompatibilities)
         return maxBytecodeVersion;
