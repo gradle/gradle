@@ -112,6 +112,7 @@ This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.g
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
+* [Lewis Cowles](https://github.com/LewisCowles1986) - Installation documentation clarification about GRADLE_HOME
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
