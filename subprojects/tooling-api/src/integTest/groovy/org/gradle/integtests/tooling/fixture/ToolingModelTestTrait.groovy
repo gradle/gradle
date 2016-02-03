@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.messaging.remote.internal.Message
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
@@ -45,7 +44,12 @@ trait ToolingModelTestTrait {
         if (shouldCheckSerialization) {
             // only check that no exceptions are thrown during serialization
             // cross-version deserialization would require using PayloadSerializer
-            Message.send(object, new NullOutputStream())
+            ObjectOutputStream oos = new ObjectOutputStream(new NullOutputStream());
+            try {
+                oos.writeObject(object);
+            } finally {
+                oos.flush();
+            }
         }
     }
 
