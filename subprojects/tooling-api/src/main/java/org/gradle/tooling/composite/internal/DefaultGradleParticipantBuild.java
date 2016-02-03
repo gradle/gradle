@@ -34,15 +34,16 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
         this.projectDir = projectDir;
     }
     DefaultGradleParticipantBuild(File projectDir, File gradleHome) {
-        this.projectDir = projectDir;
+        this(projectDir);
         this.gradleHome = gradleHome;
     }
+
     DefaultGradleParticipantBuild(File projectDir, String gradleVersion) {
-        this.projectDir = projectDir;
+        this(projectDir);
         this.gradleVersion = gradleVersion;
     }
     DefaultGradleParticipantBuild(File projectDir, URI gradleDistribution) {
-        this.projectDir = projectDir;
+        this(projectDir);
         this.gradleDistribution = gradleDistribution;
     }
 
@@ -57,6 +58,11 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
             projectConnection = connect();
         }
         return projectConnection;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "build " + projectDir.getAbsolutePath();
     }
 
     @Override

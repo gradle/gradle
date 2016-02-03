@@ -67,23 +67,25 @@ To support Eclipse import, only a constrained composite connection API is requir
 - Fail with `UnsupportedOperationException` if composite build is created with >1 participant when connecting.
 - Fail with `IllegalStateException` after connecting to a `GradleConnection`, closing the connection and trying to retrieve a model.
 - Errors from trying to retrieve models (getModels, et al) is propagated to caller.
-- Errors from closing underlying ProjectConnection propagate to caller.
 - When retrieving anything other than `EclipseProject`, an `UnsupportedOperationException` is thrown.
 - When retrieving `EclipseProject`:
     - a single ProjectConnection is used.
     - a single project returns a single `EclipseProject`
     - a multi-project build returns a `EclipseProject` for each Gradle project in a Set
-- Changing the participants Gradle distribution is reflected in the `ProjectConnection`
-- Participant project directory is used as the project directory for the `ProjectConnection`
-- Participant gradleUserHome is used as the gradle user home for the `ProjectConnection`
 - Fail if participant is not a Gradle build (what does this look like for existing integration tests?)
-- Cross-version tests:
-    - Fail if participants are <Gradle 1.0
-    - Test retrieving `EclipseProject` from all supported Gradle versions
 - After making a successful model request, on a subsequent model request:
     - Changing the set of sub-projects changes the number of `EclipseProject`s that are returned
     - Removing the project directory is causes a failure
     - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
+
+Coverage to complete:
+
+- Errors from closing underlying ProjectConnection propagate to caller.
+- Changing the participants Gradle distribution is reflected in the `ProjectConnection`
+- Participant project directory is used as the project directory for the `ProjectConnection`
+- Cross-version tests:
+    - Fail if participants are <Gradle 1.0
+    - Test retrieving `EclipseProject` from all supported Gradle versions
 
 ### Documentation
 

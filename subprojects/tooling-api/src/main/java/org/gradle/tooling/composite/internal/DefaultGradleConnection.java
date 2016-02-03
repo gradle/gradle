@@ -64,7 +64,7 @@ public class DefaultGradleConnection implements GradleConnection {
             }
             // TODO:
             if (participants.size() > 1) {
-                throw new IllegalStateException("Temporary -- Gradle only supports a single project in a composite");
+                throw new UnsupportedOperationException("Temporary -- Gradle only supports a single project in a composite");
             }
             return new DefaultGradleConnection(participants);
         }
@@ -78,13 +78,11 @@ public class DefaultGradleConnection implements GradleConnection {
 
     @Override
     public <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
-        checkSupportedModelType(modelType);
         return models(modelType).get();
     }
 
     @Override
     public <T> void getModels(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException {
-        checkSupportedModelType(modelType);
         models(modelType).get(handler);
     }
 
@@ -101,7 +99,7 @@ public class DefaultGradleConnection implements GradleConnection {
 
         // TODO: Remove
         if (!modelType.equals(EclipseProject.class)) {
-            throw new IllegalArgumentException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
+            throw new UnsupportedOperationException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
         }
     }
 

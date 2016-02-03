@@ -24,4 +24,5 @@ import java.io.File;
 public interface GradleParticipantBuild extends Stoppable {
     File getProjectDir();
     ProjectConnection getConnection();
+    String getDisplayName();
 }
