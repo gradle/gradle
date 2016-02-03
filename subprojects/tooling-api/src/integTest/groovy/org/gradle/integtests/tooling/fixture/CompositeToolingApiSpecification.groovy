@@ -23,8 +23,8 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
 
 @ToolingApiVersion('>=2.12')
-@TargetGradleVersion('>=2.12') // relax later
-class CompositeToolingApiSpecification extends ToolingApiSpecification {
+@TargetGradleVersion('>=2.12') // TODO: relax later
+abstract class CompositeToolingApiSpecification extends ToolingApiSpecification {
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -32,6 +32,9 @@ class CompositeToolingApiSpecification extends ToolingApiSpecification {
 
     GradleConnection createComposite(List<File> rootProjectDirectories) {
         GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder()
+
+        // TODO: Pull this from a nicer place?
+        builder.useGradleUserHomeDir(toolingApi.gradleUserHomeDir)
 
         rootProjectDirectories.each {
             // TODO: this isn't the right way to configure the gradle distribution

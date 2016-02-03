@@ -31,29 +31,36 @@ import java.util.Set;
 public class DefaultGradleConnection implements GradleConnection {
     public static final class Builder implements GradleConnection.Builder {
 
+        private File gradleUserHomeDir;
         private final Set<GradleParticipantBuild> participants = Sets.newHashSet();
 
         @Override
+        public GradleConnection.Builder useGradleUserHomeDir(File gradleUserHomeDir) {
+            this.gradleUserHomeDir = gradleUserHomeDir;
+            return this;
+        }
+
+        @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, File gradleHome) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleHome));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleHome));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, String gradleVersion) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleVersion));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleVersion));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, URI gradleDistribution) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleDistribution));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleDistribution));
             return this;
         }
 
@@ -66,13 +73,15 @@ public class DefaultGradleConnection implements GradleConnection {
             if (participants.size() > 1) {
                 throw new UnsupportedOperationException("Temporary -- Gradle only supports a single project in a composite");
             }
-            return new DefaultGradleConnection(participants);
+            return new DefaultGradleConnection(gradleUserHomeDir, participants);
         }
     }
 
+    private File gradleUserHomeDir;
     private final Set<GradleParticipantBuild> participants;
 
-    private DefaultGradleConnection(Set<GradleParticipantBuild> participants) {
+    private DefaultGradleConnection(File gradleUserHomeDir, Set<GradleParticipantBuild> participants) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
         this.participants = participants;
     }
 

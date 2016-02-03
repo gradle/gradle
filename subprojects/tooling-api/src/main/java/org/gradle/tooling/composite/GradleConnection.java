@@ -40,6 +40,14 @@ public interface GradleConnection {
      */
     interface Builder {
         /**
+         * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
+         *
+         * @param gradleUserHomeDir The user's Gradle home directory to use.
+         * @return this
+         */
+        Builder useGradleUserHomeDir(File gradleUserHomeDir);
+
+        /**
          * Adds a Gradle build as a participant in a composite.
          *
          * Defaults to a project-specific Gradle version.

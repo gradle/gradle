@@ -23,6 +23,7 @@ import java.io.File;
 import java.net.URI;
 
 class DefaultGradleParticipantBuild implements GradleParticipantBuild {
+    private final File gradleUserHomeDir;
     private final File projectDir;
     private ProjectConnection projectConnection;
 
@@ -30,20 +31,22 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
     private URI gradleDistribution;
     private String gradleVersion;
 
-    DefaultGradleParticipantBuild(File projectDir) {
+    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir) {
         this.projectDir = projectDir;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
-    DefaultGradleParticipantBuild(File projectDir, File gradleHome) {
-        this(projectDir);
+
+    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, File gradleHome) {
+        this(projectDir, gradleUserHomeDir);
         this.gradleHome = gradleHome;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, String gradleVersion) {
-        this(projectDir);
+    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, String gradleVersion) {
+        this(projectDir, gradleUserHomeDir);
         this.gradleVersion = gradleVersion;
     }
-    DefaultGradleParticipantBuild(File projectDir, URI gradleDistribution) {
-        this(projectDir);
+    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, URI gradleDistribution) {
+        this(projectDir, gradleUserHomeDir);
         this.gradleDistribution = gradleDistribution;
     }
 
@@ -73,7 +76,10 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
     }
 
     private ProjectConnection connect() {
-        return configureDistribution(GradleConnector.newConnector().forProjectDirectory(getProjectDir())).connect();
+        return configureDistribution(GradleConnector.newConnector().
+            useGradleUserHomeDir(gradleUserHomeDir).
+            forProjectDirectory(getProjectDir())).
+            connect();
     }
 
     private GradleConnector configureDistribution(GradleConnector connector) {
