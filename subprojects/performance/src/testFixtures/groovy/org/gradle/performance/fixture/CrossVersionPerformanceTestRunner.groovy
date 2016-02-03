@@ -32,6 +32,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
+    final ReleasedVersionDistributions releases
 
     String testProject
     boolean useDaemon
@@ -47,9 +48,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     BuildExperimentListener buildExperimentListener
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
+        this.releases = releases
     }
 
     CrossVersionPerformanceResults run() {
@@ -78,21 +80,24 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsCommits: [Git.current().commitId],
             testTime: System.currentTimeMillis())
 
-        def releasedDistributions = new ReleasedVersionDistributions()
-        def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
-        def mostRecentSnapshot = releasedDistributions.mostRecentSnapshot.version.version
+        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
+        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = targetVersions.findAll { it != 'last' && it != 'nightly' } as LinkedHashSet
+        def baselineVersions = new LinkedHashSet()
+        for (String version: targetVersions) {
+            if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
+                // These are all treated specially below
+                continue
+            }
+            baselineVersions.add(findRelease(version).version.version)
+        }
 
-        if (!targetVersions.find { it == 'nightly'}) {
+        if (!targetVersions.contains('nightly')) {
             // Include the most recent final release if we're not testing against a nightly
             baselineVersions.add(mostRecentFinalRelease)
         } else {
             baselineVersions.add(mostRecentSnapshot)
         }
-
-        // A target version may be something that is yet unreleased, so filter that out
-        baselineVersions.remove(currentBaseVersion)
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
@@ -113,6 +118,22 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         reporter.report(results)
 
         return results
+    }
+
+    GradleDistribution findRelease(String requested) {
+        GradleDistribution best = null
+        for (GradleDistribution release : releases.all) {
+            if (release.version.version == requested) {
+                return release
+            }
+            if (!release.version.snapshot && release.version.baseVersion.version == requested && (best == null || best.version < release.version)) {
+                best = release
+            }
+        }
+        if (best != null) {
+            return best
+        }
+        throw new RuntimeException("Cannot find Gradle release that matches version '" + requested + "'")
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
