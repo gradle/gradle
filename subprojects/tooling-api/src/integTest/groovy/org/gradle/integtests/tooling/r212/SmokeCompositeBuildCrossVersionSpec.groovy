@@ -104,7 +104,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         def underlyingCause = e.getCause().getCause()
         underlyingCause.getMessage().contains("project-does-not-exist' does not exist")
     }
-    
+
     def "does not search upwards for projects"() {
         given:
         def rootDir = projectDir("root")
@@ -112,12 +112,13 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         def project = rootDir.createDir("project")
         project.createFile("build.gradle")
 
-        expect:
-        withCompositeConnection(project) { connection ->
-            def models = connection.getModels(EclipseProject)
-            // should only find 'project', not the other projects defined in root.
-            assert models.size() == 1
-            assert models[0].gradleProject.projectDirectory == project
+        when:
+        def models = withCompositeConnection(project) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        // should only find 'project', not the other projects defined in root.
+        models.size() == 1
+        models[0].gradleProject.projectDirectory == project
     }
 }

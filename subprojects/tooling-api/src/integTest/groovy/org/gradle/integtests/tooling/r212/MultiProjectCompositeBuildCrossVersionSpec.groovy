@@ -52,13 +52,14 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 """
         }
 
-        expect:
-        withCompositeConnection([ multiBuild1, multiBuild2 ]) { connection ->
-            def models = connection.getModels(EclipseProject)
-            assert models.size() == 8
-            containsProjects(models, [':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
-            assert rootProjects(models).size() == 2
+        when:
+        def models = withCompositeConnection([ multiBuild1, multiBuild2 ]) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        models.size() == 8
+        rootProjects(models).size() == 2
+        containsProjects(models, [':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
     }
 
     def "can create composite of a two single-project builds"() {
@@ -89,13 +90,14 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 """
         }
 
-        expect:
-        withCompositeConnection([ singleBuild1, singleBuild2 ]) { connection ->
-            def models = connection.getModels(EclipseProject)
-            assert models.size() == 2
-            containsProjects(models, [':', ':'])
-            assert rootProjects(models).size() == 2
+        when:
+        def models = withCompositeConnection([ singleBuild1, singleBuild2 ]) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        models.size() == 2
+        rootProjects(models).size() == 2
+        containsProjects(models, [':', ':'])
     }
 
     @NotYetImplemented
@@ -132,9 +134,9 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         when:
         def models = connection.getModels(EclipseProject)
         then:
-        assert models.size() == 2
+        models.size() == 2
         containsProjects(models, [':', ':'])
-        assert rootProjects(models).size() == 2
+        rootProjects(models).size() == 2
 
         when:
         // make singleBuild2 overlap with singleBuild1
@@ -181,13 +183,14 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 """
         }
 
-        expect:
-        withCompositeConnection([ singleBuild, multiBuild ]) { connection ->
-            def models = connection.getModels(EclipseProject)
-            assert models.size() == 5
-            containsProjects(models, [':', ':', ':a1', ':b1', ':c1'])
-            assert rootProjects(models).size() == 2
+        when:
+        def models = withCompositeConnection([ singleBuild, multiBuild ]) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        models.size() == 5
+        rootProjects(models).size() == 2
+        containsProjects(models, [':', ':', ':a1', ':b1', ':c1'])
     }
 
     def "sees changes to composite build when projects are added"() {
@@ -224,7 +227,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         then:
         firstRetrieval.size() == 5
-        assert rootProjects(firstRetrieval).size() == 2
+        rootProjects(firstRetrieval).size() == 2
         containsProjects(firstRetrieval, [':', ':', ':a1', ':b1', ':c1'])
 
         when:
@@ -239,7 +242,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         then:
         secondRetrieval.size() == 6
-        assert rootProjects(secondRetrieval).size() == 2
+        rootProjects(secondRetrieval).size() == 2
         containsProjects(secondRetrieval, [':', ':a2', ':', ':a1', ':b1', ':c1'])
 
         when:
@@ -252,7 +255,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         then:
         thirdRetrieval.size() == 8
-        assert rootProjects(thirdRetrieval).size() == 2
+        rootProjects(thirdRetrieval).size() == 2
         containsProjects(thirdRetrieval, [':', ':a2', ':b2', ':c2', ':', ':a1', ':b1', ':c1'])
 
         when:

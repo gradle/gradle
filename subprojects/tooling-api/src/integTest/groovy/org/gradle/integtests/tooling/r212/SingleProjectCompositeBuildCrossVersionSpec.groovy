@@ -40,13 +40,14 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
                 include 'a', 'b', 'c'
 """
         }
-        expect:
-        withCompositeConnection(singleBuild) { connection ->
-            def models = connection.getModels(EclipseProject)
-            assert models.size() == 4
-            containsProjects(models, [':', ':a', ':b', ':c'])
-            assert rootProjects(models).size() == 1
+        when:
+        def models = withCompositeConnection(singleBuild) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        models.size() == 4
+        rootProjects(models).size() == 1
+        containsProjects(models, [':', ':a', ':b', ':c'])
     }
 
     def "can create composite of a single single-project build"() {
@@ -61,13 +62,14 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
                 rootProject.name = '${rootProjectName}'
 """
         }
-        expect:
-        withCompositeConnection(singleBuild) { connection ->
-            def models = connection.getModels(EclipseProject)
-            assert models.size() == 1
-            containsProjects(models, [':'])
-            assert rootProjects(models).size() == 1
+        when:
+        def models = withCompositeConnection(singleBuild) { connection ->
+            connection.getModels(EclipseProject)
         }
+        then:
+        models.size() == 1
+        rootProjects(models).size() == 1
+        containsProjects(models, [':'])
     }
 
     def "sees changes to composite build when projects are added"() {
@@ -91,7 +93,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         then:
         firstRetrieval.size() == 1
-        assert rootProjects(firstRetrieval).size() == 1
+        rootProjects(firstRetrieval).size() == 1
         containsProjects(firstRetrieval, [':'])
 
         when:
@@ -106,7 +108,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         then:
         secondRetrieval.size() == 2
-        assert rootProjects(secondRetrieval).size() == 1
+        rootProjects(secondRetrieval).size() == 1
         containsProjects(secondRetrieval, [':', ':a'])
 
         when:
@@ -119,7 +121,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         then:
         thirdRetrieval.size() == 4
-        assert rootProjects(thirdRetrieval).size() == 1
+        rootProjects(thirdRetrieval).size() == 1
         containsProjects(thirdRetrieval, [':', ':a', ':b', ':c'])
 
         when:
