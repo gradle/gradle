@@ -17,16 +17,12 @@
 package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
-import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.net.URI;
@@ -124,6 +120,8 @@ public class DefaultGradleConnection implements GradleConnection {
     }
 
     private void checkValidComposite() {
+        // TODO: Should we bother doing this validation all client-side?
+        /*
         Set<BuildEnvironment> buildEnvironments = createCompositeModelBuilder(BuildEnvironment.class).get();
 
         final VersionNumber minimumVersion = VersionNumber.parse("1.0");
@@ -139,6 +137,7 @@ public class DefaultGradleConnection implements GradleConnection {
                 throw new IllegalArgumentException(String.format("'%s' is using Gradle %s.  This does not meet the minimum Gradle version (%s) required for composite builds.", projectName, participantVersion, minimumVersion));
             }
         });
+        */
 
         // TODO: Need to skip checking root projects and their subprojects
         /*
