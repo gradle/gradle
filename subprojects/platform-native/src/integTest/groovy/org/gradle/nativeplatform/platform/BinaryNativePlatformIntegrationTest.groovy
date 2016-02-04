@@ -246,7 +246,7 @@ model {
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86_64/mainCpp")).arch.name == "x86_64"
         }
 
-        // ARM only supported on visualCpp 2013
+        // ARM only supported on visualCpp 2012+
         if (toolChain.meets(ToolChainRequirement.VisualCpp2012)) {
             executable("build/exe/main/arm/main").binaryInfo.arch.name == "arm"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/arm/mainCpp")).arch.name == "arm"

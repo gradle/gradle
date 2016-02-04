@@ -213,102 +213,31 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         Architecture amd64 = Architectures.forInput(ARCHITECTURE_AMD64);
         Architecture x86 = Architectures.forInput(ARCHITECTURE_X86);
         Architecture arm = Architectures.forInput(ARCHITECTURE_ARM);
-        Architecture ia64 = Architectures.forInput(ARCHITECTURE_IA64);
 
         File includePath = new File(basePath, PATH_INCLUDE);
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);
 
+        List<ArchitecturePaths> architecturePathsList = Lists.newArrayList();
+
         if (isNativeAmd64) {
-            Architecture[] architectures = {
-                amd64,
-                x86,
-                arm
-            };
-            String[] binPaths = {
-                BINPATH_AMD64_AMD64,
-                BINPATH_AMD64_X86,
-                BINPATH_AMD64_ARM
-            };
-            String[] libPaths = {
-                LIBPATH_AMD64,
-                LIBPATH_X86,
-                LIBPATH_ARM
-            };
-            String[] asmFilenames = {
-                ASSEMBLER_FILENAME_AMD64,
-                ASSEMBLER_FILENAME_X86,
-                ASSEMBLER_FILENAME_ARM
-            };
-
-            for (int i = 0; i != architectures.length; ++i) {
-                Architecture architecture = architectures[i];
-
-                if (!binaryPaths.containsKey(architecture)) {
-                    File binPath = new File(basePath, binPaths[i]);
-                    File libPath = new File(basePath, libPaths[i]);
-                    File exePath = new File(binPath, COMPILER_FILENAME);
-
-                    if (binPath.isDirectory() && libPath.isDirectory() && exePath.exists()) {
-                        Map<String, String> definitionsList = new LinkedHashMap<String, String>();
-                        List<File> pathsList = new ArrayList<File>();
-
-                        pathsList.add(commonTools);
-                        pathsList.add(commonIde);
-
-                        // For cross-compilers, add the native compiler to the path as well
-                        if (architecture != amd64) {
-                            pathsList.add(new File(basePath, binPaths[0]));
-                        }
-
-                        if (architecture == arm) {
-                            definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
-                        }
-
-                        binaryPaths.put(architecture, binPath);
-                        libraryPaths.put(architecture, libPath);
-                        includePaths.put(architecture, includePath);
-                        assemblerFilenames.put(architecture, asmFilenames[i]);
-                        paths.put(architecture, pathsList);
-                        definitions.put(architecture, definitionsList);
-                    }
-                }
-            }
+            architecturePathsList.add(ArchitecturePaths.AMD64_AMD64);
+            architecturePathsList.add(ArchitecturePaths.AMD64_X86);
+            architecturePathsList.add(ArchitecturePaths.AMD64_ARM);
         }
 
-        Architecture[] architectures = {
-            x86,
-            amd64,
-            ia64,
-            arm
-        };
-        String[] binPaths = {
-            BINPATH_X86_X86,
-            BINPATH_X86_AMD64,
-            BINPATH_X86_IA64,
-            BINPATH_X86_ARM
-        };
-        String[] libPaths = {
-            LIBPATH_X86,
-            LIBPATH_AMD64,
-            LIBPATH_IA64,
-            LIBPATH_ARM
-        };
-        String[] asmFilenames = {
-            ASSEMBLER_FILENAME_X86,
-            ASSEMBLER_FILENAME_AMD64,
-            ASSEMBLER_FILENAME_IA64,
-            ASSEMBLER_FILENAME_ARM
-        };
+        architecturePathsList.add(ArchitecturePaths.X86_X86);
+        architecturePathsList.add(ArchitecturePaths.X86_AMD64);
+        architecturePathsList.add(ArchitecturePaths.X86_IA64);
+        architecturePathsList.add(ArchitecturePaths.X86_ARM);
 
-        for (int i = 0; i != architectures.length; ++i) {
-            Architecture architecture = architectures[i];
+        for (ArchitecturePaths architecturePaths : architecturePathsList) {
+            if (!binaryPaths.containsKey(architecturePaths.architecture)) {
+                File binPath = new File(basePath, architecturePaths.binPath);
+                File libPath = new File(basePath, architecturePaths.libPath);
+                File compilerPath = new File(binPath, COMPILER_FILENAME);
 
-            if (!binaryPaths.containsKey(architecture)) {
-                File binPath = new File(basePath, binPaths[i]);
-                File libPath = new File(basePath, libPaths[i]);
-
-                if (binPath.isDirectory() && libPath.isDirectory()) {
+                if (binPath.isDirectory() && libPath.isDirectory() && compilerPath.exists()) {
                     Map<String, String> definitionsList = new LinkedHashMap<String, String>();
                     List<File> pathsList = new ArrayList<File>();
 
@@ -316,20 +245,27 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
                     pathsList.add(commonIde);
 
                     // For cross-compilers, add the native compiler to the path as well
-                    if (architecture != x86) {
-                        pathsList.add(new File(basePath, binPaths[0]));
+                    if (isNativeAmd64) {
+                        if (!amd64.equals(architecturePaths.architecture)) {
+                            pathsList.add(new File(basePath, ArchitecturePaths.AMD64_AMD64.binPath));
+                        }
+                    } else {
+                        if (!x86.equals(architecturePaths.architecture)) {
+                            pathsList.add(new File(basePath, ArchitecturePaths.X86_X86.binPath));
+                        }
                     }
 
-                    if (architecture == arm) {
+
+                    if (arm.equals(architecturePaths.architecture)) {
                         definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
                     }
 
-                    binaryPaths.put(architecture, binPath);
-                    libraryPaths.put(architecture, libPath);
-                    includePaths.put(architecture, includePath);
-                    assemblerFilenames.put(architecture, asmFilenames[i]);
-                    paths.put(architecture, pathsList);
-                    definitions.put(architecture, definitionsList);
+                    binaryPaths.put(architecturePaths.architecture, binPath);
+                    libraryPaths.put(architecturePaths.architecture, libPath);
+                    includePaths.put(architecturePaths.architecture, includePath);
+                    assemblerFilenames.put(architecturePaths.architecture, architecturePaths.asmFilename);
+                    paths.put(architecturePaths.architecture, pathsList);
+                    definitions.put(architecturePaths.architecture, definitionsList);
                 }
             }
         }
@@ -397,6 +333,28 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
+        }
+    }
+
+    private static enum ArchitecturePaths {
+        AMD64_AMD64(ARCHITECTURE_AMD64, BINPATH_AMD64_AMD64, LIBPATH_AMD64, ASSEMBLER_FILENAME_AMD64),
+        AMD64_X86(ARCHITECTURE_X86, BINPATH_AMD64_X86, LIBPATH_X86, ASSEMBLER_FILENAME_X86),
+        AMD64_ARM(ARCHITECTURE_ARM, BINPATH_AMD64_ARM, LIBPATH_ARM, ASSEMBLER_FILENAME_ARM),
+        X86_X86(ARCHITECTURE_X86, BINPATH_X86_X86, LIBPATH_X86, ASSEMBLER_FILENAME_X86),
+        X86_AMD64(ARCHITECTURE_AMD64, BINPATH_X86_AMD64, LIBPATH_AMD64, ASSEMBLER_FILENAME_AMD64),
+        X86_IA64(ARCHITECTURE_IA64, BINPATH_X86_IA64, LIBPATH_IA64, ASSEMBLER_FILENAME_IA64),
+        X86_ARM(ARCHITECTURE_ARM, BINPATH_X86_ARM, LIBPATH_ARM, ASSEMBLER_FILENAME_ARM);
+
+        final Architecture architecture;
+        final String binPath;
+        final String libPath;
+        final String asmFilename;
+
+        ArchitecturePaths(String architecture, String binPath, String libPath, String asmFilename) {
+            this.architecture = Architectures.forInput(architecture);
+            this.binPath = binPath;
+            this.libPath = libPath;
+            this.asmFilename = asmFilename;
         }
     }
 }
