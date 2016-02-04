@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.composite;
 
+/**
+ * Thrown when there is some problem using a Gradle composite.
+ *
+ * @since 2.12
+ */
 public class GradleCompositeException extends RuntimeException {
     public GradleCompositeException(String message) {
         super(message);
