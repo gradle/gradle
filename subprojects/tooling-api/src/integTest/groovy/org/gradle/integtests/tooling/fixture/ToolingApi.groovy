@@ -142,29 +142,6 @@ class ToolingApi implements TestRule {
         }
     }
 
-    def createCompositeBuilder() {
-        def builder = GradleConnector.newGradleConnectionBuilder()
-        builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        def connectionParamsBuilder = builder.getConnectionParametersBuilder()
-        if (useSeparateDaemonBaseDir) {
-            connectionParamsBuilder.daemonBaseDir = new File(daemonBaseDir.path)
-        }
-        connectionParamsBuilder.daemonMaxIdleTimeValue = 120
-        connectionParamsBuilder.daemonMaxIdleTimeUnits = TimeUnit.SECONDS
-
-        /*
-        TODO:
-        if (useClasspathImplementation) {
-            connectionParamsBuilder.useClasspathDistribution()
-        } else {
-            connectionParamsBuilder.useInstallation(dist.gradleHomeDir.absoluteFile)
-        }
-        */
-        // connectionParamsBuilder.embedded = embedded
-
-        builder
-    }
-
     GradleConnector connector() {
         DefaultGradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(new File(gradleUserHomeDir.path))

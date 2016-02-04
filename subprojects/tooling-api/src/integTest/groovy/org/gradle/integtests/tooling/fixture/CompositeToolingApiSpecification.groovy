@@ -15,9 +15,11 @@
  */
 
 package org.gradle.integtests.tooling.fixture
+
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
 
 @ToolingApiVersion('>=2.12')
@@ -40,7 +42,11 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        return toolingApi.createCompositeBuilder()
+        GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder()
+
+        // TODO: Pull this from a nicer place?
+        builder.useGradleUserHomeDir(toolingApi.gradleUserHomeDir)
+        builder
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {

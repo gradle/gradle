@@ -35,7 +35,7 @@ class DefaultGradleConnectionTest extends Specification {
         DefaultGradleConnection connection = builder.build()
 
         expect:
-        connection.participants[0].connectionParams.gradleUserHomeDir == gradleUserHome
+        connection.participants[0].gradleUserHomeDir == gradleUserHome
     }
 
     @Unroll

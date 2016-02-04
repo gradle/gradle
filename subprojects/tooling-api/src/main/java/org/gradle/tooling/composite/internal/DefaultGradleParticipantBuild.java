@@ -18,8 +18,6 @@ package org.gradle.tooling.composite.internal;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultConnectionParameters;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.File;
 import java.net.URI;
@@ -28,7 +26,7 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
 
     private final File projectDir;
     private ProjectConnection projectConnection;
-    private DefaultConnectionParameters connectionParams;
+    private File gradleUserHomeDir;
 
     private File gradleHome;
     private URI gradleDistribution;
@@ -78,16 +76,10 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
     }
 
     private ProjectConnection connect() {
-        DefaultGradleConnector connector = getInternalConnector();
-        connector.withConnectionParameters(connectionParams);
-        connector.searchUpwards(false);
-        connector.forProjectDirectory(projectDir);
-        return configureDistribution(connector).connect();
-
-    }
-
-    private DefaultGradleConnector getInternalConnector() {
-        return (DefaultGradleConnector)GradleConnector.newConnector();
+        return configureDistribution(GradleConnector.newConnector().
+            useGradleUserHomeDir(gradleUserHomeDir).
+            forProjectDirectory(getProjectDir())).
+            connect();
     }
 
     private GradleConnector configureDistribution(GradleConnector connector) {
@@ -108,7 +100,7 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
         return connector;
     }
 
-    public void setConnectionParameters(DefaultConnectionParameters connectionParams) {
-        this.connectionParams = connectionParams;
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 }
