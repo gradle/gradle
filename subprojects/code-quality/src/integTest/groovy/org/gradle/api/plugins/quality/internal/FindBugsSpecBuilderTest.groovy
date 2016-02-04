@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsHtmlReportImpl
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
@@ -154,6 +155,36 @@ class FindBugsSpecBuilderTest extends Specification {
         where:
         withMessages << [true, false]
         arg << ['-xml:withMessages', '-xml']
+    }
+
+    def "with html with custom stylesheet"() {
+        setup:
+        FindBugsHtmlReportImpl singleReport = Mock()
+        File destination = Mock()
+        NamedDomainObjectSet enabledReportSet = Mock()
+        FindBugsReportsImpl report = Mock()
+
+        report.enabled >> enabledReportSet
+        report.firstEnabled >> singleReport
+        singleReport.stylesheet >> stylesheet
+        singleReport.name >> "html"
+        destination.absolutePath >> "/absolute/report/output"
+        singleReport.destination >> destination
+        enabledReportSet.empty >> false
+        enabledReportSet.size() >> 1
+
+        when:
+        builder.configureReports(report)
+        def args = builder.build().arguments
+
+        then:
+        args.contains(arg.toString())
+        args.contains("-outputFile")
+        args.contains(destination.absolutePath)
+
+        where:
+        stylesheet << ["foo.xsl", "", null]
+        arg << ['-html:foo.xsl', '-html', '-html']
     }
 
     def "configure effort"() {

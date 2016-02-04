@@ -17,8 +17,10 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.plugins.quality.FindBugsHtmlReport;
 import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.FindBugsXmlReport;
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsHtmlReportImpl;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
@@ -32,7 +34,7 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         super(SingleFileReport.class, task);
 
         add(FindBugsXmlReportImpl.class, "xml", task);
-        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(FindBugsHtmlReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
         add(TaskGeneratedSingleFileReport.class, "emacs", task);
     }
@@ -41,8 +43,8 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         return (FindBugsXmlReport) getByName("xml");
     }
 
-    public SingleFileReport getHtml() {
-        return getByName("html");
+    public FindBugsHtmlReport getHtml() {
+        return (FindBugsHtmlReport) getByName("html");
     }
     
     public SingleFileReport getText() {

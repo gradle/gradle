@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
@@ -163,9 +164,14 @@ public class FindBugsSpecBuilder {
                 FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
                 String outputArg = "-" + reportsImpl.getFirstEnabled().getName();
                 if (reportsImpl.getFirstEnabled() instanceof FindBugsXmlReportImpl) {
-                    FindBugsXmlReportImpl r = (FindBugsXmlReportImpl)reportsImpl.getFirstEnabled();
+                    FindBugsXmlReportImpl r = (FindBugsXmlReportImpl) reportsImpl.getFirstEnabled();
                     if (r.isWithMessages()) {
                         outputArg += ":withMessages";
+                    }
+                } else if (reportsImpl.getFirstEnabled() instanceof FindBugsHtmlReportImpl) {
+                    FindBugsHtmlReportImpl r = (FindBugsHtmlReportImpl) reportsImpl.getFirstEnabled();
+                    if (!Strings.isNullOrEmpty(r.getStylesheet())) {
+                        outputArg += ':' + r.getStylesheet();
                     }
                 }
                 args.add(outputArg);

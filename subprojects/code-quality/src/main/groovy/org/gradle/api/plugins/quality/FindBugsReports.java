@@ -39,7 +39,7 @@ public interface FindBugsReports extends ReportContainer<SingleFileReport> {
      *
      * @return The findbugs HTML report
      */
-    SingleFileReport getHtml();
+    FindBugsHtmlReport getHtml();
     
     /**
      * The findbugs Text report

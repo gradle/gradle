@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,25 @@
 package org.gradle.api.plugins.quality.internal.findbugs;
 
 import org.gradle.api.Task;
-import org.gradle.api.plugins.quality.FindBugsXmlReport;
+import org.gradle.api.plugins.quality.FindBugsHtmlReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 
-public class FindBugsXmlReportImpl extends TaskGeneratedSingleFileReport implements FindBugsXmlReport {
+public class FindBugsHtmlReportImpl extends TaskGeneratedSingleFileReport implements FindBugsHtmlReport {
 
-    private boolean withMessages;
-    
-    public FindBugsXmlReportImpl(String name, Task task) {
+    private String stylesheet;
+
+    public FindBugsHtmlReportImpl(String name, Task task) {
         super(name, task);
     }
 
     @Override
-    public boolean isWithMessages() {
-        return withMessages;
+    public String getStylesheet() {
+        return stylesheet;
     }
 
     @Override
-    public void setWithMessages(boolean withMessages) {
-        this.withMessages = withMessages;
+    public void setStylesheet(String stylesheet) {
+        this.stylesheet = stylesheet;
     }
 
 }
