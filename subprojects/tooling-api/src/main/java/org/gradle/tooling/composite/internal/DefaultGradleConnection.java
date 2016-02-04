@@ -22,6 +22,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.internal.consumer.DefaultConnectionParameters;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
@@ -33,10 +34,16 @@ public class DefaultGradleConnection implements GradleConnection {
 
         private File gradleUserHomeDir;
         private final Set<GradleParticipantBuild> participants = Sets.newHashSet();
+        private final DefaultConnectionParameters.Builder connectionParamsBuilder = DefaultConnectionParameters.builder();
+
+        public DefaultConnectionParameters.Builder getConnectionParametersBuilder() {
+            return connectionParamsBuilder;
+        }
 
         @Override
         public GradleConnection.Builder useGradleUserHomeDir(File gradleUserHomeDir) {
             this.gradleUserHomeDir = gradleUserHomeDir;
+            this.connectionParamsBuilder.setGradleUserHomeDir(gradleUserHomeDir);
             return this;
         }
 
@@ -72,7 +79,7 @@ public class DefaultGradleConnection implements GradleConnection {
 
             // Set Gradle user home for each participant build
             for (GradleParticipantBuild participant : participants) {
-                participant.setGradleUserHomeDir(gradleUserHomeDir);
+                participant.setConnectionParameters(connectionParamsBuilder.build());
             }
 
             return new DefaultGradleConnection(gradleUserHomeDir, participants);

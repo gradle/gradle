@@ -142,4 +142,8 @@ public class DefaultGradleConnector extends GradleConnector {
     ConnectionFactory getConnectionFactory() {
         return connectionFactory;
     }
+
+    public void withConnectionParameters(DefaultConnectionParameters connectionParams) {
+        connectionParamsBuilder.from(connectionParams);
+    }
 }

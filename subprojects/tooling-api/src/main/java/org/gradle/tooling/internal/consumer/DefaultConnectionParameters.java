@@ -35,13 +35,7 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     }
 
     public static Builder builder(ConnectionParameters connectionParameters) {
-        return new Builder().setDaemonMaxIdleTimeUnits(connectionParameters.getDaemonMaxIdleTimeUnits()).
-                setDaemonMaxIdleTimeValue(connectionParameters.getDaemonMaxIdleTimeValue()).
-                setEmbedded(connectionParameters.isEmbedded()).
-                setGradleUserHomeDir(connectionParameters.getGradleUserHomeDir()).
-                setProjectDir(connectionParameters.getProjectDir()).
-                setSearchUpwards(connectionParameters.isSearchUpwards()).
-                setVerboseLogging(connectionParameters.getVerboseLogging());
+        return new Builder().from(connectionParameters);
     }
 
     public static class Builder {
@@ -99,6 +93,17 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
         public void setDaemonBaseDir(File daemonBaseDir) {
             this.daemonBaseDir = daemonBaseDir;
+        }
+
+        public Builder from(ConnectionParameters connectionParameters) {
+            this.setDaemonMaxIdleTimeUnits(connectionParameters.getDaemonMaxIdleTimeUnits()).
+                setDaemonMaxIdleTimeValue(connectionParameters.getDaemonMaxIdleTimeValue()).
+                setEmbedded(connectionParameters.isEmbedded()).
+                setGradleUserHomeDir(connectionParameters.getGradleUserHomeDir()).
+                setProjectDir(connectionParameters.getProjectDir()).
+                setSearchUpwards(connectionParameters.isSearchUpwards()).
+                setVerboseLogging(connectionParameters.getVerboseLogging());
+            return this;
         }
     }
 

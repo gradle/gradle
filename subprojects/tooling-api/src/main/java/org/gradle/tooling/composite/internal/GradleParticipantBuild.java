@@ -18,12 +18,13 @@ package org.gradle.tooling.composite.internal;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultConnectionParameters;
 
 import java.io.File;
 
 public interface GradleParticipantBuild extends Stoppable {
     File getProjectDir();
-    void setGradleUserHomeDir(File gradleUserHomeDir);
+    void setConnectionParameters(DefaultConnectionParameters connectionParameters);
     ProjectConnection getConnection();
     String getDisplayName();
 }
