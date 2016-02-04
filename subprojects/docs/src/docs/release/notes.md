@@ -48,6 +48,10 @@ Two new annotations have been added:
 - `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
 - `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
 
+#### Declaration of local JVM installations
+
+It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and will subsequently be used by Gradle itself to select the appropriate toolchain when compiling Java sources. More information about this can be found in the “[Java sotfware model section of the userguide](userguide/java_software.html.html)”
+
 ### The "scala-library" build init type uses the Zinc compiler by default
 
 When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
