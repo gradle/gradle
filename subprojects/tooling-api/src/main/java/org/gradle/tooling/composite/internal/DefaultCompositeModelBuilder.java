@@ -18,10 +18,11 @@ package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.CompositeModelBuilder;
-import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -35,21 +36,15 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements CompositeModelBuilder<T> {
+public class DefaultCompositeModelBuilder<T> implements CompositeModelBuilder<T> {
 
     private final Class<T> modelType;
     private final Set<GradleParticipantBuild> participants;
+    private CancellationToken cancellationToken;
 
     protected DefaultCompositeModelBuilder(Class<T> modelType, Set<GradleParticipantBuild> participants) {
-        // TODO: When this moves, specialize the ConnectionParams?
-        super(null);
         this.modelType = modelType;
         this.participants = participants;
-    }
-
-    @Override
-    protected DefaultCompositeModelBuilder<T> getThis() {
-        return this;
     }
 
     // TODO: Make all configuration methods configure underlying model builders
@@ -68,8 +63,16 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
         final ResultHandlerVersion1<Set<T>> adaptedHandler = new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
         final CyclicBarrier barrier = new CyclicBarrier(participants.size(), new ResultsCollected(results, firstFailure, adaptedHandler));
         for (GradleParticipantBuild participant : participants) {
-            participant.getConnection().getModel(modelType, new ProjectResultHandler<T>(participant, barrier, results, firstFailure));
+            ModelBuilder<T> modelBuilder = participant.getConnection().model(modelType);
+            modelBuilder.withCancellationToken(cancellationToken);
+            modelBuilder.get(new ProjectResultHandler<T>(participant, barrier, results, firstFailure));
         }
+    }
+
+    @Override
+    public CompositeModelBuilder<T> withCancellationToken(CancellationToken cancellationToken) {
+        this.cancellationToken = cancellationToken;
+        return this;
     }
 
     private final static class ResultsCollected<T> implements Runnable {

@@ -20,9 +20,7 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
-@Ignore
 class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "throws IllegalStateException when no participants are added"() {
         when:
@@ -39,6 +37,18 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         then:
         thrown(UnsupportedOperationException)
+    }
+
+    def "throws IllegalArgumentException when trying to add overlapping participants"() {
+        given:
+        def project = projectDir("project")
+        def overlapping = project.file("overlapping").createDir()
+        when:
+        withCompositeConnection([ project, overlapping ]) { connection ->
+            connection.getModels(EclipseProject)
+        }
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {

@@ -17,12 +17,16 @@
 package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.net.URI;
@@ -100,6 +104,11 @@ public class DefaultGradleConnection implements GradleConnection {
     @Override
     public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
+        checkValidComposite();
+        return createCompositeModelBuilder(modelType);
+    }
+
+    private <T> CompositeModelBuilder<T> createCompositeModelBuilder(Class<T> modelType) {
         return new DefaultCompositeModelBuilder<T>(modelType, participants);
     }
 
@@ -112,6 +121,49 @@ public class DefaultGradleConnection implements GradleConnection {
         if (!modelType.equals(EclipseProject.class)) {
             throw new UnsupportedOperationException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
         }
+    }
+
+    private void checkValidComposite() {
+        Set<BuildEnvironment> buildEnvironments = createCompositeModelBuilder(BuildEnvironment.class).get();
+
+        final VersionNumber minimumVersion = VersionNumber.parse("1.0");
+        CollectionUtils.every(buildEnvironments, new Spec<BuildEnvironment>() {
+            @Override
+            public boolean isSatisfiedBy(BuildEnvironment buildEnvironment) {
+                // TODO: Need project name information
+                String projectName = "unknown project";
+                VersionNumber participantVersion = VersionNumber.parse(buildEnvironment.getGradle().getGradleVersion());
+                if (participantVersion.compareTo(minimumVersion) >= 0) {
+                    return true;
+                }
+                throw new IllegalArgumentException(String.format("'%s' is using Gradle %s.  This does not meet the minimum Gradle version (%s) required for composite builds.", projectName, participantVersion, minimumVersion));
+            }
+        });
+
+        // TODO: Need to skip checking root projects and their subprojects
+        /*
+        Set<GradleProject> gradleProjects = createCompositeModelBuilder(GradleProject.class).get();
+        List<String> projectDirectories = CollectionUtils.collect((Iterable<GradleProject>)gradleProjects, new Transformer<String, GradleProject>() {
+            @Override
+            public String transform(GradleProject gradleProject) {
+                return gradleProject.getProjectDirectory().getAbsolutePath();
+            }
+        });
+
+        for (int i=0; i<projectDirectories.size(); i++) {
+            String first = projectDirectories.get(i);
+            for (int j=i; j<projectDirectories.size(); j++) {
+                String second = projectDirectories.get(j);
+                try {
+                    if (FilenameUtils.directoryContains(first, second) ||
+                        FilenameUtils.directoryContains(second, first)) {
+                        throw new IllegalArgumentException(String.format("%s and %s have overlapping project directories. Composite builds must not overlap.", first, second));
+                    }
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }*/
     }
 
     @Override

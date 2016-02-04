@@ -15,6 +15,8 @@
  */
 
 package org.gradle.integtests.tooling.r212
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -94,6 +96,60 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
             containsProjects(models, [':', ':'])
             assert rootProjects(models).size() == 2
         }
+    }
+
+    @NotYetImplemented
+    def "fails when two projects becoming overlapping projects"() {
+        given:
+        def singleBuild1 = populate("single-build-1") {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'group'
+                    version = '1.0'
+                }
+"""
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+"""
+        }
+
+        def singleBuild2 = populate("single-build-2") {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'group'
+                    version = '1.0'
+                }
+"""
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+"""
+        }
+
+        def connection = createComposite(singleBuild1, singleBuild2)
+
+        when:
+        def models = connection.getModels(EclipseProject)
+        then:
+        assert models.size() == 2
+        containsProjects(models, [':', ':'])
+        assert rootProjects(models).size() == 2
+
+        when:
+        // make singleBuild2 overlap with singleBuild1
+        singleBuild2.settingsFile << """
+            include 'a'
+            project(":a").projectDir = new File(rootDir, "../single-build-1/a")
+"""
+        and:
+        connection.getModels(EclipseProject)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        cleanup:
+        connection?.close()
     }
 
     def "can create composite of a single-project and multi-project builds"() {
