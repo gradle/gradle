@@ -60,11 +60,13 @@ public class DefaultCompositeModelBuilder<T> implements CompositeModelBuilder<T>
     public void get(ResultHandler<? super Set<T>> handler) throws IllegalStateException {
         final Set<T> results = Sets.newConcurrentHashSet();
         final AtomicReference<Throwable> firstFailure = new AtomicReference<Throwable>();
-        final ResultHandlerVersion1<Set<T>> adaptedHandler = new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
+        final ResultHandlerVersion1<Set<T>> adaptedHandler = new HierarchicalResultAdapter(new ResultHandlerAdapter(handler));
         final CyclicBarrier barrier = new CyclicBarrier(participants.size(), new ResultsCollected(results, firstFailure, adaptedHandler));
         for (GradleParticipantBuild participant : participants) {
             ModelBuilder<T> modelBuilder = participant.getConnection().model(modelType);
-            modelBuilder.withCancellationToken(cancellationToken);
+            if (cancellationToken!=null) {
+                modelBuilder.withCancellationToken(cancellationToken);
+            }
             modelBuilder.get(new ProjectResultHandler<T>(participant, barrier, results, firstFailure));
         }
     }
@@ -133,10 +135,10 @@ public class DefaultCompositeModelBuilder<T> implements CompositeModelBuilder<T>
         }
     }
 
-    private class HierarchialResultAdapter<T> implements ResultHandlerVersion1<Set<T>> {
+    private class HierarchicalResultAdapter<T> implements ResultHandlerVersion1<Set<T>> {
         private final ResultHandlerVersion1<Set<T>> delegate;
 
-        private HierarchialResultAdapter(ResultHandlerVersion1<Set<T>> delegate) {
+        private HierarchicalResultAdapter(ResultHandlerVersion1<Set<T>> delegate) {
             this.delegate = delegate;
         }
 

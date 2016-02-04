@@ -39,6 +39,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         thrown(UnsupportedOperationException)
     }
 
+    @NotYetImplemented
     def "throws IllegalArgumentException when trying to add overlapping participants"() {
         given:
         def project = projectDir("project")
@@ -90,22 +91,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         def e = thrown(BuildException)
         e.getMessage().contains("Could not fetch model of type 'EclipseProject'")
         e.getCause().getCause().getCause() instanceof RuntimeException
-    }
-
-    // TODO: Figure out how to make ProjectConnection.close fail
-    @NotYetImplemented
-    def "propagates errors when trying to close a connection"() {
-        given:
-        def project = populate("project") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-        }
-        when:
-        withCompositeConnection(project) { connection ->
-            def models = connection.getModels(EclipseProject)
-            connection.close()
-        }
-        then:
-        thrown(RuntimeException)
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {

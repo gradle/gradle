@@ -24,7 +24,7 @@ import org.gradle.tooling.composite.GradleConnection
 
 @ToolingApiVersion('>=2.12')
 @TargetGradleVersion('>=2.12')
-abstract class CompositeToolingApiSpecification extends ToolingApiSpecification {
+abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -65,21 +65,6 @@ abstract class CompositeToolingApiSpecification extends ToolingApiSpecification 
 
     TestFile getRootDir() {
         temporaryFolder.testDirectory
-    }
-
-    TestFile getProjectDir() {
-        // TODO: Refactor ToolingApiSpecification
-        throw new RuntimeException("need to specific participant")
-    }
-
-    TestFile getBuildFile() {
-        // TODO: Refactor ToolingApiSpecification
-        throw new RuntimeException("need to specific participant")
-    }
-
-    TestFile getSettingsFile() {
-        // TODO: Refactor ToolingApiSpecification
-        throw new RuntimeException("need to specific participant")
     }
 
     TestFile file(Object... path) {
