@@ -70,11 +70,6 @@ public class DefaultGradleConnection implements GradleConnection {
                 throw new IllegalStateException("At least one participant must be specified before creating a connection.");
             }
 
-            // TODO:
-            if (participants.size() > 1) {
-                throw new UnsupportedOperationException("Temporary -- Gradle only supports a single project in a composite");
-            }
-
             // Set Gradle user home for each participant build
             for (GradleParticipantBuild participant : participants) {
                 participant.setGradleUserHomeDir(gradleUserHomeDir);

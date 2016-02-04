@@ -32,14 +32,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
     }
 
     // TODO: Remove this test
-    def "throws UnsupportedOperationException when more than one participants is added"() {
-        when:
-        createComposite(projectDir("project1"), projectDir("project2"))
-        then:
-        thrown(UnsupportedOperationException)
-    }
-
-    // TODO: Remove this test
     def "throws UnsupportedOperationException when trying to retrieve anything other than EclipseProject"() {
         when:
         withCompositeConnection(projectDir("project")) { connection ->
