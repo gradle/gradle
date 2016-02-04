@@ -20,7 +20,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
+import spock.lang.Ignore
 
+@Ignore
 class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "throws IllegalStateException when no participants are added"() {
         when:

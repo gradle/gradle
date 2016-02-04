@@ -24,6 +24,7 @@ import spock.lang.Ignore
 /**
  * Builds a composite with a single project.
  */
+@Ignore
 class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
