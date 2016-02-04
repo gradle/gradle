@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -46,13 +45,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.nativeplatform.fixtures.VisualStudioCoverage.*;
+
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
-
-    // This enables us to install a version of VisualStudio without testing it if there are breaking changes
-    // This also deals with the issue that installing VS2013 also installs an unusable version of VS2012
-    private static final VersionNumber VISUALSTUDIO_2013 = VersionNumber.parse("12.0");
-    private static final List<VersionNumber> VISUALSTUDIO_TESTABLE_VERSIONS = ImmutableList.of(VISUALSTUDIO_2013);
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
@@ -403,6 +399,8 @@ public class AvailableToolChains {
                 case Available:
                 case VisualCpp:
                     return true;
+                case VisualCpp2012:
+                    return version.compareTo(VISUALSTUDIO_2012) >= 0;
                 case VisualCpp2013:
                     return version.compareTo(VISUALSTUDIO_2013) >= 0;
                 default:

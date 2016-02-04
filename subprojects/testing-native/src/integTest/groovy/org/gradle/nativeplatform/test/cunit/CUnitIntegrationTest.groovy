@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -30,6 +32,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@RequiresInstalledToolChain(ToolChainRequirement.VisualCpp2013)
 @LeaksFileHandles
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -101,8 +104,6 @@ model {
             switch (vcVersion.major) {
                 case "12":
                     return "vs2013"
-                case "10":
-                    return "vs2010"
             }
         }
         throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")

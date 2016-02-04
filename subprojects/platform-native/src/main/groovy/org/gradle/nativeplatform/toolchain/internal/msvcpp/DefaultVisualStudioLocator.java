@@ -243,31 +243,35 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
             for (int i = 0; i != architectures.length; ++i) {
                 Architecture architecture = architectures[i];
-                File binPath = new File(basePath, binPaths[i]);
-                File libPath = new File(basePath, libPaths[i]);
 
-                if (binPath.isDirectory() && libPath.isDirectory()) {
-                    Map<String, String> definitionsList = new LinkedHashMap<String, String>();
-                    List<File> pathsList = new ArrayList<File>();
+                if (!binaryPaths.containsKey(architecture)) {
+                    File binPath = new File(basePath, binPaths[i]);
+                    File libPath = new File(basePath, libPaths[i]);
+                    File exePath = new File(binPath, COMPILER_FILENAME);
 
-                    pathsList.add(commonTools);
-                    pathsList.add(commonIde);
+                    if (binPath.isDirectory() && libPath.isDirectory() && exePath.exists()) {
+                        Map<String, String> definitionsList = new LinkedHashMap<String, String>();
+                        List<File> pathsList = new ArrayList<File>();
 
-                    // For cross-compilers, add the native compiler to the path as well
-                    if (architecture != amd64) {
-                        pathsList.add(new File(basePath, binPaths[0]));
+                        pathsList.add(commonTools);
+                        pathsList.add(commonIde);
+
+                        // For cross-compilers, add the native compiler to the path as well
+                        if (architecture != amd64) {
+                            pathsList.add(new File(basePath, binPaths[0]));
+                        }
+
+                        if (architecture == arm) {
+                            definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+                        }
+
+                        binaryPaths.put(architecture, binPath);
+                        libraryPaths.put(architecture, libPath);
+                        includePaths.put(architecture, includePath);
+                        assemblerFilenames.put(architecture, asmFilenames[i]);
+                        paths.put(architecture, pathsList);
+                        definitions.put(architecture, definitionsList);
                     }
-
-                    if (architecture == arm) {
-                        definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
-                    }
-
-                    binaryPaths.put(architecture, binPath);
-                    libraryPaths.put(architecture, libPath);
-                    includePaths.put(architecture, includePath);
-                    assemblerFilenames.put(architecture, asmFilenames[i]);
-                    paths.put(architecture, pathsList);
-                    definitions.put(architecture, definitionsList);
                 }
             }
         }

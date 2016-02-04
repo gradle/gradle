@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,14 @@
 
 package org.gradle.nativeplatform.fixtures;
 
-public enum ToolChainRequirement {
-    // Any available tool chain
-    Available,
-    // Any available Visual Studio implementation
-    VisualCpp,
-    // Any available Visual Studio >= 2012
-    VisualCpp2012,
-    // Any available Visual Studio >= 2013
-    VisualCpp2013,
-    // Any available GCC implementation (including mingw, cygwin, but not clang)
-    Gcc,
-    // Any available GCC compatible implementation (including mingw, cygwin, and clang)
-    GccCompatible,
-    // Any available Clang
-    Clang
+import com.google.common.collect.ImmutableList;
+import org.gradle.util.VersionNumber;
+
+import java.util.List;
+
+public class VisualStudioCoverage {
+    public static final VersionNumber VISUALSTUDIO_2012 = VersionNumber.parse("11.0");
+    public static final VersionNumber VISUALSTUDIO_2013 = VersionNumber.parse("12.0");
+
+    public static final List<VersionNumber> VISUALSTUDIO_TESTABLE_VERSIONS = ImmutableList.of(VISUALSTUDIO_2012, VISUALSTUDIO_2013);
 }
