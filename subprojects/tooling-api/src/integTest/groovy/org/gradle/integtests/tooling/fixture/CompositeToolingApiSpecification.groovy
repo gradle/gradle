@@ -33,7 +33,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
         rootProjectDirectories.each {
             // TODO: this isn't the right way to configure the gradle distribution
-            builder.addBuild(it, dist.binDistribution.toURI())
+            builder.addBuild(it, dist.gradleHomeDir)
         }
 
         builder.build()
