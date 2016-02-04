@@ -23,30 +23,30 @@ import java.io.File;
 import java.net.URI;
 
 class DefaultGradleParticipantBuild implements GradleParticipantBuild {
-    private final File gradleUserHomeDir;
+
     private final File projectDir;
     private ProjectConnection projectConnection;
+    private File gradleUserHomeDir;
 
     private File gradleHome;
     private URI gradleDistribution;
     private String gradleVersion;
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir) {
+    DefaultGradleParticipantBuild(File projectDir) {
         this.projectDir = projectDir;
-        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, File gradleHome) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, File gradleHome) {
+        this(projectDir);
         this.gradleHome = gradleHome;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, String gradleVersion) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, String gradleVersion) {
+        this(projectDir);
         this.gradleVersion = gradleVersion;
     }
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, URI gradleDistribution) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, URI gradleDistribution) {
+        this(projectDir);
         this.gradleDistribution = gradleDistribution;
     }
 
@@ -98,5 +98,9 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild {
         }
 
         return connector;
+    }
+
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 }

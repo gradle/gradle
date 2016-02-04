@@ -53,6 +53,7 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     // TODO: Make all configuration methods configure underlying model builders
+
     @Override
     public Set<T> get() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<T> handler = new BlockingResultHandler();
@@ -89,9 +90,9 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                     try {
                         barrier.await();
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        UncheckedException.throwAsUncheckedException(e);
                     } catch (BrokenBarrierException e) {
-                        e.printStackTrace();
+                        UncheckedException.throwAsUncheckedException(e);
                     }
                 }
 

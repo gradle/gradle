@@ -23,6 +23,7 @@ import java.io.File;
 
 public interface GradleParticipantBuild extends Stoppable {
     File getProjectDir();
+    void setGradleUserHomeDir(File gradleUserHomeDir);
     ProjectConnection getConnection();
     String getDisplayName();
 }

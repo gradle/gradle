@@ -77,12 +77,12 @@ To support Eclipse import, only a constrained composite connection API is requir
     - Changing the set of sub-projects changes the number of `EclipseProject`s that are returned
     - Removing the project directory is causes a failure
     - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
-
-Coverage to complete:
-
 - Errors from closing underlying ProjectConnection propagate to caller.
 - Changing the participants Gradle distribution is reflected in the `ProjectConnection`
 - Participant project directory is used as the project directory for the `ProjectConnection`
+
+Coverage to complete:
+
 - Cross-version tests:
     - Fail if participants are <Gradle 1.0
     - Test retrieving `EclipseProject` from all supported Gradle versions

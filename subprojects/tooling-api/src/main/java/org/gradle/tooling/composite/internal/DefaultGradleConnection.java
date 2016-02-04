@@ -42,25 +42,25 @@ public class DefaultGradleConnection implements GradleConnection {
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, File gradleHome) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleHome));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleHome));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, String gradleVersion) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleVersion));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleVersion));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, URI gradleDistribution) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleDistribution));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleDistribution));
             return this;
         }
 
@@ -69,10 +69,17 @@ public class DefaultGradleConnection implements GradleConnection {
             if (participants.isEmpty()) {
                 throw new IllegalStateException("At least one participant must be specified before creating a connection.");
             }
+
             // TODO:
             if (participants.size() > 1) {
                 throw new UnsupportedOperationException("Temporary -- Gradle only supports a single project in a composite");
             }
+
+            // Set Gradle user home for each participant build
+            for (GradleParticipantBuild participant : participants) {
+                participant.setGradleUserHomeDir(gradleUserHomeDir);
+            }
+
             return new DefaultGradleConnection(gradleUserHomeDir, participants);
         }
     }
