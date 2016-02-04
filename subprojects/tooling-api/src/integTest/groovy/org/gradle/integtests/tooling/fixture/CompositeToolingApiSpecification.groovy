@@ -75,7 +75,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         file(project)
     }
 
-    class ProjectTestFile extends TestFile {
+    static class ProjectTestFile extends TestFile {
         private final String projectName
 
         ProjectTestFile(TestFile rootDir, String projectName) {
