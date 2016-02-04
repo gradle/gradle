@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id 'jvm-components'
+    id 'jvm-component'
 }
 
 // START SNIPPET java-installations
