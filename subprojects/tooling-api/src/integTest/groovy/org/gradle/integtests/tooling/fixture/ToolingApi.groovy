@@ -24,8 +24,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.composite.GradleConnection
-import org.gradle.tooling.composite.internal.DefaultGradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -144,10 +142,10 @@ class ToolingApi implements TestRule {
         }
     }
 
-    GradleConnection.Builder createCompositeBuilder() {
-        GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder()
+    def createCompositeBuilder() {
+        def builder = GradleConnector.newGradleConnectionBuilder()
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        def connectionParamsBuilder = ((DefaultGradleConnection.Builder)builder).getConnectionParametersBuilder()
+        def connectionParamsBuilder = builder.getConnectionParametersBuilder()
         if (useSeparateDaemonBaseDir) {
             connectionParamsBuilder.daemonBaseDir = new File(daemonBaseDir.path)
         }
