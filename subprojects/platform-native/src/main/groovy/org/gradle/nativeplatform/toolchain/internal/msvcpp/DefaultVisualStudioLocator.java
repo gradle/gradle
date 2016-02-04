@@ -336,7 +336,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    private static enum ArchitecturePaths {
+    enum ArchitecturePaths {
         AMD64_AMD64(ARCHITECTURE_AMD64, BINPATH_AMD64_AMD64, LIBPATH_AMD64, ASSEMBLER_FILENAME_AMD64),
         AMD64_X86(ARCHITECTURE_X86, BINPATH_AMD64_X86, LIBPATH_X86, ASSEMBLER_FILENAME_X86),
         AMD64_ARM(ARCHITECTURE_ARM, BINPATH_AMD64_ARM, LIBPATH_ARM, ASSEMBLER_FILENAME_ARM),

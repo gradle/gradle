@@ -21,12 +21,16 @@ import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.platform.internal.Architectures
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator.ArchitecturePaths
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultVisualStudioLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -253,11 +257,71 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.baseDir == vsDir
     }
 
+    @Unroll
+    def "finds correct paths for #platform on #os operating system (64-bit install: #is64BitInstall)"() {
+        def vsDir = fullVsDir("vs", is64BitInstall)
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        systemInfo.getArchitecture() >> architecture
+
+        and:
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
+
+        when:
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
+
+        then:
+        result.visualStudio.visualCpp.getCompiler(platform(platform)) == vsDir.file("VC/${expectedPaths.binPath}/cl.exe")
+        result.visualStudio.visualCpp.getLibraryPath(platform(platform)) == vsDir.file("VC/${expectedPaths.libPath}")
+        result.visualStudio.visualCpp.getAssembler(platform(platform)) == vsDir.file("VC/${expectedPaths.binPath}/${expectedPaths.asmFilename}")
+
+        where:
+        os       | architecture                  | platform | is64BitInstall | expectedPaths
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"  | false          | ArchitecturePaths.X86_AMD64
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"    | false          | ArchitecturePaths.X86_X86
+        "32-bit" | SystemInfo.Architecture.i386  | "ia64"   | false          | ArchitecturePaths.X86_IA64
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"    | false          | ArchitecturePaths.X86_ARM
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"  | true           | ArchitecturePaths.AMD64_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"    | true           | ArchitecturePaths.AMD64_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"    | true           | ArchitecturePaths.AMD64_ARM
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"   | true           | ArchitecturePaths.X86_IA64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"  | false          | ArchitecturePaths.X86_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"    | false          | ArchitecturePaths.X86_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"    | false          | ArchitecturePaths.X86_ARM
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"   | false          | ArchitecturePaths.X86_IA64
+    }
+
     def vsDir(String name) {
         def dir = tmpDir.createDir(name)
         dir.createDir("Common7")
         dir.createFile("VC/bin/cl.exe")
         dir.createDir("VC/lib")
         return dir
+    }
+
+    def fullVsDir(String name, boolean is64BitInstall) {
+        def dir = vsDir(name)
+        for (ArchitecturePaths paths : ArchitecturePaths.values()) {
+            if (requires64BitInstall(paths) && !is64BitInstall) {
+                continue;
+            }
+            dir.createFile("VC/${paths.binPath}/cl.exe")
+            dir.createDir("VC/${paths.libPath}")
+        }
+        return dir
+    }
+
+    boolean requires64BitInstall(ArchitecturePaths paths) {
+        return paths in [ ArchitecturePaths.AMD64_AMD64, ArchitecturePaths.AMD64_X86, ArchitecturePaths.AMD64_ARM ]
+    }
+
+    def platform(String name) {
+        return Stub(NativePlatformInternal) {
+            getArchitecture() >> {
+                Architectures.forInput(name)
+            }
+        }
     }
 }
