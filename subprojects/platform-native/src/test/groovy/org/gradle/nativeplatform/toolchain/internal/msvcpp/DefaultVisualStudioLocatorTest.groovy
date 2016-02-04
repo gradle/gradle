@@ -59,6 +59,27 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.visualCpp
     }
 
+    def "can locate all versions of visual studio"() {
+        def dir1 = vsDir("vs1");
+        def dir2 = vsDir("vs2");
+        def dir3 = vsDir("vs3")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "12.0", "13.0", "ignore-me"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "13.0") >> dir3.absolutePath + "/VC"
+
+        when:
+        def allResults = visualStudioLocator.locateAllVisualStudioVersions()
+
+        then:
+        allResults.size() == 3
+        allResults.collect { it.visualStudio.name } == [ "Visual C++ 13.0", "Visual C++ 12.0", "Visual C++ 11.0" ]
+        allResults.every { it.available }
+    }
+
     def "visual studio not available when nothing in registry and executable not found in path"() {
         def visitor = Mock(TreeVisitor)
 
@@ -80,6 +101,28 @@ class DefaultVisualStudioLocatorTest extends Specification {
         1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
     }
 
+    def "visual studio not available when locating all versions and nothing in registry and executable not found in path"() {
+        def visitor = Mock(TreeVisitor)
+
+        given:
+        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
+        operatingSystem.findInPath(_) >> null
+
+        when:
+        def allResults = visualStudioLocator.locateAllVisualStudioVersions()
+
+        then:
+        allResults.size() == 1
+        !allResults.get(0).available
+        allResults.get(0).visualStudio == null
+
+        when:
+        allResults.get(0).explain(visitor)
+
+        then:
+        1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
+    }
+
     def "locates visual studio installation based on executables in path"() {
         def vsDir = vsDir("vs")
 
@@ -95,6 +138,24 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.name == "Visual C++ from system path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir
+    }
+
+    def "locates visual studio installation based on executables in path when locating all versions"() {
+        def dir1 = vsDir("vs1");
+        def dir2 = vsDir("vs2");
+
+        given:
+        operatingSystem.findInPath("cl.exe") >> dir2.file("VC/bin/cl.exe")
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "ignore-me"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
+
+        when:
+        def allResults = visualStudioLocator.locateAllVisualStudioVersions()
+
+        then:
+        allResults.size() == 2
+        allResults.every { it.available }
+        allResults.collect { it.visualStudio.name } == [ "Visual C++ 11.0", "Visual C++ from system path" ]
     }
 
     def "uses visual studio using specified install dir"() {
