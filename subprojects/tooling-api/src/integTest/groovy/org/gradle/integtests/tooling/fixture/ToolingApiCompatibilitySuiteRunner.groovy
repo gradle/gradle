@@ -129,6 +129,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         private ClassLoader createTestClassLoader() {
             def classLoaderFactory = new DefaultClassLoaderFactory()
 
+            def topSharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
+            topSharedClassLoader.allowClass(VersionNumber)
+
             def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
             sharedClassLoader.allowPackage('org.junit')
             sharedClassLoader.allowPackage('org.hamcrest')
@@ -153,7 +156,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(RetryRule)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
-            def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
+            def parentClassLoader = new MultiParentClassLoader(topSharedClassLoader, toolingApi.classLoader, sharedClassLoader)
 
             def testClassPath = []
             testClassPath << ClasspathUtil.getClasspathForClass(target)
@@ -164,7 +167,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected void before() {
-            testClassLoader.loadClass(ToolingApiSpecification.name).selectTargetDist(gradle)
+            def testClazz = testClassLoader.loadClass(ToolingApiSpecification.name)
+            testClazz.selectTargetDist(gradle)
+            testClazz.selectTapiVersion(toolingApi.version.version)
         }
     }
 }

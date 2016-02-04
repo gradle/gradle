@@ -30,6 +30,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.VersionNumber
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
@@ -69,11 +70,13 @@ abstract class ToolingApiSpecification extends Specification {
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
+    private static final ThreadLocal<String> TAPI_VERSION = new ThreadLocal<String>()
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
-    final GradleVersion toolingApiVersion = GradleVersion.current() // works due to classloading arrangement by ToolingApiCompatibilitySuiteRunner
+    // Cannot use GradleVersion class because of Classloader issues with ToolingApiCompatibilitySuiteRunner
+    final VersionNumber toolingApiVersion = VersionNumber.parse(TAPI_VERSION.get())
 
     @Rule
     public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
@@ -84,6 +87,10 @@ abstract class ToolingApiSpecification extends Specification {
 
     static GradleDistribution getTargetDist() {
         VERSION.get()
+    }
+
+    static void selectTapiVersion(String version) {
+        TAPI_VERSION.set(version)
     }
 
     void reset() {
@@ -228,7 +235,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     void assertToolingModelIsSerializable(object) {
         // Only check serialization with 2.12+ since Tooling Model proxy serialization is broken in previous TAPI clients
-        if (GradleVersion.current().getBaseVersion() >= GradleVersion.version("2.12")) {
+        if (toolingApiVersion.getBaseVersion() >= VersionNumber.parse("2.12")) {
             // only check that no exceptions are thrown during serialization
             // cross-version deserialization would require using PayloadSerializer
             ObjectOutputStream oos = new ObjectOutputStream(new NullOutputStream());

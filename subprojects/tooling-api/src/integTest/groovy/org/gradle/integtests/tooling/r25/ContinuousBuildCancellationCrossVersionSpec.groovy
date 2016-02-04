@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecificat
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.GradleVersion
+import org.gradle.util.VersionNumber
 import org.junit.Rule
 
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
@@ -53,7 +53,7 @@ gradle.taskGraph.whenReady {
         }
 
         then:
-        if (toolingApiVersion.equals(GradleVersion.version("2.1"))) {
+        if (toolingApiVersion.baseVersion == VersionNumber.parse("2.1")) {
             assert buildResult.failure instanceof GradleConnectionException
         } else {
             assert buildResult.failure instanceof BuildCancelledException
