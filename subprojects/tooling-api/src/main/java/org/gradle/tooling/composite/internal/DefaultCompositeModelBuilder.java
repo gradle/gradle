@@ -66,42 +66,67 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
         final Set<T> results = Sets.newConcurrentHashSet();
         final AtomicReference<Throwable> firstFailure = new AtomicReference<Throwable>();
         final ResultHandlerVersion1<Set<T>> adaptedHandler = new HierarchialResultAdapter(new ResultHandlerAdapter(handler));
-
-        final CyclicBarrier barrier = new CyclicBarrier(participants.size(), new Runnable() {
-            @Override
-            public void run() {
-                if (firstFailure.get()==null) {
-                    adaptedHandler.onComplete(results);
-                } else {
-                    adaptedHandler.onFailure(firstFailure.get());
-                }
-            }
-        });
-
+        final CyclicBarrier barrier = new CyclicBarrier(participants.size(), new ResultsCollected(results, firstFailure, adaptedHandler));
         for (GradleParticipantBuild participant : participants) {
-            participant.getConnection().getModel(modelType, new ResultHandler<T>() {
-                @Override
-                public void onComplete(T result) {
-                    results.add(result);
-                    waitForFinish();
-                }
+            participant.getConnection().getModel(modelType, new ProjectResultHandler<T>(participant, barrier, results, firstFailure));
+        }
+    }
 
-                private void waitForFinish() {
-                    try {
-                        barrier.await();
-                    } catch (InterruptedException e) {
-                        UncheckedException.throwAsUncheckedException(e);
-                    } catch (BrokenBarrierException e) {
-                        UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
+    private final static class ResultsCollected<T> implements Runnable {
+        private final Set<T> results;
+        private final AtomicReference<Throwable> firstFailure;
+        private final ResultHandlerVersion1<Set<T>> adaptedHandler;
 
-                @Override
-                public void onFailure(GradleConnectionException failure) {
-                    firstFailure.compareAndSet(null, failure);
-                    waitForFinish();
-                }
-            });
+        private ResultsCollected(Set<T> results, AtomicReference<Throwable> firstFailure, ResultHandlerVersion1<Set<T>> adaptedHandler) {
+            this.results = results;
+            this.firstFailure = firstFailure;
+            this.adaptedHandler = adaptedHandler;
+        }
+
+        @Override
+        public void run() {
+            Throwable failure = firstFailure.get();
+            if (failure==null) {
+                adaptedHandler.onComplete(results);
+            } else {
+                adaptedHandler.onFailure(failure);
+            }
+        }
+    }
+
+    private final static class ProjectResultHandler<T> implements ResultHandler<T> {
+        private final GradleParticipantBuild participant;
+        private final Set<T> results;
+        private final CyclicBarrier barrier;
+        private final AtomicReference<Throwable> firstFailure;
+
+        private ProjectResultHandler(GradleParticipantBuild participant, CyclicBarrier barrier, Set<T> results, AtomicReference<Throwable> firstFailure) {
+            this.participant = participant;
+            this.barrier = barrier;
+            this.results = results;
+            this.firstFailure = firstFailure;
+        }
+
+        @Override
+        public void onComplete(T result) {
+            results.add(result);
+            waitForFinish();
+        }
+
+        private void waitForFinish() {
+            try {
+                barrier.await();
+            } catch (InterruptedException e) {
+                UncheckedException.throwAsUncheckedException(e);
+            } catch (BrokenBarrierException e) {
+                UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        @Override
+        public void onFailure(GradleConnectionException failure) {
+            firstFailure.compareAndSet(null, failure);
+            waitForFinish();
         }
     }
 

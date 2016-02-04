@@ -52,11 +52,11 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
 
     def "throws IllegalStateException when using a closed connection"() {
         given:
-        populate("project") {
-            file("settings.gradle") << "rootProject.name = 'project'"
+        def project = populate("project") {
+            settingsFile << "rootProject.name = 'project'"
         }
         when:
-        withCompositeConnection(projectDir("project")) { connection ->
+        withCompositeConnection(project) { connection ->
             def models = connection.getModels(EclipseProject)
             connection.close()
             def modelsAgain = connection.getModels(EclipseProject)
@@ -67,12 +67,12 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
 
     def "propagates errors when trying to retrieve models"() {
         given:
-        populate("project") {
-            file("settings.gradle") << "rootProject.name = 'project'"
-            file("build.gradle") << "throw new RuntimeException()"
+        def project = populate("project") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
+            buildFile << "throw new RuntimeException()"
         }
         when:
-        withCompositeConnection(projectDir("project")) { connection ->
+        withCompositeConnection(project) { connection ->
             def models = connection.getModels(EclipseProject)
             connection.close()
         }
@@ -86,11 +86,11 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
     @NotYetImplemented
     def "propagates errors when trying to close a connection"() {
         given:
-        populate("project") {
-            file("settings.gradle") << "rootProject.name = 'project'"
+        def project = populate("project") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
         }
         when:
-        withCompositeConnection(projectDir("project")) { connection ->
+        withCompositeConnection(project) { connection ->
             def models = connection.getModels(EclipseProject)
             connection.close()
         }

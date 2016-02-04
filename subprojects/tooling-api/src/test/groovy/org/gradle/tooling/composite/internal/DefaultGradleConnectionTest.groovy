@@ -70,11 +70,17 @@ class DefaultGradleConnectionTest extends Specification {
         e.message == "Cannot fetch a model of type 'java.lang.String' as this type is not an interface."
     }
 
-    def "close stops underlying project connections"() {
+
+    def "close stops all underlying project connections"() {
+        given:
+        def builds = (0..3).collect { Mock(GradleParticipantBuild) } as Set
+        GradleConnection connection = new DefaultGradleConnection(null, builds)
         when:
         connection.close()
         then:
-        1 * build.stop()
+        builds.each {
+            1 * it.stop()
+        }
     }
 
     def "errors propagate to caller when closing connection"() {

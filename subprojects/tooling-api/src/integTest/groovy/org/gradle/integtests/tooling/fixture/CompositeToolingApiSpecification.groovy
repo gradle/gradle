@@ -86,12 +86,31 @@ abstract class CompositeToolingApiSpecification extends ToolingApiSpecification 
         rootDir.file(path)
     }
 
-    def populate(String project, @DelegatesTo(TestFile) Closure cl) {
-        def projectDir = rootDir.file(project)
-        projectDir.with(cl)
+    ProjectTestFile populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
+        def project = new ProjectTestFile(rootDir, projectName)
+        project.with(cl)
+        project
     }
 
     TestFile projectDir(String project) {
         file(project)
+    }
+
+    class ProjectTestFile extends TestFile {
+        private final String projectName
+
+        ProjectTestFile(TestFile rootDir, String projectName) {
+            super(rootDir, [ projectName ])
+            this.projectName = projectName
+        }
+        String getRootProjectName() {
+            projectName
+        }
+        TestFile getBuildFile() {
+            file("build.gradle")
+        }
+        TestFile getSettingsFile() {
+            file("settings.gradle")
+        }
     }
 }

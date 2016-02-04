@@ -28,21 +28,21 @@ import spock.lang.Ignore
 class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
-        populate("single-build") {
-            file("build.gradle") << """
+        def singleBuild = populate("single-build") {
+            buildFile << """
                 allprojects {
                     apply plugin: 'java'
                     group = 'group'
                     version = '1.0'
                 }
 """
-            file("settings.gradle") << """
-                rootProject.name = 'single-build'
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
                 include 'a', 'b', 'c'
 """
         }
         expect:
-        withCompositeConnection(projectDir("single-build")) { connection ->
+        withCompositeConnection(singleBuild) { connection ->
             def models = connection.getModels(EclipseProject)
             assert models.size() == 4
             containsProjects(models, [':', ':a', ':b', ':c'])
@@ -52,18 +52,18 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "can create composite of a single single-project build"() {
         given:
-        populate("single-build") {
-            file("build.gradle") << """
+        def singleBuild = populate("single-build") {
+            buildFile << """
                 apply plugin: 'java'
                 group = 'group'
                 version = '1.0'
 """
-            file("settings.gradle") << """
-                rootProject.name = 'single-build'
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
 """
         }
         expect:
-        withCompositeConnection(projectDir("single-build")) { connection ->
+        withCompositeConnection(singleBuild) { connection ->
             def models = connection.getModels(EclipseProject)
             assert models.size() == 1
             containsProjects(models, [':'])
@@ -73,19 +73,19 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "sees changes to composite build when projects are added"() {
         given:
-        populate("single-build") {
-            file("build.gradle") << """
+        def singleBuild = populate("single-build") {
+            buildFile << """
                 allprojects {
                     apply plugin: 'java'
                     group = 'group'
                     version = '1.0'
                 }
 """
-            file("settings.gradle") << """
-                rootProject.name = 'single-build'
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
 """
         }
-        def composite = createComposite(projectDir("single-build"))
+        def composite = createComposite(singleBuild)
 
         when:
         def firstRetrieval = composite.getModels(EclipseProject)
@@ -98,7 +98,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         when:
         // make project a multi-project build
         populate("single-build") {
-            file("settings.gradle") << """
+            settingsFile << """
                 include 'a'
 """
         }
@@ -113,7 +113,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         when:
         // adding more projects to multi-project build
         populate("single-build") {
-            file("settings.gradle") << "include 'b', 'c'"
+            settingsFile << "include 'b', 'c'"
         }
         and:
         def thirdRetrieval = composite.getModels(EclipseProject)
@@ -124,8 +124,8 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         containsProjects(thirdRetrieval, [':', ':a', ':b', ':c'])
 
         when:
-        // adding more projects to multi-project build
-        projectDir("single-build").deleteDir()
+        // remove the existing project
+        singleBuild.deleteDir()
 
         and:
         def fourthRetrieval = composite.getModels(EclipseProject)
@@ -143,19 +143,19 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     @Ignore
     def "can retrieve EclipseProject from composite for Gradle #gradleVersion"() {
         given:
-        populate("single-build") {
-            file("build.gradle") << """
+        def singleBuild = populate("single-build") {
+            buildFile << """
                 apply plugin: 'java'
                 group = 'group'
                 version = '1.0'
 """
-            file("settings.gradle") << """
-                rootProject.name = 'single-build'
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
 """
         }
         and:
         def builder = createCompositeBuilder()
-        builder.addBuild(projectDir("single-build"), gradleVersion)
+        builder.addBuild(singleBuild, gradleVersion)
         def connection = builder.build()
         expect:
         def models = connection.getModels(EclipseProject)
