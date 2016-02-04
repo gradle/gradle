@@ -19,11 +19,10 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.5")

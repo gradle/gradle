@@ -16,13 +16,12 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
         file('build.gradle') << '''
 task a {

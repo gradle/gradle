@@ -15,17 +15,17 @@
  */
 
 package org.gradle.integtests.tooling.r210
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.10')
 @TargetGradleVersion(">=2.10")
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup(){
         settingsFile << "rootProject.name = 'root'"

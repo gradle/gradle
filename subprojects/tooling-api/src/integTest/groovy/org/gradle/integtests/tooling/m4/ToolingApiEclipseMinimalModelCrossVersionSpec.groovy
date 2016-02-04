@@ -16,10 +16,9 @@
 package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecification {
     def "minimal Eclipse model does not attempt to resolve external dependencies"() {
 
         file('settings.gradle').text = 'include "child"'

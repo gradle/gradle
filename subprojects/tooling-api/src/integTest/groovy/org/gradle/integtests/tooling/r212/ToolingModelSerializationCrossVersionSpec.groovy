@@ -19,14 +19,13 @@ package org.gradle.integtests.tooling.r212
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.util.UsesNativeServices
 
 @ToolingApiVersion('>=2.12')
 @TargetGradleVersion(">=1.3")
 @UsesNativeServices
-class ToolingModelSerializationCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingModelSerializationCrossVersionSpec extends ToolingApiSpecification {
     def "check that the eclipse model TAPI proxy is serializable"() {
         projectDir.file('build.gradle').text = '''
 description = 'this is a project'

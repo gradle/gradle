@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.UnsupportedMethodException
@@ -29,7 +28,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 @ToolingApiVersion('>=1.8')
 @TargetGradleVersion('>=1.8')
 @LeaksFileHandles
-class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
     def "GradleProject provides details about the project's build script"() {
         when:
         buildFile << '//empty'

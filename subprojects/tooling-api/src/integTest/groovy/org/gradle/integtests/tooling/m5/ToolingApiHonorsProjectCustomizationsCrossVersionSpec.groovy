@@ -16,10 +16,9 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
 

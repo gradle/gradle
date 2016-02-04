@@ -19,12 +19,11 @@ package org.gradle.integtests.tooling.r29
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=2.9')
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions throw exception when querying natures"() {

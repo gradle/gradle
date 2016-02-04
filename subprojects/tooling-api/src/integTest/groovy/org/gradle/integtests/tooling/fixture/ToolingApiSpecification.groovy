@@ -23,11 +23,12 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
@@ -215,4 +216,34 @@ abstract class ToolingApiSpecification extends Specification {
         targetVersion < GradleVersion.version("2.3") ? [] : rootProjectImplicitTasks
     }
 
+    EclipseProject loadEclipseProjectModel() {
+        loadToolingModel(EclipseProject)
+    }
+
+    public <T> T loadToolingModel(Class<T> modelClass) {
+        def model = withConnection { connection -> connection.getModel(modelClass) }
+        assertToolingModelIsSerializable(model)
+        model
+    }
+
+    void assertToolingModelIsSerializable(object) {
+        // Only check serialization with 2.12+ since Tooling Model proxy serialization is broken in previous TAPI clients
+        if (GradleVersion.current().getBaseVersion() >= GradleVersion.version("2.12")) {
+            // only check that no exceptions are thrown during serialization
+            // cross-version deserialization would require using PayloadSerializer
+            ObjectOutputStream oos = new ObjectOutputStream(new NullOutputStream());
+            try {
+                oos.writeObject(object);
+            } finally {
+                oos.flush();
+            }
+        }
+    }
+
+    private static class NullOutputStream extends OutputStream {
+        @Override
+        void write(int b) throws IOException {
+            // ignore
+        }
+    }
 }

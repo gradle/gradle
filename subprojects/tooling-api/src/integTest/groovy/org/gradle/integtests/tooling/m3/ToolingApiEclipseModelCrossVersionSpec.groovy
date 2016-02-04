@@ -16,12 +16,11 @@
 package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingModelTestTrait
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements ToolingModelTestTrait {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "can build the eclipse model for a java project"() {
 
