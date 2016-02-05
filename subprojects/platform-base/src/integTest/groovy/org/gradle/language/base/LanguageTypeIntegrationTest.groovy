@@ -26,34 +26,12 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
         class CustomLanguagePlugin extends RuleSource {
             @LanguageType
-            void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                builder.setLanguageName("custom")
+            void declareCustomLanguage(TypeBuilder<CustomLanguageSourceSet> builder) {
             }
         }
 
         apply plugin:CustomLanguagePlugin
 """
-    }
-
-    def "registers language in languageSourceSetFactory"(){
-        given:
-        buildFile << '''
-model {
-    tasks {
-        create("printLanguages") {
-            it.doLast {
-                def languageSourceSetFactory = $.languageSourceSetFactory
-                def languages = languageSourceSetFactory.registrations*.name.sort().join(", ")
-                println "registered languages: $languages"
-            }
-        }
-    }
-}
-        '''
-        when:
-        succeeds "printLanguages"
-        then:
-        output.contains("registered languages: custom")
     }
 
     def "can add custom language sourceSet to component"() {

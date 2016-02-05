@@ -94,7 +94,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.lss.@creator[0] == "lss(CustomSourceSet) @ build.gradle line 14, column 13"
+        modelNode.lss.@creator[0] == "lss(CustomSourceSet) @ build.gradle line 13, column 13"
         modelNode.lss.@type[0] == "CustomSourceSet"
     }
 
@@ -179,8 +179,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
             class JavaLangRuleSource extends RuleSource {
 
                 @LanguageType
-                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-                    builder.setLanguageName("java");
+                void registerLanguage(TypeBuilder<JavaSourceSet> builder) {
                     builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
                 }
 
@@ -194,8 +193,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Managed interface CustomSourceSet extends LanguageSourceSet {}
             class CustomSourceSetPlugin extends RuleSource {
                 @LanguageType
-                void registerCustomLanguage(LanguageTypeBuilder<CustomSourceSet> builder) {
-                    builder.setLanguageName("managed")
+                void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
                 }
             }
             apply plugin: CustomSourceSetPlugin

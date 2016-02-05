@@ -84,7 +84,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
                 lssElement()
             }
         }
-        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 16, column 13"
+        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 15, column 13"
         reportOutput.modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
         reportOutput.modelNode.functionalSources.@creator[0] == functionalSourceSetCreator
         reportOutput.modelNode.functionalSources.lssElement.@type[0] == "SomeJavaSourceSet"
@@ -341,8 +341,7 @@ after ss1
             @Managed interface SomeJavaSourceSet extends LanguageSourceSet {}
             class JavaLangRuleSource extends RuleSource {
                 @LanguageType
-                void registerLanguage(LanguageTypeBuilder<SomeJavaSourceSet> builder) {
-                    builder.setLanguageName("java");
+                void registerLanguage(TypeBuilder<SomeJavaSourceSet> builder) {
                 }
             }
             apply plugin: JavaLangRuleSource

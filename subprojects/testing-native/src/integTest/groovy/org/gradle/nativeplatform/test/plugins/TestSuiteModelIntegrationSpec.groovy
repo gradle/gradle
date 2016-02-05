@@ -46,8 +46,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                 }
 
                 @LanguageType
-                void registerCustomLanguageType(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.setLanguageName("custom")
+                void registerCustomLanguageType(TypeBuilder<CustomLanguageSourceSet> builder) {
                     builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }

@@ -52,8 +52,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
             void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {}
 
             @LanguageType
-            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
-                builder.setLanguageName("librarySource")
+            void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
     }

@@ -37,8 +37,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
             void register(BinaryTypeBuilder<SampleBinary> builder) {}
 
             @LanguageType
-            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
-                builder.setLanguageName("librarySource")
+            void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
     }
@@ -159,8 +158,8 @@ model {
         fails("components")
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 38, column 9")
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 38, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 27, column 9 > create(bin) > create(main)' is already registered to create this model element.")
+        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 37, column 9")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 37, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 26, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 
     def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {
@@ -181,8 +180,7 @@ model {
 
             class HaxeRules extends RuleSource {
                 @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                     builder.defaultImplementation(DefaultHaxeSourceSet)
                     builder.internalView(HaxeSourceSetInternal)
                 }
@@ -232,8 +230,7 @@ model {
             interface HaxeSourceSet extends LanguageSourceSet {}
             class HaxeRules extends RuleSource {
                 @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                 }
             }
             apply plugin: HaxeRules
@@ -265,8 +262,7 @@ model {
             }
             class CustomManagedLSSPlugin extends RuleSource {
                 @LanguageType
-                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
-                    builder.setLanguageName("managed")
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                 }
             }
             apply plugin: CustomManagedLSSPlugin
@@ -313,8 +309,7 @@ model {
             @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
             class ChildCustomManagedLSSPlugin extends RuleSource {
                 @LanguageType
-                void registerChildCustomManagedLSSPType(LanguageTypeBuilder<ChildCustomManagedLSS> builder) {
-                    builder.setLanguageName("childcustom")
+                void registerChildCustomManagedLSSPType(TypeBuilder<ChildCustomManagedLSS> builder) {
                 }
             }
             apply plugin: ChildCustomManagedLSSPlugin
@@ -354,8 +349,7 @@ model {
             }
             class CustomManagedLSSPlugin extends RuleSource {
                 @LanguageType
-                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
-                    builder.setLanguageName("managed")
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                     builder.internalView(CustomManagedLSSInternal)
                 }
             }
