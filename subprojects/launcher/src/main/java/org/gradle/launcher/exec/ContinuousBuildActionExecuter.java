@@ -44,6 +44,7 @@ import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
+    private final BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate;
     private final ListenerManager listenerManager;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
@@ -51,11 +52,11 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory));
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory, BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate) {
+        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory), compositeDelegate);
     }
 
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory, BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.javaVersion = javaVersion;
@@ -63,16 +64,21 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
         this.changeWaiterFactory = changeWaiterFactory;
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.compositeDelegate = compositeDelegate;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(contextServices, action.getStartParameter(), actionParameters.getInjectedPluginClasspath());
         try {
-            if (actionParameters.isContinuous()) {
-                return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices);
+            if(actionParameters instanceof CompositeBuildActionParameters) {
+                return compositeDelegate.execute(action, requestContext, (CompositeBuildActionParameters) actionParameters, buildSessionScopeServices);
             } else {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                if (actionParameters.isContinuous()) {
+                    return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices);
+                } else {
+                    return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                }
             }
         } finally {
             CompositeStoppable.stoppable(buildSessionScopeServices).stop();
