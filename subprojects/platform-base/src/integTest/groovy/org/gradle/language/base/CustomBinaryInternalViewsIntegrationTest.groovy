@@ -50,7 +50,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class RegisterBinaryRules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                void register(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                     builder.internalView(SampleBinarySpecInternal)
                     builder.internalView(BareInternal)
@@ -191,12 +191,12 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class RegisterBinaryRules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                void register(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                 }
 
                 @BinaryType
-                void registerInternalView(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                void registerInternalView(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(SampleBinarySpecInternal)
                     builder.internalView(BareInternal)
                 }
@@ -217,12 +217,12 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterBinaryRules extends RuleSource {
                 @BinaryType
-                void registerBinary(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                void registerBinary(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                 }
 
                 @BinaryType
-                void registerInternalView(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                void registerInternalView(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(NotImplementedInternalView)
                 }
             }
@@ -252,7 +252,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @BinaryType
-                void registerBinary(BinaryTypeBuilder<JarBinarySpec> builder) {
+                void registerBinary(TypeBuilder<JarBinarySpec> builder) {
                     builder.internalView(ManagedInternalView)
                     builder.internalView(ManagedJarBinarySpecInternal)
                 }

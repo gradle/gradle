@@ -88,7 +88,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     private BaseBinarySpec(BinaryInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
+            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @BinaryType rule instead.");
         }
         this.name = info.name;
         this.publicType = info.publicType;

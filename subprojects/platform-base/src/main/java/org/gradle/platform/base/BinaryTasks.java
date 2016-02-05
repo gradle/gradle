@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
  *
  * class MyCustomBinariesPlugin extends RuleSource {
  *     {@literal @}BinaryType
- *     void register(BinaryTypeBuilder&lt;SampleBinary&gt; builder) {}
+ *     void register(TypeBuilder&lt;SampleBinary&gt; builder) {}
  *
  *     {@literal @}BinaryTasks
  *     void createBinaryTasks(ModelMap&lt;Task&gt; tasks, SampleBinary binary) {

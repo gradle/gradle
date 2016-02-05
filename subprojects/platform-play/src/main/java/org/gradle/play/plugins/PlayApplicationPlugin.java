@@ -91,13 +91,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @ComponentType
-        void registerPlayPlatformAwareComponentSpecType(ComponentTypeBuilder<PlayPlatformAwareComponentSpec> builder) {
+        void registerPlayPlatformAwareComponentSpecType(TypeBuilder<PlayPlatformAwareComponentSpec> builder) {
             builder.defaultImplementation(DefaultPlayPlatformAwareComponentSpec.class);
             builder.internalView(PlayPlatformAwareComponentSpecInternal.class);
         }
 
         @ComponentType
-        void registerPlayApplicationSpecType(ComponentTypeBuilder<PlayApplicationSpec> builder) {
+        void registerPlayApplicationSpecType(TypeBuilder<PlayApplicationSpec> builder) {
             builder.internalView(PlayApplicationSpecInternal.class);
         }
 
@@ -112,7 +112,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryType
-        void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
+        void registerApplication(TypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
             builder.internalView(PlayApplicationBinarySpecInternal.class);
         }

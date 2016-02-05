@@ -30,7 +30,7 @@
 class MyPlugin extends RuleSource {
 // END SNIPPET internal-view-mutation
     @ComponentType
-    void registerMyComponent(ComponentTypeBuilder<MyComponent> builder) {
+    void registerMyComponent(TypeBuilder<MyComponent> builder) {
         builder.internalView(MyComponentInternal)
     }
 // END SNIPPET type-registration

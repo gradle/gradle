@@ -81,17 +81,17 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
+        void nativeExecutable(TypeBuilder<NativeExecutableSpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableSpec.class);
         }
 
         @ComponentType
-        void nativeLibrary(ComponentTypeBuilder<NativeLibrarySpec> builder) {
+        void nativeLibrary(TypeBuilder<NativeLibrarySpec> builder) {
             builder.defaultImplementation(DefaultNativeLibrarySpec.class);
         }
 
         @ComponentType
-        void registerTargetedNativeComponent(ComponentTypeBuilder<TargetedNativeComponent> builder) {
+        void registerTargetedNativeComponent(TypeBuilder<TargetedNativeComponent> builder) {
             builder.internalView(TargetedNativeComponentInternal.class);
         }
 
@@ -141,19 +141,19 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @BinaryType
-        void registerSharedLibraryBinaryType(BinaryTypeBuilder<SharedLibraryBinarySpec> builder) {
+        void registerSharedLibraryBinaryType(TypeBuilder<SharedLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultSharedLibraryBinarySpec.class);
             builder.internalView(SharedLibraryBinarySpecInternal.class);
         }
 
         @BinaryType
-        void registerStaticLibraryBinaryType(BinaryTypeBuilder<StaticLibraryBinarySpec> builder) {
+        void registerStaticLibraryBinaryType(TypeBuilder<StaticLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultStaticLibraryBinarySpec.class);
             builder.internalView(StaticLibraryBinarySpecInternal.class);
         }
 
         @BinaryType
-        void registerNativeExecutableBinaryType(BinaryTypeBuilder<NativeExecutableBinarySpec> builder) {
+        void registerNativeExecutableBinaryType(TypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
             builder.internalView(NativeExecutableBinarySpecInternal.class);
         }

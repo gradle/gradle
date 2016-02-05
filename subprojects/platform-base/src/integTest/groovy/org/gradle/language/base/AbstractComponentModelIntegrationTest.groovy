@@ -28,7 +28,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {}
+                void registerCustomComponentType(TypeBuilder<CustomComponent> builder) {}
             }
 
             apply type: ComponentTypeRules
@@ -50,7 +50,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
 
             class BinaryRules extends RuleSource {
                 @BinaryType
-                void registerCustomBinary(BinaryTypeBuilder<CustomBinary> builder) {
+                void registerCustomBinary(TypeBuilder<CustomBinary> builder) {
                     builder.defaultImplementation(DefaultCustomBinary)
                 }
             }

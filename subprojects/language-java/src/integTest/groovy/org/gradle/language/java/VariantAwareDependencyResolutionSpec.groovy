@@ -129,32 +129,32 @@ class DefaultFlavorAndBuildTypeAwareLibrary extends BaseComponentSpec implements
 class ComponentTypeRules extends RuleSource {
 
     @ComponentType
-    void registerFlavorAndBuildTypeComponent(ComponentTypeBuilder<FlavorAndBuildTypeAwareLibrary> builder) {
+    void registerFlavorAndBuildTypeComponent(TypeBuilder<FlavorAndBuildTypeAwareLibrary> builder) {
         builder.defaultImplementation(DefaultFlavorAndBuildTypeAwareLibrary)
     }
 
     @ComponentType
-    void registerFlavorOnlyComponent(ComponentTypeBuilder<FlavorOnlyLibrary> builder) {
+    void registerFlavorOnlyComponent(TypeBuilder<FlavorOnlyLibrary> builder) {
         builder.defaultImplementation(DefaultFlavorOnlyLibrary)
     }
 
     @ComponentType
-    void registerBuildTypeOnlyComponent(ComponentTypeBuilder<BuildTypeOnlyLibrary> builder) {
+    void registerBuildTypeOnlyComponent(TypeBuilder<BuildTypeOnlyLibrary> builder) {
         builder.defaultImplementation(DefaultBuildTypeOnlyLibrary)
     }
 
     @BinaryType
-    void registerFlavorAndBuildTypeJar(BinaryTypeBuilder<FlavorAndBuildTypeJarBinarySpec> builder) {
+    void registerFlavorAndBuildTypeJar(TypeBuilder<FlavorAndBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(FlavorAndBuildTypeBinary)
     }
 
     @BinaryType
-    void registerFlavorOnlyJar(BinaryTypeBuilder<FlavorJarBinarySpec> builder) {
+    void registerFlavorOnlyJar(TypeBuilder<FlavorJarBinarySpec> builder) {
         builder.defaultImplementation(FlavorBinary)
     }
 
     @BinaryType
-    void registerBuildTypeOnlyJar(BinaryTypeBuilder<BuildTypeJarBinarySpec> builder) {
+    void registerBuildTypeOnlyJar(TypeBuilder<BuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(BuildTypeBinary)
     }
 

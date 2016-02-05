@@ -42,7 +42,7 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
         class CustomComponentPlugin extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleComponent> builder) {
+            void register(TypeBuilder<SampleComponent> builder) {
             }
 
             @Mutate

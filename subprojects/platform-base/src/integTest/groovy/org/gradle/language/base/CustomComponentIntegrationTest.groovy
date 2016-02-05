@@ -35,7 +35,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -80,7 +80,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -118,7 +118,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -163,7 +163,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void register(TypeBuilder<SampleLibrarySpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -206,7 +206,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
             }
@@ -320,12 +320,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class RegisterComponentInternalViewRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.internalView(UnmanagedComponentSpecInternal)
                 }
 
                 @ComponentType
-                void registerManaged(ComponentTypeBuilder<ManagedComponentSpec> builder) {
+                void registerManaged(TypeBuilder<ManagedComponentSpec> builder) {
                     builder.internalView(ManagedComponentSpecInternal)
                 }
             }
@@ -393,12 +393,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void register1(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register2(TypeBuilder<SampleComponentSpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }
@@ -515,12 +515,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void registerManaged(ComponentTypeBuilder<ManagedComponentSpec> builder) {
+                void registerManaged(TypeBuilder<ManagedComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -542,7 +542,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class Broken extends RuleSource {
                 @ComponentType
-                void broken(ComponentTypeBuilder<BrokenComponentSpec> builder) {
+                void broken(TypeBuilder<BrokenComponentSpec> builder) {
                     throw new RuntimeException('broken')
                 }
             }
@@ -563,7 +563,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class Broken extends RuleSource {
                 @ComponentType
-                void broken(ComponentTypeBuilder<BrokenComponentSpec> builder) {
+                void broken(TypeBuilder<BrokenComponentSpec> builder) {
                     builder.internalView(String)
                 }
             }
@@ -581,7 +581,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class Broken extends RuleSource {
                 @ComponentType
-                private void broken(ComponentTypeBuilder<?> builder) {
+                private void broken(TypeBuilder<?> builder) {
                 }
             }
             apply plugin: Broken
@@ -591,7 +591,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
         failure.assertHasCause("Failed to apply plugin [class 'Broken']")
         failure.assertHasCause("""Type Broken is not a valid rule source:
-- Method broken(org.gradle.platform.base.ComponentTypeBuilder<?>) is not a valid rule method: A rule method cannot be private
-- Method broken(org.gradle.platform.base.ComponentTypeBuilder<?>) is not a valid rule method: Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
+- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: A rule method cannot be private
+- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
     }
 }

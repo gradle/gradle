@@ -31,7 +31,7 @@ import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeIni
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -76,7 +76,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
         }
 
         @BinaryType
-        void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
+        void registerBaseBinarySpec(TypeBuilder<BinarySpec> builder) {
             builder.defaultImplementation(BaseBinarySpec.class);
             builder.internalView(BinarySpecInternal.class);
         }

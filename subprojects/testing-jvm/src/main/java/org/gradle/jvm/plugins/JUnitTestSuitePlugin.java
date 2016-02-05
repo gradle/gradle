@@ -51,12 +51,12 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
     static class PluginRules extends RuleSource {
 
         @ComponentType
-        public void register(ComponentTypeBuilder<JUnitTestSuiteSpec> builder) {
+        public void register(TypeBuilder<JUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteSpec.class);
         }
 
         @BinaryType
-        public void registerJUnitBinary(BinaryTypeBuilder<JUnitTestSuiteBinarySpec> builder) {
+        public void registerJUnitBinary(TypeBuilder<JUnitTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
             builder.internalView(JvmTestSuiteBinarySpecInternal.class);
         }

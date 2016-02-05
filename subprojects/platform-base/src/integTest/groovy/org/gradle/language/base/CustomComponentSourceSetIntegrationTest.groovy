@@ -31,10 +31,10 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
             @LanguageType
             void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {

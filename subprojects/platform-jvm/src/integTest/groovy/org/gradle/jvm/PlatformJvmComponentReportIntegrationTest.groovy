@@ -316,7 +316,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 
 class Rules extends RuleSource {
     @BinaryType
-    void customJarBinary(BinaryTypeBuilder<CustomJarBinarySpec> builder) {
+    void customJarBinary(TypeBuilder<CustomJarBinarySpec> builder) {
     }
 
     @Finalize

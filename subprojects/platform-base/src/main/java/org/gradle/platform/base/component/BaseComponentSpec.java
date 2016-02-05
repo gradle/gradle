@@ -65,7 +65,7 @@ public class BaseComponentSpec implements ComponentSpecInternal {
 
     private BaseComponentSpec(ComponentInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead.");
+            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
         }
 
         this.identifier = info.componentIdentifier;

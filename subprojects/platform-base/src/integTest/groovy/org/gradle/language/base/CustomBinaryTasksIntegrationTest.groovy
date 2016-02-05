@@ -29,11 +29,11 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
         class MyComponentBasePlugin extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {
             }
 
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
+            void registerBinary(TypeBuilder<SampleBinary> builder) {
             }
 
             @Mutate
@@ -157,7 +157,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
         class MyOtherBinariesPlugin extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<OtherBinary> builder) {
+            void register(TypeBuilder<OtherBinary> builder) {
             }
 
             @ComponentBinaries

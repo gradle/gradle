@@ -269,7 +269,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class UnmanagedComponentPlugin extends RuleSource {
                 @ComponentType
-                void registerUnmanagedComponent(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                void registerUnmanagedComponent(TypeBuilder<UnmanagedComponent> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponent)
                 }
             }
@@ -285,7 +285,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class ManagedComponentPlugin extends RuleSource {
                 @ComponentType
-                void registerManagedComponent(ComponentTypeBuilder<ManagedComponent> builder) {}
+                void registerManagedComponent(TypeBuilder<ManagedComponent> builder) {}
             }
             apply plugin: ManagedComponentPlugin
         """.stripIndent()
@@ -302,7 +302,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class UnmanagedBinaryPlugin extends RuleSource {
                 @BinaryType
-                void registerUnmanagedBinary(BinaryTypeBuilder<UnmanagedBinary> builder) {
+                void registerUnmanagedBinary(TypeBuilder<UnmanagedBinary> builder) {
                     builder.defaultImplementation(DefaultUnmanagedBinary)
                 }
             }
@@ -318,7 +318,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             }
             class ManagedBinaryPlugin extends RuleSource {
                 @BinaryType
-                void registerUnmanagedBinary(BinaryTypeBuilder<ManagedBinary> builder) {}
+                void registerUnmanagedBinary(TypeBuilder<ManagedBinary> builder) {}
             }
             apply plugin: ManagedBinaryPlugin
         """.stripIndent()

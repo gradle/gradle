@@ -134,29 +134,29 @@ class AnotherBuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAs
 class ComponentTypeRules extends RuleSource {
 
     @ComponentType
-    void registerStringBuildTypeComponent(ComponentTypeBuilder<StringBuildTypeLib> builder) {
+    void registerStringBuildTypeComponent(TypeBuilder<StringBuildTypeLib> builder) {
     }
 
     @ComponentType
-    void registerBuildTypeBuildTypeComponent(ComponentTypeBuilder<BuildTypeBuildTypeLib> builder) {
+    void registerBuildTypeBuildTypeComponent(TypeBuilder<BuildTypeBuildTypeLib> builder) {
     }
 
     @ComponentType
-    void registerAnotherBuildTypeBuildTypeComponent(ComponentTypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
+    void registerAnotherBuildTypeBuildTypeComponent(TypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
     }
 
     @BinaryType
-    void registerStringBuildTypeJar(BinaryTypeBuilder<BuildTypeAsStringJarBinarySpec> builder) {
+    void registerStringBuildTypeJar(TypeBuilder<BuildTypeAsStringJarBinarySpec> builder) {
         builder.defaultImplementation(StringBinary)
     }
 
     @BinaryType
-    void registerBuildTypeBuildTypeJar(BinaryTypeBuilder<BuildTypeAsBuildTypeJarBinarySpec> builder) {
+    void registerBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(BuildTypeBinary)
     }
 
     @BinaryType
-    void registerAnotherBuildTypeBuildTypeJar(BinaryTypeBuilder<BuildTypeAsAnotherBuildTypeJarBinarySpec> builder) {
+    void registerAnotherBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsAnotherBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(AnotherBuildTypeBinary)
     }
 

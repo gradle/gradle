@@ -54,7 +54,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @ComponentType
-        public void registerGoogleTestSuiteSpecTest(ComponentTypeBuilder<GoogleTestTestSuiteSpec> builder) {
+        public void registerGoogleTestSuiteSpecTest(TypeBuilder<GoogleTestTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteSpec.class);
         }
 
@@ -68,7 +68,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @BinaryType
-        public void registerGoogleTestSuiteBinaryType(BinaryTypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
+        public void registerGoogleTestSuiteBinaryType(TypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
         }
 

@@ -32,7 +32,7 @@ class BaseComponentSpecTest extends PlatformBaseSpecification {
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
+        e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead."
     }
 
     private <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType) {

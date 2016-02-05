@@ -25,7 +25,7 @@ import org.gradle.model.*;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.testing.base.TestSuiteBinarySpec;
 import org.gradle.testing.base.TestSuiteContainer;
@@ -48,7 +48,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void registerTestSuiteSpec(ComponentTypeBuilder<TestSuiteSpec> builder) {
+        void registerTestSuiteSpec(TypeBuilder<TestSuiteSpec> builder) {
             builder.defaultImplementation(BaseTestSuiteSpec.class);
         }
 

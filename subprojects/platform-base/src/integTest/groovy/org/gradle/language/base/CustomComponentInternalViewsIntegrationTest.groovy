@@ -51,7 +51,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void register(TypeBuilder<SampleLibrarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleLibrarySpec)
                     builder.internalView(SampleLibrarySpecInternal)
                     builder.internalView(BareInternalView)
@@ -157,12 +157,12 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerComponent(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void registerComponent(TypeBuilder<SampleLibrarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleLibrarySpec)
                 }
 
                 @ComponentType
-                void registerInternalView(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void registerInternalView(TypeBuilder<SampleLibrarySpec> builder) {
                     builder.internalView(SampleLibrarySpecInternal)
                     builder.internalView(BareInternalView)
                 }
@@ -183,12 +183,12 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerComponent(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void registerComponent(TypeBuilder<SampleLibrarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleLibrarySpec)
                 }
 
                 @ComponentType
-                void registerInternalView(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void registerInternalView(TypeBuilder<SampleLibrarySpec> builder) {
                     builder.internalView(NotImplementedInternalView)
                 }
             }

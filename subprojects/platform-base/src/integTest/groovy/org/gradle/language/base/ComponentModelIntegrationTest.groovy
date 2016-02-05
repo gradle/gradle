@@ -386,7 +386,7 @@ afterEach CustomComponent 'newComponent'"""
         class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
         class MyRules extends RuleSource {
             @ComponentType
-            public void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+            public void register(TypeBuilder<UnmanagedComponent> builder) {
                 builder.defaultImplementation(DefaultUnmanagedComponent)
             }
         }
@@ -703,7 +703,7 @@ afterEach CustomComponent 'newComponent'"""
                     void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
+                    void registerComponent(TypeBuilder<SampleComponent> builder) {}
                 }
 
             }
@@ -739,7 +739,7 @@ afterEach CustomComponent 'newComponent'"""
                     public void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
+                    void registerComponent(TypeBuilder<SampleComponent> builder) {}
                 }
 
             }

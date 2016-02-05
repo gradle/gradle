@@ -30,7 +30,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             @ComponentType
-            void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
+            void registerComponent(TypeBuilder<SampleComponent> builder) {}
         }
         apply plugin: Rules
 

@@ -142,32 +142,32 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
 
     static class Rules {
         @BinaryType
-        static void validTypeRule(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void validTypeRule(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.internalView(BinarySpecInternalView)
             builder.internalView(BareInternalView)
         }
 
         @BinaryType
-        static void extraParameter(BinaryTypeBuilder<SomeBinarySpec> builder, String otherParam) {
+        static void extraParameter(TypeBuilder<SomeBinarySpec> builder, String otherParam) {
         }
 
         @BinaryType
-        static String returnValue(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static String returnValue(TypeBuilder<SomeBinarySpec> builder) {
         }
 
         @BinaryType
-        static void noImplementationSetForUnmanagedBinarySpec(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void noImplementationSetForUnmanagedBinarySpec(TypeBuilder<SomeBinarySpec> builder) {
         }
 
         @BinaryType
-        static void implementationSetMultipleTimes(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void implementationSetMultipleTimes(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.defaultImplementation(SomeBinarySpecOtherImpl)
         }
 
         @BinaryType
-        static void implementationSetForManagedType(BinaryTypeBuilder<ManagedBinarySpec> builder) {
+        static void implementationSetForManagedType(TypeBuilder<ManagedBinarySpec> builder) {
             builder.defaultImplementation(ManagedBinarySpec)
         }
 
@@ -176,50 +176,50 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         }
 
         @BinaryType
-        static void wildcardType(BinaryTypeBuilder<?> builder) {
+        static void wildcardType(TypeBuilder<?> builder) {
         }
 
         @BinaryType
-        static void extendsType(BinaryTypeBuilder<? extends BinarySpec> builder) {
+        static void extendsType(TypeBuilder<? extends BinarySpec> builder) {
         }
 
         @BinaryType
-        static void superType(BinaryTypeBuilder<? super BinarySpec> builder) {
+        static void superType(TypeBuilder<? super BinarySpec> builder) {
         }
 
         @BinaryType
-        static void notBinarySpec(BinaryTypeBuilder<NotBinarySpec> builder) {
+        static void notBinarySpec(TypeBuilder<NotBinarySpec> builder) {
         }
 
         @BinaryType
-        static void notImplementingBinaryType(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void notImplementingBinaryType(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(NotImplementingCustomBinary)
         }
 
         @BinaryType
-        static void notExtendingDefaultSampleLibrary(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void notExtendingDefaultSampleLibrary(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(NotExtendingBaseBinarySpec)
         }
 
         @BinaryType
-        static void noDefaultConstructor(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void noDefaultConstructor(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(NoDefaultConstructor)
         }
 
         @BinaryType
-        static void internalViewNotInterface(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void internalViewNotInterface(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.internalView(NonInterfaceInternalView)
         }
 
         @BinaryType
-        static void notExtendingInternalView(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void notExtendingInternalView(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.internalView(NotImplementedBinarySpecInternalView)
         }
 
         @BinaryType
-        static void repeatedInternalView(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void repeatedInternalView(TypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.internalView(BinarySpecInternalView)
             builder.internalView(BinarySpecInternalView)

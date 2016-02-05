@@ -138,38 +138,38 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
 
     static class Rules {
         @ComponentType
-        static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void validTypeRule(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(ComponentSpecInternalView)
             builder.internalView(BareInternalView)
         }
 
         @ComponentType
-        static void wildcardType(ComponentTypeBuilder<?> builder) {
+        static void wildcardType(TypeBuilder<?> builder) {
         }
 
         @ComponentType
-        static void extendsType(ComponentTypeBuilder<? extends ComponentSpec> builder) {
+        static void extendsType(TypeBuilder<? extends ComponentSpec> builder) {
         }
 
         @ComponentType
-        static void superType(ComponentTypeBuilder<? super ComponentSpec> builder) {
+        static void superType(TypeBuilder<? super ComponentSpec> builder) {
         }
 
         @ComponentType
-        static void extraParameter(ComponentTypeBuilder<SomeComponentSpec> builder, String otherParam) {
+        static void extraParameter(TypeBuilder<SomeComponentSpec> builder, String otherParam) {
         }
 
         @ComponentType
-        static String returnValue(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static String returnValue(TypeBuilder<SomeComponentSpec> builder) {
         }
 
         @ComponentType
-        static void noImplementationSet(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void noImplementationSet(TypeBuilder<SomeComponentSpec> builder) {
         }
 
         @ComponentType
-        static void implementationSetMultipleTimes(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void implementationSetMultipleTimes(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.defaultImplementation(SomeComponentSpecOtherImpl)
         }
@@ -183,38 +183,38 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         }
 
         @ComponentType
-        static void notComponentSpec(ComponentTypeBuilder<NotComponentSpec> builder) {
+        static void notComponentSpec(TypeBuilder<NotComponentSpec> builder) {
         }
 
         @ComponentType
-        static void notImplementingLibraryType(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void notImplementingLibraryType(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(NotImplementingCustomComponent)
         }
 
         @ComponentType
-        static void notExtendingDefaultSampleLibrary(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void notExtendingDefaultSampleLibrary(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(NotExtendingBaseComponentSpec)
         }
 
         @ComponentType
-        static void noDefaultConstructor(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void noDefaultConstructor(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(NoDefaultConstructor)
         }
 
         @ComponentType
-        static void internalViewNotInterface(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void internalViewNotInterface(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(NonInterfaceInternalView)
         }
 
         @ComponentType
-        static void notExtendingInternalView(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void notExtendingInternalView(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(NotImplementedComponentSpecInternalView)
         }
 
         @ComponentType
-        static void repeatedInternalView(ComponentTypeBuilder<SomeComponentSpec> builder) {
+        static void repeatedInternalView(TypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(ComponentSpecInternalView)
             builder.internalView(ComponentSpecInternalView)

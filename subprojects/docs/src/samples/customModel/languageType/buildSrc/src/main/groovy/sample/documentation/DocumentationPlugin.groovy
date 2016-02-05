@@ -31,12 +31,12 @@ class DocumentationPlugin extends RuleSource {
 // END SNIPPET binaries-generation
 // END SNIPPET text-tasks-generation
     @ComponentType
-    void register(ComponentTypeBuilder<DocumentationComponent> builder) {}
+    void register(TypeBuilder<DocumentationComponent> builder) {}
 // END SNIPPET component-registration
 
 // START SNIPPET binary-registration
     @BinaryType
-    void register(BinaryTypeBuilder<DocumentationBinary> builder) {}
+    void register(TypeBuilder<DocumentationBinary> builder) {}
 // END SNIPPET binary-registration
 
 // START SNIPPET text-lang-registration

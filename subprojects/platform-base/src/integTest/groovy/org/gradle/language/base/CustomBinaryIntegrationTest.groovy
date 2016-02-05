@@ -100,7 +100,7 @@ model {
 
             static class Rules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                void register(TypeBuilder<SampleBinary> builder) {
                 }
             }
         }
@@ -131,7 +131,7 @@ model {
 
             static class Rules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                void register(TypeBuilder<SampleBinary> builder) {
                 }
             }
         }
@@ -180,7 +180,7 @@ model {
 
             static class Rules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                void register(TypeBuilder<SampleBinary> builder) {
                 }
 
                 @Mutate
@@ -189,7 +189,7 @@ model {
                 }
 
                 @BinaryType
-                void registerAnother(BinaryTypeBuilder<AnotherSampleBinary> builder) {}
+                void registerAnother(TypeBuilder<AnotherSampleBinary> builder) {}
 
                 @Mutate
                 void createAnotherSampleBinaryInstances(ModelMap<AnotherSampleBinary> anotherBinaries) {
@@ -231,7 +231,7 @@ model {
 
             static class Rules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder, String illegalOtherParameter) {
+                void register(TypeBuilder<SampleBinary> builder, String illegalOtherParameter) {
                 }
             }
         }
@@ -246,7 +246,7 @@ model {
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause '''Type MySamplePlugin$Rules is not a valid rule source:
-- Method register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @BinaryType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
+- Method register(org.gradle.platform.base.TypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @BinaryType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }
 
     def "cannot register implementation for the same binary type multiple times"() {
@@ -257,13 +257,13 @@ model {
         class DefaultSomeBinary extends BaseBinarySpec implements SomeBinary {}
         class Rules1 extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SomeBinary> builder) {
+            void register(TypeBuilder<SomeBinary> builder) {
                 builder.defaultImplementation(DefaultSomeBinary)
             }
         }
         class Rules2 extends RuleSource {
             @BinaryType
-            void register(BinaryTypeBuilder<SomeBinary> builder) {
+            void register(TypeBuilder<SomeBinary> builder) {
                 builder.defaultImplementation(DefaultSomeBinary)
             }
         }
@@ -312,7 +312,7 @@ BUILD SUCCESSFUL"""
 
             static class Rules extends RuleSource {
                 @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                void register(TypeBuilder<SampleBinary> builder) {
                 }
 
                 @Mutate

@@ -68,19 +68,19 @@ public class JvmComponentPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType
-        public void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
+        public void register(TypeBuilder<JvmLibrarySpec> builder) {
             builder.defaultImplementation(DefaultJvmLibrarySpec.class);
             builder.internalView(JvmLibrarySpecInternal.class);
         }
 
         @BinaryType
-        public void registerJvmBinarySpec(BinaryTypeBuilder<JvmBinarySpec> builder) {
+        public void registerJvmBinarySpec(TypeBuilder<JvmBinarySpec> builder) {
             builder.defaultImplementation(DefaultJvmBinarySpec.class);
             builder.internalView(JvmBinarySpecInternal.class);
         }
 
         @BinaryType
-        public void registerJarBinarySpec(BinaryTypeBuilder<JarBinarySpec> builder) {
+        public void registerJarBinarySpec(TypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
             builder.internalView(JarBinarySpecInternal.class);
         }

@@ -71,13 +71,13 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @ComponentType
-        void registerBaseComponentSpec(ComponentTypeBuilder<ComponentSpec> builder) {
+        void registerBaseComponentSpec(TypeBuilder<ComponentSpec> builder) {
             builder.defaultImplementation(BaseComponentSpec.class);
             builder.internalView(ComponentSpecInternal.class);
         }
 
         @ComponentType
-        void registerPlatformAwareComponet(ComponentTypeBuilder<PlatformAwareComponentSpec> builder) {
+        void registerPlatformAwareComponet(TypeBuilder<PlatformAwareComponentSpec> builder) {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
         }
 

@@ -225,7 +225,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
             class ${binaryType}Rules extends RuleSource {
                 @BinaryType
-                void customJarBinary(BinaryTypeBuilder<${binaryType}> builder) {
+                void customJarBinary(TypeBuilder<${binaryType}> builder) {
                 }
 
                 @Finalize

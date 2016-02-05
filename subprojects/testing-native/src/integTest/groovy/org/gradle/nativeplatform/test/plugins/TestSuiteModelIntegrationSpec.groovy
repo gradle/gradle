@@ -41,7 +41,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TestSuiteTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+                void registerCustomTestSuiteType(TypeBuilder<CustomTestSuite> builder) {
                     builder.defaultImplementation(DefaultCustomTestSuite)
                 }
 
@@ -90,7 +90,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TestBinaryTypeRules extends RuleSource {
                 @BinaryType
-                public void registerCustomTestBinaryFactory(BinaryTypeBuilder<CustomTestBinary> builder) {
+                public void registerCustomTestBinaryFactory(TypeBuilder<CustomTestBinary> builder) {
                     builder.defaultImplementation(DefaultCustomTestBinary)
                 }
             }

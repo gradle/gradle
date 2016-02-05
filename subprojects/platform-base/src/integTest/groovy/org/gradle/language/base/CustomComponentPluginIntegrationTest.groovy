@@ -86,7 +86,7 @@ model {
         buildFile << """
             class MySamplePlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                void register(TypeBuilder<SampleComponent> builder) {
                 }
 
                 @Mutate
@@ -124,7 +124,7 @@ model {
         buildFile << '''
             class MySamplePlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                void register(TypeBuilder<SampleComponent> builder) {
                 }
             }
 
@@ -178,7 +178,7 @@ BUILD SUCCESSFUL"""
         buildFile << '''
             class MyComponentDeclarationModel extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                void register(TypeBuilder<SampleComponent> builder) {
                 }
             }
 
@@ -225,11 +225,11 @@ BUILD SUCCESSFUL"""
 
             class MySamplePlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                void register(TypeBuilder<SampleComponent> builder) {
                 }
 
                 @ComponentType
-                void registerAnother(ComponentTypeBuilder<SampleLibrary> builder) {
+                void registerAnother(TypeBuilder<SampleLibrary> builder) {
                     builder.defaultImplementation(DefaultSampleLibrary)
                 }
 
@@ -278,7 +278,7 @@ BUILD SUCCESSFUL"""
         buildFile << """
             class MySamplePlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder, String illegalOtherParameter) {
+                void register(TypeBuilder<SampleComponent> builder, String illegalOtherParameter) {
                 }
             }
 
@@ -292,7 +292,7 @@ BUILD SUCCESSFUL"""
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause '''Type MySamplePlugin is not a valid rule source:
-- Method register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
+- Method register(org.gradle.platform.base.TypeBuilder<SampleComponent>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }
 
     def "cannot register same unmanaged component type implementation multiple times"(){
@@ -305,13 +305,13 @@ BUILD SUCCESSFUL"""
             class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
             class MyPlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                void register(TypeBuilder<UnmanagedComponent> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponent)
                 }
             }
             class MyOtherPlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+                void register(TypeBuilder<UnmanagedComponent> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponent)
                 }
             }
@@ -334,7 +334,7 @@ BUILD SUCCESSFUL"""
         buildFile << """
             class MySamplePlugin extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponent> builder) {
+                void register(TypeBuilder<SampleComponent> builder) {
                 }
                 @Mutate
                 void createSampleComponentComponents(ModelMap<SampleComponent> componentSpecs) {

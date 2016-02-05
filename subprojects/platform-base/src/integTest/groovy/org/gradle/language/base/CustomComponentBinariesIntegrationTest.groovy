@@ -34,7 +34,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
             @Mutate
             void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs) {
@@ -46,10 +46,10 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
             @BinaryType
-            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {}
+            void registerOtherBinary(TypeBuilder<OtherSampleBinary> builder) {}
 
             @LanguageType
             void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
@@ -276,10 +276,10 @@ class MyComponentBinariesPlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void register(ComponentTypeBuilder<ComponentWithValue> builder) {}
+        void registerComponent(TypeBuilder<ComponentWithValue> builder) {}
 
         @BinaryType
-        void register(BinaryTypeBuilder<BinaryWithValue> builder) {}
+        void registerBinary(TypeBuilder<BinaryWithValue> builder) {}
         
         @ComponentBinaries
         void createBinaries(ModelMap<BinaryWithValue> binaries, ComponentWithValue component) {

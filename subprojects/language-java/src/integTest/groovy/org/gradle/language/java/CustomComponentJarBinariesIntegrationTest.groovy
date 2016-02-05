@@ -50,7 +50,7 @@ interface SampleLibrarySpec extends ComponentSpec {}
 
 class SampleLibraryRules extends RuleSource {
     @ComponentType
-    void registerSampleLibrarySpecType(ComponentTypeBuilder<SampleLibrarySpec> builder) {}
+    void registerSampleLibrarySpecType(TypeBuilder<SampleLibrarySpec> builder) {}
 
     @ComponentBinaries
     public void createBinaries(ModelMap<JarBinarySpec> binaries, SampleLibrarySpec library,
