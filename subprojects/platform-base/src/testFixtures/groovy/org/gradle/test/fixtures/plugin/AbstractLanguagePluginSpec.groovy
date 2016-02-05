@@ -16,37 +16,37 @@
 
 package org.gradle.test.fixtures.plugin
 
-import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.model.internal.type.ModelType
-import org.gradle.util.TestUtil
-import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.platform.base.PlatformBaseSpecification
 
-abstract class AbstractLanguagePluginSpec extends Specification {
-    final def project = TestUtil.createRootProject()
-
+abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
     abstract Class getPluginClass()
 
     abstract Class getLanguageSourceSet()
 
     abstract String getLanguageId()
 
-    @Unroll
-    def "registers #language in language registration"() {
+    def "registers transformation for language"() {
         when:
-        project.pluginManager.apply(pluginClass)
-        project.evaluate()
-
+        dsl {
+            apply plugin: pluginClass
+        }
 
         then:
-        def languageRegistrations = project.modelRegistry.realize("languageSourceSetFactory", LanguageSourceSetFactory).registrations
-        def languageRegistration = languageRegistrations.find { it.name == language }
+        def transform = realize("languageTransforms").find { it.languageName == languageId }
 
-        languageRegistration != null
-        languageRegistration.sourceSetType == ModelType.of(languageSourceSet)
-
-        where:
-        language = languageId
+        transform != null
+        transform.sourceSetType == languageSourceSet
     }
 
+    def "registers source set type for language"() {
+        when:
+        dsl {
+            apply plugin: pluginClass
+        }
+
+        then:
+        def registrations = realize("languageSourceSetFactory")
+        registrations.supportedTypes.contains(ModelType.of(languageSourceSet))
+    }
 }

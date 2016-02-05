@@ -81,7 +81,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
                 throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
             }
-            factory.register(languageName, publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
+            factory.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override
