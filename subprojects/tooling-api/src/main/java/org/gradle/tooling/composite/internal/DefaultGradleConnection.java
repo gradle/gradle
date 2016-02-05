@@ -100,7 +100,6 @@ public class DefaultGradleConnection implements GradleConnection {
     @Override
     public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
-        checkValidComposite();
         return createCompositeModelBuilder(modelType);
     }
 
@@ -113,56 +112,10 @@ public class DefaultGradleConnection implements GradleConnection {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
         }
 
-        // TODO: Remove
+        // TODO: Support other model types once this is opened up
         if (!modelType.equals(EclipseProject.class)) {
             throw new UnsupportedOperationException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
         }
-    }
-
-    private void checkValidComposite() {
-        // TODO: Should we bother doing this validation all client-side?
-        /*
-        Set<BuildEnvironment> buildEnvironments = createCompositeModelBuilder(BuildEnvironment.class).get();
-
-        final VersionNumber minimumVersion = VersionNumber.parse("1.0");
-        CollectionUtils.every(buildEnvironments, new Spec<BuildEnvironment>() {
-            @Override
-            public boolean isSatisfiedBy(BuildEnvironment buildEnvironment) {
-                // TODO: Need project name information
-                String projectName = "unknown project";
-                VersionNumber participantVersion = VersionNumber.parse(buildEnvironment.getGradle().getGradleVersion());
-                if (participantVersion.compareTo(minimumVersion) >= 0) {
-                    return true;
-                }
-                throw new IllegalArgumentException(String.format("'%s' is using Gradle %s.  This does not meet the minimum Gradle version (%s) required for composite builds.", projectName, participantVersion, minimumVersion));
-            }
-        });
-        */
-
-        // TODO: Need to skip checking root projects and their subprojects
-        /*
-        Set<GradleProject> gradleProjects = createCompositeModelBuilder(GradleProject.class).get();
-        List<String> projectDirectories = CollectionUtils.collect((Iterable<GradleProject>)gradleProjects, new Transformer<String, GradleProject>() {
-            @Override
-            public String transform(GradleProject gradleProject) {
-                return gradleProject.getProjectDirectory().getAbsolutePath();
-            }
-        });
-
-        for (int i=0; i<projectDirectories.size(); i++) {
-            String first = projectDirectories.get(i);
-            for (int j=i; j<projectDirectories.size(); j++) {
-                String second = projectDirectories.get(j);
-                try {
-                    if (FilenameUtils.directoryContains(first, second) ||
-                        FilenameUtils.directoryContains(second, first)) {
-                        throw new IllegalArgumentException(String.format("%s and %s have overlapping project directories. Composite builds must not overlap.", first, second));
-                    }
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }*/
     }
 
     @Override

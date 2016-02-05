@@ -17,6 +17,7 @@
 package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
@@ -177,9 +178,14 @@ public class DefaultCompositeModelBuilder<T> implements CompositeModelBuilder<T>
 
         @Override
         protected String connectionFailureMessage(Throwable failure) {
-            // TODO: Supply some composite connection info
-            String connectionDisplayName = "composite connection";
-            String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connectionDisplayName);
+            String connectionDisplayName = CollectionUtils.collect(participants, new Transformer<String, GradleParticipantBuild>() {
+                @Override
+                public String transform(GradleParticipantBuild gradleParticipantBuild) {
+                    return gradleParticipantBuild.getDisplayName();
+                }
+            }).toString();
+
+            String message = String.format("Could not fetch model of type '%s' using composite containing %s.", modelType.getSimpleName(), connectionDisplayName);
             if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
                 message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
             }

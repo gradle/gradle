@@ -29,7 +29,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         thrown(IllegalStateException)
     }
 
-    // TODO: Remove this test
+    // TODO: Remove this test when we support more model types
     def "throws UnsupportedOperationException when trying to retrieve anything other than EclipseProject"() {
         when:
         withCompositeConnection(projectDir("project")) { connection ->

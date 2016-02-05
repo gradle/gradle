@@ -15,12 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.r212
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Ignore
-
 /**
  * Builds a composite with a single project.
  */
@@ -139,31 +136,6 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         cleanup:
         composite?.close()
-    }
-
-    @Ignore
-    def "can retrieve EclipseProject from composite for Gradle #gradleVersion"() {
-        given:
-        def singleBuild = populate("single-build") {
-            buildFile << """
-                apply plugin: 'java'
-                group = 'group'
-                version = '1.0'
-"""
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-"""
-        }
-        and:
-        def builder = createCompositeBuilder()
-        builder.addBuild(singleBuild, gradleVersion)
-        def connection = builder.build()
-        expect:
-        def models = connection.getModels(EclipseProject)
-        models.size() == 1
-
-        where:
-        gradleVersion << ["1.0", "2.0", "2.10"]
     }
 
     Set<EclipseProject> rootProjects(Set<EclipseProject> projects) {
