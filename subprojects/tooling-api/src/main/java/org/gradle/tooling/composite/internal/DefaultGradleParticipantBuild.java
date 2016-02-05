@@ -70,15 +70,20 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
     }
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
     public URI getGradleDistribution() {
         return gradleDistribution;
     }
+
 
     @Override
     public String getGradleVersion() {
         return gradleVersion;
     }
-
 
     // TODO: remove client side implementation
 

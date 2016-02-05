@@ -39,11 +39,11 @@
     - with two 'single' projects, two `EclipseProject`s are returned.
     - with two multi-project builds, a `EclipseProject` is returned for every project in both builds.
 - Fail if participant is a subproject of another participant.
+- Check that a consumer can cancel an operation
 
 Coverage to complete:
 
 - if any participant throws an error, the overall operation fails with a `GradleCompositeException`
-- Check that a consumer can cancel an operation
 - Check that retrieving a model fails on the first `ProjectConnection` failure
 - Check that a handler receives a single completion or failure call when retrieving a model.
 - After a successful model request, on a subsequent request:
