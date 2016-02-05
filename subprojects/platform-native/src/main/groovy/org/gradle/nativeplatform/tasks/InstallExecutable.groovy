@@ -147,8 +147,16 @@ ENDLOCAL
         runScript.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
-export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+if [ -z "$DYLD_LIBRARY_PATH" ]; then
+    export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+else
+    export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib:\$DYLD_LIBRARY_PATH"
+fi
+if [ -z "$LD_LIBRARY_PATH" ]; then
+    export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+else
+    export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib:\$LD_LIBRARY_PATH"
+fi
 exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 """
 
