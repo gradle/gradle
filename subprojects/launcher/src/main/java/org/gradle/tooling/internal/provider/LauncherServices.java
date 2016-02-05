@@ -37,10 +37,11 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new ToolingBuildSessionScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ToolingBuildScopeServices());
+
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
@@ -70,7 +71,7 @@ public class LauncherServices implements PluginServiceRegistry {
 
     }
 
-    static class ToolingBuildScopeServices {
+    static class ToolingBuildSessionScopeServices {
         PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache, CacheRepository cacheRepository) {
             return new DaemonSidePayloadClassLoaderFactory(
                 new ModelClassLoaderFactory(
