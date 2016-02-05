@@ -111,6 +111,10 @@ Then the following `fileTree` would contain no files with previous versions of G
 
 This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.gradle.org/browse/GRADLE-3182)) so that `fileTree` will contain all of the files except for `files/ignoreMe.txt`. This behavior is consistent with how `include` patterns already work.
 
+### Changes to the experimental software model
+
+- The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
