@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
+import org.gradle.tooling.internal.consumer.ConnectorServices
 
 @ToolingApiVersion('>=2.12')
 @TargetGradleVersion('>=2.12')
@@ -42,11 +43,15 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder()
+        GradleConnection.Builder builder = shouldUseCoordinator() ? ConnectorServices.createCoordinatorGradleConnectionBuilder() : GradleConnector.newGradleConnectionBuilder()
 
         // TODO: Pull this from a nicer place?
         builder.useGradleUserHomeDir(toolingApi.gradleUserHomeDir)
         builder
+    }
+
+    private boolean shouldUseCoordinator() {
+        System.getenv('GRADLE_USE_COORDINATOR') == '1' || System.getProperty('gradle.use.coordinator') == '1'
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
