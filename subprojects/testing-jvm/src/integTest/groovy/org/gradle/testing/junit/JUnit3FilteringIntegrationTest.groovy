@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 
 @TargetCoverage({JUnitCoverage.FILTER_JUNIT3_TESTS})
-public class JUnitFilteringSupportIntegrationTest extends MultiVersionIntegrationSpec {
+public class JUnit3FilteringIntegrationTest extends MultiVersionIntegrationSpec {
     void "filters tests implemented using 3.x test cases"() {
         buildFile << """
             apply plugin: 'java'
