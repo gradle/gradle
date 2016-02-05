@@ -26,10 +26,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
-import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
@@ -38,7 +36,6 @@ import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
@@ -189,9 +186,12 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void initializeComponentSourceSets(@Each ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
-            for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
-                registerLanguageTypes(component, languageRegistration, languageTransforms);
+        void initializeComponentSourceSets(@Each ComponentSpecInternal component, LanguageTransformContainer languageTransforms) {
+            // If there is a transform for the language into one of the component inputs, add a default source set
+            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+                if (component.getInputTypes().contains(languageTransform.getOutputType())) {
+                    component.getSources().create(languageTransform.getLanguageName(), languageTransform.getSourceSetType());
+                }
             }
         }
 
@@ -214,17 +214,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                     projectSourceSet.add(languageSourceSet);
                 }
             });
-        }
-
-        // If there is a transform for the language into one of the component inputs, add a default source set
-        private <U extends LanguageSourceSet> void registerLanguageTypes(ComponentSpecInternal component, LanguageRegistration<U> languageRegistration, LanguageTransformContainer languageTransforms) {
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
-                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
-                    return;
-                }
-            }
         }
 
         @Rules

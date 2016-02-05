@@ -76,6 +76,11 @@ public class CLangPlugin implements Plugin<Project> {
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "c";
+        }
+
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, CCompile.class);
         }

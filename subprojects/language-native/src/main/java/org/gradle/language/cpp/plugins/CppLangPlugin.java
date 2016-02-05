@@ -75,6 +75,11 @@ public class CppLangPlugin implements Plugin<Project> {
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "cpp";
+        }
+
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, CppCompile.class);
         }

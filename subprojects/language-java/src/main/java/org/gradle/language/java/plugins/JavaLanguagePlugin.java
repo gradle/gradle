@@ -94,6 +94,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             this.config = new JavaSourceTransformTaskConfig(schemaStore);
         }
 
+        @Override
+        public String getLanguageName() {
+            return "java";
+        }
+
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
         }

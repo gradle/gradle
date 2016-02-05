@@ -72,6 +72,11 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "rc";
+        }
+
         public SourceTransformTaskConfig getTransformTask() {
             return new WindowsResourcesCompileTaskConfig();
         }

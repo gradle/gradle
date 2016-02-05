@@ -75,6 +75,11 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "objcpp";
+        }
+
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, ObjectiveCppCompile.class);
         }

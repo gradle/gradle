@@ -63,6 +63,11 @@ public class AssemblerLangPlugin implements Plugin<Project> {
             return AssemblerSourceSet.class;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "asm";
+        }
+
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("assembler", DefaultTool.class);

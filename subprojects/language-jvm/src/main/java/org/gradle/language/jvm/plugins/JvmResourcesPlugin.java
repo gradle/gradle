@@ -65,6 +65,11 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     }
 
     private static class JvmResources implements LanguageTransform<JvmResourceSet, org.gradle.jvm.JvmResources> {
+        @Override
+        public String getLanguageName() {
+            return "resources";
+        }
+
         public Class<JvmResourceSet> getSourceSetType() {
             return JvmResourceSet.class;
         }

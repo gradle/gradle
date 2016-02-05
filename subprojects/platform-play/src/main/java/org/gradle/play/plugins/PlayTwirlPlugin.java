@@ -105,6 +105,11 @@ public class PlayTwirlPlugin extends RuleSource {
     }
 
     private static class Twirl implements LanguageTransform<TwirlSourceSet, ScalaSourceCode> {
+        @Override
+        public String getLanguageName() {
+            return "twirl";
+        }
+
         public Class<TwirlSourceSet> getSourceSetType() {
             return TwirlSourceSet.class;
         }

@@ -75,6 +75,11 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "objc";
+        }
+
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, ObjectiveCCompile.class);
         }

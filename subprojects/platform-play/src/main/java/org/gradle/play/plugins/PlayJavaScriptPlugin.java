@@ -77,6 +77,11 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     private static class JavaScript implements LanguageTransform<JavaScriptSourceSet, JavaScriptSourceCode> {
+        @Override
+        public String getLanguageName() {
+            return "javaScript";
+        }
+
         public Class<JavaScriptSourceSet> getSourceSetType() {
             return JavaScriptSourceSet.class;
         }
