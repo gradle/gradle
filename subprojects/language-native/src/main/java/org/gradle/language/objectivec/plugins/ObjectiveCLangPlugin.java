@@ -24,7 +24,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
@@ -34,9 +33,10 @@ import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.language.objectivec.tasks.ObjectiveCPreCompiledHeaderCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -52,7 +52,7 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType
-        void registerLanguage(LanguageTypeBuilder<ObjectiveCSourceSet> builder) {
+        void registerLanguage(TypeBuilder<ObjectiveCSourceSet> builder) {
             builder.defaultImplementation(DefaultObjectiveCSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }

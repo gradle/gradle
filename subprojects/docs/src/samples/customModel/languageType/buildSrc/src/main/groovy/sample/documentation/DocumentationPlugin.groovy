@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package sample.documentation
+
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
 import org.gradle.model.ModelMap
@@ -40,7 +41,7 @@ class DocumentationPlugin extends RuleSource {
 
 // START SNIPPET text-lang-registration
     @LanguageType
-    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {}
+    void registerText(TypeBuilder<TextSourceSet> builder) {}
 // END SNIPPET text-lang-registration
 
 // START SNIPPET binaries-generation

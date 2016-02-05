@@ -32,7 +32,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Collections;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType
-        void registerLanguage(LanguageTypeBuilder<JvmResourceSet> builder) {
+        void registerLanguage(TypeBuilder<JvmResourceSet> builder) {
             builder.defaultImplementation(DefaultJvmResourceLanguageSourceSet.class);
         }
 

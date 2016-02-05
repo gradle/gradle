@@ -114,7 +114,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
 
     private BaseLanguageSourceSet(SourceSetInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a LanguageTypeBuilder instead.");
+            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @LanguageType rule instead.");
         }
         this.name = info.name;
         this.parentName = info.parentName;

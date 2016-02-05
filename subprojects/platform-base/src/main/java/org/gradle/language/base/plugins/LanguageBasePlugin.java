@@ -37,7 +37,7 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 
 /**
  * Base plugin for language support.
@@ -60,7 +60,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @LanguageType
-        void registerBaseLanguageSourceSet(LanguageTypeBuilder<LanguageSourceSet> builder) {
+        void registerBaseLanguageSourceSet(TypeBuilder<LanguageSourceSet> builder) {
             builder.defaultImplementation(BaseLanguageSourceSet.class);
             builder.internalView(LanguageSourceSetInternal.class);
         }

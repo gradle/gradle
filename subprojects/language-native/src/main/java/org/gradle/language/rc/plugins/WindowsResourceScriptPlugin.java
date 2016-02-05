@@ -23,7 +23,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
@@ -31,9 +30,10 @@ import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -50,7 +50,7 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType
-        void registerLanguage(LanguageTypeBuilder<WindowsResourceSet> builder) {
+        void registerLanguage(TypeBuilder<WindowsResourceSet> builder) {
             builder.defaultImplementation(DefaultWindowsResourceSet.class);
         }
 

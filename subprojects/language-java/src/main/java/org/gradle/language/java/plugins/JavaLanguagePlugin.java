@@ -45,7 +45,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType
-        void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+        void registerLanguage(TypeBuilder<JavaSourceSet> builder) {
             builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
         }
 
