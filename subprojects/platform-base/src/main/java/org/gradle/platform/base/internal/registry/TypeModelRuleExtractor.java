@@ -29,6 +29,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.lang.annotation.Annotation;
@@ -69,18 +70,19 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
     protected ModelType<? extends TYPE> readType(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         validateIsVoidMethod(ruleDefinition, problems);
         if (ruleDefinition.getReferences().size() != 1) {
-            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
             return null;
         }
 
         ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
         ModelType<?> builder = subjectReference.getType();
-        if (!builderInterface.isAssignableFrom(builder)) {
-            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), builderInterface.toString()));
+        Class<?> rawBuilderType = builder.getRawClass();
+        if (!rawBuilderType.isAssignableFrom(builderInterface.getRawClass()) || !TypeBuilder.class.isAssignableFrom(rawBuilderType)) {
+            problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
             return null;
         }
         if (builder.getTypeVariables().size() != 1) {
-            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", builderInterface.toString()));
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", rawBuilderType.getName()));
             return null;
         }
 

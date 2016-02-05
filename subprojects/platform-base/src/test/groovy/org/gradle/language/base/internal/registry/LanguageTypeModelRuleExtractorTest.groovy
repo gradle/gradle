@@ -31,6 +31,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
+import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -62,13 +63,13 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName                    | expectedMessage                                                                                           | descr
-        "returnValue"                 | "A method annotated with @LanguageType must have void return type."                                       | "non void method"
-        "noParams"                    | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "no LanguageTypeBuilder subject"
-        "wrongSubject"                | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "wrong rule subject type"
-        "rawLanguageTypeBuilder"      | "Parameter of type org.gradle.platform.base.LanguageTypeBuilder must declare a type parameter."           | "non typed ModelMap parameter"
-        "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                  | "wild card ModelMap parameter"
-        "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."      | "public type not extending LanguageSourceSet"
+        methodName                    | expectedMessage                                                                                      | descr
+        "returnValue"                 | "A method annotated with @LanguageType must have void return type."                                  | "non void method"
+        "noParams"                    | "A method annotated with @LanguageType must have a single parameter of type ${TypeBuilder.name}."    | "no LanguageTypeBuilder subject"
+        "wrongSubject"                | "A method annotated with @LanguageType must have a single parameter of type ${TypeBuilder.name}."    | "wrong rule subject type"
+        "rawLanguageTypeBuilder"      | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                               | "non typed parameter"
+        "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."             | "wild card parameter"
+        "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'." | "public type not extending LanguageSourceSet"
     }
 
     @Unroll
@@ -110,6 +111,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
             assert action.subject == ModelReference.of(LanguageSourceSetFactory)
         }
         0 * _
+
+        where:
+        methodName                 | _
+        "validTypeRule"            | _
+        "validTypeRuleSpecialized" | _
     }
 
     static interface CustomLanguageSourceSet extends LanguageSourceSet {}
@@ -153,7 +159,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
     static class Rules {
 
         @LanguageType
-        String returnValue(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        String returnValue(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             return null
         }
 
@@ -166,39 +172,39 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         }
 
         @LanguageType
-        void rawLanguageTypeBuilder(LanguageTypeBuilder builder) {
+        void rawLanguageTypeBuilder(TypeBuilder builder) {
         }
 
         @LanguageType
-        void wildcardLanguageTypeBuilder(LanguageTypeBuilder<?> builder) {
+        void wildcardLanguageTypeBuilder(TypeBuilder<?> builder) {
         }
 
         @LanguageType
-        void wrongSubType(LanguageTypeBuilder<String> languageBuilder) {
+        void wrongSubType(TypeBuilder<String> languageBuilder) {
         }
 
         @LanguageType
-        void notExtendingBaseLanguageSourceSet(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void notExtendingBaseLanguageSourceSet(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotExtendingBaseLanguageSourceSet)
         }
 
         @LanguageType
-        void notImplementingLibraryType(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void notImplementingLibraryType(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotImplementingCustomLanguageSourceSet)
         }
 
         @LanguageType
-        void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void noPublicCtorImplementation(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
         }
 
         @LanguageType
-        void noLanguageName(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void validTypeRule(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
 
         @LanguageType
-        void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        void validTypeRuleSpecializedTypeBuilder(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
     }

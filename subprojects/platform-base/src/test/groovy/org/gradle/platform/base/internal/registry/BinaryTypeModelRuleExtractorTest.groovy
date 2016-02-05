@@ -24,10 +24,7 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.BinaryType
-import org.gradle.platform.base.BinaryTypeBuilder
-import org.gradle.platform.base.InvalidModelException
+import org.gradle.platform.base.*
 import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.platform.base.binary.internal.BinarySpecFactory
 import org.gradle.platform.base.plugins.BinaryBasePlugin
@@ -80,7 +77,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
 
         where:
         methodName       | expectedMessage                                                                                                        | descr
-        "extraParameter" | "A method annotated with @BinaryType must have a single parameter of type ${BinaryTypeBuilder.name}."                  | "additional rule parameter"
+        "extraParameter" | "A method annotated with @BinaryType must have a single parameter of type ${TypeBuilder.name}."                        | "additional rule parameter"
         "returnValue"    | "A method annotated with @BinaryType must have void return type."                                                      | "method with return type"
         "noTypeParam"    | "Parameter of type ${BinaryTypeBuilder.name} must declare a type parameter."                                           | "missing type parameter"
         "notBinarySpec"  | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
