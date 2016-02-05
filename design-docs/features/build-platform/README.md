@@ -245,21 +245,91 @@ to the meta-data that verifies the compatibility with Java version executing the
 
 # Milestone 3
 
-This milestone introduce a convenient way to produce the build platform meta-data. It also enables the end user to package and publish the build platform definition with the help
-of a Gradle core plugin.
+This milestone introduces a plugin to allow a team to develop, test and publish a build platform definition.
 
-## Story - Introduce Gradle core plugin for producing and publishing a build platform definition
+## Story - Introduce Gradle core plugin for producing the build platform meta-data
 
-Before a build platform definition can be consumed by a build it needs to be published to a binary repository. This story introduces a new Gradle core plugin to allow a team to develop,
-test and publish a build platform definition.
+This story introduces a new Gradle core plugin to allow a team to generate build platform definition meta-data. Out of scope are publishing and testing of the build platform definition.
 
 ### Implementation
 
--
+- Introduce a new Gradle core plugin named `build-system-dev`.
+- Expose extension that allows user to set relevant meta-data.
+    - The extension will be named `buildSystem`.
+    - For now the only options will be init script as well as Gradle and Java version compatibility.
+- Create task named `generateMetaData` for translating the user input into a meta-data file.
+    - Implement as custom task with defined inputs and outputs.
+    - The meta-data is generated even if the user doesn't provide any input through the DSL. The file will just contain the build platform `id` and `version`.
+    - `id` is derived of the project's `group` property. `version` is derived of the project's `version` property. Fail the task if these properties are not set.
+    - The meta-data file will be written to `build/build-system/META-INF`.
+    - The name of of the meta-data file is `build-platform.json` and cannot be changed.
+
+### Usage
+
+    apply plugin: 'build-system-dev'
+
+    buildSystem {
+        metaData {
+            initScript = file('src/main/resources/enterprise-rules.gradle')
+
+            compatibility {
+                gradleVersion = '2.8'
+                javaVersion = '1.7'
+            }
+        }
+    }
 
 ### Test cases
 
--
+- The plugin can be resolve with the appropriate name or type.
+- Applying the plugin exposes an extension with the appropriate name.
+- The extension can be use to configure the build platform meta-data.
+- The meta-data generation task can be executed and behaves as expected.
+    - Implements UP-TO-DATE checks.
+    - Produces the output file in JSON format.
+    - Derived base information from project properties.
+    - Translates DSL values into task inputs.
+    - The output file is valid JSON.
+    - All relevant information is reflected in the generated JSON file.
+
+## Story - Build system development plugin publishes the build platform meta-data to Ivy and Maven repositories
+
+The goal of this story is to publish the generated build platform meta-data to a binary repository. The repository is based on either Ivy or Maven.
+
+### Implementation
+
+- Expose a `Jar` task that bundles the build platform meta-data and optional init script. The task depends on the task for generating the build platform meta-data.
+- Extend the DSL for declaring a single Ivy _or_ Maven repository.
+- Based on the type of repository leverage the `ivy-publish` or `maven-publish` plugin.
+- Credentials can be configured via the plugin DSL.
+- The plugin configures the publish plugins under the covers and implements the required wiring.
+- For publishing the generated meta-data the end user calls the `publish` provided by the `publish` plugin.
+
+### Usage
+
+    buildSystem {
+        metaData {
+            ...
+        }
+
+        publish {
+            maven {
+                url 'http://myinternalrepo.com/staging'
+            }
+        }
+    }
+
+### Test cases
+
+- Before being able to publish, the user needs to configure at least one target repository.
+- Initiating the publishing process first calls the task for generating the meta-data and bundles it into a JAR file.
+- Misconfiguration in the DSL leads to a failed exception.
+- The generated Ivy/Maven meta-data basically just creates a marker file. It won't contain other information than the `group`/`name`/`version` required for publishing.
+- Publishing to a Ivy and Maven repository works properly. Failures produced by the `publish` plugins are propagated.
+
+### Open issues
+
+- What other target locations should be supported in the future?
 
 # Milestone 4
 
