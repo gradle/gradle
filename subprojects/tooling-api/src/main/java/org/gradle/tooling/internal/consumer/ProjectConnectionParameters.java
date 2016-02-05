@@ -13,27 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling.composite.internal;
-
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.tooling.ProjectConnection;
+package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
-import java.net.URI;
 
-public interface GradleParticipantBuild extends Stoppable {
+public interface ProjectConnectionParameters extends ConnectionParameters {
     File getProjectDir();
 
-    String getDisplayName();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
-
-    ProjectConnection getConnection();
-
-    void setGradleUserHomeDir(File gradleUserHomeDir);
+    /**
+     * Specifies whether to search for root project, or null to use default.
+     */
+    Boolean isSearchUpwards();
 }
