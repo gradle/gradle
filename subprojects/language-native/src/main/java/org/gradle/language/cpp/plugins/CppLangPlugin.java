@@ -53,7 +53,6 @@ public class CppLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<CppSourceSet> builder) {
-            builder.setLanguageName("cpp");
             builder.defaultImplementation(DefaultCppSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }

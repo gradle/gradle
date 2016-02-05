@@ -55,7 +55,6 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
-            builder.setLanguageName("javaScript");
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }
 

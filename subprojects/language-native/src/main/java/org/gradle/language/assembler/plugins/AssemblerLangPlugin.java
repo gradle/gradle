@@ -48,7 +48,6 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<AssemblerSourceSet> builder) {
-            builder.setLanguageName("asm");
             builder.defaultImplementation(DefaultAssemblerSourceSet.class);
         }
 

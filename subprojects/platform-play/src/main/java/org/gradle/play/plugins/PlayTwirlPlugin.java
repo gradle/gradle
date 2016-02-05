@@ -59,7 +59,6 @@ public class PlayTwirlPlugin extends RuleSource {
 
     @LanguageType
     void registerTwirlLanguageType(LanguageTypeBuilder<TwirlSourceSet> builder) {
-        builder.setLanguageName("twirl");
         builder.defaultImplementation(DefaultTwirlSourceSet.class);
     }
 

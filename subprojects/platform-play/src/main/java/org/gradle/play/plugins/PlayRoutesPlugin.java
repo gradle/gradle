@@ -53,7 +53,6 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @LanguageType
     void registerRoutesLanguageType(LanguageTypeBuilder<RoutesSourceSet> builder) {
-        builder.setLanguageName("routes");
         builder.defaultImplementation(DefaultRoutesSourceSet.class);
     }
 

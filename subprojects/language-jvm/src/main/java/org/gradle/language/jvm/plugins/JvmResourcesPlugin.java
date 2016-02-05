@@ -54,7 +54,6 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<JvmResourceSet> builder) {
-            builder.setLanguageName("resources");
             builder.defaultImplementation(DefaultJvmResourceLanguageSourceSet.class);
         }
 

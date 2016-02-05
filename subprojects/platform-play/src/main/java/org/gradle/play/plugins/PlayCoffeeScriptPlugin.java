@@ -67,7 +67,6 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerCoffeeScript(LanguageTypeBuilder<CoffeeScriptSourceSet> builder) {
-            builder.setLanguageName("coffeeScript");
             builder.defaultImplementation(DefaultCoffeeScriptSourceSet.class);
         }
 

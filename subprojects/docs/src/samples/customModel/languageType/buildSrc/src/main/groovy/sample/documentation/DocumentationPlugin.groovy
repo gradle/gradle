@@ -40,9 +40,7 @@ class DocumentationPlugin extends RuleSource {
 
 // START SNIPPET text-lang-registration
     @LanguageType
-    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {
-        builder.languageName = "text"
-    }
+    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {}
 // END SNIPPET text-lang-registration
 
 // START SNIPPET binaries-generation

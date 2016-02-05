@@ -53,7 +53,6 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<ObjectiveCSourceSet> builder) {
-            builder.setLanguageName("objc");
             builder.defaultImplementation(DefaultObjectiveCSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }

@@ -28,9 +28,7 @@ import sample.documentation.DocumentationBinary
 class MarkdownPlugin extends RuleSource {
 // END SNIPPET markdown-tasks-generation
     @LanguageType
-    void registerMarkdownLanguage(LanguageTypeBuilder<MarkdownSourceSet> builder) {
-        builder.setLanguageName("Markdown")
-    }
+    void registerMarkdownLanguage(LanguageTypeBuilder<MarkdownSourceSet> builder) {}
 // END SNIPPET markdown-lang-registration
 
 // START SNIPPET markdown-tasks-generation

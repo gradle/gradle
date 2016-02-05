@@ -54,7 +54,6 @@ public class CLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<CSourceSet> builder) {
-            builder.setLanguageName("c");
             builder.defaultImplementation(DefaultCSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }

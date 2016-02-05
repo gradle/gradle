@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
@@ -27,7 +26,6 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
@@ -44,19 +42,8 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     }
 
     private static class DefaultLanguageTypeBuilder<PUBLICTYPE extends LanguageSourceSet> extends AbstractTypeBuilder<PUBLICTYPE> implements LanguageTypeBuilder<PUBLICTYPE> {
-        private String languageName;
-
         private DefaultLanguageTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
             super(LanguageType.class, schema);
-        }
-
-        @Override
-        public void setLanguageName(String languageName) {
-            this.languageName = languageName;
-        }
-
-        public String getLanguageName() {
-            return languageName;
         }
     }
 
@@ -77,10 +64,6 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
 
         @Override
         protected void register(LanguageSourceSetFactory factory, ModelSchema<PUBLICTYPE> schema, DefaultLanguageTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseLanguageSourceSet> implModelType) {
-            final String languageName = builder.getLanguageName();
-            if (!ModelType.of(LanguageSourceSet.class).equals(publicType) && StringUtils.isEmpty(languageName)) {
-                throw new InvalidModelException(String.format("Language type '%s' cannot be registered without a language name.", publicType));
-            }
             factory.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 

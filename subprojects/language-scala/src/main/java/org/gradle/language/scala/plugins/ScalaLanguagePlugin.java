@@ -72,7 +72,6 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
-            builder.setLanguageName("scala");
             builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
         }
 

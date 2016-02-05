@@ -25,5 +25,4 @@ import org.gradle.language.base.LanguageSourceSet;
  */
 @Incubating
 public interface LanguageTypeBuilder<T extends LanguageSourceSet> extends TypeBuilder<T> {
-    void setLanguageName(String languageName);
 }

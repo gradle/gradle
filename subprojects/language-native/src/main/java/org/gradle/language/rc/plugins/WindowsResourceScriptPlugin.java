@@ -51,7 +51,6 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<WindowsResourceSet> builder) {
-            builder.setLanguageName("rc");
             builder.defaultImplementation(DefaultWindowsResourceSet.class);
         }
 

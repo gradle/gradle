@@ -73,7 +73,6 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-            builder.setLanguageName("java");
             builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
         }
 

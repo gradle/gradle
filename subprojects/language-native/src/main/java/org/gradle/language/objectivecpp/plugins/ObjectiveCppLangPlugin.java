@@ -53,7 +53,6 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<ObjectiveCppSourceSet> builder) {
-            builder.setLanguageName("objcpp");
             builder.defaultImplementation(DefaultObjectiveCppSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }

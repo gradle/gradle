@@ -90,7 +90,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "notImplementingLibraryType"        | "Language implementation ${NotImplementingCustomLanguageSourceSet.name} must implement ${CustomLanguageSourceSet.name}." | "implementation not implementing type class"
         "notExtendingBaseLanguageSourceSet" | "Language implementation ${NotExtendingBaseLanguageSourceSet.name} must extend ${BaseLanguageSourceSet.name}."           | "implementation not extending ${BaseLanguageSourceSet.name}"
         "noPublicCtorImplementation"        | "Language implementation ${ImplementationWithNoPublicConstructor.name} must have public default constructor."            | "implementation with not public default constructor"
-        "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                          | "no language name set"
     }
 
     def "applies LanguageBasePlugin and creates language type rule"() {
@@ -189,11 +188,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         }
 
         @LanguageType
-        void noImplementationTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.setLanguageName("noImplementationTypeRule")
-        }
-
-        @LanguageType
         void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
         }
@@ -205,7 +199,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @LanguageType
         void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.setLanguageName("validTypeRule")
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
     }
