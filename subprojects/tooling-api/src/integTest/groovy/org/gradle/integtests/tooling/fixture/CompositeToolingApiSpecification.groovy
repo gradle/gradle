@@ -22,9 +22,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion('>=2.12')
 @TargetGradleVersion('>=2.12')
+// Hack, disable tests on windows temporarily until I figure out why the tests are taking so long
+@Requires(TestPrecondition.NOT_WINDOWS)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     GradleConnection createComposite(File... rootProjectDirectories) {
