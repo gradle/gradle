@@ -32,6 +32,8 @@ import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
+    private static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_TYPE = ModelType.of(ComponentSpecFactory.class);
+
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore);
     }
@@ -47,24 +49,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
     }
 
-    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, DefaultComponentTypeBuilder<PUBLICTYPE>, ComponentSpecFactory> {
+    private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, ComponentSpecFactory> {
         public ExtractedComponentTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
-            super(ruleDefinition, publicType);
+            super(ruleDefinition, publicType, COMPONENT_SPEC_FACTORY_MODEL_TYPE);
         }
 
         @Override
         protected DefaultComponentTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
             return new DefaultComponentTypeBuilder<PUBLICTYPE>(schema);
-        }
-
-        @Override
-        protected Class<ComponentSpecFactory> getRegistryType() {
-            return ComponentSpecFactory.class;
-        }
-
-        @Override
-        protected void register(ComponentSpecFactory components, ModelSchema<PUBLICTYPE> schema, DefaultComponentTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseComponentSpec> implModelType) {
-            components.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override

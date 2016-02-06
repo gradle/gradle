@@ -32,6 +32,8 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import java.util.List;
 
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
+    private static final ModelType<LanguageSourceSetFactory> LANGUAGE_SOURCE_SET_FACTORY_MODEL_TYPE = ModelType.of(LanguageSourceSetFactory.class);
+
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore);
     }
@@ -47,24 +49,14 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
     }
 
-    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, DefaultLanguageTypeBuilder<PUBLICTYPE>, LanguageSourceSetFactory> {
+    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, LanguageSourceSetFactory> {
         public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
-            super(ruleDefinition, publicType);
+            super(ruleDefinition, publicType, LANGUAGE_SOURCE_SET_FACTORY_MODEL_TYPE);
         }
 
         @Override
         protected DefaultLanguageTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
             return new DefaultLanguageTypeBuilder<PUBLICTYPE>(schema);
-        }
-
-        @Override
-        protected Class<LanguageSourceSetFactory> getRegistryType() {
-            return LanguageSourceSetFactory.class;
-        }
-
-        @Override
-        protected void register(LanguageSourceSetFactory factory, ModelSchema<PUBLICTYPE> schema, DefaultLanguageTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseLanguageSourceSet> implModelType) {
-            factory.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override

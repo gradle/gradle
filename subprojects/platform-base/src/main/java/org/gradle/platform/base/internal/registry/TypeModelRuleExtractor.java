@@ -19,10 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -145,20 +142,21 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
         return asSubclass;
     }
 
-    protected abstract class ExtractedTypeRule<PUBLICTYPE, BUILDER extends TypeBuilderInternal<PUBLICTYPE>, REGISTRY> implements ExtractedModelRule {
-        protected final MethodRuleDefinition<?, ?> ruleDefinition;
-        protected final ModelType<PUBLICTYPE> publicType;
+    protected abstract class ExtractedTypeRule<PUBLICTYPE extends TYPE, REGISTRY extends BaseInstanceFactory<TYPE, BASEIMPL>> implements ExtractedModelRule {
+        private final MethodRuleDefinition<?, ?> ruleDefinition;
+        private final ModelType<PUBLICTYPE> publicType;
+        private final ModelReference<REGISTRY> registryReference;
 
-        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
+        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType, ModelType<REGISTRY> registryType) {
             this.ruleDefinition = ruleDefinition;
             this.publicType = publicType;
+            registryReference = ModelReference.of(registryType);
         }
 
         @Override
         public void apply(final MethodModelRuleApplicationContext context, MutableModelNode target) {
-            ModelReference<REGISTRY> subjectReference = ModelReference.of(getRegistryType());
             context.getRegistry().configure(ModelActionRole.Mutate,
-                    context.contextualize(new TypeRegistrationAction(subjectReference, ruleDefinition.getDescriptor())));
+                    context.contextualize(new TypeRegistrationAction(registryReference, ruleDefinition.getDescriptor())));
         }
 
         @Override
@@ -166,11 +164,7 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
             return ruleDefinition;
         }
 
-        protected abstract Class<REGISTRY> getRegistryType();
-
-        protected abstract void register(REGISTRY registry, ModelSchema<PUBLICTYPE> schema, BUILDER builder, ModelType<? extends BASEIMPL> implModelType);
-
-        protected abstract BUILDER createBuilder(ModelSchema<PUBLICTYPE> schema);
+        protected abstract TypeBuilderInternal<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema);
 
         private class TypeRegistrationAction extends AbstractMethodRuleAction<REGISTRY> {
             public TypeRegistrationAction(ModelReference<REGISTRY> subject, ModelRuleDescriptor descriptor) {
@@ -186,10 +180,10 @@ public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE
             protected void execute(ModelRuleInvoker<?> invoker, REGISTRY registry, List<ModelView<?>> inputs) {
                 try {
                     ModelSchema<PUBLICTYPE> schema = schemaStore.getSchema(publicType);
-                    BUILDER builder = createBuilder(schema);
+                    TypeBuilderInternal<PUBLICTYPE> builder = createBuilder(schema);
                     invoker.invoke(builder);
                     ModelType<? extends BASEIMPL> implModelType = determineImplementationType(publicType, builder);
-                    register(registry, schema, builder, implModelType);
+                    registry.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
                 } catch (InvalidModelException e) {
                     throw invalidModelRule(ruleDefinition, e);
                 }
