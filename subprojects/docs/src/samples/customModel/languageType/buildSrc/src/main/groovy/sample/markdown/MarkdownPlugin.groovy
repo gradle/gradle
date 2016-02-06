@@ -21,6 +21,7 @@ import org.gradle.model.ModelMap
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.LanguageType
+import org.gradle.platform.base.TypeBuilder
 import sample.documentation.DocumentationBinary
 
 // START SNIPPET markdown-lang-registration
