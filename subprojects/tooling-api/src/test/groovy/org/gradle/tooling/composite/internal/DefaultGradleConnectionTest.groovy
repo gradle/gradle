@@ -15,46 +15,14 @@
  */
 
 package org.gradle.tooling.composite.internal
-
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultGradleConnectionTest extends Specification {
 
     GradleParticipantBuild build = Mock()
     GradleConnection connection = new DefaultGradleConnection(null, [ build ] as Set)
-
-    def "uses gradle user home specified by builder"() {
-        def builder = new DefaultGradleConnection.Builder()
-        File projectDir = Mock()
-        File gradleUserHome = Mock()
-        builder.useGradleUserHomeDir(gradleUserHome)
-        builder.addBuild(projectDir)
-        DefaultGradleConnection connection = builder.build()
-
-        expect:
-        connection.participants[0].gradleUserHomeDir == gradleUserHome
-    }
-
-    @Unroll
-    def "participant project uses specified gradle distribution from #distributionType"() {
-        def builder = new DefaultGradleConnection.Builder()
-        File projectDir = Mock()
-        builder.addBuild(projectDir, value)
-        DefaultGradleConnection connection = builder.build()
-
-        expect:
-        connection.participants[0].projectDir == projectDir
-        connection.participants[0]."${distributionType}" == value
-
-        where:
-        distributionType     | value
-        "gradleHome"         | Mock(File)
-        "gradleVersion"      | "2.0"
-        "gradleDistribution" | new URI("http://example.com")
-    }
 
     def "can get model builder"() {
         expect:

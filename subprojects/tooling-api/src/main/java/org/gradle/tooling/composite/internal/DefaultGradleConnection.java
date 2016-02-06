@@ -22,7 +22,6 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
 import java.net.URI;
@@ -75,7 +74,7 @@ public class DefaultGradleConnection implements GradleConnection {
                 participant.setGradleUserHomeDir(gradleUserHomeDir);
             }
 
-            return new DefaultGradleConnection(gradleUserHomeDir, participants);
+            return new ValidatingGradleConnection(new DefaultGradleConnection(gradleUserHomeDir, participants));
         }
     }
 
@@ -99,23 +98,11 @@ public class DefaultGradleConnection implements GradleConnection {
 
     @Override
     public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
-        checkSupportedModelType(modelType);
         return createCompositeModelBuilder(modelType);
     }
 
     private <T> CompositeModelBuilder<T> createCompositeModelBuilder(Class<T> modelType) {
         return new DefaultCompositeModelBuilder<T>(modelType, participants);
-    }
-
-    private <T> void checkSupportedModelType(Class<T> modelType) {
-        if (!modelType.isInterface()) {
-            throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
-        }
-
-        // TODO: Support other model types once this is opened up
-        if (!modelType.equals(EclipseProject.class)) {
-            throw new UnsupportedOperationException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
-        }
     }
 
     @Override

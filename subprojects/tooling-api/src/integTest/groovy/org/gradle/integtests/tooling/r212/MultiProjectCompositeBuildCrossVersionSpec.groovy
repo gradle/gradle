@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r212
-
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
@@ -62,7 +61,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         containsProjects(models, [':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
     }
 
-    def "can create composite of a two single-project builds"() {
+    def "failures from multiple builds is still seen as a single failure of the composite"() {
         given:
         def singleBuild1 = populate("single-build-1") {
             buildFile << """
