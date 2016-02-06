@@ -64,7 +64,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
 
         @Override
         protected void register(BinarySpecFactory binaries, ModelSchema<PUBLICTYPE> schema, DefaultBinaryTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseBinarySpec> implModelType) {
-            binaries.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
+            binaries.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override

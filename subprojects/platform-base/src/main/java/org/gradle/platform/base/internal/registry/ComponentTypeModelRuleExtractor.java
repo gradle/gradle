@@ -64,7 +64,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
 
         @Override
         protected void register(ComponentSpecFactory components, ModelSchema<PUBLICTYPE> schema, DefaultComponentTypeBuilder<PUBLICTYPE> builder, ModelType<? extends BaseComponentSpec> implModelType) {
-            components.register(publicType, implModelType, builder.getInternalViews(), ruleDefinition.getDescriptor());
+            components.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
         }
 
         @Override

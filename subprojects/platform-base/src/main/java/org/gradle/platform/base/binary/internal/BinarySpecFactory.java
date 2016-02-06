@@ -19,7 +19,9 @@ package org.gradle.platform.base.binary.internal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -27,7 +29,7 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 
 import java.util.Set;
 
-public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
+public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, BaseBinarySpec> {
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
 
@@ -37,9 +39,9 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
         this.taskFactory = taskFactory;
     }
 
-    public <S extends BinarySpec, T extends BaseBinarySpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
-                                                                                Set<Class<?>> internalViews, final ModelRuleDescriptor descriptor) {
-        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
+    @Override
+    public <S extends BinarySpec> void register(ModelType<S> publicType, Set<Class<?>> internalViews, final ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor definedBy) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
         if (implementationType != null) {
             registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                 @Override

@@ -30,7 +30,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 import java.util.Set;
 
-public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
+public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet, BaseLanguageSourceSet> {
 
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
@@ -39,13 +39,14 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
         this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
-    public <T extends LanguageSourceSet, V extends LanguageSourceSet> void register(ModelType<T> type, Set<Class<?>> internalViews, final ModelType<V> implementationType, ModelRuleDescriptor ruleDescriptor) {
-        InstanceFactory.TypeRegistrationBuilder<T> registration = register(type, ruleDescriptor);
+    @Override
+    public <S extends LanguageSourceSet> void register(final ModelType<S> publicType, Set<Class<?>> internalViews, final ModelType<? extends BaseLanguageSourceSet> implementationType, ModelRuleDescriptor definedBy) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
 
         if (implementationType != null) {
-            registration.withImplementation(Cast.<ModelType<? extends T>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<T>() {
+            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                 @Override
-                public T create(ModelType<? extends T> publicType, String sourceSetName, MutableModelNode modelNode) {
+                public S create(ModelType<? extends S> publicType, String sourceSetName, MutableModelNode modelNode) {
                     return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), sourceDirectorySetFactory));
                 }
             });

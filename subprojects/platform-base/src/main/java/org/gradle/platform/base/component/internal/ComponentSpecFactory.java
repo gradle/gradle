@@ -30,7 +30,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.util.Set;
 
-public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
+public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec, BaseComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
     public ComponentSpecFactory(String displayName, ProjectIdentifier projectIdentifier) {
@@ -38,9 +38,9 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
         this.projectIdentifier = projectIdentifier;
     }
 
-    public <S extends ComponentSpec, T extends BaseComponentSpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
-                                                                                Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
-        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
+    @Override
+    public <S extends ComponentSpec> void register(ModelType<S> publicType, Set<Class<?>> internalViews, final ModelType<? extends BaseComponentSpec> implementationType, ModelRuleDescriptor definedBy) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
         if (implementationType != null) {
             registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
                 @Override

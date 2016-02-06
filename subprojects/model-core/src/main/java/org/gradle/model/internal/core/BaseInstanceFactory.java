@@ -31,26 +31,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BaseInstanceFactory<T> implements InstanceFactory<T> {
+public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
 
     private final String displayName;
-    private final ModelType<T> baseInterface;
-    private final ModelType<? extends T> baseImplementation;
-    private final Map<ModelType<? extends T>, TypeRegistration<? extends T>> registrations = Maps.newLinkedHashMap();
+    private final ModelType<PUBLIC> baseInterface;
+    private final ModelType<BASEIMPL> baseImplementation;
+    private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
 
-    public BaseInstanceFactory(String displayName, Class<T> baseInterface, Class<? extends T> baseImplementation) {
+    public BaseInstanceFactory(String displayName, Class<PUBLIC> baseInterface, Class<BASEIMPL> baseImplementation) {
         this.displayName = displayName;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
     }
 
     @Override
-    public ModelType<T> getBaseInterface() {
+    public ModelType<PUBLIC> getBaseInterface() {
         return baseInterface;
     }
 
+    public abstract <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, ModelType<? extends BASEIMPL> implementationType, ModelRuleDescriptor definedBy);
+
     @Override
-    public <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor source) {
+    public <S extends PUBLIC> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor source) {
         TypeRegistration<S> registration = Cast.uncheckedCast(registrations.get(publicType));
         if (registration == null) {
             registration = new TypeRegistration<S>(publicType);
@@ -60,22 +62,22 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     @Override
-    public <S extends T> ImplementationInfo<T> getImplementationInfo(final ModelType<S> publicType) {
+    public <S extends PUBLIC> ImplementationInfo<PUBLIC> getImplementationInfo(final ModelType<S> publicType) {
         ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
-        return new ImplementationInfoImpl<T>(publicType, implementationRegistration);
+        return new ImplementationInfoImpl<PUBLIC>(publicType, implementationRegistration);
     }
 
     @Override
-    public <S extends T> ImplementationInfo<T> getManagedSubtypeImplementationInfo(final ModelType<S> publicType) {
+    public <S extends PUBLIC> ImplementationInfo<PUBLIC> getManagedSubtypeImplementationInfo(final ModelType<S> publicType) {
         if (!isManaged(publicType)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
-        final List<ImplementationInfo<T>> implementationInfos = Lists.newArrayListWithCapacity(1);
+        final List<ImplementationInfo<PUBLIC>> implementationInfos = Lists.newArrayListWithCapacity(1);
         ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
-            protected void visitRegistration(TypeRegistration<? extends T> registration) {
+            protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 if (registration != null && registration.implementationRegistration != null) {
-                    implementationInfos.add(new ImplementationInfoImpl<T>(publicType, registration.implementationRegistration));
+                    implementationInfos.add(new ImplementationInfoImpl<PUBLIC>(publicType, registration.implementationRegistration));
                 }
             }
         });
@@ -88,11 +90,11 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     @Override
-    public <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
+    public <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
         final ImmutableSet.Builder<ModelType<?>> builder = ImmutableSet.builder();
         ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
-            protected void visitRegistration(TypeRegistration<? extends T> registration) {
+            protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 for (InternalViewRegistration<?> internalViewRegistration : registration.internalViewRegistrations) {
                     builder.add(internalViewRegistration.getInternalView());
                 }
@@ -102,8 +104,8 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     @Override
-    public Set<ModelType<? extends T>> getSupportedTypes() {
-        ImmutableSortedSet.Builder<ModelType<? extends T>> supportedTypes = ImmutableSortedSet.orderedBy(ModelTypes.<T>displayOrder());
+    public Set<ModelType<? extends PUBLIC>> getSupportedTypes() {
+        ImmutableSortedSet.Builder<ModelType<? extends PUBLIC>> supportedTypes = ImmutableSortedSet.orderedBy(ModelTypes.<PUBLIC>displayOrder());
         for (TypeRegistration<?> registration : registrations.values()) {
             if (registration.isConstructible()) {
                 supportedTypes.add(registration.publicType);
@@ -113,22 +115,22 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     private String getConstructibleTypeNames() {
-        Set<ModelType<? extends T>> constructibleTypes = getConstructibleTypes();
+        Set<ModelType<? extends PUBLIC>> constructibleTypes = getConstructibleTypes();
         if (constructibleTypes.isEmpty()) {
             return "(None)";
         }
         return Joiner.on(", ").join(constructibleTypes);
     }
 
-    private Set<ModelType<? extends T>> getConstructibleTypes() {
+    private Set<ModelType<? extends PUBLIC>> getConstructibleTypes() {
         return Sets.difference(getSupportedTypes(), Collections.singleton(baseInterface));
     }
 
-    private <S extends T> TypeRegistration<S> getRegistration(ModelType<S> type) {
+    private <S extends PUBLIC> TypeRegistration<S> getRegistration(ModelType<S> type) {
         return Cast.uncheckedCast(registrations.get(type));
     }
 
-    private <S extends T> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
+    private <S extends PUBLIC> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null) {
             throw new IllegalArgumentException(
@@ -143,7 +145,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public void validateRegistrations() {
-        for (TypeRegistration<? extends T> registration : registrations.values()) {
+        for (TypeRegistration<? extends PUBLIC> registration : registrations.values()) {
             registration.validate();
         }
     }
@@ -157,7 +159,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         return type.isAnnotationPresent(Managed.class);
     }
 
-    private class TypeRegistrationBuilderImpl<S extends T> implements TypeRegistrationBuilder<S> {
+    private class TypeRegistrationBuilderImpl<S extends PUBLIC> implements TypeRegistrationBuilder<S> {
         private final ModelRuleDescriptor source;
         private final TypeRegistration<S> registration;
 
@@ -179,7 +181,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         }
     }
 
-    private class TypeRegistration<S extends T> {
+    private class TypeRegistration<S extends PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
         private ImplementationRegistration<S> implementationRegistration;
@@ -236,14 +238,14 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         }
 
         private void validateManaged() {
-            ImplementationInfo<? extends T> implementationInfo = getManagedSubtypeImplementationInfo(publicType);
-            ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
+            ImplementationInfo<? extends PUBLIC> implementationInfo = getManagedSubtypeImplementationInfo(publicType);
+            ModelType<? extends PUBLIC> delegateType = implementationInfo.getDelegateType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 validateManagedInternalView(internalViewRegistration, delegateType);
             }
         }
 
-        private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<? extends T> delegateType) {
+        private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<? extends PUBLIC> delegateType) {
             ModelSchemaUtils.walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<V>() {
                 @Override
                 public void visitType(Class<? super V> type) {
@@ -355,15 +357,15 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             if (!baseInterface.getConcreteClass().isAssignableFrom(type)) {
                 return;
             }
-            Class<? extends T> superTypeClassAsBaseType = type.asSubclass(baseInterface.getConcreteClass());
-            ModelType<? extends T> superTypeAsBaseType = ModelType.of(superTypeClassAsBaseType);
+            Class<? extends PUBLIC> superTypeClassAsBaseType = type.asSubclass(baseInterface.getConcreteClass());
+            ModelType<? extends PUBLIC> superTypeAsBaseType = ModelType.of(superTypeClassAsBaseType);
 
-            TypeRegistration<? extends T> registration = getRegistration(superTypeAsBaseType);
+            TypeRegistration<? extends PUBLIC> registration = getRegistration(superTypeAsBaseType);
             if (registration != null) {
                 visitRegistration(registration);
             }
         }
 
-        protected abstract void visitRegistration(TypeRegistration<? extends T> registration);
+        protected abstract void visitRegistration(TypeRegistration<? extends PUBLIC> registration);
     }
 }
