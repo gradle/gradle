@@ -38,6 +38,7 @@ public class AutoTestedSamplesToolingApiTest extends Specification {
 import org.gradle.tooling.*;
 import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.build.*;
+import org.gradle.tooling.composite.*;
 import java.io.*;
 
 public class Sample {

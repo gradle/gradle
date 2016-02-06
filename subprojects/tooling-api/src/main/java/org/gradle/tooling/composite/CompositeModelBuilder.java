@@ -36,15 +36,16 @@ import java.util.Set;
  *
  * Example:
  * <pre autoTested=''>
- * GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
+ *
+ * GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
  *    .addBuild(new File("someFolder"))
- *    .connect();
+ *    .build();
  *
  * try {
  *    CompositeModelBuilder&lt;GradleProject&gt; builder = connection.models(GradleProject.class);
  *
  *    //get the model:
- *    Set&lt;GradleProject&gt; projects = builder.get();
+ *    java.util.Set&lt;GradleProject&gt; projects = builder.get();
  *
  *    //query the model for information:
  *    for (GradleProject project : projects) {
