@@ -92,9 +92,11 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         when: "symlink is deleted"
         symlink.delete()
         then:
+        // OSX uses a polling implementation, so changes to links are detectable
         if (OperatingSystem.current().isMacOsX()) {
             succeeds()
         } else {
+            // Other OS's do not produce filesystem events for deleted symlinks
             noBuildTriggered()
         }
         when: "changes made to target of symlink"
