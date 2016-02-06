@@ -74,7 +74,7 @@ public class DefaultGradleConnection implements GradleConnection {
                 participant.setGradleUserHomeDir(gradleUserHomeDir);
             }
 
-            return new ValidatingGradleConnection(new DefaultGradleConnection(gradleUserHomeDir, participants));
+            return new ValidatingGradleConnection(new DefaultGradleConnection(gradleUserHomeDir, participants), new DefaultCompositeValidator());
         }
     }
 

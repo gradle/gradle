@@ -15,38 +15,37 @@
  */
 
 package org.gradle.tooling.composite.internal
+import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Specification
 
-class DefaultGradleConnectionTest extends Specification {
+class ValidatingGradleConnectionTest extends Specification {
+    GradleConnection delegate = Mock()
+    CompositeValidator validator = Mock()
+    GradleConnection connection = new ValidatingGradleConnection(delegate, validator)
 
-    GradleParticipantBuild build = Mock()
-    GradleConnection connection = new DefaultGradleConnection(null, [ build ] as Set)
-
-    def "can get model builder"() {
-        expect:
-        connection.models(EclipseProject) instanceof DefaultCompositeModelBuilder
-    }
-
-    def "close stops all underlying project connections"() {
-        given:
-        def builds = (0..3).collect { Mock(GradleParticipantBuild) } as Set
-        GradleConnection connection = new DefaultGradleConnection(null, builds)
+    def "delegates to underlying connection"() {
         when:
+        connection.getModels(EclipseProject)
+        connection.getModels(EclipseProject, Mock(ResultHandler))
         connection.close()
         then:
-        builds.each {
-            1 * it.stop()
-        }
+        1 * delegate.getModels(EclipseProject)
+        1 * delegate.getModels(EclipseProject, _)
+        1 * delegate.close()
+        // TODO: Enable validation again
+        // 1 * validator.isSatisfiedBy(_) >> true
     }
 
-    def "errors propagate to caller when closing connection"() {
-        given:
-        build.stop() >> { throw new RuntimeException() }
+    def modelTypeMustBeAnInterface() {
         when:
-        connection.close()
+        connection.models(String)
+
         then:
-        thrown(RuntimeException)
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot fetch a model of type 'java.lang.String' as this type is not an interface."
+        0 * delegate._
     }
+
 }

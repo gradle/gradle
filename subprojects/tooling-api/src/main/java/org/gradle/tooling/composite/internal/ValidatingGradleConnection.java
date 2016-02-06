@@ -28,9 +28,9 @@ public class ValidatingGradleConnection implements GradleConnection {
     private final GradleConnection delegate;
     private final CompositeValidator validator;
 
-    public ValidatingGradleConnection(GradleConnection delegate) {
+    public ValidatingGradleConnection(GradleConnection delegate, CompositeValidator validator) {
         this.delegate = delegate;
-        this.validator = new DefaultCompositeValidator();
+        this.validator = validator;
     }
 
     @Override
