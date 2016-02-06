@@ -80,9 +80,6 @@ To support Eclipse import, only a constrained composite connection API is requir
 - Errors from closing underlying ProjectConnection propagate to caller.
 - Changing the participants Gradle distribution is reflected in the `ProjectConnection`
 - Participant project directory is used as the project directory for the `ProjectConnection`
-
-Coverage to complete:
-
 - Cross-version tests:
     - Fail if participants are <Gradle 1.0
     - Test retrieving `EclipseProject` from all supported Gradle versions
@@ -95,3 +92,4 @@ Coverage to complete:
 ### Open issues
 
 - Provide way of detecting feature set of composite build?
+- Enable validation of composite build -- better way than querying model multiple times?

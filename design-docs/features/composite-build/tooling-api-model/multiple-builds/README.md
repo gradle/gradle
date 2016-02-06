@@ -42,13 +42,9 @@
 - Check that a consumer can cancel an operation
 - Check that retrieving a model fails on the first `ProjectConnection` failure
 - Check that a handler receives a single completion or failure call when retrieving a model.
-
-Coverage to complete:
-
-- if any participant throws an error, the overall operation fails with a `GradleCompositeException`
 - After a successful model request, on a subsequent request:
     - Making one participant a subproject of another causes the request to fail
-
+- if any participant throws an error, the overall operation fails with a `GradleCompositeException`
 
 ### Documentation
 
@@ -58,3 +54,4 @@ Coverage to complete:
 
 - Deferred most of `ModelBuilder` API by creating simpler `CompositeModelBuilder`
 - Check that all `ModelBuilder` methods are forwarded to each underlying build's `ModelBuilder` when configuring a build specific `ModelBuilder`
+- Make `GradleCompositeException` more useful?

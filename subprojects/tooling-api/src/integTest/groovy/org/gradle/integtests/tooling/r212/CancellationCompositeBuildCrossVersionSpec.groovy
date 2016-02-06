@@ -24,6 +24,9 @@ import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
 
+/**
+ * Tests cancellation of model requests in a composite build.
+ */
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 

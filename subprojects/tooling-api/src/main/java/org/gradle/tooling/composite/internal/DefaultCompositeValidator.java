@@ -44,7 +44,7 @@ public class DefaultCompositeValidator implements CompositeValidator {
             boolean hasNoOverlappingProjects = new VerifyNoOverlappingProjects(reason).isSatisfiedBy(getGradleProjects(connection));
             return meetsMinimumVersion && hasNoOverlappingProjects;
         } catch (GradleConnectionException e) {
-            // TODO: 
+            // TODO: Better error message
             reason.append("Could not validate composite.");
             return false;
         } finally {
@@ -60,7 +60,7 @@ public class DefaultCompositeValidator implements CompositeValidator {
         return connection.getModels(GradleProject.class);
     }
 
-    // Verify Gradle participants > 1.0
+    // Verify Gradle participants >= 1.0
     final static class VerifyMinimumGradleVersion implements Spec<Set<BuildEnvironment>> {
         private final StringBuilder reason;
         private final VersionNumber minimumVersion = VersionNumber.parse("1.0");
@@ -87,7 +87,23 @@ public class DefaultCompositeValidator implements CompositeValidator {
         }
     }
 
-    // Verify no projects are overlapping
+    /**
+     * Verify no projects are overlapping.
+     * Overlapping means two projects have the same project directory.
+     *
+     * Project1 - path/to/project
+     * Project2 - path/to/project
+     * Project1 and 2 are overlapping.
+     *
+     * Project1 - path/to/project
+     * Project2 - path/to/project/another
+     * Project1 and 2 are NOT overlapping.
+     *
+     * Project1 - path/to/project
+     * Project1:another - path/to/project/another
+     * Project2 - path/to/project/another
+     * Project1:another and 2 are overlapping.
+     */
     final static class VerifyNoOverlappingProjects implements Spec<Set<GradleProject>> {
         private final StringBuilder reason;
 

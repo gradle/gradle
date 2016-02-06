@@ -129,6 +129,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         def fourthRetrieval = composite.getModels(EclipseProject)
 
         then:
+        // TODO: should probably be a GradleCompositeException
         def e = thrown(BuildException)
         e.getMessage().contains("Could not fetch model of type 'EclipseProject'")
         def underlyingCause = e.getCause().getCause()

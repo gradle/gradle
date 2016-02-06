@@ -20,6 +20,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
+/**
+ * Tests composites with multiple participants.  All participants have the same version.
+ */
 class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a two multi-project builds"() {
         given:
@@ -99,6 +102,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         containsProjects(models, [':', ':'])
     }
 
+    // Validation of composite is disabled
     @NotYetImplemented
     def "fails when two projects becoming overlapping projects"() {
         given:
