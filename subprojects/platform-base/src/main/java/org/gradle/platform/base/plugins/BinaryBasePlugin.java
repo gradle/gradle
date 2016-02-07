@@ -26,7 +26,6 @@ import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -66,8 +65,8 @@ public class BinaryBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, bindingsStore));
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, StructBindingsStore bindingsStore) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, bindingsStore));
         }
 
         @Validate

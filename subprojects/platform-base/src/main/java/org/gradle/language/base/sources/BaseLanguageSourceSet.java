@@ -94,11 +94,11 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, String name, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
         nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), sourceDirectorySetFactory));
         try {
             try {
-                return DirectInstantiator.INSTANCE.newInstance(type);
+                return DirectInstantiator.INSTANCE.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
                 throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }
@@ -106,7 +106,6 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
             nextSourceSetInfo.set(null);
         }
     }
-
 
     public BaseLanguageSourceSet() {
         this(nextSourceSetInfo.get());

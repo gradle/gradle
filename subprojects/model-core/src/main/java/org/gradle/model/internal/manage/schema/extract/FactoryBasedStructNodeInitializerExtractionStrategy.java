@@ -26,20 +26,17 @@ import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
 public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
-    protected final InstanceFactory<T> instanceFactory;
-    private final ModelSchemaStore schemaStore;
+    private final InstanceFactory<T> instanceFactory;
     private final StructBindingsStore bindingsStore;
 
-    public FactoryBasedStructNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
+    public FactoryBasedStructNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, StructBindingsStore bindingsStore) {
         this.instanceFactory = instanceFactory;
-        this.schemaStore = schemaStore;
         this.bindingsStore = bindingsStore;
     }
 
