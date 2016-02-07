@@ -44,12 +44,8 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Base class for custom binary implementations.
- * A custom implementation of {@link org.gradle.platform.base.BinarySpec} must extend this type.
- *
- * TODO at the moment leaking BinarySpecInternal here to generate lifecycleTask in
- * LanguageBasePlugin$createLifecycleTaskForBinary#createLifecycleTaskForBinary rule
- *
+ * Base class that may be used for custom {@link BinarySpec} implementations. However, it is generally better to use an
+ * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
@@ -70,7 +66,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       String name, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, componentNode, taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -223,7 +219,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
             this.modelNode = modelNode;
