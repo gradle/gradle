@@ -32,6 +32,11 @@ public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec 
     }
 
     @Override
+    public void setTestedComponent(ComponentSpec testedComponent) {
+        this.testedComponent = (NativeComponentSpec) testedComponent;
+    }
+
+    @Override
     public void testing(ComponentSpec testedComponent) {
         this.testedComponent = (NativeComponentSpec) testedComponent;
     }

@@ -29,8 +29,13 @@ public interface TestSuiteSpec extends ComponentSpec {
     ComponentSpec getTestedComponent();
 
     /**
-     * Sets the tested component. The name of this method is not a regular
-     * setter just because of DSL.
+     * Sets the tested component.
+     * @param testedComponent the component under test
+     */
+    void setTestedComponent(ComponentSpec testedComponent);
+
+    /**
+     * Sets the tested component.
      * @param testedComponent the component under test
      */
     void testing(ComponentSpec testedComponent);
