@@ -136,6 +136,8 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         }
     }
 
+    static interface SomeOtherBuilder<T> extends TypeBuilder<T> {}
+
     static class Rules {
         @ComponentType
         static void validTypeRule(TypeBuilder<SomeComponentSpec> builder) {
@@ -173,8 +175,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.defaultImplementation(SomeComponentSpecOtherImpl)
         }
-
-        interface SomeOtherBuilder<T> extends TypeBuilder<T> {}
 
         @ComponentType
         static void binaryTypeBuilder(SomeOtherBuilder<BinarySpec> builder) {
