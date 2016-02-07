@@ -31,20 +31,19 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
+ * Base class that may be used for custom {@link ComponentSpec} implementations. However, it is generally better to use an
+ * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
 // Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
 @SuppressWarnings("deprecation")
 public class BaseComponentSpec implements ComponentSpecInternal {
-
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
 
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
-    private final MutableModelNode modelNode;
 
     public static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
         nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
@@ -71,7 +70,7 @@ public class BaseComponentSpec implements ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
 
-        modelNode = info.modelNode;
+        MutableModelNode modelNode = info.modelNode;
         binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
