@@ -113,6 +113,7 @@ This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.g
 
 ### Changes to the experimental software model
 
+- `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` replaced by `TypeBuilder`.
 - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
 
 ## External contributions
