@@ -21,41 +21,12 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.inspect.ExtractedModelRule;
-import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.TypeBuilder;
 
-import java.util.List;
-
-public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
-    private static final ModelType<LanguageSourceSetFactory> LANGUAGE_SOURCE_SET_FACTORY_MODEL_TYPE = ModelType.of(LanguageSourceSetFactory.class);
-
+public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet, LanguageSourceSetFactory> {
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, TypeBuilder.class, schemaStore);
-    }
-
-    @Override
-    protected <P extends LanguageSourceSet> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
-        return new ExtractedLanguageTypeRule<P>(ruleDefinition, type);
-    }
-
-    private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, LanguageSourceSetFactory> {
-        public ExtractedLanguageTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
-            super(ruleDefinition, publicType, LANGUAGE_SOURCE_SET_FACTORY_MODEL_TYPE);
-        }
-
-        @Override
-        protected DefaultTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
-            return new DefaultTypeBuilder<PUBLICTYPE>(LanguageType.class, schema);
-        }
-
-        @Override
-        public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.of(LanguageBasePlugin.class);
-        }
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, ModelReference.of(LanguageSourceSetFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
     }
 }

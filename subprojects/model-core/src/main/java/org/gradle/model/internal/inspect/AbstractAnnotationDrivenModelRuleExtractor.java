@@ -28,6 +28,10 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         this.annotationType = annotationType;
     }
 
+    public Class<T> getAnnotationType() {
+        return annotationType;
+    }
+
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
         return ruleDefinition.getAnnotation(annotationType) != null;
