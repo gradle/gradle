@@ -79,7 +79,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         methodName       | expectedMessage                                                                                                        | descr
         "extraParameter" | "A method annotated with @BinaryType must have a single parameter of type ${TypeBuilder.name}."                        | "additional rule parameter"
         "returnValue"    | "A method annotated with @BinaryType must have void return type."                                                      | "method with return type"
-        "noTypeParam"    | "Parameter of type ${BinaryTypeBuilder.name} must declare a type parameter."                                           | "missing type parameter"
+        "noTypeParam"    | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                                                 | "missing type parameter"
         "notBinarySpec"  | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
         "wildcardType"   | "Binary type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                 | "wildcard type parameter"
         "extendsType"    | "Binary type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
@@ -172,7 +172,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         }
 
         @BinaryType
-        static void noTypeParam(BinaryTypeBuilder builder) {
+        static void noTypeParam(TypeBuilder builder) {
         }
 
         @BinaryType

@@ -27,7 +27,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.List;
 
@@ -35,18 +35,12 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     private static final ModelType<LanguageSourceSetFactory> LANGUAGE_SOURCE_SET_FACTORY_MODEL_TYPE = ModelType.of(LanguageSourceSetFactory.class);
 
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, schemaStore);
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, TypeBuilder.class, schemaStore);
     }
 
     @Override
     protected <P extends LanguageSourceSet> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
         return new ExtractedLanguageTypeRule<P>(ruleDefinition, type);
-    }
-
-    private static class DefaultLanguageTypeBuilder<PUBLICTYPE extends LanguageSourceSet> extends AbstractTypeBuilder<PUBLICTYPE> implements LanguageTypeBuilder<PUBLICTYPE> {
-        private DefaultLanguageTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
-            super(LanguageType.class, schema);
-        }
     }
 
     private class ExtractedLanguageTypeRule<PUBLICTYPE extends LanguageSourceSet> extends ExtractedTypeRule<PUBLICTYPE, LanguageSourceSetFactory> {
@@ -55,8 +49,8 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
 
         @Override
-        protected DefaultLanguageTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
-            return new DefaultLanguageTypeBuilder<PUBLICTYPE>(schema);
+        protected DefaultTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultTypeBuilder<PUBLICTYPE>(LanguageType.class, schema);
         }
 
         @Override

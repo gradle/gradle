@@ -24,7 +24,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
@@ -35,18 +35,12 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     private static final ModelType<BinarySpecFactory> BINARY_SPEC_FACTORY_MODEL_TYPE = ModelType.of(BinarySpecFactory.class);
 
     public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, schemaStore);
+        super("binary", BinarySpec.class, BaseBinarySpec.class, TypeBuilder.class, schemaStore);
     }
 
     @Override
     protected <P extends BinarySpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
         return new ExtractedBinaryTypeRule<P>(ruleDefinition, type);
-    }
-
-    private static class DefaultBinaryTypeBuilder<PUBLICTYPE extends BinarySpec> extends AbstractTypeBuilder<PUBLICTYPE> implements BinaryTypeBuilder<PUBLICTYPE> {
-        private DefaultBinaryTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
-            super(BinaryType.class, schema);
-        }
     }
 
     private class ExtractedBinaryTypeRule<PUBLICTYPE extends BinarySpec> extends ExtractedTypeRule<PUBLICTYPE, BinarySpecFactory> {
@@ -55,8 +49,8 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        protected DefaultBinaryTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
-            return new DefaultBinaryTypeBuilder<PUBLICTYPE>(schema);
+        protected DefaultTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultTypeBuilder<PUBLICTYPE>(BinaryType.class, schema);
         }
 
         @Override

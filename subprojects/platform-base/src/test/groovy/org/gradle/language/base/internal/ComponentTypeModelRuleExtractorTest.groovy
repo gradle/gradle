@@ -79,7 +79,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "extraParameter"    | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}."                      | "additional rule parameter"
         "binaryTypeBuilder" | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}."                      | "wrong builder type"
         "returnValue"       | "A method annotated with @ComponentType must have void return type."                                                    | "method with return type"
-        "noTypeParam"       | "Parameter of type ${ComponentTypeBuilder.name} must declare a type parameter."                                         | "missing type parameter"
+        "noTypeParam"       | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                                                  | "missing type parameter"
         "wildcardType"      | "Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                               | "wildcard type parameter"
         "extendsType"       | "Component type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
         "superType"         | "Component type '? super ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
@@ -174,12 +174,14 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
             builder.defaultImplementation(SomeComponentSpecOtherImpl)
         }
 
+        interface SomeOtherBuilder<T> extends TypeBuilder<T> {}
+
         @ComponentType
-        static void binaryTypeBuilder(BinaryTypeBuilder<BinarySpec> builder) {
+        static void binaryTypeBuilder(SomeOtherBuilder<BinarySpec> builder) {
         }
 
         @ComponentType
-        static void noTypeParam(ComponentTypeBuilder builder) {
+        static void noTypeParam(TypeBuilder builder) {
         }
 
         @ComponentType

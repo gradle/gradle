@@ -30,7 +30,6 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
-import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
@@ -200,11 +199,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @LanguageType
         void validTypeRule(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
-        }
-
-        @LanguageType
-        void validTypeRuleSpecializedTypeBuilder(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
     }

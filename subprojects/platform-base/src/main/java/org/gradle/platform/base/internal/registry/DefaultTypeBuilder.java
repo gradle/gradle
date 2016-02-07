@@ -25,13 +25,13 @@ import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.util.Set;
 
-public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
+public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     private final ModelSchema<? extends T> schema;
     private Class<? extends T> implementation;
     private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
 
-    public AbstractTypeBuilder(Class<?> markerAnnotation, ModelSchema<T> schema) {
+    public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<T> schema) {
         this.markerAnnotation = markerAnnotation;
         this.schema = schema;
     }

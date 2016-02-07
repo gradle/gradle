@@ -25,7 +25,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 
@@ -35,18 +35,12 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     private static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_TYPE = ModelType.of(ComponentSpecFactory.class);
 
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore);
+        super("component", ComponentSpec.class, BaseComponentSpec.class, TypeBuilder.class, schemaStore);
     }
 
     @Override
     protected <P extends ComponentSpec> ExtractedModelRule createExtractedRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<P> type) {
         return new ExtractedComponentTypeRule<P>(ruleDefinition, type);
-    }
-
-    private static class DefaultComponentTypeBuilder<PUBLICTYPE extends ComponentSpec> extends AbstractTypeBuilder<PUBLICTYPE> implements ComponentTypeBuilder<PUBLICTYPE> {
-        private DefaultComponentTypeBuilder(ModelSchema<PUBLICTYPE> schema) {
-            super(ComponentType.class, schema);
-        }
     }
 
     private class ExtractedComponentTypeRule<PUBLICTYPE extends ComponentSpec> extends ExtractedTypeRule<PUBLICTYPE, ComponentSpecFactory> {
@@ -55,8 +49,8 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         @Override
-        protected DefaultComponentTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
-            return new DefaultComponentTypeBuilder<PUBLICTYPE>(schema);
+        protected DefaultTypeBuilder<PUBLICTYPE> createBuilder(ModelSchema<PUBLICTYPE> schema) {
+            return new DefaultTypeBuilder<PUBLICTYPE>(ComponentType.class, schema);
         }
 
         @Override
