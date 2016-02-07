@@ -25,7 +25,6 @@ import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.Set;
@@ -94,12 +93,6 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    @Override
-    public ModelMap<LanguageSourceSet> getSource() {
-        DeprecationLogger.nagUserOfReplacedProperty("source", "sources");
-        return getSources();
     }
 
     @Override

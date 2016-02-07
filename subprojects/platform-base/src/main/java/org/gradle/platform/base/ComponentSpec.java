@@ -19,8 +19,6 @@ package org.gradle.platform.base;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.ModelMap;
 
 /**
  * A software component that is built by a Gradle project.
@@ -37,12 +35,4 @@ public interface ComponentSpec extends Named, SourceComponentSpec, VariantCompon
      * Returns a human-consumable display name for this component.
      */
     String getDisplayName();
-
-    /**
-     * The source sets that are used to build this component.
-     *
-     * @deprecated This method is replaced with {@link #getSources()}.
-     */
-    @Deprecated
-    ModelMap<LanguageSourceSet> getSource();
 }

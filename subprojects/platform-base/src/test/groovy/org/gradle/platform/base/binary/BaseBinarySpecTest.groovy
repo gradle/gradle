@@ -96,14 +96,6 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
         binary.inputs*.name == ["input"]
     }
 
-    def "source property is the same as inputs property"() {
-        given:
-        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
-
-        expect:
-        binary.source == binary.inputs
-    }
-
     private <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> type, Class<I> implType, String name, MutableModelNode componentNode = null) {
         BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }

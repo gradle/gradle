@@ -27,7 +27,13 @@
                 <td>buildable</td>
             </tr>
             <tr>
-                <td>source</td>
+                <td>displayName</td>
+            </tr>
+            <tr>
+                <td>sources</td>
+            </tr>
+            <tr>
+                <td>inputs</td>
             </tr>
             <tr>
                 <td>tasks</td>

@@ -38,7 +38,6 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Set;
@@ -172,12 +171,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     public final boolean isBuildable() {
         return getBuildAbility().isBuildable();
-    }
-
-    @Override
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        DeprecationLogger.nagUserOfReplacedProperty("source", "inputs");
-        return getInputs();
     }
 
     @Override

@@ -76,17 +76,6 @@ class BaseComponentSpecTest extends PlatformBaseSpecification {
         component.sources as List == [lss1, lss2]
     }
 
-    def "source property is the same as sources property"() {
-        when:
-        def component = create(SampleComponent, MySampleComponent)
-        def lss1 = languageSourceSet("lss1")
-        component.sources.put("lss1", lss1)
-
-        then:
-        component.source.values() == [lss1]
-        component.sources.values() == [lss1]
-    }
-
     def languageSourceSet(String name) {
         Stub(LanguageSourceSet) {
             getName() >> name

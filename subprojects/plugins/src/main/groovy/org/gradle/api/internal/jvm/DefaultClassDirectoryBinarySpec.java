@@ -127,11 +127,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     @Override
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return getInputs();
-    }
-
-    @Override
     public ModelMap<LanguageSourceSet> getSources() {
         throw new UnsupportedOperationException();
     }

@@ -40,14 +40,6 @@ public interface BinarySpec extends BuildableModelElement, Named {
     boolean isBuildable();
 
     /**
-     * The source sets used to compile this binary.
-     *
-     * @deprecated This method is replaced with {@link #getInputs()}.
-     */
-    @Deprecated
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
      * The sources owned by this binary.
      *
      * @return the sources owned by the binary.
