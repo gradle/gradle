@@ -47,7 +47,7 @@ public interface InstanceFactory<T> {
     }
 
     interface TypeRegistrationBuilder<T> {
-        TypeRegistrationBuilder<T> withImplementation(ModelType<? extends T> implementationType, ImplementationFactory<T> factory);
+        TypeRegistrationBuilder<T> withImplementation(ModelType<?> implementationType, ImplementationFactory<T> factory);
 
         TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
     }

@@ -22,12 +22,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-
-import java.util.Set;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, BaseBinarySpec> {
     private final Instantiator instantiator;
@@ -40,27 +37,21 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, BaseBinar
     }
 
     @Override
-    public <S extends BinarySpec> void register(ModelType<S> publicType, Set<Class<?>> internalViews, final ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor definedBy) {
-        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
-        if (implementationType != null) {
-            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
-                @Override
-                public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
-                    MutableModelNode componentBinariesNode = binaryNode.getParent();
-                    MutableModelNode componentNode = componentBinariesNode.getParent();
-                    return Cast.uncheckedCast(BaseBinarySpec.create(
-                            publicType.getConcreteClass(),
-                            implementationType.getConcreteClass(),
-                            name,
-                            binaryNode,
-                            componentNode,
-                            instantiator,
-                            taskFactory));
-                }
-            });
-        }
-        for (Class<?> internalView : internalViews) {
-            registration.withInternalView(ModelType.of(internalView));
-        }
+    protected <S extends BinarySpec> ImplementationFactory<S> forType(ModelType<S> type, final ModelType<? extends BaseBinarySpec> implementationType) {
+        return new InstanceFactory.ImplementationFactory<S>() {
+                        @Override
+                        public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
+                            MutableModelNode componentBinariesNode = binaryNode.getParent();
+                            MutableModelNode componentNode = componentBinariesNode.getParent();
+                            return Cast.uncheckedCast(BaseBinarySpec.create(
+                                    publicType.getConcreteClass(),
+                                    implementationType.getConcreteClass(),
+                                    name,
+                                    binaryNode,
+                                    componentNode,
+                                    instantiator,
+                                    taskFactory));
+                        }
+                    };
     }
 }

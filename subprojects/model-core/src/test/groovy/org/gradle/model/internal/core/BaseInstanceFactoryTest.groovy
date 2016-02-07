@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core
 
 import org.gradle.model.Managed
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
@@ -49,7 +48,8 @@ class BaseInstanceFactoryTest extends Specification {
 
     def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>("things", ThingSpec, BaseThingSpec) {
         @Override
-        void register(ModelType publicType, Set internalViews, ModelType implementationType, ModelRuleDescriptor definedBy) {
+        protected InstanceFactory.ImplementationFactory forType(ModelType publicType, ModelType implementation) {
+            throw new UnsupportedOperationException()
         }
     }
     def node = Mock(MutableModelNode)

@@ -18,6 +18,7 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
-
     private final String displayName;
     private final ModelType<PUBLIC> baseInterface;
     private final ModelType<BASEIMPL> baseImplementation;
@@ -49,7 +49,17 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return baseInterface;
     }
 
-    public abstract <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, ModelType<? extends BASEIMPL> implementationType, ModelRuleDescriptor definedBy);
+    protected abstract <S extends PUBLIC> InstanceFactory.ImplementationFactory<S> forType(ModelType<S> publicType, ModelType<? extends BASEIMPL> implementation);
+
+    public <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, @Nullable ModelType<? extends BASEIMPL> implementationType, ModelRuleDescriptor definedBy) {
+        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
+        if (implementationType != null) {
+            registration.withImplementation(implementationType, forType(publicType, implementationType));
+        }
+        for (Class<?> internalView : internalViews) {
+            registration.withInternalView(ModelType.of(internalView));
+        }
+    }
 
     @Override
     public <S extends PUBLIC> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor source) {
@@ -169,7 +179,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         }
 
         @Override
-        public TypeRegistrationBuilder<S> withImplementation(ModelType<? extends S> implementationType, ImplementationFactory<S> factory) {
+        public TypeRegistrationBuilder<S> withImplementation(ModelType<?> implementationType, ImplementationFactory<S> factory) {
             registration.setImplementation(implementationType, source, factory);
             return this;
         }
@@ -192,7 +202,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
             this.managedPublicType = isManaged(publicType);
         }
 
-        public void setImplementation(ModelType<? extends S> implementationType, ModelRuleDescriptor source, ImplementationFactory<S> factory) {
+        public void setImplementation(ModelType<?> implementationType, ModelRuleDescriptor source, ImplementationFactory<S> factory) {
             if (implementationRegistration != null) {
                 throw new IllegalStateException(String.format("Cannot register implementation for type '%s' because an implementation for this type was already registered by %s",
                     publicType, implementationRegistration.getSource()));
@@ -265,7 +275,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
                 return;
             }
 
-            ModelType<? extends S> implementationType = implementationRegistration.getImplementationType();
+            ModelType<?> implementationType = implementationRegistration.getImplementationType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 ModelType<?> internalView = internalViewRegistration.getInternalView();
                 // Managed internal views are allowed not to be implemented by the default implementation
@@ -287,10 +297,10 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
 
     private static class ImplementationRegistration<S> {
         private final ModelRuleDescriptor source;
-        private final ModelType<? extends S> implementationType;
+        private final ModelType<?> implementationType;
         private final ImplementationFactory<S> factory;
 
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<? extends S> implementationType, ImplementationFactory<S> factory) {
+        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<S> factory) {
             this.source = source;
             this.implementationType = implementationType;
             this.factory = factory;
@@ -300,7 +310,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
             return source;
         }
 
-        public ModelType<? extends S> getImplementationType() {
+        public ModelType<?> getImplementationType() {
             return implementationType;
         }
 
