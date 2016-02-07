@@ -125,8 +125,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
 
     static interface ComponentSpecInternalView extends ComponentSpec {}
 
-    static interface BareInternalView {}
-
     static interface NotComponentSpec {}
 
     static interface NotImplementedComponentSpecInternalView extends ComponentSpec {}
