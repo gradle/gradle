@@ -115,6 +115,7 @@ This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.g
 
 - `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` replaced by `TypeBuilder`.
 - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
+- Deprecated properties `ComponentSpec.source` and `BinarySpec.source` have been removed. These were replaced by the `sources` property.
 
 ## External contributions
 
