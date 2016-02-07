@@ -132,8 +132,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         }
     }
 
-    static interface SomeOtherBuilder<T> extends TypeBuilder<T> {}
-
     static class Rules {
         @ComponentType
         static void validTypeRule(TypeBuilder<SomeComponentSpec> builder) {
