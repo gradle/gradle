@@ -25,7 +25,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 
 /**
- * Represents a binary artifact that is the result of building a project component.
+ * Represents a binary that is the result of building a component.
  */
 @Incubating @HasInternalProtocol
 public interface BinarySpec extends BuildableModelElement, Named {

@@ -27,7 +27,7 @@ import org.gradle.model.ModelMap;
  */
 @Incubating
 @HasInternalProtocol
-public interface ComponentSpec extends Named {
+public interface ComponentSpec extends Named, SourceComponentSpec, VariantComponentSpec {
     /**
      * The path to the project containing this component.
      */
@@ -45,14 +45,4 @@ public interface ComponentSpec extends Named {
      */
     @Deprecated
     ModelMap<LanguageSourceSet> getSource();
-
-    /**
-     * The source sets that are used to build this component.
-     */
-    ModelMap<LanguageSourceSet> getSources();
-
-    /**
-     * The binaries that are built for this component. You can use this to configure the binaries for this component.
-     */
-    ModelMap<BinarySpec> getBinaries();
 }
