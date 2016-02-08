@@ -21,7 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A software component that is built by a Gradle project.
+ * A software component that is built by Gradle.
  */
 @Incubating
 @HasInternalProtocol
