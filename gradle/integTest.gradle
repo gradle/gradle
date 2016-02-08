@@ -134,7 +134,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i).*[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
+    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
     def output = new ByteArrayOutputStream()
     def error = new ByteArrayOutputStream()
     def pidPattern
