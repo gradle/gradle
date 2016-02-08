@@ -155,9 +155,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
 
         public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+            ISuite suite = context.getSuite();
             List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
             for (IMethodInstance candidate : methods) {
-                if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())) {
+                if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())
+                    || matcher.matchesTest(suite.getName(), null)) {
                     filtered.add(candidate);
                 }
             }
