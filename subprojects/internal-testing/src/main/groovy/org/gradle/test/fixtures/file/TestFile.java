@@ -318,7 +318,11 @@ public class TestFile extends File {
     }
 
     public TestFile assertIsDir() {
-        assertTrue(String.format("%s is not a directory", this), isDirectory());
+        return assertIsDir("");
+    }
+
+    public TestFile assertIsDir(String hint) {
+        assertTrue(String.format("%s is not a directory. %s", this, hint), isDirectory());
         return this;
     }
 

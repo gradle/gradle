@@ -64,7 +64,8 @@ public class Sample implements MethodRule {
             @Override
             public void evaluate() throws Throwable {
                 if (sampleName != null) {
-                    TestFile srcDir = new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir();
+                    String hintForMissingSample = String.format("If '%s' is a new sample, try running 'gradle intTestImage'.", sampleName);
+                    TestFile srcDir = new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir(hintForMissingSample);
                     logger.debug("Copying sample '{}' to test directory.", sampleName);
                     srcDir.copyTo(sampleDir);
                 } else {
