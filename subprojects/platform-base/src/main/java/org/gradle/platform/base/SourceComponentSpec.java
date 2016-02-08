@@ -16,6 +16,8 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 
@@ -23,6 +25,8 @@ import org.gradle.model.ModelMap;
  * Represents some component whose implementation can be represented as a collection of source files, and whose other
  * outputs are built from this source.
  */
+@Incubating
+@HasInternalProtocol
 public interface SourceComponentSpec {
     /**
      * The source sets for this component.

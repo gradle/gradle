@@ -16,11 +16,13 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 
 /**
  * Represents a component that is made up of one or more mutually exclusive components.
  */
+@Incubating
 public interface VariantComponentSpec {
     /**
      * The variants of this component.
