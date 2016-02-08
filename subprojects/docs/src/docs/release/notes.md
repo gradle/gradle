@@ -57,6 +57,15 @@ It is now possible to declare the local installations of JVMs (JDK or JRE) in yo
 When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
 The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
 
+### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
+
+Users can now match against TestSuite names in both JUnit and TestNG test tasks. You can also, filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
+
+    gradle test --tests "com.example.MyTestSuite"        // Includes the tests in the given suite.
+    gradle test --tests "com.example.ParameterizedTest"  // All iterations of methods in the test.
+    gradle test --tests "*ParameterizedTest.foo*"        // All iterations of the foo method in the test.
+    gradle test --tests "*ParameterizedTest.*[2]"        // Only iteration 2 of all methods in the test.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
