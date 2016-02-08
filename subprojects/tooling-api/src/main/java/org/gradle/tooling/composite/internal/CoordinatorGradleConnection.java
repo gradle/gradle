@@ -33,7 +33,7 @@ import java.util.Set;
 
 public class CoordinatorGradleConnection implements GradleConnection {
     public static final class Builder implements GradleConnection.Builder {
-        private final Set<GradleParticipantBuild> participants = Sets.newHashSet();
+        private final Set<GradleParticipantBuild> participants = Sets.newLinkedHashSet();
         private final GradleConnectionFactory gradleConnectionFactory;
         private final DistributionFactory distributionFactory;
         private File gradleUserHomeDir;
@@ -84,7 +84,7 @@ public class CoordinatorGradleConnection implements GradleConnection {
             compositeConnectionParametersBuilder.setBuilds(participants);
 
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
-            return gradleConnectionFactory.create(distributionFactory.getClasspathDistribution(), connectionParameters);
+            return gradleConnectionFactory.create(FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants), connectionParameters);
         }
     }
 
