@@ -40,8 +40,8 @@ class InitBuild extends DefaultTask {
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
     /**
-     * The desired type of build to create, defaults to {@value BuildInitTypeIds#POM} if 'pom.xml' is found in project root
-     * if no pom.xml is found, it defaults to {@value BuildInitTypeIds#BASIC}.
+     * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root
+     * if no pom.xml is found, it defaults to 'basic'.
      *
      * This property can be set via command-line option '--type'.
      */
