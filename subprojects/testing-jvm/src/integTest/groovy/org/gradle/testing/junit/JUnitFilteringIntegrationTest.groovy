@@ -129,6 +129,39 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     }
 
     @Issue("GRADLE-3112")
+    def "can filter parameterized junit tests to a single iteration from the command-line"() {
+        writeParameterizedFiles()
+
+        when:
+        run("test", "--tests", "*ParameterizedFoo.*[2]")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ParameterizedFoo")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("fail[2]", "pass[2]")
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter parameterized junit tests to a single iteration from the build file"() {
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*ParameterizedFoo.*[2]"
+              }
+            }
+        """
+        writeParameterizedFiles()
+
+        when:
+        run("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ParameterizedFoo")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("fail[2]", "pass[2]")
+    }
+
+    @Issue("GRADLE-3112")
     def "passing a suite argument to --tests runs all tests in the suite"() {
         writeSuiteFiles()
 
