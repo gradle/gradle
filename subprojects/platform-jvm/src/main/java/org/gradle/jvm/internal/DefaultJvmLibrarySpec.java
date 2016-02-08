@@ -41,7 +41,6 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         return inputTypes;
     }
 
-    private final Set<Class<? extends TransformationFileType>> languageOutputs = defaultJvmComponentInputTypes();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
     private final JvmApiSpec apiSpec = new DefaultJvmApiSpec();
     private final DependencySpecContainer dependencies = new DefaultDependencySpecContainer();
@@ -52,8 +51,8 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
     }
 
     @Override
-    public Set<Class<? extends TransformationFileType>> getInputTypes() {
-        return languageOutputs;
+    public Set<Class<? extends TransformationFileType>> getIntermediateTypes() {
+        return defaultJvmComponentInputTypes();
     }
 
     @Override

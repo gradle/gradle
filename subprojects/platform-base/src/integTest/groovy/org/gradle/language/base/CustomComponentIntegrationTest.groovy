@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.LibrarySpec
-import org.gradle.platform.base.internal.ComponentSpecInternal
 import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
@@ -368,8 +367,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
     def "public view of managed component does not expose any internal views or implementation"() {
         buildFile << """
-            import ${ComponentSpecInternal.name}
-
             interface UnmanagedComponentSpec extends ComponentSpec {
                 String getUnmanagedData()
                 void setUnmanagedData(String value)
@@ -414,7 +411,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 @Validate
                 void validateInternal(@Path('components.sample') InternalSampleSpec spec) {
 //                    assert !(spec instanceof ComponentSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
@@ -428,30 +424,9 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Validate
-                void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
-//                    assert !(spec instanceof UnmanagedComponentSpec)
-                    assert !(spec instanceof SampleComponentSpec)
-                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
-                    assert !(spec instanceof InternalSampleSpec)
-                    try {
-                        spec.publicData
-                        assert false
-                    } catch(MissingPropertyException e) {
-                        assert e.message == "No such property: publicData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
-                    }
-                    try {
-                        spec.internalData
-                        assert false
-                    } catch (MissingPropertyException e) {
-                        assert e.message == "No such property: internalData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
-                    }
-                }
-
-                @Validate
                 void validatePublic(@Path('components.sample') SampleComponentSpec spec) {
                     assert !(spec instanceof InternalSampleSpec)
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -467,7 +442,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                     assert spec instanceof SampleComponentSpec
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -484,7 +458,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                     assert spec instanceof SampleComponentSpec
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -498,9 +471,9 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                     tasks.create("validate") {
                         assert components*.name == ["sample"]
+                        assert components.withType(Object)*.name == ["sample"]
                         assert components.withType(ComponentSpec)*.name == ["sample"]
                         assert components.withType(SampleComponentSpec)*.name == ["sample"]
-                        assert components.withType(ComponentSpecInternal)*.name == ["sample"]
                     }
                 }
             }

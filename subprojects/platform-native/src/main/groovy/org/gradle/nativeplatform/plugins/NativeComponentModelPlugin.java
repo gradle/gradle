@@ -54,6 +54,7 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegist
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
@@ -93,6 +94,11 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @ComponentType
         void registerTargetedNativeComponent(TypeBuilder<TargetedNativeComponent> builder) {
             builder.internalView(TargetedNativeComponentInternal.class);
+        }
+
+        @ComponentType
+        void registerNativeComponent(TypeBuilder<NativeComponentSpec> builder) {
+            builder.internalView(HasIntermediateOutputsComponentSpec.class);
         }
 
         @Model

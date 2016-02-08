@@ -29,6 +29,7 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.*;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.DefaultModuleDependencySpec;
+import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
@@ -53,6 +54,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
         @ComponentType
         public void register(TypeBuilder<JUnitTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteSpec.class);
+            builder.internalView(HasIntermediateOutputsComponentSpec.class);
         }
 
         @BinaryType

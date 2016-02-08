@@ -23,20 +23,17 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
-
-import java.util.Collections;
-import java.util.Set;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ModelInstantiationException;
 
 /**
  * Base class that may be used for custom {@link ComponentSpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
-@SuppressWarnings("deprecation")
-public class BaseComponentSpec implements ComponentSpecInternal {
+public class BaseComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
@@ -103,10 +100,6 @@ public class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public ModelMap<BinarySpec> getBinaries() {
         return ModelMaps.toView(binaries, BinarySpec.class);
-    }
-
-    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
-        return Collections.emptySet();
     }
 
     private static class ComponentInfo {

@@ -18,11 +18,11 @@ package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.component.BaseComponentFixtures
@@ -100,7 +100,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
         BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
 
-    interface SampleComponent extends CompileSpec {}
+    interface SampleComponent extends ComponentSpec {}
 
     static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
 

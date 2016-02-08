@@ -72,11 +72,10 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         @ComponentType
         void registerBaseComponentSpec(TypeBuilder<ComponentSpec> builder) {
             builder.defaultImplementation(BaseComponentSpec.class);
-            builder.internalView(ComponentSpecInternal.class);
         }
 
         @ComponentType
-        void registerPlatformAwareComponet(TypeBuilder<PlatformAwareComponentSpec> builder) {
+        void registerPlatformAwareComponent(TypeBuilder<PlatformAwareComponentSpec> builder) {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
         }
 
@@ -185,10 +184,10 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void initializeComponentSourceSets(@Each ComponentSpecInternal component, LanguageTransformContainer languageTransforms) {
+        void initializeComponentSourceSets(@Each HasIntermediateOutputsComponentSpec component, LanguageTransformContainer languageTransforms) {
             // If there is a transform for the language into one of the component inputs, add a default source set
             for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (component.getInputTypes().contains(languageTransform.getOutputType())) {
+                if (component.getIntermediateTypes().contains(languageTransform.getOutputType())) {
                     component.getSources().create(languageTransform.getLanguageName(), languageTransform.getSourceSetType());
                 }
             }

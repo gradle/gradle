@@ -16,14 +16,13 @@
 
 package org.gradle.platform.base.component
 
-import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 
 class BaseComponentFixtures {
     static final def GENERATOR = new AsmBackedClassGenerator()
@@ -34,7 +33,7 @@ class BaseComponentFixtures {
     }
 
     static <T extends ComponentSpec, I extends BaseComponentSpec> MutableModelNode createNode(Class<T> publicType, Class<I> implType, ComponentSpecIdentifier componentId) {
-        BaseInstanceFixtureSupport.createNode(publicType, ComponentSpecInternal, implType, componentId.name) { MutableModelNode node ->
+        BaseInstanceFixtureSupport.createNode(publicType, ComponentSpec, implType, componentId.name) { MutableModelNode node ->
             def decorated = GENERATOR.generate(implType)
             return BaseComponentSpec.create(publicType, decorated, componentId, node)
         }

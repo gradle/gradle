@@ -19,8 +19,10 @@ package org.gradle.play.internal;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.gradle.platform.base.ApplicationSpec;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -51,4 +53,8 @@ public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec imp
         this.targetPlatforms.add(requirement);
     }
 
+    @Override
+    public Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes() {
+        return Collections.emptySet();
+    }
 }

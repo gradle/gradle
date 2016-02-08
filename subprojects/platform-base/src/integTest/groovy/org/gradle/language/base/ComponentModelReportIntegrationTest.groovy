@@ -43,7 +43,6 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9
                       | Rules:
                          ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
                          ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries
@@ -109,7 +108,6 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9
                       | Rules:
                          ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
                          ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ DeclarationRules#mutateMyComponent
                     + binaries

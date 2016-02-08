@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -80,7 +79,6 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 tasks.create("validate") {
                     assert components*.name == ["jar", "sampleLib"]
                     assert components.withType(ComponentSpec)*.name == ["jar", "sampleLib"]
-                    assert components.withType($ComponentSpecInternal.name)*.name == ["jar", "sampleLib"]
                     assert components.withType(JvmLibrarySpec)*.name == ["jar"]
                     assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
                     assert components.withType(SampleLibrarySpecInternal)*.name == ["sampleLib"]
@@ -107,7 +105,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
             }
 
             @Finalize
-            void mutateComponentSpecInternal(ModelMap<$ComponentSpecInternal.name> sampleLibs) {
+            void mutateComponentSpecInternal(ModelMap<VariantComponentSpec> sampleLibs) {
                 sampleLibs.each { sampleLib ->
                     sampleLib.binaries {
                         sampleBin(JarBinarySpec)

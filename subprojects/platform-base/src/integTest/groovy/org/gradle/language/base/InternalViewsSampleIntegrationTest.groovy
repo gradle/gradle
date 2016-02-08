@@ -47,7 +47,6 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                       | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
                       | Rules:
                          ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
                          ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ MyPlugin#mutateMyComponents > all()
                     + binaries

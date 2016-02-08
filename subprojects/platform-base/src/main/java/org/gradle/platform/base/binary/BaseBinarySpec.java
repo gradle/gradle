@@ -47,8 +47,6 @@ import java.util.Set;
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
-@SuppressWarnings("deprecation")
 public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
 
