@@ -23,8 +23,8 @@ import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet, BaseLanguageSourceSet> {
 
@@ -48,19 +48,19 @@ public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSource
     private String determineParentName(MutableModelNode modelNode) {
         MutableModelNode grandparentNode = modelNode.getParent().getParent();
         // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources` or `BinarySpec.sources`
+        // TODO - generalize naming for all nested components
         if (grandparentNode != null) {
-            if (grandparentNode.getPrivateData() instanceof BaseBinarySpec) {
+            if (grandparentNode.canBeViewedAs(ModelType.of(BinarySpecInternal.class))) {
                 // TODO:DAZ Should be using binary.projectScopedName for uniqueness
-                BaseBinarySpec binarySpecInternal = (BaseBinarySpec) grandparentNode.getPrivateData();
+                BinarySpecInternal binarySpecInternal = grandparentNode.asImmutable(ModelType.of(BinarySpecInternal.class), null).getInstance();
                 return binarySpecInternal.getComponent() == null ? binarySpecInternal.getName() : binarySpecInternal.getComponent().getName();
             }
-            if (grandparentNode.getPrivateData() instanceof ComponentSpecInternal) {
-                return ((ComponentSpecInternal) grandparentNode.getPrivateData()).getName();
+            if (grandparentNode.canBeViewedAs(ModelType.of(ComponentSpec.class))) {
+                ComponentSpec componentSpec = grandparentNode.asImmutable(ModelType.of(ComponentSpec.class), null).getInstance();
+                return componentSpec.getName();
             }
         }
 
         return modelNode.getParent().getPath().getName();
     }
-
-
 }
