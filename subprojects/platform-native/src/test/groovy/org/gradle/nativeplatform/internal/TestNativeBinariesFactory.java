@@ -27,9 +27,9 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.configure.NativeBinaries;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.binary.BaseBinaryFixtures;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class TestNativeBinariesFactory {
 
@@ -38,7 +38,7 @@ public class TestNativeBinariesFactory {
                                                                                       NativePlatform platform, BuildType buildType, Flavor flavor) {
         T binary = BaseBinaryFixtures.create(publicType, implType, name, componentNode, taskFactory);
         NativeBinaries.initialize(binary, namingScheme, resolver, TestFiles.fileCollectionFactory(), platform, buildType, flavor);
-        ComponentSpecInternal component = componentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
+        SourceComponentSpec component = componentNode.asImmutable(ModelType.of(SourceComponentSpec.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
         binary.getInputs().addAll(component.getSources().values());
         return binary;
     }
