@@ -109,7 +109,7 @@ public class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
+    public <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
         throw new UnsupportedOperationException();
     }
 

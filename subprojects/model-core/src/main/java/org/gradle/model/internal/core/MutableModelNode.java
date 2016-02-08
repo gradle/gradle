@@ -45,7 +45,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
      */
-    <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor);
+    <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor);
 
     /**
      * Adds a node to the graph, linked from this node. The given registration is used to initialize the node when required.

@@ -348,10 +348,7 @@ public class ModelRegistryHelperExtension {
     }
 
     public static void addReference(MutableModelNode node, String name, Class<?> type, MutableModelNode target) {
-        node.addReference(name, ModelType.of(type), new SimpleModelRuleDescriptor("<test>"));
-        if (target != null) {
-            node.getLink(name).setTarget(target);
-        }
+        node.addReference(name, ModelType.of(type), target, new SimpleModelRuleDescriptor("<test>"));
     }
 
     public static void addLinkInstance(MutableModelNode node, String path, Object instance) {

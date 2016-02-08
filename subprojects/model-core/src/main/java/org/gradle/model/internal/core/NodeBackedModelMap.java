@@ -270,8 +270,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         ModelRuleDescriptor descriptor = sourceDescriptor.append("put()");
         if (instance instanceof ManagedInstance) {
             ManagedInstance target = (ManagedInstance) instance;
-            modelNode.addReference(name, target.getManagedType(), descriptor);
-            modelNode.getLink(name).setTarget(target.getBackingNode());
+            modelNode.addReference(name, target.getManagedType(), target.getBackingNode(), descriptor);
         } else {
             modelNode.addLink(
                 ModelRegistrations.unmanagedInstance(
