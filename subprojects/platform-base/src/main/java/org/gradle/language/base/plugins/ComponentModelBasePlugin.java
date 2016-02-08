@@ -141,7 +141,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             boolean hasBuildableBinaries = false;
-            for (ComponentSpec component : components) {
+            for (VariantComponentSpec component : components.withType(VariantComponentSpec.class)) {
                 for (BinarySpecInternal binary : component.getBinaries().withType(BinarySpecInternal.class)) {
                     if (binary.isBuildable()) {
                         assemble.dependsOn(binary);
