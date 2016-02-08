@@ -34,7 +34,6 @@ class BaseComponentFixtures {
     }
 
     static <T extends ComponentSpec, I extends BaseComponentSpec> MutableModelNode createNode(Class<T> publicType, Class<I> implType, ComponentSpecIdentifier componentId) {
-        def descriptor = new SimpleModelRuleDescriptor("<create $componentId.name>")
         BaseInstanceFixtureSupport.createNode(publicType, ComponentSpecInternal, implType, componentId.name) { MutableModelNode node ->
             def decorated = GENERATOR.generate(implType)
             return BaseComponentSpec.create(publicType, decorated, componentId, node)
