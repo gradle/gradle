@@ -31,6 +31,7 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.Parameterized
 import org.junit.runners.Suite
+import org.junit.runners.model.RunnerBuilder
 
 import static org.junit.Assume.assumeTrue
 
@@ -317,6 +318,16 @@ public class ATestSuite {
 @RunWith(Suite.class)
 @Suite.SuiteClasses([])
 public class AnEmptyTestSuite {
+}
+
+public class CustomSuiteRunner extends Suite {
+    public CustomSuiteRunner(Class<?> klass, RunnerBuilder builder) {
+        super(builder, klass, [ATestClass.class, BTestClass.class])
+    }
+}
+
+@RunWith(CustomSuiteRunner.class)
+public class ACustomSuite {
 }
 
 @RunWith(Parameterized.class)
