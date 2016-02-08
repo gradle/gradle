@@ -40,6 +40,12 @@ public class ATestClass {
     }
 }
 
+public class BTestClass {
+    @Test
+    public void ok() {
+    }
+}
+
 public class ATestClassWithIgnoredMethod {
     @Test
     @Ignore
@@ -136,6 +142,11 @@ public class AJunit3TestClass extends TestCase {
     }
 }
 
+public class BJunit3TestClass extends TestCase {
+    public void testOk() {
+    }
+}
+
 public class AJunit3TestThatRenamesItself extends TestCase {
     public void testOk() {
         setName('another test')
@@ -152,7 +163,7 @@ public class ABrokenJunit3TestClass extends TestCase {
 
 public class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
-        return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class)
+        return new junit.framework.TestSuite(AJunit3TestClass.class, BJunit3TestClass.class)
     }
 }
 
@@ -295,7 +306,7 @@ public class ATestClassWithSlowMethods {
 }
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses([ATestClass.class, ATestClass.class])
+@Suite.SuiteClasses([ATestClass.class, BTestClass.class])
 public class ATestSuite {
 }
 

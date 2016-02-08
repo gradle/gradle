@@ -140,7 +140,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -304,7 +304,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         then: 1 * processor.started({ it.id == 4 && it.className == ATestSuite.name }, { it.parentId == null })
@@ -323,7 +323,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(3, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(4, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         0 * processor._
