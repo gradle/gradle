@@ -330,6 +330,18 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     @Issue("GRADLE-3112")
+    def "has no errors when dealing with an empty suite"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AnEmptyTestSuite"] as Set))
+
+        //Run tests in AnEmptyTestSuite (e.g. no tests)
+        when: process(AnEmptyTestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AnEmptyTestSuite.name }, { it.parentId == null})
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+    @Issue("GRADLE-3112")
     def "parameterized tests can be run with a class-level filter"() {
         classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest"] as Set))
 
@@ -348,6 +360,8 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor._
     }
 
+
+    @Issue("GRADLE-3112")
     def "parameterized tests can be filtered by method name"() {
         classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.helpfulTest*"] as Set))
 
@@ -358,6 +372,18 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be empty"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AnEmptyParameterizedTest"] as Set))
+
+        when: process(AnEmptyParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AnEmptyParameterizedTest.name }, { it.parentId == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }

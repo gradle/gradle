@@ -299,6 +299,11 @@ public class ATestClassWithSlowMethods {
 public class ATestSuite {
 }
 
+@RunWith(Suite.class)
+@Suite.SuiteClasses([])
+public class AnEmptyTestSuite {
+}
+
 @RunWith(Parameterized.class)
 public class AParameterizedTest {
     @Parameterized.Parameters
@@ -307,6 +312,19 @@ public class AParameterizedTest {
     }
 
     public AParameterizedTest(Integer parameter) {}
+
+    @Test public void helpfulTest() {}
+    @Test public void unhelpfulTest() {}
+}
+
+@RunWith(Parameterized.class)
+public class AnEmptyParameterizedTest {
+    @Parameterized.Parameters
+    public static Object[] data() {
+        return []
+    }
+
+    public AnEmptyParameterizedTest(Integer parameter) {}
 
     @Test public void helpfulTest() {}
     @Test public void unhelpfulTest() {}
