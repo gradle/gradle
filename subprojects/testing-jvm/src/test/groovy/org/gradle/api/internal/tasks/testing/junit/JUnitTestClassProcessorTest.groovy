@@ -323,8 +323,23 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(3, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 5 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(5, { it.resultType == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "attempting to filter methods on a suite does NOT work"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*ATestSuite.ok*"] as Set))
+
+        //Doesn't run any tests
+        when: process(ATestClassWithSuiteMethod, ATestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         0 * processor._
     }

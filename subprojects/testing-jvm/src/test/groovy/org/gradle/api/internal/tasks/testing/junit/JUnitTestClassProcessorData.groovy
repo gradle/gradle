@@ -44,6 +44,10 @@ public class BTestClass {
     @Test
     public void ok() {
     }
+
+    @Test
+    public void coolName() {
+    }
 }
 
 public class ATestClassWithIgnoredMethod {
