@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.launcher.exec;
 
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.CompositeBuildActionParameters;
-import org.gradle.launcher.exec.CompositeBuildActionRunner;
 
 public class CompositeBuildActionExecuter implements BuildActionExecuter<CompositeBuildActionParameters> {
     private final CompositeBuildActionRunner compositeBuildActionRunner;

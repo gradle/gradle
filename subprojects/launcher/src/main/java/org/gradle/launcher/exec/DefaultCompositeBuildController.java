@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.launcher.exec;
 
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.exec.CompositeBuildController;
 
 public class DefaultCompositeBuildController implements CompositeBuildController {
     private final ServiceRegistry buildScopeServices;
