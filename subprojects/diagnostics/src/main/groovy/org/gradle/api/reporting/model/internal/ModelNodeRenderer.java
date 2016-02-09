@@ -84,10 +84,8 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         boolean hasValue = value != null && value.isPresent();
         String intro = omitDetails() && model.getLinkCount() == 0 && hasValue ? "|" : "+";
         styledTextoutput.withStyle(Identifier).format("%s %s", intro, model.getPath().getName());
-        if (omitDetails()) {
-            if (hasValue) {
-                styledTextoutput.withStyle(Description).format(" = %s", value.get());
-            }
+        if (omitDetails() && hasValue) {
+            styledTextoutput.withStyle(Description).format(" = %s", value.get());
         }
         styledTextoutput.println();
     }
