@@ -261,7 +261,7 @@ idea {
         def gradleRunners = [
                 "Quick Check (precommit)": "quickCheck --daemon",
                 "Regenerate IDEA metadata": "idea --daemon",
-                "Regenerate Int Test Image": "intTestImage --daemon"
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives --daemon"
         ]
 
         def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"
