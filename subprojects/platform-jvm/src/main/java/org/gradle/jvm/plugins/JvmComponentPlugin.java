@@ -144,7 +144,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             for (final LocalJava candidate : localJavaInstalls) {
                 final File javaHome = canonicalFile(candidate.getPath());
                 final JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
-                Class<? extends LocalJavaInstallation> clazz = null;
+                Class<? extends LocalJavaInstallation> clazz;
                 switch (probeResult.getInstallType()) {
                     case IS_JDK:
                         clazz = InstalledJdkInternal.class;
@@ -155,6 +155,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     case NO_SUCH_DIRECTORY:
                         throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", candidate.getName(), javaHome));
                     case INVALID_JDK:
+                    default:
                         throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, probeResult.getError()));
                 }
 
