@@ -28,6 +28,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.internal.jvm.JavaInstallationsDirLocator;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -158,6 +159,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @Model
         @Hidden
+        JavaInstallationsDirLocator javaInstallationsDirLocator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(JavaInstallationsDirLocator.class);
+        }
+
+        @Model
+        @Hidden
         JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(JavaInstallationProbe.class);
         }
@@ -195,6 +202,54 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         }
                     });
                 }
+            }
+        }
+
+        private static boolean isAlreadyDeclared(File javaHome, ModelMap<LocalJava> declaredInstalls) {
+            for (LocalJava declaration : declaredInstalls) {
+                if (javaHome.equals(canonicalFile(declaration.getPath()))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Defaults
+        public void discoverLocalJavaInstallations(final ModelMap<LocalJavaInstallation> javaToolChains, ModelMap<LocalJava> declaredInstalls, JavaInstallationsDirLocator locator, final JavaInstallationProbe probe) {
+            File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
+            Set<File> discoveredInstallDirs = locator.findJavaInstallationsDirs();
+            int count = 0;
+            for (final File javaHome : discoveredInstallDirs) {
+                if (javaHome.equals(currentJavaHome)) {
+                    // Skip current JDK
+                    continue;
+                }
+                if (isAlreadyDeclared(javaHome, declaredInstalls)) {
+                    // Skip already declared installs
+                    continue;
+                }
+                final JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
+                Class<? extends LocalJavaInstallation> clazz = null;
+                switch (probeResult.getInstallType()) {
+                    case IS_JDK:
+                        clazz = InstalledJdkInternal.class;
+                        break;
+                    case IS_JRE:
+                        clazz = InstalledJre.class;
+                        break;
+                    case NO_SUCH_DIRECTORY:
+                    case INVALID_JDK:
+                        // Ignore bogus and false positives discoveries
+                        continue;
+                }
+                String name = "discoveredJvm" + (count++);
+                javaToolChains.create(name, clazz, new Action<LocalJavaInstallation>() {
+                    @Override
+                    public void execute(LocalJavaInstallation installedJdk) {
+                        installedJdk.setJavaHome(javaHome);
+                        probeResult.configure(installedJdk);
+                    }
+                });
             }
         }
 
