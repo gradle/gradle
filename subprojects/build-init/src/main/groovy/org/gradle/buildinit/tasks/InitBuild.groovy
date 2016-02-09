@@ -91,8 +91,8 @@ class InitBuild extends DefaultTask {
     }
 
     @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 1)
-    public void setTestFramework(String with) {
-        this.testFramework = with
+    public void setTestFramework(String testFramework) {
+        this.testFramework = testFramework
     }
 
     @OptionValues("test-framework")
