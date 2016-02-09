@@ -112,13 +112,21 @@ For example, if the project had a directory structure like:
     files/valid/Some.class
     file/alsoValid/Some.Java
 
-Then the following `fileTree` would contain no files with previous versions of Gradle.
+And a FileTree configured with a single-level wildcard `('*')`:
 
     fileTree('files') {
         exclude('*')
     }
 
-This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.gradle.org/browse/GRADLE-3182)) so that `fileTree` will contain all of the files except for `files/ignoreMe.txt`. This behavior is consistent with how `include` patterns already work.
+In previous versions of Gradle, the FileTree would exclude all files (even those in subdirectories).
+
+This version of Gradle changes the behavior (see: [GRADLE-3182](https://issues.gradle.org/browse/GRADLE-3182)) so that FileTree will exclude only the files in the top-level directory (`files/ignoreMe.txt`) and will contain the files in the subdirectories. This behavior is now consistent with how `include` patterns work.
+
+To reproduce the behavior of earlier releases, change the single-level wildcard to a multi-level wildcard:
+
+    fileTree('files') {
+        exclude('**')
+    }
 
 ### Changes to the experimental software model
 
