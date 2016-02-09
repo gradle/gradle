@@ -2,10 +2,10 @@
 
 ## Use case
 
-The build engineering team provides build infrastructure and build logic to development teams, both inside and outside the organisation. The development teams use
+The build engineering team provides build infrastructure and build logic to development teams, both inside and outside the organization. The development teams use
 this to automate various development jobs.
 
-The build logic includes open source and closed source plugins, and configuration data. This configuration data includes recommended and supported plugin versions,
+The build logic may include open source and closed source plugins, and configuration data. This configuration data may include recommended and supported plugin versions,
 Gradle API versions, and Java runtime versions. It also includes details of where to find (most of) these things.
 
 ## "Build platform" concept
@@ -21,7 +21,7 @@ A build platform definition is simply another piece of build logic, and will be 
 
 Initially, a build platform definition would include:
 
-- Some id and version information
+- Some id and version information.
 - Supported Gradle API versions.
 - Supported Java API versions.
 - An optional bootstrap init script to apply to the build. This init script can use the Gradle APIs to inject configuration and build logic.
@@ -90,13 +90,13 @@ of the build platform definition.
 
 - Introduce a new DSL to the `Settings` class. The DSL can be used to provide the base information of build platform (`id` and `version`) as well as the target location hosting the
 build platform meta-data.
-- As target locations Maven and Ivy repositories can be specified. Other target location are out-of-scope for this story.
-- During the initialization phase of a Gradle build the DSL evaluated. The underlying data structure is populated.
+- Maven and Ivy repositories can be specified as target locations. Other target location are out-of-scope for this story.
+- During the initialization phase of a Gradle build the DSL is evaluated. The underlying data structure is populated.
 - Gradle uses the build platform definition to resolve the build platform artifact. The artifact is represented as a JAR file accompanied by the relevant Maven or Ivy meta-data.
 - Gradle caches the resolved artifacts in its cache in the same way as any other artifact.
-- The version used to resolve the build platform artifacts in the binary repository can be dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
+- The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
 definitions would behave based on the usual TTL definitions.
-- The `buildSystem` requires the declaration of the `id` and `version` as well as at least one Ivy or Maven Repository.
+- The `buildSystem` requires the declaration of the `id` and `version` properties as well as at least one Ivy or Maven Repository.
 
 ### Test cases
 
@@ -130,10 +130,10 @@ about the build platform: `id` and `version`.
 
 ### Implementation
 
-- During the initialization phase parse the build platform meta-data located in the cache.
+- During the initialization phase, parse the build platform meta-data located in the cache.
 - Read the build platform meta-data from the cached JAR file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
-- The JSON file name search for is `build-platform.json`. No other name is allowed. The file is located in the directory `META-INF/gradle` of the JAR.
+- The JSON file name must be `build-platform.json`. No other name is allowed. The file is located in the directory `META-INF/gradle` of the JAR.
 - Parse the values of attributes `id` and `version` and compare them with the attributes specified in the `Settings` file.
 
 ### Test cases
@@ -150,8 +150,8 @@ about the build platform: `id` and `version`.
 
 ## Story - Gradle evaluates init script in build platform meta-data
 
-A build platform meta-data can declare an optional init script that should be applied automatically by the build. This story extends the JSON definition by an init script
-attribute. Gradle evaluates this flag upon resolution and applies the provided init script.
+The build platform meta-data can include an optional init script declaration that should be processed automatically by the build.
+This story extends the JSON definition by an init script attribute. Gradle evaluates this flag upon resolution and processes the provided init script.
 
 ### Build platform meta-data
 
@@ -183,11 +183,29 @@ attribute. Gradle evaluates this flag upon resolution and applies the provided i
 ### Open issues
 
 - Init scripts that are hosted outside of the build platform JAR file.
+- Can custom plugins be applied as part of executing the init script (see next story).
+
+## Story - Gradle supports applying a custom plugin (from outside distribution) from an init script
+
+A current limitation of Gradle is the inability to apply an external (outside the Gradle distribution) custom
+plugin from an init script (see https://issues.gradle.org/browse/GRADLE-2407). The previous story provides
+the ability to execute init scripts as part of build platform processing. Until further detailed design work
+is complete, it isn't clear whether any existing limitations will be removed as part of the previous story.
+The previous limitation may be removed altogether or might be partially removed, e.g. perhaps custom plugins
+which reside within the build platform JAR can be applied.
+
+If these limitations aren't removed as a byproduct of the previous story, this story will look at removing
+those limitations. This will greatly reduce the scenarios where custom Gradle distributions are required.
+
+### Open issues
+
+- Can the limitations be removed based around existing Gradle functionality? I.e. will it (partially?) work for users not making use of the build platform concept.
+- Custom plugins that are hosted outside of the build platform JAR file.
 
 # Milestone 2
 
-This milestone build on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
- that are checked automatically against the Gradle build applying the rules.
+This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
+that are checked automatically against the Gradle build applying the rules.
 
 ## Story -  Gradle evaluates Gradle compatibility in build platform meta-data
 
@@ -223,7 +241,8 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 
 ### Open issues
 
-- Allowing compatible version ranges e.g. `>=2.5 =<2.8`
+- Allowing compatible version ranges e.g. `>=2.5 =<2.8`.
+- Potential impacts for the Gradle wrapper.
 
 ## Story -  Gradle evaluates Java compatibility in build platform meta-data
 
@@ -281,13 +300,13 @@ This story introduces a new Gradle core plugin to allow a team to generate build
 
 ### Test cases
 
-- The plugin can be resolve with the appropriate name or type.
+- The plugin can be resolved with the appropriate name or type.
 - Applying the plugin exposes an extension with the appropriate name.
-- The extension can be use to configure the build platform meta-data.
+- The extension can be used to configure the build platform meta-data.
 - The meta-data generation task can be executed and behaves as expected.
     - Implements UP-TO-DATE checks.
     - Produces the output file in JSON format.
-    - Derived base information from project properties.
+    - Correctly derives base information from project properties.
     - Translates DSL values into task inputs.
     - The output file is valid JSON.
     - All relevant information is reflected in the generated JSON file.
@@ -300,7 +319,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 
 - Expose a `Jar` task that bundles the build platform meta-data and optional init script. The task depends on the task for generating the build platform meta-data.
 - Extend the DSL for declaring a single Ivy _or_ Maven repository.
-- Based on the type of repository leverage the `ivy-publish` or `maven-publish` plugin.
+- Based on the type of repository, leverage the `ivy-publish` or `maven-publish` plugin.
 - Credentials can be configured via the plugin DSL.
 - The plugin configures the publish plugins under the covers and implements the required wiring.
 - For publishing the generated meta-data the end user calls the `publish` provided by the `publish` plugin.
@@ -324,7 +343,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 - Before being able to publish, the user needs to configure at least one target repository.
 - Initiating the publishing process first calls the task for generating the meta-data and bundles it into a JAR file.
 - Misconfiguration in the DSL leads to a failed exception.
-- The generated Ivy/Maven meta-data basically just creates a marker file. It won't contain other information than the `group`/`name`/`version` required for publishing.
+- The generated Ivy/Maven meta-data basically just creates a marker file. It won't contain information other than the `group`/`name`/`version` required for publishing.
 - Publishing to a Ivy and Maven repository works properly. Failures produced by the `publish` plugins are propagated.
 
 ### Open issues
@@ -337,7 +356,7 @@ Further integrations into the Gradle ecosystem.
 
 ## Story - Build platform meta-data can be published to the Gradle plugin portal and consumed from there
 
-Some organizations or Open Source project may decide to publish the build platform meta-data to a public binary repository. This story aims for extending the `build-system-dev` plugin
+Some organizations or Open Source projects may decide to publish the build platform meta-data to a public binary repository. This story aims for extending the `build-system-dev` plugin
 to publish to the Gradle plugin portal. The `buildSystem` definition of a platform will need to allow the consumption from the plugin portal.
 
 ### Usage
