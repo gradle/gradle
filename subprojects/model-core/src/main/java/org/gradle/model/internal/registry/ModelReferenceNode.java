@@ -46,7 +46,8 @@ public class ModelReferenceNode extends ModelNodeInternal {
 
     @Override
     public void setTarget(ModelNode target) {
-        if (!isMutable()) {
+        // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node as well
+        if (getState() != State.Registered) {
             throw new IllegalStateException(String.format("Cannot set target for model element '%s' as this element is not mutable.", getPath()));
         }
         if (LOGGER.isDebugEnabled()) {
