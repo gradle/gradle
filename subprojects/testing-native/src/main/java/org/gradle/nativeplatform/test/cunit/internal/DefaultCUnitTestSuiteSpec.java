@@ -23,8 +23,9 @@ import org.gradle.platform.base.ComponentSpec;
 public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec implements CUnitTestSuiteSpec {
     private NativeComponentSpec testedComponent;
 
-    public String getDisplayName() {
-        return String.format("cunit test suite '%s'", getName());
+    @Override
+    protected String getTypeName() {
+        return "Cunit test suite";
     }
 
     public NativeComponentSpec getTestedComponent() {

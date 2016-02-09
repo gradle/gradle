@@ -24,7 +24,7 @@ import org.gradle.language.javascript.JavaScriptSourceSet;
  */
 public class DefaultJavaScriptSourceSet extends BaseLanguageSourceSet implements JavaScriptSourceSet {
     @Override
-    protected String getTypeName() {
-        return "JavaScript source";
+    protected String getLanguageName() {
+        return "JavaScript";
     }
 }

@@ -22,15 +22,41 @@ import spock.lang.Specification
 
 class BaseLanguageSourceSetTest extends Specification {
     def "has useful display names"() {
-        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, TestSourceSetImpl, "test", "parent", TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, "test", "parent", TestFiles.sourceDirectorySetFactory())
 
         expect:
         sourceSet.name == "test"
-        sourceSet.displayName == "TestSourceSet 'parent:test'"
+        sourceSet.displayName == "Test source 'parent:test'"
         sourceSet.toString() == sourceSet.displayName
+    }
+
+    def "calculates display name from public type name"() {
+        expect:
+        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, "test", "parent", TestFiles.sourceDirectorySetFactory())
+        sourceSet.displayName == displayName
+
+        where:
+        publicType                | displayName
+        SomeTypeLanguageSourceSet | "SomeType source 'parent:test'"
+        SomeTypeSourceSet         | "SomeType source 'parent:test'"
+        SomeTypeSource            | "SomeType source 'parent:test'"
+        SomeTypeSet               | "SomeType source 'parent:test'"
+        SomeType                  | "SomeType source 'parent:test'"
+        SomeResourcesSet          | "SomeResources 'parent:test'"
     }
 
     interface TestSourceSet extends LanguageSourceSet {}
 
-    static class TestSourceSetImpl extends BaseLanguageSourceSet implements TestSourceSet {}
+    interface SomeTypeLanguageSourceSet extends LanguageSourceSet {}
+
+    interface SomeTypeSourceSet extends LanguageSourceSet {}
+
+    interface SomeTypeSet extends LanguageSourceSet {}
+
+    interface SomeTypeSource extends LanguageSourceSet {}
+
+    interface SomeType extends LanguageSourceSet {}
+
+    interface SomeResourcesSet extends LanguageSourceSet {}
+
 }

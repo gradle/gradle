@@ -129,7 +129,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.inputs.@creator[0] == 'Rules#buildType'
 
         buildType.sources.@type[0] == 'CustomSourceSet'
-        buildType.sources.@nodeValue[0] == "CustomSourceSet 'buildType:sources'"
+        buildType.sources.@nodeValue[0] == "Custom source 'buildType:sources'"
         buildType.sources.@creator[0] == 'Rules#buildType'
     }
 

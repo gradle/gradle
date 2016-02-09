@@ -147,9 +147,6 @@ class NativeBinarySpecTest extends Specification {
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {
-        String getDisplayName() {
-            return "test component"
-        }
     }
 
     static class TestNativeBinarySpec extends AbstractNativeBinarySpec {

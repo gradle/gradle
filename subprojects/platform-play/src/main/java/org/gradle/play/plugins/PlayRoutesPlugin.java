@@ -27,7 +27,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.routes.RoutesSourceSet;
-import org.gradle.language.routes.internal.DefaultRoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
@@ -53,7 +52,6 @@ public class PlayRoutesPlugin extends RuleSource {
 
     @LanguageType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
-        builder.defaultImplementation(DefaultRoutesSourceSet.class);
     }
 
     @Mutate

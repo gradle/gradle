@@ -211,7 +211,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: CustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: Custom source 'main:main'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {

@@ -20,8 +20,9 @@ import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 
 public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpec implements NativeLibrarySpec {
-    public String getDisplayName() {
-        return String.format("native library '%s'", getName());
+    @Override
+    protected String getTypeName() {
+        return "native library";
     }
 
     public NativeLibraryRequirement getShared() {

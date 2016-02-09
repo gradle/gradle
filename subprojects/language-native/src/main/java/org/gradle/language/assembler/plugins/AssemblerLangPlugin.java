@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.language.assembler.AssemblerSourceSet;
-import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -48,7 +47,6 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(TypeBuilder<AssemblerSourceSet> builder) {
-            builder.defaultImplementation(DefaultAssemblerSourceSet.class);
         }
 
         @Mutate

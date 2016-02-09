@@ -71,7 +71,7 @@ SampleComponent 'main'
 ----------------------
 
 Source sets
-    CustomLanguageSourceSet 'main:custom'
+    Custom source 'main:custom'
         srcDir: src${File.separator}main${File.separator}custom
 """
     }

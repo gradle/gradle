@@ -63,7 +63,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                   | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                                 + myBinarySource
                                       | Type:   	UnmanagedLanguageSourceSet
-                                      | Value:  	UnmanagedLanguageSourceSet 'myComponent:myBinarySource'
+                                      | Value:  	Unmanaged source 'myComponent:myBinarySource'
                                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource
@@ -77,7 +77,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                           | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9
                         + myComponentSource
                               | Type:   	UnmanagedLanguageSourceSet
-                              | Value:  	UnmanagedLanguageSourceSet 'myComponent:myComponentSource'
+                              | Value:  	Unmanaged source 'myComponent:myComponentSource'
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myComponentSource)
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource
@@ -182,27 +182,27 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             ${'-'.multiply("$componentType 'myComponent'".length())}
 
             Source sets
-                $sourceType 'myComponent:myComponentSource'
+                $languageName source 'myComponent:myComponentSource'
                     srcDir: src${File.separator}myComponent${File.separator}myComponentSource
 
             Binaries
                 $binaryType 'myComponent:myBinary'
                     build using task: :myComponentMyBinary
                     source sets:
-                        $sourceType 'myComponent:myBinarySource'
+                        $languageName source 'myComponent:myBinarySource'
                             srcDir: src${File.separator}myComponent${File.separator}myBinarySource
             """.stripIndent()
 
         where:
-        componentType        | binaryType        | sourceType
-        'UnmanagedComponent' | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet'
-        'UnmanagedComponent' | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'
-        'UnmanagedComponent' | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet'
-        'UnmanagedComponent' | 'ManagedBinary'   | 'ManagedLanguageSourceSet'
-        'ManagedComponent'   | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet'
-        'ManagedComponent'   | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'
-        'ManagedComponent'   | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet'
-        'ManagedComponent'   | 'ManagedBinary'   | 'ManagedLanguageSourceSet'
+        componentType        | binaryType        | sourceType                   | languageName
+        'UnmanagedComponent' | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet' | "Unmanaged"
+        'UnmanagedComponent' | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'   | "Managed"
+        'UnmanagedComponent' | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet' | "Unmanaged"
+        'UnmanagedComponent' | 'ManagedBinary'   | 'ManagedLanguageSourceSet'   | "Managed"
+        'ManagedComponent'   | 'UnmanagedBinary' | 'UnmanagedLanguageSourceSet' | "Unmanaged"
+        'ManagedComponent'   | 'UnmanagedBinary' | 'ManagedLanguageSourceSet'   | "Managed"
+        'ManagedComponent'   | 'ManagedBinary'   | 'UnmanagedLanguageSourceSet' | "Unmanaged"
+        'ManagedComponent'   | 'ManagedBinary'   | 'ManagedLanguageSourceSet'   | "Managed"
     }
 
     def declareSoftwareComponents(componentType, binaryType, sourceType) {

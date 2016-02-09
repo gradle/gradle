@@ -37,7 +37,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     private String name;
     private String fullName;
     private String parentName;
-    private String typeName;
+    private String languageName;
     private SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
@@ -57,7 +57,11 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
+        String languageName = getLanguageName();
+        if (languageName.toLowerCase().endsWith("resources")) {
+            return String.format("%s '%s:%s'", languageName, parentName, getName());
+        }
+        return String.format("%s source '%s:%s'", languageName, parentName, getName());
     }
 
     @Override
@@ -65,8 +69,8 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         return getDisplayName();
     }
 
-    protected String getTypeName() {
-        return typeName;
+    protected String getLanguageName() {
+        return languageName;
     }
 
     @Override
@@ -118,11 +122,15 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         }
         this.name = info.name;
         this.parentName = info.parentName;
-        this.typeName = info.typeName;
+        this.languageName = guessLanguageName(info.typeName);
         this.fullName = info.parentName + StringUtils.capitalize(name);
         this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
         this.source = sourceDirectorySetFactory.create("source");
         super.builtBy(source.getBuildDependencies());
+    }
+
+    private String guessLanguageName(String typeName) {
+        return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
     }
 
     private static class SourceSetInfo {
