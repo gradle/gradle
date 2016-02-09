@@ -28,7 +28,6 @@ public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
                 [fieldName: 'windowTitle', antProperty: 'windowTitle', defaultValue: null, testValue: 'title-value'],
                 [fieldName: 'docTitle', antProperty: 'docTitle', defaultValue: null, testValue: 'doc-title-value'],
                 [fieldName: 'header', antProperty: 'header', defaultValue: null, testValue: 'header-value'],
-                [fieldName: 'footer', antProperty: 'footer', defaultValue: null, testValue: 'footer-value'],
                 [fieldName: 'top', antProperty: 'top', defaultValue: null, testValue: 'top-value'],
                 [fieldName: 'bottom', antProperty: 'bottom', defaultValue: null, testValue: 'bottom-value'],
                 [fieldName: 'footer', antProperty: 'footer', defaultValue: null, testValue: 'footer-value']
