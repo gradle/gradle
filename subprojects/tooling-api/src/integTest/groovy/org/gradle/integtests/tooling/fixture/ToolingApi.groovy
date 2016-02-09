@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.composite.internal.GradleConnectionInternal
+import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -195,5 +197,15 @@ class ToolingApi implements TestRule {
                 }
             }
         };
+    }
+
+    def createCompositeBuilder(boolean useCoordinator = false) {
+        GradleConnectionInternal.Builder builder = useCoordinator ? ConnectorServices.createCoordinatorGradleConnectionBuilder() : GradleConnector.newGradleConnectionBuilder()
+        builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
+        builder.daemonBaseDir(new File(daemonBaseDir.path))
+        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
+        builder.embeddedCoordinator(embedded)
+
+        builder
     }
 }

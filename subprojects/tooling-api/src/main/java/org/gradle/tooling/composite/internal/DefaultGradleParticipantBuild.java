@@ -32,6 +32,8 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
     private URI gradleDistribution;
     private String gradleVersion;
 
+    private File daemonBaseDir;
+
     private ProjectConnection projectConnection;
 
     DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir) {
@@ -79,11 +81,11 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
         return gradleDistribution;
     }
 
-
     @Override
     public String getGradleVersion() {
         return gradleVersion;
     }
+
 
     // TODO: remove client side implementation
 
@@ -107,6 +109,9 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
         connector.forProjectDirectory(projectDir);
         if (gradleUserHomeDir != null) {
             connector.useGradleUserHomeDir(gradleUserHomeDir);
+        }
+        if (daemonBaseDir != null) {
+            connector.daemonBaseDir(daemonBaseDir);
         }
         return configureDistribution(connector).connect();
 
@@ -136,5 +141,14 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
 
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
+    }
+
+    public File getDaemonBaseDir() {
+        return daemonBaseDir;
+    }
+
+    @Override
+    public void setDaemonBaseDir(File daemonBaseDir) {
+        this.daemonBaseDir = daemonBaseDir;
     }
 }

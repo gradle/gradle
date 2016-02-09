@@ -19,9 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
-import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -30,6 +28,7 @@ import org.gradle.util.TestPrecondition
 // Hack, disable tests on windows temporarily until I figure out why the tests are taking so long
 @Requires(TestPrecondition.NOT_WINDOWS)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
+    boolean useCoordinator = shouldUseCoordinator()
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -47,11 +46,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        GradleConnection.Builder builder = shouldUseCoordinator() ? ConnectorServices.createCoordinatorGradleConnectionBuilder() : GradleConnector.newGradleConnectionBuilder()
-
-        // TODO: Pull this from a nicer place?
-        builder.useGradleUserHomeDir(toolingApi.gradleUserHomeDir)
-        builder
+        toolingApi.createCompositeBuilder(useCoordinator)
     }
 
     private boolean shouldUseCoordinator() {

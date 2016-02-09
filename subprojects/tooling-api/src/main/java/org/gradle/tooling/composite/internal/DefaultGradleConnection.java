@@ -26,11 +26,12 @@ import org.gradle.tooling.composite.GradleConnection;
 import java.io.File;
 import java.net.URI;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnection implements GradleConnection {
-    public static final class Builder implements GradleConnection.Builder {
-
+    public static final class Builder implements GradleConnectionInternal.Builder {
         private File gradleUserHomeDir;
+        private File daemonBaseDir;
         private final Set<GradleParticipantBuild> participants = Sets.newHashSet();
 
         @Override
@@ -72,9 +73,28 @@ public class DefaultGradleConnection implements GradleConnection {
             // Set Gradle user home for each participant build
             for (GradleParticipantBuild participant : participants) {
                 participant.setGradleUserHomeDir(gradleUserHomeDir);
+                participant.setDaemonBaseDir(daemonBaseDir);
             }
 
             return new ValidatingGradleConnection(new DefaultGradleConnection(gradleUserHomeDir, participants), new DefaultCompositeValidator());
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder embeddedCoordinator(boolean embedded) {
+            // ignored
+            return this;
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
+            // ignore
+            return this;
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder daemonBaseDir(File daemonBaseDir) {
+            this.daemonBaseDir = daemonBaseDir;
+            return this;
         }
     }
 

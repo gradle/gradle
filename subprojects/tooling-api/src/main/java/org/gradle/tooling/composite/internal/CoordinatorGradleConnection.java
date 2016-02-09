@@ -30,13 +30,18 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import java.io.File;
 import java.net.URI;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class CoordinatorGradleConnection implements GradleConnection {
-    public static final class Builder implements GradleConnection.Builder {
+    public static final class Builder implements GradleConnectionInternal.Builder {
         private final Set<GradleParticipantBuild> participants = Sets.newLinkedHashSet();
         private final GradleConnectionFactory gradleConnectionFactory;
         private final DistributionFactory distributionFactory;
         private File gradleUserHomeDir;
+        private Boolean embeddedCoordinator;
+        private Integer daemonMaxIdleTimeValue;
+        private TimeUnit daemonMaxIdleTimeUnits;
+        private File daemonBaseDir;
 
         public Builder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
             this.gradleConnectionFactory = gradleConnectionFactory;
@@ -82,9 +87,34 @@ public class CoordinatorGradleConnection implements GradleConnection {
 
             DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
             compositeConnectionParametersBuilder.setBuilds(participants);
+            compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
+            compositeConnectionParametersBuilder.setEmbedded(embeddedCoordinator);
+            compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
+            compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
+            compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
 
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
+
             return gradleConnectionFactory.create(FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants), connectionParameters);
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder embeddedCoordinator(boolean embedded) {
+            this.embeddedCoordinator = embedded;
+            return this;
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
+            this.daemonMaxIdleTimeValue = timeoutValue;
+            this.daemonMaxIdleTimeUnits = timeoutUnits;
+            return this;
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder daemonBaseDir(File daemonBaseDir) {
+            this.daemonBaseDir = daemonBaseDir;
+            return this;
         }
     }
 

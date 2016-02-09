@@ -66,7 +66,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             for (GradleParticipantBuild build : compositeParticipants) {
                 clonedCompositeParticipants.add(new DefaultGradleParticipantBuild(build));
             }
-            CompositeParameters compositeParameters = new CompositeParameters(clonedCompositeParticipants);
+            CompositeParameters compositeParameters = new CompositeParameters(clonedCompositeParticipants, parameters.getDaemonBaseDir(null), parameters.getDaemonMaxIdleTimeValue(), parameters.getDaemonMaxIdleTimeUnits());
             actionParameters = new DefaultCompositeBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false, classPath, compositeParameters);
         } else {

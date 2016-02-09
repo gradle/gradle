@@ -16,26 +16,17 @@
 
 package org.gradle.tooling.composite.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.composite.GradleConnection;
 
 import java.io.File;
-import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
-public interface GradleParticipantBuild extends Stoppable {
-    File getProjectDir();
+public interface GradleConnectionInternal extends GradleConnection {
+    public interface Builder extends GradleConnection.Builder {
+        public Builder embeddedCoordinator(boolean embedded);
 
-    String getDisplayName();
+        public Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
 
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
-
-    ProjectConnection getConnection();
-
-    void setGradleUserHomeDir(File gradleUserHomeDir);
-
-    void setDaemonBaseDir(File daemonBaseDir);
+        public Builder daemonBaseDir(File daemonBaseDir);
+    }
 }
