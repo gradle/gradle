@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.regex.Pattern
@@ -56,7 +57,7 @@ class EclipseClasspathFixture {
     }
 
     void assertHasLibs(String... jarNames) {
-        assert libs*.jarName == jarNames as List
+        assert libs*.jarName as Set == jarNames as Set
     }
 
     EclipseLibrary lib(String jarName) {
@@ -146,13 +147,13 @@ class EclipseClasspathFixture {
 
         void assertIsDeployedTo(String path) {
             assert entry.attributes
-            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.dependency'
+            assert entry.attributes[0].attribute[0].@name == AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE
             assert entry.attributes[0].attribute[0].@value == path
         }
 
         void assertIsExcludedFromDeployment() {
             assert entry.attributes
-            assert entry.attributes[0].attribute[0].@name == 'org.eclipse.jst.component.nondependency'
+            assert entry.attributes[0].attribute[0].@name == AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE
             assert entry.attributes[0].attribute[0].@value == ''
         }
 

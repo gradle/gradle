@@ -80,7 +80,7 @@ project(':java') {
 
         def webClasspath = classpath('web')
         webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', "guava-18.0.jar", 'hamcrest-core-1.3.jar')
-        webClasspath.lib('commons-lang3-3.0.jar').assertIsExcludedFromDeployment()
+        webClasspath.lib('commons-lang3-3.0.jar').assertIsDeployedTo('/WEB-INF/lib')
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
@@ -106,8 +106,77 @@ project(':java') {
         webComponent.resources.size() == 2
         webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
-        webComponent.modules.size() == 3
-        webComponent.lib('commons-lang3-3.0.jar').assertDeployedAt('/WEB-INF/lib')
+        webComponent.modules.size() == 1
+        webComponent.project('java').assertDeployedAt('/WEB-INF/lib')
+    }
+
+    def "correctly adds different versions of dependencies to web project and java project it depends on"() {
+        settingsFile << "include 'web', 'java'"
+
+        file('java/src/main/java').mkdirs()
+        file('web/src/main/java').mkdirs()
+        file('web/src/main/webapp').mkdirs()
+
+        buildFile << """
+subprojects {
+    apply plugin: 'eclipse-wtp'
+
+    repositories {
+        jcenter()
+    }
+}
+project(':web') {
+    apply plugin: 'war'
+
+    dependencies {
+        compile 'com.google.guava:guava:19.0'
+        compile project(':java')
+    }
+}
+project(':java') {
+    apply plugin: 'java'
+
+    dependencies {
+        compile 'com.google.guava:guava:18.0'
+    }
+}
+"""
+
+        when:
+        run "eclipse"
+
+        then:
+        // Builders and natures
+        def javaProject = project('java')
+        javaProject.assertHasJavaFacetNatures()
+        javaProject.assertHasJavaFacetBuilders()
+
+        def webProject = project('web')
+        webProject.assertHasJavaFacetNatures()
+        webProject.assertHasJavaFacetBuilders()
+
+        // Classpath
+        def javaClasspath = classpath('java')
+        javaClasspath.assertHasLibs('guava-18.0.jar')
+        javaClasspath.lib('guava-18.0.jar').assertIsDeployedTo('../')
+
+        def webClasspath = classpath('web')
+        webClasspath.assertHasLibs('guava-19.0.jar')
+        webClasspath.lib('guava-19.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+
+        // Deployment
+        def javaComponent = wtpComponent('java')
+        javaComponent.deployName == 'java'
+        javaComponent.resources.size() == 1
+        javaComponent.sourceDirectory('src/main/java').assertDeployedAt('/')
+        javaComponent.modules.isEmpty()
+
+        def webComponent = wtpComponent('web')
+        webComponent.deployName == 'web'
+        webComponent.resources.size() == 2
+        webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
+        webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
+        webComponent.modules.size() == 1
         webComponent.project('java').assertDeployedAt('/WEB-INF/lib')
     }
 }

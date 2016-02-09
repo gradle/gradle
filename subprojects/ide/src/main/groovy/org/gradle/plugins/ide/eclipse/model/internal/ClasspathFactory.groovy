@@ -26,6 +26,8 @@ import org.gradle.util.DeprecationLogger
 
 class ClasspathFactory {
 
+    private static final IdeDependenciesExtractor DEPENDENCIES_EXTRACTOR = new IdeDependenciesExtractor()
+
     private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
@@ -43,28 +45,31 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.project, eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
+            entries.addAll(DEPENDENCIES_EXTRACTOR.extractProjectDependencies(eclipseClasspath.project, eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
                 .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) })
         }
     }
 
+    public static Collection resolveDependenciesFrom(EclipseClasspath classpath) {
+        def externals = DEPENDENCIES_EXTRACTOR.extractRepoFileDependencies(classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
+        def locals = DEPENDENCIES_EXTRACTOR.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
+        return externals + locals
+    }
+
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
-            dependenciesExtractor.extractRepoFileDependencies(
-                    classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
-            .each { IdeExtendedRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
-            }
-
-            dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
-            .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath, null)
+            resolveDependenciesFrom(classpath).each { dep ->
+                if (dep instanceof IdeExtendedRepoFileDependency) {
+                    entries << createLibraryEntry(dep.file, dep.sourceFile, dep.javadocFile, dep.declaredConfiguration.name, classpath, dep.id)
+                }
+                if (dep instanceof IdeLocalFileDependency) {
+                    entries << createLibraryEntry(dep.file, null, null, dep.declaredConfiguration.name, classpath, null)
+                }
             }
         }
     }
 
     private final sourceFoldersCreator = new SourceFoldersCreator()
-    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
     private final classFoldersCreator = new ClassFoldersCreator()
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
@@ -84,7 +89,7 @@ class ClasspathFactory {
     }
 
     Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(EclipseClasspath classpath) {
-        return dependenciesExtractor.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
+        return DEPENDENCIES_EXTRACTOR.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
     }
 
     private AbstractLibrary createLibraryEntry(

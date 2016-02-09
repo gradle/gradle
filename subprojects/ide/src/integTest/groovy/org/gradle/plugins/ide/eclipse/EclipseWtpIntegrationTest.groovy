@@ -45,90 +45,42 @@ dependencies {
     @Test
     @Issue("GRADLE-2526")
     void overwritesDependentModules() {
-        generateEclipseFilesForWebProject()
-        def projectModules = parseComponentFile(project: "web")
-        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+        generateWebProjectWithWtpComponentDependency("1.0")
+        def projectModules = parseComponentFile()
+        assert getHandleFilenames(projectModules) == ["myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
 
-        generateEclipseFilesForWebProject("1.2.3")
-        def projectModules2 = parseComponentFile(project: "web")
-        assert getHandleFilenames(projectModules2) == ["java1", "java2", "groovy", "myartifact-1.2.3.jar", "myartifactdep-1.0.jar"] as Set
+        generateWebProjectWithWtpComponentDependency("1.2.3")
+        def projectModules2 = parseComponentFile()
+        assert getHandleFilenames(projectModules2) == ["myartifact-1.2.3.jar", "myartifactdep-1.0.jar"] as Set
     }
 
-    private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
+    private generateWebProjectWithWtpComponentDependency(myArtifactVersion) {
         def repoDir = file("repo")
         maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOnModules("myartifactdep").publish()
         maven(repoDir).module("mygroup", "myartifactdep").publish()
 
-        def settingsFile = file("settings.gradle")
-        settingsFile << """
-include("web")
-include("java1")
-include("java2")
-include("groovy")
-        """
+        file("build.gradle") << """\
+            apply plugin: "eclipse-wtp"
+            apply plugin: "war"
 
-        def webBuildFile = getFile(project: "web", "build.gradle")
-        createJavaSourceDirs(webBuildFile)
-        webBuildFile.parentFile.file("src/main/webapp").createDir()
+            configurations {
+                wtpOnly
+            }
 
-        webBuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "war"
+            repositories {
+                maven { url "${repoDir.toURI()}" }
+            }
 
-repositories {
-    maven { url "${repoDir.toURI()}" }
-}
+            dependencies {
+                wtpOnly "mygroup:myartifact:$myArtifactVersion"
+            }
 
-dependencies {
-    compile project(":java1")
-    compile project(":groovy")
-    runtime "mygroup:myartifact:$myArtifactVersion"
-}
-        """
+            eclipse.wtp.component  {
+                plusConfigurations += [ configurations.wtpOnly ]
+            }
+            """.stripIndent()
 
-        def java1BuildFile = getFile(project: "java1", "build.gradle")
-        createJavaSourceDirs(java1BuildFile)
-
-        java1BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
-
-repositories {
-    maven { url "${repoDir.toURI()}" }
-}
-
-dependencies {
-    compile project(":java2")
-    runtime "mygroup:myartifact:$myArtifactVersion"
-}
-        """
-
-        def java2BuildFile = getFile(project: "java2", "build.gradle")
-        createJavaSourceDirs(java2BuildFile)
-
-        java2BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
-
-repositories {
-    maven { url "${repoDir.toURI()}" }
-}
-
-dependencies {
-    runtime "mygroup:myartifact:$myArtifactVersion"
-}
-        """
-
-        def groovyBuildFile = getFile(project: "groovy", "build.gradle")
-        createJavaSourceDirs(groovyBuildFile)
-        groovyBuildFile.parentFile.file("src/main/groovy").createDir()
-
-        groovyBuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "groovy"
-        """
-
-        executer.usingSettingsFile(settingsFile).withTasks("eclipse").run()
+        executer.withTasks("eclipse").run()
     }
 
 	private Set getHandleFilenames(projectModules) {

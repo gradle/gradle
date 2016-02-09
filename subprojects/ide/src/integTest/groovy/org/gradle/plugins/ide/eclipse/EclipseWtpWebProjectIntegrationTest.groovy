@@ -17,6 +17,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import spock.lang.Issue
+
 class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates configuration files for a web project"() {
         file('src/main/java').mkdirs()
@@ -54,7 +56,7 @@ dependencies {
         // Classpath
         def classpath = classpath
         classpath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
-        classpath.lib('guava-18.0.jar').assertIsExcludedFromDeployment() // Is deployed using component definition instead
+        classpath.lib('guava-18.0.jar').assertIsDeployedTo('/WEB-INF/lib')
         classpath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         classpath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         classpath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
@@ -73,7 +75,67 @@ dependencies {
         component.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         component.sourceDirectory('src/main/resources').assertDeployedAt('/WEB-INF/classes')
         component.sourceDirectory('src/main/webapp').assertDeployedAt('/')
+        component.modules.size() == 0
+    }
+
+
+    @Issue('GRADLE-2123')
+    def 'eclipse-wtp with war project should add "org.eclipse.jst.component.dependency" to all wtp dependencies instead of adding them to the WTP component'() {
+        given:
+        def repoDir = file('repo')
+        maven(repoDir).module('dep', 'provided', '0.9').publish()
+        maven(repoDir).module('dep', 'compile', '1.0').publish()
+        maven(repoDir).module('dep', 'test', '2.0').publish()
+        maven(repoDir).module('dep', 'no-wtp', '3.0').publish()
+        maven(repoDir).module('dep', 'only-wtp', '4.0').publish()
+
+        buildFile << """\
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            configurations {
+                noWtp
+                onlyWtp
+            }
+
+            repositories {
+                maven {
+                    url "${repoDir.toURI()}"
+                }
+            }
+
+            dependencies {
+                providedCompile 'dep:provided:0.9'
+                compile 'dep:compile:1.0'
+                testCompile 'dep:test:2.0'
+
+                compile 'dep:no-wtp:3.0'
+                noWtp 'dep:no-wtp:3.0'
+
+                onlyWtp 'dep:only-wtp:4.0'
+            }
+
+            eclipse {
+                wtp.component {
+                    plusConfigurations << configurations.onlyWtp
+                    minusConfigurations << configurations.noWtp
+                }
+            }
+            """.stripIndent()
+
+        when:
+        run 'eclipse'
+
+        then:
+        def classpath = classpath
+        classpath.assertHasLibs('provided-0.9.jar', 'compile-1.0.jar', 'test-2.0.jar', 'no-wtp-3.0.jar')
+        classpath.lib('provided-0.9.jar').assertIsExcludedFromDeployment()
+        classpath.lib('compile-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('test-2.0.jar').assertIsExcludedFromDeployment()
+        classpath.lib('no-wtp-3.0.jar').assertIsExcludedFromDeployment()
+
+        def component = wtpComponent
         component.modules.size() == 1
-        component.lib('guava-18.0.jar').assertDeployedAt('/WEB-INF/lib')
+        component.lib('only-wtp-4.0.jar').assertDeployedAt('/WEB-INF/lib')
     }
 }

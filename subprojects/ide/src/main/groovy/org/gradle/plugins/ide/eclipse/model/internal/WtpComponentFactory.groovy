@@ -15,8 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
@@ -45,33 +48,35 @@ class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
         (getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, deployPath, transitive) as List) +
-                (getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath) as List)
+                (getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath, transitive) as List)
     }
 
-    // must include transitive project dependencies
     private Set getEntriesFromProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath, boolean transitive) {
-        def dependencies = getDependencies(plusConfigurations, minusConfigurations,
-                { it instanceof org.gradle.api.artifacts.ProjectDependency })
-
-        def projects = dependencies*.dependencyProject
-
-        def allProjects = [] as LinkedHashSet
-        allProjects.addAll(projects)
-        if (transitive) {
-            projects.each { collectDependedUponProjects(it, allProjects) }
-        }
-
+        LinkedHashSet allProjects = getProjectDependencies(plusConfigurations, minusConfigurations, transitive)
         allProjects.collect { project ->
             def moduleName = project.plugins.hasPlugin(EclipsePlugin) ? project.eclipse.project.name : project.name
             new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName)
         }
     }
 
+    private static LinkedHashSet getProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, boolean transitive) {
+        def dependencies = getDependencies(plusConfigurations, minusConfigurations, { it instanceof ProjectDependency })
+
+        def projects = dependencies*.dependencyProject
+
+        def result = [ ] as LinkedHashSet
+        result.addAll(projects)
+        if (transitive) {
+            projects.each{ collectDependedUponProjects(it, result) }
+        }
+        return result
+    }
+
     // TODO: might have to search all class paths of all source sets for project dependencies, not just runtime configuration
-    private void collectDependedUponProjects(org.gradle.api.Project project, Set<org.gradle.api.Project> result) {
+    private static void collectDependedUponProjects(Project project, Set<Project> result) {
         def runtimeConfig = project.configurations.findByName("runtime")
         if (runtimeConfig) {
-            def projectDeps = runtimeConfig.allDependencies.withType(org.gradle.api.artifacts.ProjectDependency)
+            def projectDeps = runtimeConfig.allDependencies.withType(ProjectDependency)
             def dependedUponProjects = projectDeps*.dependencyProject
             result.addAll(dependedUponProjects)
             for (dependedUponProject in dependedUponProjects) {
@@ -80,18 +85,28 @@ class WtpComponentFactory {
         }
     }
 
-    // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+    public static Collection resolveDependenciesFor(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, boolean transitive) {
         def extractor = new IdeDependenciesExtractor()
+
+        if (transitive) {
+            def projects = getProjectDependencies(plusConfigurations, minusConfigurations, transitive)
+            projects.findAll{ it.plugins.hasPlugin(EclipseWtpPlugin) }.each{ project ->
+                def wtp = project.eclipse.wtp.component
+                plusConfigurations += wtp.plusConfigurations
+                minusConfigurations += wtp.minusConfigurations
+            }
+        }
+
         //below is not perfect because we're skipping the unresolved dependencies completely
         //however, it should be better anyway. Sometime soon we will hopefully change the wtp component stuff
         def externals = extractor.resolvedExternalDependencies(plusConfigurations, minusConfigurations)
         def locals = extractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations)
+        return externals + locals
+    }
 
-        def libFiles = (externals + locals)*.file
-
-        libFiles.collect { file ->
-            createWbDependentModuleEntry(file, wtp.fileReferenceFactory, deployPath)
+    private Set getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
+        resolveDependenciesFor(plusConfigurations, minusConfigurations, transitive).collect { dep ->
+            createWbDependentModuleEntry(dep.file, wtp.fileReferenceFactory, deployPath)
         }
     }
 
@@ -106,7 +121,7 @@ class WtpComponentFactory {
         return new WbDependentModule(deployPath, "module:/classpath/$handleSnippet")
     }
 
-    private LinkedHashSet getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
+    private static LinkedHashSet getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
         def declaredDependencies = new LinkedHashSet()
         plusConfigurations.each { Configuration configuration ->
             declaredDependencies.addAll(configuration.allDependencies.matching(filter))
