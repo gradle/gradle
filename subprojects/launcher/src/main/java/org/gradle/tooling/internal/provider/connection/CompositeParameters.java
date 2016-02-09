@@ -23,12 +23,14 @@ import java.util.concurrent.TimeUnit;
 
 public class CompositeParameters implements Serializable {
     private final List<GradleParticipantBuild> builds;
+    private final File gradleUserHomeDir;
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
 
-    public CompositeParameters(List<GradleParticipantBuild> builds, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    public CompositeParameters(List<GradleParticipantBuild> builds, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.builds = builds;
+        this.gradleUserHomeDir = gradleUserHomeDir != null ? new File(gradleUserHomeDir.getAbsolutePath()) : null;
         this.daemonBaseDir = daemonBaseDir != null ? new File(daemonBaseDir.getAbsolutePath()) : null;
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
@@ -36,6 +38,10 @@ public class CompositeParameters implements Serializable {
 
     public List<GradleParticipantBuild> getBuilds() {
         return builds;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
     }
 
     public File getDaemonBaseDir() {

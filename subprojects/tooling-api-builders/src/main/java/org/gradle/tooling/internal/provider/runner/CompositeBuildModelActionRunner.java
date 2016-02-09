@@ -71,16 +71,16 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     private Set<Object> aggregateModels(Class<? extends HierarchicalElement> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken) {
         Set<Object> results = new LinkedHashSet<Object>();
         final CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters.getDaemonBaseDir(), compositeParameters.getDaemonMaxIdleTimeValue(), compositeParameters.getDaemonMaxIdleTimeUnits()));
+        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters.getGradleUserHomeDir(), compositeParameters.getDaemonBaseDir(), compositeParameters.getDaemonMaxIdleTimeValue(), compositeParameters.getDaemonMaxIdleTimeUnits()));
         return results;
     }
 
-    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<T> modelType, final BuildCancellationToken cancellationToken, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<T> modelType, final BuildCancellationToken cancellationToken, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         final Set<T> results = Sets.newConcurrentHashSet();
         final AtomicReference<Throwable> firstFailure = new AtomicReference<Throwable>();
         final CountDownLatch countDownLatch = new CountDownLatch(participantBuilds.size());
         for (GradleParticipantBuild participant : participantBuilds) {
-            ProjectConnection projectConnection = connect(participant, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+            ProjectConnection projectConnection = connect(participant, gradleUserHomeDir, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
             ModelBuilder<T> modelBuilder = projectConnection.model(modelType);
             if (cancellationToken != null) {
                 modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
@@ -98,8 +98,11 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return new HashSet<T>(results);
     }
 
-    private ProjectConnection connect(GradleParticipantBuild build, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private ProjectConnection connect(GradleParticipantBuild build, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         DefaultGradleConnector connector = getInternalConnector();
+        if (gradleUserHomeDir != null) {
+            connector.useGradleUserHomeDir(gradleUserHomeDir);
+        }
         if (daemonBaseDir != null) {
             connector.daemonBaseDir(daemonBaseDir);
         }
