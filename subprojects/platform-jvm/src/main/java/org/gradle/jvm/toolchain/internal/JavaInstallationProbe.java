@@ -19,6 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -161,7 +162,7 @@ public class JavaInstallationProbe {
             return error(ex.getMessage());
         } finally {
             try {
-                org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
+                FileUtils.deleteDirectory(workingDir);
             } catch (IOException e) {
                 throw new GradleException("Unable to delete temp directory", e);
             }
