@@ -33,16 +33,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
+public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
     private final String displayName;
     private final ModelType<PUBLIC> baseInterface;
-    private final ModelType<BASEIMPL> baseImplementation;
+    private final ModelType<BASEIMPL> baseImplementationType;
+    private final Class<BASEIMPL> baseImplementation;
     private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
+    private final Map<Class<? extends BASEIMPL>, ImplementationFactory<? extends PUBLIC, ? extends BASEIMPL>> factories = Maps.newLinkedHashMap();
 
     public BaseInstanceFactory(String displayName, Class<PUBLIC> baseInterface, Class<BASEIMPL> baseImplementation) {
         this.displayName = displayName;
         this.baseInterface = ModelType.of(baseInterface);
-        this.baseImplementation = ModelType.of(baseImplementation);
+        this.baseImplementation = baseImplementation;
+        this.baseImplementationType = ModelType.of(baseImplementation);
     }
 
     @Override
@@ -50,19 +53,23 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return baseInterface;
     }
 
-    protected abstract <S extends PUBLIC> InstanceFactory.ImplementationFactory<S> forType(ModelType<S> publicType, ModelType<? extends BASEIMPL> implementation);
-
     public <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, @Nullable ModelType<? extends BASEIMPL> implementationType, ModelRuleDescriptor definedBy) {
-        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
+        TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
         if (implementationType != null) {
-            registration.withImplementation(implementationType, forType(publicType, implementationType));
+            registration.withImplementation(implementationType);
         }
         for (Class<?> internalView : internalViews) {
             registration.withInternalView(ModelType.of(internalView));
         }
     }
 
-    @Override
+    /**
+     * Registers a factory to use to create all implementation objects of the given type <em>and its subtypes</em>. The most specific match is used.
+     */
+    public <S extends BASEIMPL> void registerFactory(Class<S> implementationType, ImplementationFactory<PUBLIC, S> implementationFactory) {
+        factories.put(implementationType, implementationFactory);
+    }
+
     public <S extends PUBLIC> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor source) {
         TypeRegistration<S> registration = Cast.uncheckedCast(registrations.get(publicType));
         if (registration == null) {
@@ -73,22 +80,22 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
     }
 
     @Override
-    public <S extends PUBLIC> ImplementationInfo<PUBLIC> getImplementationInfo(final ModelType<S> publicType) {
-        ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
-        return new ImplementationInfoImpl<PUBLIC>(publicType, implementationRegistration);
+    public <S extends PUBLIC> ImplementationInfo getImplementationInfo(ModelType<S> publicType) {
+        ImplementationRegistration<S, ? extends BASEIMPL> implementationRegistration = getImplementationRegistration(publicType);
+        return new ImplementationInfoImpl<S, BASEIMPL>(publicType, implementationRegistration, getInternalViews(publicType));
     }
 
     @Override
-    public <S extends PUBLIC> ImplementationInfo<PUBLIC> getManagedSubtypeImplementationInfo(final ModelType<S> publicType) {
+    public <S extends PUBLIC> ImplementationInfo getManagedSubtypeImplementationInfo(final ModelType<S> publicType) {
         if (!isManaged(publicType)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
-        final List<ImplementationInfo<PUBLIC>> implementationInfos = Lists.newArrayListWithCapacity(1);
+        final List<ImplementationInfo> implementationInfos = Lists.newArrayListWithCapacity(1);
         ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 if (registration != null && registration.implementationRegistration != null) {
-                    implementationInfos.add(new ImplementationInfoImpl<PUBLIC>(publicType, registration.implementationRegistration));
+                    implementationInfos.add(new ImplementationInfoImpl<S, BASEIMPL>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
         });
@@ -100,8 +107,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return implementationInfos.get(0);
     }
 
-    @Override
-    public <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
+    private <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
         final ImmutableSet.Builder<ModelType<?>> builder = ImmutableSet.builder();
         ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
@@ -141,7 +147,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return Cast.uncheckedCast(registrations.get(type));
     }
 
-    private <S extends PUBLIC> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
+    private <S extends PUBLIC> ImplementationRegistration<S, ? extends BASEIMPL> getImplementationRegistration(ModelType<S> type) {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null) {
             throw new IllegalArgumentException(
@@ -154,7 +160,6 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return registration.implementationRegistration;
     }
 
-    @Override
     public void validateRegistrations() {
         for (TypeRegistration<? extends PUBLIC> registration : registrations.values()) {
             registration.validate();
@@ -170,6 +175,16 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         return type.isAnnotationPresent(Managed.class);
     }
 
+    public interface ImplementationFactory<PUBLIC, BASEIMPL> {
+        <T extends BASEIMPL> T create(ModelType<? extends PUBLIC> publicType, ModelType<T> implementationType, String name, MutableModelNode node);
+    }
+
+    public interface TypeRegistrationBuilder<T> {
+        TypeRegistrationBuilder<T> withImplementation(ModelType<?> implementationType);
+
+        TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
+    }
+
     private class TypeRegistrationBuilderImpl<S extends PUBLIC> implements TypeRegistrationBuilder<S> {
         private final ModelRuleDescriptor source;
         private final TypeRegistration<S> registration;
@@ -180,8 +195,8 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         }
 
         @Override
-        public TypeRegistrationBuilder<S> withImplementation(ModelType<?> implementationType, ImplementationFactory<S> factory) {
-            registration.setImplementation(implementationType, source, factory);
+        public TypeRegistrationBuilder<S> withImplementation(ModelType<?> implementationType) {
+            registration.setImplementation(implementationType, source);
             return this;
         }
 
@@ -195,7 +210,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
     private class TypeRegistration<S extends PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
-        private ImplementationRegistration<S> implementationRegistration;
+        private ImplementationRegistration<S, ? extends BASEIMPL> implementationRegistration;
         private final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
 
         public TypeRegistration(ModelType<S> publicType) {
@@ -203,7 +218,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
             this.managedPublicType = isManaged(publicType);
         }
 
-        public void setImplementation(ModelType<?> implementationType, ModelRuleDescriptor source, ImplementationFactory<S> factory) {
+        public void setImplementation(ModelType<?> implementationType, ModelRuleDescriptor source) {
             if (implementationRegistration != null) {
                 throw new IllegalStateException(String.format("Cannot register implementation for type '%s' because an implementation for this type was already registered by %s",
                     publicType, implementationRegistration.getSource()));
@@ -212,7 +227,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
                 throw new IllegalArgumentException(String.format("Cannot specify default implementation for managed type '%s'", publicType));
             }
             if (!baseInterface.isAssignableFrom(implementationType)) {
-                throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'", implementationType, publicType, baseImplementation));
+                throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'", implementationType, publicType, baseImplementationType));
             }
             if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract", implementationType, publicType));
@@ -222,7 +237,12 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
             } catch (NoSuchMethodException e) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor", implementationType, publicType));
             }
-            this.implementationRegistration = new ImplementationRegistration<S>(source, implementationType, factory);
+            Class<? extends BASEIMPL> implementationClass = implementationType.getConcreteClass().asSubclass(baseImplementation);
+            ImplementationFactory<S, BASEIMPL> factory = findFactory(implementationClass);
+            if (factory == null) {
+                throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.", implementationClass.getName()));
+            }
+            this.implementationRegistration = new ImplementationRegistration<S, BASEIMPL>(source, implementationType.asSubtype(baseImplementationType), factory);
         }
 
         public <V> void addInternalView(ModelType<V> internalView, ModelRuleDescriptor source) {
@@ -249,14 +269,14 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         }
 
         private void validateManaged() {
-            ImplementationInfo<? extends PUBLIC> implementationInfo = getManagedSubtypeImplementationInfo(publicType);
-            ModelType<? extends PUBLIC> delegateType = implementationInfo.getDelegateType();
+            ImplementationInfo implementationInfo = getManagedSubtypeImplementationInfo(publicType);
+            ModelType<?> delegateType = implementationInfo.getDelegateType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 validateManagedInternalView(internalViewRegistration, delegateType);
             }
         }
 
-        private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<? extends PUBLIC> delegateType) {
+        private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<?> delegateType) {
             ModelSchemaUtils.walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<V>() {
                 @Override
                 public void visitType(Class<? super V> type) {
@@ -296,12 +316,29 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         }
     }
 
-    private static class ImplementationRegistration<S> {
-        private final ModelRuleDescriptor source;
-        private final ModelType<?> implementationType;
-        private final ImplementationFactory<S> factory;
+    @Nullable
+    private <S extends PUBLIC> ImplementationFactory<S, BASEIMPL> findFactory(Class<? extends BASEIMPL> implementationClass) {
+        ImplementationFactory<? extends PUBLIC, ? extends BASEIMPL> implementationFactory = factories.get(implementationClass);
+        if (implementationFactory != null) {
+            return Cast.uncheckedCast(implementationFactory);
+        }
 
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<S> factory) {
+        Class<?> superclass = implementationClass.getSuperclass();
+        if (superclass != null && baseImplementation.isAssignableFrom(superclass)) {
+            implementationFactory = findFactory(superclass.asSubclass(baseImplementation));
+            factories.put(implementationClass, implementationFactory);
+            return Cast.uncheckedCast(implementationFactory);
+        }
+
+        return null;
+    }
+
+    private static class ImplementationRegistration<PUBLIC, BASEIMPL> {
+        private final ModelRuleDescriptor source;
+        private final ModelType<? extends BASEIMPL> implementationType;
+        private final ImplementationFactory<? super PUBLIC, ? super BASEIMPL> factory;
+
+        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<? extends BASEIMPL> implementationType, ImplementationFactory<? super PUBLIC, ? super BASEIMPL> factory) {
             this.source = source;
             this.implementationType = implementationType;
             this.factory = factory;
@@ -315,7 +352,7 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
             return implementationType;
         }
 
-        public ImplementationFactory<? extends S> getFactory() {
+        public ImplementationFactory<? super PUBLIC, ? super BASEIMPL> getFactory() {
             return factory;
         }
     }
@@ -338,22 +375,29 @@ public abstract class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceF
         }
     }
 
-    private static class ImplementationInfoImpl<T> implements ImplementationInfo<T> {
-        private final ModelType<? extends T> publicType;
-        private final ImplementationRegistration<T> implementationRegistration;
+    private static class ImplementationInfoImpl<PUBLIC, BASEIMPL> implements ImplementationInfo {
+        private final ModelType<PUBLIC> publicType;
+        private final ImplementationRegistration<? super PUBLIC, BASEIMPL> implementationRegistration;
+        private final Set<ModelType<?>> internalViews;
 
-        public ImplementationInfoImpl(ModelType<? extends T> publicType, ImplementationRegistration<? extends T> implementationRegistration) {
+        public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?, ?> implementationRegistration, Set<ModelType<?>> internalViews) {
             this.publicType = publicType;
+            this.internalViews = internalViews;
             this.implementationRegistration = Cast.uncheckedCast(implementationRegistration);
         }
 
         @Override
-        public T create(MutableModelNode modelNode) {
-            return implementationRegistration.factory.create(publicType, modelNode.getPath().getName(), modelNode);
+        public Object create(MutableModelNode modelNode) {
+            return implementationRegistration.factory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
         }
 
-        public ModelType<? extends T> getDelegateType() {
-            return Cast.uncheckedCast(implementationRegistration.implementationType);
+        public ModelType<?> getDelegateType() {
+            return implementationRegistration.implementationType;
+        }
+
+        @Override
+        public Set<ModelType<?>> getInternalViews() {
+            return internalViews;
         }
 
         @Override

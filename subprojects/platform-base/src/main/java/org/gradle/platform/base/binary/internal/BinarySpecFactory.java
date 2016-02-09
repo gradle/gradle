@@ -17,41 +17,30 @@
 package org.gradle.platform.base.binary.internal;
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
-import org.gradle.model.internal.typeregistration.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, BaseBinarySpec> {
-    private final Instantiator instantiator;
-    private final ITaskFactory taskFactory;
-
-    public BinarySpecFactory(String displayName, Instantiator instantiator, ITaskFactory taskFactory) {
+    public BinarySpecFactory(String displayName, final Instantiator instantiator, final ITaskFactory taskFactory) {
         super(displayName, BinarySpec.class, BaseBinarySpec.class);
-        this.instantiator = instantiator;
-        this.taskFactory = taskFactory;
-    }
-
-    @Override
-    protected <S extends BinarySpec> ImplementationFactory<S> forType(ModelType<S> type, final ModelType<? extends BaseBinarySpec> implementationType) {
-        return new InstanceFactory.ImplementationFactory<S>() {
-                        @Override
-                        public S create(ModelType<? extends S> publicType, String name, MutableModelNode binaryNode) {
-                            MutableModelNode componentBinariesNode = binaryNode.getParent();
-                            MutableModelNode componentNode = componentBinariesNode.getParent();
-                            return Cast.uncheckedCast(BaseBinarySpec.create(
-                                    publicType.getConcreteClass(),
-                                    implementationType.getConcreteClass(),
-                                    name,
-                                    binaryNode,
-                                    componentNode,
-                                    instantiator,
-                                    taskFactory));
-                        }
-                    };
+        registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
+            @Override
+            public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
+                MutableModelNode componentBinariesNode = binaryNode.getParent();
+                MutableModelNode componentNode = componentBinariesNode.getParent();
+                return BaseBinarySpec.create(
+                        publicType.getConcreteClass(),
+                        implementationType.getConcreteClass(),
+                        name,
+                        binaryNode,
+                        componentNode,
+                        instantiator,
+                        taskFactory);
+            }
+        });
     }
 }

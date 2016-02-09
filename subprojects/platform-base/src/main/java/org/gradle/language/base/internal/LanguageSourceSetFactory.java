@@ -20,29 +20,21 @@ import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet, BaseLanguageSourceSet> {
-
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
-
-    public LanguageSourceSetFactory(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public LanguageSourceSetFactory(String displayName, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         super(displayName, LanguageSourceSet.class, BaseLanguageSourceSet.class);
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
-    }
-
-    @Override
-    protected <S extends LanguageSourceSet> ImplementationFactory<S> forType(ModelType<S> publicType, final ModelType<? extends BaseLanguageSourceSet> implementationType) {
-        return new ImplementationFactory<S>() {
+        registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
-            public S create(ModelType<? extends S> publicType, String sourceSetName, MutableModelNode modelNode) {
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(modelNode), sourceDirectorySetFactory));
+            public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
+                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(node), sourceDirectorySetFactory));
             }
-        };
+        });
     }
 
     private String determineParentName(MutableModelNode modelNode) {

@@ -17,31 +17,23 @@
 package org.gradle.platform.base.component.internal;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.internal.Cast;
-import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec, BaseComponentSpec> {
-    private final ProjectIdentifier projectIdentifier;
-
-    public ComponentSpecFactory(String displayName, ProjectIdentifier projectIdentifier) {
+    public ComponentSpecFactory(String displayName, final ProjectIdentifier projectIdentifier) {
         super(displayName, ComponentSpec.class, BaseComponentSpec.class);
-        this.projectIdentifier = projectIdentifier;
-    }
-
-    @Override
-    protected <S extends ComponentSpec> ImplementationFactory<S> forType(ModelType<S> publicType, final ModelType<? extends BaseComponentSpec> implementationType) {
-        return new ImplementationFactory<S>() {
+        registerFactory(BaseComponentSpec.class, new ImplementationFactory<ComponentSpec, BaseComponentSpec>() {
             @Override
-            public S create(ModelType<? extends S> publicType, String name, MutableModelNode componentNode) {
+            public <T extends BaseComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode));
+                return BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
             }
-        };
+        });
     }
 }

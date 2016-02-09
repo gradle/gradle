@@ -24,6 +24,8 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
 
+import static org.gradle.model.internal.typeregistration.BaseInstanceFactory.ImplementationFactory
+
 class BaseInstanceFactoryTest extends Specification {
     static interface ThingSpec {}
     static interface ThingSpecInternal extends ThingSpec {}
@@ -48,14 +50,9 @@ class BaseInstanceFactoryTest extends Specification {
     static interface UnmanagedThingSpec extends ThingSpec {}
     static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
-    def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>("things", ThingSpec, BaseThingSpec) {
-        @Override
-        protected InstanceFactory.ImplementationFactory forType(ModelType publicType, ModelType implementation) {
-            throw new UnsupportedOperationException()
-        }
-    }
+    def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>("things", ThingSpec, BaseThingSpec)
     def node = Mock(MutableModelNode)
-    def factoryMock = Mock(InstanceFactory.ImplementationFactory)
+    def factoryMock = Mock(ImplementationFactory)
 
     def "can register public type"() {
         instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
@@ -65,8 +62,9 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     def "can register implementation"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
 
         when:
         instanceFactory.validateRegistrations()
@@ -75,22 +73,25 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     def "can register unmanaged internal view for unmanaged type"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
             .withInternalView(ModelType.of(ThingSpecInternal))
 
         when:
         instanceFactory.validateRegistrations()
+
         then:
         noExceptionThrown()
 
         expect:
-        instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([ModelType.of(ThingSpecInternal)] as Set)
+        instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).internalViews == ([ModelType.of(ThingSpecInternal)] as Set)
     }
 
     def "can register managed internal view for unmanaged type"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
             .withInternalView(ModelType.of(ManagedThingSpecInternal))
 
         when:
@@ -99,35 +100,38 @@ class BaseInstanceFactoryTest extends Specification {
         noExceptionThrown()
 
         expect:
-        instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([ModelType.of(ManagedThingSpecInternal)] as Set)
+        instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).internalViews == ([ModelType.of(ManagedThingSpecInternal)] as Set)
     }
 
     def "internal views registered for super-type are returned"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("base"))
+            .withImplementation(ModelType.of(DefaultThingSpec))
             .withInternalView(ModelType.of(ThingSpecInternal))
         instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed"))
             .withInternalView(ModelType.of(ManagedThingSpecInternal))
         instanceFactory.register(ModelType.of(ChildManagedThingSpec), new SimpleModelRuleDescriptor("child"))
 
         expect:
-        instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([
+        instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).internalViews == ([
             ModelType.of(ThingSpecInternal),
         ] as Set)
-        instanceFactory.getInternalViews(ModelType.of(ManagedThingSpec)) == ([
+        instanceFactory.getManagedSubtypeImplementationInfo(ModelType.of(ManagedThingSpec)).internalViews == ([
             ModelType.of(ThingSpecInternal),
             ModelType.of(ManagedThingSpecInternal)
         ] as Set)
-        instanceFactory.getInternalViews(ModelType.of(ChildManagedThingSpec)) == ([
+        instanceFactory.getManagedSubtypeImplementationInfo(ModelType.of(ChildManagedThingSpec)).internalViews == ([
             ModelType.of(ThingSpecInternal),
             ModelType.of(ManagedThingSpecInternal)
         ] as Set)
     }
 
-    def "can create instance"() {
+    def "uses provided factory to create delegate for a public type"() {
         def thingMock = Mock(ThingSpec)
         def nodeMock = Mock(MutableModelNode)
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
 
         when:
         def instance = instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).create(nodeMock)
@@ -135,15 +139,45 @@ class BaseInstanceFactoryTest extends Specification {
         then:
         instance == thingMock
         _ * nodeMock.path >> ModelPath.path("node.test")
-        1 * factoryMock.create(ModelType.of(ThingSpec), "test", nodeMock) >> { thingMock }
+        1 * factoryMock.create(ModelType.of(ThingSpec), ModelType.of(DefaultThingSpec), "test", nodeMock) >> { thingMock }
+        0 * _
+    }
+
+    def "cannot create delegate when no factory is available"() {
+        instanceFactory.registerFactory(DefaultOtherThingSpec, factoryMock)
+
+        when:
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec))
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "No factory registered to create an instance of implementation class '${DefaultThingSpec.name}'."
+    }
+
+    def "factory for closest superclass to create delegate for a public type"() {
+        def thingMock = Mock(ThingSpec)
+        def nodeMock = Mock(MutableModelNode)
+        instanceFactory.registerFactory(BaseThingSpec, factoryMock)
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec))
+
+        when:
+        def instance = instanceFactory.getImplementationInfo(ModelType.of(ThingSpec)).create(nodeMock)
+
+        then:
+        instance == thingMock
+        _ * nodeMock.path >> ModelPath.path("node.test")
+        1 * factoryMock.create(ModelType.of(ThingSpec), ModelType.of(DefaultThingSpec), "test", nodeMock) >> { thingMock }
         0 * _
     }
 
     def "base type is not advertised as known type in error messages"() {
+        instanceFactory.registerFactory(BaseThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
         instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("other"))
-            .withImplementation(ModelType.of(DefaultOtherThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultOtherThingSpec))
 
         when:
         instanceFactory.getImplementationInfo(ModelType.of(ManagedThingSpec))
@@ -167,7 +201,7 @@ class BaseInstanceFactoryTest extends Specification {
     def "fails when an implementation is registered that doesn't extend the base type"() {
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(Object), factoryMock)
+            .withImplementation(ModelType.of(Object))
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Implementation type '$Object.name' registered for '$ThingSpec.name' must extend '$BaseThingSpec.name'"
@@ -176,7 +210,7 @@ class BaseInstanceFactoryTest extends Specification {
     def "fails when an implementation is registered that doesn't have a default constructor"() {
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(NoDefaultConstructorThingSpec), factoryMock)
+            .withImplementation(ModelType.of(NoDefaultConstructorThingSpec))
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Implementation type '$NoDefaultConstructorThingSpec.name' registered for '$ThingSpec.name' must have a public default constructor"
@@ -185,19 +219,20 @@ class BaseInstanceFactoryTest extends Specification {
     def "fails when registered implementation type is an abstract type"() {
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(AbstractThingSpec), factoryMock)
+            .withImplementation(ModelType.of(AbstractThingSpec))
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Implementation type '$AbstractThingSpec.name' registered for '$ThingSpec.name' must not be abstract"
     }
 
     def "fails when implementation type is registered twice"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("test rule"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
 
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("test rule 2"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
         then:
         def ex = thrown IllegalStateException
         ex.message == "Cannot register implementation for type '$ThingSpec.name' because an implementation for this type was already registered by test rule"
@@ -212,8 +247,9 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     def "fails validation if default implementation does not implement internal view"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("impl rule"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("view rule"))
             .withInternalView(ModelType.of(NotImplementedInternalViewSpec))
 
@@ -269,8 +305,9 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     def "can register managed internal view for managed type that extends interface that is implemented by delegate type"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
         instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed thing"))
             .withInternalView(ModelType.of(ManagedThingSpecInternalExtendingThingSpecInternal))
 
@@ -281,8 +318,9 @@ class BaseInstanceFactoryTest extends Specification {
     }
 
     def "fails when registering managed internal view for managed type that extends interface that is not implemented by delegate type"() {
+        instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+            .withImplementation(ModelType.of(DefaultThingSpec))
         instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed thing"))
             .withInternalView(ModelType.of(ManagedThingSpecInternalExtendingOtherThingSpec))
 

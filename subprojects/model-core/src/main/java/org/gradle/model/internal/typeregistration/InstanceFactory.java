@@ -17,7 +17,6 @@
 package org.gradle.model.internal.typeregistration;
 
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
@@ -27,41 +26,30 @@ public interface InstanceFactory<T> {
 
     Set<ModelType<? extends T>> getSupportedTypes();
 
-    <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor sourceRule);
-
-    <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
-
     /**
      * Return information about the implementation of an unmanaged type.
      */
-    <S extends T> ImplementationInfo<T> getImplementationInfo(ModelType<S> publicType);
+    <S extends T> ImplementationInfo getImplementationInfo(ModelType<S> publicType);
 
     /**
      * Return information about the implementation of a managed type with an unmanaged super-type.
      */
-    <S extends T> ImplementationInfo<T> getManagedSubtypeImplementationInfo(ModelType<S> publicType);
+    <S extends T> ImplementationInfo getManagedSubtypeImplementationInfo(ModelType<S> publicType);
 
-    void validateRegistrations();
-
-    interface ImplementationFactory<T> {
-        T create(ModelType<? extends T> publicType, String name, MutableModelNode node);
-    }
-
-    interface TypeRegistrationBuilder<T> {
-        TypeRegistrationBuilder<T> withImplementation(ModelType<?> implementationType, ImplementationFactory<T> factory);
-
-        TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
-    }
-
-    interface ImplementationInfo<T> {
+    interface ImplementationInfo {
         /**
          * Creates an instance of the delegate for the given node.
          */
-        T create(MutableModelNode modelNode);
+        Object create(MutableModelNode modelNode);
 
         /**
          * The default implementation type that can be used as a delegate for any managed subtypes of the public type.
          */
-        ModelType<? extends T> getDelegateType();
+        ModelType<?> getDelegateType();
+
+        /**
+         * The internal views for the public type.
+         */
+        Set<ModelType<?>> getInternalViews();
     }
 }

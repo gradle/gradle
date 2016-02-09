@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.typeregistration.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.FactoryBasedStructNodeInitializer;
@@ -28,6 +27,7 @@ import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.InstanceFactory;
 
 import java.util.Set;
 
@@ -50,15 +50,15 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
         StructSchema<S> publicSchema = Cast.uncheckedCast(schema);
-        InstanceFactory.ImplementationInfo<T> implementationInfo;
+        InstanceFactory.ImplementationInfo implementationInfo;
         ModelType<S> publicType = schema.getType();
         if (publicSchema instanceof ManagedImplSchema) {
             implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
         } else {
             implementationInfo = instanceFactory.getImplementationInfo(publicType);
         }
-        Set<ModelType<?>> internalViews = instanceFactory.getInternalViews(publicType);
-        ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
+        Set<ModelType<?>> internalViews = implementationInfo.getInternalViews();
+        ModelType<?> delegateType = implementationInfo.getDelegateType();
         StructBindings<S> bindings = bindingsStore.getBindings(publicSchema.getType(), internalViews, delegateType);
         return new FactoryBasedStructNodeInitializer<T, S>(bindings, implementationInfo);
     }
