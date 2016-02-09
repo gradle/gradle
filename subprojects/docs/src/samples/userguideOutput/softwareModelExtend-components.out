@@ -7,9 +7,9 @@ DocumentationComponent 'docs'
 -----------------------------
 
 Source sets
-    MarkdownSourceSet 'docs:userguide'
+    Markdown source 'docs:userguide'
         srcDir: src/docs/userguide
-    TextSourceSet 'docs:reference'
+    Text source 'docs:reference'
         srcDir: src/docs/reference
 
 Binaries
