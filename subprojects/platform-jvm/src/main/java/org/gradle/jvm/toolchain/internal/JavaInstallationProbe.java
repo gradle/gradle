@@ -182,13 +182,15 @@ public class JavaInstallationProbe {
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {
-                return "OpenJDK";
+                return result == InstallType.IS_JDK ? "OpenJDK" : "OpenJDK JRE";
             }
             return "Oracle " + basename;
         } else if (vendor.contains("ibm")) {
             return "IBM " + basename;
         } else if (vendor.contains("azul systems")) {
-            return "Zulu";
+            return "Zulu " + basename;
+        } else if (vendor.contains("hewlett-packard")) {
+            return "HP-UX " + basename;
         }
 
         return basename;
