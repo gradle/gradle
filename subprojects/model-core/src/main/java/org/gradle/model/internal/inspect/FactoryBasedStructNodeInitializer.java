@@ -17,7 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.model.internal.typeregistration.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.type.ModelType;

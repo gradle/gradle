@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.model.internal.typeregistration.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.FactoryBasedStructNodeInitializer;

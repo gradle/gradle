@@ -25,6 +25,7 @@ import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;

@@ -18,7 +18,7 @@ package org.gradle.platform.base.component.internal;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;

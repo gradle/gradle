@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.internal.core.BaseInstanceFactory;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
