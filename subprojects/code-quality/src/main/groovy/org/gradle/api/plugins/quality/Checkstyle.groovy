@@ -161,7 +161,9 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
             }
 
             if (reports.html.enabled) {
-                def xsl = Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl')
+                def xsl = reports.html.stylesheet ?
+                        new FileInputStream(reports.html.stylesheet as String) :
+                        Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl')
                 ant.xslt(in: reports.xml.destination, out: reports.html.destination) {
                     style {
                         string(value: xsl.text)

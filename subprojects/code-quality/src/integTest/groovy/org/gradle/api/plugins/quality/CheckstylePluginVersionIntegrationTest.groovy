@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
+import org.gradle.util.Resources
 import org.hamcrest.Matcher
+import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsLine
@@ -28,6 +30,9 @@ import static org.hamcrest.Matchers.*
 
 @TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+
+    @Rule
+    public final Resources resources = new Resources()
 
     def setup() {
         writeBuildFile()
@@ -138,6 +143,24 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         succeeds "checkstyleMain"
         file("foo.xml").exists()
         file("bar.html").exists()
+    }
+
+    def "can configure the html report with a custom stylesheet"() {
+        given:
+        goodCode()
+
+        when:
+        buildFile << """
+            checkstyleMain.reports {
+                html.enabled true
+                html.stylesheet '${resources.getResource("/checkstyle-custom-stylesheet.xsl")}'
+            }
+        """
+
+        then:
+        succeeds "checkstyleMain"
+        file("build/reports/checkstyle/main.html").exists()
+        file("build/reports/checkstyle/main.html").assertContents(containsString("A custom Checkstyle stylesheet"))
     }
 
     private goodCode() {

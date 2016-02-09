@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,27 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The reporting configuration for the {@link Checkstyle} task.
+ * The single file HTML report for Checkstyle.
  */
-public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
+public interface CheckstyleHtmlReport extends SingleFileReport {
 
     /**
-     * The checkstyle HTML report.
+     * The stylesheet to use to generate the HTML report.
      * <p>
-     * This report IS enabled by default.
-     * <p>
-     * Enabling this report will also cause the XML report to be generated, as the HTML is derived from the XML.
+     * If {@code null} or empty, the plugin will use its default stylesheet.
      *
-     * @return The checkstyle HTML report
-     * @since 2.10
+     * @return the stylesheet to use to generate the HTML report
      */
-    CheckstyleHtmlReport getHtml();
+    String getStylesheet();
 
     /**
-     * The checkstyle XML report
-     * <p>
-     * This report IS enabled by default.
+     * The stylesheet to use to generate the report.
      *
-     * @return The checkstyle XML report
+     * @param stylesheet the stylesheet to use to generate the HTML report
      */
-    SingleFileReport getXml();
+    void setStylesheet(String stylesheet);
+
 }
