@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.util.CollectionUtils;
 
 /**
  * Options for Scala compilation, including the use of the Ant-backed compiler.
@@ -124,10 +125,10 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return toOnOffString(isOptimize());
         }
         if (fieldName.equals("loggingPhases")) {
-            return AntScalaCommandLineWriter.toCommaSeparatedArg(getLoggingPhases());
+            return String.join(",", getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return AntScalaCommandLineWriter.toCommandLineArg(getAdditionalParameters());
+            return CollectionUtils.asCommandLine(getAdditionalParameters());
         }
         return value;
     }

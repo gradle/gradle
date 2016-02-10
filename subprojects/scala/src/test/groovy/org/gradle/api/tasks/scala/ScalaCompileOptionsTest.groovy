@@ -50,9 +50,9 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
                 [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
                 [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
                 [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: [], expected: ' '],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: [], expected: ''],
                 [fieldName: 'loggingPhases', antProperty: 'logphase', args: ['pickler', 'tailcalls'], expected: 'pickler,tailcalls'],
-                [fieldName: 'loggingPhases', antProperty: 'logphase', args: [], expected: ' ']
+                [fieldName: 'loggingPhases', antProperty: 'logphase', args: [], expected: '']
         ]
     }
 

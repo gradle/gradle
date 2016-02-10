@@ -19,6 +19,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -207,7 +208,7 @@ public class ScalaDocOptions extends AbstractOptions {
             return toOnOffString(unchecked);
         }
         if (fieldName.equals("additionalParameters")) {
-            return AntScalaCommandLineWriter.toCommandLineArg(getAdditionalParameters());
+            return CollectionUtils.asCommandLine(getAdditionalParameters());
         }
         return value;
     }

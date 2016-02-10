@@ -639,4 +639,7 @@ public abstract class CollectionUtils {
         }));
     }
 
+    public static String asCommandLine(Iterable<String> arguments) {
+        return String.join(" ", collect(arguments, Transformers.asSafeCommandLineArgument()));
+    }
 }
