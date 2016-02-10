@@ -92,7 +92,7 @@ of the build platform definition.
 build platform meta-data.
 - Maven and Ivy repositories can be specified as target locations. Other target location are out-of-scope for this story.
 - During the initialization phase of a Gradle build the DSL is evaluated. The underlying data structure is populated.
-- Gradle uses the build platform definition to resolve the build platform artifact. The artifact is represented as a JAR file accompanied by the relevant Maven or Ivy meta-data.
+- Gradle uses the build platform definition to resolve the build platform artifact. The artifact is represented by a JSON file accompanied by the relevant Maven or Ivy meta-data.
 - Gradle caches the resolved artifacts in its cache in the same way as any other artifact.
 - The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
 definitions would behave based on the usual TTL definitions.
@@ -131,17 +131,17 @@ about the build platform: `id` and `version`.
 ### Implementation
 
 - During the initialization phase, parse the build platform meta-data located in the cache.
-- Read the build platform meta-data from the cached JAR file.
+- Read the build platform meta-data from the cached JSON file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
 - The JSON file name must be `build-platform.json`. No other name is allowed. The file is located in the directory `META-INF/gradle` of the JAR.
 - Parse the values of attributes `id` and `version` and compare them with the attributes specified in the `Settings` file.
 
 ### Test cases
 
-- The build platform meta-data can be read from the JAR file containing it.
+- The build platform meta-data can be read.
     - Throw an exception if the file cannot be found.
     - The build platform meta-data is defined in the JSON format.
-    - The file needs to be `build-platform.json`. Any other JSON files contained in the JAR file are ignored.
+    - The file needs to be `build-platform.json`. Any other JSON files are ignored.
 - Basic information in the JSON file can be parsed.
     - Throw an exception if the `build-platform.json` is not valid JSON.
 - The parsed values for for `id` and `version` should match the attributes specified in the Settings file.
@@ -163,8 +163,8 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 ### Implementation
 
 - Extend the JSON parsing code by logic to resolve the init script.
-- The init script can have any name with the file extension `.gradle`. The file needs to be located in the root directory of the JAR.
-- Only one init script can be defined in the build platform meta-data. Init scripts can optionally apply other script plugins bundled with the JAR.
+- The init script can have any name with the file extension `.gradle`. The file needs to be located along-side the meta-data file.
+- Only one init script can be defined in the build platform meta-data.
 - The init script cannot point to a HTTP location.
 - The resolved init script is executed during the initialization phase of the Gradle build.
 
@@ -182,7 +182,7 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 
 ### Open issues
 
-- Init scripts that are hosted outside of the build platform JAR file.
+- Init scripts that are hosted in a different location than the corresponding meta-data file.
 - Can custom plugins be applied as part of executing the init script (see next story).
 
 ## Story - Gradle supports applying a custom plugin (from outside distribution) from an init script
@@ -317,7 +317,6 @@ The goal of this story is to publish the generated build platform meta-data to a
 
 ### Implementation
 
-- Expose a `Jar` task that bundles the build platform meta-data and optional init script. The task depends on the task for generating the build platform meta-data.
 - Extend the DSL for declaring a single Ivy _or_ Maven repository.
 - Based on the type of repository, leverage the `ivy-publish` or `maven-publish` plugin.
 - Credentials can be configured via the plugin DSL.
@@ -341,7 +340,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 ### Test cases
 
 - Before being able to publish, the user needs to configure at least one target repository.
-- Initiating the publishing process first calls the task for generating the meta-data and bundles it into a JAR file.
+- Initiating the publishing process first calls the task for generating the meta-data.
 - Misconfiguration in the DSL leads to a failed exception.
 - The generated Ivy/Maven meta-data basically just creates a marker file. It won't contain information other than the `group`/`name`/`version` required for publishing.
 - Publishing to a Ivy and Maven repository works properly. Failures produced by the `publish` plugins are propagated.
