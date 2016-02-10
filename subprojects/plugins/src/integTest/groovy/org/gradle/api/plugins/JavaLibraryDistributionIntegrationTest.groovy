@@ -142,4 +142,35 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         runAndFail 'distZip'
         failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
+
+    def "compile only dependencies are not included in distribution"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+
+        and:
+        buildFile << """
+apply plugin:'java-library-distribution'
+
+distributions{
+    main{
+        baseName = 'sample'
+    }
+}
+
+repositories {
+    maven { url '$mavenRepo.uri' }
+}
+
+dependencies {
+    compile 'org.gradle.test:compile:1.0'
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/lib').allDescendants() == ['compile-1.0.jar'] as Set
+    }
 }

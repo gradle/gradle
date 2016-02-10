@@ -610,4 +610,34 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 """
         result.assertOutputEquals(expected, true, false)
     }
+
+    @Test
+    void "compile only dependencies handled correctly"() {
+        // given
+        def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared).publish()
+
+        // when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile 'org.gradle.test:compile:1.0'
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'shared-1.0.jar')
+        dependencies.assertHasLibrary('COMPILE', 'compile-1.0.jar')
+        dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
+    }
 }

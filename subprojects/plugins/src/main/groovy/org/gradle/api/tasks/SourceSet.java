@@ -205,4 +205,10 @@ public interface SourceSet {
      * @return The runtime configuration name
      */
     String getRuntimeConfigurationName();
+
+    /**
+     * Returns the name of the compile only configuration for this source set.
+     * @return The compile only configuration name
+     */
+    String getCompileOnlyConfigurationName();
 }

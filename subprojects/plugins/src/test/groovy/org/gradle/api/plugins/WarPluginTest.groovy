@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
@@ -46,7 +46,7 @@ class WarPluginTest {
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
         assertThat(project.convention.plugins.war, instanceOf(WarPluginConvention))
     }
-    
+
     @Test public void createsConfigurations() {
         warPlugin.apply(project)
 
@@ -100,6 +100,7 @@ class WarPluginTest {
 
     @Test public void usesRuntimeClasspathExcludingProvidedAsClasspath() {
         File compileJar = project.file('compile.jar')
+        File compileOnlyJar = project.file('compileOnly.jar')
         File runtimeJar = project.file('runtime.jar')
         File providedJar = project.file('provided.jar')
 
@@ -108,6 +109,7 @@ class WarPluginTest {
         project.dependencies {
             providedCompile project.files(providedJar)
             compile project.files(compileJar)
+            compileOnly project.files(compileOnlyJar)
             runtime project.files(runtimeJar)
         }
 
@@ -127,7 +129,7 @@ class WarPluginTest {
         warPlugin.apply(project)
 
         Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1)); 
-        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("war")); 
+        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1));
+        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("war"));
     }
 }

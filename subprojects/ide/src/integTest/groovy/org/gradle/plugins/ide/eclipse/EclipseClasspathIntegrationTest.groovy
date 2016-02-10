@@ -1056,4 +1056,69 @@ apply plugin: 'eclipse'
         assert classpath.containers.size() == 1
         assert classpath.containers == [jreContainerPath]
     }
+
+    @Test
+    void compileOnlyDependenciesAddedToClasspath() {
+        // given
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+
+        // when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+
+        // then
+        assert classpath.libs.size() == 1
+        classpath.assertHasLibs('compileOnly-1.0.jar')
+    }
+
+    @Test
+    void compileOnlyDependenciesAreNotExported() {
+        // given
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+project(':a') {
+    dependencies {
+        compileOnly 'org.gradle.test:compileOnly:1.0'
+    }
+}
+
+project(':b') {
+    dependencies {
+        compile project(':a')
+        compile 'org.gradle.test:compile:1.0'
+    }
+}
+"""
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 1
+        classpathA.assertHasLibs('compileOnly-1.0.jar')
+        assert classpathB.libs.size() == 1
+        assert classpathB.projects == ['/a']
+        classpathB.assertHasLibs('compile-1.0.jar')
+    }
 }

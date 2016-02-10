@@ -226,7 +226,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeConfiguration.extendsFrom(compileConfiguration);
         runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
 
-        sourceSet.setCompileClasspath(compileConfiguration);
+        Configuration compileOnlyConfiguration = configurations.findByName(sourceSet.getCompileOnlyConfigurationName());
+        if (compileOnlyConfiguration == null) {
+            compileOnlyConfiguration = configurations.create(sourceSet.getCompileOnlyConfigurationName());
+        }
+        compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.extendsFrom(compileConfiguration);
+        compileOnlyConfiguration.setDescription(String.format("Compile only classpath for %s.", sourceSet));
+
+        sourceSet.setCompileClasspath(compileOnlyConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 

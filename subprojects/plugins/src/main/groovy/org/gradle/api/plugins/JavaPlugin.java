@@ -56,9 +56,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
+    public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
-    public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+    public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
+    public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -81,7 +83,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME)));
+        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_ONLY_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
     }
 
