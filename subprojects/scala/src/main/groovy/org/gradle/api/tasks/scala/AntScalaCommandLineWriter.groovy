@@ -31,8 +31,8 @@ class AntScalaCommandLineWriter {
     }
 
     // there appears to be a bug in the groovy compiler that prevents these being local to the Transformer
-    private static def singleQuoted = Pattern.compile("^\".*\"\$")
-    private static def doubleQuoted = Pattern.compile("^'.*'\$")
+    private static def singleQuoted = Pattern.compile("^'.*'\$")
+    private static def doubleQuoted = Pattern.compile("^\".*\"\$")
     private static def aSingleQuote = Pattern.compile("'")
 
     private static def toEscapedString = new Transformer<String, String>() {
@@ -54,8 +54,4 @@ class AntScalaCommandLineWriter {
             aSingleQuote.matcher(input).replaceAll("\\\\'")
         }
     }
-
-
-
-
 }
