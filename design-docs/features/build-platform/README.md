@@ -224,8 +224,7 @@ the limitation to provide a smoother user experience.
 This milestone builds on top of the existing build platform infrastructure. The user can declare the Gradle version used for the project. The `wrapper` task uses
 the Gradle version definition to provide a default value for the Gradle distribution URL.
 
-**The functionality of the milestone eliminates the need for installing the Gradle runtime for a project by deriving the Gradle version from the build platform definition.
-The need for a custom Gradle distribution is completely eliminated.**
+**The functionality of the milestone eliminates the need for installing the Gradle runtime for a project by deriving the Gradle version from the build platform definition.**
 
 _End user perspective:_
 
@@ -291,6 +290,8 @@ The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle
 
 This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
 that are checked automatically against the Gradle build applying the rules.
+
+**With the first story of this milestone a Gradle version can be enforced for the whole enterprise. The need for a custom Gradle distribution is completely eliminated.**
 
 _End user perspective:_
 
