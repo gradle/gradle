@@ -199,8 +199,8 @@ class ToolingApi implements TestRule {
         };
     }
 
-    def createCompositeBuilder(boolean useCoordinator = false) {
-        GradleConnectionInternal.Builder builder = useCoordinator ? ConnectorServices.createCoordinatorGradleConnectionBuilder() : GradleConnector.newGradleConnectionBuilder()
+    def createCompositeBuilder(boolean useClientSideImpl = false) {
+        GradleConnectionInternal.Builder builder = useClientSideImpl ? ConnectorServices.createClientSideGradleConnectionBuilder() : GradleConnector.newGradleConnectionBuilder()
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         builder.daemonBaseDir(new File(daemonBaseDir.path))
         builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)

@@ -24,7 +24,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  */
 class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def setup() {
-        useCoordinator = true
         toolingApi.requireIsolatedDaemons()
     }
 

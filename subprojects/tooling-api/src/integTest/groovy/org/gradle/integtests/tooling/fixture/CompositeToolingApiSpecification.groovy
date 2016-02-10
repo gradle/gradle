@@ -28,7 +28,7 @@ import org.gradle.util.TestPrecondition
 // Hack, disable tests on windows temporarily until I figure out why the tests are taking so long
 @Requires(TestPrecondition.NOT_WINDOWS)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
-    boolean useCoordinator = shouldUseCoordinator()
+    boolean useClientSideImpl = false
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -46,11 +46,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        toolingApi.createCompositeBuilder(useCoordinator)
-    }
-
-    private boolean shouldUseCoordinator() {
-        System.getenv('GRADLE_USE_COORDINATOR') == '1' || System.getProperty('gradle.use.coordinator') == '1'
+        toolingApi.createCompositeBuilder(useClientSideImpl)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {

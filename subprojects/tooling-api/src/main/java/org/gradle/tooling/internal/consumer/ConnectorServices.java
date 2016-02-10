@@ -39,7 +39,7 @@ public class ConnectorServices {
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
 
-    public static DefaultGradleConnection.Builder createGradleConnectionBuilder() {
+    public static DefaultGradleConnection.Builder createClientSideGradleConnectionBuilder() {
         assertJava6();
         return singletonRegistry.getFactory(DefaultGradleConnection.Builder.class).create();
     }

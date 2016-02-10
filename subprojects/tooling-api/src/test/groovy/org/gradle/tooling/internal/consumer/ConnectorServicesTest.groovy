@@ -38,7 +38,7 @@ public class ConnectorServicesTest extends Specification {
 
     def "services can create GradleConnection.Builder"() {
         expect:
-        ConnectorServices.createGradleConnectionBuilder()
+        ConnectorServices.createCoordinatorGradleConnectionBuilder()
     }
 
     def "can close services"() {
