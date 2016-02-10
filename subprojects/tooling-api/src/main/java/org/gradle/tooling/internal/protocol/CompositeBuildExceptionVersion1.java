@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling.composite;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * Thrown when there is some problem using a Gradle composite.
+ * A wrapper around a composite build failure, to distinguish it from an infrastructure failure. The details of the failure are made available in the cause of this exception.
+ *
+ * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
  * @since 2.12
  */
-public class GradleCompositeException extends RuntimeException {
-    public GradleCompositeException(String message) {
-        super(message);
-    }
-
-    public GradleCompositeException(String message, Throwable throwable) {
-        super(message, throwable);
+public class CompositeBuildExceptionVersion1 extends RuntimeException {
+    public CompositeBuildExceptionVersion1(Throwable throwable) {
+        super(throwable);
     }
 }

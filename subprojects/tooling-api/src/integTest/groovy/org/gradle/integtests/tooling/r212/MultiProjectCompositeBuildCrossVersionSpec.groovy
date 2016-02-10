@@ -15,6 +15,8 @@
  */
 
 package org.gradle.integtests.tooling.r212
+
+import com.google.common.base.Throwables
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
@@ -270,10 +272,13 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         then:
         def e = thrown(BuildException)
-        e.getMessage().contains("Could not fetch model of type 'EclipseProject'")
-        def underlyingCause = e.getCause().getCause()
-        // TODO: Should get a GradleCompositeException
-        underlyingCause.getMessage().contains("single-build' does not exist")
+        def causes = Throwables.getCausalChain(e)
+        causes.any {
+            it.message.contains("Could not fetch model of type 'EclipseProject'")
+        }
+        causes.any {
+            it.message.contains("single-build' does not exist")
+        }
 
         cleanup:
         composite?.close()

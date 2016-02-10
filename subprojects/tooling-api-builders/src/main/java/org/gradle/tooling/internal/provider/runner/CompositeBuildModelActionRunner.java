@@ -26,9 +26,9 @@ import org.gradle.launcher.exec.CompositeBuildActionParameters;
 import org.gradle.launcher.exec.CompositeBuildActionRunner;
 import org.gradle.launcher.exec.CompositeBuildController;
 import org.gradle.tooling.*;
-import org.gradle.tooling.composite.GradleCompositeException;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.SetContainer;
 import org.gradle.tooling.internal.protocol.eclipse.SetOfEclipseProjects;
 import org.gradle.tooling.internal.provider.BuildActionResult;
@@ -64,7 +64,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
             buildController.setResult(new BuildActionResult(payloadSerializer.serialize(setContainer), null));
         } else {
-            throw new GradleCompositeException("Unknown model " + requestedModelName);
+            throw new CompositeBuildExceptionVersion1(new IllegalArgumentException("Unknown model " + requestedModelName));
         }
     }
 
@@ -93,7 +93,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             UncheckedException.throwAsUncheckedException(e);
         }
         if (firstFailure.get() != null) {
-            throw new GradleCompositeException("Error retrieving model", firstFailure.get());
+            throw new CompositeBuildExceptionVersion1(firstFailure.get());
         }
         return new HashSet<T>(results);
     }

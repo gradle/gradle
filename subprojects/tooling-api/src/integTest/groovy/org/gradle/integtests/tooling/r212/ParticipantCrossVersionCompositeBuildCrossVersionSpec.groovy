@@ -22,7 +22,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.composite.GradleCompositeException
+import org.gradle.tooling.CompositeBuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GradleVersion
@@ -86,7 +86,7 @@ class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToo
         def connection = builder.build()
         def models = connection.getModels(EclipseProject)
         then:
-        def e = thrown(GradleCompositeException)
+        def e = thrown(CompositeBuildException)
 
         cleanup:
         connection?.close()

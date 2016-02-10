@@ -15,6 +15,8 @@
  */
 
 package org.gradle.integtests.tooling.r212
+
+import com.google.common.base.Throwables
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
@@ -92,8 +94,10 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         then:
         def e = thrown(BuildException)
-        e.getMessage().contains("Could not fetch model of type 'EclipseProject'")
-        e.getCause().getCause().getCause() instanceof RuntimeException
+        def causes = Throwables.getCausalChain(e)
+        causes.any {
+            it.message.contains("Could not fetch model of type 'EclipseProject'")
+        }
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
@@ -103,9 +107,13 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         then:
         def e = thrown(BuildException)
-        e.getMessage().contains("Could not fetch model of type 'EclipseProject'")
-        def underlyingCause = e.getCause().getCause()
-        underlyingCause.getMessage().contains("project-does-not-exist' does not exist")
+        def causes = Throwables.getCausalChain(e)
+        causes.any {
+            it.message.contains("Could not fetch model of type 'EclipseProject'")
+        }
+        causes.any {
+            it.message.contains("project-does-not-exist' does not exist")
+        }
     }
 
     def "does not search upwards for projects"() {
