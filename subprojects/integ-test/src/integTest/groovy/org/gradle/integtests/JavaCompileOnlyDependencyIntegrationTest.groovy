@@ -78,7 +78,7 @@ dependencies {
 
         then:
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
-        failure.error.contains("error: package org.apache.commons.logging does not exist")
+        failure.error.contains("package org.apache.commons.logging does not exist")
     }
 
     def "compile only dependencies not included in runtime classpath"() {
