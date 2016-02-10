@@ -15,7 +15,6 @@
  */
 
 package org.gradle.internal.filewatch
-
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -160,7 +159,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         then:
         waitFor.done
         lastChangeRef.get() != 0
-        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= Math.round(quietPeriod * 0.99)
+        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
 
         cleanup:
         w.stop()
@@ -176,11 +175,12 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
             if (i > 0) {
                 sleep(50)
             }
-            testLogger.log("loop ${i + 1}/10")
             instant.assertNotReached('done')
+            lastChangeRef.set(System.nanoTime())
+
+            testLogger.log("loop ${i + 1}")
             testfile << "change"
             testLogger.log("changed")
-            lastChangeRef.set(System.nanoTime())
         }
     }
 
@@ -190,13 +190,14 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
                 if (i > 0) {
                     sleep(50)
                 }
-                testLogger.log("loop ${i + 1}/10")
+
                 instant.assertNotReached('done')
-                out.write("change\n")
-                testLogger.log("written")
-                out.flush()
-                testLogger.log("flushed")
                 lastChangeRef.set(System.nanoTime())
+
+                testLogger.log("loop ${i + 1}")
+                out.write("change\n")
+                out.flush()
+                testLogger.log("changed")
             }
         }
     }
