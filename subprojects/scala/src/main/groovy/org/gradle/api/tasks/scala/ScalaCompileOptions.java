@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 import org.gradle.util.CollectionUtils;
@@ -125,7 +126,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return toOnOffString(isOptimize());
         }
         if (fieldName.equals("loggingPhases")) {
-            return String.join(",", getLoggingPhases());
+            return Joiner.on(",").join(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
             return CollectionUtils.asCommandLine(getAdditionalParameters());
