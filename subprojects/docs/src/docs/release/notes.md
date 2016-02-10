@@ -59,12 +59,14 @@ The Zinc compiler provides the benefit of being faster and more efficient than t
 
 ### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
 
-Users can now match against TestSuite names in both JUnit and TestNG test tasks. You can also, filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
+You can use [test filtering](userguide/java_plugin.html#test_filtering) in the Java Plugin to execute a specific subset of tests. Now, you can match against TestSuite names in both JUnit and TestNG test tasks. You can also filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
 
     gradle test --tests "com.example.MyTestSuite"        // Includes the tests in the given suite.
     gradle test --tests "com.example.ParameterizedTest"  // All iterations of methods in the test.
     gradle test --tests "*ParameterizedTest.foo*"        // All iterations of the foo method in the test.
     gradle test --tests "*ParameterizedTest.*[2]"        // Only iteration 2 of all methods in the test.
+
+These same patterns can also be used in the [filter section](userguide/java_plugin.html#testfiltering) of the test task directly in your `build.gradle` file.
 
 ## Promoted features
 
