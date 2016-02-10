@@ -32,7 +32,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
         imports = "org.testng.annotations.*"
     }
 
-    void writeFiles() {
+    void theUsualFiles() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -75,7 +75,8 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
 
     @Issue("GRADLE-3112")
     def "suites can be filtered from the command-line"() {
-        writeFiles()
+        given:
+        theUsualFiles()
 
         when:
         run("test", "--tests", "*AwesomeSuite*")
@@ -92,7 +93,9 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
 
     @Issue("GRADLE-3112")
     def "suites can be filtered from the build file"() {
-        writeFiles()
+        given:
+        theUsualFiles()
+        // and this addition to the build file ...
         buildFile << """
             test {
               filter {

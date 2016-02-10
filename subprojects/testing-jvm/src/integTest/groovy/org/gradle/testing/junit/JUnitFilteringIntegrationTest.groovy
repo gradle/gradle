@@ -31,7 +31,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         imports = "org.junit.*"
     }
 
-    void writeParameterizedFiles() {
+    void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """import $imports;
             import org.junit.runners.Parameterized;
             import org.junit.runners.Parameterized.Parameters;
@@ -62,7 +62,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         """
     }
 
-    void writeSuiteFiles() {
+    void theSuiteFiles() {
         file("src/test/java/FooTest.java") << """
             import org.junit.Test;
             public class FooTest {
@@ -97,6 +97,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "can filter parameterized junit tests"() {
+        given:
+        // this addition to the build file ...
         buildFile << """
             test {
               filter {
@@ -104,7 +106,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
               }
             }
         """
-        writeParameterizedFiles()
+        // and ...
+        theParameterizedFiles()
 
         when:
         run("test")
@@ -117,7 +120,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "can filter parameterized junit tests from the command-line"() {
-        writeParameterizedFiles()
+        given:
+        theParameterizedFiles()
 
         when:
         run("test", "--tests", "*ParameterizedFoo.pass*")
@@ -130,7 +134,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "can filter parameterized junit tests to a single iteration from the command-line"() {
-        writeParameterizedFiles()
+        given:
+        theParameterizedFiles()
 
         when:
         run("test", "--tests", "*ParameterizedFoo.*[2]")
@@ -143,6 +148,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "can filter parameterized junit tests to a single iteration from the build file"() {
+        given:
+        // this addition to the build file ...
         buildFile << """
             test {
               filter {
@@ -150,7 +157,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
               }
             }
         """
-        writeParameterizedFiles()
+        // and ...
+        theParameterizedFiles()
 
         when:
         run("test")
@@ -163,7 +171,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "passing a suite argument to --tests runs all tests in the suite"() {
-        writeSuiteFiles()
+        given:
+        theSuiteFiles()
 
         when:
         run("test", "--tests", "*AllFooTests")
@@ -180,6 +189,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
     @Issue("GRADLE-3112")
     def "can filter test Suites from build file."() {
+        given:
+        // this addition to the build files ...
         buildFile << """
             test {
               filter {
@@ -187,7 +198,8 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
               }
             }
         """
-        writeSuiteFiles()
+        // and ...
+        theSuiteFiles()
 
         when:
         run("test")
