@@ -61,7 +61,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
         @Hidden
         @Model
         BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
+            return new BinarySpecFactory(serviceRegistry.get(Instantiator.class), taskFactory);
         }
 
         @Mutate

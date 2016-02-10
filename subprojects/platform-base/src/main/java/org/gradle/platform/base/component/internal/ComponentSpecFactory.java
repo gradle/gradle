@@ -26,8 +26,8 @@ import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec, BaseComponentSpec> {
-    public ComponentSpecFactory(String displayName, final ProjectIdentifier projectIdentifier) {
-        super(displayName, ComponentSpec.class, BaseComponentSpec.class);
+    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier) {
+        super(ComponentSpec.class, BaseComponentSpec.class);
         registerFactory(BaseComponentSpec.class, new ImplementationFactory<ComponentSpec, BaseComponentSpec>() {
             @Override
             public <T extends BaseComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {

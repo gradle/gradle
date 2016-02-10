@@ -55,7 +55,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Hidden
         @Model
         LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
-            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(SourceDirectorySetFactory.class));
+            return new LanguageSourceSetFactory(serviceRegistry.get(SourceDirectorySetFactory.class));
         }
 
         @LanguageType

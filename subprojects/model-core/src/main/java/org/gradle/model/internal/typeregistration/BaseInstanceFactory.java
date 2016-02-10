@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.typeregistration;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.Managed;
@@ -28,21 +30,18 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
-    private final String displayName;
     private final ModelType<PUBLIC> baseInterface;
     private final ModelType<BASEIMPL> baseImplementationType;
     private final Class<BASEIMPL> baseImplementation;
     private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
     private final Map<Class<? extends BASEIMPL>, ImplementationFactory<? extends PUBLIC, ? extends BASEIMPL>> factories = Maps.newLinkedHashMap();
 
-    public BaseInstanceFactory(String displayName, Class<PUBLIC> baseInterface, Class<BASEIMPL> baseImplementation) {
-        this.displayName = displayName;
+    public BaseInstanceFactory(Class<PUBLIC> baseInterface, Class<BASEIMPL> baseImplementation) {
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = baseImplementation;
         this.baseImplementationType = ModelType.of(baseImplementation);
@@ -79,9 +78,12 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         return new TypeRegistrationBuilderImpl<S>(source, registration);
     }
 
-    @Override
+    @Override @Nullable
     public <S extends PUBLIC> ImplementationInfo getImplementationInfo(ModelType<S> publicType) {
         ImplementationRegistration<S, ? extends BASEIMPL> implementationRegistration = getImplementationRegistration(publicType);
+        if (implementationRegistration == null) {
+            return null;
+        }
         return new ImplementationInfoImpl<S, BASEIMPL>(publicType, implementationRegistration, getInternalViews(publicType));
     }
 
@@ -131,18 +133,6 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         return supportedTypes.build();
     }
 
-    private String getConstructibleTypeNames() {
-        Set<ModelType<? extends PUBLIC>> constructibleTypes = getConstructibleTypes();
-        if (constructibleTypes.isEmpty()) {
-            return "(None)";
-        }
-        return Joiner.on(", ").join(constructibleTypes);
-    }
-
-    private Set<ModelType<? extends PUBLIC>> getConstructibleTypes() {
-        return Sets.difference(getSupportedTypes(), Collections.singleton(baseInterface));
-    }
-
     private <S extends PUBLIC> TypeRegistration<S> getRegistration(ModelType<S> type) {
         return Cast.uncheckedCast(registrations.get(type));
     }
@@ -150,8 +140,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
     private <S extends PUBLIC> ImplementationRegistration<S, ? extends BASEIMPL> getImplementationRegistration(ModelType<S> type) {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null) {
-            throw new IllegalArgumentException(
-                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getConstructibleTypeNames()));
+            return null;
         }
         if (registration.implementationRegistration == null) {
             throw new IllegalArgumentException(
@@ -164,11 +153,6 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         for (TypeRegistration<? extends PUBLIC> registration : registrations.values()) {
             registration.validate();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "[" + getConstructibleTypeNames() + "]";
     }
 
     private static boolean isManaged(ModelType<?> type) {

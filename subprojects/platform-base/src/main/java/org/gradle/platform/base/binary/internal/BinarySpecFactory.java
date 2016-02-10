@@ -25,8 +25,8 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, BaseBinarySpec> {
-    public BinarySpecFactory(String displayName, final Instantiator instantiator, final ITaskFactory taskFactory) {
-        super(displayName, BinarySpec.class, BaseBinarySpec.class);
+    public BinarySpecFactory(final Instantiator instantiator, final ITaskFactory taskFactory) {
+        super(BinarySpec.class, BaseBinarySpec.class);
         registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
             @Override
             public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {

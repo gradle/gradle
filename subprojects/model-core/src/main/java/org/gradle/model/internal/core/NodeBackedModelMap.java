@@ -22,6 +22,7 @@ import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.model.InvalidModelRuleException;
@@ -45,6 +46,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private static final ElementFilter NO_PARENT = new ElementFilter(ModelType.UNTYPED) {
         @Override
         public boolean apply(MutableModelNode node) {
+            return true;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(ModelType<?> element) {
             return true;
         }
 
@@ -91,14 +97,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         this.elementFilter = parentFilter.withType(elementType);
     }
 
-    public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(final ModelType<T> baseItemModelType, final NodeInitializerRegistry nodeInitializerRegistry) {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(final NodeInitializerRegistry nodeInitializerRegistry) {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
-            public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-                if (!baseItemModelType.isAssignableFrom(type)) {
-                    throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
-                }
-                return nodeInitializerRegistry.getNodeInitializer(forExtensibleType(type, baseItemModelType));
+            public <S extends T> NodeInitializer initializer(ModelType<S> type, Spec<ModelType<?>> constraints) {
+                return nodeInitializerRegistry.getNodeInitializer(forExtensibleType(type, constraints));
             }
         };
     }
@@ -115,7 +118,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(final Transformer<? extends NamedEntityInstantiator<T>, ? super MutableModelNode> instantiatorTransform) {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
-            public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
+            public <S extends T> NodeInitializer initializer(final ModelType<S> type, Spec<ModelType<?>> constraints) {
                 return new NodeInitializer() {
                     @Override
                     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
@@ -307,7 +310,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         viewState.assertCanMutate();
         elementFilter.validateCanCreateElement(childPath, type);
 
-        NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
+        NodeInitializer nodeInitializer = creatorStrategy.initializer(type, elementFilter);
 
         ModelRegistrations.Builder builder = ModelRegistrations.of(childPath, nodeInitializer).descriptor(descriptor);
         if (initAction != null) {
@@ -465,7 +468,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         return super.methodMissing(name, argsObj);
     }
 
-    private static abstract class ElementFilter implements Predicate<MutableModelNode> {
+    private static abstract class ElementFilter implements Predicate<MutableModelNode>, Spec<ModelType<?>> {
         protected final ModelType<?> elementType;
 
         public ElementFilter(ModelType<?> elementType) {
@@ -495,6 +498,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         public ChainedElementFilter(ElementFilter parent, ModelType<?> elementType) {
             super(elementType);
             this.parent = parent;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(ModelType<?> element) {
+            return elementType.isAssignableFrom(element) && parent.isSatisfiedBy(element);
         }
 
         @Override

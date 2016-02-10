@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -379,7 +380,7 @@ afterEach CustomComponent 'newComponent'"""
         }
     }
 
-    def "reasonable error message when creating unmanaged component with default implementation"() {
+    def "reasonable error message when creating unmanaged component using its default implementation"() {
         when:
         buildFile << """
         interface UnmanagedComponent extends ComponentSpec {}
@@ -402,10 +403,10 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultUnmanagedComponent' because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ComponentSpec.name}, CustomComponent, UnmanagedComponent."))
     }
 
-    def "reasonable error message when creating component with no implementation"() {
+    def "reasonable error message when creating unknown component type"() {
         when:
         buildFile << """
         interface AnotherCustomComponent extends ComponentSpec {}
@@ -421,57 +422,7 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
-    }
-
-    def "reasonable error message when creating binary with default implementation"() {
-        given:
-        withBinaries()
-
-        when:
-        buildFile << """
-        model {
-            components {
-                main {
-                    binaries {
-                        another(DefaultCustomBinary)
-                    }
-                }
-            }
-        }
-
-        """
-        then:
-        fails "model"
-
-        and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
-    }
-
-    def "reasonable error message when creating binary with no implementation"() {
-        given:
-        withBinaries()
-
-        when:
-        buildFile << """
-        interface AnotherCustomBinary extends BinarySpec {}
-
-        model {
-            components {
-                main {
-                    binaries {
-                        another(AnotherCustomBinary)
-                    }
-                }
-            }
-        }
-
-        """
-        then:
-        fails "model"
-
-        and:
-        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ComponentSpec.name}, CustomComponent"))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {

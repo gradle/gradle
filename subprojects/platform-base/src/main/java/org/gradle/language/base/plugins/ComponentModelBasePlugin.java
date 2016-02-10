@@ -66,7 +66,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
     static class PluginRules extends RuleSource {
         @Hidden @Model
         ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
-            return new ComponentSpecFactory("components", projectIdentifier);
+            return new ComponentSpecFactory(projectIdentifier);
         }
 
         @ComponentType

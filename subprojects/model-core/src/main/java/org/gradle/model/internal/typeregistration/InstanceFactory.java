@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.typeregistration;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
@@ -29,6 +30,7 @@ public interface InstanceFactory<T> {
     /**
      * Return information about the implementation of an unmanaged type.
      */
+    @Nullable
     <S extends T> ImplementationInfo getImplementationInfo(ModelType<S> publicType);
 
     /**

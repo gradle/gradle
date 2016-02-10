@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
@@ -45,7 +46,27 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
         if (!instanceFactory.getBaseInterface().isAssignableFrom(schema.getType())) {
             return null;
         }
-        return getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));
+        NodeInitializer nodeInitializer = getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));
+        if (nodeInitializer == null) {
+            throw new IllegalArgumentException(String.format("Cannot create an instance of type '%s' as this type is not known. Known types: %s.", schema.getType(), formatKnownTypes(context.getConstraints(), instanceFactory.getSupportedTypes())));
+        }
+        return nodeInitializer;
+    }
+
+    private String formatKnownTypes(Spec<ModelType<?>> constraints, Set<? extends ModelType<?>> supportedTypes) {
+        StringBuilder builder = new StringBuilder();
+        for (ModelType<?> supportedType : supportedTypes) {
+            if (constraints.isSatisfiedBy(supportedType)) {
+                if (builder.length() > 0) {
+                    builder.append(", ");
+                }
+                builder.append(supportedType);
+            }
+        }
+        if (builder.length() == 0) {
+            return "(none)";
+        }
+        return builder.toString();
     }
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
@@ -56,6 +77,9 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
             implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
         } else {
             implementationInfo = instanceFactory.getImplementationInfo(publicType);
+        }
+        if (implementationInfo == null) {
+            return null;
         }
         Set<ModelType<?>> internalViews = implementationInfo.getInternalViews();
         ModelType<?> delegateType = implementationInfo.getDelegateType();

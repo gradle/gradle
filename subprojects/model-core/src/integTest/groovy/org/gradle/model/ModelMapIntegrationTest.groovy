@@ -43,10 +43,139 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "components"
-        failure.assertHasCause("Cannot create a 'NonRegisteredComponent' because this type is not known to components. Known types are: SampleComponent")
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
     }
 
-    def "cannot add unregistered type to model map"() {
+    def "cannot add unregistered type to model map of extensible type"() {
+        buildFile << """
+        @Managed interface SampleComponent extends ComponentSpec {}
+        interface NonRegisteredComponent extends ComponentSpec {}
+
+        class Rules extends RuleSource {
+            @ComponentType
+            void register1(TypeBuilder<SampleComponent> builder) {}
+            @Model
+            void things(ModelMap<ComponentSpec> m) {}
+        }
+        apply plugin: Rules
+
+        model {
+            things {
+                main(NonRegisteredComponent) {}
+            }
+        }
+        """
+
+        expect:
+        fails "model"
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
+    }
+
+    def "cannot add unregistered type to model map of specialized extensible type"() {
+        buildFile << """
+        @Managed interface SampleComponent extends ComponentSpec {}
+        @Managed interface Sample2Component extends ComponentSpec {}
+        interface NonRegisteredComponent extends SampleComponent {}
+
+        class Rules extends RuleSource {
+            @ComponentType
+            void register1(TypeBuilder<SampleComponent> builder) {}
+            @ComponentType
+            void register2(TypeBuilder<Sample2Component> builder) {}
+            @Model
+            void things(ModelMap<SampleComponent> m) {}
+        }
+        apply plugin: Rules
+
+        model {
+            things {
+                main(NonRegisteredComponent) {}
+            }
+        }
+        """
+
+        expect:
+        fails "model"
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: SampleComponent.")
+    }
+
+    def "cannot add unregistered subtype to filtered specialized model map"() {
+        buildFile << """
+        @Managed interface SampleComponent extends ComponentSpec {}
+        @Managed interface Sample2Component extends ComponentSpec {}
+        interface NonRegisteredComponent extends SampleComponent {}
+
+        class Rules extends RuleSource {
+            @ComponentType
+            void registerType1(TypeBuilder<SampleComponent> builder) {}
+            @ComponentType
+            void registerType2(TypeBuilder<Sample2Component> builder) {}
+        }
+        apply plugin: Rules
+
+        model {
+            components {
+                withType(SampleComponent).create("other", NonRegisteredComponent)
+            }
+        }
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: SampleComponent.")
+    }
+
+    def "cannot add type to filtered specialized model map when it does not satisfied all type constraints"() {
+        buildFile << """
+        @Managed interface SampleComponent extends ComponentSpec {}
+        @Managed interface Sample2Component extends ComponentSpec {}
+
+        class Rules extends RuleSource {
+            @ComponentType
+            void registerType1(TypeBuilder<SampleComponent> builder) {}
+            @ComponentType
+            void registerType2(TypeBuilder<Sample2Component> builder) {}
+        }
+        apply plugin: Rules
+
+        model {
+            components {
+                withType(Sample2Component).create("other", SampleComponent)
+            }
+        }
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause("Cannot create 'components.other' with type 'SampleComponent' as this is not a subtype of 'Sample2Component'.")
+    }
+
+    def "can add type to filtered specialized model map when it satisfies all type constraints"() {
+        buildFile << """
+        @Managed interface SampleComponent extends ComponentSpec {}
+        interface Thing { }
+        @Managed interface Sample2Component extends SampleComponent, Thing {}
+
+        class Rules extends RuleSource {
+            @ComponentType
+            void registerType1(TypeBuilder<SampleComponent> builder) {}
+            @ComponentType
+            void registerType2(TypeBuilder<Sample2Component> builder) {}
+        }
+        apply plugin: Rules
+
+        model {
+            components {
+                withType(SampleComponent).withType(Thing).create("other", Sample2Component)
+            }
+        }
+        """
+
+        expect:
+        succeeds "components"
+    }
+
+    def "cannot add invalid type to model map"() {
         buildFile << """
             @Managed interface Thing {}
 

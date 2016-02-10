@@ -50,7 +50,7 @@ class BaseInstanceFactoryTest extends Specification {
     static interface UnmanagedThingSpec extends ThingSpec {}
     static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
-    def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>("things", ThingSpec, BaseThingSpec)
+    def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>(ThingSpec, BaseThingSpec)
     def node = Mock(MutableModelNode)
     def factoryMock = Mock(ImplementationFactory)
 
@@ -172,30 +172,22 @@ class BaseInstanceFactoryTest extends Specification {
         0 * _
     }
 
-    def "base type is not advertised as known type in error messages"() {
+    def "base type is not advertised as supported type"() {
         instanceFactory.registerFactory(BaseThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
             .withImplementation(ModelType.of(DefaultThingSpec))
         instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("other"))
             .withImplementation(ModelType.of(DefaultOtherThingSpec))
 
-        when:
-        instanceFactory.getImplementationInfo(ModelType.of(ManagedThingSpec))
-
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Cannot create a '$ManagedThingSpec.name' because this type is not known to things. Known types are: $OtherThingSpec.name"
+        expect:
+        instanceFactory.supportedTypes == [ThingSpec, OtherThingSpec].collect { ModelType.of(it) } as Set
     }
 
-    def "fails when trying to create an unregistered type"() {
+    def "returns null implementation for an unknown type"() {
         instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
 
-        when:
-        instanceFactory.getImplementationInfo(ModelType.of(ChildManagedThingSpec))
-
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Cannot create a '$ChildManagedThingSpec.name' because this type is not known to things. Known types are: $ManagedThingSpec.name"
+        expect:
+        instanceFactory.getImplementationInfo(ModelType.of(ChildManagedThingSpec)) == null
     }
 
     def "fails when an implementation is registered that doesn't extend the base type"() {
