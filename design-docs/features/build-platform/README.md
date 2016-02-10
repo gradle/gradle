@@ -185,22 +185,12 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 - Init scripts that are hosted in a different location than the corresponding meta-data file.
 - Can custom plugins be applied as part of executing the init script (see next story).
 
-## Story - Gradle supports applying a custom plugin (from outside distribution) from an init script
+## Story - Gradle supports applying a custom plugin by ID from an init script
 
 A current limitation of Gradle is the inability to apply an external (outside the Gradle distribution) custom
-plugin from an init script (see https://issues.gradle.org/browse/GRADLE-2407). The previous story provides
-the ability to execute init scripts as part of build platform processing. Until further detailed design work
-is complete, it isn't clear whether any existing limitations will be removed as part of the previous story.
-The previous limitation may be removed altogether or might be partially removed, e.g. perhaps custom plugins
-which reside within the build platform JAR can be applied.
-
-If these limitations aren't removed as a byproduct of the previous story, this story will look at removing
-those limitations. This will greatly reduce the scenarios where custom Gradle distributions are required.
-
-### Open issues
-
-- Can the limitations be removed based around existing Gradle functionality? I.e. will it (partially?) work for users not making use of the build platform concept.
-- Custom plugins that are hosted outside of the build platform JAR file.
+plugin from an init script by identifier (see [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407)).
+Instead of using the identifier, the fully qualified plugin class name has to be used. This story removes
+the limitation to provide a smoother user experience.
 
 # Milestone 2
 
