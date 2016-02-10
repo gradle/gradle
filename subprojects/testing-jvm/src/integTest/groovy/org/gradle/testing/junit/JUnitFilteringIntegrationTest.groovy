@@ -96,7 +96,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     }
 
     @Issue("GRADLE-3112")
-    def "can filter parameterized junit tests"() {
+    def "can filter parameterized tests from the build file."() {
         given:
         // this addition to the build file ...
         buildFile << """
@@ -119,7 +119,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     }
 
     @Issue("GRADLE-3112")
-    def "can filter parameterized junit tests from the command-line"() {
+    def "can filter parameterized tests from the command-line"() {
         given:
         theParameterizedFiles()
 
@@ -130,43 +130,6 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("ParameterizedFoo")
         result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
-    }
-
-    @Issue("GRADLE-3112")
-    def "can filter parameterized junit tests to a single iteration from the command-line"() {
-        given:
-        theParameterizedFiles()
-
-        when:
-        run("test", "--tests", "*ParameterizedFoo.*[2]")
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("fail[2]", "pass[2]")
-    }
-
-    @Issue("GRADLE-3112")
-    def "can filter parameterized junit tests to a single iteration from the build file"() {
-        given:
-        // this addition to the build file ...
-        buildFile << """
-            test {
-              filter {
-                includeTestsMatching "*ParameterizedFoo.*[2]"
-              }
-            }
-        """
-        // and ...
-        theParameterizedFiles()
-
-        when:
-        run("test")
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("fail[2]", "pass[2]")
     }
 
     @Issue("GRADLE-3112")

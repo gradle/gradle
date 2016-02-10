@@ -412,6 +412,36 @@ class JUnitTestClassProcessorTest extends Specification {
 
 
     @Issue("GRADLE-3112")
+    def "parameterized tests can be filtered by iteration only."() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.*[1]"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be filtered by full method name"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.helpfulTest[1]"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
     def "parameterized tests can be empty"() {
         classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AnEmptyParameterizedTest"] as Set))
 
