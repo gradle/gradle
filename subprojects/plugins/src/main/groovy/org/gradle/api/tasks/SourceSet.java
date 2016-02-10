@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 
@@ -209,6 +210,9 @@ public interface SourceSet {
     /**
      * Returns the name of the compile only configuration for this source set.
      * @return The compile only configuration name
+     *
+     * @since 2.12
      */
+    @Incubating
     String getCompileOnlyConfigurationName();
 }
