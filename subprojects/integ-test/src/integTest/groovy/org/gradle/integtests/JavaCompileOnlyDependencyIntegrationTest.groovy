@@ -18,6 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class JavaCompileOnlyDependencyIntegrationTest extends AbstractIntegrationSpec {
     def "can compile against compile only dependency"() {
         given:
@@ -101,15 +103,15 @@ dependencies {
 }
 
 task checkCompile << {
-    assert configurations.compile.files == [file('${compileModule.artifactFile}')] as Set
+    assert configurations.compile.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
 }
 
 task checkCompileOnly << {
-    assert configurations.compileOnly.files == [file('${compileModule.artifactFile}'), file('${compileOnlyModule.artifactFile}')] as Set
+    assert configurations.compileOnly.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
 }
 
 task checkRuntime << {
-    assert configurations.runtime.files == [file('${compileModule.artifactFile}'), file('${runtimeModule.artifactFile}')] as Set
+    assert configurations.runtime.files == [file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
 }
 """
 
@@ -137,11 +139,11 @@ dependencies {
 }
 
 task checkCompile << {
-    assert configurations.compile.files == [file('${shared11.artifactFile}'), file('${compileModule.artifactFile}')] as Set
+    assert configurations.compile.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}')] as Set
 }
 
 task checkCompileOnly << {
-    assert configurations.compileOnly.files == [file('${shared11.artifactFile}'), file('${compileModule.artifactFile}'), file('${compileOnlyModule.artifactFile}')] as Set
+    assert configurations.compileOnly.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(compileModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
 }
 """
         expect:
