@@ -33,11 +33,7 @@ import java.util.concurrent.atomic.AtomicReference
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider testDirectory
-    ChangeReporter reporter
-
-    def setup() {
-        reporter = Mock(ChangeReporter)
-    }
+    FileWatcherEventListener reporter = new PrintingEventListener()
 
     def "can wait for filesystem change"() {
         when:
@@ -208,5 +204,12 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     private void gcAndIdleBefore() {
         System.gc()
         sleep(500)
+    }
+
+    class PrintingEventListener implements FileWatcherEventListener {
+        @Override
+        void onChange(FileWatcherEvent event) {
+            logger.log(event)
+        }
     }
 }
