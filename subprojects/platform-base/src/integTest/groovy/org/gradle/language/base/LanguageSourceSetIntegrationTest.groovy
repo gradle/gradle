@@ -16,10 +16,8 @@
 
 package org.gradle.language.base
 
-import org.gradle.api.internal.java.DefaultJavaSourceSet
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.language.java.JavaSourceSet
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -45,11 +43,11 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level LSS for using an implementation class"() {
         buildFile.text = """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguageWithImpl()}
 
         class Rules extends RuleSource {
             @Model
-            void lss(org.gradle.api.internal.java.DefaultJavaSourceSet javaSource) {
+            void lss(DefaultCustomSourceSet source) {
             }
         }
         apply plugin: Rules
@@ -59,7 +57,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failure.assertHasCause("Cannot create an instance of type '${DefaultJavaSourceSet.name}' as this type is not known. Known types: ${JavaSourceSet.name}, ${LanguageSourceSet.name}")
+        failure.assertHasCause("Cannot create an instance of type 'DefaultCustomSourceSet' as this type is not known. Known types: CustomSourceSet, ${LanguageSourceSet.name}")
     }
 
     def "can create a top level LSS with a rule"() {
@@ -174,28 +172,26 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 
-    private String registerJavaLanguage() {
-        return """
-            import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet
-
-            class JavaLangRuleSource extends RuleSource {
-
-                @LanguageType
-                void registerLanguage(TypeBuilder<JavaSourceSet> builder) {
-                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
-                }
-
-            }
-            apply plugin: JavaLangRuleSource
-        """
-    }
-
     private String registerCustomLanguage() {
         return """
             @Managed interface CustomSourceSet extends LanguageSourceSet {}
             class CustomSourceSetPlugin extends RuleSource {
                 @LanguageType
                 void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
+                }
+            }
+            apply plugin: CustomSourceSetPlugin
+        """.stripIndent()
+    }
+
+    private String registerCustomLanguageWithImpl() {
+        return """
+            interface CustomSourceSet extends LanguageSourceSet {}
+            class DefaultCustomSourceSet extends BaseLanguageSourceSet implements CustomSourceSet {}
+            class CustomSourceSetPlugin extends RuleSource {
+                @LanguageType
+                void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
+                    builder.defaultImplementation(DefaultCustomSourceSet)
                 }
             }
             apply plugin: CustomSourceSetPlugin
