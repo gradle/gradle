@@ -64,6 +64,8 @@ task jarjarJar(type: JarJarJar) {
     keep('org.gradle.tooling.**')
 }
 
+apply from: 'buildship.gradle'
+
 task publishJar(type: Zip) {
     appendix = "bundle"
     destinationDir = jar.destinationDir
