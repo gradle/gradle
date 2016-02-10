@@ -34,6 +34,33 @@ plugins or Java libraries.
 The first milestone introduces the concept of the build platform definition, the way it can be declared by the user and how it is resolved. It also lets the user specify
 an init script as part of the build platform meta-data that is applied to the build automatically.
 
+**This milestone removes the needs for an organization to create a custom Gradle distribution just for the purpose of distributing an enterprise-wide init script used to
+enforce standards, conventions etc. Out-of-scope is the definition of a required Gradle version.**
+
+_End user perspective:_
+
+A project consuming the init script has to define the location and coordinates of the build platform definition in `settings.gradle`.
+
+    buildSystem {
+        from {
+            maven {
+                url 'http://myinternalrepo.com/staging'
+            }
+        }
+
+        use id: 'com.company.build.internal', version: '1.8'
+    }
+
+_Enterprise team perspective:_
+
+The build platform meta-data and init script hosted on a binary repository declared by the enterprise build team looks as such:
+
+    {
+        "id": "com.company.build.internal",
+        "version": "1.8",
+        "init-script": "enterprise-rules.gradle"
+    }
+
 ## Story - Gradle resolves and caches a build platform meta-data
 
 Early in the build startup, resolve the build platform definition. This information is provided as a configuration block in `settings.gradle`.
@@ -194,10 +221,95 @@ the limitation to provide a smoother user experience.
 
 # Milestone 2
 
+This milestone builds on top of the existing build platform infrastructure. The user can declare the Gradle version used for the project. The `wrapper` task uses
+the Gradle version definition to provide a default value for the Gradle distribution URL.
+
+**The functionality of the milestone eliminates the need for installing the Gradle runtime for a project by deriving the Gradle version from the build platform definition.
+The need for a custom Gradle distribution is completely eliminated.**
+
+_End user perspective:_
+
+The declaration of the build platform definition in a `settings.gradle` adds a way to specify the concrete Gradle version used by the project. The end user runs the `wrapper`
+task to generate or update the wrapper files for the given Gradle version.
+
+    buildSystem {
+        from {
+            maven {
+                url 'http://myinternalrepo.com/staging'
+            }
+        }
+
+        use id: 'com.company.build.internal', version: '1.8'
+        use gradle: '2.8'
+    }
+
+_Enterprise team perspective:_
+
+No changes are required.
+
+## Story - The `wrapper` task uses the Gradle version defined in the build platform definition
+
+This story introduces a way to define a Gradle version for a build platform definition. The value of the Gradle version is used by the `wrapper` task generate a Wrapper
+with the appropriate version.
+
+### Usage
+
+    buildSystem {
+        from {
+            maven {
+                url 'http://myinternalrepo.com/staging'
+            }
+        }
+
+        use gradle: '2.8'
+    }
+
+The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle distribution URL in the generated `gradle/wrapper/gradle.properties` file.
+
+### Implementation
+
+- The build platform definition supports a way to declare a Gradle version.
+- The Gradle version can be declared as concrete version, a dynamic version or the latest release version.
+- The `wrapper` task uses the build platform definition to provide a default value for the Gradle distribution URL.
+    - If the wrapper files do not exist yet, the task will generate the wrapper files and use the given Gradle version for the Gradle distribution URL.
+    - If the wrapper files already exist, the task will override the existing Gradle distribution URL.
+- Gradle will emit a warning during build execution when the build platform definition and wrapper configuration are not in sync.
+
+### Test cases
+
+- If no Gradle version is specified in the build platform definition, the `wrapper` task works as before.
+- The `Wrapper` task can resolve Gradle versions using dynamic and pre-defined version identifiers in the Gradle distribution URL.
+- If a build platform definition specifies a Gradle version, the `wrapper` task reflects the value in the Gradle distribution URL.
+- Up-to-date checks for the `wrapper` task takes into account the Gradle version of the build platform definition.
+
+## Open issues
+
+- Reporting and/or notification on the command line on outdated version for a dynamic Gradle version definition
+- Extend the `init` task by a command line flag that lets the user point to a build platform definition
+
+# Milestone 3
+
 This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
 that are checked automatically against the Gradle build applying the rules.
 
-## Story -  Gradle evaluates Gradle compatibility in build platform meta-data
+_End user perspective:_
+
+No changes are required.
+
+_Enterprise team perspective:_
+
+Compatibility definitions are exclusively defined in the meta-data as such:
+
+    {
+        "id": "com.company.build.internal",
+        "version": "1.8",
+        "compatibility": {
+            "gradleVersion": "2.+",
+            "javaVersion": "1.7"
+        }
+    }
+
+## Story - Gradle evaluates Gradle compatibility in build platform meta-data
 
 The build platform meta-data can specify the Gradle version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
 to the meta-data that verifies the compatibility with Gradle version executing the Gradle build.
@@ -234,7 +346,7 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 - Allowing compatible version ranges e.g. `>=2.5 =<2.8`.
 - Potential impacts for the Gradle wrapper.
 
-## Story -  Gradle evaluates Java compatibility in build platform meta-data
+## Story - Gradle evaluates Java compatibility in build platform meta-data
 
 The build platform meta-data can specify the Java version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
 to the meta-data that verifies the compatibility with Java version executing the Gradle build.
@@ -252,7 +364,7 @@ to the meta-data that verifies the compatibility with Java version executing the
 
 ### Test cases
 
-# Milestone 3
+# Milestone 4
 
 This milestone introduces a plugin to allow a team to develop, test and publish a build platform definition.
 
@@ -339,7 +451,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 
 - What other target locations should be supported in the future?
 
-# Milestone 4
+# Milestone 5
 
 Further integrations into the Gradle ecosystem.
 
