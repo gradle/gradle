@@ -32,8 +32,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
         imports = "org.testng.annotations.*"
     }
 
-    @Issue("GRADLE-3112")
-    def "suites can be filtered from the command-line"() {
+    void writeFiles() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
@@ -72,6 +71,11 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
                 @Test public void pass() {}
             }
         """
+    }
+
+    @Issue("GRADLE-3112")
+    def "suites can be filtered from the command-line"() {
+        writeFiles()
 
         when:
         run("test", "--tests", "*AwesomeSuite*")
@@ -88,45 +92,12 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
 
     @Issue("GRADLE-3112")
     def "suites can be filtered from the build file"() {
+        writeFiles()
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies {
-                testCompile 'org.testng:testng:$version'
-            }
             test {
-              useTestNG {
-                suiteXmlBuilder().suite(name: 'AwesomeSuite') {
-                    test (name: 'AwesomeTest') {
-                        classes([:]) {
-                            'class' (name: 'FooTest')
-                            'class' (name: 'BarTest')
-                        }
-                    }
-                }
-              }
               filter {
                 includeTestsMatching "*AwesomeSuite*"
               }
-            }
-        """
-
-        file("src/test/java/FooTest.java") << """import $imports;
-
-            public class FooTest {
-                @Test public void pass() {}
-            }
-        """
-        file("src/test/java/BarTest.java") << """import $imports;
-
-            public class BarTest {
-                @Test public void pass() {}
-            }
-        """
-        file("src/test/java/BazTest.java") << """import $imports;
-
-            public class BazTest {
-                @Test public void pass() {}
             }
         """
 
