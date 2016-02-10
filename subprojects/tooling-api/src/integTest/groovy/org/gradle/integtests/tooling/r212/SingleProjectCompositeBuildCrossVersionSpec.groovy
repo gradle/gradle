@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.tooling.r212
 
-import com.google.common.base.Throwables
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
+
 /**
  * Builds a composite with a single project.
  */
@@ -132,7 +132,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         then:
         def e = thrown(BuildException)
-        def causes = Throwables.getCausalChain(e)
+        def causes = getCausalChain(e)
         causes.any {
             it.message.contains("Could not fetch model of type 'EclipseProject'")
         }

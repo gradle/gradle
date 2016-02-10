@@ -98,4 +98,13 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
             file("settings.gradle")
         }
     }
+
+    List<Throwable> getCausalChain(Throwable throwable) {
+        def causes = [];
+        while (throwable != null) {
+            causes.add(throwable)
+            throwable = throwable.cause
+        }
+        causes
+    }
 }
