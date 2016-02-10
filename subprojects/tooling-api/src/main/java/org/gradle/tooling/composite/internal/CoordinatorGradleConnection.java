@@ -18,8 +18,8 @@ package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
@@ -137,7 +137,7 @@ public class CoordinatorGradleConnection implements GradleConnection {
     }
 
     @Override
-    public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
+    public <T> ModelBuilder<Set<T>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
         return new CoordinatorCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
     }

@@ -17,8 +17,8 @@
 package org.gradle.tooling.composite.internal;
 
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.composite.CompositeModelBuilder;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
@@ -48,7 +48,7 @@ public class ValidatingGradleConnection implements GradleConnection {
     }
 
     @Override
-    public <T> CompositeModelBuilder<T> models(Class<T> modelType) {
+    public <T> ModelBuilder<Set<T>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
         validate();
         return delegate.models(modelType);

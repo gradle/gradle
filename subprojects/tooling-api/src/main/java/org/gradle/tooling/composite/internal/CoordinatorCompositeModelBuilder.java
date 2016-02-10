@@ -16,19 +16,22 @@
 
 package org.gradle.tooling.composite.internal;
 
-import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ModelBuilder;
-import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.composite.CompositeModelBuilder;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.tooling.*;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultModelBuilder;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.protocol.eclipse.SetOfEclipseProjects;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Set;
 
-public class CoordinatorCompositeModelBuilder<T> implements CompositeModelBuilder<T> {
+public class CoordinatorCompositeModelBuilder<T> implements ModelBuilder<Set<T>> {
     private final ModelBuilder<SetOfEclipseProjects> delegate;
 
     protected CoordinatorCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
@@ -58,8 +61,89 @@ public class CoordinatorCompositeModelBuilder<T> implements CompositeModelBuilde
     }
 
     @Override
-    public CompositeModelBuilder<T> withCancellationToken(CancellationToken cancellationToken) {
+    public ModelBuilder<Set<T>> withCancellationToken(CancellationToken cancellationToken) {
         delegate.withCancellationToken(cancellationToken);
         return this;
+    }
+
+    // TODO: Make all configuration methods configure underlying model builders
+
+    private ModelBuilder<Set<T>> unsupportedMethod() {
+        throw new UnsupportedMethodException("Not supported for composite connections.");
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> forTasks(String... tasks) {
+        return forTasks(Lists.newArrayList(tasks));
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> forTasks(Iterable<String> tasks) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> withArguments(String... arguments) {
+        return withArguments(Lists.newArrayList(arguments));
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> withArguments(Iterable<String> arguments) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setStandardOutput(OutputStream outputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setStandardError(OutputStream outputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setColorOutput(boolean colorOutput) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setStandardInput(InputStream inputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setJavaHome(File javaHome) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setJvmArguments(String... jvmArguments) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> setJvmArguments(Iterable<String> jvmArguments) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> addProgressListener(ProgressListener listener) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
+        return addProgressListener(listener, Sets.newHashSet(operationTypes));
+    }
+
+    @Override
+    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
+        return unsupportedMethod();
     }
 }
