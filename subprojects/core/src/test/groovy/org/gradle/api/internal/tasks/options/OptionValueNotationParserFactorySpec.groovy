@@ -19,11 +19,11 @@ package org.gradle.api.internal.tasks.options
 import org.gradle.api.GradleException
 import spock.lang.Specification
 
-class OptionNotationParserFactorySpec extends Specification {
+class OptionValueNotationParserFactorySpec extends Specification {
 
     def "creates notationparser for handling strings"(){
         given:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory()
+        OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
         def parser = factory.toComposite(String.class);
         then:
@@ -32,7 +32,7 @@ class OptionNotationParserFactorySpec extends Specification {
 
     def "creates notationparser for handling handles enums"(){
         given:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory()
+        OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
         def parser = factory.toComposite(TestEnum.class);
         then:
@@ -41,7 +41,7 @@ class OptionNotationParserFactorySpec extends Specification {
 
     def "fails on creating parser for unsupported"(){
         setup:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory()
+        OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
         factory.toComposite(File.class);
         then:

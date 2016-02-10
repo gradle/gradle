@@ -25,10 +25,10 @@ import java.util.List;
 
 public class FieldOptionElement extends AbstractOptionElement {
 
-    public static FieldOptionElement create(Option option, Field field, OptionNotationParserFactory optionNotationParserFactory){
+    public static FieldOptionElement create(Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory){
         String optionName = calOptionName(option, field);
         Class<?> optionType = calculateOptionType(field.getType());
-        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionNotationParserFactory, optionName, optionType, field.getDeclaringClass());
+        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, optionName, optionType, field.getDeclaringClass());
         return new FieldOptionElement(field, optionName, option, optionType, notationParser);
     }
 

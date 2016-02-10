@@ -23,17 +23,14 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public class OptionNotationParserFactory {
+public class OptionValueNotationParserFactory {
     public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
         assert targetType != null : "resultingType cannot be null";
         if (targetType == Void.TYPE) {
             return new UnsupportedNotationParser<T>();
-        }
-
-        if (targetType.isAssignableFrom(String.class)) {
+        } else if (targetType.isAssignableFrom(String.class) || targetType == java.util.List.class) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
-        }
-        if (targetType.isEnum()) {
+        } else if (targetType.isEnum()) {
             NotationConverter<CharSequence, T> converter = Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
             return new NotationConverterToNotationParserAdapter<CharSequence, T>(converter);
         }
