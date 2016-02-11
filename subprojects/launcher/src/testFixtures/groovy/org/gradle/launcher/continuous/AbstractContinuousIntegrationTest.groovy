@@ -25,8 +25,10 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.util.TestPrecondition.PULL_REQUEST_BUILD
+
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
-    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 30
+    private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = PULL_REQUEST_BUILD.fulfilled ? 60 : 30
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 10
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
