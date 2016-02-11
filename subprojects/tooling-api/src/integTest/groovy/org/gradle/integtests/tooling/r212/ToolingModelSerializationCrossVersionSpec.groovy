@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r212
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.util.UsesNativeServices
 
@@ -35,15 +36,30 @@ apply plugin: 'eclipse'
         projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
         when:
-        loadToolingModel(HierarchicalEclipseProject)
+        assertSerializable(loadToolingModel(HierarchicalEclipseProject))
 
         then:
         noExceptionThrown()
 
         when:
-        loadEclipseProjectModel()
+        assertSerializable(loadToolingModel(EclipseProject))
 
         then:
         noExceptionThrown()
+    }
+
+    private static void assertSerializable(object) {
+        // only check that no exceptions are thrown during serialization
+        ObjectOutputStream oos = new ObjectOutputStream(new OutputStream() {
+            @Override
+            void write(int b) throws IOException {
+                // ignore
+            }
+        })
+        try {
+            oos.writeObject(object)
+        } finally {
+            oos.flush()
+        }
     }
 }

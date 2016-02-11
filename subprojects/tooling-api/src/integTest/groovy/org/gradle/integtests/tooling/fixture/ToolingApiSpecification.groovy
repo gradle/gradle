@@ -23,7 +23,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
-import org.gradle.util.VersionNumber
 
 @ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
@@ -152,29 +151,6 @@ abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
     }
 
     public <T> T loadToolingModel(Class<T> modelClass) {
-        def model = withConnection { connection -> connection.getModel(modelClass) }
-        assertToolingModelIsSerializable(model)
-        model
-    }
-
-    void assertToolingModelIsSerializable(object) {
-        // Only check serialization with 2.12+ since Tooling Model proxy serialization is broken in previous TAPI clients
-        if (toolingApiVersion.getBaseVersion() >= VersionNumber.parse("2.12")) {
-            // only check that no exceptions are thrown during serialization
-            // cross-version deserialization would require using PayloadSerializer
-            ObjectOutputStream oos = new ObjectOutputStream(new NullOutputStream());
-            try {
-                oos.writeObject(object);
-            } finally {
-                oos.flush();
-            }
-        }
-    }
-
-    private static class NullOutputStream extends OutputStream {
-        @Override
-        void write(int b) throws IOException {
-            // ignore
-        }
+        withConnection { connection -> connection.getModel(modelClass) }
     }
 }
