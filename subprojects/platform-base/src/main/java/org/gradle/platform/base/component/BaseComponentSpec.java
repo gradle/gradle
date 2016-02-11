@@ -27,17 +27,15 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 
 /**
  * Base class that may be used for custom {@link ComponentSpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseComponentSpec implements ComponentSpec {
+public class BaseComponentSpec extends DefaultComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
-    private final ComponentSpecIdentifier identifier;
-    private final String typeName;
-
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
 
@@ -59,37 +57,18 @@ public class BaseComponentSpec implements ComponentSpec {
     }
 
     private BaseComponentSpec(ComponentInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
-        }
-
-        this.identifier = info.componentIdentifier;
-        this.typeName = info.typeName;
+        super(notDirectInstantiation(info).typeName, info.componentIdentifier);
 
         MutableModelNode modelNode = info.modelNode;
         binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
 
-    public String getName() {
-        return identifier.getName();
-    }
-
-    public String getProjectPath() {
-        return identifier.getProjectPath();
-    }
-
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
+    private static ComponentInfo notDirectInstantiation(ComponentInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
+        }
+        return info;
     }
 
     @Override
