@@ -111,7 +111,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         System.getProperty('java.vm.vendor') != 'IBM Corporation'
     }),
     JDK_IBM({
-        !NOT_JDK_IBM
+        !NOT_JDK_IBM.fulfilled
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
@@ -134,14 +134,17 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
-    NOT_PULL_REQUEST_BUILD({
+    PULL_REQUEST_BUILD({
         if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
-            return false
+            return true
         }
         if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
-            return false
+            return true
         }
-        return true
+        return false
+    }),
+    NOT_PULL_REQUEST_BUILD({
+        !PULL_REQUEST_BUILD.fulfilled
     });
 
     /**
