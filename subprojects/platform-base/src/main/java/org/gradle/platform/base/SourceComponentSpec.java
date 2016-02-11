@@ -17,7 +17,6 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
@@ -28,7 +27,7 @@ import org.gradle.model.ModelMap;
  */
 @Incubating
 @HasInternalProtocol
-public interface SourceComponentSpec extends Named {
+public interface SourceComponentSpec extends ComponentSpec {
     /**
      * The source sets for this component.
      */

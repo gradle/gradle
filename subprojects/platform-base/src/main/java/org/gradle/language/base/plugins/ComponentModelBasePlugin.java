@@ -38,6 +38,7 @@ import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeIni
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
+import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
@@ -71,7 +72,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @ComponentType
         void registerComponentSpec(TypeBuilder<ComponentSpec> builder) {
-            builder.defaultImplementation(BaseComponentSpec.class);
+            builder.defaultImplementation(DefaultComponentSpec.class);
         }
 
         @ComponentType
@@ -230,7 +231,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Rules
-        void inputRules(AttachInputs attachInputs, @Each ComponentSpec component) {
+        void inputRules(AttachInputs attachInputs, @Each GeneralComponentSpec component) {
             attachInputs.setBinaries(component.getBinaries());
             attachInputs.setSources(component.getSources());
         }

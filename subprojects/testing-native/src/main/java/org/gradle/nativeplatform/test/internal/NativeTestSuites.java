@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.TestSuiteContainer;
 
@@ -98,7 +99,7 @@ public class NativeTestSuites {
     }
 
     public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
-        NativeComponentSpec spec = testSuite.getTestedComponent();
+        VariantComponentSpec spec = (VariantComponentSpec) testSuite.getTestedComponent();
         if (spec == null) {
             throw new InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
         }

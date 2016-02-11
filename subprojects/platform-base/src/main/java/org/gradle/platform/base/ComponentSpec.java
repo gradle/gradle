@@ -25,7 +25,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface ComponentSpec extends Named, SourceComponentSpec, VariantComponentSpec {
+public interface ComponentSpec extends Named {
     /**
      * The path to the project containing this component.
      */

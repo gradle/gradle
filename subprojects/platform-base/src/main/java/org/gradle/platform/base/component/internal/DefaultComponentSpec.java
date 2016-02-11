@@ -23,7 +23,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ModelInstantiationException;
 
-public abstract class DefaultComponentSpec implements ComponentSpec {
+public class DefaultComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
     private final String typeName;

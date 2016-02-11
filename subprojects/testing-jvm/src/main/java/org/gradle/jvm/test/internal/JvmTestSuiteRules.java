@@ -28,6 +28,7 @@ import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.*;
 
 import java.util.Collection;
@@ -105,7 +106,7 @@ public class JvmTestSuiteRules {
     }
 
     private static <S> Collection<S> testedBinariesWithType(Class<S> type, JvmTestSuiteSpec testSuite) {
-        JvmComponentSpec spec = testSuite.getTestedComponent();
+        VariantComponentSpec spec = (VariantComponentSpec) testSuite.getTestedComponent();
         return spec.getBinaries().withType(type).values();
     }
 
