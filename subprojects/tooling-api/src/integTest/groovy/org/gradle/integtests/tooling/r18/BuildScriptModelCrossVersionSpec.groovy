@@ -57,7 +57,7 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
         e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
         eclipseProject.gradleProject.buildScript
 
         then:

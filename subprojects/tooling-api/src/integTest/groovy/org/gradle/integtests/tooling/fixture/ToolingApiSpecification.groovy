@@ -21,7 +21,6 @@ import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=1.2')
@@ -143,11 +142,6 @@ abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
         }
 
         targetVersion < GradleVersion.version("2.3") ? [] : rootProjectImplicitTasks
-    }
-
-
-    EclipseProject loadEclipseProjectModel() {
-        loadToolingModel(EclipseProject)
     }
 
     public <T> T loadToolingModel(Class<T> modelClass) {

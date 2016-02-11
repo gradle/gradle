@@ -31,7 +31,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         rootProject.projectNatures
 
         then:
@@ -45,7 +45,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         def natures = rootProject.projectNatures.collect{ it.id }
 
         then:
@@ -76,7 +76,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
         EclipseProject groovyProject = rootProject.children.find{ it.name == 'groovy-project' }
         EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
@@ -102,7 +102,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.projectNatures.collect{ it.id } == ['sample.nature.a', 'sample.nature.b']
@@ -124,7 +124,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
@@ -136,7 +136,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         rootProject.buildCommands
 
         then:
@@ -150,7 +150,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         def buuldCommandNames = rootProject.buildCommands.collect{ it.name }
 
         then:
@@ -180,7 +180,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
         EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
 
@@ -205,7 +205,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         def buildCommands = rootProject.buildCommands
 
         then:
@@ -233,7 +233,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         def buildCommands = rootProject.buildCommands
 
         then:

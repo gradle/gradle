@@ -41,7 +41,7 @@ description = 'this is a project'
         minimalProject.children.empty
 
         when:
-        EclipseProject fullProject = loadEclipseProjectModel()
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject.name == 'test project'
@@ -65,7 +65,7 @@ description = 'this is a project'
         minimalProject.projectDependencies.empty
 
         when:
-        EclipseProject fullProject = loadEclipseProjectModel()
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject != null
@@ -124,7 +124,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
         minimalProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
 
         when:
-        EclipseProject fullProject = loadEclipseProjectModel()
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject != null
@@ -157,7 +157,7 @@ dependencies {
 '''
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject != null
@@ -217,7 +217,7 @@ project(':a') {
         minimalProject.projectDependencies.any { it.path == 'b' && it.targetProject == minimalProject.children[0] }
 
         when:
-        EclipseProject fullModel = loadEclipseProjectModel()
+        EclipseProject fullModel = loadToolingModel(EclipseProject)
 
         then:
         EclipseProject fullProject = fullModel.children[0]
@@ -253,7 +253,7 @@ project(':c') {
 '''
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         def projectC = rootProject.children.find { it.name == 'c'}
@@ -276,7 +276,7 @@ project(':c') {
         projectDir.file('child1').mkdirs()
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject != null
@@ -306,7 +306,7 @@ project(':c') {
             connector.searchUpwards(true)
             connector.forProjectDirectory(projectDir.file('child1'))
         }
-        EclipseProject child = loadEclipseProjectModel()
+        EclipseProject child = loadToolingModel(EclipseProject)
 
         then:
         child.name == 'child1'

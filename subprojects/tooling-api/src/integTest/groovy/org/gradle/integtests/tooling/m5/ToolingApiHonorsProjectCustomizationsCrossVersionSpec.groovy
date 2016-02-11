@@ -39,7 +39,7 @@ project(':impl') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         def children = eclipseProject.children.sort { it.name }
@@ -58,7 +58,7 @@ allprojects {
         file('settings.gradle').text = "include 'services:api', 'contrib:api'"
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         String grandChildOne = eclipseProject.children[0].children[0].name
@@ -91,7 +91,7 @@ sourceSets {
         }
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject.sourceDirectories.size() == 3
@@ -113,7 +113,7 @@ eclipse { classpath { downloadJavadoc = true } }
 '''
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject.classpath.size() == 2

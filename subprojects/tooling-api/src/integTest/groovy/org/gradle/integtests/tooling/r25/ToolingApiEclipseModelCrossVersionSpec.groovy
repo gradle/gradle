@@ -63,7 +63,7 @@ configure(project(':a')){
 }'''
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.projectDependencies.find {it.targetProject.name == "a"}.exported ==false
@@ -116,7 +116,7 @@ configure(project(':c')) {
 """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject aProject = rootProject.children.find { it.name == 'a'}
         EclipseProject bProject = rootProject.children.find { it.name == 'b'}
         EclipseProject cProject = rootProject.children.find { it.name == 'c'}

@@ -51,7 +51,7 @@ project(':api') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        EclipseProject eclipseProject = loadEclipseProjectModel()
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         def rootTasks = eclipseProject.gradleProject.tasks.collect { it.name }

@@ -34,7 +34,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=1.0-milestone-8 <2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         rootProject.javaSourceSettings
 
         then:
@@ -43,7 +43,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "non-Java projects return null for source settings"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings == null
@@ -54,7 +54,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.current()
@@ -68,7 +68,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_6
@@ -106,7 +106,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
         EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
         EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }

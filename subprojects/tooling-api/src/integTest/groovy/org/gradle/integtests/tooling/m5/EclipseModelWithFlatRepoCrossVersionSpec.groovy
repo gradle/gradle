@@ -40,7 +40,7 @@ dependencies {
         """
 
         when:
-        EclipseProject project = loadEclipseProjectModel()
+        EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
         project.classpath[0].file != null
