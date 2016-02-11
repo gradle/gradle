@@ -21,6 +21,7 @@ import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
+import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
@@ -148,7 +149,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "can declare custom managed Jvm library component"() {

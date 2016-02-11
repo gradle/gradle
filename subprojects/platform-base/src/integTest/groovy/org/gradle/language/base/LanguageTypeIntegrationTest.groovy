@@ -37,7 +37,7 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        @Managed interface SampleComponent extends ComponentSpec {}
+        @Managed interface SampleComponent extends SourceComponentSpec {}
 
 
         class CustomComponentPlugin extends RuleSource {

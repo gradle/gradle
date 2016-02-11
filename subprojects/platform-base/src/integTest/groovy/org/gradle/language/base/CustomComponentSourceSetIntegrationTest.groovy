@@ -22,7 +22,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
     @Managed interface LibrarySourceSet extends LanguageSourceSet {}
 
@@ -237,7 +237,7 @@ model {
 
             model {
                 components {
-                    myComponent(ComponentSpec) {
+                    myComponent(GeneralComponentSpec) {
                         sources {
                             haxe(HaxeSourceSet)
                         }

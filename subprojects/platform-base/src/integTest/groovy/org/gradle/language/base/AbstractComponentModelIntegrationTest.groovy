@@ -24,7 +24,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
      */
     void withCustomComponentType() {
         buildFile << """
-            @Managed interface CustomComponent extends ComponentSpec {}
+            @Managed interface CustomComponent extends GeneralComponentSpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType

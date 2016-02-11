@@ -258,7 +258,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def registerUnmanagedComponent() {
         return """
-            interface UnmanagedComponent extends ComponentSpec {
+            interface UnmanagedComponent extends GeneralComponentSpec {
                 String getData()
                 void setData(String data)
             }
@@ -277,7 +277,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def registerManagedComponent() {
         return """
-            @Managed interface ManagedComponent extends ComponentSpec {
+            @Managed interface ManagedComponent extends GeneralComponentSpec {
                 String getData()
                 void setData(String data)
             }

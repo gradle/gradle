@@ -24,7 +24,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
     @Managed interface OtherSampleBinary extends SampleBinary {}
     @Managed interface LibrarySourceSet extends LanguageSourceSet {}
@@ -267,7 +267,7 @@ trait BinaryWithValue implements BinarySpec {
     String valueFromComponent
 }
 @Managed
-trait ComponentWithValue implements ComponentSpec {
+trait ComponentWithValue implements GeneralComponentSpec {
     String valueForBinary
 }
 

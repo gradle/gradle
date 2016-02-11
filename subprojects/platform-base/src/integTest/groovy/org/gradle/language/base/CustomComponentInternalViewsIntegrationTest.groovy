@@ -23,7 +23,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             apply plugin: "jvm-component"
 
-            interface SampleLibrarySpec extends ComponentSpec {
+            interface SampleLibrarySpec extends GeneralComponentSpec {
                 String getPublicData()
                 void setPublicData(String publicData)
             }
@@ -33,7 +33,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 void setBareData(String bareData)
             }
 
-            interface SampleLibrarySpecInternal extends ComponentSpec {
+            interface SampleLibrarySpecInternal extends GeneralComponentSpec {
                 String getInternalData()
                 void setInternalData(String internalData)
             }

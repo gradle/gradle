@@ -24,7 +24,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-        @Managed interface SampleLibrary extends ComponentSpec {}
+        @Managed interface SampleLibrary extends GeneralComponentSpec {}
         @Managed interface SampleBinary extends BinarySpec {}
 
         class MyComponentBasePlugin extends RuleSource {
