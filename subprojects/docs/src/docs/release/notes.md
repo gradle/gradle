@@ -68,6 +68,18 @@ You can use [test filtering](userguide/java_plugin.html#test_filtering) in the J
 
 These same patterns can also be used in the [filter section](userguide/java_plugin.html#testfiltering) of the test task directly in your `build.gradle` file.
 
+### Support for declaring compile time only dependencies with Java plugin
+
+You can now declare dependencies that are used only during source compilation in conjunction with the [Java plugin](userguide/java_plugin.html). Compile only dependencies are used
+only during source compilation and are not included in the runtime classpath or exposed to dependent projects. Compile only dependencies are assigned to the relevant source set's
+'compileOnly' configuration.
+
+    dependencies {
+        compileOnly 'javax.servlet:servlet-api:2.5'
+    }
+
+More details about declaring compile only configurations can be found in the [Java plugin chapter](userguide/java_plugin.html#sec:java_plugin_and_dependency_management) of the user guide.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -377,8 +377,14 @@
             <tr>
                 <td>compile</td>
                 <td>-</td>
-                <td>compileJava</td>
+                <td>-</td>
                 <td>Compile time dependencies</td>
+            </tr>
+            <tr>
+                <td>compileOnly</td>
+                <td>compile</td>
+                <td>compileJava</td>
+                <td>Compile time only dependencies, not used at runtime</td>
             </tr>
             <tr>
                 <td>runtime</td>
@@ -389,20 +395,26 @@
             <tr>
                 <td>testCompile</td>
                 <td>compile</td>
+                <td>-</td>
+                <td>Additional dependencies for compiling tests</td>
+            </tr>
+            <tr>
+                <td>testCompileOnly</td>
+                <td>testCompile</td>
                 <td>compileTestJava</td>
-                <td>Additional dependencies for compiling tests.</td>
+                <td>Additional dependencies only for compiling tests, not used at runtime</td>
             </tr>
             <tr>
                 <td>testRuntime</td>
                 <td>runtime, testCompile</td>
                 <td>test</td>
-                <td>Additional dependencies for running tests only.</td>
+                <td>Additional dependencies for running tests only</td>
             </tr>
             <tr>
                 <td>archives</td>
                 <td>-</td>
                 <td>uploadArchives</td>
-                <td>Artifacts (e.g. jars) produced by this project.</td>
+                <td>Artifacts (e.g. jars) produced by this project</td>
             </tr>
             <tr>
                 <td>default</td>
@@ -433,8 +445,14 @@
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
                 <td>-</td>
-                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>-</td>
                 <td>Compile time dependencies for the given source set</td>
+            </tr>
+            <tr>
+                <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>Compile time only dependencies for the given source set, not used at runtime</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Runtime</literal></td>
