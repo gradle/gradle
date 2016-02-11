@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -32,14 +30,15 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2013_OR_NEWER)
 @LeaksFileHandles
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs").path)
+    def prebuiltDir = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs")
+    def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CHelloWorldApp()
 
     def setup() {
+        prebuiltDir.file("cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}").assumeExists()
         buildFile << """
 apply plugin: 'cunit-test-suite'
 
@@ -106,7 +105,7 @@ model {
                     return "vs2013"
             }
         }
-        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
+        return "UNKNOWN"
     }
 
     private def getCunitLibName() {

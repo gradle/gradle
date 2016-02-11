@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -33,14 +31,15 @@ import spock.lang.Issue
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2013_OR_NEWER)
 @LeaksFileHandles
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs").path)
+    def prebuiltDir = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/google-test/libs")
+    def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CppHelloWorldApp()
 
     def setup() {
+        prebuiltDir.file("/googleTest/1.7.0/lib/${googleTestPlatform}/${googleTestLib}").assumeExists()
         buildFile << """
 apply plugin: 'google-test-test-suite'
 
@@ -122,7 +121,7 @@ model {
                     return "vs2013"
             }
         }
-        throw new IllegalStateException("No googletest binary available for ${toolChain.displayName}")
+        return "UNKNOWN"
     }
 
     private def getGoogleTestLib() {

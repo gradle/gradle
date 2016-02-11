@@ -36,6 +36,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
     private boolean useNativeTools;
@@ -600,6 +601,10 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void assumeExists() {
+        assumeTrue(this.exists());
     }
 
     public ExecOutput exec(Object... args) {
