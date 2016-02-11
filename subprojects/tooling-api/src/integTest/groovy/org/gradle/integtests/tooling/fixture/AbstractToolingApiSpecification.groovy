@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
+
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -26,13 +27,13 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.VersionNumber
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
+
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -63,13 +64,9 @@ abstract class AbstractToolingApiSpecification extends Specification {
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
-    private static final ThreadLocal<String> TAPI_VERSION = new ThreadLocal<String>()
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
-
-    // Cannot use GradleVersion class because of Classloader issues with ToolingApiCompatibilitySuiteRunner
-    final VersionNumber toolingApiVersion = VersionNumber.parse(TAPI_VERSION.get())
 
     @Rule
     public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
@@ -80,10 +77,6 @@ abstract class AbstractToolingApiSpecification extends Specification {
 
     static GradleDistribution getTargetDist() {
         VERSION.get()
-    }
-
-    static void selectTapiVersion(String version) {
-        TAPI_VERSION.set(version)
     }
 
     void reset() {
