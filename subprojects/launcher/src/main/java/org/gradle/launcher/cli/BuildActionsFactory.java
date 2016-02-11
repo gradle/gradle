@@ -61,6 +61,7 @@ class BuildActionsFactory implements CommandLineAction {
         }
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
+            daemonParameters.resetUid();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                     daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
             return new ForegroundDaemonAction(loggingServices, conf);
