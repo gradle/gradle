@@ -29,6 +29,10 @@ class ExtractDslMetaDataTaskTest extends Specification {
         task.destFile = project.file('meta-data.bin')
     }
 
+    def cleanup() {
+        task.destFile?.delete()
+    }
+
     def extractsClassMetaDataFromGroovySource() {
         task.source testFile('org/gradle/test/GroovyClass.groovy')
         task.source testFile('org/gradle/test/GroovyInterface.groovy')
