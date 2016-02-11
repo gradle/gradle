@@ -745,10 +745,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Option(option = "tests-include", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
     public Test setTestNameIncludePattern(String testNamePattern) {
         filter.setIncludePatterns(testNamePattern);
+        return this;
+    }
+
+    @Option(option = "tests-exclude", description = "Sets test class or method name to be excluded, '*' is supported.")
+    @Incubating
+    public Test setTestNameExcludePattern(String testNamePattern) {
+        filter.setExcludePatterns(testNamePattern);
         return this;
     }
 

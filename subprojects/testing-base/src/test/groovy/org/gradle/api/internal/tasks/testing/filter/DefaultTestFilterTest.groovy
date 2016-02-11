@@ -29,6 +29,7 @@ class DefaultTestFilterTest extends Specification {
         expect: spec.includePatterns.isEmpty()
 
         when:
+//        todo
         spec.includeTestsMatching("*fooMethod")
         spec.includeTestsMatching("*.FooTest.*")
 

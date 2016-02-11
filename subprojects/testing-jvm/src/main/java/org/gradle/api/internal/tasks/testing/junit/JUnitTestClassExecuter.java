@@ -89,7 +89,15 @@ public class JUnitTestClassExecuter {
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
             if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
-                filters.add(new MethodNameFilter(matcher));
+                filters.add(new MethodNameIncludeFilter(matcher));
+            }
+        }
+
+        if (!options.getExcludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getExcludedTests());
+
+            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+                filters.add(new MethodNameExcludeFilter(matcher));
             }
         }
 
@@ -132,16 +140,43 @@ public class JUnitTestClassExecuter {
         return true;
     }
 
-    private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
+    private static class MethodNameIncludeFilter extends MethodNameFilter {
 
-        private final TestSelectionMatcher matcher;
-
-        public MethodNameFilter(TestSelectionMatcher matcher) {
-            this.matcher = matcher;
+        public MethodNameIncludeFilter(TestSelectionMatcher matcher) {
+            super(matcher, "Includes matching test methods");
         }
 
         @Override
         public boolean shouldRun(Description description) {
+            return matchCheck(description);
+        }
+    }
+
+
+    private static class MethodNameExcludeFilter extends MethodNameFilter {
+
+        public MethodNameExcludeFilter(TestSelectionMatcher matcher) {
+            super(matcher, "Excludes matching test methods");
+        }
+
+        @Override
+        public boolean shouldRun(Description description) {
+            return !matchCheck(description);
+        }
+    }
+
+    private static abstract class MethodNameFilter extends org.junit.runner.manipulation.Filter {
+
+        private final TestSelectionMatcher matcher;
+        private final String filterDescription;
+
+        public MethodNameFilter(TestSelectionMatcher matcher, String filterDescription) {
+            this.matcher = matcher;
+            this.filterDescription = filterDescription;
+        }
+
+
+        protected boolean matchCheck(Description description) {
             if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
                 return true;
             }
@@ -155,8 +190,9 @@ public class JUnitTestClassExecuter {
             return false;
         }
 
-        public String describe() {
-            return "Includes matching test methods";
+        public String describe(){
+            return filterDescription;
         }
     }
+
 }

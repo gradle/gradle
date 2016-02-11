@@ -25,7 +25,8 @@ import java.util.Set;
 
 public class DefaultTestFilter implements TestFilter {
 
-    private Set<String> testNames = new HashSet<String>();
+    private Set<String> includeTestNames = new HashSet<String>();
+    private Set<String> excludeTestNames = Sets.newHashSet();
     private boolean failOnNoMatching = true;
 
     private void validateName(String name) {
@@ -34,20 +35,37 @@ public class DefaultTestFilter implements TestFilter {
         }
     }
 
+    public TestFilter excludeTestsMatching(String testNamePattern) {
+        validateName(testNamePattern);
+        excludeTestNames.add(testNamePattern);
+        return this;
+    }
+
+    public TestFilter excludeTest(String className, String methodName) {
+        excludeTestNames.add(testName(className, methodName));
+        return this;
+    }
+
     public TestFilter includeTestsMatching(String testNamePattern) {
         validateName(testNamePattern);
-        testNames.add(testNamePattern);
+        includeTestNames.add(testNamePattern);
         return this;
     }
 
     public TestFilter includeTest(String className, String methodName) {
-        validateName(className);
-        if(methodName == null || methodName.trim().isEmpty()){
-            testNames.add(new StringBuilder(className).append(".*").toString());
-        }else{
-            testNames.add(new StringBuilder(className).append(".").append(methodName).toString());
-        }
+        includeTestNames.add(testName(className, methodName));
         return this;
+    }
+
+    private String testName(String className, String methodName){
+        validateName(className);
+        StringBuilder testNameBuilder = new StringBuilder(className);
+        if (methodName == null || methodName.trim().isEmpty()) {
+            testNameBuilder.append(".*");
+        } else {
+            testNameBuilder.append(".").append(methodName);
+        }
+        return testNameBuilder.toString();
     }
 
     @Override
@@ -62,14 +80,28 @@ public class DefaultTestFilter implements TestFilter {
 
     @Input
     public Set<String> getIncludePatterns() {
-        return testNames;
+        return includeTestNames;
+    }
+
+    @Input
+    public Set<String> getExcludePatterns() {
+        return excludeTestNames;
     }
 
     public TestFilter setIncludePatterns(String... testNamePatterns) {
+        this.includeTestNames = getTestPatterns(testNamePatterns);
+        return this;
+    }
+
+    public TestFilter setExcludePatterns(String... testNamePatterns) {
+        this.excludeTestNames = getTestPatterns(testNamePatterns);
+        return this;
+    }
+
+    private Set<String> getTestPatterns(String... testNamePatterns) {
         for (String name : testNamePatterns) {
             validateName(name);
         }
-        this.testNames = Sets.newHashSet(testNamePatterns);
-        return this;
+        return Sets.newHashSet(testNamePatterns);
     }
 }
