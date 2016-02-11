@@ -86,6 +86,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
+    public SearchResult locateDefaultVisualStudioInstall() {
+        return locateDefaultVisualStudioInstall(null);
+    }
+
     public SearchResult locateDefaultVisualStudioInstall(File candidate) {
         initializeVisualStudioInstalls();
 

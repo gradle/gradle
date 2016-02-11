@@ -53,7 +53,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
 
         when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall(null)
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
 
         then:
         result.available
@@ -92,7 +92,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall(null)
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
 
         then:
         !result.available
@@ -135,7 +135,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
 
         when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall(null)
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
 
         then:
         result.available
@@ -171,7 +171,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
         windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignored.absolutePath + "/VC"
-        assert visualStudioLocator.locateDefaultVisualStudioInstall(null).available
+        assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir1)
@@ -201,7 +201,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
         windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignoredDir.absolutePath + "/VC"
-        assert visualStudioLocator.locateDefaultVisualStudioInstall(null).available
+        assert visualStudioLocator.locateDefaultVisualStudioInstall().available
 
         when:
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(providedDir)
@@ -228,7 +228,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
 
         when:
-        def result = visualStudioLocator.locateDefaultVisualStudioInstall(null)
+        def result = visualStudioLocator.locateDefaultVisualStudioInstall()
 
         then:
         result.available

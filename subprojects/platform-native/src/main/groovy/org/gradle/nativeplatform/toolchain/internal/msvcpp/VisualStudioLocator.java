@@ -24,6 +24,8 @@ public interface VisualStudioLocator {
 
     List<SearchResult> locateAllVisualStudioVersions();
 
+    SearchResult locateDefaultVisualStudioInstall();
+
     SearchResult locateDefaultVisualStudioInstall(File candidate);
 
     interface SearchResult extends ToolSearchResult {
