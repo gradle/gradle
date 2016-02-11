@@ -30,27 +30,15 @@ public class VisualCppInstall implements Named {
     private static final String LINKER_FILENAME = "link.exe";
     private static final String ARCHIVER_FILENAME = "lib.exe";
 
-    private final Map<Architecture, List<File>> paths;
-    private final Map<Architecture, File> binaryPaths;
-    private final Map<Architecture, File> libraryPaths;
-    private final Map<Architecture, File> includePaths;
-    private final Map<Architecture, String> assemblerFilenames;
-    private final Map<Architecture, Map<String, String>> definitions;
+    private final Map<Architecture, ArchitectureDescriptor> architectureDescriptors;
     private final String name;
     private final VersionNumber version;
 
     public VisualCppInstall(String name, VersionNumber version,
-            Map<Architecture, List<File>> paths, Map<Architecture, File> binaryPaths, Map<Architecture, File> libraryPaths,
-            Map<Architecture, File> includePaths, Map<Architecture, String> assemblerFilenames,
-            Map<Architecture, Map<String, String>> definitions) {
-        this.paths = paths;
+            Map<Architecture, ArchitectureDescriptor> architectureDescriptors) {
         this.name = name;
         this.version = version;
-        this.binaryPaths = binaryPaths;
-        this.libraryPaths = libraryPaths;
-        this.includePaths = includePaths;
-        this.assemblerFilenames = assemblerFilenames;
-        this.definitions = definitions;
+        this.architectureDescriptors = architectureDescriptors;
     }
 
     public String getName() {
@@ -66,47 +54,51 @@ public class VisualCppInstall implements Named {
         // TODO:MPUT - ARM also if the target OS is Windows RT or Windows Phone/Mobile/CE
         // TODO:ADAM - IA64 only if the target OS is Windows 2008 or earlier
         return targetPlatform.getOperatingSystem().isWindows()
-                && (binaryPaths.containsKey(getPlatformArchitecture(targetPlatform)));
+                && (architectureDescriptors.containsKey(getPlatformArchitecture(targetPlatform)));
     }
 
     public List<File> getPath(NativePlatformInternal targetPlatform) {
-        return paths.get(getPlatformArchitecture(targetPlatform));
+        return getDescriptor(targetPlatform).getPaths();
     }
 
     public File getCompiler(NativePlatformInternal targetPlatform) {
-        return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), COMPILER_FILENAME);
+        return new File(getDescriptor(targetPlatform).getBinaryPath(), COMPILER_FILENAME);
     }
 
     public File getLinker(NativePlatformInternal targetPlatform) {
-        return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), LINKER_FILENAME);
+        return new File(getDescriptor(targetPlatform).getBinaryPath(), LINKER_FILENAME);
     }
 
     public File getArchiver(NativePlatformInternal targetPlatform) {
-        return new File(binaryPaths.get(getPlatformArchitecture(targetPlatform)), ARCHIVER_FILENAME);
+        return new File(getDescriptor(targetPlatform).getBinaryPath(), ARCHIVER_FILENAME);
     }
 
     public File getAssembler(NativePlatformInternal targetPlatform) {
-        Architecture architecture = getPlatformArchitecture(targetPlatform);
-        return new File(binaryPaths.get(architecture), assemblerFilenames.get(architecture));
+        ArchitectureDescriptor architectureDescriptor = getDescriptor(targetPlatform);
+        return new File(architectureDescriptor.getBinaryPath(), architectureDescriptor.getAssemblerFilename());
     }
 
     public File getBinaryPath(NativePlatformInternal targetPlatform) {
-        return binaryPaths.get(getPlatformArchitecture(targetPlatform));
+        return getDescriptor(targetPlatform).getBinaryPath();
     }
 
     public File getLibraryPath(NativePlatformInternal targetPlatform) {
-        return libraryPaths.get(getPlatformArchitecture(targetPlatform));
+        return getDescriptor(targetPlatform).getLibraryPath();
     }
 
     public Map<String, String> getDefinitions(NativePlatformInternal targetPlatform) {
-        return definitions.get(getPlatformArchitecture(targetPlatform));
+        return getDescriptor(targetPlatform).getDefinitions();
     }
 
     public File getIncludePath(NativePlatformInternal targetPlatform) {
-        return includePaths.get(getPlatformArchitecture(targetPlatform));
+        return getDescriptor(targetPlatform).getIncludePath();
     }
 
     private Architecture getPlatformArchitecture(NativePlatformInternal targetPlatform) {
         return targetPlatform.getArchitecture();
+    }
+
+    private ArchitectureDescriptor getDescriptor(NativePlatformInternal targetPlatform) {
+        return architectureDescriptors.get(getPlatformArchitecture(targetPlatform));
     }
 }

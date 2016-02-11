@@ -23,7 +23,7 @@ import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator.ArchitecturePaths
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator.ArchitectureDescriptorBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
@@ -258,12 +258,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     @Unroll
-    def "finds correct paths for #platform on #os operating system (64-bit install: #is64BitInstall)"() {
+    def "finds correct paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
         def vsDir = fullVsDir("vs", is64BitInstall)
+        def vcDir = new File(vsDir, "VC")
 
         given:
         operatingSystem.findInPath(_) >> null
-        systemInfo.getArchitecture() >> architecture
+        systemInfo.getArchitecture() >> systemArchitecture
 
         and:
         windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
@@ -273,24 +274,27 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
 
         then:
-        result.visualStudio.visualCpp.getCompiler(platform(platform)) == vsDir.file("VC/${expectedPaths.binPath}/cl.exe")
-        result.visualStudio.visualCpp.getLibraryPath(platform(platform)) == vsDir.file("VC/${expectedPaths.libPath}")
-        result.visualStudio.visualCpp.getAssembler(platform(platform)) == vsDir.file("VC/${expectedPaths.binPath}/${expectedPaths.asmFilename}")
+        result.visualStudio.visualCpp.getCompiler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
+        result.visualStudio.visualCpp.getLibraryPath(platform(targetPlatform)) == expectedBuilder.getLibPath(vcDir)
+        result.visualStudio.visualCpp.getAssembler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)
 
         where:
-        os       | architecture                  | platform | is64BitInstall | expectedPaths
-        "32-bit" | SystemInfo.Architecture.i386  | "amd64"  | false          | ArchitecturePaths.X86_AMD64
-        "32-bit" | SystemInfo.Architecture.i386  | "x86"    | false          | ArchitecturePaths.X86_X86
-        "32-bit" | SystemInfo.Architecture.i386  | "ia64"   | false          | ArchitecturePaths.X86_IA64
-        "32-bit" | SystemInfo.Architecture.i386  | "arm"    | false          | ArchitecturePaths.X86_ARM
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"  | true           | ArchitecturePaths.AMD64_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"    | true           | ArchitecturePaths.AMD64_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"    | true           | ArchitecturePaths.AMD64_ARM
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"   | true           | ArchitecturePaths.X86_IA64
-        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"  | false          | ArchitecturePaths.X86_AMD64
-        "64-bit" | SystemInfo.Architecture.amd64 | "x86"    | false          | ArchitecturePaths.X86_X86
-        "64-bit" | SystemInfo.Architecture.amd64 | "arm"    | false          | ArchitecturePaths.X86_ARM
-        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"   | false          | ArchitecturePaths.X86_IA64
+        os       | systemArchitecture            | targetPlatform | is64BitInstall | expectedBuilder
+        "32-bit" | SystemInfo.Architecture.i386  | "amd64"        | false          | ArchitectureDescriptorBuilder.AMD64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | true           | ArchitectureDescriptorBuilder.AMD64_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "amd64"        | false          | ArchitectureDescriptorBuilder.AMD64_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "x86"          | false          | ArchitectureDescriptorBuilder.X86_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | true           | ArchitectureDescriptorBuilder.X86_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "x86"          | false          | ArchitectureDescriptorBuilder.X86_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "ia64"         | false          | ArchitectureDescriptorBuilder.IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | true           | ArchitectureDescriptorBuilder.IA64_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "ia64"         | false          | ArchitectureDescriptorBuilder.IA64_ON_X86
+
+        "32-bit" | SystemInfo.Architecture.i386  | "arm"          | false          | ArchitectureDescriptorBuilder.ARM_ON_X86
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | true           | ArchitectureDescriptorBuilder.ARM_ON_AMD64
+        "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | ArchitectureDescriptorBuilder.ARM_ON_X86
     }
 
     def vsDir(String name) {
@@ -303,18 +307,21 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
     def fullVsDir(String name, boolean is64BitInstall) {
         def dir = vsDir(name)
-        for (ArchitecturePaths paths : ArchitecturePaths.values()) {
-            if (requires64BitInstall(paths) && !is64BitInstall) {
+        def vcDir = new File(dir, "VC")
+        for (ArchitectureDescriptorBuilder builder : ArchitectureDescriptorBuilder.values()) {
+            if (requires64BitInstall(builder) && !is64BitInstall) {
                 continue;
             }
-            dir.createFile("VC/${paths.binPath}/cl.exe")
-            dir.createDir("VC/${paths.libPath}")
+
+            builder.getBinPath(vcDir).mkdirs()
+            builder.getLibPath(vcDir).mkdirs()
+            new File(builder.getBinPath(vcDir), "cl.exe").createNewFile()
         }
         return dir
     }
 
-    boolean requires64BitInstall(ArchitecturePaths paths) {
-        return paths in [ ArchitecturePaths.AMD64_AMD64, ArchitecturePaths.AMD64_X86, ArchitecturePaths.AMD64_ARM ]
+    boolean requires64BitInstall(ArchitectureDescriptorBuilder builders) {
+        return builders in [ ArchitectureDescriptorBuilder.AMD64_ON_AMD64, ArchitectureDescriptorBuilder.X86_ON_AMD64, ArchitectureDescriptorBuilder.ARM_ON_AMD64 ]
     }
 
     def platform(String name) {

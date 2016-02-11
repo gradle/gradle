@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -47,26 +48,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String PATH_BIN = "bin/";
     private static final String PATH_INCLUDE = "include/";
     private static final String COMPILER_FILENAME = "cl.exe";
-
-    private static final String ARCHITECTURE_AMD64 = "amd64";
-    private static final String ARCHITECTURE_X86 = "x86";
-    private static final String ARCHITECTURE_ARM = "arm";
-    private static final String ARCHITECTURE_IA64 = "ia-64";
-    private static final String BINPATH_AMD64_AMD64 = "bin/amd64";
-    private static final String BINPATH_AMD64_ARM = "bin/amd64_arm";
-    private static final String BINPATH_AMD64_X86 = "bin/amd64_x86";
-    private static final String BINPATH_X86_AMD64 = "bin/x86_amd64";
-    private static final String BINPATH_X86_ARM = "bin/x86_arm";
-    private static final String BINPATH_X86_IA64 = "bin/x86_ia64";
-    private static final String BINPATH_X86_X86 = "bin";
-    private static final String LIBPATH_AMD64 = "lib/amd64";
-    private static final String LIBPATH_ARM = "lib/arm";
-    private static final String LIBPATH_IA64 = "lib/ia64";
-    private static final String LIBPATH_X86 = "lib";
-    private static final String ASSEMBLER_FILENAME_AMD64 = "ml64.exe";
-    private static final String ASSEMBLER_FILENAME_ARM = "armasm.exe";
-    private static final String ASSEMBLER_FILENAME_IA64 = "ias.exe";
-    private static final String ASSEMBLER_FILENAME_X86 = "ml.exe";
     private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
 
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
@@ -202,75 +183,32 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
+
+        List<ArchitectureDescriptorBuilder> architectureDescriptorBuilders = Lists.newArrayList();
+
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.IA64_ON_X86);
+        architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_X86);
+
         boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
-        Map<Architecture, List<File>> paths = new HashMap<Architecture, List<File>>();
-        Map<Architecture, File> binaryPaths = new HashMap<Architecture, File>();
-        Map<Architecture, File> libraryPaths = new HashMap<Architecture, File>();
-        Map<Architecture, File> includePaths = new HashMap<Architecture, File>();
-        Map<Architecture, String> assemblerFilenames = new HashMap<Architecture, String>();
-        Map<Architecture, Map<String, String>> definitions = new HashMap<Architecture, Map<String, String>>();
-
-        Architecture amd64 = Architectures.forInput(ARCHITECTURE_AMD64);
-        Architecture x86 = Architectures.forInput(ARCHITECTURE_X86);
-        Architecture arm = Architectures.forInput(ARCHITECTURE_ARM);
-
-        File includePath = new File(basePath, PATH_INCLUDE);
-        File commonTools = new File(vsPath, PATH_COMMONTOOLS);
-        File commonIde = new File(vsPath, PATH_COMMONIDE);
-
-        List<ArchitecturePaths> architecturePathsList = Lists.newArrayList();
-
         if (isNativeAmd64) {
-            architecturePathsList.add(ArchitecturePaths.AMD64_AMD64);
-            architecturePathsList.add(ArchitecturePaths.AMD64_X86);
-            architecturePathsList.add(ArchitecturePaths.AMD64_ARM);
+            // Prefer 64-bit tools when building on a 64-bit OS
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.AMD64_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.X86_ON_AMD64);
+            architectureDescriptorBuilders.add(ArchitectureDescriptorBuilder.ARM_ON_AMD64);
         }
 
-        architecturePathsList.add(ArchitecturePaths.X86_X86);
-        architecturePathsList.add(ArchitecturePaths.X86_AMD64);
-        architecturePathsList.add(ArchitecturePaths.X86_IA64);
-        architecturePathsList.add(ArchitecturePaths.X86_ARM);
-
-        for (ArchitecturePaths architecturePaths : architecturePathsList) {
-            if (!binaryPaths.containsKey(architecturePaths.architecture)) {
-                File binPath = new File(basePath, architecturePaths.binPath);
-                File libPath = new File(basePath, architecturePaths.libPath);
-                File compilerPath = new File(binPath, COMPILER_FILENAME);
-
-                if (binPath.isDirectory() && libPath.isDirectory() && compilerPath.exists()) {
-                    Map<String, String> definitionsList = new LinkedHashMap<String, String>();
-                    List<File> pathsList = new ArrayList<File>();
-
-                    pathsList.add(commonTools);
-                    pathsList.add(commonIde);
-
-                    // For cross-compilers, add the native compiler to the path as well
-                    if (isNativeAmd64) {
-                        if (!amd64.equals(architecturePaths.architecture)) {
-                            pathsList.add(new File(basePath, ArchitecturePaths.AMD64_AMD64.binPath));
-                        }
-                    } else {
-                        if (!x86.equals(architecturePaths.architecture)) {
-                            pathsList.add(new File(basePath, ArchitecturePaths.X86_X86.binPath));
-                        }
-                    }
-
-
-                    if (arm.equals(architecturePaths.architecture)) {
-                        definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
-                    }
-
-                    binaryPaths.put(architecturePaths.architecture, binPath);
-                    libraryPaths.put(architecturePaths.architecture, libPath);
-                    includePaths.put(architecturePaths.architecture, includePath);
-                    assemblerFilenames.put(architecturePaths.architecture, architecturePaths.asmFilename);
-                    paths.put(architecturePaths.architecture, pathsList);
-                    definitions.put(architecturePaths.architecture, definitionsList);
-                }
+        // populates descriptors, last descriptor in wins for a given architecture
+        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
+            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            if (descriptor.isInstalled()) {
+                descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
         }
 
-        return new VisualCppInstall(name, version, paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames, definitions);
+        return new VisualCppInstall(name, version, descriptors);
     }
 
     private SearchResult determineDefaultInstall() {
@@ -336,25 +274,157 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
-    enum ArchitecturePaths {
-        AMD64_AMD64(ARCHITECTURE_AMD64, BINPATH_AMD64_AMD64, LIBPATH_AMD64, ASSEMBLER_FILENAME_AMD64),
-        AMD64_X86(ARCHITECTURE_X86, BINPATH_AMD64_X86, LIBPATH_X86, ASSEMBLER_FILENAME_X86),
-        AMD64_ARM(ARCHITECTURE_ARM, BINPATH_AMD64_ARM, LIBPATH_ARM, ASSEMBLER_FILENAME_ARM),
-        X86_X86(ARCHITECTURE_X86, BINPATH_X86_X86, LIBPATH_X86, ASSEMBLER_FILENAME_X86),
-        X86_AMD64(ARCHITECTURE_AMD64, BINPATH_X86_AMD64, LIBPATH_AMD64, ASSEMBLER_FILENAME_AMD64),
-        X86_IA64(ARCHITECTURE_IA64, BINPATH_X86_IA64, LIBPATH_IA64, ASSEMBLER_FILENAME_IA64),
-        X86_ARM(ARCHITECTURE_ARM, BINPATH_X86_ARM, LIBPATH_ARM, ASSEMBLER_FILENAME_ARM);
+    static class DefaultArchitectureDescriptor implements ArchitectureDescriptor {
+        private final List<File> paths;
+        private final File binPath;
+        private final File libPath;
+        private final File includePath;
+        private final String assemblerFilename;
+        private final Map<String, String> definitions;
+        private final File compilerPath;
+
+        DefaultArchitectureDescriptor(List<File> paths, File binPath, File libPath, File compilerPath, File includePath, String assemblerFilename, Map<String, String> definitions) {
+            this.paths = paths;
+            this.binPath = binPath;
+            this.libPath = libPath;
+            this.includePath = includePath;
+            this.assemblerFilename = assemblerFilename;
+            this.definitions = definitions;
+            this.compilerPath = compilerPath;
+        }
+
+        @Override
+        public List<File> getPaths() {
+            return paths;
+        }
+
+        @Override
+        public File getBinaryPath() {
+            return binPath;
+        }
+
+        @Override
+        public File getLibraryPath() {
+            return libPath;
+        }
+
+        @Override
+        public File getIncludePath() {
+            return includePath;
+        }
+
+        @Override
+        public String getAssemblerFilename() {
+            return assemblerFilename;
+        }
+
+        @Override
+        public Map<String, String> getDefinitions() {
+            return definitions;
+        }
+
+        public boolean isInstalled() {
+            return binPath.exists() && compilerPath.exists() && libPath.exists();
+        }
+    }
+
+    enum ArchitectureDescriptorBuilder {
+        AMD64_ON_AMD64("amd64", "bin/amd64", "lib/amd64", "ml64.exe"),
+        AMD64_ON_X86("amd64", "bin/x86_amd64", "lib/amd64", "ml64.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return X86_ON_X86.getBinPath(basePath);
+            }
+        },
+
+        X86_ON_AMD64("x86", "bin/amd64_x86", "lib", "ml.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return AMD64_ON_AMD64.getBinPath(basePath);
+            }
+        },
+        X86_ON_X86("x86", "bin", "lib", "ml.exe"),
+
+        ARM_ON_AMD64("arm", "bin/amd64_arm", "lib/arm", "armasm.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return AMD64_ON_AMD64.getBinPath(basePath);
+            }
+
+            @Override
+            Map<String, String> getDefinitions() {
+                Map<String, String> definitions = super.getDefinitions();
+                definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+                return definitions;
+            }
+        },
+        ARM_ON_X86("arm", "bin/x86_arm", "lib/arm", "armasm.exe") {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return X86_ON_X86.getBinPath(basePath);
+            }
+
+            @Override
+            Map<String, String> getDefinitions() {
+                Map<String, String> definitions = super.getDefinitions();
+                definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+                return definitions;
+            }
+        },
+
+        IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe")  {
+            @Override
+            File getCrossCompilePath(File basePath) {
+                return X86_ON_X86.getBinPath(basePath);
+            }
+        };
 
         final Architecture architecture;
         final String binPath;
         final String libPath;
         final String asmFilename;
 
-        ArchitecturePaths(String architecture, String binPath, String libPath, String asmFilename) {
-            this.architecture = Architectures.forInput(architecture);
+        ArchitectureDescriptorBuilder(String architecture, String binPath, String libPath, String asmFilename) {
             this.binPath = binPath;
             this.libPath = libPath;
             this.asmFilename = asmFilename;
+            this.architecture = Architectures.forInput(architecture);
+        }
+
+        File getBinPath(File basePath) {
+            return new File(basePath, binPath);
+        }
+
+        File getLibPath(File basePath) {
+            return new File(basePath, libPath);
+        }
+
+        File getCompilerPath(File basePath) {
+            return new File(getBinPath(basePath), COMPILER_FILENAME);
+        }
+
+        File getCrossCompilePath(File basePath) {
+            return null;
+        }
+
+        Map<String, String> getDefinitions() {
+            return Maps.newHashMap();
+        }
+
+        String getAsmFilename() {
+            return asmFilename;
+        }
+
+        ArchitectureDescriptor buildDescriptor(File basePath, File vsPath) {
+            File commonTools = new File(vsPath, PATH_COMMONTOOLS);
+            File commonIde = new File(vsPath, PATH_COMMONIDE);
+            List<File> paths = Lists.newArrayList(commonTools, commonIde);
+            File crossCompilePath = getCrossCompilePath(basePath);
+            if (crossCompilePath!=null) {
+                paths.add(crossCompilePath);
+            }
+            File includePath = new File(basePath, PATH_INCLUDE);
+            return new DefaultArchitectureDescriptor(paths, getBinPath(basePath), getLibPath(basePath), getCompilerPath(basePath), includePath, asmFilename, getDefinitions());
         }
     }
 }
