@@ -24,10 +24,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.Matchers.containsText
 
-@RequiresInstalledToolChain(VisualCpp)
+@RequiresInstalledToolChain(VISUALCPP)
 @LeaksFileHandles
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 

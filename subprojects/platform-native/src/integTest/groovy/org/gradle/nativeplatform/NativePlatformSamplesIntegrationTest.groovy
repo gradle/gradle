@@ -26,7 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 @LeaksFileHandles
@@ -190,7 +190,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(multiProject.dir.file("exe/build/install/main")).exec().out == "Hello, World!\n"
     }
 
-    @RequiresInstalledToolChain(GccCompatible)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
     def "target platforms"() {
         given:
         sample targetPlatforms

@@ -323,7 +323,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.Gcc || requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override
@@ -396,12 +396,12 @@ public class AvailableToolChains {
         @Override
         public boolean meets(ToolChainRequirement requirement) {
             switch (requirement) {
-                case Available:
-                case VisualCpp:
+                case AVAILABLE:
+                case VISUALCPP:
                     return true;
-                case VisualCpp2012:
+                case VISUALCPP_2012_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2012) >= 0;
-                case VisualCpp2013:
+                case VISUALCPP_2013_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2013) >= 0;
                 default:
                     return false;
@@ -451,7 +451,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.Clang || requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
+            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override

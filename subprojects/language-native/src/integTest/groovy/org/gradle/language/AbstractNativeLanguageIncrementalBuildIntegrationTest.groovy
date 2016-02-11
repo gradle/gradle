@@ -31,8 +31,8 @@ import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -444,7 +444,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
-    @RequiresInstalledToolChain(GccCompatible)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
         if(buildingCorCppWithGcc()) {
@@ -481,14 +481,14 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @RequiresInstalledToolChain(VisualCpp)
+    @RequiresInstalledToolChain(VISUALCPP)
     def "cleans up stale debug files when changing from debug to non-debug"() {
 
         given:
         buildFile << """
             model {
                 binaries {
-                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
+                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VISUALCPP_2013_OR_NEWER) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
                 }
             }
         """
@@ -586,7 +586,7 @@ model {
     }
 
     def buildingCorCppWithGcc() {
-        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
+        return toolChain.meets(ToolChainRequirement.GCC) && (sourceType == "C" || sourceType == "Cpp")
     }
 
     private void maybeWait() {

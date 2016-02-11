@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 // TODO:DAZ Test incremental
 @LeaksFileHandles
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -285,7 +285,7 @@ model {
         executableBuilt(app)
     }
 
-    @RequiresInstalledToolChain(VisualCpp)
+    @RequiresInstalledToolChain(VISUALCPP)
     def "generator task produces windows resources"() {
         given:
         def app = new WindowsResourceHelloWorldApp()

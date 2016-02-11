@@ -32,7 +32,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@RequiresInstalledToolChain(ToolChainRequirement.VisualCpp2013)
+@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2013_OR_NEWER)
 @LeaksFileHandles
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 

@@ -247,7 +247,7 @@ model {
         }
 
         // ARM only supported on visualCpp 2012+
-        if (toolChain.meets(ToolChainRequirement.VisualCpp2012)) {
+        if (toolChain.meets(ToolChainRequirement.VISUALCPP_2012_OR_NEWER)) {
             executable("build/exe/main/arm/main").binaryInfo.arch.name == "arm"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/arm/mainCpp")).arch.name == "arm"
         } else {

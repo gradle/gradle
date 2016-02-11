@@ -33,7 +33,7 @@ import spock.lang.Issue
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@RequiresInstalledToolChain(ToolChainRequirement.VisualCpp2013)
+@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2013_OR_NEWER)
 @LeaksFileHandles
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 

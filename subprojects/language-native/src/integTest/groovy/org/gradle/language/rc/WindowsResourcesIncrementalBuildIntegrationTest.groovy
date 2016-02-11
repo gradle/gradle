@@ -25,9 +25,9 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-@RequiresInstalledToolChain(VisualCpp)
+@RequiresInstalledToolChain(VISUALCPP)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
