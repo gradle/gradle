@@ -23,16 +23,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Unroll
 
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider testDirectory
-    FileWatcherEventListener reporter = new PrintingEventListener()
+    FileWatcherEventListener reporter = new LoggingFileWatchEventListener()
 
     def "can wait for filesystem change"() {
         when:
@@ -130,8 +128,7 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         w.stop()
     }
 
-    @Unroll
-    def "waits until there is a quiet period - #description"(String description, Closure fileChanger) {
+    def "waits until there is a quiet period"() {
         when:
         def quietPeriod = 1000L
         def wf = new DefaultFileSystemChangeWaiterFactory(new DefaultFileWatcherFactory(executorFactory), quietPeriod)
@@ -152,62 +149,34 @@ class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
         waitFor.notified
 
         when:
-        def lastChangeRef = new AtomicLong(0)
-        gcAndIdleBefore()
-        fileChanger(instant, testfile, lastChangeRef, logger)
+        writeToFileMultipleTimes(instant, testfile)
+
+        and:
+        def timestampForLastChange = System.nanoTime()
+        logger.log("changing final")
+        testfile << "final change"
+        logger.log("changed")
 
         then:
         waitFor.done
-        lastChangeRef.get() != 0
-        Math.round((System.nanoTime() - lastChangeRef.get()) / 1000000L) >= quietPeriod
+        Math.round((System.nanoTime() - timestampForLastChange) / 1000000L) >= quietPeriod
 
         cleanup:
         w.stop()
-
-        where:
-        description            | fileChanger
-        'append and close'     | this.&changeByAppendingAndClosing
-        'append and keep open' | this.&changeByAppendingAndKeepingFileOpen
     }
 
-    private void changeByAppendingAndClosing(instant, testfile, lastChangeRef, testLogger) {
+    private void writeToFileMultipleTimes(instant, testfile) {
         for (int i = 0; i < 10; i++) {
-            if (i > 0) {
-                sleep(50)
-            }
             instant.assertNotReached('done')
-            lastChangeRef.set(System.nanoTime())
 
-            testLogger.log("loop ${i + 1}")
+            logger.log("changing ${i + 1}")
             testfile << "change"
-            testLogger.log("changed")
+            logger.log("changed")
+            sleep(50)
         }
     }
 
-    private void changeByAppendingAndKeepingFileOpen(instant, testfile, lastChangeRef, testLogger) {
-        new FileWriter(testfile).withWriter { Writer out ->
-            for (int i = 0; i < 10; i++) {
-                if (i > 0) {
-                    sleep(50)
-                }
-
-                instant.assertNotReached('done')
-                lastChangeRef.set(System.nanoTime())
-
-                testLogger.log("loop ${i + 1}")
-                out.write("change\n")
-                out.flush()
-                testLogger.log("changed")
-            }
-        }
-    }
-
-    private void gcAndIdleBefore() {
-        System.gc()
-        sleep(500)
-    }
-
-    class PrintingEventListener implements FileWatcherEventListener {
+    class LoggingFileWatchEventListener implements FileWatcherEventListener {
         @Override
         void onChange(FileWatcherEvent event) {
             logger.log(event)
