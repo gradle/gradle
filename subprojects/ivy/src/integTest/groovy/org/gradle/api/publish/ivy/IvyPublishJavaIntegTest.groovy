@@ -173,6 +173,7 @@ $append
 
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
+                compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"
             }
