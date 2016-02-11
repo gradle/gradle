@@ -198,7 +198,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void configurePrefixHeaderFiles(@Each final NativeComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
+        void configurePrefixHeaderFiles(@Each final SourceComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
             componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
                 @Override
                 public void execute(DependentSourceSetInternal dependentSourceSet) {
@@ -213,8 +213,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<NativeComponentSpec> nativeComponents) {
-            for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
+        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<SourceComponentSpec> nativeComponents) {
+            for (final SourceComponentSpec nativeComponentSpec : nativeComponents.values()) {
                 for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
                     if (dependentSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeComponentSpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));

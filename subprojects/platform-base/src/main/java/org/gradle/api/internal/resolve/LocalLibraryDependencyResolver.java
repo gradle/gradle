@@ -98,7 +98,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         final String libraryName = selector.getLibraryName();
         final String variant = selector.getVariant();
         LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
-        ComponentSpec selectedLibrary = resolutionResult.getSelectedLibrary();
+        VariantComponentSpec selectedLibrary = resolutionResult.getSelectedLibrary();
         if (selectedLibrary != null) {
             if (variant == null) {
                 selectMatchingVariant(result, selectedLibrary, selector, selectorProjectPath, libraryName);
@@ -113,7 +113,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         }
     }
 
-    private void selectExplicitlyProvidedVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, String selectorProjectPath, String variant) {
+    private void selectExplicitlyProvidedVariant(BuildableComponentIdResolveResult result, VariantComponentSpec selectedLibrary, String selectorProjectPath, String variant) {
         Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
         for (BinarySpec binarySpec : allBinaries) {
             BinarySpecInternal binary = (BinarySpecInternal) binarySpec;
@@ -127,7 +127,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         }
     }
 
-    private void selectMatchingVariant(BuildableComponentIdResolveResult result, ComponentSpec selectedLibrary, LibraryComponentSelector selector, String selectorProjectPath, String libraryName) {
+    private void selectMatchingVariant(BuildableComponentIdResolveResult result, VariantComponentSpec selectedLibrary, LibraryComponentSelector selector, String selectorProjectPath, String libraryName) {
         Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
         Collection<? extends BinarySpec> compatibleBinaries = matcher.filterBinaries(variantsMetaData, allBinaries);
         if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
@@ -158,7 +158,7 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     }
 
     private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult findLocalComponent(String componentName, ModelRegistry projectModel) {
-        List<ComponentSpec> librarySpecs = Lists.newArrayList();
+        List<VariantComponentSpec> librarySpecs = Lists.newArrayList();
         collectLocalComponents(projectModel, "components", librarySpecs);
         collectLocalComponents(projectModel, "testSuites", librarySpecs);
         if (librarySpecs.isEmpty()) {
@@ -167,10 +167,10 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(librarySpecs, componentName, binarySpecPredicate);
     }
 
-    private void collectLocalComponents(ModelRegistry projectModel, String container, List<ComponentSpec> librarySpecs) {
+    private void collectLocalComponents(ModelRegistry projectModel, String container, List<VariantComponentSpec> librarySpecs) {
         ModelMap<ComponentSpec> components = projectModel.find(container, COMPONENT_MAP_TYPE);
         if (components != null) {
-            ModelMap<? extends ComponentSpec> libraries = components.withType(ComponentSpec.class);
+            ModelMap<? extends VariantComponentSpec> libraries = components.withType(VariantComponentSpec.class);
             librarySpecs.addAll(libraries.values());
         }
     }

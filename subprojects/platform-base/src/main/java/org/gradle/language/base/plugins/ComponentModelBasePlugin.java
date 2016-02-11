@@ -125,7 +125,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Mutate
         void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs.values()) {
+            for (VariantComponentSpec componentSpec : componentSpecs.withType(VariantComponentSpec.class)) {
                 for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
                     binaries.put(binary.getProjectScopedName(), binary);
                 }

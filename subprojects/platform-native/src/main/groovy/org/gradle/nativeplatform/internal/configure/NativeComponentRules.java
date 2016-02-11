@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.TargetedNativeComponentInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -79,7 +78,7 @@ public class NativeComponentRules {
     }
 
     private static void executeForEachBuildType(
-        NativeComponentSpec projectNativeComponent,
+        TargetedNativeComponentInternal projectNativeComponent,
         NativePlatformInternal platform,
         BinaryNamingScheme namingScheme,
         Set<? extends BuildType> allBuildTypes,
@@ -87,7 +86,7 @@ public class NativeComponentRules {
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        Set<BuildType> targetBuildTypes = ((TargetedNativeComponentInternal) projectNativeComponent).chooseBuildTypes(allBuildTypes);
+        Set<BuildType> targetBuildTypes = projectNativeComponent.chooseBuildTypes(allBuildTypes);
         for (BuildType buildType : targetBuildTypes) {
             BinaryNamingScheme namingSchemeWithBuildType = namingScheme.withVariantDimension(buildType, targetBuildTypes);
             executeForEachFlavor(
@@ -103,7 +102,7 @@ public class NativeComponentRules {
     }
 
     private static void executeForEachFlavor(
-        NativeComponentSpec projectNativeComponent,
+        TargetedNativeComponentInternal projectNativeComponent,
         NativePlatform platform,
         BuildType buildType,
         BinaryNamingScheme namingScheme,
@@ -111,7 +110,7 @@ public class NativeComponentRules {
         NativeDependencyResolver nativeDependencyResolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        Set<Flavor> targetFlavors = ((TargetedNativeComponentInternal) projectNativeComponent).chooseFlavors(allFlavors);
+        Set<Flavor> targetFlavors = projectNativeComponent.chooseFlavors(allFlavors);
         for (Flavor flavor : targetFlavors) {
             BinaryNamingScheme namingSchemeWithFlavor = namingScheme.withVariantDimension(flavor, targetFlavors);
             NativeBinaries.createNativeBinaries(

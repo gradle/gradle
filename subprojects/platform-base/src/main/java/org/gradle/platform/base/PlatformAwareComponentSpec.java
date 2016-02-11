@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
  * Defines Platform specific operations for ComponentSpecs
  */
 @Incubating @HasInternalProtocol
-public interface PlatformAwareComponentSpec extends ComponentSpec {
+public interface PlatformAwareComponentSpec extends VariantComponentSpec, ComponentSpec {
     /**
      * Specifies a platform that this component should be built be for.
      */
