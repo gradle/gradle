@@ -46,7 +46,7 @@ class DocumentationPlugin extends RuleSource {
 
 // START SNIPPET binaries-generation
     @ComponentBinaries
-    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
+    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, VariantComponentSpec component, @Path("buildDir") File buildDir) {
         binaries.create("exploded") { binary ->
             outputDir = new File(buildDir, "${component.name}/${binary.name}")
         }
