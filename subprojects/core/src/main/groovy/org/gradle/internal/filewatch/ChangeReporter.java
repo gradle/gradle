@@ -27,6 +27,7 @@ import static org.gradle.internal.filewatch.FileWatcherEvent.Type.*;
 
 public class ChangeReporter implements FileWatcherEventListener {
     public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
+    private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
     private final Map<File, FileWatcherEvent.Type> aggregatedEvents = Maps.newLinkedHashMap();
     private int moreChangesCount;
 
@@ -56,7 +57,7 @@ public class ChangeReporter implements FileWatcherEventListener {
     }
 
     protected boolean shouldIncreaseChangesCount(FileWatcherEvent event) {
-        if (OperatingSystem.current().isMacOsX()) {
+        if (IS_MAC_OSX) {
             return true; // count every event on OSX
         }
 
