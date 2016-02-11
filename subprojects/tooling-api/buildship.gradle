@@ -1,46 +1,72 @@
 /**
- * Script to generate an Eclipse project from a locally-built Tooling API fat jar
- * which can be used directly for Buildship development.
+ * This script generates an Eclipse plug-in project from a local Tooling API build
+ * which can be used consumed by Buildship at development-time.
+ *
+ * To generate the Eclipse project, execute the 'buildshipEclipseProject' task. The task
+ * takes the output of the 'jarjarJar' task, analyzes its content, and assembles an Eclipse plug-in
+ * project in the $buildDir/buildshipProject folder.
+ *
+ * The $buildDir/buildshipProject folder can be imported into Eclipse by using the
+ * File > Import > Existing Project into workspace... functionality.
+ *
+ * If the Buildship plug-ins are present in the same workspace, then the binary Tooling API
+ * dependency is automatically replaced with the imported project.
  */
 import java.util.regex.Matcher
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-task buildshipProject() {
-    dependsOn jar, jarjarJar
+task buildshipEclipseProject(type: BuildshipProjectTask) {
+    description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
+    dependsOn jarjarJar
 
-    def dotProject = file('src/main/resources/buildship/.classpath')
-    def dotClasspath = file('src/main/resources/buildship/.project')
-    inputs.file dotProject
-    inputs.file dotClasspath
-
-    def location = file("$buildDir/buildshipProject")
-    outputs.dir location
-
-    doLast {
-        def jar = tasks['jarjarJar'].outputs.files[0]
-
-        // create manifest and copy it to the META-INF folder
-        def manifestFile = new File(location, "META-INF/MANIFEST.MF")
-        manifestFile.parentFile.mkdirs()
-        manifestFile.text = calculateManifest(version, jar)
-
-        // copy the Eclipse project descriptors and the jar
-        copy {
-            from files(dotProject, dotClasspath, jar)
-            into location
-            // the .classpath file has a reference to the 'toolingapi.jar' file
-            rename 'gradle-tooling-api.*', 'toolingapi.jar'
-        }
-    }
+    jarFile = jarjarJar.outputs.files[0]
+    projectDirectory = file("$buildDir/buildshipProject")
 }
 
-def calculateManifest(String projectVersion, File jar) {
-    def bundleVersion = getBundleVersion(projectVersion)
-    def qualifier = new Date().format('yyyyMMddkkmm')
-    def packageNames = getPackageNames(jar)
-    def packageExports = getPackageExports(packageNames, bundleVersion)
-    return """Manifest-Version: 1.0
+class BuildshipProjectTask extends DefaultTask {
+
+    @Input
+    File jarFile
+
+    @OutputDirectory
+    File projectDirectory
+
+    @TaskAction
+    void generateBuildshipProject() {
+        // delete artifacts from previous executions
+        if (projectDirectory.exists()) {
+            def success = projectDirectory.deleteDir()
+            if (!success) {
+                throw new RuntimeException("Unable to deleted directory ${projectDirectory.absolutePath}")
+            }
+        }
+
+        // create manifest and place it in the META-INF folder
+        def manifestFile = new File(projectDirectory, "META-INF/MANIFEST.MF")
+        def success = manifestFile.parentFile.mkdirs()
+        if (!success) {
+            throw new RuntimeException("Unable to create directory ${manifestFile.parentFile.absolutePath}")
+        }
+        manifestFile.text = calculateManifest(project.version, jarFile)
+
+        // copy the jar to the project location
+        project.copy {
+            from jarFile
+            into projectDirectory
+        }
+
+        // create the .project and .classpath files
+        new File(projectDirectory, '.project').text = getDotProjectText()
+        new File(projectDirectory, '.classpath').text = getDotClasspathText(jarFile.name)
+    }
+
+    String calculateManifest(String projectVersion, File jar) {
+        def bundleVersion = getBundleVersion(projectVersion)
+        def qualifier = new Date().format('yyyyMMddkkmm')
+        def packageNames = getPackageNames(jar)
+        def packageExports = getPackageExports(packageNames, bundleVersion)
+     """Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gradle Tooling API
 Bundle-Vendor: Gradle Inc.
@@ -53,42 +79,70 @@ Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
 """
 }
 
-def getBundleVersion(String projectVersion) {
-    Matcher matcher = version =~ /(\d+).(\d+)(?:-.*|\.(\d+)(?:-.*)?)?/
-    if (matcher.matches()) {
-        def major = matcher.group(1)
-        def minor = matcher.group(2)
-        def service = matcher.group(3)
-        if (service == null) service = "0"
-        return "${major}.${minor}.${service}"
-    } else {
-        return "NIL"
-    }
-}
-
-def getPackageNames(File jar) {
-    def jarStream = new FileInputStream(jar)
-    ZipInputStream zip = new ZipInputStream(new FileInputStream(jar))
-    def result = [] as Set
-    while(true) {
-        ZipEntry e = zip.nextEntry
-        if (e == null) break
-        if (!e.directory && e.name.endsWith(".class")) {
-            int index = e.name.lastIndexOf('/')
-            if (index < 0) index = e.name.length()
-            String packageName = e.name.substring(0, index).replace('/', '.')
-            result.add(packageName)
+    String getBundleVersion(String projectVersion) {
+        Matcher matcher = projectVersion =~ /(\d+).(\d+)(?:-.*|\.(\d+)(?:-.*)?)?/
+        if (matcher.matches()) {
+            def major = matcher.group(1)
+            def minor = matcher.group(2)
+            def service = matcher.group(3)
+            if (service == null) service = "0"
+            return "${major}.${minor}.${service}"
+        } else {
+            throw new IllegalArgumentException("Invalid project version format: $projectVersion")
         }
     }
-    jarStream.close()
-    result
-}
 
-def getPackageExports(packageNames, bundleVersion) {
-    // the Tooling API has more than two packages
-    StringBuilder exportedPackages = new StringBuilder("${packageNames[0]};version=\"${bundleVersion}\"")
-    for (i in 1..< packageNames.size()) {
-        exportedPackages.append ",\n ${packageNames[i]};version=\"${bundleVersion}\""
+    Set<String> getPackageNames(File jar) {
+        def result = [] as Set
+        new ZipInputStream(new FileInputStream(jar)).withCloseable { zip ->
+            ZipEntry e
+            while (e = zip.nextEntry) {
+                if (!e.directory && e.name.endsWith(".class")) {
+                    int index = e.name.lastIndexOf('/')
+                    if (index < 0) index = e.name.length()
+                    String packageName = e.name.substring(0, index).replace('/', '.')
+                    result.add(packageName)
+                }
+            }
+        }
+        result
     }
-    exportedPackages.toString()
+
+    String getPackageExports(Set<String> packageNames, String bundleVersion) {
+        // the Tooling API has more than two packages
+        StringBuilder exportedPackages = new StringBuilder("${packageNames[0]};version=\"${bundleVersion}\"")
+        for (i in 1..< packageNames.size()) {
+            exportedPackages.append ",\n ${packageNames[i]};version=\"${bundleVersion}\""
+        }
+        exportedPackages.toString()
+    }
+
+    String getDotProjectText() {
+        """<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+  <name>org.gradle.toolingapi</name><comment/><projects/>
+  <buildSpec>
+    <buildCommand><name>org.eclipse.jdt.core.javabuilder</name><arguments/></buildCommand>
+    <buildCommand><name>org.eclipse.pde.ManifestBuilder</name><arguments/></buildCommand>
+    <buildCommand><name>org.eclipse.pde.SchemaBuilder</name><arguments/></buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.pde.PluginNature</nature>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
+"""
+    }
+
+    String getDotClasspathText(String jarName) {
+        """<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+  <classpathentry exported="true" kind="lib" path="${jarName}"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+  <classpathentry kind="output" path="bin"/>
+</classpath>
+"""
+    }
+
+
 }
