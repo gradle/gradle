@@ -17,58 +17,27 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.GeneralComponentSpec;
 import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 
 /**
- * Base class that may be used for custom {@link ComponentSpec} implementations. However, it is generally better to use an
+ * Base class that may be used for custom {@link GeneralComponentSpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseComponentSpec extends DefaultComponentSpec {
-    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
+public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
 
-    public static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
-        try {
-            try {
-                return DirectInstantiator.INSTANCE.newInstance(implementationType);
-            } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
-            }
-        } finally {
-            nextComponentInfo.set(null);
-        }
-    }
-
     public BaseComponentSpec() {
-        this(nextComponentInfo.get());
-    }
-
-    private BaseComponentSpec(ComponentInfo info) {
-        super(notDirectInstantiation(info).typeName, info.componentIdentifier);
-
-        MutableModelNode modelNode = info.modelNode;
+        MutableModelNode modelNode = getInfo().modelNode;
         binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
-    }
-
-    private static ComponentInfo notDirectInstantiation(ComponentInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
-        }
-        return info;
     }
 
     @Override
@@ -80,21 +49,4 @@ public class BaseComponentSpec extends DefaultComponentSpec {
     public ModelMap<BinarySpec> getBinaries() {
         return ModelMaps.toView(binaries, BinarySpec.class);
     }
-
-    private static class ComponentInfo {
-        final ComponentSpecIdentifier componentIdentifier;
-        final MutableModelNode modelNode;
-        final String typeName;
-
-        private ComponentInfo(
-            ComponentSpecIdentifier componentIdentifier,
-            MutableModelNode modelNode,
-            String typeName
-        ) {
-            this.componentIdentifier = componentIdentifier;
-            this.modelNode = modelNode;
-            this.typeName = typeName;
-        }
-    }
-
 }

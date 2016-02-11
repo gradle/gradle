@@ -16,16 +16,45 @@
 
 package org.gradle.platform.base.component.internal;
 
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ModelInstantiationException;
 
 public abstract class DefaultComponentSpec implements ComponentSpec {
+    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
 
-    public DefaultComponentSpec(String typeName, ComponentSpecIdentifier identifier) {
-        this.typeName = typeName;
-        this.identifier = identifier;
+    public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
+        try {
+            try {
+                return DirectInstantiator.INSTANCE.newInstance(implementationType);
+            } catch (ObjectInstantiationException e) {
+                throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
+            }
+        } finally {
+            nextComponentInfo.set(null);
+        }
+    }
+
+    protected static ComponentInfo getInfo() {
+        return nextComponentInfo.get();
+    }
+
+    public DefaultComponentSpec() {
+        this(getInfo());
+    }
+
+    public DefaultComponentSpec(ComponentInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
+        }
+        this.typeName = info.typeName;
+        this.identifier = info.componentIdentifier;
     }
 
     public String getName() {
@@ -47,5 +76,21 @@ public abstract class DefaultComponentSpec implements ComponentSpec {
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    protected static class ComponentInfo {
+        public final ComponentSpecIdentifier componentIdentifier;
+        public final MutableModelNode modelNode;
+        public final String typeName;
+
+        private ComponentInfo(
+            ComponentSpecIdentifier componentIdentifier,
+            MutableModelNode modelNode,
+            String typeName
+        ) {
+            this.componentIdentifier = componentIdentifier;
+            this.modelNode = modelNode;
+            this.typeName = typeName;
+        }
     }
 }
