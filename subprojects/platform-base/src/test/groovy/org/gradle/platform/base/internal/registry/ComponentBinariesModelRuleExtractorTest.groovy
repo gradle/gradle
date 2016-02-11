@@ -23,7 +23,8 @@ import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -90,9 +91,9 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     static interface SomeBinarySpec extends BinarySpec {}
 
-    static interface SomeLibrary extends ComponentSpec {}
+    static interface SomeLibrary extends GeneralComponentSpec {}
 
-    static interface RawLibrary extends ComponentSpec {}
+    static interface RawLibrary extends GeneralComponentSpec {}
 
     static interface SomeBinarySubType extends SomeBinarySpec {}
 
@@ -135,7 +136,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static String returnValue(ModelMap<SomeBinarySpec> builder, ComponentSpec componentSpec) {
+        static String returnValue(ModelMap<SomeBinarySpec> builder, VariantComponentSpec componentSpec) {
         }
     }
 }

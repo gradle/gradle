@@ -18,6 +18,7 @@ package org.gradle.language.base.plugins
 
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
 class ComponentModelBasePluginTest extends PlatformBaseSpecification {
@@ -51,7 +52,7 @@ class ComponentModelBasePluginTest extends PlatformBaseSpecification {
             apply plugin: ComponentModelBasePlugin
             model {
                 components {
-                    comp1(ComponentSpec) {
+                    comp1(GeneralComponentSpec) {
                         binaries {
                             bin1(BinarySpec)
                             bin2(BinarySpec)
@@ -76,7 +77,7 @@ class ComponentModelBasePluginTest extends PlatformBaseSpecification {
             apply plugin: ComponentModelBasePlugin
             model {
                 components {
-                    comp1(ComponentSpec) {
+                    comp1(GeneralComponentSpec) {
                         binaries {
                             bin1(BinarySpec)
                             bin2(BinarySpec)
