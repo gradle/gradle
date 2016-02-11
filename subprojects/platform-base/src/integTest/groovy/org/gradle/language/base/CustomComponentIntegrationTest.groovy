@@ -19,6 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 import spock.lang.Unroll
 
@@ -66,7 +67,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [ComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "presents a public view for custom managed ApplicationSpec"() {
@@ -147,7 +148,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [ComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "can declare custom managed Jvm library component"() {

@@ -17,12 +17,13 @@ package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.GeneralComponentSpec;
 
 /**
- * A component representing a suite of tests that will be executed together.
+ * A component representing a suite of tests that will be built and executed together.
  */
 @Incubating
-public interface TestSuiteSpec extends ComponentSpec {
+public interface TestSuiteSpec extends GeneralComponentSpec {
     /**
      * The tested component.
      */

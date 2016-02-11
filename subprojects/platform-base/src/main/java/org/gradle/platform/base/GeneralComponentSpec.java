@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
- * A specification of a {@link org.gradle.platform.base.Application}.
+ * A general purpose component specification, that can be used to represent some software component built from source and producing
+ * multiple output variants.
  */
-@Incubating
-public interface ApplicationSpec extends GeneralComponentSpec {
+public interface GeneralComponentSpec extends ComponentSpec, SourceComponentSpec, VariantComponentSpec {
 }
