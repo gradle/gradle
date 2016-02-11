@@ -46,7 +46,7 @@ plugins {
 }
 
 @Managed
-interface SampleLibrarySpec extends ComponentSpec {}
+interface SampleLibrarySpec extends GeneralComponentSpec {}
 
 class SampleLibraryRules extends RuleSource {
     @ComponentType
