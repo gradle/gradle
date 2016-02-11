@@ -151,7 +151,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 components {
-                    lib(ComponentSpec) {
+                    lib(LibrarySpec) {
                     }
                 }
             }

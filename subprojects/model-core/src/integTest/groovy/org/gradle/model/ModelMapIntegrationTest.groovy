@@ -19,7 +19,10 @@ package org.gradle.model
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.LibrarySpec
 import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
@@ -43,7 +46,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "components"
-        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, ${GeneralComponentSpec.name}, ${LibrarySpec.name}, SampleComponent.")
     }
 
     def "cannot add unregistered type to model map of extensible type"() {
@@ -68,7 +71,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "model"
-        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
+        failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, ${GeneralComponentSpec.name}, ${LibrarySpec.name}, SampleComponent.")
     }
 
     def "cannot add unregistered type to model map of specialized extensible type"() {

@@ -70,7 +70,22 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @ComponentType
-        void registerBaseComponentSpec(TypeBuilder<ComponentSpec> builder) {
+        void registerComponentSpec(TypeBuilder<ComponentSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+        }
+
+        @ComponentType
+        void registerGeneralComponentSpec(TypeBuilder<GeneralComponentSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+        }
+
+        @ComponentType
+        void registerLibrarySpec(TypeBuilder<LibrarySpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+        }
+
+        @ComponentType
+        void registerApplicationSpec(TypeBuilder<ApplicationSpec> builder) {
             builder.defaultImplementation(BaseComponentSpec.class);
         }
 

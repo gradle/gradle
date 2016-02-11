@@ -17,7 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.LibrarySpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -380,7 +383,7 @@ afterEach CustomComponent 'newComponent'"""
         }
     }
 
-    def "reasonable error message when creating unmanaged component using its default implementation"() {
+    def "reasonable error message when adding element to map using its default implementation"() {
         when:
         buildFile << """
         interface UnmanagedComponent extends ComponentSpec {}
@@ -403,10 +406,10 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ComponentSpec.name}, CustomComponent, UnmanagedComponent."))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LibrarySpec.name}, UnmanagedComponent."))
     }
 
-    def "reasonable error message when creating unknown component type"() {
+    def "reasonable error message when adding element of unknown component type to map"() {
         when:
         buildFile << """
         interface AnotherCustomComponent extends ComponentSpec {}
@@ -422,7 +425,7 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ComponentSpec.name}, CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LibrarySpec.name}."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
