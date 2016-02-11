@@ -50,7 +50,7 @@ class BaseInstanceFactoryTest extends Specification {
     static interface UnmanagedThingSpec extends ThingSpec {}
     static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
-    def instanceFactory = new BaseInstanceFactory<ThingSpec, BaseThingSpec>(ThingSpec, BaseThingSpec)
+    def instanceFactory = new BaseInstanceFactory<ThingSpec>(ThingSpec)
     def node = Mock(MutableModelNode)
     def factoryMock = Mock(ImplementationFactory)
 
@@ -172,7 +172,7 @@ class BaseInstanceFactoryTest extends Specification {
         0 * _
     }
 
-    def "base type is not advertised as supported type"() {
+    def "non-constructible types are not reported as supported types"() {
         instanceFactory.registerFactory(BaseThingSpec, factoryMock)
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
             .withImplementation(ModelType.of(DefaultThingSpec))
@@ -196,7 +196,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(Object))
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Implementation type '$Object.name' registered for '$ThingSpec.name' must extend '$BaseThingSpec.name'"
+        ex.message == "No factory registered to create an instance of implementation class '$Object.name'."
     }
 
     def "fails when an implementation is registered that doesn't have a default constructor"() {

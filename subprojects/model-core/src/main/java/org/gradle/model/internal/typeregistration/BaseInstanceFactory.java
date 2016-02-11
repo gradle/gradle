@@ -34,17 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PUBLIC> {
+public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
-    private final ModelType<BASEIMPL> baseImplementationType;
-    private final Class<BASEIMPL> baseImplementation;
     private final Map<ModelType<? extends PUBLIC>, TypeRegistration<? extends PUBLIC>> registrations = Maps.newLinkedHashMap();
-    private final Map<Class<? extends BASEIMPL>, ImplementationFactory<? extends PUBLIC, ? extends BASEIMPL>> factories = Maps.newLinkedHashMap();
+    private final Map<Class<?>, ImplementationFactory<? extends PUBLIC, ?>> factories = Maps.newLinkedHashMap();
 
-    public BaseInstanceFactory(Class<PUBLIC> baseInterface, Class<BASEIMPL> baseImplementation) {
+    public BaseInstanceFactory(Class<PUBLIC> baseInterface) {
         this.baseInterface = ModelType.of(baseInterface);
-        this.baseImplementation = baseImplementation;
-        this.baseImplementationType = ModelType.of(baseImplementation);
     }
 
     @Override
@@ -52,7 +48,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         return baseInterface;
     }
 
-    public <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, @Nullable ModelType<? extends BASEIMPL> implementationType, ModelRuleDescriptor definedBy) {
+    public <S extends PUBLIC> void register(ModelType<S> publicType, Set<Class<?>> internalViews, @Nullable ModelType<?> implementationType, ModelRuleDescriptor definedBy) {
         TypeRegistrationBuilder<S> registration = register(publicType, definedBy);
         if (implementationType != null) {
             registration.withImplementation(implementationType);
@@ -65,7 +61,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
     /**
      * Registers a factory to use to create all implementation objects of the given type <em>and its subtypes</em>. The most specific match is used.
      */
-    public <S extends BASEIMPL> void registerFactory(Class<S> implementationType, ImplementationFactory<PUBLIC, S> implementationFactory) {
+    public <S> void registerFactory(Class<S> implementationType, ImplementationFactory<PUBLIC, S> implementationFactory) {
         factories.put(implementationType, implementationFactory);
     }
 
@@ -80,11 +76,11 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
 
     @Override @Nullable
     public <S extends PUBLIC> ImplementationInfo getImplementationInfo(ModelType<S> publicType) {
-        ImplementationRegistration<S, ? extends BASEIMPL> implementationRegistration = getImplementationRegistration(publicType);
+        ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
         if (implementationRegistration == null) {
             return null;
         }
-        return new ImplementationInfoImpl<S, BASEIMPL>(publicType, implementationRegistration, getInternalViews(publicType));
+        return new ImplementationInfoImpl<S>(publicType, implementationRegistration, getInternalViews(publicType));
     }
 
     @Override
@@ -97,7 +93,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 if (registration != null && registration.implementationRegistration != null) {
-                    implementationInfos.add(new ImplementationInfoImpl<S, BASEIMPL>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
+                    implementationInfos.add(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
         });
@@ -137,7 +133,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         return Cast.uncheckedCast(registrations.get(type));
     }
 
-    private <S extends PUBLIC> ImplementationRegistration<S, ? extends BASEIMPL> getImplementationRegistration(ModelType<S> type) {
+    private <S extends PUBLIC> ImplementationRegistration<S> getImplementationRegistration(ModelType<S> type) {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null) {
             return null;
@@ -194,7 +190,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
     private class TypeRegistration<S extends PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
-        private ImplementationRegistration<S, ? extends BASEIMPL> implementationRegistration;
+        private ImplementationRegistration<S> implementationRegistration;
         private final List<InternalViewRegistration<?>> internalViewRegistrations = Lists.newArrayList();
 
         public TypeRegistration(ModelType<S> publicType) {
@@ -210,9 +206,6 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
             if (managedPublicType) {
                 throw new IllegalArgumentException(String.format("Cannot specify default implementation for managed type '%s'", publicType));
             }
-            if (!baseInterface.isAssignableFrom(implementationType)) {
-                throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must extend '%s'", implementationType, publicType, baseImplementationType));
-            }
             if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract", implementationType, publicType));
             }
@@ -221,12 +214,12 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
             } catch (NoSuchMethodException e) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor", implementationType, publicType));
             }
-            Class<? extends BASEIMPL> implementationClass = implementationType.getConcreteClass().asSubclass(baseImplementation);
-            ImplementationFactory<S, BASEIMPL> factory = findFactory(implementationClass);
+            Class<?> implementationClass = implementationType.getConcreteClass();
+            ImplementationFactory<S, ?> factory = findFactory(implementationClass);
             if (factory == null) {
                 throw new IllegalArgumentException(String.format("No factory registered to create an instance of implementation class '%s'.", implementationClass.getName()));
             }
-            this.implementationRegistration = new ImplementationRegistration<S, BASEIMPL>(source, implementationType.asSubtype(baseImplementationType), factory);
+            this.implementationRegistration = new ImplementationRegistration<S>(source, implementationType, factory);
         }
 
         public <V> void addInternalView(ModelType<V> internalView, ModelRuleDescriptor source) {
@@ -301,15 +294,15 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
     }
 
     @Nullable
-    private <S extends PUBLIC> ImplementationFactory<S, BASEIMPL> findFactory(Class<? extends BASEIMPL> implementationClass) {
-        ImplementationFactory<? extends PUBLIC, ? extends BASEIMPL> implementationFactory = factories.get(implementationClass);
+    private <S extends PUBLIC> ImplementationFactory<S, ?> findFactory(Class<?> implementationClass) {
+        ImplementationFactory<? extends PUBLIC, ?> implementationFactory = factories.get(implementationClass);
         if (implementationFactory != null) {
             return Cast.uncheckedCast(implementationFactory);
         }
 
         Class<?> superclass = implementationClass.getSuperclass();
-        if (superclass != null && baseImplementation.isAssignableFrom(superclass)) {
-            implementationFactory = findFactory(superclass.asSubclass(baseImplementation));
+        if (superclass != null && superclass != Object.class) {
+            implementationFactory = findFactory(superclass);
             factories.put(implementationClass, implementationFactory);
             return Cast.uncheckedCast(implementationFactory);
         }
@@ -317,12 +310,12 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         return null;
     }
 
-    private static class ImplementationRegistration<PUBLIC, BASEIMPL> {
+    private static class ImplementationRegistration<PUBLIC> {
         private final ModelRuleDescriptor source;
-        private final ModelType<? extends BASEIMPL> implementationType;
-        private final ImplementationFactory<? super PUBLIC, ? super BASEIMPL> factory;
+        private final ModelType<?> implementationType;
+        private final ImplementationFactory<? super PUBLIC, ?> factory;
 
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<? extends BASEIMPL> implementationType, ImplementationFactory<? super PUBLIC, ? super BASEIMPL> factory) {
+        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<? super PUBLIC, ?> factory) {
             this.source = source;
             this.implementationType = implementationType;
             this.factory = factory;
@@ -336,7 +329,7 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
             return implementationType;
         }
 
-        public ImplementationFactory<? super PUBLIC, ? super BASEIMPL> getFactory() {
+        public ImplementationFactory<? super PUBLIC, ?> getFactory() {
             return factory;
         }
     }
@@ -359,12 +352,12 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
         }
     }
 
-    private static class ImplementationInfoImpl<PUBLIC, BASEIMPL> implements ImplementationInfo {
+    private static class ImplementationInfoImpl<PUBLIC> implements ImplementationInfo {
         private final ModelType<PUBLIC> publicType;
-        private final ImplementationRegistration<? super PUBLIC, BASEIMPL> implementationRegistration;
+        private final ImplementationRegistration<? super PUBLIC> implementationRegistration;
         private final Set<ModelType<?>> internalViews;
 
-        public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?, ?> implementationRegistration, Set<ModelType<?>> internalViews) {
+        public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?> implementationRegistration, Set<ModelType<?>> internalViews) {
             this.publicType = publicType;
             this.internalViews = internalViews;
             this.implementationRegistration = Cast.uncheckedCast(implementationRegistration);
@@ -372,7 +365,8 @@ public class BaseInstanceFactory<PUBLIC, BASEIMPL> implements InstanceFactory<PU
 
         @Override
         public Object create(MutableModelNode modelNode) {
-            return implementationRegistration.factory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
+            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedCast(implementationRegistration.factory);
+            return implementationFactory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
         }
 
         public ModelType<?> getDelegateType() {

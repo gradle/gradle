@@ -28,7 +28,7 @@ import java.util.Set;
 public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     private final ModelSchema<? extends T> schema;
-    private Class<? extends T> implementation;
+    private Class<?> implementation;
     private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
 
     public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<T> schema) {
@@ -37,7 +37,7 @@ public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     }
 
     @Override
-    public TypeBuilderInternal<T> defaultImplementation(Class<? extends T> implementation) {
+    public TypeBuilderInternal<T> defaultImplementation(Class<?> implementation) {
         if (this.schema instanceof ManagedImplSchema) {
             throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation for managed type %s.", markerAnnotation.getSimpleName(), schema.getType().getName()));
         }
@@ -49,7 +49,7 @@ public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     }
 
     @Override
-    public Class<? extends T> getDefaultImplementation() {
+    public Class<?> getDefaultImplementation() {
         return this.implementation;
     }
 

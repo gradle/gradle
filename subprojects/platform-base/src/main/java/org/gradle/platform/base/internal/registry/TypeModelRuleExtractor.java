@@ -19,7 +19,10 @@ package org.gradle.platform.base.internal.registry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -34,21 +37,19 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, BASEIMPL extends TYPE, REGISTRY extends BaseInstanceFactory<TYPE, BASEIMPL>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
+public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTRY extends BaseInstanceFactory<TYPE>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
     private final String modelName;
     private final ModelType<TYPE> baseInterface;
-    private final ModelType<BASEIMPL> baseImplementation;
     private final ModelReference<REGISTRY> registryRef;
     private final ModelSchemaStore schemaStore;
     private final List<? extends Class<?>> requiredPlugins;
 
-    public TypeModelRuleExtractor(String modelName, Class<TYPE> baseInterface, Class<BASEIMPL> baseImplementation, ModelReference<REGISTRY> registryRef, List<? extends Class<?>> requiredPlugins, ModelSchemaStore schemaStore) {
+    public TypeModelRuleExtractor(String modelName, Class<TYPE> baseInterface, ModelReference<REGISTRY> registryRef, List<? extends Class<?>> requiredPlugins, ModelSchemaStore schemaStore) {
         this.modelName = modelName;
         this.registryRef = registryRef;
         this.requiredPlugins = requiredPlugins;
         this.schemaStore = schemaStore;
         this.baseInterface = ModelType.of(baseInterface);
-        this.baseImplementation = ModelType.of(baseImplementation);
     }
 
     @Nullable
@@ -105,7 +106,7 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, BASEIMP
         return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
-    private ModelType<? extends BASEIMPL> determineImplementationType(ModelType<?> type, TypeBuilderInternal<?> builder) {
+    private ModelType<?> determineImplementationType(TypeBuilderInternal<?> builder) {
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isInterface()) {
                 throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
@@ -117,30 +118,7 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, BASEIMP
             return null;
         }
 
-        ModelType<?> implementationType = ModelType.of(implementation);
-
-        if (!baseImplementation.isAssignableFrom(implementationType)) {
-            throw new InvalidModelException(String.format("%s implementation %s must extend %s.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
-        }
-
-        ModelType<? extends BASEIMPL> asSubclass = implementationType.asSubtype(baseImplementation);
-        if (!type.isAssignableFrom(asSubclass)) {
-            throw new InvalidModelException(String.format("%s implementation %s must implement %s.", StringUtils.capitalize(modelName), asSubclass, type));
-        }
-
-        for (Class<?> internalView : builder.getInternalViews()) {
-            if (!internalView.isAssignableFrom(implementation)) {
-                throw new InvalidModelException(String.format("%s implementation %s must implement internal view %s.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
-            }
-        }
-
-        try {
-            asSubclass.getRawClass().getConstructor();
-        } catch (NoSuchMethodException nsmException) {
-            throw new InvalidModelException(String.format("%s implementation %s must have public default constructor.", StringUtils.capitalize(modelName), asSubclass));
-        }
-
-        return asSubclass;
+        return ModelType.of(implementation);
     }
 
     private class ExtractedTypeRule<PUBLICTYPE extends TYPE> implements ExtractedModelRule {
@@ -184,7 +162,7 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, BASEIMP
                     ModelSchema<PUBLICTYPE> schema = schemaStore.getSchema(publicType);
                     TypeBuilderInternal<PUBLICTYPE> builder = new DefaultTypeBuilder<PUBLICTYPE>(getAnnotationType(), schema);
                     invoker.invoke(builder);
-                    ModelType<? extends BASEIMPL> implModelType = determineImplementationType(publicType, builder);
+                    ModelType<?> implModelType = determineImplementationType(builder);
                     registry.register(publicType, builder.getInternalViews(), implModelType, ruleDefinition.getDescriptor());
                 } catch (InvalidModelException e) {
                     throw invalidModelRule(ruleDefinition, e);

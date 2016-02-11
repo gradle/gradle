@@ -104,11 +104,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         methodName                         | expectedMessage                                                                                                               | descr
         "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                         | "implementation set multiple times"
         "implementationSetForManagedType"  | "Method annotated with @BinaryType cannot set default implementation for managed type ${ManagedBinarySpec.name}."             | "implementation set for managed type"
-        "notImplementingBinaryType"        | "Binary implementation ${NotImplementingCustomBinary.name} must implement ${SomeBinarySpec.name}."                            | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Binary implementation ${NotExtendingBaseBinarySpec.name} must extend ${BaseBinarySpec.name}."                                | "implementation not extending BaseBinarySpec"
-        "noDefaultConstructor"             | "Binary implementation ${NoDefaultConstructor.name} must have public default constructor."                                    | "implementation with no public default constructor"
         "internalViewNotInterface"         | "Internal view ${NonInterfaceInternalView.name} must be an interface."                                                        | "non-interface internal view"
-        "notExtendingInternalView"         | "Binary implementation ${SomeBinarySpecImpl.name} must implement internal view ${NotImplementedBinarySpecInternalView.name}." | "implementation not extending internal view"
         "repeatedInternalView"             | "Internal view '${BinarySpecInternalView.name}' must not be specified multiple times."                                        | "internal view specified multiple times"
     }
 

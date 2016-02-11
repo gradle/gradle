@@ -20,13 +20,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.LanguageType;
 
-public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet, LanguageSourceSetFactory> {
+public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, LanguageSourceSetFactory> {
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, ModelReference.of(LanguageSourceSetFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
+        super("language", LanguageSourceSet.class, ModelReference.of(LanguageSourceSetFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
     }
 }

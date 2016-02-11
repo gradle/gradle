@@ -103,11 +103,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         where:
         methodName                         | expectedMessage                                                                                                                        | descr
         "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                               | "implementation set multiple times"
-        "notImplementingLibraryType"       | "Component implementation ${NotImplementingCustomComponent.name} must implement ${SomeComponentSpec.name}."                            | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Component implementation ${NotExtendingBaseComponentSpec.name} must extend ${BaseComponentSpec.name}."                                | "implementation not extending BaseComponentSpec"
-        "noDefaultConstructor"             | "Component implementation ${NoDefaultConstructor.name} must have public default constructor."                                          | "implementation with no public default constructor"
         "internalViewNotInterface"         | "Internal view ${NonInterfaceInternalView.name} must be an interface."                                                                 | "non-interface internal view"
-        "notExtendingInternalView"         | "Component implementation ${SomeComponentSpecImpl.name} must implement internal view ${NotImplementedComponentSpecInternalView.name}." | "implementation not extending internal view"
         "repeatedInternalView"             | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times."                                              | "internal view specified multiple times"
     }
 

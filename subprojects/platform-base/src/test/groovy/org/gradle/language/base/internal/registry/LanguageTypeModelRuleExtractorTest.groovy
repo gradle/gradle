@@ -28,7 +28,6 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
@@ -69,27 +68,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "rawLanguageTypeBuilder"      | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                               | "non typed parameter"
         "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."             | "wild card parameter"
         "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'." | "public type not extending LanguageSourceSet"
-    }
-
-    @Unroll
-    def "decent error message for rule behaviour problem - #descr"() {
-        def ruleMethod = ruleDefinitionForMethod(methodName)
-        def ruleDescription = getStringDescription(ruleMethod)
-
-        when:
-        apply(ruleMethod)
-
-        then:
-        def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == "${ruleDescription} is not a valid language model rule method."
-        ex.cause instanceof InvalidModelException
-        ex.cause.message == expectedMessage
-
-        where:
-        methodName                          | expectedMessage                                                                                                          | descr
-        "notImplementingLibraryType"        | "Language implementation ${NotImplementingCustomLanguageSourceSet.name} must implement ${CustomLanguageSourceSet.name}." | "implementation not implementing type class"
-        "notExtendingBaseLanguageSourceSet" | "Language implementation ${NotExtendingBaseLanguageSourceSet.name} must extend ${BaseLanguageSourceSet.name}."           | "implementation not extending ${BaseLanguageSourceSet.name}"
-        "noPublicCtorImplementation"        | "Language implementation ${ImplementationWithNoPublicConstructor.name} must have public default constructor."            | "implementation with not public default constructor"
     }
 
     def "applies LanguageBasePlugin and creates language type rule"() {

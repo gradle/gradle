@@ -26,9 +26,9 @@ import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
-public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet, BaseLanguageSourceSet> {
+public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
     public LanguageSourceSetFactory(final SourceDirectorySetFactory sourceDirectorySetFactory) {
-        super(LanguageSourceSet.class, BaseLanguageSourceSet.class);
+        super(LanguageSourceSet.class);
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
             public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {

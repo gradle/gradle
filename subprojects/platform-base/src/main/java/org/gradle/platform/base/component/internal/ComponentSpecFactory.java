@@ -22,17 +22,16 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
-public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec, BaseComponentSpec> {
+public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     public ComponentSpecFactory(final ProjectIdentifier projectIdentifier) {
-        super(ComponentSpec.class, BaseComponentSpec.class);
-        registerFactory(BaseComponentSpec.class, new ImplementationFactory<ComponentSpec, BaseComponentSpec>() {
+        super(ComponentSpec.class);
+        registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
             @Override
-            public <T extends BaseComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
+            public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
                 ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                return BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
+                return DefaultComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
             }
         });
     }
