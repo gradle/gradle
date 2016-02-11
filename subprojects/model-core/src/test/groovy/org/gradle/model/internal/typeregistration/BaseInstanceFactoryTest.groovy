@@ -31,7 +31,7 @@ class BaseInstanceFactoryTest extends Specification {
     static interface ThingSpecInternal extends ThingSpec {}
     static abstract class BaseThingSpec implements ThingSpecInternal {}
     static class DefaultThingSpec extends BaseThingSpec {}
-    static class DefaultOtherThingSpec extends BaseThingSpec implements OtherThingSpec {}
+    static class DefaultOtherThingSpec extends DefaultThingSpec implements OtherThingSpec {}
     static abstract class AbstractThingSpec implements ThingSpec {}
 
     static class NoDefaultConstructorThingSpec extends BaseThingSpec {
@@ -47,6 +47,7 @@ class BaseInstanceFactoryTest extends Specification {
     static @Managed interface ManagedThingSpecInternal {}
     static @Managed interface ManagedThingSpecInternalExtendingThingSpecInternal extends ThingSpecInternal {}
     static @Managed interface ManagedThingSpecInternalExtendingOtherThingSpec extends OtherThingSpec {}
+    static @Managed interface MultiplePathsToRoot extends ThingSpec, ManagedThingSpecInternalExtendingOtherThingSpec {}
     static interface UnmanagedThingSpec extends ThingSpec {}
     static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
@@ -68,6 +69,7 @@ class BaseInstanceFactoryTest extends Specification {
 
         when:
         instanceFactory.validateRegistrations()
+
         then:
         noExceptionThrown()
     }
@@ -126,7 +128,7 @@ class BaseInstanceFactoryTest extends Specification {
         ] as Set)
     }
 
-    def "uses provided factory to create delegate for a public type"() {
+    def "uses provided factory to create implementation for a public type"() {
         def thingMock = Mock(ThingSpec)
         def nodeMock = Mock(MutableModelNode)
         instanceFactory.registerFactory(DefaultThingSpec, factoryMock)
@@ -155,7 +157,7 @@ class BaseInstanceFactoryTest extends Specification {
         e.message == "No factory registered to create an instance of implementation class '${DefaultThingSpec.name}'."
     }
 
-    def "factory for closest superclass to create delegate for a public type"() {
+    def "factory for closest superclass to create implementation for a public type"() {
         def thingMock = Mock(ThingSpec)
         def nodeMock = Mock(MutableModelNode)
         instanceFactory.registerFactory(BaseThingSpec, factoryMock)
@@ -169,6 +171,26 @@ class BaseInstanceFactoryTest extends Specification {
         instance == thingMock
         _ * nodeMock.path >> ModelPath.path("node.test")
         1 * factoryMock.create(ModelType.of(ThingSpec), ModelType.of(DefaultThingSpec), "test", nodeMock) >> { thingMock }
+        0 * _
+    }
+
+    def "uses most specific implementation type for managed public type"() {
+        def thingMock = Mock(ThingSpec)
+        def nodeMock = Mock(MutableModelNode)
+        instanceFactory.registerFactory(BaseThingSpec, factoryMock)
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec))
+        instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultOtherThingSpec))
+        instanceFactory.register(ModelType.of(MultiplePathsToRoot), new SimpleModelRuleDescriptor("thing"))
+
+        when:
+        def instance = instanceFactory.getManagedSubtypeImplementationInfo(ModelType.of(MultiplePathsToRoot)).create(nodeMock)
+
+        then:
+        instance == thingMock
+        _ * nodeMock.path >> ModelPath.path("node.test")
+        1 * factoryMock.create(ModelType.of(MultiplePathsToRoot), ModelType.of(DefaultOtherThingSpec), "test", nodeMock) >> { thingMock }
         0 * _
     }
 

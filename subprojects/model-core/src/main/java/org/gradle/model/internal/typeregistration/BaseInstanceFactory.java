@@ -33,6 +33,7 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
@@ -88,21 +89,23 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         if (!isManaged(publicType)) {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
-        final List<ImplementationInfo> implementationInfos = Lists.newArrayListWithCapacity(1);
+        final AtomicReference<ImplementationInfoImpl<S>> implementationInfo = new AtomicReference<ImplementationInfoImpl<S>>();
         ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
-                if (registration != null && registration.implementationRegistration != null) {
-                    implementationInfos.add(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
+                if (registration == null || registration.implementationRegistration == null) {
+                    return;
+                }
+                if (implementationInfo.get() == null || implementationInfo.get().implementationRegistration.implementationType.isAssignableFrom(registration.implementationRegistration.implementationType)) {
+                    implementationInfo.set(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
         });
 
-        if (implementationInfos.isEmpty()) {
+        if (implementationInfo.get() == null) {
             throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because it doesn't extend an interface with a default implementation", publicType));
         }
-
-        return implementationInfos.get(0);
+        return implementationInfo.get();
     }
 
     private <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
