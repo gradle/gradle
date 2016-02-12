@@ -39,11 +39,11 @@ After this milestone, a Tooling client can define a composite build, and request
 - [ ] [Tooling client provides model for "composite" with one multi-project participant](tooling-api-model/single-build)
 - [ ] [Tooling client provides model for composite containing multiple participants](tooling-api-model/multiple-builds)
 - [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
+- [ ] [Tooling client cancels composite model request](tooling-api-model/cancellation)
+- [ ] [Tooling client provides progress listener for composite model request](tooling-api-model/progress-listener)
 
 ##### Further stories
 
-- [ ] Tooling client cancels composite model request
-- [ ] Tooling client provides progress listener for composite model request
 - [ ] Tooling client specifies stdout and stderr for composite model request
 - [ ] Tooling client provides common args, JVM args and stdin for in composite model request
 - [ ] Tooling client provides separate args, JVM args and stdin for each participant in composite model request
