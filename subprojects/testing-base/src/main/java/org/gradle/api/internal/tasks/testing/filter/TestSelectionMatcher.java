@@ -19,18 +19,32 @@ import com.google.common.base.Splitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
 
     private final List<Pattern> includePatterns;
+    private final List<Pattern> excludePatterns;
 
     public TestSelectionMatcher(Collection<String> includedTests) {
-        includePatterns = new ArrayList<Pattern>(includedTests.size());
-        for (String includedTest : includedTests) {
-            includePatterns.add(preparePattern(includedTest));
+        this(includedTests, Collections.<String>emptyList());
+    }
+
+    public TestSelectionMatcher(Collection<String> includedTests, Collection<String> excludedTests) {
+        this.includePatterns = toPatterns(includedTests);
+        this.excludePatterns = toPatterns(excludedTests);
+    }
+
+    private List<Pattern> toPatterns(Collection<String> tests) {
+        List<Pattern> patterns = new LinkedList<Pattern>();
+
+        for (String test : tests) {
+            includePatterns.add(preparePattern(test));
         }
+        return patterns;
     }
 
     private Pattern preparePattern(String input) {
@@ -50,8 +64,16 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
+
+        boolean matchesIncludePatterns = matchesTest(className, methodName, includePatterns);
+        boolean matchesExcludePatterns = matchesTest(className, methodName, excludePatterns);
+
+        return matchesIncludePatterns && !matchesExcludePatterns;
+    }
+
+    private boolean matchesTest(String className, String methodName, List<Pattern> patterns) {
         String fullName = className + "." + methodName;
-        for (Pattern pattern : includePatterns) {
+        for (Pattern pattern : patterns) {
             if (methodName != null && pattern.matcher(fullName).matches()) {
                 return true;
             }

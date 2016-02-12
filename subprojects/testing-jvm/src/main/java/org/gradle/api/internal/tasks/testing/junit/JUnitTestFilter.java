@@ -63,22 +63,13 @@ class JUnitTestFilter {
 
         List<Filter> includeExcludeFilters = Lists.newArrayList();
 
-        if (!options.getIncludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
+        if (options.hasTestConfiguration()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests(), options.getExcludedTests());
 
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
             if (!isSuite || !matcher.matchesTest(testClassName, null)) {
                 includeExcludeFilters.add(new MethodNameIncludeFilter(matcher));
-            }
-        }
-
-
-        if (!options.getExcludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getExcludedTests());
-
-            if (!isSuite || !matcher.matchesTest(testClassName, null)) {
-                includeExcludeFilters.add(new MethodNameExcludeFilter(matcher));
             }
         }
 

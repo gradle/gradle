@@ -43,6 +43,10 @@ public class JUnitSpec implements Serializable {
         return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
     }
 
+    public boolean hasTestConfiguration() {
+        return !(excludedTests.isEmpty() && includedTests.isEmpty());
+    }
+
     public Set<String> getIncludedTests() {
         return includedTests;
     }
