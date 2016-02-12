@@ -17,33 +17,42 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class HasSuffixPatternStepTest extends Specification {
-    def "matches name case sensitive"() {
+    @Unroll
+    def "matches name case sensitive when isFile is #isFile"() {
         def step = new HasSuffixPatternStep(".java", true)
 
         expect:
-        step.matches("thing.java", true)
-        step.matches(".java", true)
-        !step.matches("thing.JAVA", true)
-        !step.matches("thing.Java", true)
-        !step.matches("thing.jav", true)
-        !step.matches("thing.c", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("thing.java", isFile)
+        step.matches(".java", isFile)
+        !step.matches("thing.JAVA", isFile)
+        !step.matches("thing.Java", isFile)
+        !step.matches("thing.jav", isFile)
+        !step.matches("thing.c", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 
-    def "matches name case insensitive"() {
+    @Unroll
+    def "matches name case insensitive when isFile is #isFile"() {
         def step = new HasSuffixPatternStep(".java", false)
 
         expect:
-        step.matches("thing.java", true)
-        step.matches(".java", true)
-        step.matches("thing.JAVA", true)
-        step.matches("thing.Java", true)
-        !step.matches("thing.jav", true)
-        !step.matches("thing.c", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("thing.java", isFile)
+        step.matches(".java", isFile)
+        step.matches("thing.JAVA", isFile)
+        step.matches("thing.Java", isFile)
+        !step.matches("thing.jav", isFile)
+        !step.matches("thing.c", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 }

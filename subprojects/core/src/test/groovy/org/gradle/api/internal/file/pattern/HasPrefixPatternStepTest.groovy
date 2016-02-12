@@ -17,37 +17,46 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class HasPrefixPatternStepTest extends Specification {
-    def "matches name case sensitive"() {
+    @Unroll
+    def "matches name case sensitive when isFile is #isFile"() {
         def step = new HasPrefixPatternStep(".abc", true)
 
         expect:
-        step.matches(".abcd", true)
-        step.matches(".abc", true)
-        !step.matches(".", true)
-        !step.matches(".a", true)
-        !step.matches(".ab", true)
-        !step.matches(".b", true)
-        !step.matches(".bcd", true)
-        !step.matches("_abc", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches(".abcd", isFile)
+        step.matches(".abc", isFile)
+        !step.matches(".", isFile)
+        !step.matches(".a", isFile)
+        !step.matches(".ab", isFile)
+        !step.matches(".b", isFile)
+        !step.matches(".bcd", isFile)
+        !step.matches("_abc", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 
-    def "matches name case insensitive"() {
+    @Unroll
+    def "matches name case insensitive when isFile is #isFile"() {
         def step = new HasPrefixPatternStep(".abc", false)
 
         expect:
-        step.matches(".abc", true)
-        step.matches(".ABC", true)
-        step.matches(".Abc", true)
-        step.matches(".aBCD", true)
-        !step.matches(".A", true)
-        !step.matches(".Ab", true)
-        !step.matches(".BCD", true)
-        !step.matches("ABC", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches(".abc", isFile)
+        step.matches(".ABC", isFile)
+        step.matches(".Abc", isFile)
+        step.matches(".aBCD", isFile)
+        !step.matches(".A", isFile)
+        !step.matches(".Ab", isFile)
+        !step.matches(".BCD", isFile)
+        !step.matches("ABC", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 }

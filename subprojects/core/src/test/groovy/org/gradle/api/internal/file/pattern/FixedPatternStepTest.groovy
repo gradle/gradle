@@ -13,30 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class FixedPatternStepTest extends Specification {
-    def "matches name case sensitive"() {
+    @Unroll
+    def "matches name case sensitive when isFile is #isFile"() {
         def step = new FixedPatternStep("name", true)
 
         expect:
-        step.matches("name", true)
-        !step.matches("Name", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("name", isFile)
+        !step.matches("Name", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 
-    def "matches name case insensitive"() {
+    @Unroll
+    def "matches name case insensitive when isFile is #isFile"() {
         def step = new FixedPatternStep("name", false)
 
         expect:
-        step.matches("name", true)
-        step.matches("Name", true)
-        step.matches("NAME", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("name", isFile)
+        step.matches("Name", isFile)
+        step.matches("NAME", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 }

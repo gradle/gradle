@@ -17,38 +17,47 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class HasPrefixAndSuffixPatternStepTest extends Specification {
-    def "matches name case sensitive"() {
+    @Unroll
+    def "matches name case sensitive when isFile is #isFile"() {
         def step = new HasPrefixAndSuffixPatternStep("pre", "suf", true)
 
         expect:
-        step.matches("pre-suf", true)
-        step.matches("presufsuf", true)
-        step.matches("presuf", true)
-        !step.matches("", true)
-        !step.matches("pre", true)
-        !step.matches("pre-su", true)
-        !step.matches("pre-s", true)
-        !step.matches("suf", true)
-        !step.matches("re-suf", true)
-        !step.matches("e-suf", true)
-        !step.matches("Pre-Suf", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("pre-suf", isFile)
+        step.matches("presufsuf", isFile)
+        step.matches("presuf", isFile)
+        !step.matches("", isFile)
+        !step.matches("pre", isFile)
+        !step.matches("pre-su", isFile)
+        !step.matches("pre-s", isFile)
+        !step.matches("suf", isFile)
+        !step.matches("re-suf", isFile)
+        !step.matches("e-suf", isFile)
+        !step.matches("Pre-Suf", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 
-    def "matches name case insensitive"() {
+    @Unroll
+    def "matches name case insensitive when isFile is #isFile"() {
         def step = new HasPrefixAndSuffixPatternStep("pre", "suf", false)
 
         expect:
-        step.matches("pre-suf", true)
-        step.matches("PRE-SUF", true)
-        step.matches("Pre-Suf", true)
-        !step.matches("PRE", true)
-        !step.matches("SUF", true)
-        !step.matches("PRSU", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("pre-suf", isFile)
+        step.matches("PRE-SUF", isFile)
+        step.matches("Pre-Suf", isFile)
+        !step.matches("PRE", isFile)
+        !step.matches("SUF", isFile)
+        !step.matches("PRSU", isFile)
+        !step.matches("", isFile)
+        !step.matches("something else", isFile)
+
+        where:
+        isFile << [true, false]
     }
 }
