@@ -18,8 +18,11 @@ BuildCancelledException should be thrown when the composite model request is can
 
 ### Test coverage
 
-- check that composite requests get cancelled when the token is initially set to cancelled
-- check that requests get cancelled when the token is cancelled while the request is being handled
+- Check that composite requests get cancelled when the token is initially set to cancelled.
+  - No participant requests are started at all.
+- Check that participant requests get cancelled when the token is cancelled while a participant request is being processed.
+  - The executing participant request gets cancelled.
+  - No new participant requests are started.
 
 ### Documentation
 
