@@ -21,7 +21,6 @@ import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -38,7 +37,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CHelloWorldApp()
 
     def setup() {
-        prebuiltDir.file("cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}").assumeExists()
+        prebuiltDir.file("cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}").assumeExists()
         buildFile << """
 apply plugin: 'cunit-test-suite'
 
@@ -48,7 +47,7 @@ model {
             cunit {
                 headers.srcDir "${prebuiltPath}/cunit/2.1-2/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("${prebuiltPath}/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
+                    staticLibraryFile = file("${prebuiltPath}/cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}")
                 }
             }
         }
@@ -83,29 +82,6 @@ model {
     }
 }
 """
-    }
-
-    private def getCunitPlatform() {
-        if (OperatingSystem.current().isMacOsX()) {
-            return "osx"
-        }
-        if (OperatingSystem.current().isLinux()) {
-            return "linux"
-        }
-        if (toolChain.displayName == "mingw") {
-            return "mingw"
-        }
-        if (toolChain.displayName == "gcc cygwin") {
-            return "cygwin"
-        }
-        if (toolChain.visualCpp) {
-            def vcVersion = (toolChain as AvailableToolChains.InstalledVisualCpp).version
-            switch (vcVersion.major) {
-                case "12":
-                    return "vs2013"
-            }
-        }
-        return "UNKNOWN"
     }
 
     private def getCunitLibName() {

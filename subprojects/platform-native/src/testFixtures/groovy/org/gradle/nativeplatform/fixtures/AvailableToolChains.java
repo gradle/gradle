@@ -302,6 +302,8 @@ public class AvailableToolChains {
         public String getId() {
             return displayName.replaceAll("\\W", "");
         }
+
+        public abstract String getUnitTestPlatform();
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
@@ -325,6 +327,17 @@ public class AvailableToolChains {
         }
 
         public abstract String getCCompiler();
+
+        @Override
+        public String getUnitTestPlatform() {
+            if (OperatingSystem.current().isMacOsX()) {
+                return "osx";
+            }
+            if (OperatingSystem.current().isLinux()) {
+                return "linux";
+            }
+            return "UNKNOWN";
+        }
     }
 
     public static class InstalledGcc extends GccCompatibleToolChain {
@@ -380,6 +393,17 @@ public class AvailableToolChains {
 
             String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
             return Collections.singletonList(pathVarName + "=" + path);
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            if ("mingw".equals(getDisplayName())) {
+                return "mingw";
+            }
+            if ("gcc cygwin".equals(getDisplayName())) {
+                return "cygwin";
+            }
+            return "UNKNOWN";
         }
     }
 
@@ -452,6 +476,16 @@ public class AvailableToolChains {
         @Override
         public TestFile objectFile(Object path) {
             return new TestFile(path.toString() + ".obj");
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            switch (version.getMajor()) {
+                case 12:
+                    return "vs2013";
+                default:
+                    return "UNKNOWN";
+            }
         }
     }
 
