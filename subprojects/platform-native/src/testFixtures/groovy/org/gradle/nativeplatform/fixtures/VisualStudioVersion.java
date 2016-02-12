@@ -16,14 +16,25 @@
 
 package org.gradle.nativeplatform.fixtures;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.util.VersionNumber;
 
-import java.util.List;
+public enum VisualStudioVersion {
+    VISUALSTUDIO_2012("11.0", "2012"),
+    VISUALSTUDIO_2013("12.0", "2013");
 
-public class VisualStudioCoverage {
-    public static final VersionNumber VISUALSTUDIO_2012 = VersionNumber.parse("11.0");
-    public static final VersionNumber VISUALSTUDIO_2013 = VersionNumber.parse("12.0");
+    private final VersionNumber visualCppVersion;
+    private final String version;
 
-    public static final List<VersionNumber> VISUALSTUDIO_TESTABLE_VERSIONS = ImmutableList.of(VISUALSTUDIO_2012, VISUALSTUDIO_2013);
+    VisualStudioVersion(String visualCppVersion, String version) {
+        this.visualCppVersion = VersionNumber.parse(visualCppVersion);
+        this.version = version;
+    }
+
+    public VersionNumber getVisualCppVersion() {
+        return visualCppVersion;
+    }
+
+    public String getVersion() {
+        return version;
+    }
 }
