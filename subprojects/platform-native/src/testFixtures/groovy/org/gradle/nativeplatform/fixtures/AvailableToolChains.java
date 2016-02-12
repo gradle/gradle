@@ -436,6 +436,8 @@ public class AvailableToolChains {
                     return true;
                 case VISUALCPP_2012_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2012.getVisualCppVersion()) >= 0;
+                case VISUALCPP_2013:
+                    return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
                 case VISUALCPP_2013_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
                 default:

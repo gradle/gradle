@@ -23,6 +23,8 @@ public enum ToolChainRequirement {
     VISUALCPP,
     // Any available Visual Studio >= 2012
     VISUALCPP_2012_OR_NEWER,
+    // Exactly Visual Studio 2013
+    VISUALCPP_2013,
     // Any available Visual Studio >= 2013
     VISUALCPP_2013_OR_NEWER,
     // Any available GCC implementation (including mingw, cygwin, but not clang)
