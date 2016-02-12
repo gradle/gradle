@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.util.CollectionUtils;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
@@ -30,21 +26,22 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
-    private final JUnitSpec options;
+
+    private final JUnitTestFilter testFilter;
+
     private final TestClassExecutionListener executionListener;
 
     public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
-        this.options = spec;
+        this.testFilter = new JUnitTestFilter(spec, applicationClassLoader);
         this.executionListener = executionListener;
     }
 
@@ -53,7 +50,7 @@ public class JUnitTestClassExecuter {
 
         Throwable failure = null;
         try {
-            runTestClass(testClassName);
+            applyFiltersAndRunTestClass(testClassName);
         } catch (Throwable throwable) {
             failure = throwable;
         }
@@ -61,46 +58,27 @@ public class JUnitTestClassExecuter {
         executionListener.testClassFinished(failure);
     }
 
-    private void runTestClass(String testClassName) throws ClassNotFoundException {
-        final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
-        List<Filter> filters = new ArrayList<Filter>();
-        if (options.hasCategoryConfiguration()) {
-            Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
-                public Class<?> transform(final String original) {
-                    try {
-                        return applicationClassLoader.loadClass(original);
-                    } catch (ClassNotFoundException e) {
-                        throw new InvalidUserDataException(String.format("Can't load category class [%s].", original), e);
-                    }
-                }
-            };
-            filters.add(new CategoryFilter(
-                    CollectionUtils.collect(options.getIncludeCategories(), transformer),
-                    CollectionUtils.collect(options.getExcludeCategories(), transformer)
-            ));
+    private void applyFiltersAndRunTestClass(String testClassName) throws ClassNotFoundException {
+        Runner runner = getRunner(testClassName);
+
+        List<Filter> filters = new LinkedList<Filter>();
+
+        filters.addAll(testFilter.getCategoryFilters());
+        filters.addAll(testFilter.getTestFilters(testClassName, runner.getDescription().isSuite()));
+
+        if(haveTestsToRun(runner, filters)){
+            runTestClass(runner);
         }
 
-        Request request = Request.aClass(testClass);
-        Runner runner = request.getRunner();
+    }
 
-        if (!options.getIncludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
+    private void runTestClass(Runner runner){
+        RunNotifier notifier = new RunNotifier();
+        notifier.addListener(listener);
+        runner.run(notifier);
+    }
 
-            // For test suites (including suite-like custom Runners), if the test suite class
-            // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
-                filters.add(new MethodNameIncludeFilter(matcher));
-            }
-        }
-
-        if (!options.getExcludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getExcludedTests());
-
-            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
-                filters.add(new MethodNameExcludeFilter(matcher));
-            }
-        }
-
+    private boolean haveTestsToRun(Runner runner, List<Filter> filters){
         if (runner instanceof Filterable) {
             Filterable filterable = (Filterable) runner;
             for (Filter filter : filters) {
@@ -108,16 +86,20 @@ public class JUnitTestClassExecuter {
                     filterable.filter(filter);
                 } catch (NoTestsRemainException e) {
                     // Ignore
-                    return;
+                    return false;
                 }
             }
         } else if (allTestsFiltered(runner, filters)) {
-            return;
+            return false;
         }
 
-        RunNotifier notifier = new RunNotifier();
-        notifier.addListener(listener);
-        runner.run(notifier);
+        return true;
+    }
+
+    private Runner getRunner(String testClassName) throws ClassNotFoundException {
+        final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
+        Request request = Request.aClass(testClass);
+        return request.getRunner();
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {
@@ -138,61 +120,6 @@ public class JUnitTestClassExecuter {
             }
         }
         return true;
-    }
-
-    private static class MethodNameIncludeFilter extends MethodNameFilter {
-
-        public MethodNameIncludeFilter(TestSelectionMatcher matcher) {
-            super(matcher, "Includes matching test methods");
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return matchCheck(description);
-        }
-    }
-
-
-    private static class MethodNameExcludeFilter extends MethodNameFilter {
-
-        public MethodNameExcludeFilter(TestSelectionMatcher matcher) {
-            super(matcher, "Excludes matching test methods");
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return !matchCheck(description);
-        }
-    }
-
-    private static abstract class MethodNameFilter extends org.junit.runner.manipulation.Filter {
-
-        private final TestSelectionMatcher matcher;
-        private final String filterDescription;
-
-        public MethodNameFilter(TestSelectionMatcher matcher, String filterDescription) {
-            this.matcher = matcher;
-            this.filterDescription = filterDescription;
-        }
-
-
-        protected boolean matchCheck(Description description) {
-            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
-                return true;
-            }
-
-            for (Description child : description.getChildren()) {
-                if (shouldRun(child)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public String describe(){
-            return filterDescription;
-        }
     }
 
 }
