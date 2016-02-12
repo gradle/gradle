@@ -16,8 +16,7 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
-import spock.lang.Unroll;
-
+import spock.lang.Unroll
 
 class RegExpPatternStepTest extends Specification {
     def "patterns are correctly converted"() {
