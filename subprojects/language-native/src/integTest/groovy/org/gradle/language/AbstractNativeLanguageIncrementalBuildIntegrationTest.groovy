@@ -146,12 +146,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkMainExecutable"
-            executedAndNotSkipped ":mainExecutable"
-        } else if(objectiveCWithAslr()){
-            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkMainExecutable"
@@ -204,11 +200,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
-        } else if(objectiveCWithAslr()){
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
@@ -232,17 +225,19 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
-        } else if(objectiveCWithAslr()){
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    private boolean nonDeterministicCompilation() {
+        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
+        AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp || objectiveCWithAslr()
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
