@@ -26,6 +26,7 @@ import org.gradle.logging.TestStyledTextOutput
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.SourceComponentSpec
 import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Specification
 
@@ -55,7 +56,7 @@ class ComponentRendererTest extends Specification {
     }
 
     def "renders component with no source sets"() {
-        def component = Stub(ComponentSpec)
+        def component = Stub(SourceComponentSpec)
 
         when:
         renderer.render(component, builder)
@@ -65,7 +66,7 @@ class ComponentRendererTest extends Specification {
     }
 
     def "renders component with no binaries"() {
-        def component = Stub(ComponentSpec)
+        def component = Stub(VariantComponentSpec)
         component.binaries >> Mock(ModelMap) {
             values() >> []
         }

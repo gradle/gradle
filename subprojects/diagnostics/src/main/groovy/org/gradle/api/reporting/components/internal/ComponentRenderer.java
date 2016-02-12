@@ -26,9 +26,6 @@ import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
     private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
@@ -41,23 +38,15 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     @Override
     public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.heading(StringUtils.capitalize(component.getDisplayName()));
-        Collection<LanguageSourceSet> sourceSets;
         if (component instanceof SourceComponentSpec) {
             SourceComponentSpec sourceComponentSpec = (SourceComponentSpec) component;
-            sourceSets = CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER);
-        } else {
-            sourceSets = Collections.<LanguageSourceSet>emptyList();
+            builder.getOutput().println();
+            builder.collection("Source sets", CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
         }
-        builder.getOutput().println();
-        builder.collection("Source sets", sourceSets, sourceSetRenderer, "source sets");
-        Collection<BinarySpec> binaries;
         if (component instanceof VariantComponentSpec) {
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) component;
-            binaries = CollectionUtils.sort(variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER);
-        } else {
-            binaries = Collections.<BinarySpec>emptyList();
+            builder.getOutput().println();
+            builder.collection("Binaries", CollectionUtils.sort(variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
         }
-        builder.getOutput().println();
-        builder.collection("Binaries", binaries, binaryRenderer, "binaries");
     }
 }
