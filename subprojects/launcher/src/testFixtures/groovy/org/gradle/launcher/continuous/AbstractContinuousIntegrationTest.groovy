@@ -221,12 +221,27 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
+                def startTime = monotonicClockMillis()
                 try {
                     new SimpleTimeLimiter().callWithTimeout(
                         { gradle.waitForExit() },
                         shutdownTimeout, TimeUnit.SECONDS, false
                     )
                 } catch (UncheckedTimeoutException e) {
+                    println "Gradle failed to stop after ${monotonicClockMillis() - startTime} ms"
+
+                    // TODO:DAZ This is a temporary check to see if additional time is required to allow Gradle to stop gracefully
+                    try {
+                        new SimpleTimeLimiter().callWithTimeout(
+                            { gradle.waitForExit() },
+                            shutdownTimeout, TimeUnit.SECONDS, false
+                        )
+                        println "Succeeded in stopping after ${monotonicClockMillis() - startTime} ms (need to increase the timeout)"
+                    } catch (UncheckedTimeoutException e2) {
+                        // Ignore: The original exception is the one that matters
+                        println "Gradle still failed to stop after ${monotonicClockMillis() - startTime} ms"
+                    }
+
                     gradle.abort()
                     if (!ignoreShutdownTimeoutException) {
                         throw e
