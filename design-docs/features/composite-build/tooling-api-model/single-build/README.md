@@ -29,8 +29,8 @@ To support Eclipse import, only a constrained composite connection API is requir
         // do something with EclipseProject model
     }
 
-    // Using ModelBuilder
-    ModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
+    // Using CompositeModelBuilder
+    CompositeModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
         //can set participant-specific arguments
         .setJavaHome(build, new File(...));
         .setJvmArguments(build, "-Xmx512m", ...)
@@ -60,7 +60,8 @@ To support Eclipse import, only a constrained composite connection API is requir
     - Fail for any other model type
 - Gather all `EclipseProject`s into result Set
 - After closing a `GradleConnection`, `GradleConnection` methods throw IllegalStateException (like `ProjectConnection.getModel`)
-- All `ModelBuilder` methods are delegates to the underlying `ProjectConnection`
+- `CompositeModelBuilder` is an extension of `ModelBuilder`, allowing to set per-participant arguments on top of arguments for the coordinator.
+- All `CompositeModelBuilder` methods are delegates to the underlying `ProjectConnection`
 - Validate participant projects are a "valid" composite before retrieving model
     - >1 participants
     - All using >= Gradle 1.0
