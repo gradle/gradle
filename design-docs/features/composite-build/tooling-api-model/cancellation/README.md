@@ -13,7 +13,8 @@ This story doesn't introduce a new API. The existing `org.gradle.tooling.ModelBu
 ### Implementation notes
 
 In the composite implementation, the cancellation token should be passed on to requests that are made to the composite
-participant builds. Before making a new requests to participants, the composite request should be cancelled if the cancellation token is set.
+participant builds. Before making new requests to participants, the composite request should be cancelled if the cancellation token is set.
+BuildCancelledException should be thrown when the composite model request is cancelled.
 
 ### Test coverage
 
