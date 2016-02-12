@@ -71,13 +71,7 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
         StructSchema<S> publicSchema = Cast.uncheckedCast(schema);
-        InstanceFactory.ImplementationInfo implementationInfo;
-        ModelType<S> publicType = schema.getType();
-        if (publicSchema instanceof ManagedImplSchema) {
-            implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-        } else {
-            implementationInfo = instanceFactory.getImplementationInfo(publicType);
-        }
+        InstanceFactory.ImplementationInfo implementationInfo = getImplementationInfo(publicSchema);
         if (implementationInfo == null) {
             return null;
         }
@@ -85,6 +79,13 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
         ModelType<?> delegateType = implementationInfo.getDelegateType();
         StructBindings<S> bindings = bindingsStore.getBindings(publicSchema.getType(), internalViews, delegateType);
         return new FactoryBasedStructNodeInitializer<T, S>(bindings, implementationInfo);
+    }
+
+    private <S extends T> InstanceFactory.ImplementationInfo getImplementationInfo(StructSchema<S> schema) {
+        ModelType<S> publicType = schema.getType();
+        return schema instanceof ManagedImplSchema
+            ? instanceFactory.getManagedSubtypeImplementationInfo(publicType)
+            : instanceFactory.getImplementationInfo(publicType);
     }
 
     @Override
