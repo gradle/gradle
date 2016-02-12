@@ -11,11 +11,12 @@
     }
 
     // Usage:
-    GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
-        addBuild(new File("path/to/root")). // use project default
-        addBuild(new File("..."), "2.6"). // use Gradle 2.6
-        addBuild(new File("..."), new File("...")). // use local distribution
-        build()
+    GradleBuild participant1 = GradleConnector.newParticipant(new File ("root1")).create();
+    GradleBuild participant2 = GradleConnector.newParticipant(new File ("root2")).useGradleDistribution("2.11").create();
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
+        .addBuild(participant1)
+        .addBuild(participant2)
+        .build()
 
 ### Implementation notes
 

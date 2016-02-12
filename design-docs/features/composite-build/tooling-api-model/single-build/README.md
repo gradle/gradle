@@ -17,9 +17,11 @@ To support Eclipse import, only a constrained composite connection API is requir
     // See code in 'composite-build/src'
 
     // Usage:
-    GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
-        addBuild(new File("path/to/root")).
-        build()
+    GradleBuild build = GradleConnector.newParticipant(new File ("path/to/root"))
+        .useGradleDistribution("2.11").create(); //or URI or File or don't specify to use the wrapper
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
+        .addBuild(build)
+        .build()
 
     // Using blocking call
     Set<EclipseProject> projects = connection.getModels(EclipseProject.class)
@@ -29,6 +31,10 @@ To support Eclipse import, only a constrained composite connection API is requir
 
     // Using ModelBuilder
     ModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
+        //can set participant-specific arguments
+        .setJavaHome(build, new File(...));
+        .setJvmArguments(build, "-Xmx512m", ...)
+        .withArguments(build, "-PmySpecialFeature", ...)
     Set<EclipseProject> projects = modelBuilder.get()
 
     // using result handler
@@ -78,8 +84,9 @@ To support Eclipse import, only a constrained composite connection API is requir
     - Removing the project directory is causes a failure
     - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
 - Errors from closing underlying ProjectConnection propagate to caller.
-- Changing the participants Gradle distribution is reflected in the `ProjectConnection`
+- The participants Gradle distribution is reflected in the `ProjectConnection`
 - Participant project directory is used as the project directory for the `ProjectConnection`
+- The java home, jvm arguments and build arguments for the participant are passed to the `ModelBuilder` of the participant
 - Cross-version tests:
     - Fail if participants are <Gradle 1.0
     - Test retrieving `EclipseProject` from all supported Gradle versions
