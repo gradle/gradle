@@ -20,7 +20,7 @@ No user facing API changes.
 
     Capital letters are identifiers for participants (think of it as the root project directory path).
     A::x - project x in participant A.
-    org:x:1.0 - external dependency with group org, artifactId x, version 1.0
+    org:\x:1.0 - external dependency with group org, artifactId x, version 1.0
     [org:x:1.0] - publication of org:x:1.0
     org:y:1.0 <- [org:x:1.0] - org:x:1.0 has dependency on external artifact org:y:1.0
     project(A::y) <- [org:x:1.0] - org:x:1.0 has dependency on project ':y' in A
