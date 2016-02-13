@@ -48,6 +48,41 @@ Two new annotations have been added:
 - `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
 - `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
 
+#### Apply rule to all descendant elements matching type in scope
+
+It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type.
+
+This will set the `outputDir` of every `MyBinarySpec` in the scope `MyBinaryRules` is applied to:
+
+```groovy
+class MyBinaryRules extends RuleSource {
+    @Defaults
+    void configureBinaryOutputDirectories(@Each MyBinarySpec myBinary, @Path("buildDir") File buildDir) {
+        myBinary.outputDir = new File(buildDir, "${myBinary.name}/classes");
+    }
+}
+```
+
+It is also possible to apply a `RuleSource` to all matching descendants in the scope. This will apply `MyComponentRules` to all `MyComponentSpec` elements in the model:
+
+```groovy
+class MyRules extends RuleSource {
+    @Rules
+    void configureBinaryOutputDirectories(MyComponentRules rules, @Each MyComponentSpec component) {
+        rules.component = component
+    }
+}
+
+abstract class MyComponentRules extends RuleSource {
+    @RuleTarget
+    abstract MyComponentSpec getComponent()
+    abstract void setComponent(MyComponentSpec subject)
+
+    // Rules to apply in the scope of a single MyComponentSpec
+}
+```
+
+
 #### Declaration of local JVM installations
 
 It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and will subsequently be used by Gradle itself to select the appropriate toolchain when compiling Java sources. More information about this can be found in the “[Java sotfware model section of the userguide](userguide/java_software.html.html)”
