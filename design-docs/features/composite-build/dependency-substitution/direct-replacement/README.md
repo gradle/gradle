@@ -5,6 +5,7 @@
 - Naive implementation of dependency substitution: metadata is not considered
 - Can use the `ProjectPublications` instance for every `EclipseProject` in the composite
 - Adapt the returned set of `EclipseProject` instances by replacing Classpath entries with project dependencies
+- Matching is done only on group and name (version numbers are ignored).
 
 ### API
 
@@ -56,7 +57,7 @@ No user facing API changes.
 - For a multi-participant (A, B), single-project participants, where 
     - A::x produces [org;x:1.0]
     - B::y produces [org;:y:1.0]
-    - org;y:1.0 <- [org;x:1.0]
+    - org;z:1.0 <- [org;x:1.0]
     - result: External dependency in A::x is _not_ replaced by B::y project dependency.
     - situation: Simple case of no substitutions performed.
 - For a single participant (A), multi-project build (x, y), where 
@@ -71,11 +72,9 @@ No user facing API changes.
     - A::y produces [org;x:1.0]
     - result: Fail? due to conflicting publications
     - situation: Multi-project that produces the same publications in two projects. How would we decide which publication wins?
-- For a multi-participant (A, B, C), single-project participants, where 
+- For a multi-participant (A, B), single-project participants, where 
     - A::x produces [org;x:1.0]
-    - B::y produces [org;y:1.0]
-    - C::y produces [org;y:2.0]
-    - org;y:1.0 <- [org;x:1.0]
+    - B::x produces [org;x:2.0]
     - result: Fail? due to conflicting publications
     - situation: Multiple participants that produce the same publications. How would we decide which publication wins?
 - For a multi-participant (A, B), multi-project participants, where 
@@ -109,7 +108,7 @@ No user facing API changes.
     - project(A::y) <- [org;:x:1.0]
     - project(B::y) <- [org;:x:1.0]
     - result: A::x has dependency on A::y.  B::x has dependency on B::y.
-    - situation: simple case of no substitutions with multiple participants/multi-project.
+    - situation: no substitutions with multiple participants/multi-project.
 - For a multi-participant (A, B), multi-project participants, where 
     - A::x produces [org;x:1.0]
     - B::y produces [org;y:1.0]
@@ -128,7 +127,7 @@ No user facing API changes.
     - A::x produces [org;x:1.0]
     - A::y produces [org;y:2.0]
     - B::z produces [org;z:1.0]
-    - org;y:1.0 <- org;z:1.0 <- [org;x:1.0]
+    - org;y:2.0 <- org;z:2.0 <- [org;x:1.0]
     - org;y:1.0 <- [org;z:1.0]
     - result: A::x has dependency on B::z.  B::z has dependency on A::y.  Both versions of 'y' are on classpath.
     - Real implementation would need to also have A::x have a dependency on A::y.
@@ -162,3 +161,6 @@ No user facing API changes.
 - Should tests prefer one form of publication plugins over the other?
 - If we publish [org;x:1.0] via ivy and maven in one project, is that one publication or two?
 - Handling multiple publications from one project with different classifiers (e.g., a jar and a war) or different artifact names?  How do we map from publication -> eclipse project?
+- Should participant project dependencies show up in `ComponentSelectionRules`?
+- Should this consider version numbers (even in the naïve implementation)?
+
