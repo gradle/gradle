@@ -440,6 +440,22 @@
                     For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
                 </para>
             </section>
+            <section>
+                <title>Binding to all elements in a scope matching type</title>
+                <para>
+                    Mutating or validating all elements of a given type in some scope is a common use-case.
+                    To accommodate this rules can be applied via the <literal>@Each</literal> annotation.
+                </para>
+                <para>
+                    In the example below a <literal>@Defaults</literal> rule is applied to each <code>FileItem</code>
+                    in the model setting a default file size of "1024". Another rule applies a
+                    <apilink class="org.gradle.model.RuleSource" /> to every <code>DirectoryItem</code> that makes sure
+                    all file sizes are divisible by "16".
+                </para>
+                <sample id='ruleSourcePluginEach' dir='modelRules/ruleSourcePluginEach' includeLocation="true" title="a DSL example applying a rule to every element in a scope">
+                    <sourcefile file='build.gradle'/>
+                </sample>
+            </section>
         </section>
     </section>
     <section>
