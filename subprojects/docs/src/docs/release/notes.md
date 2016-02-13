@@ -179,8 +179,19 @@ To reproduce the behavior of earlier releases, change the single-level wildcard 
 
 ### Changes to the experimental software model
 
+TBD: explain the motivation, add more details
+
+The `ComponentSpec` hierarchy has been reorganised.
+
+- The `sources` and `binaries` properties of `ComponentSpec` have been moved to several subtypes.
+
+#### Type registration
+
 - `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` replaced by `TypeBuilder`.
 - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
+
+#### Other changes
+
 - Deprecated properties `ComponentSpec.source` and `BinarySpec.source` have been removed. These were replaced by the `sources` property.
 
 ## External contributions
