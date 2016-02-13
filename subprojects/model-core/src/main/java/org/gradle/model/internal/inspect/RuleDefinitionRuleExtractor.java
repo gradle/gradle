@@ -112,8 +112,8 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
             Object[] parameters = new Object[2 + inputs.size()];
             parameters[0] = ruleSource.getFactory().create();
             parameters[1] = subjectNode.asImmutable(targetReference.getType(), descriptor).getInstance();
-            for (int i = 2; i < parameters.length; i++) {
-                parameters[i] = inputs.get(i).getInstance();
+            for (int i = 0; i < inputs.size(); i++) {
+                parameters[i + 2] = inputs.get(i).getInstance();
             }
             invoker.invoke(parameters);
             subjectNode.applyToSelf(ruleSource);
