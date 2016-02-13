@@ -56,7 +56,7 @@ No user facing API changes.
     - situation: Simple case of one participant replacing external dependencies in another.
 - For a multi-participant (A, B), single-project participants, where 
     - A::x produces [org;x:1.0]
-    - B::y produces [org;:y:1.0]
+    - B::y produces [org;y:1.0]
     - org;z:1.0 <- [org;x:1.0]
     - result: External dependency in A::x is _not_ replaced by B::y project dependency.
     - situation: Simple case of no substitutions performed.
@@ -101,12 +101,12 @@ No user facing API changes.
     - result: A::x has dependency on B::y
     - situation: One participant has external dependency that has been substituted for another. Both old and new dependencies could be replaced (maybe unnecessary, since this should look like 'simple' case with substitution happening before we need to replace anything).
 - For a multi-participant (A, B), multi-project participants, where 
-    - A::x produces [org;:x:1.0]
-    - A::y produces [org;:y:1.0]
-    - B::x produces [org;:x:1.0]
-    - B::y produces [org;:y:1.0]
-    - project(A::y) <- [org;:x:1.0]
-    - project(B::y) <- [org;:x:1.0]
+    - A::x produces [org;x:1.0]
+    - A::y produces [org;y:1.0]
+    - B::x produces [org;x:1.0]
+    - B::y produces [org;y:1.0]
+    - project(A::y) <- [org;x:1.0]
+    - project(B::y) <- [org;x:1.0]
     - result: A::x has dependency on A::y.  B::x has dependency on B::y.
     - situation: no substitutions with multiple participants/multi-project.
 - For a multi-participant (A, B), multi-project participants, where 
