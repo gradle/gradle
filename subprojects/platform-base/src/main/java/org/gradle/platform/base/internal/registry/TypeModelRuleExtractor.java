@@ -107,11 +107,7 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTR
     }
 
     private ModelType<?> determineImplementationType(TypeBuilderInternal<?> builder) {
-        for (Class<?> internalView : builder.getInternalViews()) {
-            if (!internalView.isInterface()) {
-                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
-            }
-        }
+        validateInternalViewsAreInterfaces(builder);
 
         Class<?> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
@@ -119,6 +115,14 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTR
         }
 
         return ModelType.of(implementation);
+    }
+
+    private void validateInternalViewsAreInterfaces(TypeBuilderInternal<?> builder) {
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isInterface()) {
+                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
+            }
+        }
     }
 
     private class ExtractedTypeRule<PUBLICTYPE extends TYPE> implements ExtractedModelRule {
