@@ -74,29 +74,30 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTR
         }
 
         ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
-        ModelType<?> builder = subjectReference.getType();
-        Class<?> rawBuilderType = builder.getRawClass();
-        if (!rawBuilderType.equals(TypeBuilder.class)) {
+        ModelType<?> subjectType = subjectReference.getType();
+        Class<?> rawSubjectType = subjectType.getRawClass();
+        if (!rawSubjectType.equals(TypeBuilder.class)) {
             problems.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
             return null;
         }
-        if (builder.getTypeVariables().size() != 1) {
-            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", rawBuilderType.getName()));
+
+        List<ModelType<?>> typeVariables = subjectType.getTypeVariables();
+        if (typeVariables.size() != 1) {
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter.", rawSubjectType.getName()));
             return null;
         }
 
-        ModelType<?> subType = builder.getTypeVariables().get(0);
-
-        if (subType.isWildcard()) {
-            problems.add(ruleDefinition, String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
+        ModelType<?> builtType = typeVariables.get(0);
+        if (builtType.isWildcard()) {
+            problems.add(ruleDefinition, String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), builtType.toString()));
             return null;
         }
-        if (!baseInterface.isAssignableFrom(subType)) {
-            problems.add(ruleDefinition, String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
+        if (!baseInterface.isAssignableFrom(builtType)) {
+            problems.add(ruleDefinition, String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), builtType.toString(), baseInterface.toString()));
             return null;
         }
 
-        return subType.asSubtype(baseInterface);
+        return builtType.asSubtype(baseInterface);
     }
 
     private InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
