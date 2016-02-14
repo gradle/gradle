@@ -76,7 +76,7 @@ class JacocoTaskExtension {
     boolean dumpOnExit = true
 
     /**
-     * THe type of output to generate. Defaults to {@link Output#FILE}.
+     * The type of output to generate. Defaults to {@link Output#FILE}.
      */
     Output output = Output.FILE
 
