@@ -54,4 +54,11 @@ class JacocoAgentJar {
         }
         return !pre062
     }
+
+    boolean supportsInclNoLocationClasses() {
+        def pre076 = getAgentConf().any {
+            it.name ==~ /org.jacoco.agent-([0]\.[0-7]\.[0-5]\..*)\.jar/
+        }
+        return !pre076;
+    }
 }
