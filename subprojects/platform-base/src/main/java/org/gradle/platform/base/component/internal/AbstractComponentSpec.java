@@ -22,10 +22,10 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class AbstractComponentSpec implements ComponentSpec {
     private final ComponentSpecIdentifier identifier;
-    private final String typeName;
+    private final Class<?> publicType;
 
     public AbstractComponentSpec(ComponentSpecIdentifier identifier, Class<?> publicType) {
-        this.typeName = publicType.getSimpleName();
+        this.publicType = publicType;
         this.identifier = identifier;
     }
 
@@ -42,7 +42,7 @@ public class AbstractComponentSpec implements ComponentSpec {
     }
 
     protected String getTypeName() {
-        return typeName;
+        return publicType.getSimpleName();
     }
 
     public String getDisplayName() {
