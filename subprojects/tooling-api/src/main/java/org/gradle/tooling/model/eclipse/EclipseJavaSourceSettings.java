@@ -47,7 +47,7 @@ public interface EclipseJavaSourceSettings {
     /**
      * Returns the JDK used for building.
      *
-     * @return The JDK, or {@code null} if this value should be inherited.
+     * @return The JDK. Never returns {@code null}.
      * @throws UnsupportedMethodException For provider Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
