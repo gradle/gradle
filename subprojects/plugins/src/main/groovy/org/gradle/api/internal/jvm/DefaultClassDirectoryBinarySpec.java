@@ -45,7 +45,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private boolean buildable = true;
 
     public DefaultClassDirectoryBinarySpec(String projectPath, String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
-        super(new DefaultComponentSpecIdentifier(projectPath, name), DefaultClassDirectoryBinarySpec.class);
+        super(new DefaultComponentSpecIdentifier(projectPath, name), ClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
