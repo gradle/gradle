@@ -17,10 +17,10 @@ package org.gradle.platform.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
@@ -60,8 +60,8 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
         @Hidden
         @Model
-        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            return new BinarySpecFactory(serviceRegistry.get(Instantiator.class), taskFactory);
+        BinarySpecFactory binarySpecFactory(Instantiator instantiator, ITaskFactory taskFactory, ProjectIdentifier projectIdentifier) {
+            return new BinarySpecFactory(projectIdentifier, instantiator, taskFactory);
         }
 
         @Mutate

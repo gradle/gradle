@@ -197,6 +197,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
 
         @Hidden @Model
+        Instantiator instantiator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class);
+        }
+
+        @Hidden @Model
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }

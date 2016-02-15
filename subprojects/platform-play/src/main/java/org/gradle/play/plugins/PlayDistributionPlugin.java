@@ -68,8 +68,7 @@ public class PlayDistributionPlugin extends RuleSource {
     public static final String STAGE_LIFECYCLE_TASK_NAME = "stage";
 
     @Model
-    PlayDistributionContainer distributions(ServiceRegistry serviceRegistry) {
-        Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+    PlayDistributionContainer distributions(Instantiator instantiator) {
         return new DefaultPlayDistributionContainer(instantiator);
     }
 

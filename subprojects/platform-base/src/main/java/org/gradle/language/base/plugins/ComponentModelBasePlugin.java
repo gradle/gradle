@@ -124,8 +124,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        PlatformContainer platforms(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        PlatformContainer platforms(Instantiator instantiator) {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
