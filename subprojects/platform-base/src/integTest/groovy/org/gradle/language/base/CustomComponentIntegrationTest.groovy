@@ -65,7 +65,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [ComponentSpec, SourceComponentSpec, VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "presents a public view for custom managed ApplicationSpec"() {
@@ -108,8 +108,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can add binaries to custom managed #componentSpecType"() {
         buildFile << """
-            apply plugin: 'jvm-component'
-
             @Managed
             interface SampleComponentSpec extends $componentSpecType {
             }
@@ -125,7 +123,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 components {
                     sampleLib(SampleComponentSpec) {
                         binaries {
-                            jar(JarBinarySpec)
+                            jar(BinarySpec)
                         }
                     }
                 }
@@ -147,6 +145,48 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         componentSpecType << [VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+    }
+
+    @Unroll
+    def "can add sources to custom managed #componentSpecType"() {
+        buildFile << """
+            @Managed
+            interface SampleComponentSpec extends $componentSpecType {
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(TypeBuilder<SampleComponentSpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleComponentSpec) {
+                        sources {
+                            java(LanguageSourceSet)
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.sources*.values().flatten()*.name == ["java"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+
+        where:
+        componentSpecType << [SourceComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "can declare custom managed Jvm library component"() {
