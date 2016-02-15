@@ -48,7 +48,9 @@ A project consuming the init script has to define the location and coordinates o
             }
         }
 
-        use group: 'com.company.build.internal', name: 'build-platform', version: '1.8'
+        use {
+            group 'com.company.build.internal' name 'build-platform' version '1.8'
+        }
     }
 
 _Enterprise team perspective:_
