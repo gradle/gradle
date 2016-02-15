@@ -81,8 +81,6 @@ of the build platform definition.
         void buildPlatform(Closure config);
     }
 
-    package org.gradle.api.buildplatform.internal;
-
     public interface BuildPlatformRequirementsSpec {
         BuildPlatformCoordinatesSpec group(String group);
     }
@@ -143,6 +141,7 @@ definitions would behave based on the usual TTL definitions.
     - An exception is thrown if more than one repository is declared.
 - A build platform definition resolved the build platform artifacts
     - If the definition for the given coordinates cannot be found an exception is thrown.
+    - Defining all three attributes `group`, `name` and `version` of a build definition is mandatory. Fails if any of the attributes is not set.
     - Any communication issues lead to a thrown exception.
     - The build platform definition is downloaded only from the provided repository.
     - The download happens during the initialization phase of a Gradle build if the artifacts don't exist in the cache yet.
