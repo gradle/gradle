@@ -25,7 +25,7 @@ public class DefaultJarFile extends AbstractBuildableModelElement implements Jar
     private File file;
 
     public DefaultJarFile(ComponentSpecIdentifier identifier) {
-        super(identifier, DefaultJarFile.class);
+        super(identifier, JarFile.class);
     }
 
     @Override
