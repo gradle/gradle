@@ -16,12 +16,9 @@
 
 package org.gradle.language.base
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.platform.base.ApplicationSpec
-import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.GeneralComponentSpec
-import org.gradle.platform.base.LibrarySpec
-import org.gradle.platform.base.VariantComponentSpec
+import org.gradle.platform.base.*
 import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
@@ -568,5 +565,38 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("""Type Broken is not a valid rule source:
 - Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: A rule method cannot be private
 - Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
+    }
+
+    @NotYetImplemented
+    def "shows proper error message when accessing non-existent property 'binaries' of unmanaged custom ComponentSpec"() {
+        buildFile << """
+            interface SampleComponentSpec extends ComponentSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
+            }
+            class DefaultSampleComponentSpec extends BaseComponentSpec implements SampleComponentSpec {
+                String publicData
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(TypeBuilder<SampleComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultSampleComponentSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleComponentSpec) {
+                        binaries {}
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails "model"
+        failureHasCause "Could not find method binaries()"
     }
 }
