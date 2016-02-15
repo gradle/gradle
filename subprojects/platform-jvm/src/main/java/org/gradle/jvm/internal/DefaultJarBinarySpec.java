@@ -24,6 +24,7 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
@@ -31,12 +32,21 @@ import java.util.Collection;
 import java.util.Set;
 
 public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBinarySpecInternal {
-    private final JarFile apiJar = new DefaultJarFile();
-    private final JarFile jarFile = new DefaultJarFile();
+    private final JarFile apiJar;
+    private final JarFile jarFile;
     private Set<String> exportedPackages = ImmutableSet.of();
     private Set<DependencySpec> apiDependencies = ImmutableSet.of();
     private Set<DependencySpec> componentLevelDependencies = ImmutableSet.of();
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
+    public DefaultJarBinarySpec() {
+        apiJar = childJarFile("apiJarFile");
+        jarFile = childJarFile("jarFile");
+    }
+
+    private DefaultJarFile childJarFile(String childName) {
+        return new DefaultJarFile(createChildIdentifier(childName));
+    }
 
     @Override
     public TasksCollection getTasks() {

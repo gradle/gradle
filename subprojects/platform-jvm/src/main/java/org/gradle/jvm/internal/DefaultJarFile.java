@@ -17,11 +17,17 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
 
 public class DefaultJarFile extends AbstractBuildableModelElement implements JarFile {
     private File file;
+
+    public DefaultJarFile(ComponentSpecIdentifier identifier) {
+        super(identifier, DefaultJarFile.class);
+    }
+
     @Override
     public File getFile() {
         return file;
