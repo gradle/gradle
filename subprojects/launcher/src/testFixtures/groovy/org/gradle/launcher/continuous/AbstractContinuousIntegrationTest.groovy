@@ -194,21 +194,29 @@ $lastOutput
             return
         }
         int startPos = 0
-        int endPos = findChangesDetectedIndex(out, startPos)
+        int endPos = findWaitingForChangesEndOfLine(out, startPos)
         while (startPos < out.length()) {
             if (endPos == -1) {
                 endPos = out.length()
             }
             results << createExecutionResult(out.substring(startPos, endPos), err)
             startPos = endPos
-            endPos = findChangesDetectedIndex(out, startPos)
+            endPos = findWaitingForChangesEndOfLine(out, startPos)
         }
     }
 
-    private int findChangesDetectedIndex(String out, int startIndex) {
+    private int findWaitingForChangesEndOfLine(String out, int startIndex) {
         int waitingForChangesIndex = out.indexOf(WAITING_FOR_CHANGES_OUTPUT, startIndex)
-        int changesDetectedIndex = waitingForChangesIndex > -1 ? out.indexOf(CHANGE_DETECTED_OUTPUT, waitingForChangesIndex + WAITING_FOR_CHANGES_OUTPUT.length()) : -1
-        changesDetectedIndex
+        if (waitingForChangesIndex == -1) {
+            return -1
+        }
+        def waitingForChangesEndIndex = waitingForChangesIndex + WAITING_FOR_CHANGES_OUTPUT.length()
+        def newLine = "\n"
+        int endOfLineIndex = out.indexOf(newLine, waitingForChangesEndIndex)
+        if (endOfLineIndex == -1) {
+            return waitingForChangesEndIndex
+        }
+        return endOfLineIndex + newLine.length()
     }
 
     private long monotonicClockMillis() {
