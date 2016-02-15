@@ -198,6 +198,12 @@ The `ComponentSpec` hierarchy has been reorganised.
 
 - Deprecated properties `ComponentSpec.source` and `BinarySpec.source` have been removed. These were replaced by the `sources` property.
 
+### Java plugin 'compile' configuration no longer represents all compile time dependencies
+
+As a result of the addition of [compile only dependencies](#support-for-declaring-compile-time-only-dependencies-with-java-plugin), references to `configurations.compile` no longer
+accurately represent the compile classpath used to build a given source set, as this will not include 'compileOnly' dependencies. When needing a reference to a source set's compile
+classpath, [`SourceSet#getCompileClasspath()`](dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:compileClasspath) should be used instead.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
