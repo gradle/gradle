@@ -372,6 +372,6 @@ The following types/formats are supported:
 
         then:
         def e = thrown(TypeConversionException)
-        e.message == TextUtil.toPlatformLineSeparators("Cannot convert string value 'not-a-thing' to an enum value of type '${Thing.name}' (valid case insensitive values: [SOME_THING, SOME_OTHER_THING])")
+        e.message == TextUtil.toPlatformLineSeparators("Cannot convert string value 'not-a-thing' to an enum value of type '${Thing.name}' (valid case insensitive values: SOME_THING, SOME_OTHER_THING)")
     }
 }
