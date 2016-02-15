@@ -20,11 +20,12 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.language.javascript.JavaScriptSourceSet
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJavaScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, "javascriptX", "playX", TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, new DefaultComponentSpecIdentifier("project", "javascriptX"), "playX", TestFiles.sourceDirectorySetFactory())
 
         expect:
         sourceSet.displayName == "JavaScript source 'playX:javascriptX'"

@@ -57,6 +57,10 @@ public class DefaultComponentSpec implements ComponentSpec {
         this.identifier = info.componentIdentifier;
     }
 
+    public ComponentSpecIdentifier getIdentifier() {
+        return identifier;
+    }
+
     public String getName() {
         return identifier.getName();
     }

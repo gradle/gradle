@@ -35,6 +35,7 @@ import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationSpec;
@@ -124,7 +125,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
         String lssName = String.format("%sScalaSources", input.getName());
         // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
-        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
+        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, new DefaultComponentSpecIdentifier(getIdentifier().getProjectPath(), lssName), getName(), sourceDirectorySetFactory);
         generatedScalaSources.builtBy();
         generatedScala.put(input, generatedScalaSources);
     }
@@ -137,7 +138,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     @Override
     public void addGeneratedJavaScript(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
         String lssName = String.format("%sJavaScript", input.getName());
-        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, lssName, getName(), sourceDirectorySetFactory);
+        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, new DefaultComponentSpecIdentifier(getIdentifier().getProjectPath(), lssName), getName(), sourceDirectorySetFactory);
         javaScript.builtBy();
         generatedJavaScript.put(input, javaScript);
     }

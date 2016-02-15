@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -54,8 +55,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Hidden
         @Model
-        LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
-            return new LanguageSourceSetFactory(serviceRegistry.get(SourceDirectorySetFactory.class));
+        LanguageSourceSetFactory languageSourceSetFactory(ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
+            return new LanguageSourceSetFactory(projectIdentifier, serviceRegistry.get(SourceDirectorySetFactory.class));
         }
 
         @LanguageType
@@ -70,8 +71,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
+        ProjectSourceSet sources(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultProjectSourceSet.class);
         }
 
         @Validate

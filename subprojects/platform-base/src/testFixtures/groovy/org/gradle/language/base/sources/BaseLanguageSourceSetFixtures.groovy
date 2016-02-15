@@ -20,12 +20,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.LanguageSourceSetInternal
 import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 
 class BaseLanguageSourceSetFixtures {
     static <T extends LanguageSourceSet> T create(Class<T> publicType, Class<? extends BaseLanguageSourceSet> implType, String name) {
         return BaseInstanceFixtureSupport.create(publicType, LanguageSourceSetInternal, implType, name) { MutableModelNode node ->
-            BaseLanguageSourceSet.create(publicType, implType, name, null, TestFiles.sourceDirectorySetFactory())
+            BaseLanguageSourceSet.create(publicType, implType, new DefaultComponentSpecIdentifier("project", name), null, TestFiles.sourceDirectorySetFactory())
         }
     }
 }

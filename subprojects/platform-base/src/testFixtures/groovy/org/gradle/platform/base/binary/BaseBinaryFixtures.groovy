@@ -15,6 +15,8 @@
  */
 
 package org.gradle.platform.base.binary
+
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -29,7 +31,7 @@ class BaseBinaryFixtures {
     static <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode, ITaskFactory taskFactory) {
         return BaseInstanceFixtureSupport.create(publicType, BinarySpecInternal, implType, name) { MutableModelNode node ->
             def generated = GENERATOR.generate(implType)
-            return BaseBinarySpec.create(publicType, generated, name, node, componentNode, DirectInstantiator.INSTANCE, taskFactory)
+            return BaseBinarySpec.create(publicType, generated, new DefaultComponentSpecIdentifier("project", name), node, componentNode, DirectInstantiator.INSTANCE, taskFactory)
         }
     }
 }

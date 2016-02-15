@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.binary.internal;
 
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -23,9 +24,10 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
-    public BinarySpecFactory(final Instantiator instantiator, final ITaskFactory taskFactory) {
+    public BinarySpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final ITaskFactory taskFactory) {
         super(BinarySpec.class);
         registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
             @Override
@@ -35,7 +37,7 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
                 return BaseBinarySpec.create(
                         publicType.getConcreteClass(),
                         implementationType.getConcreteClass(),
-                        name,
+                        new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name),
                         binaryNode,
                         componentNode,
                         instantiator,

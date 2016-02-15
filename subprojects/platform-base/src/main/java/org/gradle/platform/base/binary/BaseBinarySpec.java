@@ -53,7 +53,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
-    private final String name;
+    private final ComponentSpecIdentifier identifier;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
@@ -61,9 +61,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
-                                                      String name, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
+                                                      ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, modelNode, componentNode, taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -83,7 +83,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @BinaryType rule instead.");
         }
-        this.name = info.name;
+        this.identifier = info.componentId;
         this.publicType = info.publicType;
         MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
@@ -102,7 +102,11 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
             .build();
         modelNode.addLink(itemRegistration);
 
-        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(name).withBinaryType(getTypeName());
+        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(identifier.getName()).withBinaryType(getTypeName());
+    }
+
+    public ComponentSpecIdentifier getIdentifier() {
+        return identifier;
     }
 
     @Nullable
@@ -146,20 +150,20 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     @Override
     public String getProjectScopedName() {
         ComponentSpec owner = getComponent();
-        return owner == null ? name : owner.getName() + StringUtils.capitalize(name);
+        return owner == null ? getName() : owner.getName() + StringUtils.capitalize(getName());
     }
 
     public String getDisplayName() {
         ComponentSpec owner = getComponent();
         if (owner == null) {
-            return String.format("%s '%s'", getTypeName(), name);
+            return String.format("%s '%s'", getTypeName(), getName());
         } else {
-            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), name);
+            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), getName());
         }
     }
 
     public String getName() {
-        return name;
+        return identifier.getName();
     }
 
     @Override
@@ -203,15 +207,15 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     private static class BinaryInfo {
-        private final String name;
         private final Class<? extends BinarySpec> publicType;
         private final MutableModelNode modelNode;
         private final MutableModelNode componentNode;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
+        private final ComponentSpecIdentifier componentId;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
-            this.name = name;
+        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
+            this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;
             this.componentNode = componentNode;

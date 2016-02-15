@@ -17,6 +17,7 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -25,14 +26,15 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class LanguageSourceSetFactory extends BaseInstanceFactory<LanguageSourceSet> {
-    public LanguageSourceSetFactory(final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public LanguageSourceSetFactory(final ProjectIdentifier projectIdentifier, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         super(LanguageSourceSet.class);
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
             public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), sourceSetName, determineParentName(node), sourceDirectorySetFactory));
+                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), sourceSetName), determineParentName(node), sourceDirectorySetFactory));
             }
         });
     }
