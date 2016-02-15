@@ -20,16 +20,14 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-public class DefaultComponentSpec implements ComponentSpec {
+public class DefaultComponentSpec extends AbstractComponentSpec implements ComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
-    private final ComponentSpecIdentifier identifier;
-    private final String typeName;
 
     public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -50,51 +48,29 @@ public class DefaultComponentSpec implements ComponentSpec {
     }
 
     public DefaultComponentSpec(ComponentInfo info) {
+        super(validate(info).componentIdentifier, info.publicType);
+    }
+
+    private static ComponentInfo validate(ComponentInfo info) {
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead.");
         }
-        this.typeName = info.typeName;
-        this.identifier = info.componentIdentifier;
-    }
-
-    public ComponentSpecIdentifier getIdentifier() {
-        return identifier;
-    }
-
-    public String getName() {
-        return identifier.getName();
-    }
-
-    public String getProjectPath() {
-        return identifier.getProjectPath();
-    }
-
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
+        return info;
     }
 
     protected static class ComponentInfo {
         public final ComponentSpecIdentifier componentIdentifier;
         public final MutableModelNode modelNode;
-        public final String typeName;
+        public final Class<?> publicType;
 
         private ComponentInfo(
             ComponentSpecIdentifier componentIdentifier,
             MutableModelNode modelNode,
-            String typeName
+            Class<?> publicType
         ) {
             this.componentIdentifier = componentIdentifier;
             this.modelNode = modelNode;
-            this.typeName = typeName;
+            this.publicType = publicType;
         }
     }
 }

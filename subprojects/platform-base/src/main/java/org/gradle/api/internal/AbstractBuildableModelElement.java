@@ -20,13 +20,27 @@ import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.platform.base.component.internal.AbstractComponentSpec;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class AbstractBuildableModelElement implements BuildableModelElement {
+public abstract class AbstractBuildableModelElement extends AbstractComponentSpec implements BuildableModelElement {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private Task lifecycleTask;
+
+    // This is here to allow the hierarchy to be transitioned
+    // TODO - remove this constructor, use the other instead
+    public AbstractBuildableModelElement() {
+        super(new DefaultComponentSpecIdentifier("project", "name"), BuildableModelElement.class);
+        throw new UnsupportedOperationException("Should not be using this constructor.");
+    }
+
+    public AbstractBuildableModelElement(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType) {
+        super(identifier, publicType);
+    }
 
     public Task getBuildTask() {
         return lifecycleTask;
