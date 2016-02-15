@@ -89,19 +89,6 @@ class JUnitTestFilter {
         }
     }
 
-
-    private static class MethodNameExcludeFilter extends MethodNameFilter {
-
-        public MethodNameExcludeFilter(TestSelectionMatcher matcher) {
-            super(matcher, "Excludes matching test methods");
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return !matchCheck(description);
-        }
-    }
-
     private static abstract class MethodNameFilter extends org.junit.runner.manipulation.Filter {
 
         private final TestSelectionMatcher matcher;

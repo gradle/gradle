@@ -42,7 +42,7 @@ public class TestSelectionMatcher {
         List<Pattern> patterns = new LinkedList<Pattern>();
 
         for (String test : tests) {
-            includePatterns.add(preparePattern(test));
+            patterns.add(preparePattern(test));
         }
         return patterns;
     }
@@ -65,10 +65,10 @@ public class TestSelectionMatcher {
 
     public boolean matchesTest(String className, String methodName) {
 
-        boolean matchesIncludePatterns = matchesTest(className, methodName, includePatterns);
-        boolean matchesExcludePatterns = matchesTest(className, methodName, excludePatterns);
+        boolean allowedByIncludePatterns = includePatterns.isEmpty() || matchesTest(className, methodName, includePatterns);
+        boolean matchedAnyExcludePatterns = !excludePatterns.isEmpty() && matchesTest(className, methodName, excludePatterns);
 
-        return matchesIncludePatterns && !matchesExcludePatterns;
+        return allowedByIncludePatterns && !matchedAnyExcludePatterns;
     }
 
     private boolean matchesTest(String className, String methodName, List<Pattern> patterns) {
