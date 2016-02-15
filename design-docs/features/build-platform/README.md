@@ -234,6 +234,49 @@ plugin from an init script by identifier (see [GRADLE-2407](https://issues.gradl
 Instead of using the identifier, the fully qualified plugin class name has to be used. This story removes
 the limitation to provide a smoother user experience.
 
+### Example of current behavior
+
+Given the following init script in `~/.gradle/init.d`, a custom plugin can be applied by type.
+
+    initscript {
+        repositories {
+            jcenter()
+        }
+
+        dependencies {
+            classpath 'com.netflix.nebula:nebula-project-plugin:3.0.4'
+        }
+    }
+
+    allprojects {
+        apply plugin: nebula.plugin.responsible.NebulaFacetPlugin
+    }
+
+Any build script now automatically applies the plugin and configure it. The following `build.gradle` file configures the plugin's extension:
+
+    facets {
+        example
+    }
+
+_Limitation:_ Applying the plugin by identifier in the init script via `apply plugin: 'nebula.facet'` fails the build.
+
+### Implementation
+
+- Document the changed behavior in the user guide.
+- Provide samples in Gradle distribution.
+- Find all related JIRA tickets and resolve them.
+
+### Test cases
+
+- An init script can apply a custom plugin by type. The plugin can be configured from any `build.gradle` file.
+- An init script can apply a custom plugin by identifier. The plugin can be configured from any `build.gradle` file.
+- An init script observes the same behavior independent on where the init script is located. It's not required that the init script is contained in a Gradle distribution.
+- Pointing to an init script on the command line with `-I`/`--init-script` can apply a custom plugin by type and identifier.
+
+### Open issues
+
+- Creating a fix for this issue might also resolve the same issue for script plugins.
+
 # Milestone 2
 
 This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
