@@ -6,11 +6,11 @@ Progress listeners should be supported for composite model requests in the
 same way as it is supported for ordinary project connection model requests.
 The support added in this story for progress listener for composite model 
 requests will be limited to providing the progress listener interface
-that Buildship is currently using.
+that Buildship is currently using for model requests.
 
 ### API
 
-The existing `org.gradle.tooling.ModelBuilder` interface extends from `ConfigurableLauncher` interface (which extends `LongRunningOperation`)  which contains four `addProgressListener` methods.
+The existing `org.gradle.tooling.ModelBuilder` interface extends from `ConfigurableLauncher` interface (which extends `LongRunningOperation`).  It contains four `addProgressListener` methods.
 
 ```
     LongRunningOperation addProgressListener(org.gradle.tooling.ProgressListener listener);
@@ -26,10 +26,49 @@ Support for the newer "typed" `org.gradle.tooling.events.ProgressListener` inter
 
 ### Implementation notes
 
-
+The `org.gradle.tooling.ProgressListener` is the so called original logging-derived progress listener. These events are created by using the `ProgressLogger`.
 
 ### Test coverage
 
 ### Documentation
 
 ### Open issues
+
+Reconstructing proper `ProgressLogger` calls from `org.gradle.tooling.ProgressListener` information is troublesome because some information is lost. 
+
+The progress events from the participant builds are received the `ProgressListener` interfaces. It contains only a single method `statusChanged` which accepts a `ProgressEvent` that only has a single method `getDescription`.
+However creating events with `ProgressLogger` would require separate calls to `start` and `completed`. How do we find out what status change is a start and which is a complete?
+
+The current `org.gradle.tooling.internal.consumer.parameters.ProgressListenerAdapter` implementation shows the current way should ProgressListener events are created. 
+
+```
+class ProgressListenerAdapter implements ProgressListenerVersion1 {
+    private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final LinkedList<String> stack = new LinkedList<String>();
+
+    ProgressListenerAdapter(List<ProgressListener> listeners) {
+        this.listeners.addAll(listeners);
+    }
+
+    public void onOperationStart(final String description) {
+        stack.addFirst(description == null ? "" : description);
+        fireChangeEvent();
+    }
+
+    public void onOperationEnd() {
+        stack.removeFirst();
+        fireChangeEvent();
+    }
+
+    private void fireChangeEvent() {
+        final String description = stack.isEmpty() ? "" : stack.getFirst();
+        listeners.getSource().statusChanged(new ProgressEvent() {
+            public String getDescription() {
+                return description;
+            }
+        });
+    }
+}
+```
+When the operation ends, a statusChange event is created for the previous operation. Using this assumption, it would be possible to reconstruct the events if the descriptions are unique. Could we simply assume that they are unique?
+ 
