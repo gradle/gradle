@@ -55,6 +55,7 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.WrapUtil;
 
@@ -127,11 +128,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 createBinaryLifecycleTask(sourceSet, project);
 
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, new DefaultComponentSpecIdentifier(project.getPath(), String.format("%sClasses", sourceSet.getName())), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, new DefaultComponentSpecIdentifier(project.getPath(), "java"), sourceSet.getName(), sourceSet.getJava(), compileClasspath);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, new DefaultComponentSpecIdentifier(project.getPath(), "resources"), sourceSet.getName(), sourceSet.getResources());
 
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);

@@ -16,15 +16,12 @@
 
 package org.gradle.language.base.sources;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
@@ -34,60 +31,9 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
-    private final String fullName;
-    private final String parentName;
-    private final String languageName;
-    private final SourceDirectorySet source;
-    private boolean generated;
-    private Task generatorTask;
-
+public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements LanguageSourceSetInternal {
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
     protected final SourceDirectorySetFactory sourceDirectorySetFactory;
-
-    public String getParentName() {
-        return parentName;
-    }
-
-    public String getProjectScopedName() {
-        return fullName;
-    }
-
-    public String getDisplayName() {
-        String languageName = getLanguageName();
-        if (languageName.toLowerCase().endsWith("resources")) {
-            return String.format("%s '%s:%s'", languageName, parentName, getName());
-        }
-        return String.format("%s source '%s:%s'", languageName, parentName, getName());
-    }
-
-    protected String getLanguageName() {
-        return languageName;
-    }
-
-    @Override
-    public void builtBy(Object... tasks) {
-        generated = true;
-        super.builtBy(tasks);
-    }
-
-    public void generatedBy(Task generatorTask) {
-        this.generatorTask = generatorTask;
-    }
-
-    public Task getGeneratorTask() {
-        return generatorTask;
-    }
-
-    public boolean getMayHaveSources() {
-        // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
-        // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
-        return generated || !source.isEmpty();
-    }
-
-    public SourceDirectorySet getSource() {
-        return source;
-    }
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
@@ -109,13 +55,8 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     }
 
     private BaseLanguageSourceSet(SourceSetInfo info) {
-        super(validate(info).identifier, info.publicType);
-        this.parentName = info.parentName;
-        this.fullName = info.parentName + StringUtils.capitalize(getName());
-        this.languageName = guessLanguageName(getTypeName());
+        super(validate(info).identifier, info.publicType, info.parentName, info.sourceDirectorySetFactory.create("source"));
         this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
-        this.source = sourceDirectorySetFactory.create("source");
-        super.builtBy(source.getBuildDependencies());
     }
 
     private static SourceSetInfo validate(SourceSetInfo info) {
@@ -123,10 +64,6 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
             throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @LanguageType rule instead.");
         }
         return info;
-    }
-
-    private String guessLanguageName(String typeName) {
-        return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
     }
 
     private static class SourceSetInfo {

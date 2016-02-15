@@ -17,27 +17,37 @@
 package org.gradle.language.base.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private final String name;
     private final String fullName;
-    private final String displayName;
     private final String parentName;
+    private final String languageName;
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(String name, String parentName, String typeName, SourceDirectorySet source) {
-        this.name = name;
+    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType, String parentName, SourceDirectorySet source) {
+        super(identifier, publicType);
+        this.name = identifier.getName();
         this.fullName = parentName + StringUtils.capitalize(name);
-        this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
         this.parentName = parentName;
+        this.languageName = guessLanguageName(getTypeName());
         super.builtBy(source.getBuildDependencies());
+    }
+
+    protected String getLanguageName() {
+        return languageName;
+    }
+
+    private String guessLanguageName(String typeName) {
+        return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
     }
 
     public String getName() {
@@ -69,7 +79,11 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     }
 
     public String getDisplayName() {
-        return displayName;
+        String languageName = getLanguageName();
+        if (languageName.toLowerCase().endsWith("resources")) {
+            return String.format("%s '%s:%s'", languageName, parentName, getName());
+        }
+        return String.format("%s source '%s:%s'", languageName, parentName, getName());
     }
 
     @Override
@@ -83,6 +97,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     @Override
     public String getParentName() {
-        return this.parentName;
+        return parentName;
     }
 }
