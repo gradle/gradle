@@ -235,53 +235,69 @@ the limitation to provide a smoother user experience.
 
 # Milestone 2
 
-This milestone builds on top of the existing build platform infrastructure. The user can declare the Gradle version used for the project. The `wrapper` task uses
-the Gradle version definition to provide a default value for the Gradle distribution URL.
+This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
+that are checked automatically against the Gradle build applying the rules.
 
-**The functionality of the milestone eliminates the need for installing the Gradle runtime for a project by deriving the Gradle version from the build platform definition.**
+**The functionality of the milestone eliminates the need for installing the Gradle runtime for a project by deriving the Gradle version from the build platform definition.
+The need for a custom Gradle distribution is completely eliminated.**
 
 _End user perspective:_
 
-The declaration of the build platform definition in a `settings.gradle` adds a way to specify the concrete Gradle version used by the project. The end user runs the `wrapper`
-task to generate or update the wrapper files for the given Gradle version.
-
-    buildPlatform {
-        from {
-            maven {
-                url 'http://myinternalrepo.com/staging'
-            }
-        }
-
-        use {
-            group 'com.company.build.internal' name 'build-platform' version '1.8'
-            gradle '2.8'
-        }
-    }
+No changes are required.
 
 _Enterprise team perspective:_
 
-No changes are required.
+Compatibility definitions are exclusively defined in the meta-data as such:
 
-## Story - The `wrapper` task uses the Gradle version defined in the build platform definition
-
-This story introduces a way to define a Gradle version for a build platform definition. The value of the Gradle version is used by the `wrapper` task generate a Wrapper
-with the appropriate version.
-
-### Usage
-
-    buildPlatform {
-        from {
-            maven {
-                url 'http://myinternalrepo.com/staging'
-            }
-        }
-
-        use {
-            gradle '2.8'
+    {
+        "schemaVersion": "1.0",
+        "group": "com.company.build.internal",
+        "name": "build-platform",
+        "version": "1.8",
+        "compatibility": {
+            "gradleVersion": "2.8",
+            "javaVersion": "1.7"
         }
     }
 
 The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle distribution URL in the generated `gradle/wrapper/gradle.properties` file.
+
+## Story - Gradle evaluates Gradle compatibility in build platform meta-data
+
+The build platform meta-data can specify the Gradle version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
+to the meta-data that verifies the compatibility with Gradle version executing the Gradle build.
+
+### Build platform meta-data
+
+    {
+        ...,
+        "compatibility": {
+            "gradleVersion": "2.8"
+        }
+    }
+
+### Implementation
+
+- Extend the JSON parsing code by logic to resolve the Gradle version compatibility.
+- The value of the compatible Gradle version can only be a concrete version number e.g. `2.8` .
+- Determine the version of the Gradle version executing the build.
+- Compare the parsed Gradle version value with the Gradle runtime value.
+- Compatibility checks need to happen before the executing the provided init script.
+- If the Gradle version is not compatible fail the build with an appropriate error message.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
+
+### Test cases
+
+- If no compatible Gradle version is defined in the build platform meta-data, then nothing has to be done.
+- The JSON parsing logic can read the compatible Gradle version attribute.
+    - Throw an exception if the version format is invalid.
+- Gradle runtime version and Gradle compatible version can be compared.
+    - If versions are compatible continue with the execution of the build.
+    - Throw an exception with an appropriate message if versions are incompatible.
+
+## Story - The `wrapper` task uses the Gradle version defined in the build platform meta-data
+
+The `wrapper` task uses the Gradle version definition to provide a default value for the Gradle distribution URL.
 
 ### Implementation
 
@@ -305,70 +321,6 @@ The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle
 - Reporting and/or notification on the command line on outdated version for a dynamic Gradle version definition
 - Extend the `init` task by a command line flag that lets the user point to a build platform definition
 
-# Milestone 3
-
-This milestone builds on top of the existing build platform infrastructure. The user can declare compatible Gradle and Java runtime versions as part of the build platform meta-data
-that are checked automatically against the Gradle build applying the rules.
-
-**With the first story of this milestone a Gradle version can be enforced for the whole enterprise. The need for a custom Gradle distribution is completely eliminated.**
-
-_End user perspective:_
-
-No changes are required.
-
-_Enterprise team perspective:_
-
-Compatibility definitions are exclusively defined in the meta-data as such:
-
-    {
-        "schemaVersion": "1.0",
-        "group": "com.company.build.internal",
-        "name": "build-platform",
-        "version": "1.8",
-        "compatibility": {
-            "gradleVersion": "2.+",
-            "javaVersion": "1.7"
-        }
-    }
-
-## Story - Gradle evaluates Gradle compatibility in build platform meta-data
-
-The build platform meta-data can specify the Gradle version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
-to the meta-data that verifies the compatibility with Gradle version executing the Gradle build.
-
-### Build platform meta-data
-
-    {
-        ...,
-        "compatibility": {
-            "gradleVersion": "2.+"
-        }
-    }
-
-### Implementation
-
-- Extend the JSON parsing code by logic to resolve the Gradle version compatibility.
-- The value of the compatible Gradle version can be a concrete version number e.g. `2.8` or a dynamic version e.g. `2.+`.
-- Determine the version of the Gradle version executing the build.
-- Compare the parsed Gradle version value with the Gradle runtime value.
-- Compatibility checks need to happen before the executing the provided init script.
-- If the Gradle version is not compatible fail the build with an appropriate error message.
-- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
-
-### Test cases
-
-- If no compatible Gradle version is defined in the build platform meta-data, then nothing has to be done.
-- The JSON parsing logic can read the compatible Gradle version attribute.
-    - Throw an exception if the version format is invalid.
-- Gradle runtime version and Gradle compatible version can be compared.
-    - If versions are compatible continue with the execution of the build.
-    - Throw an exception with an appropriate message if versions are incompatible.
-
-### Open issues
-
-- Allowing compatible version ranges e.g. `>=2.5 =<2.8`.
-- Potential impacts for the Gradle wrapper.
-
 ## Story - Gradle evaluates Java compatibility in build platform meta-data
 
 The build platform meta-data can specify the Java version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
@@ -387,7 +339,7 @@ to the meta-data that verifies the compatibility with Java version executing the
 
 ### Test cases
 
-# Milestone 4
+# Milestone 3
 
 This milestone introduces a plugin to allow a team to develop, test and publish a build platform definition.
 
@@ -474,7 +426,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 
 - What other target locations should be supported in the future?
 
-# Milestone 5
+# Milestone 4
 
 Further integrations into the Gradle ecosystem.
 
