@@ -38,6 +38,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform), DirectInstantiator.INSTANCE, Mock(ITaskFactory))
+        new DefaultClassDirectoryBinarySpec(":", name, Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform), DirectInstantiator.INSTANCE, Mock(ITaskFactory))
     }
 }

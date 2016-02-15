@@ -38,15 +38,14 @@ import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final String name;
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
-        this.name = name;
+    public DefaultClassDirectoryBinarySpec(String projectPath, String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
+        super(new DefaultComponentSpecIdentifier(projectPath, name), DefaultClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
@@ -113,10 +112,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return true;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public File getClassesDir() {
         return sourceSet.getOutput().getClassesDir();
     }
@@ -164,11 +159,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public String getDisplayName() {
-        return "classes '" + removeClassesSuffix(name) + "'";
-    }
-
-    public String toString() {
-        return getDisplayName();
+        return "classes '" + removeClassesSuffix(getName()) + "'";
     }
 
     @Override
