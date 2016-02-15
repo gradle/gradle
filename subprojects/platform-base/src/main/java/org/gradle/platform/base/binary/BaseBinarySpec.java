@@ -53,7 +53,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
-    private final ComponentSpecIdentifier identifier;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
@@ -80,10 +79,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     private BaseBinarySpec(BinaryInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @BinaryType rule instead.");
-        }
-        this.identifier = info.componentId;
+        super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
         MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
@@ -102,11 +98,17 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
             .build();
         modelNode.addLink(itemRegistration);
 
-        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(identifier.getName()).withBinaryType(getTypeName());
+        namingScheme = DefaultBinaryNamingScheme
+            .component(componentName())
+            .withBinaryName(getIdentifier().getName())
+            .withBinaryType(getTypeName());
     }
 
-    public ComponentSpecIdentifier getIdentifier() {
-        return identifier;
+    private static BinaryInfo validate(BinaryInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @BinaryType rule instead.");
+        }
+        return info;
     }
 
     @Nullable
@@ -143,10 +145,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
             : null;
     }
 
-    protected String getTypeName() {
-        return publicType.getSimpleName();
-    }
-
     @Override
     public String getProjectScopedName() {
         ComponentSpec owner = getComponent();
@@ -160,10 +158,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         } else {
             return String.format("%s '%s:%s'", getTypeName(), owner.getName(), getName());
         }
-    }
-
-    public String getName() {
-        return identifier.getName();
     }
 
     @Override
