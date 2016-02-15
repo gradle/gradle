@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.platform.base.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * An identifier for a {@link ComponentSpec}, which has a name.
+ * An identifier for a {@link org.gradle.platform.base.ComponentSpec}, which has a name.
  */
 @Incubating
 public interface ComponentSpecIdentifier extends Named {

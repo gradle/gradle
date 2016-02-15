@@ -21,7 +21,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {

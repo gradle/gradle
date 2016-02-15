@@ -15,8 +15,6 @@
  */
 package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.ComponentSpecIdentifier;
-
 /**
  * An identifier for a component that is built as part of the current build.
  */

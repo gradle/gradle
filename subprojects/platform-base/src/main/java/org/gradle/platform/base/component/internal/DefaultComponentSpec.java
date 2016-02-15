@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.ModelInstantiationException;
 
 public class DefaultComponentSpec implements ComponentSpec {
