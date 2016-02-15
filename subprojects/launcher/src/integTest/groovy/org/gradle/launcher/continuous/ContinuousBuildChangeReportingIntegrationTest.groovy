@@ -171,6 +171,30 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
 
+    def "should report changes that happen when the build is executing"() {
+        given:
+        buildFile << """
+            gradle.taskGraph.afterTask { Task task ->
+                if(task.path == ':theTask' && !file('changetrigged').exists()) {
+                   sleep(500) // attempt to workaround JDK-8145981
+                   file('inputDir/input.txt').text = 'New input file'
+                   file('changetrigged').text = 'done'
+                }
+            }
+        """
+
+        when:
+        succeeds("theTask")
+
+        then:
+        sendEOT()
+        results.size() == 2
+        results.each {
+            assert it.executedTasks == [':theTask']
+        }
+        assertReportsChanges([new ChangeEntry("new file", file("inputDir/input.txt"))])
+    }
+
     @TupleConstructor
     static class ChangeEntry {
         String type
