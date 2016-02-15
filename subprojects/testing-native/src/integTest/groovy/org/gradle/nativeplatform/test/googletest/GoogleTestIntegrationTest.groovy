@@ -429,6 +429,27 @@ tasks.withType(RunTestExecutable) {
         }
     }
 
+    def "non-buildable binaries are not attached to check task"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << """
+model {
+    binaries {
+        helloTestGoogleTestExe {
+            buildable = false
+        }
+    }
+}
+"""
+
+        when:
+        run "check"
+
+        then:
+        skipped(':check')
+    }
+
     private useConventionalSourceLocations() {
         app.library.writeSources(file("src/hello"))
         app.googleTestTests.writeSources(file("src/helloTest"))
