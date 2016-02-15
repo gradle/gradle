@@ -131,6 +131,7 @@ build platform meta-data.
 - The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
 definitions would behave based on the usual TTL definitions.
 - The `buildPlatform` requires the declaration of the `group`, `name` and `version` properties as well as at least one Ivy or Maven Repository.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
@@ -172,6 +173,7 @@ about the build platform: `group`, `name` and `version`.
 - The JSON file name must be `build-platform.json`. No other name is allowed.
 - The JSON is validated against a schema with the corresponding attribute `schemaVersion`.
 - Parse the values of attributes `group`, `name` and `version` and compare them with the attributes specified in the `Settings` file.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
@@ -205,6 +207,7 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 - Only one init script can be defined in the build platform meta-data.
 - The init script cannot point to a HTTP location.
 - The resolved init script is executed during the initialization phase of the Gradle build.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
@@ -288,6 +291,7 @@ The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle
     - If the wrapper files do not exist yet, the task will generate the wrapper files and use the given Gradle version for the Gradle distribution URL.
     - If the wrapper files already exist, the task will override the existing Gradle distribution URL.
 - Gradle will emit a warning during build execution when the build platform definition and wrapper configuration are not in sync.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
@@ -349,6 +353,7 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 - Compare the parsed Gradle version value with the Gradle runtime value.
 - Compatibility checks need to happen before the executing the provided init script.
 - If the Gradle version is not compatible fail the build with an appropriate error message.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
