@@ -19,7 +19,6 @@ import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
