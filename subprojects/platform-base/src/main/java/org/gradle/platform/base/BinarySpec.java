@@ -29,10 +29,6 @@ import org.gradle.model.ModelMap;
  */
 @Incubating @HasInternalProtocol
 public interface BinarySpec extends BuildableModelElement, Named {
-    /**
-     * Returns a human-consumable display name for this binary.
-     */
-    String getDisplayName();
 
     /**
      * Can this binary be built in the current environment?
