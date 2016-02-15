@@ -196,6 +196,7 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 ### Build platform meta-data
 
     {
+        "schemaVersion": "1.1",
         ...,
         "init-script": "enterprise-rules.gradle"
     }
@@ -250,7 +251,7 @@ _Enterprise team perspective:_
 Compatibility definitions are exclusively defined in the meta-data as such:
 
     {
-        "schemaVersion": "1.0",
+        "schemaVersion": "1.3",
         "group": "com.company.build.internal",
         "name": "build-platform",
         "version": "1.8",
@@ -270,6 +271,7 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 ### Build platform meta-data
 
     {
+        "schemaVersion": "1.2",
         ...,
         "compatibility": {
             "gradleVersion": "2.8"
@@ -329,6 +331,7 @@ to the meta-data that verifies the compatibility with Java version executing the
 ### Build platform meta-data
 
     {
+        "schemaVersion": "1.3",
         ...,
         "compatibility": {
             "javaVersion": "1.7"
