@@ -46,7 +46,6 @@ public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
 
         DefaultComponentSpecIdentifier that = (DefaultComponentSpecIdentifier) o;
         return name.equals(that.name) && projectPath.equals(that.projectPath);
-
     }
 
     @Override
