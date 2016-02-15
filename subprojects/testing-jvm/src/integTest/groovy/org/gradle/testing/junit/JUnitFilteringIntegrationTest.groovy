@@ -124,7 +124,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         theParameterizedFiles()
 
         when:
-        run("test", "--tests", "*ParameterizedFoo.pass*")
+        run("test", "--include-tests", "*ParameterizedFoo.pass*")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
@@ -133,12 +133,12 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     }
 
     @Issue("GRADLE-3112")
-    def "passing a suite argument to --tests runs all tests in the suite"() {
+    def "passing a suite argument to --include-tests runs all tests in the suite"() {
         given:
         theSuiteFiles()
 
         when:
-        run("test", "--tests", "*AllFooTests")
+        run("test", "--include-tests", "*AllFooTests")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

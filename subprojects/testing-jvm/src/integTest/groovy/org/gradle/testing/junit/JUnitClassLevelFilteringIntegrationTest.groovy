@@ -66,7 +66,7 @@ public class JUnitClassLevelFilteringIntegrationTest extends MultiVersionIntegra
         """
 
         when:
-        run("test", "--tests", "FooTest.pass")
+        run("test", "--include-tests", "FooTest.pass")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
@@ -74,13 +74,13 @@ public class JUnitClassLevelFilteringIntegrationTest extends MultiVersionIntegra
         result.testClass("FooTest").assertTestsExecuted("other", "pass")
 
         when:
-        fails("test", "--tests", "FooTest.ignored")
+        fails("test", "--include-tests", "FooTest.ignored")
 
         then:
         failure.assertHasCause("No tests found for given includes: [FooTest.ignored]")
 
         when:
-        fails("test", "--tests", "NotFooTest.pass")
+        fails("test", "--include-tests", "NotFooTest.pass")
 
         then:
         failure.assertHasCause("No tests found for given includes: [NotFooTest.pass]")

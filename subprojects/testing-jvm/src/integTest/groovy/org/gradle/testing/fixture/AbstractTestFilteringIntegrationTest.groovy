@@ -150,7 +150,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
 
         //by command line
-        when: fails("test", "--tests", 'FooTest.missingMethod')
+        when: fails("test", "--include-tests", 'FooTest.missingMethod')
         then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
 
         //by build script
@@ -181,7 +181,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
-        run("test", "--tests", "FooTest.pass*")
+        run("test", "--include-tests", "FooTest.pass*")
 
         then:
         !result.skippedTasks.contains(":test")

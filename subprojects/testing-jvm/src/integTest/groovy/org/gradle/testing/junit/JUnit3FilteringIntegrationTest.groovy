@@ -41,7 +41,7 @@ public class JUnit3FilteringIntegrationTest extends MultiVersionIntegrationSpec 
         """
 
         when:
-        succeeds("test", "--tests", "FooTest.testPass")
+        succeeds("test", "--include-tests", "FooTest.testPass")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
@@ -49,7 +49,7 @@ public class JUnit3FilteringIntegrationTest extends MultiVersionIntegrationSpec 
         result.testClass("FooTest").assertTestsExecuted("testPass")
 
         when:
-        fails("test", "--tests", "FooTest.unknown")
+        fails("test", "--include-tests", "FooTest.unknown")
 
         then:
         failure.assertHasCause("No tests found for given includes: [FooTest.unknown]")
