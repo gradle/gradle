@@ -48,7 +48,7 @@ A project consuming the init script has to define the location and coordinates o
             }
         }
 
-        use id: 'com.company.build.internal', version: '1.8'
+        use group: 'com.company.build.internal', name: 'build-platform', version: '1.8'
     }
 
 _Enterprise team perspective:_
@@ -56,7 +56,8 @@ _Enterprise team perspective:_
 The build platform meta-data and init script hosted on a binary repository declared by the enterprise build team looks as such:
 
     {
-        "id": "com.company.build.internal",
+        "group": "com.company.build.internal",
+        "name": "build-platform",
         "version": "1.8",
         "init-script": "enterprise-rules.gradle"
     }
@@ -79,20 +80,21 @@ of the build platform definition.
 
     package org.gradle.api.buildplatform.internal;
 
-    public interface BuildPlatformIdentifier {
-        String getId();
-        String getVersion();
+    public interface BuildPlatformRequirementsSpec {
+        BuildPlatformCoordinatesSpec group(String group);
+    }
+
+    public interface BuildPlatformCoordinatesSpec {
+        BuildPlatformCoordinatesSpec name(String name);
+        BuildPlatformCoordinatesSpec version(String version);
     }
 
     public interface BuildPlatform {
         // configures instance of RepositoryHandler as delegate
         void from(Closure config);
 
-        // configures instances of BuildPlatformIdentifier as delegate
-        void use(Map<String, String> coordinates);
-
-        BuildPlatformIdentifier getIdentifier();
-        List<ArtifactRepository> getRepositories();
+        // configures instance of BuildPlatformRequirementsSpec as delegate
+        void use(Closure config);
     }
 
     package org.gradle.api.initialization;
@@ -110,12 +112,14 @@ of the build platform definition.
             }
         }
 
-        use id: 'com.company.build.internal', version: '1.8'
+        use {
+            group 'com.company.build.internal' name 'build-platform' version '1.8'
+        }
     }
 
 ### Implementation
 
-- Introduce a new DSL to the `Settings` class. The DSL can be used to provide the base information of build platform (`id` and `version`) as well as the target location hosting the
+- Introduce a new DSL to the `Settings` class. The DSL can be used to provide the base information of build platform (`group`, `name` and `version`) as well as the target location hosting the
 build platform meta-data.
 - Maven and Ivy repositories can be specified as target locations. Other target location are out-of-scope for this story.
 - During the initialization phase of a Gradle build the DSL is evaluated. The underlying data structure is populated.
@@ -123,7 +127,7 @@ build platform meta-data.
 - Gradle caches the resolved artifacts in its cache in the same way as any other artifact.
 - The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
 definitions would behave based on the usual TTL definitions.
-- The `buildPlatform` requires the declaration of the `id` and `version` properties as well as at least one Ivy or Maven Repository.
+- The `buildPlatform` requires the declaration of the `group`, `name` and `version` properties as well as at least one Ivy or Maven Repository.
 
 ### Test cases
 
@@ -146,12 +150,13 @@ definitions would behave based on the usual TTL definitions.
 
 Gradle needs to automatically evaluate and apply the resolved build platform definition. A build platform definition will only support a JSON format for now. The scope of this story
 is to parse the JSON file, extract the relevant information and apply the definition to the build. For the scope of this story the information that is extracted is the base information
-about the build platform: `id` and `version`.
+about the build platform: `group`, `name` and `version`.
 
 ### Build platform meta-data
 
     {
-        "id": "com.company.build.internal",
+        "group": "com.company.build.internal",
+        "name": "build-platform",
         "version": "1.8"
     }
 
@@ -161,7 +166,7 @@ about the build platform: `id` and `version`.
 - Read the build platform meta-data from the cached JSON file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
 - The JSON file name must be `build-platform.json`. No other name is allowed.
-- Parse the values of attributes `id` and `version` and compare them with the attributes specified in the `Settings` file.
+- Parse the values of attributes `group`, `name` and `version` and compare them with the attributes specified in the `Settings` file.
 
 ### Test cases
 
@@ -171,7 +176,7 @@ about the build platform: `id` and `version`.
     - The file needs to be `build-platform.json`. Any other JSON files are ignored.
 - Basic information in the JSON file can be parsed.
     - Throw an exception if the `build-platform.json` is not valid JSON.
-- The parsed values for for `id` and `version` should match the attributes specified in the Settings file.
+- The parsed values for for `group`, `name` and `version` should match the attributes specified in the Settings file.
     - Throw an exception if they don't match.
     - Throw an exception if any of the attributes are not specified. Indicate the missing attribute.
 
@@ -238,8 +243,10 @@ task to generate or update the wrapper files for the given Gradle version.
             }
         }
 
-        use id: 'com.company.build.internal', version: '1.8'
-        use gradle: '2.8'
+        use {
+            group 'com.company.build.internal' name 'build-platform' version '1.8'
+            gradle '2.8'
+        }
     }
 
 _Enterprise team perspective:_
@@ -260,7 +267,9 @@ with the appropriate version.
             }
         }
 
-        use gradle: '2.8'
+        use {
+            gradle '2.8'
+        }
     }
 
 The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle distribution URL in the generated `gradle/wrapper/gradle.properties` file.
@@ -302,7 +311,8 @@ _Enterprise team perspective:_
 Compatibility definitions are exclusively defined in the meta-data as such:
 
     {
-        "id": "com.company.build.internal",
+        "group": "com.company.build.internal",
+        "name": "build-platform",
         "version": "1.8",
         "compatibility": {
             "gradleVersion": "2.+",
@@ -464,8 +474,12 @@ to publish to the Gradle plugin portal. The `buildPlatform` definition of a plat
 ### Usage
 
     buildPlatform {
-        from gradlePluginPortal()
-        use id: 'com.company.build.internal', version: '1.8'
+        from {
+            gradlePluginPortal()
+        }
+        use {
+            group 'com.company.build.internal' name 'build-platform' version '1.8'
+        }
     }
 
 ### Implementation
