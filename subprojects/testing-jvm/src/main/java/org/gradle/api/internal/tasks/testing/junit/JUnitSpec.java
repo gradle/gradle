@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Set;
 
 public class JUnitSpec implements Serializable {
@@ -23,6 +24,10 @@ public class JUnitSpec implements Serializable {
     private final Set<String> excludeCategories;
     private final Set<String> includedTests;
     private final Set<String> excludedTests;
+
+    public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests) {
+        this(includeCategories, excludeCategories, includedTests, Collections.<String>emptySet());
+    }
 
     public JUnitSpec(Set<String> includeCategories, Set<String> excludeCategories, Set<String> includedTests, Set<String> excludedTests) {
         this.includeCategories = includeCategories;

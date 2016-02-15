@@ -20,7 +20,11 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.*;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeElementComparator;
@@ -37,8 +41,20 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
-import org.gradle.api.internal.tasks.testing.junit.result.*;
-import org.gradle.api.internal.tasks.testing.logging.*;
+import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
+import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
+import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -47,7 +63,13 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -67,10 +89,17 @@ import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
 
-import javax.inject.Inject;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
+
+import javax.inject.Inject;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -738,6 +767,24 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
+
+
+    /**
+     * Sets the test name patterns to be included in execution.
+     * Classes or method names are supported, wildcard '*' is supported.
+     * For more information see the user guide chapter on testing.
+     *
+     * For more information on supported patterns see {@link TestFilter}
+     *
+     * <b>Deprecated:</b> use <i>include-tests</i> option instead.
+     */
+    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Incubating
+    @Deprecated
+    public Test setTestNameIncludePatternDeprecated(String testNamePattern) {
+        return this.setTestNameIncludePattern(testNamePattern);
+    }
+
     /**
      * Sets the test name patterns to be included in execution.
      * Classes or method names are supported, wildcard '*' is supported.
@@ -745,14 +792,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests-include", description = "Sets test class or method name to be included, '*' is supported.")
+    @Option(option = "include-tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
     public Test setTestNameIncludePattern(String testNamePattern) {
         filter.setIncludePatterns(testNamePattern);
         return this;
     }
 
-    @Option(option = "tests-exclude", description = "Sets test class or method name to be excluded, '*' is supported.")
+    @Option(option = "exclude-tests", description = "Sets test class or method name to be excluded, '*' is supported.")
     @Incubating
     public Test setTestNameExcludePattern(String testNamePattern) {
         filter.setExcludePatterns(testNamePattern);

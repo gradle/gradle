@@ -187,4 +187,57 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         !result.skippedTasks.contains(":test")
         new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
     }
+
+
+    def "apply excludes in appropriate way"() {
+        buildFile << """
+            test {
+              filter.setIncludePatterns 'Foo*.pass*'
+            }
+        """
+        file("src/test/java/Foo1Test.java") << """import $imports;
+            public class Foo1Test {
+                @Test public void pass1() {}
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/Foo2Test.java") << """import $imports;
+            public class Foo2Test {
+                @Test public void pass2() {}
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/BarTest.java") << """import $imports;
+            public class BarTest {
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/OtherTest.java") << """import $imports;
+            public class OtherTest {
+                @Test public void pass3() {}
+                @Test public void bar() {}
+            }
+        """
+
+        when:
+        run(command)
+
+        then:
+
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted(classesExecuted)
+        result.testClass("Foo1Test").assertTestsExecuted(foo1TestsExecuted)
+        result.testClass("Foo1Test").assertTestsExecuted(foo2TestsExecuted)
+        result.testClass("BarTest").assertTestsExecuted(barTestsExecuted)
+        result.testClass("OtherTest").assertTestsExecuted(otherTestsExecuted)
+
+        where:
+        command                                                           | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
+        ["test"]                                                          | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["pass1", "bar"]  | ["pass2", "bar"]  | ["bar"]          | ["pass3", "bar"]
+        ["test", "--include-tests", "*.pass*"]                            | ["Foo1Test", "Foo2Test", "OtherTest"]            | ["pass1"]         | ["pass2"]         | []               | ["pass3"]
+        ["test", "--include-tests", "*.pass*", "--exclude-tests", "Foo*"] | ["OtherTest"]                                    | []                | []                | []               | ["pass3"]
+        ["test", "--exclude-tests", "Foo*"]                               | ["BarTest", "OtherTest"]                         | []                | []                | ["bar"]          | ["pass3", "bar"]
+
+    }
+
 }
