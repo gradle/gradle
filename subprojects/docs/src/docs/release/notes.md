@@ -213,6 +213,7 @@ We would like to thank the following community members for making contributions 
 * [Alex Landau](https://github.com/AlexLandau) - Fix for JUnit Test Filtering with the `--test` flag to work for Parametrized tests and TestSuites
 * [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between ant and zinc scala compiler implementations
 * [Pavel Fadeev](https://github.com/bearmug) - Makes `exclude('*')` semantically consistent with `include('*')` excluding only files in the baseDir
+* [Tony Abbott](https://github.com/tonyabbott) - Fix for native testing plugins when test binaries are not buildable
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
