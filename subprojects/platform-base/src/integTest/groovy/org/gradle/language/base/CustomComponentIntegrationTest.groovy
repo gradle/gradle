@@ -599,4 +599,38 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
         failureHasCause "Could not find method binaries()"
     }
+
+    def "can define subtype of `ApplicationBinarySpec`"() {
+        buildFile << """
+@Managed
+interface TheApp extends ApplicationSpec {}
+@Managed
+interface TheAppBinary extends ApplicationBinarySpec {}
+
+class MyRules extends RuleSource {
+
+    @ComponentType
+    void registerComponent(TypeBuilder<TheApp> builder) {}
+
+    @BinaryType
+    void registerBinary(TypeBuilder<TheAppBinary> builder) {}
+
+    @ComponentBinaries
+    void appBinaries(ModelMap<TheAppBinary> binaries, TheApp app) {
+        binaries.create(app.name) {}
+    }
+}
+
+apply plugin : MyRules
+
+model {
+    components {
+        main(TheApp) {}
+    }
+}
+        """
+
+        expect:
+        succeeds "components"
+    }
 }
