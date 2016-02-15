@@ -31,11 +31,6 @@ class ZincScalaCompileFixture extends InitScriptExecuterFixture {
     String initScriptContent() {
         return """
             allprojects {
-                allprojects {
-                    tasks.withType(ScalaCompile) {
-                        scalaCompileOptions.useAnt = false
-                    }
-                }
                 $disableScalaDocIfInDaemonMode
             }
         """

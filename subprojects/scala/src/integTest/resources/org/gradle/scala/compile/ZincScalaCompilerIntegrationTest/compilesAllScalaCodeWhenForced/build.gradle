@@ -10,9 +10,7 @@ dependencies {
 
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.with {
-        useAnt = false
         force = true
-        fork = true
     }
 }
 

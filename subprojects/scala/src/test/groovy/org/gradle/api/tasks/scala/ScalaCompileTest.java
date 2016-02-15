@@ -93,6 +93,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         scalaCompile.execute();
     }
 
+    @SuppressWarnings("deprecation")  //setUseAnt()
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
         compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
@@ -118,7 +119,10 @@ public class ScalaCompileTest extends AbstractCompileTest {
         }});
         compile.setClasspath(classpath);
         compile.setZincClasspath(zincClasspath);
-        compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
+        ScalaCompileOptions options = compile.getScalaCompileOptions();
+        options.setUseAnt(true);
+        options.setFork(false);
+        options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
     }
 
 

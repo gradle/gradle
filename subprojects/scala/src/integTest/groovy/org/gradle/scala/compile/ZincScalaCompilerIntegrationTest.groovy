@@ -27,11 +27,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     String compilerConfiguration() {
-        """
-compileScala.scalaCompileOptions.with {
-    useAnt = false
-}
-        """
+        ""
     }
 
     String logStatement() {
