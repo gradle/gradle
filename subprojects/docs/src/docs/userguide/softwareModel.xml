@@ -82,7 +82,7 @@
         <para>
             Another <emphasis>key</emphasis> motivation is performance and scale.
             Aspects of the current approach that Gradle takes to modelling the build prevent pervasive parallelism and limit scalability.
-            The new model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
+            The software model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
         </para>
     </section>
     <section>

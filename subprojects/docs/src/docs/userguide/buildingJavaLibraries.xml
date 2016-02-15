@@ -19,7 +19,7 @@
 
     <note>
         <para>
-            Support for building Java libraries using the new software model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+            Support for building Java libraries using the software model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
