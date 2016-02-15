@@ -135,6 +135,10 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
+### Ant-based Scala compiler deprecation
+
+The [Zinc Scala comiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of `useAnt` to `false` and we are deprecating the option. Please update your build scripts to remove uses of that option.
+
 <!--
 ### Example deprecation
 -->
