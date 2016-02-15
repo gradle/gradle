@@ -17,13 +17,13 @@
 package org.gradle.language.c.tasks
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
