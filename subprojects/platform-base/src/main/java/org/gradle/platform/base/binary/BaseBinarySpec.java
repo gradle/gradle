@@ -81,10 +81,10 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private BaseBinarySpec(BinaryInfo info) {
         super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
-        MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
+        MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
         ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
             .action(ModelActionRole.Create, new Action<MutableModelNode>() {
@@ -99,8 +99,8 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         modelNode.addLink(itemRegistration);
 
         namingScheme = DefaultBinaryNamingScheme
-            .component(componentName())
-            .withBinaryName(getIdentifier().getName())
+            .component(parentComponentName())
+            .withBinaryName(getName())
             .withBinaryType(getTypeName());
     }
 
@@ -112,7 +112,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     @Nullable
-    private String componentName() {
+    private String parentComponentName() {
         ComponentSpec component = getComponent();
         return component != null ? component.getName() : null;
     }
