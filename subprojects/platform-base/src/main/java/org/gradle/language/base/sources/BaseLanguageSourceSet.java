@@ -35,20 +35,16 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
  */
 @Incubating
 public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
-    private String name;
-    private String fullName;
-    private String parentName;
-    private String languageName;
-    private SourceDirectorySet source;
+    private final String fullName;
+    private final String parentName;
+    private final String languageName;
+    private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
 
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
-    protected SourceDirectorySetFactory sourceDirectorySetFactory;
+    protected final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-    public String getName() {
-        return name;
-    }
     public String getParentName() {
         return parentName;
     }
@@ -101,7 +97,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
     public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        nextSourceSetInfo.set(new SourceSetInfo(componentId.getName(), parentName, publicType.getSimpleName(), sourceDirectorySetFactory));
+        nextSourceSetInfo.set(new SourceSetInfo(componentId, publicType, parentName, sourceDirectorySetFactory));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -118,16 +114,20 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     }
 
     private BaseLanguageSourceSet(SourceSetInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @LanguageType rule instead.");
-        }
-        this.name = info.name;
+        super(validate(info).identifier, info.publicType);
         this.parentName = info.parentName;
-        this.languageName = guessLanguageName(info.typeName);
-        this.fullName = info.parentName + StringUtils.capitalize(name);
+        this.fullName = info.parentName + StringUtils.capitalize(getName());
+        this.languageName = guessLanguageName(getTypeName());
         this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
         this.source = sourceDirectorySetFactory.create("source");
         super.builtBy(source.getBuildDependencies());
+    }
+
+    private static SourceSetInfo validate(SourceSetInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @LanguageType rule instead.");
+        }
+        return info;
     }
 
     private String guessLanguageName(String typeName) {
@@ -135,15 +135,15 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     }
 
     private static class SourceSetInfo {
-        final String name;
+        private final ComponentSpecIdentifier identifier;
+        private final Class<? extends LanguageSourceSet> publicType;
         final String parentName;
-        final String typeName;
         final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-        private SourceSetInfo(String name, String parentName, String typeName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-            this.name = name;
+        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+            this.identifier = identifier;
+            this.publicType = publicType;
             this.parentName = parentName;
-            this.typeName = typeName;
             this.sourceDirectorySetFactory = sourceDirectorySetFactory;
         }
     }
