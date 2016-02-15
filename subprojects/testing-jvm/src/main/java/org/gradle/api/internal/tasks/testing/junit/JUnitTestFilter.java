@@ -77,26 +77,14 @@ class JUnitTestFilter {
 
     }
 
-    private static class MethodNameIncludeFilter extends MethodNameFilter {
 
-        public MethodNameIncludeFilter(TestSelectionMatcher matcher) {
-            super(matcher, "Includes matching test methods");
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return matchCheck(description);
-        }
-    }
-
-    private static abstract class MethodNameFilter extends org.junit.runner.manipulation.Filter {
+    private static class MethodNameIncludeFilter extends org.junit.runner.manipulation.Filter {
 
         private final TestSelectionMatcher matcher;
-        private final String filterDescription;
+        private static final String FILTER_DESCRIPTION = "Includes matching test methods";
 
-        public MethodNameFilter(TestSelectionMatcher matcher, String filterDescription) {
+        public MethodNameIncludeFilter(TestSelectionMatcher matcher) {
             this.matcher = matcher;
-            this.filterDescription = filterDescription;
         }
 
 
@@ -114,8 +102,13 @@ class JUnitTestFilter {
             return false;
         }
 
+        @Override
+        public boolean shouldRun(Description description) {
+            return matchCheck(description);
+        }
+
         public String describe(){
-            return filterDescription;
+            return FILTER_DESCRIPTION;
         }
     }
 
