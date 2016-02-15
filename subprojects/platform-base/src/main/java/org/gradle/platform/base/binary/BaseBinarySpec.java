@@ -219,11 +219,6 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
     public final BinaryBuildAbility getBuildAbility() {
         if (disabled) {
             return new FixedBuildAbility(false);
