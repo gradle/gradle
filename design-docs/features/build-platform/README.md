@@ -41,7 +41,7 @@ _End user perspective:_
 
 A project consuming the init script has to define the location and coordinates of the build platform definition in `settings.gradle`.
 
-    buildSystem {
+    buildPlatform {
         from {
             maven {
                 url 'http://myinternalrepo.com/staging'
@@ -74,7 +74,7 @@ of the build platform definition.
 
     public interface BuildPlatformAware {
         // configures instance of BuildPlatform as delegate
-        void buildSystem(Closure config);
+        void buildPlatform(Closure config);
     }
 
     package org.gradle.api.buildplatform.internal;
@@ -103,7 +103,7 @@ of the build platform definition.
 
 ### Usage
 
-    buildSystem {
+    buildPlatform {
         from {
             maven {
                 url 'http://myinternalrepo.com/staging'
@@ -123,7 +123,7 @@ build platform meta-data.
 - Gradle caches the resolved artifacts in its cache in the same way as any other artifact.
 - The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
 definitions would behave based on the usual TTL definitions.
-- The `buildSystem` requires the declaration of the `id` and `version` properties as well as at least one Ivy or Maven Repository.
+- The `buildPlatform` requires the declaration of the `id` and `version` properties as well as at least one Ivy or Maven Repository.
 
 ### Test cases
 
@@ -231,7 +231,7 @@ _End user perspective:_
 The declaration of the build platform definition in a `settings.gradle` adds a way to specify the concrete Gradle version used by the project. The end user runs the `wrapper`
 task to generate or update the wrapper files for the given Gradle version.
 
-    buildSystem {
+    buildPlatform {
         from {
             maven {
                 url 'http://myinternalrepo.com/staging'
@@ -253,7 +253,7 @@ with the appropriate version.
 
 ### Usage
 
-    buildSystem {
+    buildPlatform {
         from {
             maven {
                 url 'http://myinternalrepo.com/staging'
@@ -377,7 +377,7 @@ This story introduces a new Gradle core plugin to allow a team to generate build
 
 - Introduce a new Gradle core plugin named `build-system-dev`.
 - Expose extension that allows user to set relevant meta-data.
-    - The extension will be named `buildSystem`.
+    - The extension will be named `buildPlatform`.
     - For now the only options will be init script as well as Gradle and Java version compatibility.
 - Create task named `generateMetaData` for translating the user input into a meta-data file.
     - Implement as custom task with defined inputs and outputs.
@@ -390,7 +390,7 @@ This story introduces a new Gradle core plugin to allow a team to generate build
 
     apply plugin: 'build-system-dev'
 
-    buildSystem {
+    buildPlatform {
         metaData {
             initScript = file('src/main/resources/enterprise-rules.gradle')
 
@@ -428,7 +428,7 @@ The goal of this story is to publish the generated build platform meta-data to a
 
 ### Usage
 
-    buildSystem {
+    buildPlatform {
         metaData {
             ...
         }
@@ -459,11 +459,11 @@ Further integrations into the Gradle ecosystem.
 ## Story - Build platform meta-data can be published to the Gradle plugin portal and consumed from there
 
 Some organizations or Open Source projects may decide to publish the build platform meta-data to a public binary repository. This story aims for extending the `build-system-dev` plugin
-to publish to the Gradle plugin portal. The `buildSystem` definition of a platform will need to allow the consumption from the plugin portal.
+to publish to the Gradle plugin portal. The `buildPlatform` definition of a platform will need to allow the consumption from the plugin portal.
 
 ### Usage
 
-    buildSystem {
+    buildPlatform {
         from gradlePluginPortal()
         use id: 'com.company.build.internal', version: '1.8'
     }
