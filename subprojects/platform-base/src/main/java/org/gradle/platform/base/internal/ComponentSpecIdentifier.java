@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 // TODO:RBO ComponentSpecIdentifier extends Named but what's the meaning of the name here? Is it also logically part of the identifier path?
@@ -24,7 +23,6 @@ import org.gradle.api.Named;
 /**
  * An identifier for a {@link org.gradle.platform.base.ComponentSpec}, which has a name.
  */
-@Incubating
 public interface ComponentSpecIdentifier extends Named {
 
     // TODO:RBO Clarify what it means and what's possible to do with it.
