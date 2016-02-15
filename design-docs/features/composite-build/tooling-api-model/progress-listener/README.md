@@ -26,11 +26,14 @@ Support for the newer "typed" `org.gradle.tooling.events.ProgressListener` inter
 
 ### Implementation notes
 
-The `org.gradle.tooling.ProgressListener` is the so called original logging-derived progress listener. These events are created by using the `ProgressLogger`.
+The `org.gradle.tooling.ProgressListener` is the so called original logging-derived progress listener. These events are currently created by using the `ProgressLogger` API. The plan is to reconstruct the `ProgressLogger` calls from events received on a `org.gradle.tooling.ProgressListener` listener. There are some open issues with this implementation approach.
 
 ### Test coverage
 
-### Documentation
+- compare progress events created by retrieving a model directly from a ProjectConnection and with the composite's GradleConnection API
+  - events should be the same
+  - compare with a single build
+  - compare with 3 builds in a composite
 
 ### Open issues
 
