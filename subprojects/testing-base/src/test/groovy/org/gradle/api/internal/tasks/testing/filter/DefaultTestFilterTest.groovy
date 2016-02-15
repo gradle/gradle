@@ -26,10 +26,11 @@ class DefaultTestFilterTest extends Specification {
     def spec = new DefaultTestFilter()
 
     def "allows configuring test names"() {
-        expect: spec.includePatterns.isEmpty()
+        expect:
+        spec.includePatterns.isEmpty()
+        spec.excludePatterns.isEmpty()
 
         when:
-//        todo
         spec.includeTestsMatching("*fooMethod")
         spec.includeTestsMatching("*.FooTest.*")
 
@@ -38,16 +39,31 @@ class DefaultTestFilterTest extends Specification {
         when: spec.setIncludePatterns("x")
 
         then: spec.includePatterns == ["x"] as Set
+
+        when:
+        spec.excludeTestsMatching("*baRMethod")
+        spec.excludeTestsMatching("*.BarTest.*")
+
+        then: spec.excludePatterns == ["*barMethod", "*.BarTest.*"] as Set
+
+        when: spec.setIncludePatterns("y")
+        then: spec.includePatterns == ["y"] as Set
+
     }
 
-    def "allows configuring by test class and methodname"() {
-        expect: spec.includePatterns.isEmpty()
+    def "allows configuring by test class and method name"() {
+        expect:
+        spec.includePatterns.isEmpty()
+        spec.excludePatterns.isEmpty()
 
         when:
         spec.includeTest("acme.FooTest", "bar")
         spec.includeTest("acme.BarTest", null)
+        spec.excludeTest("acme.FooTest", "bar1")
 
-        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+        then:
+        spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+        spec.excludePatterns == ["acme.FooTest.bar1"] as Set
     }
 
     def "prevents empty names"() {
