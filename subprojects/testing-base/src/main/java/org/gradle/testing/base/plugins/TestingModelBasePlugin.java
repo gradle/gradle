@@ -68,9 +68,11 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         @Mutate
         void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<TestSuiteBinarySpec> binaries) {
             for (TestSuiteBinarySpec testBinary : binaries) {
-                BinaryTasksCollection tasks = testBinary.getTasks();
-                if (tasks instanceof TestSuiteTaskCollection) {
-                    checkTask.dependsOn(((TestSuiteTaskCollection) tasks).getRun());
+                if (testBinary.isBuildable()) {
+                    BinaryTasksCollection tasks = testBinary.getTasks();
+                    if (tasks instanceof TestSuiteTaskCollection) {
+                        checkTask.dependsOn(((TestSuiteTaskCollection) tasks).getRun());
+                    }
                 }
             }
         }
