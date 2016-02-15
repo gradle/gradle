@@ -21,35 +21,34 @@ import spock.lang.Specification
 class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class"() {
-        expect:
-        new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
 
         where:
-        input                 | className             | methodName | match
-        ["FooTest"]           | "FooTest"             | "whatever" | true
-        ["FooTest"]           | "fooTest"             | "whatever" | false
+        input                    | className                 | methodName            | match
+        ["FooTest"]              | "FooTest"                 | "whatever"            | true
+        ["FooTest"]              | "fooTest"                 | "whatever"            | false
 
-        ["com.foo.FooTest"]   | "com.foo.FooTest"     | "x"        | true
-        ["com.foo.FooTest"]   | "FooTest"             | "x"        | false
-        ["com.foo.FooTest"]   | "com_foo_FooTest"     | "x"        | false
+        ["com.foo.FooTest"]      | "com.foo.FooTest"         | "x"                   | true
+        ["com.foo.FooTest"]      | "FooTest"                 | "x"                   | false
+        ["com.foo.FooTest"]      | "com_foo_FooTest"         | "x"                   | false
 
-        ["com.foo.FooTest.*"] | "com.foo.FooTest"     | "aaa"      | true
-        ["com.foo.FooTest.*"] | "com.foo.FooTest"     | "bbb"      | true
-        ["com.foo.FooTest.*"] | "com.foo.FooTestx"    | "bbb"      | false
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "aaa"                 | true
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "bbb"                 | true
+        ["com.foo.FooTest.*"]    | "com.foo.FooTestx"        | "bbb"                 | false
 
-        ["*.FooTest.*"]       | "com.foo.FooTest"     | "aaa"      | true
-        ["*.FooTest.*"]       | "com.bar.FooTest"     | "aaa"      | true
-        ["*.FooTest.*"]       | "FooTest"             | "aaa"      | false
+        ["*.FooTest.*"]          | "com.foo.FooTest"         | "aaa"                 | true
+        ["*.FooTest.*"]          | "com.bar.FooTest"         | "aaa"                 | true
+        ["*.FooTest.*"]          | "FooTest"                 | "aaa"                 | false
 
-        ["com*FooTest"]       | "com.foo.FooTest"     | "aaa"      | true
-        ["com*FooTest"]       | "com.FooTest"         | "bbb"      | true
-        ["com*FooTest"]       | "FooTest"             | "bbb"      | false
+        ["com*FooTest"]          | "com.foo.FooTest"         | "aaa"                 | true
+        ["com*FooTest"]          | "com.FooTest"             | "bbb"                 | true
+        ["com*FooTest"]          | "FooTest"                 | "bbb"                 | false
 
-        ["*.foo.*"]           | "com.foo.FooTest"     | "aaaa"     | true
-        ["*.foo.*"]           | "com.foo.bar.BarTest" | "aaaa"     | true
-        ["*.foo.*"]           | "foo.Test"            | "aaaa"     | false
-        ["*.foo.*"]           | "fooTest"             | "aaaa"     | false
-        ["*.foo.*"]           | "foo"                 | "aaaa"     | false
+        ["*.foo.*"]              | "com.foo.FooTest"         | "aaaa"                | true
+        ["*.foo.*"]              | "com.foo.bar.BarTest"     | "aaaa"                | true
+        ["*.foo.*"]              | "foo.Test"                | "aaaa"                | false
+        ["*.foo.*"]              | "fooTest"                 | "aaaa"                | false
+        ["*.foo.*"]              | "foo"                     | "aaaa"                | false
     }
 
 
