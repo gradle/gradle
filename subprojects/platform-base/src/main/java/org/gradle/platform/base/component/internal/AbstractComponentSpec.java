@@ -16,10 +16,10 @@
 
 package org.gradle.platform.base.component.internal;
 
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-// TODO - implements ComponentSpec
-public class AbstractComponentSpec {
+public class AbstractComponentSpec implements ComponentSpec {
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
 

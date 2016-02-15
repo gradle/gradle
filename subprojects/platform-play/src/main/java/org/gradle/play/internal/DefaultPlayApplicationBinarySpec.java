@@ -171,6 +171,21 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
             this.jvmAssembly = jvmAssembly;
         }
 
+        @Override
+        public String getDisplayName() {
+            return jvmAssembly.getDisplayName();
+        }
+
+        @Override
+        public String getProjectPath() {
+            return jvmAssembly.getProjectPath();
+        }
+
+        @Override
+        public String getName() {
+            return jvmAssembly.getName();
+        }
+
         public File getClassesDir() {
             return single(jvmAssembly.getClassDirectories());
         }

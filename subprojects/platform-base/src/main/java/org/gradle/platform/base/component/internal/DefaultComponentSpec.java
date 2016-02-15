@@ -23,7 +23,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-public class DefaultComponentSpec extends AbstractComponentSpec implements ComponentSpec {
+public class DefaultComponentSpec extends AbstractComponentSpec {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
 
     public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {

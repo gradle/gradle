@@ -16,12 +16,14 @@
 
 package org.gradle.api;
 
+import org.gradle.platform.base.ComponentSpec;
+
 /**
  * A model element that is directly buildable.
  * Such an element mirrors a specified lifecycle task in the task graph, and can accept dependencies which are then associated with the lifecycle task.
  */
 @Incubating
-public interface BuildableModelElement extends Buildable {
+public interface BuildableModelElement extends Buildable, ComponentSpec {
     /**
      * Returns the 'lifecycle' task associated with the construction of this element.
      */
