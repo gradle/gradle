@@ -61,11 +61,6 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         return String.format("%s source '%s:%s'", languageName, parentName, getName());
     }
 
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
     protected String getLanguageName() {
         return languageName;
     }
