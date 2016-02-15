@@ -112,7 +112,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+        void createSourceTransformTasks(final TaskContainer tasks, @Path("binaries") final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             BinarySourceTransformations transformations = new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
             for (BinarySpecInternal binary : binaries) {
                 if (binary.isLegacyBinary()) {
