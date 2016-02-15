@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -164,6 +165,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public Map<File, PreCompiledHeader> getPrefixFileToPCH() {
         return prefixFileToPCH;
+    }
+
+    @Override
+    public void addPreCompiledHeaderFor(DependentSourceSet sourceSet) {
+        prefixFileToPCH.put(
+            ((DependentSourceSetInternal)sourceSet).getPrefixHeaderFile(),
+            new PreCompiledHeader(createChildIdentifier("pch")));
     }
 
     private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
