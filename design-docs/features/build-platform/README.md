@@ -160,7 +160,7 @@ about the build platform: `id` and `version`.
 - During the initialization phase, parse the build platform meta-data located in the cache.
 - Read the build platform meta-data from the cached JSON file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
-- The JSON file name must be `build-platform.json`. No other name is allowed. The file is located in the directory `META-INF/gradle` of the JAR.
+- The JSON file name must be `build-platform.json`. No other name is allowed.
 - Parse the values of attributes `id` and `version` and compare them with the attributes specified in the `Settings` file.
 
 ### Test cases
