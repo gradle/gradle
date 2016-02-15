@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 public class BuildableModelElementTest extends Specification {
 
-    def element = new TestBuildableModelElement()
+    def element = new TestBuildableModelElement(Stub(ComponentSpecIdentifier))
     def dependedOn1 = Stub(Task)
     def dependedOn2 = Stub(Task)
     def lifecycleTask = TestUtil.createTask(DefaultTask)
@@ -49,6 +49,8 @@ public class BuildableModelElementTest extends Specification {
     }
 
     class TestBuildableModelElement extends AbstractBuildableModelElement {
-
+        TestBuildableModelElement(ComponentSpecIdentifier identifier) {
+            super(identifier, TestBuildableModelElement)
+        }
     }
 }
