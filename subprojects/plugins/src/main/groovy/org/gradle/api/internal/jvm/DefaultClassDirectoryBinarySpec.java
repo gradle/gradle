@@ -36,7 +36,6 @@ import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
-@SuppressWarnings("deprecation")
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final String name;
