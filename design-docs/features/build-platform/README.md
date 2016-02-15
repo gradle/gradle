@@ -58,6 +58,7 @@ _Enterprise team perspective:_
 The build platform meta-data and init script hosted on a binary repository declared by the enterprise build team looks as such:
 
     {
+        "schemaVersion": "1.0",
         "group": "com.company.build.internal",
         "name": "build-platform",
         "version": "1.8",
@@ -157,6 +158,7 @@ about the build platform: `group`, `name` and `version`.
 ### Build platform meta-data
 
     {
+        "schemaVersion": "1.0",
         "group": "com.company.build.internal",
         "name": "build-platform",
         "version": "1.8"
@@ -168,6 +170,7 @@ about the build platform: `group`, `name` and `version`.
 - Read the build platform meta-data from the cached JSON file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
 - The JSON file name must be `build-platform.json`. No other name is allowed.
+- The JSON is validated against a schema with the corresponding attribute `schemaVersion`.
 - Parse the values of attributes `group`, `name` and `version` and compare them with the attributes specified in the `Settings` file.
 
 ### Test cases
@@ -178,6 +181,7 @@ about the build platform: `group`, `name` and `version`.
     - The file needs to be `build-platform.json`. Any other JSON files are ignored.
 - Basic information in the JSON file can be parsed.
     - Throw an exception if the `build-platform.json` is not valid JSON.
+    - Validates against the schema with the provided `schemaVersion`.
 - The parsed values for for `group`, `name` and `version` should match the attributes specified in the Settings file.
     - Throw an exception if they don't match.
     - Throw an exception if any of the attributes are not specified. Indicate the missing attribute.
@@ -313,6 +317,7 @@ _Enterprise team perspective:_
 Compatibility definitions are exclusively defined in the meta-data as such:
 
     {
+        "schemaVersion": "1.0",
         "group": "com.company.build.internal",
         "name": "build-platform",
         "version": "1.8",
