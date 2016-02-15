@@ -196,8 +196,7 @@ idea {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
 
         then:
-        println file("root.ipr").text
-        assert ipr.bytecodeTargetLevel.size() == 0
+        ipr.bytecodeTargetLevel.size() == 0
     }
 
     def "explicit project target level when module version differs from project java sdk"() {
@@ -228,8 +227,8 @@ idea {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
 
         then:
-        assert ipr.bytecodeTargetLevel.size() == 1
-        assert ipr.bytecodeTargetLevel.@target == "1.7"
+        ipr.bytecodeTargetLevel.size() == 1
+        ipr.bytecodeTargetLevel.@target == "1.7"
     }
 
     def "can have module specific bytecode version"() {
@@ -279,10 +278,10 @@ idea {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
 
         then:
-        assert ipr.bytecodeTargetLevel.size() == 1
-        assert ipr.bytecodeTargetLevel.module.size() == 2
-        assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.6"
-        assert ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
+        ipr.bytecodeTargetLevel.size() == 1
+        ipr.bytecodeTargetLevel.module.size() == 2
+        ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.6"
+        ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
     }
 
     void "language levels specified in properties files is ignored"() {

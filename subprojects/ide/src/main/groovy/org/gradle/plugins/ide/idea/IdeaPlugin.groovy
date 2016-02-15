@@ -104,6 +104,12 @@ class IdeaPlugin extends IdePlugin {
                     }
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
+                ideaProject.conventionMapping.targetBytecodeVersion = {
+                    List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
+                        it.convention.getPlugin(JavaPluginConvention).targetCompatibility
+                    }
+                    allTargetCompatibilities.max() ?: JavaVersion.VERSION_1_6
+                }
 
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {

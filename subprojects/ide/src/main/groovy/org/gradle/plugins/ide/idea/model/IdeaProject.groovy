@@ -18,8 +18,6 @@ package org.gradle.plugins.ide.idea.model
 import groovy.transform.PackageScope
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.ConfigureUtil
@@ -27,7 +25,7 @@ import org.gradle.util.ConfigureUtil
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
  * Example of use with a blend of all possible properties.
- * Typically you don't have configure IDEA module directly because Gradle configures it for you.
+ * Typically you don't have to configure IDEA module directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
  * import org.gradle.plugins.ide.idea.model.*
@@ -128,13 +126,7 @@ class IdeaProject {
      * Idea modules of this Idea project.
      */
     @Incubating
-    JavaVersion getTargetBytecodeVersion() {
-        List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
-            it.convention.getPlugin(JavaPluginConvention).targetCompatibility
-        }
-        JavaVersion maxBytecodeVersion = allTargetCompatibilities.max() ?: JavaVersion.VERSION_1_6
-        return maxBytecodeVersion;
-    }
+    JavaVersion targetBytecodeVersion
 
     /**
      * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
