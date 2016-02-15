@@ -35,6 +35,7 @@ import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.ScalaJvmAssembly;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationSpec;
@@ -49,8 +50,8 @@ import java.util.Set;
 import static org.gradle.util.CollectionUtils.single;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
-    private final DefaultScalaJvmAssembly jvmAssembly = new DefaultScalaJvmAssembly();
-    private final PublicAssets assets = new DefaultPublicAssets();
+    private final DefaultScalaJvmAssembly jvmAssembly = new DefaultScalaJvmAssembly(createChildIdentifier("assembly"));
+    private final PublicAssets assets = new DefaultPublicAssets(createChildIdentifier("publicAssets"));
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
@@ -225,6 +226,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
         private Set<File> resourceDirs = Sets.newLinkedHashSet();
+
+        public DefaultPublicAssets(ComponentSpecIdentifier identifier) {
+            super(identifier, PublicAssets.class);
+        }
 
         public Set<File> getAssetDirs() {
             return resourceDirs;

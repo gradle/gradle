@@ -35,7 +35,7 @@ import java.util.List;
 import static org.gradle.util.CollectionUtils.findSingle;
 
 public class DefaultJvmBinarySpec extends BaseBinarySpec implements JvmBinarySpecInternal {
-    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
+    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly(createChildIdentifier("assembly"));
 
     @Override
     public JavaToolChain getToolChain() {

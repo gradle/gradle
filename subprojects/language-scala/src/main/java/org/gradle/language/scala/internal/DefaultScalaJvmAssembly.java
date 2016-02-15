@@ -18,9 +18,14 @@ package org.gradle.language.scala.internal;
 
 import org.gradle.jvm.internal.DefaultJvmAssembly;
 import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public class DefaultScalaJvmAssembly extends DefaultJvmAssembly implements ScalaJvmAssembly {
     private ScalaPlatform scalaPlatform;
+
+    public DefaultScalaJvmAssembly(ComponentSpecIdentifier identifier) {
+        super(identifier, ScalaJvmAssembly.class);
+    }
 
     public ScalaPlatform getScalaPlatform() {
         return scalaPlatform;

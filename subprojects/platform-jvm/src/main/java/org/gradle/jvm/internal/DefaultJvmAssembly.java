@@ -19,6 +19,7 @@ package org.gradle.jvm.internal;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -30,6 +31,14 @@ public class DefaultJvmAssembly extends AbstractBuildableModelElement implements
     private LinkedHashSet<File> resourceDirectories = new LinkedHashSet<File>();
     private JavaToolChain toolChain;
     private JavaPlatform targetPlatform;
+
+    public DefaultJvmAssembly(ComponentSpecIdentifier identifier) {
+        super(identifier, JvmAssembly.class);
+    }
+
+    protected DefaultJvmAssembly(ComponentSpecIdentifier identifier, Class<? extends JvmAssembly> publicType) {
+        super(identifier, publicType);
+    }
 
     @Override
     public Set<File> getClassDirectories() {
