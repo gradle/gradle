@@ -19,10 +19,16 @@ package org.gradle.platform.base.internal;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
+// TODO:RBO ComponentSpecIdentifier extends Named but what's the meaning of the name here? Is it also logically part of the identifier path?
+// TODO:RBO How to arrange component identifiers in a hierarchy?
 /**
  * An identifier for a {@link org.gradle.platform.base.ComponentSpec}, which has a name.
  */
 @Incubating
 public interface ComponentSpecIdentifier extends Named {
+
+    // TODO:RBO Clarify what it means and what's possible to do with it.
+    // TODO:RBO E.g. Can the return value always be used to resolve back to the identified component? If so, how?
+    // TODO:RBO Wouldn't it be better to define a proper type for project/model paths?
     String getProjectPath();
 }
