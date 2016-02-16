@@ -24,8 +24,15 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 
+import java.util.List;
+
 public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, ComponentSpecFactory> {
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, ModelReference.of(ComponentSpecFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
+        super("language", LanguageSourceSet.class, ModelReference.of(ComponentSpecFactory.class), schemaStore);
+    }
+
+    @Override
+    protected List<? extends Class<?>> getPluginsRequiredForClass(Class<? extends LanguageSourceSet> publicType) {
+        return ImmutableList.of(LanguageBasePlugin.class);
     }
 }

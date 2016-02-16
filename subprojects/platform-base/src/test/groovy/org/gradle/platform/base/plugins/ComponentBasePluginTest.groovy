@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,46 +14,45 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.plugins
+package org.gradle.platform.base.plugins
 
-import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.platform.base.plugins.ComponentBasePlugin
 
-class LanguageBasePluginTest extends PlatformBaseSpecification {
-    def "applies component base plugin only"() {
+class ComponentBasePluginTest extends PlatformBaseSpecification {
+    def "applies lifecycle base plugin only"() {
         when:
         dsl {
-            apply plugin: LanguageBasePlugin
+            apply plugin: ComponentBasePlugin
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 3
-        project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
+        project.pluginManager.pluginContainer.size() == 2
         project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
     }
 
-    def "registers LanguageSourceSet"() {
+    def "registers ComponentSpec"() {
         when:
         dsl {
-            apply plugin: LanguageBasePlugin
+            apply plugin: ComponentBasePlugin
             model {
-                baseSourceSet(LanguageSourceSet) {
+                baseComponent(ComponentSpec) {
                 }
             }
         }
 
         then:
-        realize("baseSourceSet") instanceof LanguageSourceSet
+        realize("baseComponent") instanceof ComponentSpec
     }
 
-    def "adds a 'sources' container to the project model"() {
+    def "adds a 'components' container to the project model"() {
         when:
         dsl {
-            apply plugin: LanguageBasePlugin
+            apply plugin: ComponentBasePlugin
         }
 
         then:
-        realizeSourceSets() != null
+        realizeComponents() != null
     }
 }

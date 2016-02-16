@@ -28,6 +28,7 @@ import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.plugins.ComponentBasePlugin;
 
 /**
  * Base plugin for language support.
@@ -38,7 +39,7 @@ import org.gradle.platform.base.TypeBuilder;
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+        project.getPluginManager().apply(ComponentBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

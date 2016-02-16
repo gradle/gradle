@@ -24,8 +24,15 @@ import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
+import java.util.List;
+
 public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, ComponentSpecFactory> {
     public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("binary", BinarySpec.class, ModelReference.of(ComponentSpecFactory.class), ImmutableList.of(BinaryBasePlugin.class), schemaStore);
+        super("binary", BinarySpec.class, ModelReference.of(ComponentSpecFactory.class), schemaStore);
+    }
+
+    @Override
+    protected List<? extends Class<?>> getPluginsRequiredForClass(Class<? extends BinarySpec> publicType) {
+        return ImmutableList.of(BinaryBasePlugin.class);
     }
 }

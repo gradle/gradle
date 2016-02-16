@@ -18,9 +18,7 @@ package org.gradle.language.base.plugins;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,13 +32,8 @@ import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.component.internal.ComponentSpecFactory;
-import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
@@ -51,7 +44,7 @@ import java.util.Set;
 import static com.google.common.base.Strings.emptyToNull;
 
 /**
- * Base plugin for language support.
+ * Base plugin for component support.
  *
  * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
@@ -67,16 +60,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class PluginRules extends RuleSource {
-        @Hidden @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ITaskFactory taskFactory, SourceDirectorySetFactory sourceDirectorySetFactory) {
-            return new ComponentSpecFactory(projectIdentifier, instantiator, taskFactory, sourceDirectorySetFactory);
-        }
-
-        @ComponentType
-        void registerComponentSpec(TypeBuilder<ComponentSpec> builder) {
-            builder.defaultImplementation(DefaultComponentSpec.class);
-        }
-
         @ComponentType
         void registerGeneralComponentSpec(TypeBuilder<GeneralComponentSpec> builder) {
             builder.defaultImplementation(BaseComponentSpec.class);
@@ -95,15 +78,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         @ComponentType
         void registerPlatformAwareComponent(TypeBuilder<PlatformAwareComponentSpec> builder) {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
-        }
-
-        @Model
-        void components(ComponentSpecContainer componentSpecs) {
-        }
-
-        @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, bindingsStore));
         }
 
         @Hidden @Model
@@ -147,11 +121,6 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
                     binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
-        }
-
-        @Validate
-        void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
         }
 
         @Mutate

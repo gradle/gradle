@@ -42,7 +42,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project target) {
-        target.getPluginManager().apply(LifecycleBasePlugin.class);
+        target.getPluginManager().apply(ComponentBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

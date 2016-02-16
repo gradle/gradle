@@ -22,10 +22,23 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.SourceComponentSpec;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
+import org.gradle.platform.base.plugins.ComponentBasePlugin;
+
+import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, ComponentSpecFactory> {
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("component", ComponentSpec.class, ModelReference.of(ComponentSpecFactory.class), ImmutableList.of(ComponentModelBasePlugin.class), schemaStore);
+        super("component", ComponentSpec.class, ModelReference.of(ComponentSpecFactory.class), schemaStore);
+    }
+
+    @Override
+    protected List<? extends Class<?>> getPluginsRequiredForClass(Class<? extends ComponentSpec> publicType) {
+        if (SourceComponentSpec.class.isAssignableFrom(publicType) || VariantComponentSpec.class.isAssignableFrom(publicType)) {
+            return ImmutableList.of(ComponentModelBasePlugin.class);
+        }
+        return ImmutableList.of(ComponentBasePlugin.class);
     }
 }

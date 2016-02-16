@@ -37,20 +37,20 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTRY extends BaseInstanceFactory<? super TYPE>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
+public abstract class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTRY extends BaseInstanceFactory<? super TYPE>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
     private final String modelName;
     private final ModelType<TYPE> baseInterface;
     private final ModelReference<REGISTRY> registryRef;
     private final ModelSchemaStore schemaStore;
-    private final List<? extends Class<?>> requiredPlugins;
 
-    public TypeModelRuleExtractor(String modelName, Class<TYPE> baseInterface, ModelReference<REGISTRY> registryRef, List<? extends Class<?>> requiredPlugins, ModelSchemaStore schemaStore) {
+    public TypeModelRuleExtractor(String modelName, Class<TYPE> baseInterface, ModelReference<REGISTRY> registryRef, ModelSchemaStore schemaStore) {
         this.modelName = modelName;
         this.registryRef = registryRef;
-        this.requiredPlugins = requiredPlugins;
         this.schemaStore = schemaStore;
         this.baseInterface = ModelType.of(baseInterface);
     }
+
+    protected abstract List<? extends Class<?>> getPluginsRequiredForClass(Class<? extends TYPE> publicType);
 
     @Nullable
     @Override
@@ -129,15 +129,17 @@ public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTR
     private class ExtractedTypeRule<PUBLICTYPE extends TYPE> implements ExtractedModelRule {
         private final MethodRuleDefinition<?, ?> ruleDefinition;
         private final ModelType<PUBLICTYPE> publicType;
+        private final List<? extends Class<?>> plugins;
 
         public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<PUBLICTYPE> publicType) {
             this.ruleDefinition = ruleDefinition;
             this.publicType = publicType;
+            this.plugins = getPluginsRequiredForClass(publicType.getConcreteClass());
         }
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return requiredPlugins;
+            return plugins;
         }
 
         @Override

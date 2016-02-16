@@ -28,6 +28,7 @@ import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
+import org.gradle.platform.base.plugins.ComponentBasePlugin
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -45,10 +46,10 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         def mockRegistry = Mock(ModelRegistry)
 
         when:
-        def registration = extract(ruleDefinitionForMethod("validTypeRule"))
+        def registration = extract(ruleDefinitionForMethod(ruleName))
 
         then:
-        registration.ruleDependencies == [ComponentModelBasePlugin]
+        registration.ruleDependencies == [plugin]
 
         when:
         apply(registration, mockRegistry)
@@ -59,6 +60,13 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
             assert action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
         }
         0 * _
+
+        where:
+        ruleName           | plugin
+        "validTypeRule"    | ComponentBasePlugin
+        "generalComponent" | ComponentModelBasePlugin
+        "library"          | ComponentModelBasePlugin
+        "application"      | ComponentModelBasePlugin
     }
 
     @Unroll
@@ -101,13 +109,19 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                                                        | descr
-        "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                               | "implementation set multiple times"
-        "internalViewNotInterface"         | "Internal view ${NonInterfaceInternalView.name} must be an interface."                                                                 | "non-interface internal view"
-        "repeatedInternalView"             | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times."                                              | "internal view specified multiple times"
+        methodName                       | expectedMessage                                                                           | descr
+        "implementationSetMultipleTimes" | "Method annotated with @ComponentType cannot set default implementation multiple times."  | "implementation set multiple times"
+        "internalViewNotInterface"       | "Internal view ${NonInterfaceInternalView.name} must be an interface."                    | "non-interface internal view"
+        "repeatedInternalView"           | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times." | "internal view specified multiple times"
     }
 
     static interface SomeComponentSpec extends ComponentSpec {}
+
+    static interface SomeGeneralComponentSpec extends GeneralComponentSpec {}
+
+    static interface SomeLibrarySpec extends LibrarySpec {}
+
+    static interface SomeApplicationSpec extends ApplicationSpec {}
 
     static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec, ComponentSpecInternalView, BareInternalView {}
 
@@ -134,6 +148,18 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(ComponentSpecInternalView)
             builder.internalView(BareInternalView)
+        }
+
+        @ComponentType
+        static void generalComponent(TypeBuilder<SomeGeneralComponentSpec> builder) {
+        }
+
+        @ComponentType
+        static void library(TypeBuilder<SomeLibrarySpec> builder) {
+        }
+
+        @ComponentType
+        static void application(TypeBuilder<SomeApplicationSpec> builder) {
         }
 
         @ComponentType
