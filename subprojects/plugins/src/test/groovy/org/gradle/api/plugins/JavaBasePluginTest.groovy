@@ -306,7 +306,7 @@ class JavaBasePluginTest extends Specification {
 
         then:
         binaries.size() == 1
-        def binary = binaries.get("customClasses")
+        def binary = binaries.get("custom")
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
@@ -327,7 +327,7 @@ class JavaBasePluginTest extends Specification {
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
 
         then:
-        def binary = binaries.get("customClasses")
+        def binary = binaries.get("custom")
         assert binary instanceof ClassDirectoryBinarySpec
         def classesTask = project.tasks.findByName("customClasses")
         binary.buildTask == classesTask

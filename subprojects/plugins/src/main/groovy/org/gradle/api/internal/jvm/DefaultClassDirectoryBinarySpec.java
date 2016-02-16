@@ -52,13 +52,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
     }
 
-    private String removeClassesSuffix(String name) {
-        if (name.endsWith("Classes")) {
-            return name.substring(0, name.length() - 7);
-        }
-        return name;
-    }
-
     @Override
     public LibraryBinaryIdentifier getId() {
         throw new UnsupportedOperationException();
@@ -158,8 +151,9 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         sourceSets.add(sourceSet);
     }
 
-    public String getDisplayName() {
-        return "classes '" + removeClassesSuffix(getName()) + "'";
+    @Override
+    protected String getTypeName() {
+        return "Classes";
     }
 
     @Override

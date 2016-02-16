@@ -128,7 +128,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 createBinaryLifecycleTask(sourceSet, project);
 
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, new DefaultComponentSpecIdentifier(project.getPath(), String.format("%sClasses", sourceSet.getName())), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName()), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, new DefaultComponentSpecIdentifier(project.getPath(), "java"), sourceSet.getName(), sourceSet.getJava(), compileClasspath);
