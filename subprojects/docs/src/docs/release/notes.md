@@ -84,38 +84,7 @@ Two new annotations have been added:
 
 #### Apply rule to all descendant elements matching type in scope
 
-It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type.
-
-This will set the `outputDir` of every `MyBinarySpec` in the scope `MyBinaryRules` is applied to:
-
-```groovy
-class MyBinaryRules extends RuleSource {
-    @Defaults
-    void configureBinaryOutputDirectories(@Each MyBinarySpec myBinary, @Path("buildDir") File buildDir) {
-        myBinary.outputDir = new File(buildDir, "${myBinary.name}/classes");
-    }
-}
-```
-
-It is also possible to apply a `RuleSource` to all matching descendants in the scope. This will apply `MyComponentRules` to all `MyComponentSpec` elements in the model:
-
-```groovy
-class MyRules extends RuleSource {
-    @Rules
-    void configureBinaryOutputDirectories(MyComponentRules rules, @Each MyComponentSpec component) {
-        rules.component = component
-    }
-}
-
-abstract class MyComponentRules extends RuleSource {
-    @RuleTarget
-    abstract MyComponentSpec getComponent()
-    abstract void setComponent(MyComponentSpec subject)
-
-    // Rules to apply in the scope of a single MyComponentSpec
-}
-```
-
+It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type. More information about this can be found in the “[Sotfware model section of the userguide](userguide/software_model.html#binding_all_elements_in_scope).”
 
 #### Declaration of local JVM installations
 

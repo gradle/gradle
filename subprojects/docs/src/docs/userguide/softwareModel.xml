@@ -440,7 +440,7 @@
                     For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
                 </para>
             </section>
-            <section>
+            <section id="binding_all_elements_in_scope">
                 <title>Binding to all elements in a scope matching type</title>
                 <para>
                     Mutating or validating all elements of a given type in some scope is a common use-case.
