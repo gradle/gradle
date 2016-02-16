@@ -36,27 +36,27 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         if (context.hasProblems()) {
             return null;
         }
-        ChildTraversalType childTraversal = ChildTraversalType.subjectTraversalOf(context, ruleDefinition, 0);
-        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition, childTraversal);
+        RuleApplicationScope ruleApplicationScope = RuleApplicationScope.fromRuleDefinition(context, ruleDefinition, 0);
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition, ruleApplicationScope);
     }
 
     protected abstract ModelActionRole getMutationType();
 
     private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
-        private final ChildTraversalType childTraversal;
+        private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, ChildTraversalType childTraversal) {
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.mutationType = mutationType;
-            this.childTraversal = childTraversal;
+            this.ruleApplicationScope = ruleApplicationScope;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
             MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
-            RuleExtractorUtils.configureRuleAction(context, childTraversal, mutationType, ruleAction);
+            RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, mutationType, ruleAction);
         }
 
         @Override

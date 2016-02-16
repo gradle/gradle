@@ -22,7 +22,7 @@ import org.gradle.model.Path;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-public enum ChildTraversalType {
+public enum RuleApplicationScope {
     /**
      * Rule should be applied to the scope element only.
      */
@@ -38,12 +38,12 @@ public enum ChildTraversalType {
      *
      * @throws IndexOutOfBoundsException If the rule definition has too few parameters.
      */
-    public static ChildTraversalType subjectTraversalOf(RuleSourceValidationProblemCollector problems, MethodRuleDefinition<?, ?> ruleDefinition, int subjectParamIndex) {
+    public static RuleApplicationScope fromRuleDefinition(RuleSourceValidationProblemCollector problems, MethodRuleDefinition<?, ?> ruleDefinition, int subjectParamIndex) {
         List<List<Annotation>> parameterAnnotations = ruleDefinition.getParameterAnnotations();
         if (subjectParamIndex >= parameterAnnotations.size()) {
             throw new IndexOutOfBoundsException("Rule definition should have at least " + (subjectParamIndex + 1) + " parameters");
         }
-        ChildTraversalType result = null;
+        RuleApplicationScope result = null;
         for (int paramIndex = 0; paramIndex < parameterAnnotations.size(); paramIndex++) {
             List<Annotation> annotations = parameterAnnotations.get(paramIndex);
             boolean annotatedWithEach = hasAnnotation(annotations, Each.class);
