@@ -17,10 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.platform.base.ApplicationSpec
-import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.GeneralComponentSpec
-import org.gradle.platform.base.LibrarySpec
+import org.gradle.platform.base.*
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -91,14 +88,14 @@ class Rules extends RuleSource {
     }
 
     @Defaults
-    void verifyAsModelMap(ModelMap<ComponentSpec> c) {
+    void verifyAsModelMap(@Path("components") ModelMap<ComponentSpec> c) {
         assert c.toString() == "ModelMap<ComponentSpec> 'components'"
         assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 
     @Defaults
-    void verifyAsSpecializedModelMap(ModelMap<CustomComponent> c) {
+    void verifyAsSpecializedModelMap(@Path("components") ModelMap<CustomComponent> c) {
         assert c.toString() == "ModelMap<CustomComponent> 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
@@ -132,7 +129,7 @@ model {
             }
         }
     }
-    
+
     def "plugin can create component"() {
         when:
         buildFile << """
@@ -406,7 +403,7 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LibrarySpec.name}, UnmanagedComponent."))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${BinarySpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LanguageSourceSet.name}, ${LibrarySpec.name}, UnmanagedComponent."))
     }
 
     def "reasonable error message when adding element of unknown component type to map"() {
@@ -425,7 +422,7 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LibrarySpec.name}."))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${BinarySpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LanguageSourceSet.name}, ${LibrarySpec.name}."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
@@ -468,7 +465,7 @@ afterEach CustomComponent 'newComponent'"""
             class ComponentSpecContainerRules extends RuleSource {
 
                 @Mutate
-                void addComponentTasks(TaskContainer tasks, $projectionType componentSpecs) {
+                void addComponentTasks(TaskContainer tasks, @Path("components") $projectionType componentSpecs) {
                     componentSpecs.all {
                         // some stuff here
                     }
@@ -484,9 +481,10 @@ afterEach CustomComponent 'newComponent'"""
         failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks'"
 
         where:
-        projectionType                     | fullQualified
-        "ModelMap<ComponentSpec>"          | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
-        "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
+        projectionType              | fullQualified
+        "ModelMap<ComponentSpec>"   | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
+        "ModelMap<CustomComponent>" | "org.gradle.model.ModelMap<CustomComponent>"
+        "ComponentSpecContainer"    | "org.gradle.platform.base.ComponentSpecContainer"
     }
 
     def "component binaries container elements and their tasks containers are visible in model report"() {

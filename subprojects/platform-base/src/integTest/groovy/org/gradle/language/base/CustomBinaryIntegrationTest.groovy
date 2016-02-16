@@ -143,8 +143,8 @@ model {
 
             static class Rules extends RuleSource {
                 @Mutate
-                void createSampleBinaries(ModelMap<SampleBinary> binaries) {
-                    binaries.create("sampleBinary")
+                void createSampleBinaries(BinaryContainer binaries) {
+                    binaries.create("sampleBinary", SampleBinary)
                 }
 
             }
@@ -184,16 +184,16 @@ model {
                 }
 
                 @Mutate
-                void createSampleBinaryInstances(ModelMap<SampleBinary> binaries) {
-                    binaries.create("sampleBinary")
+                void createSampleBinaryInstances(BinaryContainer binaries) {
+                    binaries.create("sampleBinary", SampleBinary)
                 }
 
                 @BinaryType
                 void registerAnother(TypeBuilder<AnotherSampleBinary> builder) {}
 
                 @Mutate
-                void createAnotherSampleBinaryInstances(ModelMap<AnotherSampleBinary> anotherBinaries) {
-                    anotherBinaries.create("anotherSampleBinary")
+                    void createAnotherSampleBinaryInstances(BinaryContainer anotherBinaries) {
+                    anotherBinaries.create("anotherSampleBinary", AnotherSampleBinary)
                 }
             }
         }
@@ -316,9 +316,9 @@ BUILD SUCCESSFUL"""
                 }
 
                 @Mutate
-                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
+                void createSampleBinary(BinaryContainer binarySpecs) {
                     println "creating binary"
-                    binarySpecs.create("sampleBinary")
+                    binarySpecs.create("sampleBinary", SampleBinary)
                 }
             }
         }
