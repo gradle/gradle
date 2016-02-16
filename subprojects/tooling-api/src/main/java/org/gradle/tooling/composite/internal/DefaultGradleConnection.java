@@ -56,25 +56,25 @@ public class DefaultGradleConnection implements GradleConnection {
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, File gradleHome) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleHome));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleHome));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, String gradleVersion) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleVersion));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleVersion));
             return this;
         }
 
         @Override
         public GradleConnection.Builder addBuild(File rootProjectDirectory, URI gradleDistribution) {
-            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleUserHomeDir, gradleDistribution));
+            participants.add(new DefaultGradleParticipantBuild(rootProjectDirectory, gradleDistribution));
             return this;
         }
 

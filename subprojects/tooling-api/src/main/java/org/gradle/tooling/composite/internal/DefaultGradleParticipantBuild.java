@@ -16,43 +16,32 @@
 
 package org.gradle.tooling.composite.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-
 import java.io.File;
 import java.net.URI;
 
-class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable {
-    private File gradleUserHomeDir;
+class DefaultGradleParticipantBuild implements GradleParticipantBuild {
     private final File projectDir;
 
     private File gradleHome;
     private URI gradleDistribution;
     private String gradleVersion;
 
-    private File daemonBaseDir;
-
-    private ProjectConnection projectConnection;
-
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir) {
+    DefaultGradleParticipantBuild(File projectDir) {
         this.projectDir = projectDir;
-        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, File gradleHome) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, File gradleHome) {
+        this(projectDir);
         this.gradleHome = gradleHome;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, String gradleVersion) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, String gradleVersion) {
+        this(projectDir);
         this.gradleVersion = gradleVersion;
     }
 
-    DefaultGradleParticipantBuild(File projectDir, File gradleUserHomeDir, URI gradleDistribution) {
-        this(projectDir, gradleUserHomeDir);
+    DefaultGradleParticipantBuild(File projectDir, URI gradleDistribution) {
+        this(projectDir);
         this.gradleDistribution = gradleDistribution;
     }
 
@@ -67,16 +56,6 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
     }
 
     @Override
-    public String getDisplayName() {
-        return "build " + projectDir.getAbsolutePath();
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
     public URI getGradleDistribution() {
         return gradleDistribution;
     }
@@ -86,69 +65,14 @@ class DefaultGradleParticipantBuild implements GradleParticipantBuild, Stoppable
         return gradleVersion;
     }
 
-
-    // TODO: remove client side implementation
-
-    public ProjectConnection getConnection() {
-        if (projectConnection == null) {
-            projectConnection = connect();
-        }
-        return projectConnection;
+    @Override
+    public String getDisplayName() {
+        return "build " + projectDir.getAbsolutePath();
     }
 
     @Override
-    public void stop() {
-        if (projectConnection != null) {
-            projectConnection.close();
-        }
+    public String toString() {
+        return getDisplayName();
     }
 
-    private ProjectConnection connect() {
-        DefaultGradleConnector connector = getInternalConnector();
-        connector.searchUpwards(false);
-        connector.forProjectDirectory(projectDir);
-        if (gradleUserHomeDir != null) {
-            connector.useGradleUserHomeDir(gradleUserHomeDir);
-        }
-        if (daemonBaseDir != null) {
-            connector.daemonBaseDir(daemonBaseDir);
-        }
-        return configureDistribution(connector).connect();
-
-    }
-
-    private DefaultGradleConnector getInternalConnector() {
-        return (DefaultGradleConnector) GradleConnector.newConnector();
-    }
-
-    private GradleConnector configureDistribution(GradleConnector connector) {
-        if (gradleDistribution == null) {
-            if (gradleHome == null) {
-                if (gradleVersion == null) {
-                    connector.useBuildDistribution();
-                } else {
-                    connector.useGradleVersion(gradleVersion);
-                }
-            } else {
-                connector.useInstallation(gradleHome);
-            }
-        } else {
-            connector.useDistribution(gradleDistribution);
-        }
-
-        return connector;
-    }
-
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-    }
-
-    public File getDaemonBaseDir() {
-        return daemonBaseDir;
-    }
-
-    @Override
-    public void setDaemonBaseDir(File daemonBaseDir) {
-        this.daemonBaseDir = daemonBaseDir;
-    }
 }

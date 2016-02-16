@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.composite.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.tooling.ProjectConnection;
-
 import java.io.File;
 import java.net.URI;
 
-public interface GradleParticipantBuild extends Stoppable {
+public interface GradleParticipantBuild {
     File getProjectDir();
 
     String getDisplayName();
@@ -32,10 +29,4 @@ public interface GradleParticipantBuild extends Stoppable {
     URI getGradleDistribution();
 
     String getGradleVersion();
-
-    ProjectConnection getConnection();
-
-    void setGradleUserHomeDir(File gradleUserHomeDir);
-
-    void setDaemonBaseDir(File daemonBaseDir);
 }
