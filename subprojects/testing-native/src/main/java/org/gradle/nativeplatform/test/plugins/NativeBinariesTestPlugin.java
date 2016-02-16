@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Defaults;
-import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -30,6 +29,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.TypeBuilder;
@@ -57,8 +57,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         @Defaults
         // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
-        void attachTestedBinarySourcesToTestBinaries(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
-            binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
+        void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
+            binaries.afterEach(NativeTestSuiteBinarySpecInternal.class, new Action<NativeTestSuiteBinarySpecInternal>() {
                 @Override
                 public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
                     BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
@@ -72,8 +72,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         @Defaults
         // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
-        void configureRunTask(ModelMap<NativeTestSuiteBinarySpecInternal> binaries) {
-            binaries.afterEach(new Action<NativeTestSuiteBinarySpecInternal>() {
+        void configureRunTask(BinaryContainer binaries) {
+            binaries.afterEach(NativeTestSuiteBinarySpecInternal.class, new Action<NativeTestSuiteBinarySpecInternal>() {
                 @Override
                 public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
                     BinaryNamingScheme namingScheme = testSuiteBinary.getNamingScheme();

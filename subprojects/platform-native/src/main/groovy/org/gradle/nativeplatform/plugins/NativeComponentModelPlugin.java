@@ -52,7 +52,6 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -230,8 +229,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
-            for (final NativeBinarySpecInternal nativeBinarySpec : binaries.values()) {
+        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, BinaryContainer binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
+            for (final NativeBinarySpecInternal nativeBinarySpec : binaries.withType(NativeBinarySpecInternal.class)) {
                 for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
                     nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
                         @Override
@@ -310,7 +309,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
          * creating.
          */
         @Defaults
-        void createInstallTasks(ModelMap<Task> tasks, ModelMap<NativeBinarySpecInternal> binaries) {
+        void createInstallTasks(ModelMap<Task> tasks, BinaryContainer binaries) {
             for (NativeExecutableBinarySpecInternal binary : binaries.withType(NativeExecutableBinarySpecInternal.class).values()) {
                 NativeComponents.createInstallTask(binary, binary.getInstallation(), binary.getExecutable(), binary.getNamingScheme());
             }
