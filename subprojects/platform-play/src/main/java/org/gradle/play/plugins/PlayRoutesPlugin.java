@@ -55,8 +55,7 @@ public class PlayRoutesPlugin extends RuleSource {
     }
 
     @Mutate
-    void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
-        final SourceDirectorySetFactory sourceDirectorySetFactory = serviceRegistry.get(SourceDirectorySetFactory.class);
+    void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
