@@ -130,8 +130,8 @@ BUILD SUCCESSFUL"""
                 }
 
                 @Mutate
-                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
-                    binarySpecs.create("sampleBinary")
+                void createSampleBinary(BinaryContainer binaries) {
+                    binaries.create("sampleBinary", SampleBinary)
                 }
             }
         }

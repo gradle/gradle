@@ -320,7 +320,7 @@ class Rules extends RuleSource {
     }
 
     @Finalize
-    void setPlatformForBinaries(ModelMap<BinarySpec> binaries) {
+    void setPlatformForBinaries(BinaryContainer binaries) {
         def platform = DefaultJavaPlatform.current()
         binaries.withType(CustomJarBinarySpec).beforeEach { binary ->
             binary.targetPlatform = platform

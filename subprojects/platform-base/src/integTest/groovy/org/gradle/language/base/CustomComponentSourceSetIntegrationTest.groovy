@@ -50,7 +50,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
-    void tasks(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries) {
+    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
         tasks.create("verify") {
             doLast {
                 binaries.each { binary ->

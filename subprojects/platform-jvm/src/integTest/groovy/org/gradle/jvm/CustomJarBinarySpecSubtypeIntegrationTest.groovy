@@ -79,14 +79,14 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
             class BinaryNameCollectorRules extends RuleSource {
                 @Finalize
-                void printJarBinaries(ModelMap<JarBinarySpec> jarBinaries) {
+                void printJarBinaries(@Path("binaries") ModelMap<JarBinarySpec> jarBinaries) {
                     for (JarBinarySpec jarBinary : jarBinaries) {
                         Results.jarBinaries.add jarBinary.name
                     }
                 }
 
                 @Finalize
-                void printCustomBinaries(ModelMap<CustomChildJarBinarySpec> customBinaries) {
+                void printCustomBinaries(@Path("binaries") ModelMap<CustomChildJarBinarySpec> customBinaries) {
                     for (CustomChildJarBinarySpec customBinary : customBinaries) {
                         Results.customBinaries.add customBinary.name
                     }
@@ -229,7 +229,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Finalize
-                void setPlatformForBinaries(ModelMap<BinarySpec> binaries) {
+                void setPlatformForBinaries(BinaryContainer binaries) {
                     def platform = DefaultJavaPlatform.current()
                     binaries.withType(${binaryType}).beforeEach { binary ->
                         binary.targetPlatform = platform

@@ -57,7 +57,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failure.assertHasCause("Cannot create an instance of type 'DefaultCustomSourceSet' as this type is not known. Known types: CustomSourceSet, ${LanguageSourceSet.name}")
+        failure.assertHasCause("Cannot create an instance of type 'DefaultCustomSourceSet' as this type is not known. Known types: org.gradle.platform.base.ComponentSpec, CustomSourceSet, ${LanguageSourceSet.name}")
     }
 
     def "can create a top level LSS with a rule"() {
