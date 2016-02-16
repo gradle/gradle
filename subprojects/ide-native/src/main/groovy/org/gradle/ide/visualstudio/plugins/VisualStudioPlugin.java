@@ -54,12 +54,12 @@ public class VisualStudioPlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @Model
-        public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry) {
+        public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry, ProjectIdentifier projectIdentifier) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectModelResolver, fileResolver);
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, projectIdentifier, instantiator, projectModelResolver, fileResolver);
         }
 
         @Mutate

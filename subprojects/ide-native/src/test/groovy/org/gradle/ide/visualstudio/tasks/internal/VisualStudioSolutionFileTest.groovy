@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -164,7 +165,7 @@ EndGlobal
     private DefaultVisualStudioProject createProject(String projectName) {
         final project1File = new File(projectName)
         fileResolver.resolve("${projectName}.vcxproj") >> project1File
-        return new DefaultVisualStudioProject(projectName, binary1.component, fileResolver, instantiator)
+        return new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":project", projectName), binary1.component, fileResolver, instantiator)
     }
 
     private NativeBinarySpec binary(def name) {

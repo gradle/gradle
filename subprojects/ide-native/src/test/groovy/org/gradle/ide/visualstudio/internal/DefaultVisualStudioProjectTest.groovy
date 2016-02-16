@@ -15,19 +15,25 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = DirectInstantiator.INSTANCE
     def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
-    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
+    def vsProject = project("projectName")
+
+    def project(String vsProjectName, NativeComponentSpec component = component) {
+        new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":", vsProjectName), component, fileResolver, instantiator)
+    }
 
     def "names"() {
         final projectFile = new File("project")
@@ -74,10 +80,10 @@ class DefaultVisualStudioProjectTest extends Specification {
         def sameComponent = Mock(NativeComponentSpec)
         def otherComponent = Mock(NativeComponentSpec)
 
-        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
-        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, instantiator)
-        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, instantiator)
-        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, instantiator)
+        def sameProject = project("projectName", component)
+        def samePath = project("projectName", sameComponent)
+        def differentPath = project("projectName", otherComponent)
+        def differentName = project("otherProject", component)
 
         and:
         component.projectPath >> ":projectPath"
