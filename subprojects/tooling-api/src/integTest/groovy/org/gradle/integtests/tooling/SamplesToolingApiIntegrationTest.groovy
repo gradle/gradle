@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.Sample
@@ -96,7 +95,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @NotYetImplemented // TODO: Broken due to NPE
     @UsesSample('toolingApi/composite')
     def "can use tooling API to compose independent projects"() {
         tweakProject()

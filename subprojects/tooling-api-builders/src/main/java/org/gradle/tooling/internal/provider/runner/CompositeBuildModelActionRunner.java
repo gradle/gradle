@@ -106,7 +106,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         if (daemonBaseDir != null) {
             connector.daemonBaseDir(daemonBaseDir);
         }
-        connector.daemonMaxIdleTime(daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+        if (daemonMaxIdleTimeValue != null && daemonMaxIdleTimeUnits != null) {
+            connector.daemonMaxIdleTime(daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+        }
         connector.searchUpwards(false);
         connector.forProjectDirectory(build.getProjectDir());
         return configureDistribution(connector, build).connect();
