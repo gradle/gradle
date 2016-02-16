@@ -34,7 +34,7 @@ plugins or Java libraries.
 The first milestone introduces the concept of the build platform definition, the way it can be declared by the user and how it is resolved. It also lets the user specify
 an init script as part of the build platform meta-data that is applied to the build automatically.
 
-**This milestone removes the needs for an organization to create a custom Gradle distribution just for the purpose of distributing an enterprise-wide init script used to
+**This milestone removes the need for an organization to create a custom Gradle distribution just for the purpose of distributing an enterprise-wide init script used to
 enforce standards, conventions etc. Out-of-scope is the definition of a required Gradle version.**
 
 _End user perspective:_
@@ -65,12 +65,12 @@ The build platform meta-data and init script hosted on a binary repository decla
         "init-script": "enterprise-rules.gradle"
     }
 
-## Story - Gradle resolves and caches a build platform meta-data
+## Story - Gradle resolves and caches build platform meta-data
 
 Early in the build startup, resolve the build platform definition. This information is provided as a configuration block in `settings.gradle`.
-The script block (or data extracted from it) and the build platform definition would be cached in the usual way. This story aim for exposing the DSL for defining the identifier,
-version and the location of the build platform definition. Given this information, Gradle will resolve and cache the information. Out of scope for this stories is the evaluation
-of the build platform definition.
+The script block (or data extracted from it) and the build platform definition would be cached in the usual way. This story aims for exposing the DSL for defining the coordinates
+ and the location of the build platform definition. Given this information, Gradle will resolve and cache the information. Out of scope for this stories is the evaluation
+of the build platform meta-data.
 
 ### API
 
@@ -126,7 +126,8 @@ build platform meta-data.
 - During the initialization phase of a Gradle build the DSL is evaluated. The underlying data structure is populated.
 - Gradle uses the build platform definition to resolve the build platform artifact. The artifact is represented by a JSON file accompanied by the relevant Maven or Ivy meta-data.
 - Gradle caches the resolved artifacts in its cache in the same way as any other artifact.
-- The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. 1.+ or a changing version. The cache for build platform
+- The version used to resolve the build platform artifacts in the binary repository can involve a dynamic versioning scheme e.g. `1.+`, `latest.release` or a changing version like
+`1.0-SNAPSHOT`. The cache for build platform
 definitions would behave based on the usual TTL definitions.
 - The `buildPlatform` requires the declaration of the `group`, `name` and `version` properties as well as at least one Ivy or Maven Repository.
 - Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
@@ -170,7 +171,7 @@ about the build platform: `group`, `name` and `version`.
 - Read the build platform meta-data from the cached JSON file.
 - Use a Java-based, light-weight JSON parsing library to read the file.
 - The JSON file name must be `build-platform.json`. No other name is allowed.
-- The JSON is validated against a schema with the corresponding attribute `schemaVersion`.
+- The JSON is validated against a schema with the corresponding attribute `schemaVersion`. The schema is bundled with the Gradle distribution.
 - Parse the values of attributes `group`, `name` and `version` and compare them with the attributes specified in the `Settings` file.
 - Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
@@ -224,7 +225,6 @@ This story extends the JSON definition by an init script attribute. Gradle evalu
 ### Open issues
 
 - Init scripts that are hosted in a different location than the corresponding meta-data file.
-- Can custom plugins be applied as part of executing the init script (see next story).
 
 ## Story - Gradle supports applying a custom plugin by ID from an init script
 
@@ -323,16 +323,17 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 ### Implementation
 
 - Extend the JSON parsing code by logic to resolve the Gradle version compatibility.
-- The value of the compatible Gradle version can only be a concrete version number e.g. `2.8` .
-- Determine the version of the Gradle version executing the build.
-- Compare the parsed Gradle version value with the Gradle runtime value.
-- Compatibility checks need to happen before the executing the provided init script.
-- If the Gradle version is not compatible fail the build with an appropriate error message.
+- The value of the compatible Gradle version can only be a concrete version number e.g. `2.8`.
+- Validate the compatible Gradle version.
+    - Determine the version of the Gradle version executing the build.
+    - Compare the parsed Gradle version value with the Gradle runtime value.
+    - Compatibility checks need to happen before the executing the provided init script.
+    - If the Gradle version is not compatible fail the build with an appropriate error message.
 - Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
-- If no compatible Gradle version is defined in the build platform meta-data, then nothing has to be done.
+- If no compatible Gradle version is defined in the build platform meta-data, then no validation needs to happen.
 - The JSON parsing logic can read the compatible Gradle version attribute.
     - Throw an exception if the version format is invalid.
 - Gradle runtime version and Gradle compatible version can be compared.
@@ -346,17 +347,16 @@ The `wrapper` task uses the Gradle version definition to provide a default value
 ### Implementation
 
 - The build platform definition supports a way to declare a Gradle version.
-- The Gradle version can be declared as concrete version, a dynamic version or the latest release version.
+- The Gradle version can only be declared as concrete version.
 - The `wrapper` task uses the build platform definition to provide a default value for the Gradle distribution URL.
     - If the wrapper files do not exist yet, the task will generate the wrapper files and use the given Gradle version for the Gradle distribution URL.
-    - If the wrapper files already exist, the task will override the existing Gradle distribution URL.
+    - If the wrapper files already exists and the version is different, then the task will override the existing Gradle distribution URL.
 - Gradle will emit a warning during build execution when the build platform definition and wrapper configuration are not in sync.
 - Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
 
 ### Test cases
 
 - If no Gradle version is specified in the build platform definition, the `wrapper` task works as before.
-- The `Wrapper` task can resolve Gradle versions using dynamic and pre-defined version identifiers in the Gradle distribution URL.
 - If a build platform definition specifies a Gradle version, the `wrapper` task reflects the value in the Gradle distribution URL.
 - Up-to-date checks for the `wrapper` task takes into account the Gradle version of the build platform definition.
 
@@ -382,7 +382,23 @@ to the meta-data that verifies the compatibility with Java version executing the
 
 ### Implementation
 
+- Extend the JSON parsing code by logic to resolve the Java version compatibility.
+- The value of the compatible Java version can only be a concrete version number e.g. `2.8`.
+- Validate the compatible Java version.
+    - Determine the version of the Java version executing the build via `JavaVersion.current()`.
+    - Compare the parsed Java version value with the Java runtime value.
+    - Compatibility checks need to happen before the executing the provided init script.
+    - If the Gradle version is not compatible fail the build with an appropriate error message.
+- Document functionality in user and DSL guide. Provide a usage sample for the Gradle distribution.
+
 ### Test cases
+
+- If no compatible Java version is defined in the build platform meta-data, then no validation needs to happen.
+- The JSON parsing logic can read the compatible Java version attribute.
+    - Throw an exception if the version format is invalid.
+- Java runtime version and Java compatible version can be compared.
+    - If versions are compatible continue with the execution of the build.
+    - Throw an exception with an appropriate message if versions are incompatible.
 
 # Milestone 3
 
