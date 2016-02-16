@@ -18,7 +18,9 @@ package org.gradle.language.base.plugins;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -66,8 +68,8 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class PluginRules extends RuleSource {
         @Hidden @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
-            return new ComponentSpecFactory(projectIdentifier);
+        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ITaskFactory taskFactory, SourceDirectorySetFactory sourceDirectorySetFactory) {
+            return new ComponentSpecFactory(projectIdentifier, instantiator, taskFactory, sourceDirectorySetFactory);
         }
 
         @ComponentType

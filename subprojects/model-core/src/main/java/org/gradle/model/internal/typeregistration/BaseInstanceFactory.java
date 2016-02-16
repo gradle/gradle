@@ -62,7 +62,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     /**
      * Registers a factory to use to create all implementation objects of the given type <em>and its subtypes</em>. The most specific match is used.
      */
-    public <S> void registerFactory(Class<S> implementationType, ImplementationFactory<PUBLIC, S> implementationFactory) {
+    public <S extends PUBLIC, I> void registerFactory(Class<I> implementationType, ImplementationFactory<S, I> implementationFactory) {
         factories.put(implementationType, implementationFactory);
     }
 

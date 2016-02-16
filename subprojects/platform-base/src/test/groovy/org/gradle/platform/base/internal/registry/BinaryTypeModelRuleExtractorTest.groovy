@@ -24,9 +24,12 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.*
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.BinaryType
+import org.gradle.platform.base.InvalidModelException
+import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.platform.base.binary.internal.BinarySpecFactory
+import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.plugins.BinaryBasePlugin
 import spock.lang.Unroll
 
@@ -57,7 +60,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         then:
         1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction action ->
             assert role == ModelActionRole.Mutate
-            assert action.subject == ModelReference.of(BinarySpecFactory)
+            assert action.subject == ModelReference.of(ComponentSpecFactory)
         }
         0 * _
     }

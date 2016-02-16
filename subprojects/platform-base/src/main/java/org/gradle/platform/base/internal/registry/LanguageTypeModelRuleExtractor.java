@@ -18,14 +18,14 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 
-public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, LanguageSourceSetFactory> {
+public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, ComponentSpecFactory> {
     public LanguageTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("language", LanguageSourceSet.class, ModelReference.of(LanguageSourceSetFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
+        super("language", LanguageSourceSet.class, ModelReference.of(ComponentSpecFactory.class), ImmutableList.of(LanguageBasePlugin.class), schemaStore);
     }
 }

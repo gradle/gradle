@@ -37,7 +37,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTRY extends BaseInstanceFactory<TYPE>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
+public class TypeModelRuleExtractor<ANNOTATION extends Annotation, TYPE, REGISTRY extends BaseInstanceFactory<? super TYPE>> extends AbstractAnnotationDrivenComponentModelRuleExtractor<ANNOTATION> {
     private final String modelName;
     private final ModelType<TYPE> baseInterface;
     private final ModelReference<REGISTRY> registryRef;

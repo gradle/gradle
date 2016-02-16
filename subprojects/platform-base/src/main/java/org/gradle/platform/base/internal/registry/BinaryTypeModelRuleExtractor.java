@@ -21,11 +21,11 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
-public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BinarySpecFactory> {
+public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, ComponentSpecFactory> {
     public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
-        super("binary", BinarySpec.class, ModelReference.of(BinarySpecFactory.class), ImmutableList.of(BinaryBasePlugin.class), schemaStore);
+        super("binary", BinarySpec.class, ModelReference.of(ComponentSpecFactory.class), ImmutableList.of(BinaryBasePlugin.class), schemaStore);
     }
 }

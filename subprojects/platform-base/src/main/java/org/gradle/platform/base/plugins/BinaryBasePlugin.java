@@ -17,22 +17,15 @@ package org.gradle.platform.base.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 /**
@@ -56,22 +49,6 @@ public class BinaryBasePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Model
         void binaries(BinaryContainer binaries) {
-        }
-
-        @Hidden
-        @Model
-        BinarySpecFactory binarySpecFactory(Instantiator instantiator, ITaskFactory taskFactory, ProjectIdentifier projectIdentifier) {
-            return new BinarySpecFactory(projectIdentifier, instantiator, taskFactory);
-        }
-
-        @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, bindingsStore));
-        }
-
-        @Validate
-        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
         }
 
         @BinaryType
