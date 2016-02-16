@@ -32,7 +32,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultGradleConnection implements GradleConnection {
+public class DefaultGradleConnection implements GradleConnectionInternal {
     public static final class Builder implements GradleConnectionInternal.Builder {
         private final Set<GradleParticipantBuild> participants = Sets.newLinkedHashSet();
         private final GradleConnectionFactory gradleConnectionFactory;
@@ -83,7 +83,6 @@ public class DefaultGradleConnection implements GradleConnection {
             if (participants.isEmpty()) {
                 throw new IllegalStateException("At least one participant must be specified before creating a connection.");
             }
-            // TODO:
 
             DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
             compositeConnectionParametersBuilder.setBuilds(participants);

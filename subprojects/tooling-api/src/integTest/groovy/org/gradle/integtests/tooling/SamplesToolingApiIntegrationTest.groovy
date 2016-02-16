@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.Sample
@@ -25,7 +26,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
 @LeaksFileHandles
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
@@ -96,8 +96,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    // TODO: Re-enable once we're controlling the daemons spawned by this test
-    @Ignore
+    @NotYetImplemented // TODO: Broken due to NPE
     @UsesSample('toolingApi/composite')
     def "can use tooling API to compose independent projects"() {
         tweakProject()
@@ -106,14 +105,14 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         def result = run()
 
         then:
-        result.assertOutputContains("Project: project1/:")
-        result.assertOutputContains("Project: project1/:a")
-        result.assertOutputContains("Project: project1/:b")
-        result.assertOutputContains("Project: project1/:c")
-        result.assertOutputContains("Project: project2/:")
-        result.assertOutputContains("Project: project3/:")
-        result.assertOutputContains("Project: project3/:a")
-        result.assertOutputContains("Project: project3/:b")
+        result.assertOutputContains("Project: project1::")
+        result.assertOutputContains("Project: project1::a")
+        result.assertOutputContains("Project: project1::b")
+        result.assertOutputContains("Project: project1::c")
+        result.assertOutputContains("Project: project2::")
+        result.assertOutputContains("Project: project3::")
+        result.assertOutputContains("Project: project3::a")
+        result.assertOutputContains("Project: project3::b")
     }
 
     private void tweakProject(File projectDir = sample.dir) {

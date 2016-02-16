@@ -32,14 +32,12 @@ import java.util.Set;
 public class Main {
     public static void main(String... args) {
         GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder();
-        // TODO: Do not support setting composite build implementation yet
-        // builder.useInstallation(new File(args[0]));
+        File gradleHome = new File(args[0]);
         builder.useGradleUserHomeDir(new File(args[1]));
 
         for (int i=2; i<args.length; i++) {
             File projectDir = new File(args[i]);
-            // Use Gradle 2.10 for all build participants.
-            builder.addBuild(projectDir, "2.10");
+            builder.addBuild(projectDir, gradleHome);
         }
         GradleConnection connection = builder.build();
         try {
@@ -53,7 +51,7 @@ public class Main {
                 String projectDir = getProjectDirectory(gradleProject);
                 String sourceLanguageLevel = getJavaVersion(eclipseProject);
 
-                System.out.println("Project: " + rootProjectName + "/" + projectPath);
+                System.out.println("Project: " + rootProjectName + ":" + projectPath);
                 System.out.println("Source Language Level: " + sourceLanguageLevel);
                 System.out.println("Project Directory: " + projectDir);
 
