@@ -35,7 +35,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
+                  | Creator: 	ComponentBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 88, column 5
                 + myComponent
@@ -100,7 +100,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
+                  | Creator: 	ComponentBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 88, column 5
                 + myComponent
