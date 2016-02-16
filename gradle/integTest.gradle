@@ -254,7 +254,7 @@ integTestTasks.all { Test task ->
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
     if(!JavaVersion.current().isJava8Compatible()) {
-        jvmArgs '-XX:MaxPermSize=512m'
+        jvmArgs '-XX:MaxPermSize=768m'
     }
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
