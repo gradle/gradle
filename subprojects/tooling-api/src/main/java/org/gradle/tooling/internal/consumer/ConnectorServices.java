@@ -24,7 +24,6 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.composite.internal.CoordinatorGradleConnection;
-import org.gradle.tooling.composite.internal.DefaultGradleConnection;
 import org.gradle.tooling.composite.internal.GradleConnectionFactory;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -37,11 +36,6 @@ public class ConnectorServices {
     public static DefaultGradleConnector createConnector() {
         assertJava6();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
-    }
-
-    public static DefaultGradleConnection.Builder createClientSideGradleConnectionBuilder() {
-        assertJava6();
-        return singletonRegistry.getFactory(DefaultGradleConnection.Builder.class).create();
     }
 
     public static CoordinatorGradleConnection.Builder createCoordinatorGradleConnectionBuilder() {
@@ -79,15 +73,6 @@ public class ConnectorServices {
             return new Factory<DefaultGradleConnector>() {
                 public DefaultGradleConnector create() {
                     return new DefaultGradleConnector(connectionFactory, distributionFactory);
-                }
-            };
-        }
-
-        protected Factory<DefaultGradleConnection.Builder> createConnectionBuilderFactory() {
-            return new Factory<DefaultGradleConnection.Builder>() {
-                @Override
-                public DefaultGradleConnection.Builder create() {
-                    return new DefaultGradleConnection.Builder();
                 }
             };
         }

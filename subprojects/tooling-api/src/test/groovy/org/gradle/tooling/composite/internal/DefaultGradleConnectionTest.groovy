@@ -22,17 +22,17 @@ import spock.lang.Specification
 class DefaultGradleConnectionTest extends Specification {
 
     GradleParticipantBuild build = Mock()
-    GradleConnection connection = new DefaultGradleConnection(null, [ build ] as Set)
+    GradleConnection connection = new CoordinatorGradleConnection(null, [ build ] as Set)
 
     def "can get model builder"() {
         expect:
-        connection.models(EclipseProject) instanceof DefaultCompositeModelBuilder
+        connection.models(EclipseProject) instanceof CoordinatorCompositeModelBuilder
     }
 
     def "close stops all underlying project connections"() {
         given:
         def builds = (0..3).collect { Mock(GradleParticipantBuild) } as Set
-        GradleConnection connection = new DefaultGradleConnection(null, builds)
+        GradleConnection connection = new CoordinatorGradleConnection(null, builds)
         when:
         connection.close()
         then:
