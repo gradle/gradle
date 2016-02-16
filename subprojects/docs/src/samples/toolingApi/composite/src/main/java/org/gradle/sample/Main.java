@@ -23,7 +23,6 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
-import java.lang.NullPointerException;
 import java.util.Set;
 
 /**
@@ -65,7 +64,7 @@ public class Main {
         // Requires build with >Gradle 2.10
         try {
             return String.valueOf(eclipseProject.getJavaSourceSettings().getSourceLanguageLevel());
-        } catch (UnsupportedMethodException|NullPointerException e) {
+        } catch (Exception e) {
             return "(unknown)";
         }
     }
