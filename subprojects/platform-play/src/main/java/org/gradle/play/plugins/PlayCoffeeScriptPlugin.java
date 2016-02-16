@@ -80,7 +80,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createGeneratedJavaScriptSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+        void createGeneratedJavaScriptSourceSets(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
             binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {

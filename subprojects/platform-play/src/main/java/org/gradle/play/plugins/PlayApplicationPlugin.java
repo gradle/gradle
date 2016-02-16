@@ -181,7 +181,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @Mutate
         // TODO:LPTR This should be like @Finalize void generatedSourcesAreInputs(@Each PlayApplicationBinarySpecInternal binary)
-        void generatedSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
+        void generatedSourcesAreInputs(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
             binaries.afterEach(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
@@ -265,7 +265,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
             for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
                 String runTaskName = binary.getTasks().taskName("run");

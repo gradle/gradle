@@ -92,7 +92,7 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Defaults
-    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         for (PlayApplicationBinarySpecInternal binary : playBinaries) {

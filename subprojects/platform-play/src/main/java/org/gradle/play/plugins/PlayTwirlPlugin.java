@@ -33,6 +33,7 @@ import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
@@ -63,7 +64,7 @@ public class PlayTwirlPlugin extends RuleSource {
     }
 
     @Mutate
-    void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    void createGeneratedScalaSourceSets(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
@@ -76,7 +77,7 @@ public class PlayTwirlPlugin extends RuleSource {
 
     @Mutate
     // TODO:LPTR This should be @Defaults @Each PlayApplicationBinarySpecInternal
-    void addPlayJavaDependencyIfNeeded(ModelMap<PlayApplicationBinarySpecInternal> binaries, final PlayPluginConfigurations configurations, final PlatformResolvers platforms) {
+    void addPlayJavaDependencyIfNeeded(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final PlayPluginConfigurations configurations, final PlatformResolvers platforms) {
         binaries.beforeEach(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal binary) {

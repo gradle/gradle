@@ -30,6 +30,7 @@ import org.gradle.language.routes.RoutesSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
@@ -55,7 +56,7 @@ public class PlayRoutesPlugin extends RuleSource {
     }
 
     @Mutate
-    void createGeneratedScalaSourceSets(ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    void createGeneratedScalaSourceSets(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
             @Override
             public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
@@ -124,5 +125,5 @@ public class PlayRoutesPlugin extends RuleSource {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }
     }
-    
+
 }
