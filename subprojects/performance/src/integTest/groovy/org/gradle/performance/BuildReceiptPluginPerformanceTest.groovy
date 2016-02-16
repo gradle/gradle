@@ -68,14 +68,14 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         def tasks = ['clean', 'build']
 
         runner.baseline {
-            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName(WITHOUT_PLUGIN_LABEL).invocation {
+            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName(WITH_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
             }
         }
 
         runner.buildSpec {
-            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName(WITH_PLUGIN_LABEL).invocation {
+            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
             }
