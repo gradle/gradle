@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.composite.internal.CoordinatorGradleConnection;
+import org.gradle.tooling.composite.internal.DefaultGradleConnection;
 import org.gradle.tooling.composite.internal.GradleConnectionFactory;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -38,9 +38,9 @@ public class ConnectorServices {
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
 
-    public static CoordinatorGradleConnection.Builder createCoordinatorGradleConnectionBuilder() {
+    public static DefaultGradleConnection.Builder createGradleConnectionBuilder() {
         assertJava6();
-        return singletonRegistry.getFactory(CoordinatorGradleConnection.Builder.class).create();
+        return singletonRegistry.getFactory(DefaultGradleConnection.Builder.class).create();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {
@@ -77,10 +77,10 @@ public class ConnectorServices {
             };
         }
 
-        protected Factory<CoordinatorGradleConnection.Builder> createCoordinatorGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
-            return new Factory<CoordinatorGradleConnection.Builder>() {
-                public CoordinatorGradleConnection.Builder create() {
-                    return new CoordinatorGradleConnection.Builder(gradleConnectionFactory, distributionFactory);
+        protected Factory<DefaultGradleConnection.Builder> createGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
+            return new Factory<DefaultGradleConnection.Builder>() {
+                public DefaultGradleConnection.Builder create() {
+                    return new DefaultGradleConnection.Builder(gradleConnectionFactory, distributionFactory);
                 }
             };
         }

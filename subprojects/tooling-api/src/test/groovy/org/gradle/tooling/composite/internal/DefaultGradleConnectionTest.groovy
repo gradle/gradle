@@ -16,34 +16,32 @@
 
 package org.gradle.tooling.composite.internal
 import org.gradle.tooling.composite.GradleConnection
+import org.gradle.tooling.internal.consumer.CompositeConnectionParameters
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Specification
 
 class DefaultGradleConnectionTest extends Specification {
 
-    GradleParticipantBuild build = Mock()
-    GradleConnection connection = new CoordinatorGradleConnection(null, [ build ] as Set)
+    AsyncConsumerActionExecutor actionExecutor = Mock()
+    CompositeConnectionParameters connectionParameters = Mock()
+    GradleConnection connection = new DefaultGradleConnection(actionExecutor, connectionParameters)
 
     def "can get model builder"() {
         expect:
-        connection.models(EclipseProject) instanceof CoordinatorCompositeModelBuilder
+        connection.models(EclipseProject) instanceof DefaultCompositeModelBuilder
     }
 
-    def "close stops all underlying project connections"() {
-        given:
-        def builds = (0..3).collect { Mock(GradleParticipantBuild) } as Set
-        GradleConnection connection = new CoordinatorGradleConnection(null, builds)
+    def "close stops all underlying connections"() {
         when:
         connection.close()
         then:
-        builds.each {
-            1 * it.stop()
-        }
+        actionExecutor.stop()
     }
 
     def "errors propagate to caller when closing connection"() {
         given:
-        build.stop() >> { throw new RuntimeException() }
+        actionExecutor.stop() >> { throw new RuntimeException() }
         when:
         connection.close()
         then:

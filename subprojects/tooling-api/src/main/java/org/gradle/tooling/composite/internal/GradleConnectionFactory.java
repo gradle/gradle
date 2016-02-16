@@ -39,11 +39,11 @@ public class GradleConnectionFactory {
         this.loggingProvider = loggingProvider;
     }
 
-    public CoordinatorGradleConnection create(Distribution distribution, CompositeConnectionParameters parameters) {
+    public DefaultGradleConnection create(Distribution distribution, CompositeConnectionParameters parameters) {
         ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(lazyConnection, loggingProvider);
         ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);
         AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
-        return new CoordinatorGradleConnection(asyncConnection, parameters);
+        return new DefaultGradleConnection(asyncConnection, parameters);
     }
 }

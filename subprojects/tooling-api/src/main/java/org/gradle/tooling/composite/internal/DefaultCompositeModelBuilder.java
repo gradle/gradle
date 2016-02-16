@@ -31,10 +31,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
-public class CoordinatorCompositeModelBuilder<T> implements ModelBuilder<Set<T>> {
+public class DefaultCompositeModelBuilder<T> implements ModelBuilder<Set<T>> {
     private final ModelBuilder<SetOfEclipseProjects> delegate;
 
-    protected CoordinatorCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
+    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
         delegate = new DefaultModelBuilder<SetOfEclipseProjects>(SetOfEclipseProjects.class, asyncConnection, parameters);
         //delegate.setJvmArguments("-Xmx1G", "-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }

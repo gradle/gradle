@@ -32,7 +32,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class CoordinatorGradleConnection implements GradleConnection {
+public class DefaultGradleConnection implements GradleConnection {
     public static final class Builder implements GradleConnectionInternal.Builder {
         private final Set<GradleParticipantBuild> participants = Sets.newLinkedHashSet();
         private final GradleConnectionFactory gradleConnectionFactory;
@@ -121,7 +121,7 @@ public class CoordinatorGradleConnection implements GradleConnection {
     private final AsyncConsumerActionExecutor asyncConnection;
     private final CompositeConnectionParameters parameters;
 
-    CoordinatorGradleConnection(AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
+    DefaultGradleConnection(AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
         this.asyncConnection = asyncConnection;
         this.parameters = parameters;
     }
@@ -139,7 +139,7 @@ public class CoordinatorGradleConnection implements GradleConnection {
     @Override
     public <T> ModelBuilder<Set<T>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
-        return new CoordinatorCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
+        return new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
     }
 
     private <T> void checkSupportedModelType(Class<T> modelType) {
