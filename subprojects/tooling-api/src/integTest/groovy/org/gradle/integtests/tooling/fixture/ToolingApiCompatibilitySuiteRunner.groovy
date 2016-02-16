@@ -45,6 +45,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return false
         }
     }
+    private static ClassLoader lastActiveTestClassLoader
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
@@ -135,7 +136,23 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                     classLoader = createTestClassLoader()
                     TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
                 }
+                manageCacheInPreviousClassLoader(classLoader)
                 return classLoader
+            }
+        }
+
+        private void manageCacheInPreviousClassLoader(ClassLoader classLoader) {
+            if (classLoader != lastActiveTestClassLoader && lastActiveTestClassLoader != null) {
+                clearCacheInPreviousClassLoader()
+            }
+            lastActiveTestClassLoader = classLoader
+        }
+
+        private void clearCacheInPreviousClassLoader() {
+            try {
+                lastActiveTestClassLoader.loadClass("org.gradle.tooling.internal.consumer.ConnectorServices").newInstance().reset()
+            } catch (e) {
+                // ignore errors
             }
         }
 
