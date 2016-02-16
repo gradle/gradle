@@ -76,7 +76,7 @@ public class DefaultGradleConnection implements GradleConnection {
                 participant.setDaemonBaseDir(daemonBaseDir);
             }
 
-            return new ValidatingGradleConnection(new DefaultGradleConnection(gradleUserHomeDir, participants), new DefaultCompositeValidator());
+            return new DefaultGradleConnection(gradleUserHomeDir, participants);
         }
 
         @Override
