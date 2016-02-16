@@ -18,8 +18,15 @@ apply plugin: PluginRules
 
 abstract class ValidateRules extends RuleSource {
     @Validate
+    void validateSizeIsPositive(ModelMap<FileItem> files) {
+        files.each { file ->
+            assert file.size > 0
+        }
+    }
+
+    @Validate
     void validateSizeDivisibleBySixteen(ModelMap<FileItem> files) {
-        files.afterEach { file ->
+        files.each { file ->
             assert file.size % 16 == 0
         }
     }

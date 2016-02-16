@@ -450,7 +450,7 @@
                     In the example below a <literal>@Defaults</literal> rule is applied to each <code>FileItem</code>
                     in the model setting a default file size of "1024". Another rule applies a
                     <apilink class="org.gradle.model.RuleSource" /> to every <code>DirectoryItem</code> that makes sure
-                    all file sizes are divisible by "16".
+                    all file sizes are positive and divisible by "16".
                 </para>
                 <sample id='ruleSourcePluginEach' dir='modelRules/ruleSourcePluginEach' includeLocation="true" title="a DSL example applying a rule to every element in a scope">
                     <sourcefile file='build.gradle'/>
