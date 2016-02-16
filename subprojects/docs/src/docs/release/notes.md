@@ -1,3 +1,11 @@
+TODO preamble:
+
+talk about the key features that have relevance for most of our users:
+
+- compile only dependencies
+- test filtering
+- IDE integration improvements
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -10,8 +18,30 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### IDE integration improvements
+### Support for declaring compile time only dependencies with Java plugin
 
+You can now declare dependencies that are used only during source compilation in conjunction with the [Java plugin](userguide/java_plugin.html). Compile only dependencies are used
+only during source compilation and are not included in the runtime classpath or exposed to dependent projects. Compile only dependencies are assigned to the relevant source set's
+'compileOnly' configuration.
+
+    dependencies {
+        compileOnly 'javax.servlet:servlet-api:2.5'
+    }
+
+More details about declaring compile only configurations can be found in the [Java plugin chapter](userguide/java_plugin.html#sec:java_plugin_and_dependency_management) of the user guide.
+
+### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
+
+You can use [test filtering](userguide/java_plugin.html#test_filtering) in the Java Plugin to execute a specific subset of tests. Now, you can match against TestSuite names in both JUnit and TestNG test tasks. You can also filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
+
+    gradle test --tests "com.example.MyTestSuite"        // Includes the tests in the given suite.
+    gradle test --tests "com.example.ParameterizedTest"  // All iterations of methods in the test.
+    gradle test --tests "*ParameterizedTest.foo*"        // All iterations of the foo method in the test.
+    gradle test --tests "*ParameterizedTest.*[2]"        // Only iteration 2 of all methods in the test.
+
+These same patterns can also be used in the [filter section](userguide/java_plugin.html#testfiltering) of the test task directly in your `build.gradle` file.
+
+### IDE integration improvements
 
 #### Idea Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
 
@@ -19,7 +49,6 @@ The Gradle 'idea' plugin can generate configuration files allowing a Gradle buil
 Previous versions of Gradle did not consider any `targetCompatibility` settings for java projects.
 This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest targetCompatibility value for all imported subprojects.
 For a multi-project Gradle build that contains a mix of targetCompatibility values, the generated IDEA module for a sub-project will include an override for the appropriate 'module bytecode version' where it does not match that of the overall generated IDEA project.
-
 
 #### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
 
@@ -30,6 +59,11 @@ now by default creates a Scala SDK project library as well as adds this library 
 [user guide](https://docs.gradle.org/current/userguide/scala_plugin.html#sec:intellij_idea_integration).
 
 This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
+
+### The "scala-library" build init type uses the Zinc compiler by default
+
+When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
+The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
 
 ### Software model improvements
 
@@ -86,34 +120,6 @@ abstract class MyComponentRules extends RuleSource {
 #### Declaration of local JVM installations
 
 It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and will subsequently be used by Gradle itself to select the appropriate toolchain when compiling Java sources. More information about this can be found in the “[Java sotfware model section of the userguide](userguide/java_software.html.html)”
-
-### The "scala-library" build init type uses the Zinc compiler by default
-
-When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
-The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
-
-### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
-
-You can use [test filtering](userguide/java_plugin.html#test_filtering) in the Java Plugin to execute a specific subset of tests. Now, you can match against TestSuite names in both JUnit and TestNG test tasks. You can also filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
-
-    gradle test --tests "com.example.MyTestSuite"        // Includes the tests in the given suite.
-    gradle test --tests "com.example.ParameterizedTest"  // All iterations of methods in the test.
-    gradle test --tests "*ParameterizedTest.foo*"        // All iterations of the foo method in the test.
-    gradle test --tests "*ParameterizedTest.*[2]"        // Only iteration 2 of all methods in the test.
-
-These same patterns can also be used in the [filter section](userguide/java_plugin.html#testfiltering) of the test task directly in your `build.gradle` file.
-
-### Support for declaring compile time only dependencies with Java plugin
-
-You can now declare dependencies that are used only during source compilation in conjunction with the [Java plugin](userguide/java_plugin.html). Compile only dependencies are used
-only during source compilation and are not included in the runtime classpath or exposed to dependent projects. Compile only dependencies are assigned to the relevant source set's
-'compileOnly' configuration.
-
-    dependencies {
-        compileOnly 'javax.servlet:servlet-api:2.5'
-    }
-
-More details about declaring compile only configurations can be found in the [Java plugin chapter](userguide/java_plugin.html#sec:java_plugin_and_dependency_management) of the user guide.
 
 ## Promoted features
 
