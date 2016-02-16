@@ -24,7 +24,6 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
