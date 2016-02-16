@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.plugin
 
-import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.PlatformBaseSpecification
 
 abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
@@ -37,16 +36,5 @@ abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
 
         transform != null
         transform.sourceSetType == languageSourceSet
-    }
-
-    def "registers source set type for language"() {
-        when:
-        dsl {
-            apply plugin: pluginClass
-        }
-
-        then:
-        def registrations = realize("languageSourceSetFactory")
-        registrations.supportedTypes.contains(ModelType.of(languageSourceSet))
     }
 }
