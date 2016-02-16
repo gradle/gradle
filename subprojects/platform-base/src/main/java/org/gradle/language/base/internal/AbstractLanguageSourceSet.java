@@ -24,7 +24,6 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
-    private final String name;
     private final String fullName;
     private final String parentName;
     private final String languageName;
@@ -34,8 +33,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType, String parentName, SourceDirectorySet source) {
         super(identifier, publicType);
-        this.name = identifier.getName();
-        this.fullName = parentName + StringUtils.capitalize(name);
+        this.fullName = parentName + StringUtils.capitalize(identifier.getName());
         this.source = source;
         this.parentName = parentName;
         this.languageName = guessLanguageName(getTypeName());
@@ -48,10 +46,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     private String guessLanguageName(String typeName) {
         return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getProjectScopedName() {
@@ -84,11 +78,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
             return String.format("%s '%s:%s'", languageName, parentName, getName());
         }
         return String.format("%s source '%s:%s'", languageName, parentName, getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
     }
 
     public SourceDirectorySet getSource() {
