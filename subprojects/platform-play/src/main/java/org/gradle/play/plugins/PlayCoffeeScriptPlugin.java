@@ -28,7 +28,7 @@ import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.model.*;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
@@ -64,7 +64,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     }
 
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerCoffeeScript(TypeBuilder<CoffeeScriptSourceSet> builder) {
         }
 

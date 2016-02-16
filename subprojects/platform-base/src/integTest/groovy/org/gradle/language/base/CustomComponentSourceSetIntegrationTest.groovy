@@ -33,10 +33,10 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @ComponentType
             void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
-            @BinaryType
+            @ComponentType
             void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
-            @LanguageType
+            @ComponentType
             void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
@@ -179,7 +179,7 @@ model {
             }
 
             class HaxeRules extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                     builder.defaultImplementation(DefaultHaxeSourceSet)
                     builder.internalView(HaxeSourceSetInternal)
@@ -229,7 +229,7 @@ model {
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {}
             class HaxeRules extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                 }
             }
@@ -261,7 +261,7 @@ model {
                 void setSomeProperty(String value)
             }
             class CustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                 }
             }
@@ -308,7 +308,7 @@ model {
         buildFile << """
             @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
             class ChildCustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerChildCustomManagedLSSPType(TypeBuilder<ChildCustomManagedLSS> builder) {
                 }
             }
@@ -348,7 +348,7 @@ model {
                 void setInternal(String internal)
             }
             class CustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                     builder.internalView(CustomManagedLSSInternal)
                 }

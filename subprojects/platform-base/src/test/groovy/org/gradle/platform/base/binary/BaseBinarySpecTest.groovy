@@ -36,7 +36,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a @BinaryType rule instead."
+        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead."
     }
 
     def "binary has name and sensible display name"() {

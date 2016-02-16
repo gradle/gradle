@@ -49,7 +49,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
             }
 
             class MySamplePlugin extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
                 }

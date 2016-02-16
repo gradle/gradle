@@ -57,7 +57,7 @@ public class JUnitTestSuitePlugin implements Plugin<Project> {
             builder.internalView(HasIntermediateOutputsComponentSpec.class);
         }
 
-        @BinaryType
+        @ComponentType
         public void registerJUnitBinary(TypeBuilder<JUnitTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultJUnitTestSuiteBinarySpec.class);
             builder.internalView(JvmTestSuiteBinarySpecInternal.class);

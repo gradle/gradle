@@ -33,7 +33,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.ScalaSourceCode;
@@ -51,7 +51,7 @@ import java.util.Map;
 @Incubating
 public class PlayRoutesPlugin extends RuleSource {
 
-    @LanguageType
+    @ComponentType
     void registerRoutesLanguageType(TypeBuilder<RoutesSourceSet> builder) {
     }
 

@@ -25,7 +25,7 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
         @Managed interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
         class CustomLanguagePlugin extends RuleSource {
-            @LanguageType
+            @ComponentType
             void declareCustomLanguage(TypeBuilder<CustomLanguageSourceSet> builder) {
             }
         }

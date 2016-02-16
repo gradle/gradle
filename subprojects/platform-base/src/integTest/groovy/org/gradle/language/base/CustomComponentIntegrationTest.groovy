@@ -604,7 +604,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Failed to apply plugin [class 'Broken']")
         failure.assertHasCause("""Type Broken is not a valid rule source:
 - Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: A rule method cannot be private
-- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
+- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
     }
 
     @NotYetImplemented

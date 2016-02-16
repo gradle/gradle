@@ -143,17 +143,17 @@ class ComponentTypeRules extends RuleSource {
         builder.defaultImplementation(DefaultBuildTypeOnlyLibrary)
     }
 
-    @BinaryType
+    @ComponentType
     void registerFlavorAndBuildTypeJar(TypeBuilder<FlavorAndBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(FlavorAndBuildTypeBinary)
     }
 
-    @BinaryType
+    @ComponentType
     void registerFlavorOnlyJar(TypeBuilder<FlavorJarBinarySpec> builder) {
         builder.defaultImplementation(FlavorBinary)
     }
 
-    @BinaryType
+    @ComponentType
     void registerBuildTypeOnlyJar(TypeBuilder<BuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(BuildTypeBinary)
     }

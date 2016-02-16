@@ -45,7 +45,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     builder.defaultImplementation(DefaultCustomTestSuite)
                 }
 
-                @LanguageType
+                @ComponentType
                 void registerCustomLanguageType(TypeBuilder<CustomLanguageSourceSet> builder) {
                     builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
@@ -89,7 +89,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestBinaryTypeRules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 public void registerCustomTestBinaryFactory(TypeBuilder<CustomTestBinary> builder) {
                     builder.defaultImplementation(DefaultCustomTestBinary)
                 }

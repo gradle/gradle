@@ -145,17 +145,17 @@ class ComponentTypeRules extends RuleSource {
     void registerAnotherBuildTypeBuildTypeComponent(TypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
     }
 
-    @BinaryType
+    @ComponentType
     void registerStringBuildTypeJar(TypeBuilder<BuildTypeAsStringJarBinarySpec> builder) {
         builder.defaultImplementation(StringBinary)
     }
 
-    @BinaryType
+    @ComponentType
     void registerBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(BuildTypeBinary)
     }
 
-    @BinaryType
+    @ComponentType
     void registerAnotherBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsAnotherBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(AnotherBuildTypeBinary)
     }

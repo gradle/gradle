@@ -124,7 +124,7 @@
         </sample>
         <para>
             Types extending <literal>BinarySpec</literal> are registered via a rule
-            annotated with <apilink class="org.gradle.platform.base.BinaryType"/>:
+            annotated with <apilink class="org.gradle.platform.base.ComponentType"/>:
         </para>
         <sample id="binary-registration" title="Register a custom binary"
                 dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
@@ -143,7 +143,7 @@
         </sample>
         <para>
             Types extending <literal>LanguageSourceSet</literal> are registered via a rule
-            annotated with <apilink class="org.gradle.platform.base.LanguageType"/>:
+            annotated with <apilink class="org.gradle.platform.base.ComponentType"/>:
         </para>
         <sample id="markdown-lang-registration" title="Register a custom source set"
                 dir="customModel/languageType/buildSrc/src/main/groovy/sample/markdown">

@@ -99,7 +99,7 @@ model {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                 }
             }
@@ -130,7 +130,7 @@ model {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                 }
             }
@@ -179,7 +179,7 @@ model {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                 }
 
@@ -188,7 +188,7 @@ model {
                     binaries.create("sampleBinary", SampleBinary)
                 }
 
-                @BinaryType
+                @ComponentType
                 void registerAnother(TypeBuilder<AnotherSampleBinary> builder) {}
 
                 @Mutate
@@ -230,7 +230,7 @@ model {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder, String illegalOtherParameter) {
                 }
             }
@@ -246,7 +246,7 @@ model {
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
         failure.assertHasCause '''Type MySamplePlugin$Rules is not a valid rule source:
-- Method register(org.gradle.platform.base.TypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @BinaryType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
+- Method register(org.gradle.platform.base.TypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }
 
     def "cannot register implementation for the same binary type multiple times"() {
@@ -256,13 +256,13 @@ model {
         interface SomeBinary extends BinarySpec {}
         class DefaultSomeBinary extends BaseBinarySpec implements SomeBinary {}
         class Rules1 extends RuleSource {
-            @BinaryType
+            @ComponentType
             void register(TypeBuilder<SomeBinary> builder) {
                 builder.defaultImplementation(DefaultSomeBinary)
             }
         }
         class Rules2 extends RuleSource {
-            @BinaryType
+            @ComponentType
             void register(TypeBuilder<SomeBinary> builder) {
                 builder.defaultImplementation(DefaultSomeBinary)
             }
@@ -311,7 +311,7 @@ BUILD SUCCESSFUL"""
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                 }
 

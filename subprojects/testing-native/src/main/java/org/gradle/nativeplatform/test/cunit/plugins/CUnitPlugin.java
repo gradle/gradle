@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
@@ -100,7 +99,7 @@ public class CUnitPlugin implements Plugin<Project> {
             return suite.getSources().withType(CSourceSet.class).get(CUNIT_LAUNCHER_SOURCE_SET);
         }
 
-        @BinaryType
+        @ComponentType
         public void registerCUnitTestBinaryType(TypeBuilder<CUnitTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultCUnitTestSuiteBinary.class);
         }

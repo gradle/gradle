@@ -24,23 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The following example demonstrates how to register a custom language type using a plugin with a
- * {@link LanguageType} annotation.
+ * No longer supported. Use {@link ComponentType} instead.
  *
- * <pre autoTested=''>
- * interface CustomLanguageSourceSet extends LanguageSourceSet {}
- * class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
- *
- * apply plugin: MySamplePlugin
- *
- * class MySamplePlugin extends RuleSource {
- *     {@literal @}LanguageType
- *     void declareCustomLanguage(TypeBuilder&lt;CustomLanguageSourceSet&gt; builder) {
- *         builder.defaultImplementation(DefaultCustomLanguageSourceSet)
- *     }
- * }
- * </pre>
+ * @deprecated Use {@link ComponentType} instead.
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating

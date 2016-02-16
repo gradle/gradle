@@ -30,7 +30,6 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
@@ -58,7 +57,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteSpec.class);
         }
 
-        @BinaryType
+        @ComponentType
         public void registerGoogleTestSuiteBinaryType(TypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
         }

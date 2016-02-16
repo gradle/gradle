@@ -48,12 +48,12 @@ class TestSuitePlugin extends RuleSource {
         builder.defaultImplementation(DefaultCustomTestSuite)
     }
 
-    @BinaryType
+    @ComponentType
     void registerBinaryType(TypeBuilder<CustomTestBinary> builder) {
         builder.defaultImplementation(DefaultCustomTestBinary)
     }
 
-    @LanguageType
+    @ComponentType
     void registerLanguageType(TypeBuilder<CustomTestSourceSet> builder) {
     }
 

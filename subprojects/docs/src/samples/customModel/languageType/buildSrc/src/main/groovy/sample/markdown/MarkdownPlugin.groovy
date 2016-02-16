@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.model.ModelMap
 import org.gradle.model.RuleSource
 import org.gradle.platform.base.BinaryTasks
-import org.gradle.platform.base.LanguageType
+import org.gradle.platform.base.ComponentType
 import org.gradle.platform.base.TypeBuilder
 import sample.documentation.DocumentationBinary
 
@@ -28,7 +28,7 @@ import sample.documentation.DocumentationBinary
 // START SNIPPET markdown-tasks-generation
 class MarkdownPlugin extends RuleSource {
 // END SNIPPET markdown-tasks-generation
-    @LanguageType
+    @ComponentType
     void registerMarkdownLanguage(TypeBuilder<MarkdownSourceSet> builder) {}
 // END SNIPPET markdown-lang-registration
 

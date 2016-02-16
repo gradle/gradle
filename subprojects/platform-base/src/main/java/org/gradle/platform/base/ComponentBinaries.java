@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  * apply plugin: MyCustomBinariesPlugin
  *
  * class MyCustomBinariesPlugin extends RuleSource {
- *     {@literal @}BinaryType
+ *     {@literal @}ComponentType
  *     void register(TypeBuilder<SampleBinary> builder) {
  *         builder.defaultImplementation(DefaultSampleBinary)
  *     }

@@ -27,11 +27,11 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.LanguageType
+import org.gradle.platform.base.ComponentType
 import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
-import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
+import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -40,11 +40,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     Class<?> ruleClass = Rules
 
-    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(schemaStore)
+    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(schemaStore)
 
     @Override
     Class<? extends Annotation> getAnnotation() {
-        return LanguageType
+        return ComponentType
     }
 
     @Unroll
@@ -61,13 +61,13 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName                    | expectedMessage                                                                                      | descr
-        "returnValue"                 | "A method annotated with @LanguageType must have void return type."                                  | "non void method"
-        "noParams"                    | "A method annotated with @LanguageType must have a single parameter of type ${TypeBuilder.name}."    | "no LanguageTypeBuilder subject"
-        "wrongSubject"                | "A method annotated with @LanguageType must have a single parameter of type ${TypeBuilder.name}."    | "wrong rule subject type"
-        "rawLanguageTypeBuilder"      | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                               | "non typed parameter"
-        "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."             | "wild card parameter"
-        "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'." | "public type not extending LanguageSourceSet"
+        methodName                    | expectedMessage                                                                                    | descr
+        "returnValue"                 | "A method annotated with @ComponentType must have void return type."                               | "non void method"
+        "noParams"                    | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}." | "no TypeBuilder subject"
+        "wrongSubject"                | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}." | "wrong rule subject type"
+        "rawLanguageTypeBuilder"      | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                             | "non typed parameter"
+        "wildcardLanguageTypeBuilder" | "Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                    | "wild card parameter"
+        "wrongSubType"                | "Type 'java.lang.String' is not a subtype of 'org.gradle.platform.base.ComponentSpec'."            | "public type not extending LanguageSourceSet"
     }
 
     def "applies LanguageBasePlugin and creates language type rule"() {
@@ -135,47 +135,47 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     static class Rules {
 
-        @LanguageType
+        @ComponentType
         String returnValue(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             return null
         }
 
-        @LanguageType
+        @ComponentType
         void noParams() {
         }
 
-        @LanguageType
+        @ComponentType
         void wrongSubject(LanguageSourceSet sourcet) {
         }
 
-        @LanguageType
+        @ComponentType
         void rawLanguageTypeBuilder(TypeBuilder builder) {
         }
 
-        @LanguageType
+        @ComponentType
         void wildcardLanguageTypeBuilder(TypeBuilder<?> builder) {
         }
 
-        @LanguageType
+        @ComponentType
         void wrongSubType(TypeBuilder<String> languageBuilder) {
         }
 
-        @LanguageType
+        @ComponentType
         void notExtendingBaseLanguageSourceSet(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotExtendingBaseLanguageSourceSet)
         }
 
-        @LanguageType
+        @ComponentType
         void notImplementingLibraryType(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotImplementingCustomLanguageSourceSet)
         }
 
-        @LanguageType
+        @ComponentType
         void noPublicCtorImplementation(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
         }
 
-        @LanguageType
+        @ComponentType
         void validTypeRule(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }

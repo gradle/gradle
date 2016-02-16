@@ -31,7 +31,7 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Collections;
@@ -52,7 +52,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerLanguage(TypeBuilder<JvmResourceSet> builder) {
             builder.defaultImplementation(DefaultJvmResourceLanguageSourceSet.class);
         }

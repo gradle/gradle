@@ -30,7 +30,7 @@ import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
@@ -53,7 +53,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerJavascript(TypeBuilder<JavaScriptSourceSet> builder) {
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }

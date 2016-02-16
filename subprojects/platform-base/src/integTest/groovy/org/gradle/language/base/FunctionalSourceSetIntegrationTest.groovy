@@ -340,7 +340,7 @@ after ss1
         return """
             @Managed interface SomeJavaSourceSet extends LanguageSourceSet {}
             class JavaLangRuleSource extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerLanguage(TypeBuilder<SomeJavaSourceSet> builder) {
                 }
             }

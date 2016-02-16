@@ -32,7 +32,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
             void registerLibrary(TypeBuilder<SampleLibrary> builder) {
             }
 
-            @BinaryType
+            @ComponentType
             void registerBinary(TypeBuilder<SampleBinary> builder) {
             }
 
@@ -156,7 +156,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         @Managed interface OtherBinary extends SampleBinary {}
 
         class MyOtherBinariesPlugin extends RuleSource {
-            @BinaryType
+            @ComponentType
             void register(TypeBuilder<OtherBinary> builder) {
             }
 

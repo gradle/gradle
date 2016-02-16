@@ -176,7 +176,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         return """
             @Managed interface CustomSourceSet extends LanguageSourceSet {}
             class CustomSourceSetPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
                 }
             }
@@ -189,7 +189,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
             interface CustomSourceSet extends LanguageSourceSet {}
             class DefaultCustomSourceSet extends BaseLanguageSourceSet implements CustomSourceSet {}
             class CustomSourceSetPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
                     builder.defaultImplementation(DefaultCustomSourceSet)
                 }

@@ -36,7 +36,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.play.PlayApplicationSpec;
@@ -58,7 +58,7 @@ import java.util.Map;
 @Incubating
 public class PlayTwirlPlugin extends RuleSource {
 
-    @LanguageType
+    @ComponentType
     void registerTwirlLanguageType(TypeBuilder<TwirlSourceSet> builder) {
         builder.defaultImplementation(DefaultTwirlSourceSet.class);
     }

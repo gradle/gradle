@@ -21,10 +21,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -51,7 +48,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
         void binaries(BinaryContainer binaries) {
         }
 
-        @BinaryType
+        @ComponentType
         void registerBaseBinarySpec(TypeBuilder<BinarySpec> builder) {
             builder.defaultImplementation(BaseBinarySpec.class);
             builder.internalView(BinarySpecInternal.class);

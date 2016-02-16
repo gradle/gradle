@@ -299,7 +299,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                 String data
             }
             class UnmanagedBinaryPlugin extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void registerUnmanagedBinary(TypeBuilder<UnmanagedBinary> builder) {
                     builder.defaultImplementation(DefaultUnmanagedBinary)
                 }
@@ -315,7 +315,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                 void setData(String data)
             }
             class ManagedBinaryPlugin extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void registerUnmanagedBinary(TypeBuilder<ManagedBinary> builder) {}
             }
             apply plugin: ManagedBinaryPlugin
@@ -332,7 +332,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                 String data
             }
             class UnmanagedLanguageSourceSetPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerUnmanagedLanguageSourceSet(TypeBuilder<UnmanagedLanguageSourceSet> builder) {
                     builder.defaultImplementation(DefaultUnmanagedLanguageSourceSet)
                 }
@@ -348,7 +348,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                 void setData(String data)
             }
             class ManagedLanguageSourceSetPlugin extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerUnmanagedLanguageSourceSet(TypeBuilder<ManagedLanguageSourceSet> builder) {
                 }
             }

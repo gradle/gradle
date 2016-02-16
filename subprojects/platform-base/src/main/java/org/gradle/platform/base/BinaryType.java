@@ -23,27 +23,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
- * Declares that a custom {@link org.gradle.platform.base.BinarySpec} type.
+ * No longer supported. Use {@link ComponentType} instead.
  *
- * The following example demonstrates how to register a custom component type using a plugin with a
- * {@link org.gradle.platform.base.BinaryType} annotation.
- *
- * <pre autoTested=''>
- * interface SampleBinary extends BinarySpec {}
- * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
- *
- * apply plugin: MySamplePlugin
- *
- * class MySamplePlugin extends RuleSource {
- *     {@literal @}BinaryType
- *     void defineBinaryType(TypeBuilder&lt;SampleBinary&gt; builder) {
- *         builder.defaultImplementation(DefaultSampleBinary)
- *     }
- * }
- * </pre>
+ * @deprecated Use {@link ComponentType} instead.
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating

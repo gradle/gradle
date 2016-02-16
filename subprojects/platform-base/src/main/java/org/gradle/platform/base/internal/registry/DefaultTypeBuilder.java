@@ -31,7 +31,7 @@ public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private Class<?> implementation;
     private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
 
-    public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<T> schema) {
+    public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
         this.markerAnnotation = markerAnnotation;
         this.schema = schema;
     }

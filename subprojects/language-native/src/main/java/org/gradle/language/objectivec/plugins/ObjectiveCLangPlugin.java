@@ -35,7 +35,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
@@ -51,7 +51,7 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerLanguage(TypeBuilder<ObjectiveCSourceSet> builder) {
             builder.defaultImplementation(DefaultObjectiveCSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);

@@ -144,19 +144,19 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 
-        @BinaryType
+        @ComponentType
         void registerSharedLibraryBinaryType(TypeBuilder<SharedLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultSharedLibraryBinarySpec.class);
             builder.internalView(SharedLibraryBinarySpecInternal.class);
         }
 
-        @BinaryType
+        @ComponentType
         void registerStaticLibraryBinaryType(TypeBuilder<StaticLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultStaticLibraryBinarySpec.class);
             builder.internalView(StaticLibraryBinarySpecInternal.class);
         }
 
-        @BinaryType
+        @ComponentType
         void registerNativeExecutableBinaryType(TypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
             builder.internalView(NativeExecutableBinarySpecInternal.class);

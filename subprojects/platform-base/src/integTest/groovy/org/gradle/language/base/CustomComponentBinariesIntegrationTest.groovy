@@ -45,13 +45,13 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            @BinaryType
+            @ComponentType
             void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
-            @BinaryType
+            @ComponentType
             void registerOtherBinary(TypeBuilder<OtherSampleBinary> builder) {}
 
-            @LanguageType
+            @ComponentType
             void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
@@ -278,9 +278,9 @@ class MyComponentBinariesPlugin implements Plugin<Project> {
         @ComponentType
         void registerComponent(TypeBuilder<ComponentWithValue> builder) {}
 
-        @BinaryType
+        @ComponentType
         void registerBinary(TypeBuilder<BinaryWithValue> builder) {}
-        
+
         @ComponentBinaries
         void createBinaries(ModelMap<BinaryWithValue> binaries, ComponentWithValue component) {
             assert component.valueForBinary == "configured-value"

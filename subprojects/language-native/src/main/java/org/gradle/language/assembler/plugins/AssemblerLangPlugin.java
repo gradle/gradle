@@ -28,7 +28,7 @@ import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
@@ -45,7 +45,7 @@ public class AssemblerLangPlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerLanguage(TypeBuilder<AssemblerSourceSet> builder) {
         }
 

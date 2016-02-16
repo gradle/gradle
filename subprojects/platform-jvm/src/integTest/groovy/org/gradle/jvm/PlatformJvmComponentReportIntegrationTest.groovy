@@ -315,7 +315,7 @@ interface CustomJarBinarySpec extends JarBinarySpec {
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 
 class Rules extends RuleSource {
-    @BinaryType
+    @ComponentType
     void customJarBinary(TypeBuilder<CustomJarBinarySpec> builder) {
     }
 

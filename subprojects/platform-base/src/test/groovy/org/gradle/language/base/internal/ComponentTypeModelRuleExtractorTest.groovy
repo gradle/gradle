@@ -88,10 +88,10 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "binaryTypeBuilder" | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}."                      | "wrong builder type"
         "returnValue"       | "A method annotated with @ComponentType must have void return type."                                                    | "method with return type"
         "noTypeParam"       | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                                                  | "missing type parameter"
-        "wildcardType"      | "Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                               | "wildcard type parameter"
-        "extendsType"       | "Component type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
-        "superType"         | "Component type '? super ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
-        "notComponentSpec"  | "Component type '${NotComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                | "type not extending ComponentSpec"
+        "wildcardType"      | "Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                               | "wildcard type parameter"
+        "extendsType"       | "Type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
+        "superType"         | "Type '? super ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
+        "notComponentSpec"  | "Type '${NotComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                | "type not extending ComponentSpec"
     }
 
     @Unroll

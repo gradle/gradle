@@ -61,7 +61,7 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements 
 
     private static SourceSetInfo validate(SourceSetInfo info) {
         if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @LanguageType rule instead.");
+            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @ComponentType rule instead.");
         }
         return info;
     }

@@ -54,16 +54,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class GlobalScopeServices {
-        MethodModelRuleExtractor createLanguageTypePluginInspector(ModelSchemaStore schemaStore) {
-            return new LanguageTypeModelRuleExtractor(schemaStore);
-        }
-
         MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
             return new ComponentTypeModelRuleExtractor(schemaStore);
-        }
-
-        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(ModelSchemaStore schemaStore) {
-            return new BinaryTypeModelRuleExtractor(schemaStore);
         }
 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {

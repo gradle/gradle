@@ -36,7 +36,10 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.ComponentBinaries;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -111,7 +114,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             builder.create("play");
         }
 
-        @BinaryType
+        @ComponentType
         void registerApplication(TypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
             builder.internalView(PlayApplicationBinarySpecInternal.class);

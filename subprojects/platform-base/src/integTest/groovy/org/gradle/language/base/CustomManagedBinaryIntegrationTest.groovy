@@ -125,7 +125,7 @@ BUILD SUCCESSFUL"""
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void register(TypeBuilder<SampleBinary> builder) {
                 }
 

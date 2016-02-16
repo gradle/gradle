@@ -73,13 +73,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
             builder.internalView(JvmLibrarySpecInternal.class);
         }
 
-        @BinaryType
+        @ComponentType
         public void registerJvmBinarySpec(TypeBuilder<JvmBinarySpec> builder) {
             builder.defaultImplementation(DefaultJvmBinarySpec.class);
             builder.internalView(JvmBinarySpecInternal.class);
         }
 
-        @BinaryType
+        @ComponentType
         public void registerJarBinarySpec(TypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
             builder.internalView(JarBinarySpecInternal.class);

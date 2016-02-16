@@ -40,7 +40,7 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
 import java.io.File;
@@ -70,7 +70,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return serviceRegistry.get(ScalaToolChain.class);
         }
 
-        @LanguageType
+        @ComponentType
         void registerLanguage(TypeBuilder<ScalaLanguageSourceSet> builder) {
             builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
         }

@@ -26,7 +26,7 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.LanguageType;
+import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.plugins.ComponentBasePlugin;
 
@@ -44,7 +44,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
+        @ComponentType
         void registerBaseLanguageSourceSet(TypeBuilder<LanguageSourceSet> builder) {
             builder.defaultImplementation(BaseLanguageSourceSet.class);
             builder.internalView(LanguageSourceSetInternal.class);

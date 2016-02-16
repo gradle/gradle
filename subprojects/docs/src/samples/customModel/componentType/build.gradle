@@ -35,7 +35,7 @@ class MyImageRenderingPlugin extends RuleSource {
     void registerComponent(TypeBuilder<ImageComponent> builder) {
     }
 
-    @BinaryType
+    @ComponentType
     void registerBinary(TypeBuilder<ImageBinary> builder) {
     }
 

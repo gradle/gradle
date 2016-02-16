@@ -49,7 +49,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
             }
 
             class BinaryRules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void registerCustomBinary(TypeBuilder<CustomBinary> builder) {
                     builder.defaultImplementation(DefaultCustomBinary)
                 }
@@ -71,7 +71,7 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
             }
 
             class LanguageTypeRules extends RuleSource {
-                @LanguageType
+                @ComponentType
                 void registerCustomLanguage(TypeBuilder<CustomLanguageSourceSet> builder) {
                 }
             }

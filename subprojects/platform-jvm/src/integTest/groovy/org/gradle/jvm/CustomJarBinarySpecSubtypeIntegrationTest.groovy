@@ -224,7 +224,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 
             class ${binaryType}Rules extends RuleSource {
-                @BinaryType
+                @ComponentType
                 void customJarBinary(TypeBuilder<${binaryType}> builder) {
                 }
 
