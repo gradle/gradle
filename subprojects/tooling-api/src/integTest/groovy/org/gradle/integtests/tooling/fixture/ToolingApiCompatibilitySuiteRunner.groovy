@@ -31,20 +31,7 @@ import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
-    private static final int MAX_TEST_CLASS_LOADERS = 10
-    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = new LinkedHashMap<String, ClassLoader>(MAX_TEST_CLASS_LOADERS) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, ClassLoader> eldest) {
-            if (size() >= MAX_TEST_CLASS_LOADERS) {
-                ClassLoader cl = eldest.value
-                if (cl instanceof Closeable) {
-                    cl.close()
-                }
-                return true
-            }
-            return false
-        }
-    }
+    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
