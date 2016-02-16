@@ -253,8 +253,6 @@ integTestTasks.all { Test task ->
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
-    // enable class unloading
-    jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     if(!JavaVersion.current().isJava8Compatible()) {
         jvmArgs '-XX:MaxPermSize=512m'
     }
