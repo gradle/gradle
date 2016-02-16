@@ -17,7 +17,9 @@ package org.gradle.jvm.plugins;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -60,93 +62,87 @@ import java.util.List;
  * @since 2.12
  */
 @Incubating
-public class JvmTestSuiteBasePlugin implements Plugin<Project> {
-    @Override
-    public void apply(Project project) {
+@SuppressWarnings("UnusedDeclaration")
+public class JvmTestSuiteBasePlugin extends RuleSource {
+    @BinaryTasks
+    void createJvmTestSuiteTasks(ModelMap<Task> tasks,
+                                 final JvmTestSuiteBinarySpecInternal binary,
+                                 final @Path("buildDir") File buildDir) {
+        final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
+        tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
+            @Override
+            public void execute(final Test test) {
+                test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
+                test.dependsOn(jvmAssembly);
+                test.setTestClassesDir(binary.getClassesDir());
+                test.setClasspath(binary.getRuntimeClasspath());
+                configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
+            }
+
+            private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
+                // todo: improve configuration of reports
+                TestTaskReports reports = test.getReports();
+                File reportsDirectory = new File(buildDir, "reports");
+                File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
+                File htmlDir = new File(reportsOutputDirectory, "tests");
+                File xmlDir = new File(buildDir, "test-results");
+                File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
+                File binDir = new File(xmlDirOutputDirectory, "binary");
+                reports.getHtml().setDestination(htmlDir);
+                reports.getJunitXml().setDestination(xmlDirOutputDirectory);
+                test.setBinResultsDir(binDir);
+            }
+        });
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    static class Rules extends RuleSource {
-        @BinaryTasks
-        void createJvmTestSuiteTasks(ModelMap<Task> tasks,
-                                     final JvmTestSuiteBinarySpecInternal binary,
-                                     final @Path("buildDir") File buildDir) {
-            final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
-            tasks.create(testTaskNameFor(binary), Test.class, new Action<Test>() {
-                @Override
-                public void execute(final Test test) {
-                    test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                    test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
-                    test.dependsOn(jvmAssembly);
-                    test.setTestClassesDir(binary.getClassesDir());
-                    test.setClasspath(binary.getRuntimeClasspath());
-                    configureReports((JvmTestSuiteBinarySpecInternal) binary, test);
-                }
+    private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
+        return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
+    }
 
-                private void configureReports(JvmTestSuiteBinarySpecInternal binary, Test test) {
-                    // todo: improve configuration of reports
-                    TestTaskReports reports = test.getReports();
-                    File reportsDirectory = new File(buildDir, "reports");
-                    File reportsOutputDirectory = binary.getNamingScheme().getOutputDirectory(reportsDirectory);
-                    File htmlDir = new File(reportsOutputDirectory, "tests");
-                    File xmlDir = new File(buildDir, "test-results");
-                    File xmlDirOutputDirectory = binary.getNamingScheme().getOutputDirectory(xmlDir);
-                    File binDir = new File(xmlDirOutputDirectory, "binary");
-                    reports.getHtml().setDestination(htmlDir);
-                    reports.getJunitXml().setDestination(xmlDirOutputDirectory);
-                    test.setBinResultsDir(binDir);
-                }
-            });
+    @Finalize
+    public void configureRuntimeClasspath(@Each JvmTestSuiteBinarySpecInternal testBinary, ServiceRegistry serviceRegistry, ModelSchemaStore modelSchemaStore) {
+        ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
+        RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
+        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
+        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema));
+    }
+
+    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
+        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema));
+    }
+
+    private static LocalComponentResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
+        // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
+        // from the resolving metadata instead of the resolved metadata
+        LibraryBinaryIdentifier id = testBinary.getId();
+        LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
+        return new LocalComponentResolveContext(thisId,
+            DefaultVariantsMetaData.extractFrom(testBinary, schema),
+            runtimeDependencies(testBinary),
+            UsageKind.RUNTIME,
+            testBinary.getDisplayName());
+    }
+
+    private static List<DependencySpec> runtimeDependencies(JvmTestSuiteBinarySpecInternal testBinary) {
+        List<DependencySpec> dependencies = Lists.newArrayList(testBinary.getDependencies());
+        JvmBinarySpec testedBinary = testBinary.getTestedBinary();
+        dependencies.add(DefaultLibraryBinaryDependencySpec.of(testBinary.getId()));
+        if (testedBinary != null) {
+            JvmBinarySpecInternal binary = (JvmBinarySpecInternal) testedBinary;
+            LibraryBinaryIdentifier id = binary.getId();
+            dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
         }
+        addSourceSetSpecificDependencies(dependencies, testBinary.getSources());
+        addSourceSetSpecificDependencies(dependencies, testBinary.getTestSuite().getSources());
+        return dependencies;
+    }
 
-        private static String testTaskNameFor(JvmTestSuiteBinarySpec binary) {
-            return ((BinarySpecInternal) binary).getProjectScopedName() + "Test";
-        }
-
-        @Finalize
-        public void configureRuntimeClasspath(@Each JvmTestSuiteBinarySpecInternal testBinary, ServiceRegistry serviceRegistry, ModelSchemaStore modelSchemaStore) {
-            ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
-            RepositoryHandler repositories = serviceRegistry.get(RepositoryHandler.class);
-            List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-            ModelSchema<? extends JvmTestSuiteBinarySpec> schema = Cast.uncheckedCast(modelSchemaStore.getSchema(((BinarySpecInternal) testBinary).getPublicType()));
-            testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema));
-        }
-
-        private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
-            return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema));
-        }
-
-        private static LocalComponentResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema) {
-            // TODO:Cedric find out why if we use the same ID directly, it fails resolution by trying to get the artifacts
-            // from the resolving metadata instead of the resolved metadata
-            LibraryBinaryIdentifier id = testBinary.getId();
-            LibraryBinaryIdentifier thisId = new DefaultLibraryBinaryIdentifier(id.getProjectPath(), id.getLibraryName() + "Test", id.getVariant());
-            return new LocalComponentResolveContext(thisId,
-                DefaultVariantsMetaData.extractFrom(testBinary, schema),
-                runtimeDependencies(testBinary),
-                UsageKind.RUNTIME,
-                testBinary.getDisplayName());
-        }
-
-        private static List<DependencySpec> runtimeDependencies(JvmTestSuiteBinarySpecInternal testBinary) {
-            List<DependencySpec> dependencies = Lists.newArrayList(testBinary.getDependencies());
-            JvmBinarySpec testedBinary = testBinary.getTestedBinary();
-            dependencies.add(DefaultLibraryBinaryDependencySpec.of(testBinary.getId()));
-            if (testedBinary != null) {
-                JvmBinarySpecInternal binary = (JvmBinarySpecInternal) testedBinary;
-                LibraryBinaryIdentifier id = binary.getId();
-                dependencies.add(DefaultLibraryBinaryDependencySpec.of(id));
-            }
-            addSourceSetSpecificDependencies(dependencies, testBinary.getSources());
-            addSourceSetSpecificDependencies(dependencies, testBinary.getTestSuite().getSources());
-            return dependencies;
-        }
-
-        private static void addSourceSetSpecificDependencies(List<DependencySpec> dependencies, ModelMap<LanguageSourceSet> sources) {
-            for (LanguageSourceSet sourceSet : sources) {
-                if (sourceSet instanceof DependentSourceSet) {
-                    dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
-                }
+    private static void addSourceSetSpecificDependencies(List<DependencySpec> dependencies, ModelMap<LanguageSourceSet> sources) {
+        for (LanguageSourceSet sourceSet : sources) {
+            if (sourceSet instanceof DependentSourceSet) {
+                dependencies.addAll(((DependentSourceSet) sourceSet).getDependencies().getDependencies());
             }
         }
     }
