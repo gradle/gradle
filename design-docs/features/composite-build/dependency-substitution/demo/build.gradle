@@ -46,6 +46,7 @@ def renderDependencies(indent, project) {
 
 task printModel << {
     def builder = GradleConnector.newGradleConnectionBuilder()
+    builder.embeddedCoordinator = true
     rootProjectDirectories().each {
         println "Adding project $it.absolutePath to composite"
         builder.addBuild(it, gradle.gradleHomeDir)
