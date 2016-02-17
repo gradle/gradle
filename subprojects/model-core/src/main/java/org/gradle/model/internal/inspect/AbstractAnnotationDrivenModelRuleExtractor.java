@@ -17,10 +17,14 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 
 public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation> implements MethodModelRuleExtractor {
+
+    private static final ModelType<Void> VOID = ModelType.of(Void.TYPE);
+
     private final Class<T> annotationType;
 
     protected AbstractAnnotationDrivenModelRuleExtractor() {
@@ -43,8 +47,12 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
    }
 
     protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
-        if (!ruleDefinition.getReturnType().getRawClass().equals(Void.TYPE)) {
+        if (!isVoidMethod(ruleDefinition)) {
             problems.add(ruleDefinition, "A method " + getDescription() + " must have void return type.");
         }
+    }
+
+    protected boolean isVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition) {
+        return ruleDefinition.getReturnType().equals(VOID);
     }
 }

@@ -24,14 +24,11 @@ import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
-
-    protected static final ModelType<Void> VOID = ModelType.of(Void.TYPE);
 
     private ModelPath determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();

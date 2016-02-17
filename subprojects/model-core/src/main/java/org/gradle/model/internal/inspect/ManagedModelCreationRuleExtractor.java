@@ -49,7 +49,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
-        return super.isSatisfiedBy(element) && element.getReturnType().equals(VOID);
+        return super.isSatisfiedBy(element) && isVoidMethod(element);
     }
 
     @Override
