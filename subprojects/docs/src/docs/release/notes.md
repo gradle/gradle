@@ -60,11 +60,6 @@ now by default creates a Scala SDK project library as well as adds this library 
 
 This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
 
-### The "scala-library" build init type uses the Zinc compiler by default
-
-When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
-The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
-
 ### Software model improvements
 
 #### Model data report
