@@ -16,14 +16,38 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Named;
+import org.gradle.api.Nullable;
+import org.gradle.util.Path;
 
-// TODO:RBO ComponentSpecIdentifier extends Named but what's the meaning of the name here? Is it also logically part of the identifier path?
-// TODO:RBO How to arrange component identifiers in a hierarchy?
 /**
  * An identifier for a {@link org.gradle.platform.base.ComponentSpec}, which has a name.
  */
-public interface ComponentSpecIdentifier extends Named {
+public interface ComponentSpecIdentifier {
+    /**
+     * The parent of the component, if any.
+     */
+    @Nullable ComponentSpecIdentifier getParent();
+
+    /**
+     * The base name of this component.
+     */
+    String getName();
+
+    /**
+     * A unique identifier for this component.
+     */
+    Path getPath();
+
+    /**
+     * Returns a child of this component, with the given name.
+     */
+    ComponentSpecIdentifier child(String name);
+
+    /**
+     * Returns a name that can be used to identify this component uniquely within its project. The name belongs to a flat namespace and does not include any
+     * hierarchy delimiters. As such, it can be used for task or file names.
+     */
+    String getProjectScopedName();
 
     // TODO:RBO Clarify what it means and what's possible to do with it.
     // TODO:RBO E.g. Can the return value always be used to resolve back to the identified component? If so, how?
