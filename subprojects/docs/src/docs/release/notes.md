@@ -164,6 +164,7 @@ The `ComponentSpec` hierarchy has been reorganised.
 #### Type registration
 
 - `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` replaced by `TypeBuilder`.
+- The `BinaryType` and `LanguageType` annotations are no longer supported. They have been replaced by `ComponentType`.
 - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
 
 #### Other changes
