@@ -38,6 +38,7 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.component.internal.DefaultComponentSpec;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 /**
  * Base plugin for {@link ComponentSpec} support.
@@ -67,6 +68,7 @@ public class ComponentBasePlugin implements Plugin<Project> {
         @ComponentType
         void registerComponentSpec(TypeBuilder<ComponentSpec> builder) {
             builder.defaultImplementation(DefaultComponentSpec.class);
+            builder.internalView(ComponentSpecInternal.class);
         }
 
         @Mutate

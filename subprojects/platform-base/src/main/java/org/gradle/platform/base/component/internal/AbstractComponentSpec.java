@@ -18,9 +18,9 @@ package org.gradle.platform.base.component.internal;
 
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 
-public class AbstractComponentSpec implements ComponentSpec {
+public class AbstractComponentSpec implements ComponentSpec, ComponentSpecInternal {
     private final ComponentSpecIdentifier identifier;
     private final Class<?> publicType;
 
@@ -52,10 +52,5 @@ public class AbstractComponentSpec implements ComponentSpec {
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    protected ComponentSpecIdentifier createChildIdentifier(String childName) {
-        // TODO:RBO is this a hi-fi reflection of the hierarchical nature of the model?
-        return new DefaultComponentSpecIdentifier(getProjectPath(), childName);
     }
 }
