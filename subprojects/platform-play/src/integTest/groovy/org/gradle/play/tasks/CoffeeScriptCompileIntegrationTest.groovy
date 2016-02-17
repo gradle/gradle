@@ -41,7 +41,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScript",
-                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -55,7 +55,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
     def "minify task depends on compile task" () {
         when:
         withCoffeeScriptSource(assets("test.coffee"))
-        succeeds "minifyPlayBinaryBinaryCoffeeScriptJavaScript"
+        succeeds "minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript"
 
         then:
         executedAndNotSkipped ":compilePlayBinaryPlayCoffeeScript"
@@ -90,11 +90,11 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScript",
-                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript",
                 ":compilePlayBinaryPlayExtraCoffeeScript",
-                ":minifyPlayBinaryBinaryExtraCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryExtraCoffeeScriptJavaScript",
                 ":compilePlayBinaryPlayAnotherCoffeeScript",
-                ":minifyPlayBinaryBinaryAnotherCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryAnotherCoffeeScriptJavaScript",
                 ":minifyPlayBinaryPlayJavaScript",
                 ":minifyPlayBinaryPlayExtraJavaScript",
                 ":createPlayBinaryJar",
@@ -128,7 +128,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         skipped(":compilePlayBinaryPlayCoffeeScript",
-                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -146,7 +146,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScript",
-                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -167,7 +167,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryPlayCoffeeScript",
-                ":minifyPlayBinaryBinaryCoffeeScriptJavaScript",
+                ":minifyPlayBinaryPlayBinaryCoffeeScriptJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
 
