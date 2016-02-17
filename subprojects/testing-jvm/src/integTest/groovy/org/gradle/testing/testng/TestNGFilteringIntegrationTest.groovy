@@ -79,7 +79,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
         theUsualFiles()
 
         when:
-        run("test", "--tests", "*AwesomeSuite*")
+        run("test", "--include-tests", "*AwesomeSuite*")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

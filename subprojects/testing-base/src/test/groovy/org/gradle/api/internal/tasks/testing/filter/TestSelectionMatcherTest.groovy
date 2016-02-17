@@ -51,6 +51,26 @@ class TestSelectionMatcherTest extends Specification {
         ["*.foo.*"]              | "foo"                     | "aaaa"                | false
     }
 
+
+    def "knows if test matches class with excludes"() {
+        expect:
+        new TestSelectionMatcher(include, exclude).matchesTest(className, methodName) == match
+
+        where:
+        include             | exclude       | className             | methodName | match
+        []                  | ["*.FooTest"] | "com.foo.FooTest"     | "whatever" | false
+        []                  | ["*.BarTest"] | "com.foo.FooTest"     | "whatever" | true
+
+        []                  | ["BarTest"]   | "com.foo.FooTest"     | "whatever" | true
+        ["*.foo.*"]         | ["FooTest"]   | "com.foo.bar.BarTest" | "whatever" | true
+        ["*.foo.*"]         | ["*.bar.*"]   | "com.foo.bar.BarTest" | "whatever" | false
+
+        ["com.foo.FooTest"] | ["*.foo.*"]   | "com.foo.FooTest"     | "whatever" | false
+        ["*.FooTest"]       | ["*.foo.*"]   | "com.foo.FooTest"     | "whatever" | false
+        ["*.FooTest"]       | ["*.bar.*"]   | "com.foo.FooTest"     | "whatever" | true
+    }
+
+
     def "knows if test matches"() {
         expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
 
@@ -75,6 +95,20 @@ class TestSelectionMatcherTest extends Specification {
         ["com.FooTest***slow*"]  | "com.FooTest.OtherTest"   | "slow"                | true
         ["com.FooTest***slow*"]  | "FooTest"                 | "slowMethod"          | false
     }
+
+    def "knows if test matches with excludes"() {
+        expect:
+        new TestSelectionMatcher(include, exclude).matchesTest(className, methodName) == match
+
+        where:
+        include                 | exclude            | className     | methodName | match
+        ["FooTest.test"]        | ["*.excludedTest"] | "FooTest"     | "test"     | true
+        ["FooTest.test"]        | ["*.tes*"]         | "FooTest"     | "test"     | false
+
+        ["com.FooTest.*clude*"] | ["*.*clude*"]      | "com.FooTest" | "exclude"  | false
+
+    }
+
 
     def "matches any of input"() {
         expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match

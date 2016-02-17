@@ -34,7 +34,7 @@ class JUnitTestClassProcessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def processor = Mock(TestResultProcessor)
-    def spec = new JUnitSpec([] as Set, [] as Set, [] as Set)
+    def spec = new JUnitSpec([] as Set, [] as Set, [] as Set, [] as Set)
 
     @Subject classProcessor = withSpec(spec)
 

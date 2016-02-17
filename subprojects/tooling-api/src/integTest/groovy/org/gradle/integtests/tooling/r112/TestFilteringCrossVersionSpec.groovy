@@ -38,7 +38,7 @@ class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { it.newBuild().withArguments('test', '--tests', 'FooTest.passes').run() }
+        withConnection { it.newBuild().withArguments('test', '--include-tests', 'FooTest.passes').run() }
 
         then:
         noExceptionThrown()
