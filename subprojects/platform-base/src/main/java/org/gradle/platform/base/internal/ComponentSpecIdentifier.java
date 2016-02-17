@@ -34,7 +34,9 @@ public interface ComponentSpecIdentifier {
     String getName();
 
     /**
-     * A unique identifier for this component.
+     * A path that uniquely identifies this component within its project.
+     *
+     * Implementation should attempt to produce human consumable identifiers.
      */
     Path getPath();
 
@@ -45,12 +47,17 @@ public interface ComponentSpecIdentifier {
 
     /**
      * Returns a name that can be used to identify this component uniquely within its project. The name belongs to a flat namespace and does not include any
-     * hierarchy delimiters. As such, it can be used for task or file names.
+     * hierarchy delimiters. As such, it can be safely used for task or file names.
+     *
+     * Implementation should attempt to produce a somewhat human consumable name (eg not a uuid).
      */
     String getProjectScopedName();
 
     // TODO:RBO Clarify what it means and what's possible to do with it.
     // TODO:RBO E.g. Can the return value always be used to resolve back to the identified component? If so, how?
     // TODO:RBO Wouldn't it be better to define a proper type for project/model paths?
+    /**
+     * The path of the project that contains this component.
+     */
     String getProjectPath();
 }

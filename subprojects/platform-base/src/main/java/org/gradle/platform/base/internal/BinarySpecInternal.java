@@ -23,7 +23,7 @@ import org.gradle.platform.base.ComponentSpec;
 
 public interface BinarySpecInternal extends BinarySpec {
     /**
-     * The unique identifier of this JarBinarySpec.
+     * The unique identifier of this binary.
      */
     LibraryBinaryIdentifier getId();
 
