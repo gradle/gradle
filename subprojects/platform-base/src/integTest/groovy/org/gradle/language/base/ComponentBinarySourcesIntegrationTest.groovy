@@ -259,7 +259,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: Custom source 'mylib:someLang'"
+        output.contains "sources display name: Custom source 'main:someLang'"
     }
 
     def "elements in binary.sources should not be created when defined"() {

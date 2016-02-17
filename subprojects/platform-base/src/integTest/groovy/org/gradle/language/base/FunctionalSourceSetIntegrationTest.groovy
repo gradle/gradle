@@ -234,7 +234,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: SomeJava source 'functionalSources:myJavaSourceSet'"
+        output.contains "sources display name: SomeJava source 'myJavaSourceSet'"
     }
 
     def "can reference sourceSet elements using specialized type in a rule"() {
@@ -268,7 +268,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSource"
 
         then:
-        output.contains "sources display name: SomeJava source 'functionalSources:myJavaSourceSet'"
+        output.contains "sources display name: SomeJava source 'myJavaSourceSet'"
     }
 
     def "elements in FunctionalSourceSet are not created when defined"() {

@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 class BaseLanguageSourceSetFixtures {
     static <T extends LanguageSourceSet> T create(Class<T> publicType, Class<? extends BaseLanguageSourceSet> implType, String name) {
         return BaseInstanceFixtureSupport.create(publicType, LanguageSourceSetInternal, implType, name) { MutableModelNode node ->
-            BaseLanguageSourceSet.create(publicType, implType, new DefaultComponentSpecIdentifier("project", name), null, TestFiles.sourceDirectorySetFactory())
+            BaseLanguageSourceSet.create(publicType, implType, new DefaultComponentSpecIdentifier("project", name), TestFiles.sourceDirectorySetFactory())
         }
     }
 }

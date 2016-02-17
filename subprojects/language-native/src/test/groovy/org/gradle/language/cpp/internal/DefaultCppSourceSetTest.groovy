@@ -26,12 +26,12 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, new DefaultComponentSpecIdentifier("project", "cpp"), "main", TestFiles.sourceDirectorySetFactory())
+    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, new DefaultComponentSpecIdentifier("project", "cpp"), TestFiles.sourceDirectorySetFactory())
 
     def "has useful string representation"() {
         expect:
-        sourceSet.displayName == "C++ source 'main:cpp'"
-        sourceSet.toString() == "C++ source 'main:cpp'"
+        sourceSet.displayName == "C++ source 'cpp'"
+        sourceSet.toString() == "C++ source 'cpp'"
     }
 
     def "can add a library as a dependency of the source set"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.component.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -29,13 +30,16 @@ import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
+    private final ProjectIdentifier projectIdentifier;
+
     public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final ITaskFactory taskFactory, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         super(ComponentSpec.class);
+        this.projectIdentifier = projectIdentifier;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
             @Override
             public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
@@ -61,27 +65,22 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
             public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), sourceSetName), determineParentName(node), sourceDirectorySetFactory));
+                ComponentSpecIdentifier id = getId(node, sourceSetName);
+                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, sourceDirectorySetFactory));
             }
         });
     }
 
-    private String determineParentName(MutableModelNode modelNode) {
+    @Nullable
+    private ComponentSpecIdentifier getId(MutableModelNode modelNode, String name) {
         MutableModelNode grandparentNode = modelNode.getParent().getParent();
         // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources` or `BinarySpec.sources`
         // TODO - generalize naming for all nested components
-        if (grandparentNode != null) {
-            if (grandparentNode.canBeViewedAs(ModelType.of(BinarySpecInternal.class))) {
-                // TODO:DAZ Should be using binary.projectScopedName for uniqueness
-                BinarySpecInternal binarySpecInternal = grandparentNode.asImmutable(ModelType.of(BinarySpecInternal.class), null).getInstance();
-                return binarySpecInternal.getComponent() == null ? binarySpecInternal.getName() : binarySpecInternal.getComponent().getName();
-            }
-            if (grandparentNode.canBeViewedAs(ModelType.of(ComponentSpec.class))) {
-                ComponentSpec componentSpec = grandparentNode.asImmutable(ModelType.of(ComponentSpec.class), null).getInstance();
-                return componentSpec.getName();
-            }
+        if (grandparentNode != null && grandparentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))) {
+            ComponentSpecInternal componentSpec = grandparentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
+            return componentSpec.getIdentifier().child(name);
         }
 
-        return modelNode.getParent().getPath().getName();
+        return new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
     }
 }

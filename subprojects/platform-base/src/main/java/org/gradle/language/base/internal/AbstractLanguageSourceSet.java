@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
@@ -24,18 +23,14 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
-    private final String fullName;
-    private final String parentName;
     private final String languageName;
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType, String parentName, SourceDirectorySet source) {
+    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType, SourceDirectorySet source) {
         super(identifier, publicType);
-        this.fullName = parentName + StringUtils.capitalize(identifier.getName());
         this.source = source;
-        this.parentName = parentName;
         this.languageName = guessLanguageName(getTypeName());
         super.builtBy(source.getBuildDependencies());
     }
@@ -49,7 +44,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     }
 
     public String getProjectScopedName() {
-        return fullName;
+        return getIdentifier().getProjectScopedName();
     }
 
     @Override
@@ -75,9 +70,9 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     public String getDisplayName() {
         String languageName = getLanguageName();
         if (languageName.toLowerCase().endsWith("resources")) {
-            return String.format("%s '%s:%s'", languageName, parentName, getName());
+            return String.format("%s '%s'", languageName, getIdentifier().getPath());
         }
-        return String.format("%s source '%s:%s'", languageName, parentName, getName());
+        return String.format("%s source '%s'", languageName, getIdentifier().getPath());
     }
 
     public SourceDirectorySet getSource() {
@@ -86,6 +81,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
 
     @Override
     public String getParentName() {
-        return parentName;
+        return getIdentifier().getParent() == null ? null : getIdentifier().getParent().getName();
     }
 }

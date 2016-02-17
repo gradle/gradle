@@ -21,8 +21,8 @@ import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public class DefaultJvmResourceSet extends AbstractLanguageSourceSet implements JvmResourceSet {
-    public DefaultJvmResourceSet(ComponentSpecIdentifier componentIdentifier, String parent, SourceDirectorySet source) {
-        super(componentIdentifier, JvmResourceSet.class, parent, source);
+    public DefaultJvmResourceSet(ComponentSpecIdentifier componentIdentifier, SourceDirectorySet source) {
+        super(componentIdentifier, JvmResourceSet.class, source);
     }
 
     @Override

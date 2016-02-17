@@ -31,8 +31,8 @@ import java.util.Set;
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
     private final Classpath compileClasspath;
 
-    public DefaultJavaSourceSet(ComponentSpecIdentifier componentIdentifier, String parent, SourceDirectorySet source, Classpath compileClasspath) {
-        super(componentIdentifier, JavaSourceSet.class, parent, source);
+    public DefaultJavaSourceSet(ComponentSpecIdentifier componentIdentifier, SourceDirectorySet source, Classpath compileClasspath) {
+        super(componentIdentifier, JavaSourceSet.class, source);
         this.compileClasspath = compileClasspath;
     }
 

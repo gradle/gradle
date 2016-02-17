@@ -25,10 +25,10 @@ import spock.lang.Specification
 
 class DefaultJavaScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, new DefaultComponentSpecIdentifier("project", "javascriptX"), "playX", TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(JavaScriptSourceSet, DefaultJavaScriptSourceSet, new DefaultComponentSpecIdentifier("project", "javascriptX"), TestFiles.sourceDirectorySetFactory())
 
         expect:
-        sourceSet.displayName == "JavaScript source 'playX:javascriptX'"
-        sourceSet.toString() == "JavaScript source 'playX:javascriptX'"
+        sourceSet.displayName == "JavaScript source 'javascriptX'"
+        sourceSet.toString() == "JavaScript source 'javascriptX'"
     }
 }

@@ -37,8 +37,8 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements 
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        nextSourceSetInfo.set(new SourceSetInfo(componentId, publicType, parentName, sourceDirectorySetFactory));
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        nextSourceSetInfo.set(new SourceSetInfo(componentId, publicType, sourceDirectorySetFactory));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -55,7 +55,7 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements 
     }
 
     private BaseLanguageSourceSet(SourceSetInfo info) {
-        super(validate(info).identifier, info.publicType, info.parentName, info.sourceDirectorySetFactory.create("source"));
+        super(validate(info).identifier, info.publicType, info.sourceDirectorySetFactory.create("source"));
         this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
     }
 
@@ -69,13 +69,11 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements 
     private static class SourceSetInfo {
         private final ComponentSpecIdentifier identifier;
         private final Class<? extends LanguageSourceSet> publicType;
-        final String parentName;
         final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, SourceDirectorySetFactory sourceDirectorySetFactory) {
             this.identifier = identifier;
             this.publicType = publicType;
-            this.parentName = parentName;
             this.sourceDirectorySetFactory = sourceDirectorySetFactory;
         }
     }

@@ -266,7 +266,7 @@ Util build type: RELEASE
         run "installMainExecutable", "tasks"
 
         then:
-        executedAndNotSkipped(":compileMainExecutableMainPlatform$platformName", ":installMainExecutable")
+        executedAndNotSkipped(":compileMainExecutableExecutablePlatform$platformName", ":installMainExecutable")
 
         and:
         executable(sourcesetVariant.dir.file("build/exe/main/main")).assertExists()

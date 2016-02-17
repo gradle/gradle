@@ -23,27 +23,28 @@ import spock.lang.Specification
 
 class BaseLanguageSourceSetTest extends Specification {
     def "has useful display names"() {
-        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), "parent", TestFiles.sourceDirectorySetFactory())
+        def identifier = new DefaultComponentSpecIdentifier("project", "parent").child("java5").child("test")
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, identifier, TestFiles.sourceDirectorySetFactory())
 
         expect:
         sourceSet.name == "test"
-        sourceSet.displayName == "Test source 'parent:test'"
+        sourceSet.displayName == "Test source 'parent:java5:test'"
         sourceSet.toString() == sourceSet.displayName
     }
 
     def "calculates display name from public type name"() {
         expect:
-        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), "parent", TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), TestFiles.sourceDirectorySetFactory())
         sourceSet.displayName == displayName
 
         where:
         publicType                | displayName
-        SomeTypeLanguageSourceSet | "SomeType source 'parent:test'"
-        SomeTypeSourceSet         | "SomeType source 'parent:test'"
-        SomeTypeSource            | "SomeType source 'parent:test'"
-        SomeTypeSet               | "SomeType source 'parent:test'"
-        SomeType                  | "SomeType source 'parent:test'"
-        SomeResourcesSet          | "SomeResources 'parent:test'"
+        SomeTypeLanguageSourceSet | "SomeType source 'test'"
+        SomeTypeSourceSet         | "SomeType source 'test'"
+        SomeTypeSource            | "SomeType source 'test'"
+        SomeTypeSet               | "SomeType source 'test'"
+        SomeType                  | "SomeType source 'test'"
+        SomeResourcesSet          | "SomeResources 'test'"
     }
 
     interface TestSourceSet extends LanguageSourceSet {}

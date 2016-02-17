@@ -274,7 +274,7 @@ Binaries
         API Jar file: build/jars/someLib/java5Jar/api/someLib.jar
         Jar file: build/jars/someLib/java5Jar/someLib.jar
         source sets:
-            Java source 'someLib:java2'
+            Java source 'java5Jar:java2'
                 srcDir: src/main/java2
                 dependencies:
                     library 'some-library'

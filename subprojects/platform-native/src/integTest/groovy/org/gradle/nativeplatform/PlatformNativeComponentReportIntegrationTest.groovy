@@ -73,8 +73,8 @@ Binaries
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/libs/someLib/static/libsomeLib.a
         source sets:
-            C++ source 'someLib:moreCpp'
-                srcDir: src/someLib/moreCpp
+            C++ source 'staticLibrary:moreCpp'
+                srcDir: src/staticLibrary/moreCpp
 """
     }
 
