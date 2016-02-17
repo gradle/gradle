@@ -1,0 +1,62 @@
+import org.gradle.tooling.composite.GradleConnection
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.eclipse.EclipseProject
+
+def rootProjectDirectories() {
+    file("demo.composite").readLines().collect { new File(it) }
+}
+
+def rootProject(model) {
+    if (model.parent) {
+        return rootProject(model.parent)
+    }
+    return model
+}
+
+def renderProject(indent, project) {
+    renderProjectSummary(indent, project)    
+    renderDependencies(indent, project)
+    project.children.each { child ->
+        renderProject(indent + " ", child)
+    }
+}
+
+def renderProjectSummary(indent, project) {
+    def participantDir = project.gradleProject.projectDirectory.absolutePath - file(".").absolutePath - "/"
+    println "${indent}${participantDir}:${project.gradleProject.path}"
+}
+
+def renderDependency(indent, dependency) {
+    println "${indent}> dependsOn ${dependency}"
+}
+
+def renderDependencies(indent, project) {
+    project.classpath.each { externalDependency ->
+        def module = externalDependency.gradleModuleVersion
+        if (module!=null) {
+            renderDependency(indent, "${module.group}:${module.name}:${module.version}")
+        } else {
+            renderDependency(indent, externalDependency.file)
+        }
+    }
+    project.projectDependencies.each { projectDependency ->
+        renderDependency(indent, projectDependency.path)
+    }
+}
+
+task printModel << {
+    def builder = GradleConnector.newGradleConnectionBuilder()
+    rootProjectDirectories().each {
+        println "Adding project $it.absolutePath to composite"
+        builder.addBuild(it, gradle.gradleHomeDir)
+    }
+    def connection = builder.build()
+    def models = connection.getModels(EclipseProject)
+
+    def rootProjects = models.grep({ rootProject(it) == it }).sort({ it.projectDirectory })
+    rootProjects.each { rootProject ->
+        renderProject("", rootProject)
+    }
+}
+
+defaultTasks = [ "printModel" ]
