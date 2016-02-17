@@ -20,8 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -29,7 +31,9 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
@@ -52,37 +56,33 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             builder.internalView(NativeTestSuiteBinarySpecInternal.class);
         }
 
-        @Defaults
-        // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
-        void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {
-            binaries.afterEach(NativeTestSuiteBinarySpecInternal.class, new Action<NativeTestSuiteBinarySpecInternal>() {
+        @Finalize
+        void attachTestedBinarySourcesToTestBinaries(@Each final NativeTestSuiteBinarySpecInternal testSuiteBinary) {
+            final BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
+            testSuiteBinary.getInputs().withType(DependentSourceSet.class).all(new Action<DependentSourceSet>() {
                 @Override
-                public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
-                    BinarySpec testedBinary = testSuiteBinary.getTestedBinary();
-                    for (DependentSourceSet testSource : testSuiteBinary.getInputs().withType(DependentSourceSet.class)) {
-                        testSource.lib(testedBinary.getInputs());
-                    }
-                    testSuiteBinary.getInputs().addAll(testedBinary.getInputs());
+                public void execute(DependentSourceSet testSource) {
+                    testSource.lib(testedBinary.getInputs());
+                }
+            });
+            testedBinary.getInputs().all(new Action<LanguageSourceSet>() {
+                @Override
+                public void execute(LanguageSourceSet testedSource) {
+                    testSuiteBinary.getInputs().add(testedSource);
                 }
             });
         }
 
-        @Defaults
-        // TODO:LPTR This should be @Finalize @Each NativeTestSuiteBinarySpecInternal
-        void configureRunTask(BinaryContainer binaries) {
-            binaries.afterEach(NativeTestSuiteBinarySpecInternal.class, new Action<NativeTestSuiteBinarySpecInternal>() {
-                @Override
-                public void execute(NativeTestSuiteBinarySpecInternal testSuiteBinary) {
-                    BinaryNamingScheme namingScheme = testSuiteBinary.getNamingScheme();
-                    NativeTestSuiteBinarySpec.TasksCollection tasks = testSuiteBinary.getTasks();
-                    InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
-                    RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
-                    runTask.getInputs().files(installTask.getOutputs().getFiles());
-                    runTask.setExecutable(installTask.getRunScript().getPath());
-                    Project project = runTask.getProject();
-                    runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
-                }
-            });
+        @Finalize
+        void configureRunTask(@Each NativeTestSuiteBinarySpecInternal testSuiteBinary) {
+            BinaryNamingScheme namingScheme = testSuiteBinary.getNamingScheme();
+            NativeTestSuiteBinarySpec.TasksCollection tasks = testSuiteBinary.getTasks();
+            InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
+            RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
+            runTask.getInputs().files(installTask.getOutputs().getFiles());
+            runTask.setExecutable(installTask.getRunScript().getPath());
+            Project project = runTask.getProject();
+            runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
         }
     }
 }
