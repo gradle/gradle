@@ -30,21 +30,73 @@ import org.junit.Rule
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    def "can cancel model operation"() {
+    def "can cancel model operation while a participant request is being processed"() {
         given:
+        def cancelledFile = file("cancelled")
+        def executedAfterCancellingFile = file("executed")
+        def participantCancelledFile = file("participant_cancelled")
         def buildFileText = """
         import org.gradle.initialization.BuildCancellationToken
         import java.util.concurrent.CountDownLatch
 
         def cancellationToken = services.get(BuildCancellationToken.class)
+
+        def cancelledFile = new File('${cancelledFile.absolutePath}')
+        if(cancelledFile.exists()) {
+           new File('${executedAfterCancellingFile.absolutePath}') << "executed \${project.name} token cancelled:\${cancellationToken.isCancellationRequested()}\\n"
+           throw new RuntimeException("Build should not get executed since composite has been cancelled.")
+        }
+
         def latch = new CountDownLatch(1)
 
         cancellationToken.addCallback {
             latch.countDown()
         }
 
+        println "Connecting to server..."
         new URL('${server.uri}').text
         latch.await()
+        new File('${participantCancelledFile.absolutePath}') << "participant \${project.name} cancelled\\n"
+"""
+        def build1 = populate("build-1") {
+            buildFile << buildFileText
+        }
+        def build2 = populate("build-2") {
+            buildFile << buildFileText
+        }
+        def build3 = populate("build-3") {
+            buildFile << buildFileText
+        }
+        when:
+        def cancellationToken = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new ResultCollector()
+        withCompositeConnection([build1, build2, build3]) { connection ->
+            def modelBuilder = connection.models(EclipseProject)
+            modelBuilder.withCancellationToken(cancellationToken.token())
+            // async ask for results
+            modelBuilder.get(resultHandler)
+            // wait for model requests to start
+            server.sync()
+            // make sure no new builds get executed
+            cancelledFile.text = "cancelled"
+            // cancel operation
+            cancellationToken.cancel()
+        }
+
+        then:
+        resultHandler.result instanceof BuildCancelledException
+        // participant should be properly cancelled
+        participantCancelledFile.exists()
+        // no new builds should have been executed after cancelling
+        !executedAfterCancellingFile.exists()
+    }
+
+    def "check that no participant requests are started at all when token is initially cancelled"() {
+        given:
+        def executedAfterCancellingFile = file("executed")
+        def buildFileText = """
+        new File("${executedAfterCancellingFile.absolutePath}").text = << "executed \${project.name}\\n"
+        throw new RuntimeException("Build should not get executed")
 """
         def build1 = populate("build-1") {
             buildFile << buildFileText
@@ -55,20 +107,18 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
+        cancellationToken.cancel()
         withCompositeConnection([build1, build2]) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
-            // async ask for results
             modelBuilder.get(resultHandler)
-            // wait for model requests to start
-            server.sync()
-            // cancel operation
-            cancellationToken.cancel()
         }
 
         then:
         resultHandler.result instanceof BuildCancelledException
+        !executedAfterCancellingFile.exists()
     }
+
 
     static class ResultCollector implements ResultHandler {
         def result
