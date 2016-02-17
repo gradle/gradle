@@ -43,19 +43,19 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
             @Override
             public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
-                ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
+                ComponentSpecIdentifier id = getId(findOwner(componentNode), name);
                 return DefaultComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
             }
         });
         registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
             @Override
             public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
-                MutableModelNode componentBinariesNode = binaryNode.getParent();
-                MutableModelNode componentNode = componentBinariesNode.getParent();
+                MutableModelNode componentNode = findOwner(binaryNode);
+                ComponentSpecIdentifier id = getId(componentNode, name);
                 return BaseBinarySpec.create(
                         publicType.getConcreteClass(),
                         implementationType.getConcreteClass(),
-                        new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name),
+                        id,
                         binaryNode,
                         componentNode,
                         instantiator,
@@ -65,22 +65,29 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
             public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
-                ComponentSpecIdentifier id = getId(node, sourceSetName);
+                ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
                 return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, sourceDirectorySetFactory));
             }
         });
     }
 
     @Nullable
-    private ComponentSpecIdentifier getId(MutableModelNode modelNode, String name) {
-        MutableModelNode grandparentNode = modelNode.getParent().getParent();
-        // Special case handling of a LanguageSourceSet that is part of `ComponentSpec.sources` or `BinarySpec.sources`
-        // TODO - generalize naming for all nested components
-        if (grandparentNode != null && grandparentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))) {
-            ComponentSpecInternal componentSpec = grandparentNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
+    private ComponentSpecIdentifier getId(@Nullable MutableModelNode ownerNode, String name) {
+        if (ownerNode != null) {
+            ComponentSpecInternal componentSpec = ownerNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
             return componentSpec.getIdentifier().child(name);
         }
 
         return new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
+    }
+
+    @Nullable
+    private MutableModelNode findOwner(MutableModelNode modelNode) {
+        MutableModelNode grandparentNode = modelNode.getParent().getParent();
+        if (grandparentNode != null && grandparentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))) {
+            return grandparentNode;
+        }
+
+        return null;
     }
 }

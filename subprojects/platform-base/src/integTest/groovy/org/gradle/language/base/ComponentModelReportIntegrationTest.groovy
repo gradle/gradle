@@ -63,7 +63,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                   | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                                 + myBinarySource
                                       | Type:   	UnmanagedLanguageSourceSet
-                                      | Value:  	Unmanaged source 'myBinary:myBinarySource'
+                                      | Value:  	Unmanaged source 'myComponent:myBinary:myBinarySource'
                                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource
@@ -189,7 +189,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                 $binaryType 'myComponent:myBinary'
                     build using task: :myComponentMyBinary
                     source sets:
-                        $languageName source 'myBinary:myBinarySource'
+                        $languageName source 'myComponent:myBinary:myBinarySource'
                             srcDir: src${File.separator}myBinary${File.separator}myBinarySource
             """.stripIndent()
 

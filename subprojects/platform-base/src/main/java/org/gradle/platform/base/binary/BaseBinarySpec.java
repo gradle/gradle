@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.binary;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
@@ -147,17 +146,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
 
     @Override
     public String getProjectScopedName() {
-        ComponentSpec owner = getComponent();
-        return owner == null ? getName() : owner.getName() + StringUtils.capitalize(getName());
-    }
-
-    public String getDisplayName() {
-        ComponentSpec owner = getComponent();
-        if (owner == null) {
-            return String.format("%s '%s'", getTypeName(), getName());
-        } else {
-            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), getName());
-        }
+        return getIdentifier().getProjectScopedName();
     }
 
     @Override

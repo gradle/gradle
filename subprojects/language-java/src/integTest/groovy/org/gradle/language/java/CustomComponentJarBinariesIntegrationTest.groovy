@@ -102,12 +102,12 @@ model {
                 assert compileLib1JarLib1Java.source.files*.name == [ "Lib1.java" ]
                 assert compileLib2JarLib2Java.source.files*.name == [ "Lib2.java" ]
                 assert compileSampleLibJarSampleLibLib.source.files*.name == [ "Sample.java" ]
-                assert compileSampleLibJarSampleLibBin.source.files*.name == [ "Bin.java" ]
+                assert compileSampleLibJarSampleLibJarBin.source.files*.name == [ "Bin.java" ]
 
                 assert compileLib1JarLib1Java.classpath.files*.name == []
                 assert compileLib2JarLib2Java.classpath.files*.name == []
                 assert compileSampleLibJarSampleLibLib.classpath.files*.name == [ "lib1.jar" ]
-                assert compileSampleLibJarSampleLibBin.classpath.files*.name == [ "lib2.jar" ]
+                assert compileSampleLibJarSampleLibJarBin.classpath.files*.name == [ "lib2.jar" ]
             }
         }
     }

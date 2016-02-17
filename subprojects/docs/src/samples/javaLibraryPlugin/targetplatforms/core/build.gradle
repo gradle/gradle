@@ -15,7 +15,7 @@ model {
         main {
             binaries.java6Jar {
                 sources {
-                    java6(JavaSourceSet) {
+                    java(JavaSourceSet) {
                         source.srcDir 'src/main/java6'
                     }
                 }

@@ -46,7 +46,7 @@ public class AbstractComponentSpec implements ComponentSpec, ComponentSpecIntern
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
+        return String.format("%s '%s'", getTypeName(), identifier.getPath());
     }
 
     @Override
