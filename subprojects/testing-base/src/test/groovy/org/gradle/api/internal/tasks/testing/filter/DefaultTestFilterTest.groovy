@@ -37,17 +37,16 @@ class DefaultTestFilterTest extends Specification {
         then: spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
 
         when: spec.setIncludePatterns("x")
-
         then: spec.includePatterns == ["x"] as Set
 
         when:
-        spec.excludeTestsMatching("*baRMethod")
+        spec.excludeTestsMatching("*barMethod")
         spec.excludeTestsMatching("*.BarTest.*")
 
         then: spec.excludePatterns == ["*barMethod", "*.BarTest.*"] as Set
 
-        when: spec.setIncludePatterns("y")
-        then: spec.includePatterns == ["y"] as Set
+        when: spec.setExcludePatterns("y")
+        then: spec.excludePatterns == ["y"] as Set
 
     }
 
