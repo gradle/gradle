@@ -6,11 +6,11 @@ def rootProjectDirectories() {
     file("demo.composite").readLines().collect { new File(it) }
 }
 
-def rootProject(model) {
-    if (model.parent) {
-        return rootProject(model.parent)
+def findRootProject(project) {
+    if (project.parent) {
+        return findRootProject(project.parent)
     }
-    return model
+    return project
 }
 
 def renderProject(indent, project) {
@@ -22,25 +22,27 @@ def renderProject(indent, project) {
 }
 
 def renderProjectSummary(indent, project) {
-    def participantDir = project.gradleProject.projectDirectory.absolutePath - file(".").absolutePath - "/"
-    println "${indent}${participantDir}:${project.gradleProject.path}"
+    def rootProject = findRootProject(project)
+    def gradleProject = project.gradleProject
+    def participantDir = rootProject.gradleProject.projectDirectory.absolutePath - file("projects").absolutePath - "/"
+    println "${indent}${participantDir}:${gradleProject.path} (${gradleProject.name})"
 }
 
 def renderDependency(indent, dependency) {
-    println "${indent}> dependsOn ${dependency}"
+    println "${indent}> depends on ${dependency}"
 }
 
 def renderDependencies(indent, project) {
     project.classpath.each { externalDependency ->
         def module = externalDependency.gradleModuleVersion
         if (module!=null) {
-            renderDependency(indent, "${module.group}:${module.name}:${module.version}")
+            renderDependency(indent, "module ${module.group}:${module.name}:${module.version}")
         } else {
-            renderDependency(indent, externalDependency.file)
+            renderDependency(indent, "file " + externalDependency.file)
         }
     }
     project.projectDependencies.each { projectDependency ->
-        renderDependency(indent, projectDependency.path)
+        renderDependency(indent, "project " + projectDependency.path)
     }
 }
 
@@ -54,7 +56,7 @@ task printModel << {
     def connection = builder.build()
     def models = connection.getModels(EclipseProject)
 
-    def rootProjects = models.grep({ rootProject(it) == it }).sort({ it.projectDirectory })
+    def rootProjects = models.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
     rootProjects.each { rootProject ->
         renderProject("", rootProject)
     }
