@@ -17,11 +17,14 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.util.GFileUtils
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+@InspectsExecutedTasks
+@InspectsBuildOutput
+class GradleRunnerSmokeIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "execute build for expected success"() {
         given:
@@ -71,16 +74,15 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
     def "execute build with buildSrc project"() {
         given:
-        File buildSrcJavaSrcDir = testProjectDir.createDir('buildSrc', 'src', 'main', 'java', 'org', 'gradle', 'test')
-        GFileUtils.writeFile("""package org.gradle.test;
+        file('buildSrc/src/main/java/org/gradle/test/MyApp.java') << """
+            package org.gradle.test;
 
-public class MyApp {
-    public static void main(String args[]) {
-       System.out.println("Hello world!");
-    }
-}
-""", new File(buildSrcJavaSrcDir, 'MyApp.java'))
-
+            public class MyApp {
+                public static void main(String args[]) {
+                   System.out.println("Hello world!");
+                }
+            }
+        """
 
         buildFile << helloWorldTask()
 

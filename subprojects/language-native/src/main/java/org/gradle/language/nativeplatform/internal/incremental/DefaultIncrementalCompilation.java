@@ -17,27 +17,38 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
+    private final CompilationState finalState;
     private final List<File> recompile;
     private final List<File> removed;
-    private CompilationState finalState;
+    private final Set<File> discoveredInputs;
 
-    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed, Set<File> discoveredInputs) {
         this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
+        this.discoveredInputs = discoveredInputs;
     }
 
+    @Override
     public List<File> getRecompile() {
         return recompile;
     }
 
+    @Override
     public List<File> getRemoved() {
         return removed;
     }
 
+    @Override
     public CompilationState getFinalState() {
         return finalState;
+    }
+
+    @Override
+    public Set<File> getDiscoveredInputs() {
+        return discoveredInputs;
     }
 }

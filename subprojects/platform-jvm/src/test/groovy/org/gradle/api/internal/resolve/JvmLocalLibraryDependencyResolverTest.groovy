@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.resolve
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -33,8 +32,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
 import org.gradle.jvm.internal.DefaultJarFile
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
@@ -42,13 +41,15 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.LibrarySpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -82,7 +83,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         variants.nonNullVariantAxes >> ['targetPlatform']
         variants.declaredVariantAxes >> ['targetPlatform']
         variants.getVariantAxisType(_) >> ModelType.of(JavaPlatform)
-        def schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
+        def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
@@ -92,7 +93,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         requested = Mock(ModuleVersionSelector)
         metadata.requested >> requested
         metadata.selector >> selector
-
     }
 
     private ProjectInternal mockProject(String path) {
@@ -229,26 +229,36 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             ComponentSpecContainer components = Mock()
             project.modelRegistry.find(_, _) >> components
             def map = Mock(ModelMap)
+            def sources = Mock(ModelMap)
+            sources.values() >> []
             def librarySpecs = libraries.collect { library ->
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> library
+                lib.dependencies >> new DefaultDependencySpecContainer()
+                lib.sources >> sources
 
-                def apiJar = new DefaultJarFile()
+                def apiJar = newDefaultJarFile("apiJar")
                 apiJar.setFile(new File("api.jar"))
+                def runtimeJar = newDefaultJarFile("runtimeJar")
+                runtimeJar.setFile(new File('runtime.jar'))
 
                 def binaries = Mock(ModelMap)
                 def binary = Mock(JarBinarySpecInternal)
                 binary.publicType >> JarBinarySpec
-                binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'api')
+                binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'foo')
                 binary.displayName >> "binary for $lib"
-                binary.name >> 'api'
+                binary.name >> 'foo'
                 binary.buildTask >> Mock(Task)
                 binary.targetPlatform >> platform
-                binary.jarFile >> new File("api.jar")
+                binary.jarFile >> runtimeJar.file
+                binary.apiJarFile >> apiJar.file
                 binary.apiJar >> apiJar
+                binary.runtimeJar >> runtimeJar
                 binary.apiDependencies >> []
                 binary.dependencies >> []
+                binary.library >> lib
                 binary.inputs >> toDomainObjectSet(LanguageSourceSet)
+                binary.sources >> sources
                 def values = [binary]
                 binaries.values() >> { values }
                 binaries.withType(JarBinarySpec) >> {
@@ -264,5 +274,9 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             map
             components.withType(_) >> map
         }
+    }
+
+    private DefaultJarFile newDefaultJarFile(String componentName) {
+        new DefaultJarFile(new DefaultComponentSpecIdentifier(":", componentName))
     }
 }

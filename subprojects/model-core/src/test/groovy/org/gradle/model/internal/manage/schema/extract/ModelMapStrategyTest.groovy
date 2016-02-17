@@ -22,12 +22,10 @@ import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
-import spock.lang.Shared
 import spock.lang.Specification
 
 class ModelMapStrategyTest extends Specification {
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
 
     def "assembles schema for model map"() {
         expect:

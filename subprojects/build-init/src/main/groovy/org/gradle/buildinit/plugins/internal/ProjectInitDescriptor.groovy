@@ -16,5 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal
 
-interface ProjectInitDescriptor extends TemplateOperation{
+interface ProjectInitDescriptor {
+
+    void generate(BuildInitTestFramework testFramework)
+
+    boolean supports(BuildInitTestFramework testFramework)
 }

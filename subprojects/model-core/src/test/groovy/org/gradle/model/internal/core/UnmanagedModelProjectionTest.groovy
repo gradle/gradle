@@ -16,27 +16,18 @@
 
 package org.gradle.model.internal.core
 
-import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class UnmanagedModelProjectionTest extends Specification {
     def "describes available types"() {
         expect:
         def projection = UnmanagedModelProjection.of(type)
-        projection.getReadableTypeDescriptions(Stub(MutableModelNode)) as List == [description]
-        projection.getWritableTypeDescriptions(Stub(MutableModelNode)) as List == [description]
+        projection.getTypeDescriptions(Stub(MutableModelNode)) as List == [description]
 
         where:
         type     | description
         String   | "java.lang.String (or assignment compatible type thereof)"
         Object   | "java.lang.Object"
         Runnable | "java.lang.Runnable"
-    }
-
-    def "has no writable types available when read-only"() {
-        expect:
-        def projection = new UnmanagedModelProjection(ModelType.of(String), true, false)
-        !projection.canBeViewedAsMutable(ModelType.of(String))
-        projection.getWritableTypeDescriptions(Stub(MutableModelNode)).empty
     }
 }

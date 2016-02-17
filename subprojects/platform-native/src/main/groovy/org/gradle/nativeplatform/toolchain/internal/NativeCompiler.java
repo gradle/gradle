@@ -32,7 +32,7 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
 
@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
+public abstract class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;
@@ -62,6 +62,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    @Override
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
@@ -124,7 +125,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             return Lists.newArrayList();
         }
 
-        final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
+        final IncludeDirectives includes = spec.getSourceFileIncludeDirectives().get(sourceFile);
         final String header = spec.getPreCompiledHeader();
 
         List<Include> headers = includes.getIncludesAndImports();

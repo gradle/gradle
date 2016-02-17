@@ -16,8 +16,10 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
+
 import spock.lang.Issue
 
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -69,6 +71,53 @@ dependencies {
         libraries[2].assertHasNoSource()
         libraries[2].assertHasNoJavadoc()
     }
+
+    @Test
+    @Issue("GRADLE-1945")
+    void unresolvedDependenciesAreLogged() {
+        //given
+        def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
+        module.publish()
+
+        //when
+        ExecutionResult result = runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations {
+    myPlusConfig
+    myMinusConfig
+}
+
+dependencies {
+    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
+
+    eclipse {
+        classpath {
+            plusConfigurations += [ configurations.myPlusConfig ]
+            minusConfigurations += [ configurations.myMinusConfig]
+        }
+    }
+}
+"""
+        String expected = """:eclipseClasspath
+Could not resolve: myGroup:missing-artifact:1.0
+Could not resolve: myGroup:missing-extra-artifact:1.0
+:eclipseJdt
+:eclipseProject
+:eclipse
+"""
+        result.assertOutputEquals(expected, true, false)
+    }
+
 
     @Test
     @Issue("GRADLE-1622")
@@ -986,5 +1035,90 @@ dependencies {
         assert classpath.containers == [jreContainerPath, 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
 
+    @Test
+    void avoidsDuplicateJreContainersInClasspathWhenMerging() {
+        //given
+        getClasspathFile() << """<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.5"/>
+	<classpathentry kind="src" path="/someProject"/>
+</classpath>
+"""
 
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+"""
+        //then
+        assert classpath.entries.size() == 2
+        assert classpath.containers.size() == 1
+        assert classpath.containers == [jreContainerPath]
+    }
+
+    @Test
+    void compileOnlyDependenciesAddedToClasspath() {
+        // given
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+
+        // when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+
+        // then
+        assert classpath.libs.size() == 1
+        classpath.assertHasLibs('compileOnly-1.0.jar')
+    }
+
+    @Test
+    void compileOnlyDependenciesAreNotExported() {
+        // given
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+project(':a') {
+    dependencies {
+        compileOnly 'org.gradle.test:compileOnly:1.0'
+    }
+}
+
+project(':b') {
+    dependencies {
+        compile project(':a')
+        compile 'org.gradle.test:compile:1.0'
+    }
+}
+"""
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 1
+        classpathA.assertHasLibs('compileOnly-1.0.jar')
+        assert classpathB.libs.size() == 1
+        assert classpathB.projects == ['/a']
+        classpathB.assertHasLibs('compile-1.0.jar')
+    }
 }

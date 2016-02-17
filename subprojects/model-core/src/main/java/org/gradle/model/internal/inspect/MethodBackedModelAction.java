@@ -16,35 +16,32 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-class MethodBackedModelAction<T> extends AbstractModelActionWithView<T> {
-    private final ModelRuleInvoker<?> ruleInvoker;
+class MethodBackedModelAction<T> extends AbstractMethodRuleAction<T> {
+    private final List<ModelReference<?>> inputs;
 
-    public MethodBackedModelAction(MethodRuleDefinition<?, T> ruleDefinition) {
-        this(ruleDefinition.getRuleInvoker(), ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
-    }
-
-    public MethodBackedModelAction(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
-        super(subject, descriptor, inputs);
-        this.ruleInvoker = ruleInvoker;
+    public MethodBackedModelAction(ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        super(subject, descriptor);
+        this.inputs = inputs;
     }
 
     @Override
-    protected void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+    public List<? extends ModelReference<?>> getInputs() {
+        return inputs;
+    }
+
+    @Override
+    protected void execute(ModelRuleInvoker<?> invoker, T subject, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
-        args[0] = view;
+        args[0] = subject;
         for (int i = 0; i < this.inputs.size(); ++i) {
             args[i + 1] = inputs.get(i).getInstance();
         }
-        ruleInvoker.invoke(args);
-    }
-
-    @Override
-    public String toString() {
-        return "MethodBackedModelAction{descriptor=" + descriptor + ", subject=" + subject + ", inputs=" + inputs + '}';
+        invoker.invoke(args);
     }
 }

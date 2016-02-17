@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
@@ -29,7 +30,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
 /**
- * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
+ * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
  */
 class JavaPluginConvention {
@@ -62,7 +63,7 @@ class JavaPluginConvention {
 
     JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
         this.project = project
-        sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, instantiator)
+        sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, instantiator, project.services.get(SourceDirectorySetFactory))
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
         testResultsDirName = 'test-results'

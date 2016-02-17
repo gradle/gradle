@@ -33,7 +33,8 @@ public class ImmutablePatternSet extends PatternSet {
     }
 
     private ImmutablePatternSet(PatternSet source) {
-        doCopyFrom(source);
+        super(source);
+        copyFrom(source);
     }
 
     @Override

@@ -15,26 +15,68 @@
  */
 package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.ComponentSpecIdentifier;
+import com.google.common.base.Objects;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
+import org.gradle.api.Project;
+import org.gradle.util.Path;
 
 /**
  * An identifier for a component that is built as part of the current build.
  */
 public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
+    private final DefaultComponentSpecIdentifier parent;
     private final String projectPath;
     private final String name;
 
     public DefaultComponentSpecIdentifier(String projectPath, String name) {
-        this.projectPath = projectPath;
-        this.name = name;
+        this(projectPath, null, name);
     }
 
+    private DefaultComponentSpecIdentifier(String projectPath, DefaultComponentSpecIdentifier parent, String name) {
+        this.projectPath = projectPath;
+        this.name = name;
+        this.parent = parent;
+    }
+
+    @Override
+    public ComponentSpecIdentifier child(String name) {
+        return new DefaultComponentSpecIdentifier(projectPath, this, name);
+    }
+
+    @Nullable
+    @Override
+    public ComponentSpecIdentifier getParent() {
+        return parent;
+    }
+
+    @Override
+    public Path getPath() {
+        return Path.path(getQualifiedPath());
+    }
+
+    private String getQualifiedPath() {
+        return parent == null ? name : parent.getQualifiedPath() + Project.PATH_SEPARATOR + name;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
+    public String getProjectScopedName() {
+        return parent == null ? name : parent.getProjectScopedName() + StringUtils.capitalize(name);
+    }
+
+    @Override
     public String getProjectPath() {
         return projectPath;
+    }
+
+    @Override
+    public String toString() {
+        return getQualifiedPath();
     }
 
     @Override
@@ -47,14 +89,17 @@ public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
         }
 
         DefaultComponentSpecIdentifier that = (DefaultComponentSpecIdentifier) o;
-        return name.equals(that.name) && projectPath.equals(that.projectPath);
-
+        return name.equals(that.name) && projectPath.equals(that.projectPath) && Objects.equal(parent, that.parent);
     }
 
     @Override
     public int hashCode() {
-        int result = projectPath.hashCode();
-        result = 31 * result + name.hashCode();
+        int result = name.hashCode();
+        if (parent != null) {
+            result = 31 * result + parent.hashCode();
+        } else {
+            result = 31 * result + projectPath.hashCode();
+        }
         return result;
     }
 }

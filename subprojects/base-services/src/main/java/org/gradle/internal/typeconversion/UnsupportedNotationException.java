@@ -21,10 +21,11 @@ import org.gradle.util.GUtil;
 import java.util.Collection;
 import java.util.Formatter;
 
-public class UnsupportedNotationException extends RuntimeException {
+public class UnsupportedNotationException extends TypeConversionException {
     private final Object notation;
 
     public UnsupportedNotationException(Object notation) {
+        super("Could not convert " + notation);
         this.notation = notation;
     }
 

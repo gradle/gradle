@@ -173,9 +173,16 @@ class JavaBasePluginTest extends Specification {
         runtime.description == "Runtime classpath for source set 'custom'."
 
         and:
+        def compileOnly = project.configurations.customCompileOnly
+        compileOnly.transitive
+        !compileOnly.visible
+        compileOnly.extendsFrom ==  [compile] as Set
+        compileOnly.description == "Compile only classpath for source set 'custom'."
+
+        and:
         def runtimeClasspath = sourceSet.runtimeClasspath
         def compileClasspath = sourceSet.compileClasspath
-        compileClasspath == compile
+        compileClasspath == compileOnly
         runtimeClasspath sameCollection(sourceSet.output + runtime)
     }
 
@@ -299,7 +306,7 @@ class JavaBasePluginTest extends Specification {
 
         then:
         binaries.size() == 1
-        def binary = binaries.get("customClasses")
+        def binary = binaries.get("custom")
         binary instanceof ClassDirectoryBinarySpec
         binary.classesDir == project.file("classes")
         binary.resourcesDir == project.file("resources")
@@ -320,7 +327,7 @@ class JavaBasePluginTest extends Specification {
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
 
         then:
-        def binary = binaries.get("customClasses")
+        def binary = binaries.get("custom")
         assert binary instanceof ClassDirectoryBinarySpec
         def classesTask = project.tasks.findByName("customClasses")
         binary.buildTask == classesTask

@@ -16,7 +16,11 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
+
 class AbstractNativeComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+    String currentNative = NativePlatformsTestFixture.defaultPlatformName
+
     def setup() {
         formatter = new NativeComponentReportOutputFormatter(toolChain)
     }

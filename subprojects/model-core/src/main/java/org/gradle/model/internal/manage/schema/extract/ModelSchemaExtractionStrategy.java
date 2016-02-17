@@ -17,5 +17,12 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 public interface ModelSchemaExtractionStrategy {
+    /**
+     * Potentially extracts the schema for a type. If this strategy does not recognize the type, this method should return without doing anything.
+     *
+     * If the strategy does recognize the type, it should call {@link ModelSchemaExtractionContext#found(org.gradle.model.internal.manage.schema.ModelSchema)} with the resulting schema, or one of the
+     * methods defined by {@link org.gradle.model.internal.inspect.ValidationProblemCollector} to record problems with the type. The strategy can both provide a result and record problems, if
+     * desired.
+     */
     <T> void extract(ModelSchemaExtractionContext<T> extractionContext);
 }

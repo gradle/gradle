@@ -116,18 +116,12 @@ trait BuildTypeAsAnotherBuildTypeJarBinarySpec implements JarBinarySpec {
 }
 
 class StringBinary extends DefaultJarBinarySpec implements BuildTypeAsStringJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class BuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAsBuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 class AnotherBuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAsAnotherBuildTypeJarBinarySpec {
-    // workaround for Groovy bug
-    JvmBinaryTasks getTasks() { super.tasks }
 }
 
 // define the 3 concrete library types
@@ -140,29 +134,29 @@ class AnotherBuildTypeBinary extends DefaultJarBinarySpec implements BuildTypeAs
 class ComponentTypeRules extends RuleSource {
 
     @ComponentType
-    void registerStringBuildTypeComponent(ComponentTypeBuilder<StringBuildTypeLib> builder) {
+    void registerStringBuildTypeComponent(TypeBuilder<StringBuildTypeLib> builder) {
     }
 
     @ComponentType
-    void registerBuildTypeBuildTypeComponent(ComponentTypeBuilder<BuildTypeBuildTypeLib> builder) {
+    void registerBuildTypeBuildTypeComponent(TypeBuilder<BuildTypeBuildTypeLib> builder) {
     }
 
     @ComponentType
-    void registerAnotherBuildTypeBuildTypeComponent(ComponentTypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
+    void registerAnotherBuildTypeBuildTypeComponent(TypeBuilder<AnotherBuildTypeBuildTypeLib> builder) {
     }
 
-    @BinaryType
-    void registerStringBuildTypeJar(BinaryTypeBuilder<BuildTypeAsStringJarBinarySpec> builder) {
+    @ComponentType
+    void registerStringBuildTypeJar(TypeBuilder<BuildTypeAsStringJarBinarySpec> builder) {
         builder.defaultImplementation(StringBinary)
     }
 
-    @BinaryType
-    void registerBuildTypeBuildTypeJar(BinaryTypeBuilder<BuildTypeAsBuildTypeJarBinarySpec> builder) {
+    @ComponentType
+    void registerBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(BuildTypeBinary)
     }
 
-    @BinaryType
-    void registerAnotherBuildTypeBuildTypeJar(BinaryTypeBuilder<BuildTypeAsAnotherBuildTypeJarBinarySpec> builder) {
+    @ComponentType
+    void registerAnotherBuildTypeBuildTypeJar(TypeBuilder<BuildTypeAsAnotherBuildTypeJarBinarySpec> builder) {
         builder.defaultImplementation(AnotherBuildTypeBinary)
     }
 

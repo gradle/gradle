@@ -18,37 +18,67 @@
 package org.gradle.test.fixtures.maven
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 
-import static org.junit.Assert.fail
+class M2Installation implements Action<GradleExecuter> {
+    private final TestDirectoryProvider temporaryFolder
+    private boolean initialized = false
+    private TestFile userHomeDir
+    private TestFile userM2Directory
+    private TestFile userSettingsFile
+    private TestFile globalMavenDirectory
+    private TestFile globalSettingsFile
 
-class M2Installation implements Action<GradleExecuter>, TestRule {
-    final TestFile userHomeDir
-    final TestFile userM2Directory
-    final TestFile userSettingsFile
-    final TestFile globalMavenDirectory
-    final TestFile globalSettingsFile
-    private GradleExecuter executer
+    public M2Installation(TestDirectoryProvider temporaryFolder) {
+        this.temporaryFolder = temporaryFolder
+    }
 
-    public M2Installation(GradleExecuter executer, TestFile testDirectory) {
-        this.executer = executer
-        userHomeDir = testDirectory.createDir("maven_home")
-        userM2Directory = userHomeDir.createDir(".m2")
-        userSettingsFile = userM2Directory.file("settings.xml")
-        globalMavenDirectory = userHomeDir.createDir("m2_home")
-        globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
+    private void init() {
+        if (!initialized) {
+            userHomeDir = temporaryFolder.testDirectory.createDir("maven_home")
+            userM2Directory = userHomeDir.createDir(".m2")
+            userSettingsFile = userM2Directory.file("settings.xml")
+            globalMavenDirectory = userHomeDir.createDir("m2_home")
+            globalSettingsFile = globalMavenDirectory.file("conf/settings.xml")
+            println "M2 home: " + userHomeDir
+
+            initialized = true
+        }
+    }
+
+    TestFile getUserHomeDir() {
+        init()
+        return userHomeDir
+    }
+
+    TestFile getUserM2Directory() {
+        init()
+        return userM2Directory
+    }
+
+    TestFile getUserSettingsFile() {
+        init()
+        return userSettingsFile
+    }
+
+    TestFile getGlobalMavenDirectory() {
+        init()
+        return globalMavenDirectory
+    }
+
+    TestFile getGlobalSettingsFile() {
+        init()
+        return globalSettingsFile
     }
 
     MavenLocalRepository mavenRepo() {
+        init()
         new MavenLocalRepository(userM2Directory.file("repository"))
     }
 
     M2Installation generateUserSettingsFile(MavenLocalRepository userRepository) {
+        init()
         userSettingsFile.text = """
 <settings>
     <localRepository>${userRepository.rootDir.absolutePath}</localRepository>
@@ -57,6 +87,7 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
     }
 
     M2Installation generateGlobalSettingsFile(MavenLocalRepository globalRepository = mavenRepo()) {
+        init()
         globalSettingsFile.createFile().text = """
 <settings>
     <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
@@ -64,31 +95,11 @@ class M2Installation implements Action<GradleExecuter>, TestRule {
         return this
     }
 
-    @Override
-    Statement apply(Statement base, Description description) {
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                def m2RepositoryFolder = new File("${SystemProperties.instance.userHome}/.m2/repository")
-                boolean existsBefore = m2RepositoryFolder.exists()
-                try {
-                    base.evaluate()
-                } finally {
-                    def existsAfter = m2RepositoryFolder.exists()
-                    if (!existsBefore && existsAfter) {
-                        GFileUtils.deleteDirectory(m2RepositoryFolder)
-                        fail("Test modifies ${m2RepositoryFolder.absolutePath} folder")
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
     void execute(GradleExecuter gradleExecuter) {
-        executer.withUserHomeDir(userHomeDir)
+        init()
+        gradleExecuter.withUserHomeDir(userHomeDir)
         if (globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
+            gradleExecuter.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
         }
     }
 }

@@ -16,11 +16,14 @@
 
 package org.gradle.api.resources;
 
+import org.gradle.internal.HasInternalProtocol;
+
 import java.io.InputStream;
 
 /**
  * A resource that can be read. The simplest example is a file.
  */
+@HasInternalProtocol
 public interface ReadableResource extends Resource {
 
     /**

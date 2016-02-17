@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
-abstract public class AvailableJavaHomes {
+public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
 
     @Nullable
@@ -66,6 +66,16 @@ abstract public class AvailableJavaHomes {
                 return version.equals(element.getJavaVersion());
             }
         });
+    }
+
+    public static List<JavaInfo> getAvailableJvms() {
+        return FluentIterable.from(getJvms())
+            .transform(new Function<JvmInstallation, JavaInfo>() {
+                @Override
+                public JavaInfo apply(@javax.annotation.Nullable JvmInstallation input) {
+                    return Jvm.forHome(input.getJavaHome());
+                }
+            }).toList();
     }
 
     public static List<JavaInfo> getAvailableJdks() {

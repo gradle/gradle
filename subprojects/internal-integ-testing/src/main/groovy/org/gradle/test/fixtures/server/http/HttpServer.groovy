@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.test.fixtures.server.http
+
 import com.google.common.collect.Sets
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
@@ -59,7 +60,10 @@ class HttpServer extends ServerWithExpectations {
     List<ServerExpectation> expectations = []
 
     enum AuthScheme {
-        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler()), HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler())
+        BASIC(new BasicAuthHandler()),
+        DIGEST(new DigestAuthHandler()),
+        HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
+        NTLM(new NtlmAuthHandler())
 
         final AuthSchemeHandler handler;
 
@@ -745,6 +749,18 @@ class HttpServer extends ServerWithExpectations {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 }
             }
+        }
+    }
+
+    public static class NtlmAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return NtlmAuthenticator.NTLM_AUTH_METHOD
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new NtlmAuthenticator()
         }
     }
 

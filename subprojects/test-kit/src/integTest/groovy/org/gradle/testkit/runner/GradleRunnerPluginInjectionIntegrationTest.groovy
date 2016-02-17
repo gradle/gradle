@@ -21,53 +21,17 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.annotations.InjectsPluginClasspath
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@InjectsPluginClasspath
+@InspectsBuildOutput
 @UsesNativeServices
-class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-
-    def "cannot use feature when target gradle version is < 2.8"() {
-        given:
-        compilePluginProjectSources()
-        buildFile << pluginDeclaration()
-
-        when:
-        runner('helloWorld1')
-            .withGradleVersion("2.7")
-            .withPluginClasspath(getPluginClasspath())
-            .build()
-
-        then:
-        def e = thrown InvalidRunnerConfigurationException
-        e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using (2.7) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle 2.8 and all later versions."
-    }
-
-    def "can use manual injection with older versions that do not support injection"() {
-        given:
-        compilePluginProjectSources()
-        buildFile << """
-            buildscript {
-                dependencies {
-                    classpath files(${pluginClasspath.collect { "'${it.absolutePath.replace("\\", "\\\\")}'" }.join(", ")})
-                }
-            }
-            apply plugin: 'com.company.helloworld1'
-        """
-
-        when:
-        def result = runner('helloWorld1')
-            .withGradleVersion("2.7")
-            .forwardOutput()
-            .build()
-
-        then:
-        result.task(":helloWorld1").outcome == SUCCESS
-    }
+class GradleRunnerPluginInjectionIntegrationTest extends GradleRunnerIntegrationTest {
 
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
         when:
@@ -138,7 +102,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         buildFile << echoClassNameTask()
 
         when:
-        def result = runner('echo1')
+        def result = runner('echo1', "-S")
             .withPluginClasspath(getPluginClasspath())
             .buildAndFail()
 
@@ -171,13 +135,13 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
 
         when:
-        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+        def result = runner("child:echo1", "-S").withPluginClasspath(getPluginClasspath()).build()
 
         then:
         result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
-        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+        result = runner("echo1", "-S").withPluginClasspath(getPluginClasspath()).buildAndFail()
 
         then:
         // This is how the class not being visible will manifest
@@ -192,13 +156,13 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
 
         when:
-        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+        def result = runner("child:echo1", "-S").withPluginClasspath(getPluginClasspath()).build()
 
         then:
         result.output.contains("class name: org.gradle.test.HelloWorld1")
 
         when:
-        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+        result = runner("echo1", "-S").withPluginClasspath(getPluginClasspath()).buildAndFail()
 
         then:
         execFailure(result).assertHasCause("failed to load class org.gradle.test.HelloWorld1")
@@ -474,7 +438,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
     private void compilePluginProjectSources(int counter = 1) {
         createPluginProjectSourceFiles(counter)
-        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
+        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(file(counter.toString()))
             .withArguments('classes', "--no-daemon")
             .run()
@@ -523,7 +487,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
     }
 
     private TestFile pluginProjectFile(int counter = 1, String path) {
-        testProjectDir.file(counter.toString()).file(path)
+        file(counter.toString()).file(path)
     }
 
     private List<File> getPluginClasspath(int counter = 1) {

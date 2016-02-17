@@ -337,13 +337,8 @@
         </para>
 
         <para>
-            The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
-            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
-            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, set
-            <literal>scalaCompileOptions.useAnt</literal> to <literal>false</literal>:
-            <sample id="zinc" dir="scala/zinc" title="Activating the Zinc based compiler">
-                <sourcefile file="build.gradle" snippet="use-zinc"/>
-            </sample>
+            The Scala plugin defaults to incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
+            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler.
         </para>
 
         <para>
@@ -395,11 +390,16 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:intellij_idea_integration">
         <title>IntelliJ IDEA Integration</title>
         <para>
             When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically,
-            the plugin adds a Scala facet and a Scala compiler library that matches the Scala version on the project's class path.
+            the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path.
+            The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK
+            by configuring <literal>targetVersion</literal> on <apilink class="org.gradle.plugins.ide.idea.model.IdeaModel">IdeaModel</apilink>.
+            <sample id="ideaTargetVersion" dir="userguide/scala/ideaTargetVersion" title="Explicitly specify a target IntelliJ IDEA version">
+                <sourcefile file="build.gradle" snippet="scala-idea-target-version"/>
+            </sample>
         </para>
     </section>
 </chapter>

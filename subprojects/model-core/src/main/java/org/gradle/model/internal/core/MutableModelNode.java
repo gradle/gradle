@@ -16,15 +16,22 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
     boolean canBeViewedAs(ModelType<?> type);
+
+    /**
+     * @see ModelPromise#getTypeDescriptions(MutableModelNode)
+     */
+    Iterable<String> getTypeDescriptions();
 
     /**
      * Creates a mutable view over this node's value.
@@ -37,10 +44,8 @@ public interface MutableModelNode extends ModelNode {
 
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
-     *
-     * The path returned by {@link ModelRegistration#getPath()} is used to determine the name of the reference.
      */
-    void addReference(ModelRegistration registration);
+    <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor);
 
     /**
      * Adds a node to the graph, linked from this node. The given registration is used to initialize the node when required.
@@ -60,20 +65,13 @@ public interface MutableModelNode extends ModelNode {
     void applyToSelf(ModelActionRole type, ModelAction action);
 
     /**
-     * Applies an action to all nodes linked from this node.
+     * Applies an action to all linked nodes of this node that satisfy the given predicate.
      *
-     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
-     * requested type available.
+     * The predicate and the type returned by {@link ModelAction#getSubject()} are both used to filter the nodes,
+     * such that the action is applied only to those linked nodes with a view of the requested type available that
+     * also satisfy the predicate.
      */
-    void applyToAllLinks(ModelActionRole type, ModelAction action);
-
-    /**
-     * Applies an action to all nodes linked from this node, including all nodes transitively linked from this node.
-     *
-     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
-     * requested type available.
-     */
-    void applyToAllLinksTransitive(ModelActionRole type, ModelAction action);
+    void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action);
 
     /**
      * Applies an action to a linked node.
@@ -83,33 +81,50 @@ public interface MutableModelNode extends ModelNode {
     void applyToLink(ModelActionRole type, ModelAction action);
 
     /**
-     * Applies the given rules to a node linked from this node.
-     */
-    void applyToLink(String name, Class<? extends RuleSource> rules);
-
-    /**
-     * Applies the given rules to this node.
+     * Applies the rules defined in the given rule source to this node.
      */
     void applyToSelf(Class<? extends RuleSource> rules);
 
     /**
-     * Applies the given rules to all nodes of the given type linked from this node.
+     * Applies the rules defined in the given rule source to this node.
      */
-    void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules);
+    void applyToSelf(ExtractedRuleSource<?> rules);
 
     /**
-     * Applies the given rules to all nodes of the given type transitively linked from this node.
+     * Applies an action that defines further rules in the given role to the child of this node that is addressed by the subject of the action.
      */
-    void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules);
+    void defineRulesForLink(ModelActionRole role, ModelAction action);
+
+    /**
+     * Applies a rule source to all linked nodes of this node that satisfy the given predicate.
+     *
+     * The predicate and the type returned by {@link ModelAction#getSubject()} are both used to filter the nodes,
+     * such that the action is applied only to those linked nodes with a view of the requested type available that
+     * also satisfy the predicate.
+     */
+    void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules);
+
+    /**
+     * Applies an action that defines rules for the node in the given role to all nodes linked from this node.
+     *
+     * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
+     * requested type available.
+     */
+    void defineRulesFor(NodePredicate predicate, ModelActionRole role, ModelAction action);
+
+    boolean hasLink(String name, Predicate<? super MutableModelNode> predicate);
 
     @Nullable
     MutableModelNode getLink(String name);
 
-    int getLinkCount(ModelType<?> type);
+    int getLinkCount(Predicate<? super MutableModelNode> predicate);
 
-    Set<String> getLinkNames(ModelType<?> type);
+    Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate);
 
+    @Override
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
+
+    Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate);
 
     <T> void setPrivateData(Class<? super T> type, T object);
 
@@ -121,6 +136,9 @@ public interface MutableModelNode extends ModelNode {
 
     Object getPrivateData();
 
+    /**
+     * Change the target of this reference node. Works only on reference nodes that are in the {@link org.gradle.model.internal.core.ModelNode.State#Registered} state.
+     */
     void setTarget(ModelNode target);
 
     /**

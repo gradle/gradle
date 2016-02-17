@@ -233,9 +233,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
             modelNode.addLink(
-                ModelRegistrations
-                    .of(path, new TaskCreator<T>(placeholderName, taskType, configure, taskModelType))
-                    .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
+                ModelRegistrations.of(path)
+                    .action(ModelActionRole.Create, new TaskCreator<T>(placeholderName, taskType, configure, taskModelType))
+                    .withProjection(new UnmanagedModelProjection<T>(taskModelType))
                     .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
                     .build()
             );

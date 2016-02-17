@@ -19,9 +19,12 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.*
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentBinaries
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -39,23 +42,20 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
-        def mockRegistry = Mock(ModelRegistry)
+        def node = Mock(MutableModelNode)
 
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
+        def registration = extract(ruleDefinitionForMethod(ruleName))
 
         then:
-        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
-
         when:
-        registration.apply(mockRegistry, ModelPath.ROOT)
+        apply(registration, node)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
-            assert role == ModelActionRole.Finalize
-            assert action.subject == ModelReference.of("components", ComponentSpecContainer)
+        1 * node.applyTo(_, ModelActionRole.Finalize, _) >> {
+
         }
         0 * _
 
@@ -69,32 +69,31 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
-        def ruleDescription = getStringDescription(ruleMethod)
+        def ruleDescription = getStringDescription(ruleMethod.method)
 
         when:
-        ruleHandler.registration(ruleMethod)
+        extract(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == "${ruleDescription} is not a valid ComponentBinaries model rule method."
-        ex.cause instanceof InvalidModelException
-        ex.cause.message == expectedMessage
+        ex.message == """Type ${ruleClass.name} is not a valid rule source:
+- Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName                | expectedMessage                                                                                                                               | descr
-        "noParams"                | "Method annotated with @ComponentBinaries must have a parameter of type '${ModelMap.name}'."                                                  | "no ModelMap parameter"
-        "wrongSubject"            | "Method annotated with @ComponentBinaries first parameter must be of type '${ModelMap.name}'."                                                | "wrong rule subject type"
-        "multipileComponentSpecs" | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
-        "noComponentSpec"         | "Method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
-        "returnValue"             | "Method annotated with @ComponentBinaries must not have a return value."                                                                      | "non void method"
-        "rawModelMap"             | "Parameter of type '${ModelMap.simpleName}' must declare a type parameter extending 'BinarySpec'."                                            | "non typed ModelMap parameter"
+        methodName               | expectedMessage                                                                                                                                               | descr
+        "noParams"               | "A method annotated with @ComponentBinaries must have at least two parameters."                                                                               | "no ModelMap parameter"
+        "wrongSubject"           | "The first parameter of a method annotated with @ComponentBinaries must be of type ${ModelMap.name}."                                                         | "wrong rule subject type"
+        "multipleComponentSpecs" | "A method annotated with @ComponentBinaries must have one parameter extending VariantComponentSpec. Found multiple parameter extending VariantComponentSpec." | "additional component spec parameter"
+        "noComponentSpec"        | "A method annotated with @ComponentBinaries must have one parameter extending VariantComponentSpec. Found no parameter extending VariantComponentSpec."       | "no component spec parameter"
+        "returnValue"            | "A method annotated with @ComponentBinaries must have void return type."                                                                                      | "non void method"
+        "rawModelMap"            | "Parameter of type ${ModelMap.simpleName} must declare a type parameter extending BinarySpec."                                                                | "non typed ModelMap parameter"
     }
 
     static interface SomeBinarySpec extends BinarySpec {}
 
-    static interface SomeLibrary extends ComponentSpec {}
+    static interface SomeLibrary extends GeneralComponentSpec {}
 
-    static interface RawLibrary extends ComponentSpec {}
+    static interface RawLibrary extends GeneralComponentSpec {}
 
     static interface SomeBinarySubType extends SomeBinarySpec {}
 
@@ -128,7 +127,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static void multipileComponentSpecs(ModelMap<SomeBinarySpec> binaries, SomeLibrary library, SomeLibrary otherLibrary) {
+        static void multipleComponentSpecs(ModelMap<SomeBinarySpec> binaries, SomeLibrary library, SomeLibrary otherLibrary) {
             binaries.create("${library.name}Binary", library)
         }
 
@@ -137,7 +136,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static String returnValue(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static String returnValue(ModelMap<SomeBinarySpec> builder, VariantComponentSpec componentSpec) {
         }
     }
 }

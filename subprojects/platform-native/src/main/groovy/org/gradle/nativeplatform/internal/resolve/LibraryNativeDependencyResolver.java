@@ -25,6 +25,7 @@ public class LibraryNativeDependencyResolver implements NativeDependencyResolver
         libraryBinaryLocator = locator;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult resolution) {
         for (NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
             DefaultLibraryResolver libraryResolver = new DefaultLibraryResolver(libraryBinaryLocator, requirementResolution.getRequirement(), resolution.getTarget());

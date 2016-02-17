@@ -17,8 +17,6 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
@@ -36,8 +34,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -66,7 +66,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     private Object reportDir;
 
     public CompareGradleBuilds() {
-        FileResolver fileResolver = getFileResolver();
+        PathToFileResolver fileResolver = getFileResolver();
         Instantiator instantiator = getInstantiator();
         sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         sourceBuild.setTasks(DEFAULT_TASKS);
@@ -82,7 +82,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected PathToFileResolver getFileResolver() {
         throw new UnsupportedOperationException();
     }
 

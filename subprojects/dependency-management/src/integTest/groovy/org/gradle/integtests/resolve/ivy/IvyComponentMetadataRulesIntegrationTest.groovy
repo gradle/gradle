@@ -302,7 +302,8 @@ resolve.doLast { assert ruleInvoked }
         then:
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failure.assertHasCause("Type BadRuleSource is not a valid model rule source: \n- first parameter of rule method 'doSomething' must be of type org.gradle.api.artifacts.ComponentMetadataDetails")
+        failure.assertHasCause("""Type BadRuleSource is not a valid rule source:
+- Method doSomething(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
     }
 
     def ns(String name) {

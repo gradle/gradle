@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.sonar.runner.SonarRunnerExtension;
 import org.gradle.util.GUtil;
@@ -73,7 +74,7 @@ public class SonarRunner extends DefaultTask {
             LOGGER.info("Executing SonarQube Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
         }
 
-        JavaExecHandleBuilder javaExec = new JavaExecHandleBuilder(getFileResolver());
+        JavaExecHandleBuilder javaExec = getExecHandleFactory().newJavaExec();
         getForkOptions().copyTo(javaExec);
 
         FileCollection sonarRunnerConfiguration = getProject().getConfigurations().getAt(SonarRunnerExtension.SONAR_RUNNER_CONFIGURATION_NAME);
@@ -121,6 +122,11 @@ public class SonarRunner extends DefaultTask {
 
     @Inject
     protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecHandleFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();
     }
 

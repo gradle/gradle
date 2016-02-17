@@ -16,11 +16,9 @@
 
 package org.gradle.language.base
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.platform.base.ApplicationSpec
-import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.LibrarySpec
-import org.gradle.platform.base.internal.ComponentSpecInternal
+import org.gradle.platform.base.*
 import spock.lang.Unroll
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
@@ -35,7 +33,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -67,7 +65,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [ComponentSpec, SourceComponentSpec, VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "presents a public view for custom managed ApplicationSpec"() {
@@ -80,7 +78,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -110,15 +108,13 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can add binaries to custom managed #componentSpecType"() {
         buildFile << """
-            apply plugin: 'jvm-component'
-
             @Managed
             interface SampleComponentSpec extends $componentSpecType {
             }
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register(TypeBuilder<SampleComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -127,7 +123,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 components {
                     sampleLib(SampleComponentSpec) {
                         binaries {
-                            jar(JarBinarySpec)
+                            jar(BinarySpec)
                         }
                     }
                 }
@@ -148,7 +144,49 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validate"
 
         where:
-        componentSpecType << [ComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+        componentSpecType << [VariantComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+    }
+
+    @Unroll
+    def "can add sources to custom managed #componentSpecType"() {
+        buildFile << """
+            @Managed
+            interface SampleComponentSpec extends $componentSpecType {
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(TypeBuilder<SampleComponentSpec> builder) {
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleComponentSpec) {
+                        sources {
+                            java(LanguageSourceSet)
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                    tasks.create("validate") {
+                        assert components*.sources*.values().flatten()*.name == ["java"]
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+
+        where:
+        componentSpecType << [SourceComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
     def "can declare custom managed Jvm library component"() {
@@ -163,7 +201,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                void register(TypeBuilder<SampleLibrarySpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -206,7 +244,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
             }
@@ -320,12 +358,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class RegisterComponentInternalViewRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.internalView(UnmanagedComponentSpecInternal)
                 }
 
                 @ComponentType
-                void registerManaged(ComponentTypeBuilder<ManagedComponentSpec> builder) {
+                void registerManaged(TypeBuilder<ManagedComponentSpec> builder) {
                     builder.internalView(ManagedComponentSpecInternal)
                 }
             }
@@ -368,8 +406,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
     def "public view of managed component does not expose any internal views or implementation"() {
         buildFile << """
-            import ${ComponentSpecInternal.name}
-
             interface UnmanagedComponentSpec extends ComponentSpec {
                 String getUnmanagedData()
                 void setUnmanagedData(String value)
@@ -393,12 +429,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void register1(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register2(TypeBuilder<SampleComponentSpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }
@@ -414,7 +450,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 @Validate
                 void validateInternal(@Path('components.sample') InternalSampleSpec spec) {
 //                    assert !(spec instanceof ComponentSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
 //                    assert !(spec instanceof UnmanagedComponentSpec)
                     assert !(spec instanceof SampleComponentSpec)
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
@@ -428,30 +463,9 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Validate
-                void validateInternal(@Path('components.sample') ComponentSpecInternal spec) {
-//                    assert !(spec instanceof UnmanagedComponentSpec)
-                    assert !(spec instanceof SampleComponentSpec)
-                    assert !(spec instanceof DefaultUnmanagedComponentSpec)
-                    assert !(spec instanceof InternalSampleSpec)
-                    try {
-                        spec.publicData
-                        assert false
-                    } catch(MissingPropertyException e) {
-                        assert e.message == "No such property: publicData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
-                    }
-                    try {
-                        spec.internalData
-                        assert false
-                    } catch (MissingPropertyException e) {
-                        assert e.message == "No such property: internalData for class: org.gradle.platform.base.internal.ComponentSpecInternal"
-                    }
-                }
-
-                @Validate
                 void validatePublic(@Path('components.sample') SampleComponentSpec spec) {
                     assert !(spec instanceof InternalSampleSpec)
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -467,7 +481,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                     assert spec instanceof SampleComponentSpec
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -484,7 +497,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                     assert spec instanceof SampleComponentSpec
                     assert !(spec instanceof DefaultUnmanagedComponentSpec)
                     assert !(spec instanceof InternalSampleSpec)
-//                    assert !(spec instanceof ComponentSpecInternal)
                     spec.publicData
                     try {
                         spec.internalData
@@ -498,9 +510,9 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
                 void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                     tasks.create("validate") {
                         assert components*.name == ["sample"]
+                        assert components.withType(Object)*.name == ["sample"]
                         assert components.withType(ComponentSpec)*.name == ["sample"]
                         assert components.withType(SampleComponentSpec)*.name == ["sample"]
-                        assert components.withType(ComponentSpecInternal)*.name == ["sample"]
                     }
                 }
             }
@@ -515,12 +527,12 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void registerUnmanaged(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void registerUnmanaged(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void registerManaged(ComponentTypeBuilder<ManagedComponentSpec> builder) {
+                void registerManaged(TypeBuilder<ManagedComponentSpec> builder) {
                 }
             }
             apply plugin: RegisterComponentRules
@@ -534,5 +546,131 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "reports failure in @ComponentType rule"() {
+        buildFile << """
+            @Managed
+            interface BrokenComponentSpec extends ComponentSpec {
+            }
 
+            class Broken extends RuleSource {
+                @ComponentType
+                void broken(TypeBuilder<BrokenComponentSpec> builder) {
+                    throw new RuntimeException('broken')
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause("Exception thrown while executing model rule: Broken#broken")
+        failure.assertHasCause("broken")
+    }
+
+    def "fails when @ComponentType registration is badly formed"() {
+        buildFile << """
+            @Managed
+            interface BrokenComponentSpec extends ComponentSpec {
+            }
+
+            class Broken extends RuleSource {
+                @ComponentType
+                void broken(TypeBuilder<BrokenComponentSpec> builder) {
+                    builder.internalView(String)
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause("Exception thrown while executing model rule: Broken#broken")
+        failure.assertHasCause("Broken#broken is not a valid component model rule method.")
+        failure.assertHasCause("Internal view java.lang.String must be an interface.")
+    }
+
+    def "reports badly formed @ComponentType rule"() {
+        buildFile << """
+            class Broken extends RuleSource {
+                @ComponentType
+                private void broken(TypeBuilder<?> builder) {
+                }
+            }
+            apply plugin: Broken
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause("Failed to apply plugin [class 'Broken']")
+        failure.assertHasCause("""Type Broken is not a valid rule source:
+- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: A rule method cannot be private
+- Method broken(org.gradle.platform.base.TypeBuilder<?>) is not a valid rule method: Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).""")
+    }
+
+    @NotYetImplemented
+    def "shows proper error message when accessing non-existent property 'binaries' of unmanaged custom ComponentSpec"() {
+        buildFile << """
+            interface SampleComponentSpec extends ComponentSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
+            }
+            class DefaultSampleComponentSpec extends BaseComponentSpec implements SampleComponentSpec {
+                String publicData
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(TypeBuilder<SampleComponentSpec> builder) {
+                    builder.defaultImplementation(DefaultSampleComponentSpec)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    sampleLib(SampleComponentSpec) {
+                        binaries {}
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails "model"
+        failureHasCause "Could not find method binaries()"
+    }
+
+    def "can define subtype of `ApplicationBinarySpec`"() {
+        buildFile << """
+@Managed
+interface TheApp extends ApplicationSpec {}
+@Managed
+interface TheAppBinary extends ApplicationBinarySpec {}
+
+class MyRules extends RuleSource {
+
+    @ComponentType
+    void registerComponent(TypeBuilder<TheApp> builder) {}
+
+    @ComponentType
+    void registerBinary(TypeBuilder<TheAppBinary> builder) {}
+
+    @ComponentBinaries
+    void appBinaries(ModelMap<TheAppBinary> binaries, TheApp app) {
+        binaries.create(app.name) {}
+    }
+}
+
+apply plugin : MyRules
+
+model {
+    components {
+        main(TheApp) {}
+    }
+}
+        """
+
+        expect:
+        succeeds "components"
+    }
 }

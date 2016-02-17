@@ -34,10 +34,12 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
+    @Override
     public Compiler<JavaCompileSpec> createForJointCompilation(Class<? extends CompileSpec> type) {
         return createTargetCompiler(type, true);
     }
 
+    @Override
     public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
         Compiler<JavaCompileSpec> result = createTargetCompiler(type, false);
         return new NormalizingJavaCompiler(result);

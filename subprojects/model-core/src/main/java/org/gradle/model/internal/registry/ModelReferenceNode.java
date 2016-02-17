@@ -16,12 +16,16 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,19 +33,27 @@ import java.util.Set;
 /**
  * A model node that is a reference to some other node.
  */
-class ModelReferenceNode extends ModelNodeInternal {
-    private ModelNodeInternal target;
-    private final MutableModelNode parent;
+public class ModelReferenceNode extends ModelNodeInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelReferenceNode.class);
 
-    public ModelReferenceNode(ModelRegistration registration, MutableModelNode parent) {
-        super(registration);
+    private final MutableModelNode parent;
+    private ModelNodeInternal target;
+
+    public ModelReferenceNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
+        super(modelRegistry, registration);
         this.parent = parent;
     }
 
     @Override
     public void setTarget(ModelNode target) {
-        if (!isMutable()) {
+        // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node as well
+        if (getState() != State.Registered) {
             throw new IllegalStateException(String.format("Cannot set target for model element '%s' as this element is not mutable.", getPath()));
+        }
+        if (LOGGER.isDebugEnabled()) {
+            String targetPath = target == null ? null : "'" + target.getPath() + "'";
+            LOGGER.debug("Project {} - Setting the target of model element '{}' to point at {}.",
+                modelRegistry.getProjectPath(), getPath(), targetPath);
         }
         this.target = (ModelNodeInternal) target;
     }
@@ -51,8 +63,17 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
+    public Optional<String> getValueDescription() {
+        if (target == null) {
+            return Optional.of("null");
+        } else {
+            return Optional.of("reference to element '" + target.getPath() + "'");
+        }
+    }
+
+    @Override
     public boolean canBeViewedAs(ModelType<?> type) {
-        return target != null && target.canBeViewedAs(type);
+        return target == null ? super.canBeViewedAs(type) : target.canBeViewedAs(type);
     }
 
     @Override
@@ -89,7 +110,7 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void addReference(ModelRegistration registration) {
+    public <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
         throw new UnsupportedOperationException();
     }
 
@@ -99,53 +120,28 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyToSelf(ModelActionRole type, ModelAction action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToAllLinks(ModelActionRole type, ModelAction action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void applyToLink(ModelActionRole type, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void applyToLink(String name, Class<? extends RuleSource> rules) {
+    public void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
+    public void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
+    public int getLinkCount(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? 0 : target.getLinkCount(predicate);
     }
 
     @Override
-    public void applyToSelf(Class<? extends RuleSource> rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getLinkCount(ModelType<?> type) {
-        return target == null ? 0 : target.getLinkCount(type);
-    }
-
-    @Override
-    public Set<String> getLinkNames(ModelType<?> type) {
-        return target == null ? Collections.<String>emptySet() : target.getLinkNames(type);
+    public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? Collections.<String>emptySet() : target.getLinkNames(predicate);
     }
 
     @Nullable
@@ -160,8 +156,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-        return target == null ? Collections.<MutableModelNode>emptyList() : target.getLinks(type);
+    public Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
+        return target == null ? Collections.<MutableModelNode>emptyList() : target.getLinks(predicate);
     }
 
     @Override
@@ -170,8 +166,8 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public boolean hasLink(String name, ModelType<?> type) {
-        return target != null && target.hasLink(name, type);
+    public boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
+        return target != null && target.hasLink(name, predicate);
     }
 
     @Override

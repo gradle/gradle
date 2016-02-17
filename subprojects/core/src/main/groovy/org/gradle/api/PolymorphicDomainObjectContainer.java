@@ -53,7 +53,6 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @throws InvalidUserDataException if the container does not support creating a domain object with the specified type
      * @throws ClassCastException if a domain object with the specified name exists with a different type
      */
-    @Incubating
     <U extends T> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException;
 
     /**

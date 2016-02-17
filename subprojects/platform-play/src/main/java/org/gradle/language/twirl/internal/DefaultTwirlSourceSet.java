@@ -17,14 +17,27 @@
 package org.gradle.language.twirl.internal;
 
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlSourceSet;
 
 /**
  * Default implementation of a TwirlSourceSet
  */
 public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements TwirlSourceSet {
+    private TwirlImports defaultImports = TwirlImports.SCALA;
+
     @Override
-    protected String getTypeName() {
-        return "Twirl template source";
+    protected String getLanguageName() {
+        return "Twirl template";
+    }
+
+    @Override
+    public TwirlImports getDefaultImports() {
+        return defaultImports;
+    }
+
+    @Override
+    public void setDefaultImports(TwirlImports defaultImports) {
+        this.defaultImports = defaultImports;
     }
 }

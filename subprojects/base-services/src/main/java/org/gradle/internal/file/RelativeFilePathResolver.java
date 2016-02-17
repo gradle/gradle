@@ -16,6 +16,9 @@
 
 package org.gradle.internal.file;
 
+/**
+ * Resolves a path object relative to some base directory.
+ */
 public interface RelativeFilePathResolver {
     String resolveAsRelativePath(Object path);
 }

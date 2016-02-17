@@ -27,7 +27,7 @@ import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -40,14 +40,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileCollectionSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshotter inputFilesSnapshotter;
+    private final FileCollectionSnapshotter discoveredInputsSnapshotter;
     private final Instantiator instantiator;
+    private final FileCollectionFactory fileCollectionFactory;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter) {
+                                              FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
+                                              FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
+        this.discoveredInputsSnapshotter = discoveredInputsSnapshotter;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -102,7 +107,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public FileCollection getOutputFiles() {
             TaskExecution lastExecution = history.getPreviousExecution();
-            return lastExecution != null && lastExecution.getOutputFilesSnapshot() != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
+            if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
+                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", lastExecution.getOutputFilesSnapshot().getFiles());
+            } else {
+                return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
+            }
         }
 
         public TaskExecutionHistory getExecutionHistory() {
@@ -118,7 +127,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             if (taskInputs!=null) {
-                getStates().getDiscoveredInputFilesChanges().newInputs(taskInputs.getDiscoveredInputs());
+                getStates().newInputs(taskInputs.getDiscoveredInputs());
             }
             getStates().getAllTaskChanges().snapshotAfterTask();
             history.update();
@@ -129,7 +138,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter, discoveredInputsSnapshotter, fileCollectionFactory);
             }
             return states;
         }

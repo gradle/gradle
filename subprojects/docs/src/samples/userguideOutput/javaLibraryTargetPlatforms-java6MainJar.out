@@ -1,0 +1,10 @@
+:core:clean
+:server:clean UP-TO-DATE
+:core:compileMainJava6JarMainJava
+:core:compileMainJava6JarMainJava6JarJava
+:core:processMainJava6JarMainResources
+:core:createMainJava6Jar
+:core:mainJava6ApiJar
+:core:mainJava6Jar
+
+BUILD SUCCESSFUL

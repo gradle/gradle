@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import org.gradle.api.Nullable
 
 @CompileStatic
 @EqualsAndHashCode
@@ -26,7 +27,9 @@ class BuildExperimentSpec {
     String displayName
     String projectName
     GradleInvocationSpec invocation
+    @Nullable
     Integer warmUpCount
+    @Nullable
     Integer invocationCount
     Long sleepAfterWarmUpMillis
     Long sleepAfterTestRoundMillis
@@ -48,7 +51,7 @@ class BuildExperimentSpec {
     }
 
     BuildDisplayInfo getDisplayInfo() {
-        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.args)
+        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.args, invocation.jvmOpts, invocation.useDaemon)
     }
 
     static class Builder {
@@ -105,8 +108,6 @@ class BuildExperimentSpec {
             assert projectName != null
             assert displayName != null
             assert invocation != null
-            assert warmUpCount >= 0
-            assert invocationCount > 0
 
             new BuildExperimentSpec(displayName, projectName, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         }

@@ -40,9 +40,7 @@ dependencies {
         """
 
         when:
-        EclipseProject project = toolingApi.withConnection { connection ->
-            connection.getModel(EclipseProject.class)
-        }
+        EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
         project.classpath[0].file != null

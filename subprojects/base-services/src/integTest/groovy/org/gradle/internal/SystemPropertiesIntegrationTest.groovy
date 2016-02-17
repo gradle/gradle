@@ -17,9 +17,11 @@ package org.gradle.internal
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
+    @Rule SetSystemProperties properties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
     def "creates Java compiler for mismatching Java home directory for multiple threads concurrently"() {
@@ -45,5 +47,44 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
             factoryCreationResult
         }
         assert SystemProperties.instance.javaHomeDir == originalJavaHomeDir
+    }
+
+    def "sets a system property for the duration of a Factory operation"() {
+        final int threadCount = 100
+        String presetFactoryCreationResult = 'presetTest'
+        String notsetFactoryCreationResult = "notsetTest"
+        final String notsetPropertyName = "org.gradle.test.sysprop.without.value"
+        final String presetPropertyName = "org.gradle.test.sysprop.with.original"
+        System.setProperty(presetPropertyName, "original")
+
+        when:
+        async {
+            threadCount.times { i ->
+                def nextValue = i.toString()
+                start {
+                    Factory<String> factory = new Factory<String>() {
+                        @Override
+                        String create() {
+                            assert System.getProperty(presetPropertyName) == nextValue
+                            return presetFactoryCreationResult
+                        }
+                    }
+                    assert SystemProperties.instance.withSystemProperty(presetPropertyName, nextValue, factory) == presetFactoryCreationResult
+
+                    factory = new Factory<String>() {
+                        @Override
+                        String create() {
+                            assert System.getProperty(notsetPropertyName) == nextValue
+                            return notsetFactoryCreationResult
+                        }
+                    }
+                    assert SystemProperties.instance.withSystemProperty(notsetPropertyName, nextValue, factory) == notsetFactoryCreationResult
+                }
+            }
+        }
+
+        then:
+        assert System.getProperty(presetPropertyName) == "original"
+        assert System.getProperty(notsetPropertyName) == null
     }
 }

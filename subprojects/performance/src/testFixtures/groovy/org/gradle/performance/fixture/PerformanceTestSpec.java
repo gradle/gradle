@@ -18,8 +18,8 @@ package org.gradle.performance.fixture;
 
 public class PerformanceTestSpec {
     String testId;
-    int runs;
-    int warmUpRuns;
+    Integer runs;
+    Integer warmUpRuns;
 
     public String getTestId() {
         return testId;
@@ -29,19 +29,19 @@ public class PerformanceTestSpec {
         this.testId = testId;
     }
 
-    public int getRuns() {
+    public Integer getRuns() {
         return runs;
     }
 
-    public void setRuns(int runs) {
+    public void setRuns(Integer runs) {
         this.runs = runs;
     }
 
-    public int getWarmUpRuns() {
+    public Integer getWarmUpRuns() {
         return warmUpRuns;
     }
 
-    public void setWarmUpRuns(int warmUpRuns) {
+    public void setWarmUpRuns(Integer warmUpRuns) {
         this.warmUpRuns = warmUpRuns;
     }
 }

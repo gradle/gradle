@@ -16,13 +16,17 @@
 
 package org.gradle.performance.fixture;
 
+import java.util.List;
+
 public class PerformanceTestResult {
     String testId;
     String jvm;
     String operatingSystem;
     long testTime;
     String vcsBranch;
-    String vcsCommit;
+    List<String> vcsCommits;
+    List<String> previousTestIds;
+    String versionUnderTest;
 
     public String getTestId() {
         return testId;
@@ -30,6 +34,14 @@ public class PerformanceTestResult {
 
     public void setTestId(String testId) {
         this.testId = testId;
+    }
+
+    public List<String> getPreviousTestIds() {
+        return previousTestIds;
+    }
+
+    public void setPreviousTestIds(List<String> previousTestIds) {
+        this.previousTestIds = previousTestIds;
     }
 
     public long getTestTime() {
@@ -40,6 +52,14 @@ public class PerformanceTestResult {
         this.testTime = testTime;
     }
 
+    public String getVersionUnderTest() {
+        return versionUnderTest;
+    }
+
+    public void setVersionUnderTest(String versionUnderTest) {
+        this.versionUnderTest = versionUnderTest;
+    }
+
     public String getVcsBranch() {
         return vcsBranch;
     }
@@ -48,12 +68,12 @@ public class PerformanceTestResult {
         this.vcsBranch = vcsBranch;
     }
 
-    public String getVcsCommit() {
-        return vcsCommit;
+    public List<String> getVcsCommits() {
+        return vcsCommits;
     }
 
-    public void setVcsCommit(String vcsCommit) {
-        this.vcsCommit = vcsCommit;
+    public void setVcsCommits(List<String> vcsCommits) {
+        this.vcsCommits = vcsCommits;
     }
 
     public String getOperatingSystem() {

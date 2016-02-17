@@ -32,7 +32,7 @@ dependencies {
 """
 
         when:
-        EclipseProject project = withConnection { it.getModel(EclipseProject.class) }
+        EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
         project.classpath[0].file.name == 'commons-lang-2.5.jar'

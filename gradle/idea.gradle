@@ -1,15 +1,45 @@
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 allprojects {
-	apply plugin: "idea"
-}
+    apply plugin: "idea"
 
-subprojects {
-    plugins.withType(JavaPlugin) {
-        idea {
-            module {
-                scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
-                scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+    idea {
+        module {
+            iml {
+                whenMerged { module ->
+                    module.dependencies.removeAll {
+                        it instanceof org.gradle.plugins.ide.idea.model.ModuleLibrary &&
+                        it.classes.any {
+                            // remove all Gradle build output directories from all scopes
+                            it.url.contains('/build/classes/') ||
+                            it.url.contains('/build/resources/') ||
+                            // remove possible resource directories from all scopes
+                            // replaced by java-resource/java-test-resource
+                            it.url.contains('$MODULE_DIR$/src/') ||
+                            // keep for build/generated-resources/main/*-classpath.properties
+                            // required by DefaultModuleRegistry
+                            (it.url.contains('$MODULE_DIR$/build/') && !it.url.contains('generated-resources'))
+                        }
+                    }
+                    // remove all build directories from sourceFolders
+                    // f.e. buildInit module contains such a sourceFolder
+                    module.sourceFolders.removeAll {
+                        it.url.contains('$MODULE_DIR$/build/')
+                    }
+                }
+                withXml {
+                    def node = it.asNode()
+                    def content = node.component.find { it.'@name' == 'NewModuleRootManager' }.content[0]
+                    content.sourceFolder.each { sourceFolder ->
+                        // make resource directories a java-resource / java-test-resource type in Idea
+                        if(sourceFolder.@url?.endsWith('/resources')) {
+                            sourceFolder.attributes().with {
+                                boolean isTestSource = (remove('isTestSource') == 'true')
+                                put('type', isTestSource ? 'java-test-resource' : 'java-resource')
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -137,6 +167,9 @@ idea {
                   <option name="WHILE_BRACE_FORCE" value="3" />
                   <option name="FOR_BRACE_FORCE" value="3" />
                 </codeStyleSettings>
+                <GroovyCodeStyleSettings>
+                  <option name="ALIGN_NAMED_ARGS_IN_MAP" value="false" />
+                </GroovyCodeStyleSettings>
               </value>
             </option>
             <option name="USE_PER_PROJECT_SETTINGS" value="true" />
@@ -165,9 +198,7 @@ idea {
 
         node.append(new XmlParser().parseText('''
             <component name="CompilerWorkspaceConfiguration">
-              <option name="COMPILER_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Dgroovyc.in.process=false -Dgroovyc.heap.size=1024" />
-              <option name="COMPILER_PROCESS_HEAP_SIZE" value="1024" />
-              <option name="USE_COMPILE_SERVER" value="false" />
+              <option name="COMPILER_PROCESS_HEAP_SIZE" value="2048" />
             </component>
         '''))
 
@@ -230,7 +261,7 @@ idea {
         def gradleRunners = [
                 "Quick Check (precommit)": "quickCheck --daemon",
                 "Regenerate IDEA metadata": "idea --daemon",
-                "Regenerate Int Test Image": "intTestImage --daemon"
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives --daemon"
         ]
 
         def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"

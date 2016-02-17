@@ -26,6 +26,7 @@ import org.gradle.api.tasks.*
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.platform.base.ToolChain
 
@@ -59,6 +60,11 @@ public class InstallExecutable extends DefaultTask {
     ToolChain toolChain
 
     /**
+     * The platform describing the install target.
+     */
+    NativePlatform platform
+
+    /**
      * The directory to install files into.
      */
     @OutputDirectory
@@ -88,12 +94,7 @@ public class InstallExecutable extends DefaultTask {
      * Returns the script file that can be used to run the install image.
      */
     File getRunScript() {
-        new File(getDestinationDir(), os.getScriptName(getExecutable().name))
-    }
-
-    @Inject
-    OperatingSystem getOs() {
-        throw new UnsupportedOperationException()
+        new File(getDestinationDir(), OperatingSystem.forName(platform.operatingSystem.name).getScriptName(getExecutable().name))
     }
 
     @Inject
@@ -103,7 +104,7 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     void install() {
-        if (os.windows) {
+        if (platform.operatingSystem.windows) {
             installWindows()
         } else {
             installUnix()

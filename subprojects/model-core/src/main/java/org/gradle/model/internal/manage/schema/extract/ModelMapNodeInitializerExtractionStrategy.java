@@ -21,11 +21,8 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -33,11 +30,8 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
     };
 
-    public ModelMapNodeInitializerExtractionStrategy() {
-    }
-
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             return new ModelMapNodeInitializer<T, E>(schema);
         }
@@ -67,7 +61,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
                     new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                         @Override
                         public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ManagedChildNodeCreatorStrategy<E> childStrategy = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
+                            ChildNodeInitializerStrategy<E> childStrategy = NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
                             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
                         }
                     }

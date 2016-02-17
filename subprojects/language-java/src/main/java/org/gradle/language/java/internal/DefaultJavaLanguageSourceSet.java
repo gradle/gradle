@@ -27,10 +27,6 @@ public class DefaultJavaLanguageSourceSet extends BaseLanguageSourceSet implemen
     private final DefaultDependencySpecContainer dependencies = new DefaultDependencySpecContainer();
 
     @Override
-    protected String getTypeName() {
-        return "Java source";
-    }
-
     public Classpath getCompileClasspath() {
         return emptyClasspath;
     }

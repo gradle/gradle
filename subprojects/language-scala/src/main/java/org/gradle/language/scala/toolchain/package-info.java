@@ -18,7 +18,5 @@
 /**
  * Defines tools that can build scala applications.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.language.scala.toolchain;
-
-import org.gradle.api.Incubating;

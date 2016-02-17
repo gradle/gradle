@@ -21,11 +21,13 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
@@ -37,11 +39,17 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
     private static final int LABEL_LENGTH = 7;
-    
-    private final boolean showHidden;
 
-    public ModelNodeRenderer(boolean showHidden) {
+    private final boolean showHidden;
+    private final ModelReport.Format format;
+
+    public ModelNodeRenderer(boolean showHidden, ModelReport.Format format) {
         this.showHidden = showHidden;
+        this.format = format;
+    }
+
+    private boolean omitDetails() {
+        return ModelReport.Format.SHORT == format;
     }
 
     @Override
@@ -60,6 +68,10 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             maybePrintRules(model, styledTextoutput);
         }
 
+        if (model instanceof ModelReferenceNode) {
+            return;
+        }
+
         Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
@@ -68,11 +80,27 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     public void printNodeName(ModelNode model, StyledTextOutput styledTextoutput) {
-        styledTextoutput.withStyle(Identifier).format("+ %s", model.getPath().getName());
+        Optional<String> value = getNodeValue(model);
+        boolean hasValue = value != null && value.isPresent();
+        String intro = omitDetails() && model.getLinkCount() == 0 && hasValue ? "|" : "+";
+        styledTextoutput.withStyle(Identifier).format("%s %s", intro, model.getPath().getName());
+        if (omitDetails() && hasValue) {
+            styledTextoutput.withStyle(Description).format(" = %s", value.get());
+        }
         styledTextoutput.println();
     }
 
+    private Optional<String> getNodeValue(ModelNode model) {
+        if (model.getLinkCount() == 0 || model instanceof ModelReferenceNode) {
+            return model.getValueDescription();
+        }
+        return null;
+    }
+
     public void printCreator(ModelNode model, StyledTextOutput styledTextoutput) {
+        if (omitDetails()) {
+            return;
+        }
         ModelRuleDescriptor descriptor = model.getDescriptor();
         StringBuffer buffer = new StringBuffer();
         descriptor.describeTo(buffer);
@@ -80,6 +108,9 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     public void maybePrintType(ModelNode model, StyledTextOutput styledTextoutput) {
+        if (omitDetails()) {
+            return;
+        }
         Optional<String> typeDescription = model.getTypeDescription();
         if (typeDescription.isPresent()) {
             printNodeAttribute(styledTextoutput, "Type:", typeDescription.get());
@@ -87,15 +118,20 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     public void maybePrintValue(ModelNode model, StyledTextOutput styledTextoutput) {
-        if (model.getLinkCount() == 0) {
-            Optional<String> value = model.getValueDescription();
-            if (value.isPresent()) {
-                printNodeAttribute(styledTextoutput, "Value:", value.get());
-            }
+        if (omitDetails()) {
+            return;
         }
+        Optional<String> value = getNodeValue(model);
+        if (value != null && value.isPresent()) {
+            printNodeAttribute(styledTextoutput, "Value:", value.get());
+        }
+
     }
 
     private void maybePrintRules(ModelNode model, StyledTextOutput styledTextoutput) {
+        if (omitDetails()) {
+            return;
+        }
         Iterable<ModelRuleDescriptor> executedRules = uniqueExecutedRulesExcludingCreator(model);
         if (!Iterables.isEmpty(executedRules)) {
             printNestedAttributeTitle(styledTextoutput, "Rules:");

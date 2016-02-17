@@ -47,6 +47,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
         this.jarClasspathSnapshotProvider = jarClasspathSnapshotProvider;
     }
 
+    @Override
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
         JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getClasspath());

@@ -15,7 +15,6 @@
  */
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.type.ModelType;
 
@@ -40,30 +39,8 @@ public abstract class ScalarTypes {
         ModelType.of(BigDecimal.class),
         ModelType.of(File.class)
     );
-    // Expected to be a subset of above
-    public final static List<ModelType<?>> NON_FINAL_TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(BigInteger.class),
-        ModelType.of(BigDecimal.class)
-    );
 
     public static boolean isScalarType(ModelType<?> modelType) {
-        for (ModelType<?> type : TYPES) {
-            if (type.equals(modelType)) {
-                return true;
-            }
-        }
-        for (ModelType<?> type : NON_FINAL_TYPES) {
-            if (type.isAssignableFrom(modelType)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static List<String> getSupported() {
-        return ImmutableList.of(
-            "JDK value types: " + Joiner.on(", ").join(TYPES),
-            "Any subclass of " + Joiner.on(", ").join(NON_FINAL_TYPES),
-            "Enum types");
+        return TYPES.contains(modelType);
     }
 }

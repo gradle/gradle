@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.PrebuiltLibrary;
@@ -29,26 +30,31 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
-        super(name, library, buildType, targetPlatform, flavor);
+    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 
+    @Override
     public String getDisplayName() {
-        return String.format("shared library '%s'", getName());
+        return String.format("prebuilt shared library '%s:%s'", getComponent().getName(), getName());
     }
 
+    @Override
     public void setSharedLibraryFile(File sharedLibraryFile) {
         this.sharedLibraryFile = sharedLibraryFile;
     }
 
+    @Override
     public File getSharedLibraryFile() {
         return sharedLibraryFile;
     }
 
+    @Override
     public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
         this.sharedLibraryLinkFile = sharedLibraryLinkFile;
     }
 
+    @Override
     public File getSharedLibraryLinkFile() {
         if (sharedLibraryLinkFile != null) {
             return sharedLibraryLinkFile;
@@ -56,11 +62,13 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
         return sharedLibraryFile;
     }
 
+    @Override
     public FileCollection getLinkFiles() {
-        return createFileCollection(getSharedLibraryLinkFile(), "Shared library link file");
+        return createFileCollection(getSharedLibraryLinkFile(), "Link files", "Shared library link file");
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
-        return createFileCollection(getSharedLibraryFile(), "Shared library runtime file");
+        return createFileCollection(getSharedLibraryFile(), "Runtime files", "Shared library runtime file");
     }
 }

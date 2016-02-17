@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -27,8 +28,9 @@ import spock.lang.Specification
 class VisualStudioProjectRegistryTest extends Specification {
     private Set<LanguageSourceSet> sources = new DefaultDomainObjectSet<>(LanguageSourceSet)
     def fileResolver = Mock(FileResolver)
+    def projectIdentifier = Stub(ProjectIdentifier)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
-    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
+    def registry = new VisualStudioProjectRegistry(projectIdentifier, fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
 
     def executable = Mock(NativeExecutableSpec)
 

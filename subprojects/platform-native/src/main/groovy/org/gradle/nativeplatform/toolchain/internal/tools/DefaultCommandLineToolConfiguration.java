@@ -35,10 +35,12 @@ public class DefaultCommandLineToolConfiguration implements CommandLineToolConfi
         return toolType;
     }
 
+    @Override
     public void withArguments(Action<? super List<String>>  action) {
         argActions.add(action);
     }
 
+    @Override
     public Action<List<String>> getArgAction() {
         return Actions.composite(argActions);
     }

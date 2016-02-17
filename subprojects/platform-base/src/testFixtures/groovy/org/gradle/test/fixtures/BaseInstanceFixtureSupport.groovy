@@ -16,19 +16,16 @@
 
 package org.gradle.test.fixtures
 
-import org.gradle.api.Action
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrations
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.projection.ManagedModelProjection
 import org.gradle.model.internal.manage.schema.StructSchema
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
+
+import static org.gradle.model.internal.fixture.ProjectRegistrySpec.SCHEMA_STORE
+import static org.gradle.model.internal.fixture.ProjectRegistrySpec.STRUCT_BINDINGS_STORE
 
 public class BaseInstanceFixtureSupport {
     static <B, T extends B, I extends B> T create(Class<T> publicType, Class<? extends B> internalView, Class<I> implType,
@@ -40,18 +37,19 @@ public class BaseInstanceFixtureSupport {
     static <B, T extends B, I extends B> MutableModelNode createNode(Class<T> publicType, Class<? extends B> internalView, Class<I> implType,
                                                         String name, Closure<I> createUnmanagedInstance) {
         def modelRegistry = new ModelRegistryHelper()
-        modelRegistry.registerInstance("nodeInitializerRegistry", TestNodeInitializerRegistry.INSTANCE)
+        modelRegistry.registerInstance("nodeInitializerRegistry", ProjectRegistrySpec.NODE_INITIALIZER_REGISTRY)
 
-        def publicTypeSchema = (StructSchema<T>) DefaultModelSchemaStore.instance.getSchema(publicType)
-        def internalViewSchema = (StructSchema<? extends T>) DefaultModelSchemaStore.instance.getSchema(internalView)
-        def delegateSchema = (StructSchema<? extends T>) DefaultModelSchemaStore.instance.getSchema(implType)
+        def publicTypeSchema = (StructSchema<T>) SCHEMA_STORE.getSchema(publicType)
+        def internalViewSchema = (StructSchema<? extends T>) SCHEMA_STORE.getSchema(internalView)
+        def bindings = STRUCT_BINDINGS_STORE.getBindings(ModelType.of(publicType), [ModelType.of(internalView)], ModelType.of(implType))
 
-        def registration = ModelRegistrations.of(ModelPath.path(name), (Action) { MutableModelNode node ->
+        def registration = ModelRegistrations.of(ModelPath.path(name))
+            .action(ModelActionRole.Create) { MutableModelNode node ->
                 def privateData = createUnmanagedInstance(node)
                 node.setPrivateData(implType, privateData)
-            })
-            .withProjection(new ManagedModelProjection<T>(publicTypeSchema, delegateSchema, ManagedProxyFactory.INSTANCE, null))
-            .withProjection(new ManagedModelProjection<T>(internalViewSchema, delegateSchema, ManagedProxyFactory.INSTANCE, null))
+            }
+            .withProjection(new ManagedModelProjection<T>(publicTypeSchema, bindings, ProjectRegistrySpec.MANAGED_PROXY_FACTORY, null))
+            .withProjection(new ManagedModelProjection<T>(internalViewSchema, bindings, ProjectRegistrySpec.MANAGED_PROXY_FACTORY, null))
             .descriptor(new SimpleModelRuleDescriptor("<create $name>"))
         modelRegistry.register(registration.build())
 

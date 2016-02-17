@@ -17,27 +17,37 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> implements StructSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
+    private final Set<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods;
     private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 
-    public AbstractStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+    public AbstractStructSchema(
+        ModelType<T> type,
+        Iterable<ModelProperty<?>> properties,
+        Iterable<WeaklyTypeReferencingMethod<?, ?>> nonPropertyMethods,
+        Iterable<ModelSchemaAspect> aspects
+    ) {
         super(type);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
             builder.put(property.getName(), property);
         }
         this.properties = builder.build();
+        this.nonPropertyMethods = ImmutableSet.copyOf(nonPropertyMethods);
         this.aspects = Maps.uniqueIndex(aspects, new Function<ModelSchemaAspect, Class<? extends ModelSchemaAspect>>() {
             @Override
             public Class<? extends ModelSchemaAspect> apply(ModelSchemaAspect aspect) {
@@ -46,6 +56,7 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
         });
     }
 
+    @Override
     public SortedSet<String> getPropertyNames() {
         return properties.keySet();
     }
@@ -63,6 +74,21 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
     @Override
     public ModelProperty<?> getProperty(String name) {
         return properties.get(name);
+    }
+
+    @Override
+    public Set<WeaklyTypeReferencingMethod<?, ?>> getNonPropertyMethods() {
+        return nonPropertyMethods;
+    }
+
+    @Override
+    public Set<WeaklyTypeReferencingMethod<?, ?>> getAllMethods() {
+        ImmutableSet.Builder<WeaklyTypeReferencingMethod<?, ?>> builder = ImmutableSet.builder();
+        for (ModelProperty<?> property : properties.values()) {
+            builder.addAll(property.getAccessors());
+        }
+        builder.addAll(nonPropertyMethods);
+        return builder.build();
     }
 
     @Override

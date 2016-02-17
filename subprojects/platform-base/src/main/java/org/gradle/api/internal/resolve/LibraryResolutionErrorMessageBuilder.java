@@ -24,7 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LibrarySpec;
+import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,18 +41,18 @@ public interface LibraryResolutionErrorMessageBuilder {
     class LibraryResolutionResult {
         private static final LibraryResolutionResult EMPTY = new LibraryResolutionResult();
         private static final LibraryResolutionResult PROJECT_NOT_FOUND = new LibraryResolutionResult();
-        private final Map<String, LibrarySpec> libsMatchingRequirements;
-        private final Map<String, LibrarySpec> libsNotMatchingRequirements;
+        private final Map<String, VariantComponentSpec> libsMatchingRequirements;
+        private final Map<String, VariantComponentSpec> libsNotMatchingRequirements;
 
-        private LibrarySpec selectedLibrary;
-        private LibrarySpec nonMatchingLibrary;
+        private VariantComponentSpec selectedLibrary;
+        private VariantComponentSpec nonMatchingLibrary;
 
         private LibraryResolutionResult() {
             this.libsMatchingRequirements = Maps.newHashMap();
             this.libsNotMatchingRequirements = Maps.newHashMap();
         }
 
-        private LibrarySpec getSingleMatchingLibrary() {
+        private VariantComponentSpec getSingleMatchingLibrary() {
             if (libsMatchingRequirements.size() == 1) {
                 return libsMatchingRequirements.values().iterator().next();
             }
@@ -61,7 +61,7 @@ public interface LibraryResolutionErrorMessageBuilder {
 
         private void resolve(String libraryName) {
             if (libraryName == null) {
-                LibrarySpec singleMatchingLibrary = getSingleMatchingLibrary();
+                VariantComponentSpec singleMatchingLibrary = getSingleMatchingLibrary();
                 if (singleMatchingLibrary == null) {
                     return;
                 }
@@ -80,11 +80,11 @@ public interface LibraryResolutionErrorMessageBuilder {
             return !libsMatchingRequirements.isEmpty() || !libsNotMatchingRequirements.isEmpty();
         }
 
-        public LibrarySpec getSelectedLibrary() {
+        public VariantComponentSpec getSelectedLibrary() {
             return selectedLibrary;
         }
 
-        public LibrarySpec getNonMatchingLibrary() {
+        public VariantComponentSpec getNonMatchingLibrary() {
             return nonMatchingLibrary;
         }
 
@@ -93,8 +93,8 @@ public interface LibraryResolutionErrorMessageBuilder {
         }
 
         public String toResolutionErrorMessage(
-            Class<? extends BinarySpec> binaryType,
-            LibraryComponentSelector selector) {
+                Class<? extends BinarySpec> binaryType,
+                LibraryComponentSelector selector) {
             List<String> candidateLibraries = formatLibraryNames(getCandidateLibraries());
             String projectPath = selector.getProjectPath();
             String libraryName = selector.getLibraryName();
@@ -110,7 +110,7 @@ public interface LibraryResolutionErrorMessageBuilder {
                     Joiner.on(", ").appendTo(sb, candidateLibraries);
                 }
             } else {
-                LibrarySpec notMatchingRequirements = getNonMatchingLibrary();
+                VariantComponentSpec notMatchingRequirements = getNonMatchingLibrary();
                 if (notMatchingRequirements != null) {
                     sb.append(" contains a library named '").append(libraryName)
                         .append("' but it doesn't have any binary of type ")
@@ -129,9 +129,9 @@ public interface LibraryResolutionErrorMessageBuilder {
             return sb.toString();
         }
 
-        public static LibraryResolutionResult of(Collection<? extends LibrarySpec> libraries, String libraryName, Predicate<? super LibrarySpec> libraryFilter) {
+        public static LibraryResolutionResult of(Collection<? extends VariantComponentSpec> libraries, String libraryName, Predicate<? super VariantComponentSpec> libraryFilter) {
             LibraryResolutionResult result = new LibraryResolutionResult();
-            for (LibrarySpec librarySpec : libraries) {
+            for (VariantComponentSpec librarySpec : libraries) {
                 if (libraryFilter.apply(librarySpec)) {
                     result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
                 } else {

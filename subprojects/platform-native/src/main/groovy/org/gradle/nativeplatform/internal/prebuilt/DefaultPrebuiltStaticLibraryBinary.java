@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.PrebuiltLibrary;
@@ -29,27 +29,32 @@ import java.io.File;
 public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
     private File staticLibraryFile;
 
-    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
-        super(name, library, buildType, targetPlatform, flavor);
+    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+        super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 
+    @Override
     public String getDisplayName() {
-        return String.format("static library '%s'", getName());
+        return String.format("prebuilt static library '%s:%s'", getComponent().getName(), getName());
     }
 
+    @Override
     public void setStaticLibraryFile(File staticLibraryFile) {
         this.staticLibraryFile = staticLibraryFile;
     }
 
+    @Override
     public File getStaticLibraryFile() {
         return staticLibraryFile;
     }
 
+    @Override
     public FileCollection getLinkFiles() {
-        return createFileCollection(getStaticLibraryFile(), "Static library file");
+        return createFileCollection(getStaticLibraryFile(), "Link files", "Static library file");
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
-        return new SimpleFileCollection();
+        return fileCollectionFactory.empty("Runtime files for " + getDisplayName());
     }
 }

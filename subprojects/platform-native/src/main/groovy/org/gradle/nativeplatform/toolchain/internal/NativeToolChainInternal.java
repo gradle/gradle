@@ -24,6 +24,7 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
     /**
      * Locates the tools that can target the given platform.
      */
+    @Override
     PlatformToolProvider select(NativePlatformInternal targetPlatform);
 
     /**
@@ -31,7 +32,7 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
      */
     String getOutputType();
 
-    public static class Identifier {
+    class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
             return String.format("%s:%s:%s", toolChain.getOutputType(), platform.getArchitecture().getName(), platform.getOperatingSystem().getName());
         }

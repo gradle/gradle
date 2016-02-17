@@ -21,7 +21,6 @@ import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -33,12 +32,14 @@ import spock.lang.Issue
 @LeaksFileHandles
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltPath = TextUtil.normaliseFileSeparators(new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs").path)
+    def prebuiltDir = new IntegrationTestBuildContext().getSamplesDir().file("native-binaries/cunit/libs")
+    def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CHelloWorldApp()
 
     def setup() {
+        prebuiltDir.file("cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}").assumeExists()
         buildFile << """
-apply plugin: "cunit"
+apply plugin: 'cunit-test-suite'
 
 model {
     repositories {
@@ -46,7 +47,7 @@ model {
             cunit {
                 headers.srcDir "${prebuiltPath}/cunit/2.1-2/include"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("${prebuiltPath}/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
+                    staticLibraryFile = file("${prebuiltPath}/cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}")
                 }
             }
         }
@@ -69,6 +70,11 @@ model {
             targetPlatform "x86"
         }
     }
+    testSuites {
+        helloTest(CUnitTestSuiteSpec) {
+            testing \$.components.hello
+        }
+    }
     binaries {
         withType(CUnitTestSuiteBinarySpec) {
             lib library: "cunit", linkage: "static"
@@ -76,31 +82,6 @@ model {
     }
 }
 """
-    }
-
-    private def getCunitPlatform() {
-        if (OperatingSystem.current().isMacOsX()) {
-            return "osx"
-        }
-        if (OperatingSystem.current().isLinux()) {
-            return "linux"
-        }
-        if (toolChain.displayName == "mingw") {
-            return "mingw"
-        }
-        if (toolChain.displayName == "gcc cygwin") {
-            return "cygwin"
-        }
-        if (toolChain.visualCpp) {
-            def vcVersion = (toolChain as AvailableToolChains.InstalledVisualCpp).version
-            switch (vcVersion.major) {
-                case "12":
-                    return "vs2013"
-                case "10":
-                    return "vs2010"
-            }
-        }
-        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
     }
 
     private def getCunitLibName() {
@@ -126,6 +107,19 @@ model {
         testResults.suites['hello test'].failingTests == []
         testResults.checkTestCases(1, 1, 0)
         testResults.checkAssertions(3, 3, 0)
+    }
+
+    def "assemble does not build or run tests"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+
+        when:
+        run "assemble"
+
+        then:
+        notExecuted ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestC",
+            ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 
     @Issue("GRADLE-3225")
@@ -156,7 +150,8 @@ model {
         }
     }
     testSuites {
-        helloTest {
+        helloTest(CUnitTestSuiteSpec) {
+            testing \$.components.hello
             binaries.all {
                 lib library: "cunit", linkage: "static"
             }
@@ -188,6 +183,14 @@ model {
     components {
         nativeComponentOne(NativeLibrarySpec)
         nativeComponentTwo(NativeLibrarySpec)
+    }
+    testSuites {
+        nativeComponentOneTest(CUnitTestSuiteSpec) {
+            testing \$.components.nativeComponentOne
+        }
+        nativeComponentTwoTest(CUnitTestSuiteSpec) {
+            testing \$.components.nativeComponentTwo
+        }
     }
 }
 """
@@ -322,6 +325,11 @@ model {
                     }
                 }
             }
+        }
+    }
+    testSuites {
+        helloTest(CUnitTestSuiteSpec) {
+            testing \$.components.hello
         }
     }
     binaries {
@@ -470,6 +478,27 @@ tasks.withType(RunTestExecutable) {
         with(projectFile.projectConfigurations['debug']) {
             includePath == "src/helloTest/headers;build/src/helloTest/cunitLauncher/headers;src/hello/headers;${prebuiltPath}/cunit/2.1-2/include"
         }
+    }
+
+    def "non-buildable binaries are not attached to check task"() {
+        given:
+        useConventionalSourceLocations()
+        useStandardConfig()
+        buildFile << """
+model {
+    binaries {
+        helloTestCUnitExe {
+            buildable = false
+        }
+    }
+}
+"""
+
+        when:
+        run "check"
+
+        then:
+        skipped(':check')
     }
 
     private useConventionalSourceLocations() {

@@ -18,25 +18,25 @@ package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import spock.lang.Specification
 
-class BaseBinarySpecTest extends Specification {
+class BaseBinarySpecTest extends PlatformBaseSpecification {
     def "cannot instantiate directly"() {
         when:
         new BaseBinarySpec() {}
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead."
+        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead."
     }
 
     def "binary has name and sensible display name"() {
@@ -63,12 +63,12 @@ class BaseBinarySpecTest extends Specification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        create(MyConstructedBinary, MyConstructedBinary, "sampleBinary")
+        create(SampleBinary, MyConstructedBinary, "sampleBinary")
 
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof ModelInstantiationException
-        e.cause.message == "Could not create binary of type MyConstructedBinary"
+        e.cause.message == "Could not create binary of type SampleBinary"
         e.cause.cause instanceof IllegalArgumentException
         e.cause.cause.message.startsWith "Could not find any public constructor for class"
     }
@@ -96,19 +96,11 @@ class BaseBinarySpecTest extends Specification {
         binary.inputs*.name == ["input"]
     }
 
-    def "source property is the same as inputs property"() {
-        given:
-        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
-
-        expect:
-        binary.source == binary.inputs
-    }
-
     private <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> type, Class<I> implType, String name, MutableModelNode componentNode = null) {
         BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
 
-    interface SampleComponent extends CompileSpec {}
+    interface SampleComponent extends ComponentSpec {}
 
     static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
 
@@ -116,7 +108,7 @@ class BaseBinarySpecTest extends Specification {
 
     static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
-    static class MyConstructedBinary extends BaseBinarySpec {
+    static class MyConstructedBinary extends BaseBinarySpec implements SampleBinary {
         MyConstructedBinary(String arg) {}
     }
 

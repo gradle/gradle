@@ -24,8 +24,7 @@ import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
@@ -38,46 +37,49 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 end();
                 body();
                 div().id("content");
-                    h2().text("All tests").end();
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DAY_OF_YEAR, -14);
+                    long expiry = calendar.getTime().getTime();
+                    Map<String, String> archived = new LinkedHashMap<String, String>();
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
-                    table().classAttr("history");
                     for (String testName : testNames) {
-                        TestExecutionHistory testHistory = store.getTestResults(testName, 5);
-                        tr();
-                            th().colspan("6").classAttr("test-execution");
-                                text(testName);
-                            end();
+                        PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
+                        List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
+                        if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                            archived.put(testHistory.getId(), testHistory.getDisplayName());
+                            continue;
+                        }
+                        h2().classAttr("test-execution");
+                            text("Test: " + testName);
                         end();
+                        table().classAttr("history");
                         tr().classAttr("control-groups");
-                            th().colspan("3").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage").end();
+                            th().colspan("2").end();
+                            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
-                            th().text("Test version").end();
                             th().text("Branch").end();
-                            for (String label : testHistory.getExperimentLabels()) {
-                                th().classAttr("numeric").text(label).end();
+                            for (String label : testHistory.getScenarioLabels()) {
+                                renderHeaderForSamples(label);
                             }
-                            for (String label : testHistory.getExperimentLabels()) {
-                                th().classAttr("numeric").text(label).end();
+                            for (String label : testHistory.getScenarioLabels()) {
+                                renderHeaderForSamples(label);
                             }
                         end();
-                        List<PerformanceResults> results = testHistory.getPerformanceResults();
-                        for (PerformanceResults performanceResults : results) {
+                        for (PerformanceTestExecution performanceTestExecution : results) {
                             tr();
-                                td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
-                                td().text(performanceResults.getVersionUnderTest()).end();
-                                td().text(performanceResults.getVcsBranch()).end();
-                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                td().text(format.timestamp(new Date(performanceTestExecution.getTestTime()))).end();
+                                td().text(performanceTestExecution.getVcsBranch()).end();
+                                renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalTime();
                                     }
                                 });
-                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
                                         return measuredOperations.getTotalMemoryUsed();
@@ -85,14 +87,23 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 });
                             end();
                         }
-                        tr();
-                            td().colspan("6");
-                                String url = "tests/" + testHistory.getId() + ".html";
-                                a().href(url).text("details...").end();
+                        end();
+                        div().classAttr("details");
+                            String url = "tests/" + testHistory.getId() + ".html";
+                            a().href(url).text("details...").end();
+                        end();
+                    }
+                    if (!archived.isEmpty()) {
+                        h2().text("Archived tests").end();
+                        div();
+                            ul();
+                                for (Map.Entry<String, String> entry : archived.entrySet()) {
+                                    String url = "tests/" + entry.getKey() + ".html";
+                                    li().a().href(url).text(entry.getValue()).end().end();
+                                }
                             end();
                         end();
                     }
-                    end();
                 end();
                 footer(this);
             endAll();

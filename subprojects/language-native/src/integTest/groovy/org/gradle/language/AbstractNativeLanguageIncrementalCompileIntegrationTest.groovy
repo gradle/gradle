@@ -398,8 +398,6 @@ model {
         outputs.recompiledFiles allSources
     }
 
-    // We can't implement this because we don't scan the input directories.
-    @NotYetImplemented
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """

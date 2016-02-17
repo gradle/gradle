@@ -17,7 +17,5 @@
 /**
  * Component types for Maven modules.
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.maven;
-
-import org.gradle.api.Incubating;

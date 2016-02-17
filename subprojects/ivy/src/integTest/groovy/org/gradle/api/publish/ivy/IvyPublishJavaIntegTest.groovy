@@ -116,6 +116,39 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
+    public void "generated ivy descriptor includes dependency exclusions"() {
+        given:
+        createBuildScripts("""
+            dependencies {
+                compile 'org.springframework:spring-core:2.5.6', {
+                    exclude group: 'commons-logging', module: 'commons-logging'
+                }
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        ivyModule.assertPublishedAsJavaModule()
+
+        def dependency = ivyModule.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
+        dependency.exclusions.size() == 1
+        dependency.exclusions[0].org == 'commons-logging'
+        dependency.exclusions[0].module == 'commons-logging'
+
+        and:
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+    }
+
     def createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 
@@ -140,6 +173,7 @@ $append
 
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
+                compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"
             }

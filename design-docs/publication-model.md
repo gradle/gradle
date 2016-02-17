@@ -70,77 +70,6 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 See [completed stories](done/publication-model.md)
 
-## Customizing the Maven and Ivy publication identifier
-
-This step will allow some basic customization of the meta data model for each publication:
-
-1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication`. Add `packaging` property to `MavenPom`.
-2. Change `pom.xml` generation to use these properties.
-3. Add `organisation`, `module`, `revision` properties to `IvyPublication`. Add `status` property to `IvyModuleDescriptor`.
-4. Change `ivy.xml` generation to use these properties. Do not default `status` to `project.status` (this value should have not effect on ivy publication).
-5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
-   for a project dependencies, over the existing candidate identifiers.
-6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
-   for project dependencies, over the existing candidate identifiers.
-7. Change the `ivy.xml` and `pom.xml` generation for project with project dependency on `Project A`:
-    * Where `Project A` has the publishing extension applied, attempt to resolve a publication to reference:
-        * If all publications share the same coordinates, use those coordinates
-        * else if `Project A` has no publications, use the coordinates of `Project A` (as per no publishing extension applied)
-        * else fail (cannot handle multiple publications with the different coordinates)
-    * Where `Project A` does not have the publishing extension applied, create a dependency with `group|name|version` attributes of `Project A`. Ignore the `archivesBaseName` of `Project A`.
-
-A side-effect of this change is that it will be possible to create and publish multiple publications from a single build.
-
-To customize the `pom.xml`:
-
-    apply plugin: 'maven-publish'
-
-    publishing {
-        repositories.maven { ... }
-
-        publications {
-            maven(MavenPublication) {
-                groupId 'my-maven-group'
-                artifactId 'my-artifact-id'
-                version '1.2'
-                pom.packaging 'war'
-            }
-        }
-    }
-
-Running `gradle publish` will publish to the remote repository, with the customizations. Running `gradle publishLocalMaven` will publish to the local
-Maven repository, with the same customizations.
-
-To customize the `ivy.xml`:
-
-    apply plugin: 'ivy-publish'
-
-    publishing {
-        repositories.ivy { ... }
-
-        publications {
-            ivy(IvyPublication) {
-                organisation 'my-organisation'
-                module 'my-module'
-                revision '1.2'
-            }
-        }
-    }
-
-### Integration test cases
-
-* A build with project-A depends on project-B.
-    1. Customize the Ivy module identifier and Maven coordinates of project-B.
-    2. Publish both projects to an Ivy repository.
-    3. Assert that another build can resolve project-A from this Ivy repository.
-    4. Publish both projects to a Maven repository.
-    5. Assert that another build can resolve project-A from this Maven repository.
-* Run `gradle publish` for a project that defines multiple publications and verify that they are all published
-* Run `gradle publish` for a project that depends on a project with multiple publications [A,B]
-    1. Assert that generated `ivy.xml` includes dependencies for all of [A,B]
-    2. Assert that generated `pom.xml` includes dependencies for all of [A,B]
-* All publications of the project are visible via the tooling API's `GradleProject`.
-
 ## Handle compound source inputs when adding artifacts to Ivy or Maven publications
 
 Currently, all artifact inputs map one-one with a published artifact. We should handle compound inputs that will result in the creation of multiple artifacts.
@@ -350,74 +279,6 @@ And:
         version '1.2'
     }
 
-## Generate POM exclusions for project dependencies
-
-Maven POM `<exclusions>` should be generated for exclude rules applied to project dependencies as well as external module dependencies.
-Existing wildcard rules should apply, meaning that a `null` 'group' or 'module' names is simply mapped to a wildcard (`*`) character.
-
-Given the following build script:
-
-    allprojects {
-        apply plugin: 'java'
-        apply plugin: 'maven-publish'
-
-        group = 'org.myorg'
-        version = '1.0.0'
-
-        publishing {
-            publication {
-                maven(MavenPublication) {
-                    from components.java
-                }
-            }
-        }
-    }
-
-    project('projectB') {
-        dependencies {
-            compile project(':projectA'), {
-                exclude module: 'excluded-module'
-            }
-        }
-    }
-
-One would expect a POM that looks like:
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-      <modelVersion>4.0.0</modelVersion>
-      <groupId>org.myorg</groupId>
-      <artifactId>projectB</artifactId>
-      <version>1.0.0</version>
-      <dependencies>
-        <dependency>
-          <groupId>org.myorg</groupId>
-          <artifactId>projectA</artifactId>
-          <version>1.0.0</version>
-          <scope>runtime</scope>
-          <exclusions>
-            <exclusion>
-              <artifactId>excluded-module</artifactId>
-              <groupId>*</groupId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </project>
-
-### Implementation approach
-
-A `ProjectDependency` should be treated like any other `ModuleDependency` with regards to handling exclude rules. [`DefaultMavenPublication`](https://github.com/gradle/gradle/blob/96254ac76bc3679c927ffb02fdf0cc3f3fb39633/subprojects/maven/src/main/groovy/org/gradle/api/publish/maven/internal/publication/DefaultMavenPublication.java#L111-L111)
-should be modified such that the project dependency's exclude rules are passed along to the newly created `DefaultMavenDependency` so that the logic in
-`MavenPomFileGenerator` can pick it up.
-
-### Test cases
-
- 1. Adding one or more exclusions to a project dependency is reflected in the generated POM file
- 2. Omitting either 'group' or 'module' on project dependency exclusion results in a wildcard exclusion
- 3. Adding an exclusion to a project dependency for a module which is another project in the multi-project is reflected in the generated POM file
-
 ## Disabling transitive dependencies on a module results in wildcard exclusion in generated POM
 
 This is [Gradle-1571](https://issues.gradle.org/browse/GRADLE-1574). Maven added support for
@@ -484,11 +345,75 @@ excluding all transitive dependencies is simply identified with a wildcard exclu
  3. Depending on publication of project with dependency using `transitive = false` results in same dependency graph as
     depending on the project itself
 
+## Dependency exclude rules are published in ivy.xml file
+
+Module exclude rules applied to `ExternalModuleDependency` and `ProjectDependency` dependencies should be reflected as `<exclude>` entries in
+the published ivy.xml file when using the 'ivy-publish' plugin. Exclusions will be mapped to [module excludes](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html)
+which were introduced in Ivy 1.3. Since the default value for attributes on `<exclude>` is wildcard, omitting either 'group' or 'module' should
+result is omitting the 'org' or 'module' attributes in the ivy.xml, respectively.
+
+Given the following build script:
+
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    group = 'org.myorg'
+    version = '1.0.0'
+
+    publishing {
+        publication {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    dependencies {
+        compile 'org.springframework:spring-core:4.2.3.RELEASE', {
+            exclude module: 'commons-logging'
+        }
+    }
+
+Should result in the following ivy.xml descriptor
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <ivy-module version="2.0">
+      <info organisation="org.myorg" module="gradle" revision="1.0.0" status="integration" publication="20151203163733"/>
+      <configurations>
+        <conf name="default" visibility="public" extends="runtime"/>
+        <conf name="runtime" visibility="public"/>
+      </configurations>
+      <publications>
+        <artifact name="gradle" type="jar" ext="jar" conf="runtime"/>
+      </publications>
+      <dependencies>
+        <dependency org="org.springframework" name="spring-core" rev="4.2.3.RELEASE" conf="runtime-&gt;default">
+          <exclude module="commons-logging"/>
+        </dependency>
+      </dependencies>
+    </ivy-module>
+
+### Implementation approach
+
+ 1. Add a new `Iterable<ExcludeRule>` to `IvyDependencyInternal` and associated implementation classes
+ 2. Modify `DefaultIvyPublication` to populate exclude rules on `IvyDependency` with the rules from project and
+    external dependencies
+ 3. Modify `IvyDescriptorFileGenerator` to include exclude rules in ivy.xml
+
+
+### Test cases
+
+ 1. `DefaultIvyPublication` creates `IvyDependency` including exclude rules given a `ProjectDependency` or `ExternalModuleDependency`
+ 2. `IvyDescriptorFileGenerator` generates excludes for a given `IvyDependency` in the ivy.xml file
+   * The `ExcludeRule.group` should map to 'org' attribute and `ExcludeRule.module` should map to 'module' attribute
+   * A `null` 'group' or 'module' property should result in 'org' or 'module' attribute to be missing, respectively
+ 3. Integration test which confirms that an `IvyPublication` for a component with dependency excludes results in a published
+    ivy.xml which includes the configured exclude rules
+
 ## Fix POM generation issues
 
 * excludes on configuration.
 * dynamic versions.
-* wildcard excludes.
 * project dependency targets specific artifacts.
 
 ## Fix Ivy generation issues
@@ -582,7 +507,7 @@ These would be mixed in to various steps above (TBD), rather than as one change 
 3. Deprecate and later remove the `maven` plugin. This means the only mechanism for publishing a Maven module is via the `maven-publish` plugin.
 4. Deprecate and later remove support for signing a configuration and Maven deployer.
 5. Deprecate and later remove `Configuration.artifacts` and related types.
-6. Change `DependendencyHandler` to become a container of `ResolvableDependencies` instances. Use `dependencies.compile` instead of
+6. Change `DependencyHandler` to become a container of `ResolvableDependencies` instances. Use `dependencies.compile` instead of
    `configurations.compile`
 7. Deprecate and later remove `ResolvedConfiguration` and related types.
 8. Deprecate and later remove `Configuration` and related types.

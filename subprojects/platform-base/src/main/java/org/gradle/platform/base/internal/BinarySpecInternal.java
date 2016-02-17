@@ -16,9 +16,20 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 
 public interface BinarySpecInternal extends BinarySpec {
+    /**
+     * The unique identifier of this binary.
+     */
+    LibraryBinaryIdentifier getId();
+
+    @Nullable
+    ComponentSpec getComponent();
+
     /**
      * Returns a name for this binary that is unique for all binaries in the current project.
      */
@@ -35,4 +46,6 @@ public interface BinarySpecInternal extends BinarySpec {
     BinaryNamingScheme getNamingScheme();
 
     void setNamingScheme(BinaryNamingScheme namingScheme);
+
+    boolean hasCodependentSources();
 }

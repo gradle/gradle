@@ -18,19 +18,28 @@ package org.gradle.nativeplatform.test.googletest.internal;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeComponentSpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
+import org.gradle.platform.base.ComponentSpec;
 
 public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec implements GoogleTestTestSuiteSpec {
     private NativeComponentSpec testedComponent;
 
-    public String getDisplayName() {
-        return String.format("googleTest test suite '%s'", getName());
+    @Override
+    protected String getTypeName() {
+        return "Google test suite";
     }
 
+    @Override
     public NativeComponentSpec getTestedComponent() {
         return testedComponent;
     }
 
-    public void setTestedComponent(NativeComponentSpec testedComponent) {
-        this.testedComponent = testedComponent;
+    @Override
+    public void setTestedComponent(ComponentSpec testedComponent) {
+        this.testedComponent = (NativeComponentSpec) testedComponent;
+    }
+
+    @Override
+    public void testing(ComponentSpec testedComponent) {
+        this.testedComponent = (NativeComponentSpec) testedComponent;
     }
 }

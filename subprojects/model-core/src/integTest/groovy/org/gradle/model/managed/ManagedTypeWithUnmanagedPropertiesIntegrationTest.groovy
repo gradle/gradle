@@ -20,11 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can have unmanaged property"() {
+    def "can have unmanaged property of unsupported types"() {
         when:
         buildScript '''
             class UnmanagedThing {
               String value
+            }
+            class MyFile extends File {
+              MyFile(String s) { super(s) }
             }
 
             @Managed
@@ -32,6 +35,10 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 @Unmanaged
                 UnmanagedThing getUnmanaged()
                 void setUnmanaged(UnmanagedThing unmanaged)
+
+                @Unmanaged
+                MyFile getFile()
+                void setFile(MyFile file)
             }
 
             class RulePlugin extends RuleSource {

@@ -27,10 +27,12 @@ import java.util.List;
 public class DefaultTool implements Tool {
     private final ArrayList<String> args = new ArrayList<String>();
 
+    @Override
     public List<String> getArgs() {
         return args;
     }
 
+    @Override
     public void args(String... args) {
         Collections.addAll(this.args, args);
     }

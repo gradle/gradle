@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class InstanceOptionDescriptor implements OptionDescriptor {
 
@@ -47,8 +49,8 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return optionElement.getOptionName();
     }
 
-    public List<String> getAvailableValues() {
-        final List<String> values = optionElement.getAvailableValues();
+    public Set<String> getAvailableValues() {
+        final Set<String> values = optionElement.getAvailableValues();
 
         if (getArgumentType().isAssignableFrom(String.class)) {
             values.addAll(readDynamicAvailableValues());
@@ -72,6 +74,10 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return optionElement.getDescription();
     }
 
+    public int getOrder() {
+        return optionElement.getOrder();
+    }
+
     public void apply(Object objectParam, List<String> parameterValues) {
         if (objectParam != object) {
             throw new AssertionError(String.format("Object %s not applyable. Expecting %s", objectParam, object));
@@ -80,6 +86,6 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     }
 
     public int compareTo(OptionDescriptor o) {
-        return getName().compareTo(o.getName());
+        return new CompareToBuilder().append(getOrder(), o.getOrder()).append(getName(), o.getName()).toComparison();
     }
 }

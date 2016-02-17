@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.FileTreeElement;
+
 import java.io.File;
 
 public interface FileSnapshotter {
@@ -23,5 +25,8 @@ public interface FileSnapshotter {
      * Takes a snapshot of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).
      */
     FileSnapshot snapshot(File file);
+
+
+    FileSnapshot snapshot(FileTreeElement fileDetails);
 
 }

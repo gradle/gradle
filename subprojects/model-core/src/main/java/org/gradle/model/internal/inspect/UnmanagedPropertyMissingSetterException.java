@@ -17,16 +17,15 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.GradleException;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 
 public class UnmanagedPropertyMissingSetterException extends GradleException {
-    public UnmanagedPropertyMissingSetterException(ModelProperty<?> property) {
-        super(getMessage(property));
+    public UnmanagedPropertyMissingSetterException(String propertyName) {
+        super(getMessage(propertyName));
     }
 
-    private static <P> String getMessage(ModelProperty<P> property) {
+    private static <P> String getMessage(String propertyName) {
         return String.format(
             "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
-            property.getName());
+            propertyName);
     }
 }

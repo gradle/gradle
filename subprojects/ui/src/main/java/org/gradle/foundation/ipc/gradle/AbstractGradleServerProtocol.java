@@ -51,7 +51,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     private final Logger logger = Logging.getLogger(AbstractGradleServerProtocol.class);
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
-    
+
     protected ProcessLauncherServer server;
     private boolean continueConnection;
     private boolean waitingOnHandshakeCompletion;
@@ -279,7 +279,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
             }
         }
 
-        executionInfo.setCommandLineArguments(executionCommandLine.toArray(new String[executionCommandLine.size()]));
+        executionInfo.setCommandLineArguments(executionCommandLine.toArray(new String[0]));
         return executionInfo;
     }
 

@@ -27,12 +27,12 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.jvm.plugins.JvmComponentPlugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.ModelMap
-import org.gradle.platform.base.ComponentSpecIdentifier
+import org.gradle.platform.base.internal.ComponentSpecIdentifier
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.PlatformResolvers
-import spock.lang.Specification
 
-class CreateJvmBinariesTest extends Specification {
+class CreateJvmBinariesTest extends PlatformBaseSpecification {
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin.Rules()
     def platforms = Mock(PlatformResolvers)

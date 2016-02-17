@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    public void "can publish jar and meta-data to maven repository"() {
+    def "can publish jar and meta-data to maven repository"() {
         given:
         createBuildScripts("""
             publishing {
@@ -46,7 +46,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(mavenModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
-    public void "can publish attached artifacts to maven repository"() {
+    def "can publish attached artifacts to maven repository"() {
         given:
         createBuildScripts("""
             task sourceJar(type: Jar) {
@@ -100,6 +100,7 @@ $append
 
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
+                compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"
             }

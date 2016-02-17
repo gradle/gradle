@@ -22,21 +22,23 @@ import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
+@InspectsExecutedTasks
 @NoDebug
-class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerIsolatedDaemonIntegrationTest extends GradleRunnerIntegrationTest {
 
     def setup() {
         requireIsolatedTestKitDir = true
     }
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(20000)
 
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
@@ -124,7 +126,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
-        def nonTestKitDaemons = daemons(testKitDir)
+        def nonTestKitDaemons = daemons(testKitDir, "daemon", buildContext.version.version)
 
         when:
         runner().build()
@@ -135,8 +137,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         nonTestKitDaemons.visible.empty
 
         when:
-        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
-            .usingProjectDirectory(testProjectDir.testDirectory)
+        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
+            .usingProjectDirectory(testDirectory)
             .withGradleUserHomeDir(testKitDir)
             .withDaemonBaseDir(testKitDir.file("daemon")) // simulate default, our fixtures deviate from the default
             .run()
@@ -171,7 +173,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     }
 
     protected DaemonFixture onlyDaemon(DaemonsFixture daemons = this.daemons()) {
-        List<DaemonFixture> userDaemons = daemons.visible
+        List<DaemonFixture> userDaemons = daemons.daemons
         assert userDaemons.size() == 1
         userDaemons[0]
     }

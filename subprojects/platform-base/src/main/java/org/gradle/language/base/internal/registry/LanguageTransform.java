@@ -28,6 +28,11 @@ import java.util.Map;
  */
 public interface LanguageTransform<U extends LanguageSourceSet, V extends TransformationFileType> {
     /**
+     * The language name.
+     */
+    String getLanguageName();
+
+    /**
      * The interface type of the language source set.
      */
     Class<U> getSourceSetType();

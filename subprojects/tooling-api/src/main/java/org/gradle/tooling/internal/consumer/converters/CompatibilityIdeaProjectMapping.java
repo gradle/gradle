@@ -22,25 +22,24 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import java.io.Serializable;
 
 public class CompatibilityIdeaProjectMapping {
-
     private final IdeaProject ideaProject;
 
     public CompatibilityIdeaProjectMapping(IdeaProject ideaProject) {
         this.ideaProject = ideaProject;
     }
 
-    public Object getJavaSourceSettings() {
-        return new CompatibilityIdeaProjectJavaSourceSettings(ideaProject);
+    public CompatibilityIdeaProjectJavaLanguageSettings getJavaLanguageSettings() {
+        return new CompatibilityIdeaProjectJavaLanguageSettings(ideaProject);
     }
 
-    public static class CompatibilityIdeaProjectJavaSourceSettings implements Serializable {
+    public static class CompatibilityIdeaProjectJavaLanguageSettings implements Serializable {
         private final IdeaProject ideaProject;
 
-        public CompatibilityIdeaProjectJavaSourceSettings(IdeaProject ideaProject) {
+        public CompatibilityIdeaProjectJavaLanguageSettings(IdeaProject ideaProject) {
             this.ideaProject = ideaProject;
         }
 
-        public JavaVersion getSourceLanguageLevel() {
+        public JavaVersion getLanguageLevel() {
             return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
         }
     }

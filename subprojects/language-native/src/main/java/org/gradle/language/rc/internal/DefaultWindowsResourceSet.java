@@ -20,7 +20,7 @@ import org.gradle.language.rc.WindowsResourceSet;
 
 public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {
     @Override
-    protected String getTypeName() {
+    protected String getLanguageName() {
         return "windows resources";
     }
 }

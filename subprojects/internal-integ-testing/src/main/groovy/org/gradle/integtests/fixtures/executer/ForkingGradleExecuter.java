@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -123,7 +124,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         NativeServicesTestFixture.initialize();
-        ExecHandleBuilder builder = new ExecHandleBuilder() {
+        ExecHandleBuilder builder = new ExecHandleBuilder(TestFiles.resolver()) {
             @Override
             public File getWorkingDir() {
                 // Override this, so that the working directory is not canonicalised. Some int tests require that

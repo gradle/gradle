@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.type.ModelType;
 
+@ThreadSafe
 public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);

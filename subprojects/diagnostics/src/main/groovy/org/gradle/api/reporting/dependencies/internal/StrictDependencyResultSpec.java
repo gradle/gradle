@@ -35,6 +35,7 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
         this.moduleIdentifier = moduleIdentifier;
     }
 
+    @Override
     public boolean isSatisfiedBy(DependencyResult candidate) {
         if (candidate instanceof ResolvedDependencyResult) {
             return matchesRequested(candidate) || matchesSelected((ResolvedDependencyResult) candidate);

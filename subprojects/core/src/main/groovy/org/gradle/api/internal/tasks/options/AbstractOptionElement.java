@@ -16,33 +16,34 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.exceptions.ValueCollectingDiagnosticsVisitor;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.ValueAwareNotationParser;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
+    private final int order;
     private final Class<?> optionType;
-    private final ValueAwareNotationParser<?> notationParser;
+    private final NotationParser<CharSequence, ?> notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, ValueAwareNotationParser<?> notationParser) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
+        this.order = option.order();
         this.optionName = optionName;
         this.optionType = optionType;
         this.notationParser = notationParser;
     }
 
-    public List<String> getAvailableValues() {
-        List<String> describes = new ArrayList<String>();
-        notationParser.describeValues(describes);
-        return describes;
+    public Set<String> getAvailableValues() {
+        ValueCollectingDiagnosticsVisitor visitor = new ValueCollectingDiagnosticsVisitor();
+        notationParser.describe(visitor);
+        return visitor.getValues();
     }
 
     public Class<?> getOptionType() {
@@ -70,11 +71,15 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     protected NotationParser<CharSequence, ?> getNotationParser() {
         return notationParser;
     }
 
-    protected static ValueAwareNotationParser<Object> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
+    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
         try {
             return optionNotationParserFactory.toComposite(optionType);
         } catch (OptionValidationException ex) {
@@ -91,6 +96,4 @@ abstract class AbstractOptionElement implements OptionElement {
             return type;
         }
     }
-
-
 }

@@ -17,4 +17,5 @@
 /**
  * Classes for managing plugin resolution and use.
  */
+@org.gradle.api.Incubating
 package org.gradle.plugin.use;

@@ -36,6 +36,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
     private boolean useNativeTools;
@@ -318,7 +319,11 @@ public class TestFile extends File {
     }
 
     public TestFile assertIsDir() {
-        assertTrue(String.format("%s is not a directory", this), isDirectory());
+        return assertIsDir("");
+    }
+
+    public TestFile assertIsDir(String hint) {
+        assertTrue(String.format("%s is not a directory. %s", this, hint), isDirectory());
         return this;
     }
 
@@ -435,6 +440,14 @@ public class TestFile extends File {
             assertHasDescendants();
         }
         return this;
+    }
+
+    public Set<String> allDescendants() {
+        Set<String> names = new TreeSet<String>();
+        if (isDirectory()) {
+            visit(names, "", this);
+        }
+        return names;
     }
 
     private void visit(Set<String> names, String prefix, File file) {
@@ -588,6 +601,10 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void assumeExists() {
+        assumeTrue(this.exists());
     }
 
     public ExecOutput exec(Object... args) {

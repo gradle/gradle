@@ -25,6 +25,7 @@ import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 
@@ -37,7 +38,20 @@ import javax.inject.Inject;
 @Incubating
 public class ModelReport extends DefaultTask {
 
+    /**
+     * The report format.
+     * <ul>
+     *     <li><i>full</i> (default value) will show details about types, rules and creators</li>
+     *     <li><i>short</i> will only show nodes and their values</li>
+     * </ul>
+     */
+    public enum Format {
+        FULL,
+        SHORT
+    }
+
     private boolean showHidden;
+    private Format format = Format.FULL;
 
     @Option(option = "showHidden", description = "Show hidden model elements.")
     public void setShowHidden(boolean showHidden) {
@@ -46,6 +60,15 @@ public class ModelReport extends DefaultTask {
 
     public boolean isShowHidden() {
         return showHidden;
+    }
+
+    @Option(option = "format", description = "Output format (full, short)")
+    public void setFormat(String format) {
+        this.format = Format.valueOf(format.toUpperCase());
+    }
+
+    public Format getFormat() {
+        return format;
     }
 
     @Inject
@@ -62,14 +85,18 @@ public class ModelReport extends DefaultTask {
     public void report() {
         Project project = getProject();
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
-        ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden());
+        ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden(), getFormat());
 
         TextModelReportRenderer textModelReportRenderer = new TextModelReportRenderer(renderer);
 
         textModelReportRenderer.setOutput(textOutput);
         textModelReportRenderer.startProject(project);
 
-        textModelReportRenderer.render(getModelRegistry().realizeNode(ModelPath.ROOT));
+        ModelRegistry modelRegistry = getModelRegistry();
+        ModelNode rootNode = modelRegistry.realizeNode(ModelPath.ROOT);
+        // Ensure binding validation has been done. This should happen elsewhere
+        modelRegistry.bindAllReferences();
+        textModelReportRenderer.render(rootNode);
 
         textModelReportRenderer.completeProject(project);
         textModelReportRenderer.complete();

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.Matchers
 import org.junit.Rule
 
 class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
@@ -82,11 +83,11 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated")
+        failure.assertThatCause(Matchers.containsText("javax.net.ssl.SSLHandshakeException"))
     }
 
     @LeaksFileHandles
-    def "decent error message when server can't authenticate client"() {
+    def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()
 
@@ -98,7 +99,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated")
+        failure.error.contains("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
     }
 
     def expectPublication() {

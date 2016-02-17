@@ -16,13 +16,13 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture;
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, testDirectoryProvider);
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider);
 
     @Test
     public void handlesJavaSourceOnly() {

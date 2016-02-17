@@ -67,7 +67,7 @@ public interface ModelRegistry {
     /**
      * Returns the node at the given path at the desired state or later, if it exists.
      * <p>
-     * If there is no known node at that path, {@code null} is returned.
+     * If there is no known node at that path, an {@link IllegalStateException} is thrown.
      * <p>
      * If the node is at an earlier state than desired it will be irrevocably transitioned to the desired state and returned.
      * If it is at the desired state or later it is returned.
@@ -103,14 +103,29 @@ public interface ModelRegistry {
 
     ModelRegistry register(ModelRegistration registration);
 
+    /**
+     * Bind the given action directly to its subject node in the given role. Calling {@link #bindAllReferences()} fails
+     * if the subject of the action is not matched by any node.
+     */
     ModelRegistry configure(ModelActionRole role, ModelAction action);
 
-    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
+    /**
+     * Registers a listener and binds the given action in the given role whenever a node that matches the spec is discovered.
+     * Matching nodes that are already discovered when {@code configureMatching()} is called are bound directly.
+     * Unlike with {@link #configure(ModelActionRole, ModelAction)}, {@link #bindAllReferences()} will <em>not</em> fail
+     * if no nodes match the given spec.
+     *
+     * @throws IllegalArgumentException if the given action has a <code>path</code> set.
+     */
+    ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
 
-    ModelRegistry apply(Class<? extends RuleSource> rules);
+    /**
+     * Registers a listener and applies the given {@link RuleSource} whenever a node that matches the spec is discovered.
+     * Matching nodes that are already discovered when {@code configureMatching()} is called are bound directly.
+     * Unlike with {@link #configure(ModelActionRole, ModelAction)}, {@link #bindAllReferences()} will <em>not</em> fail
+     * if no nodes match the given spec.
+     */
+    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
 
     MutableModelNode getRoot();
-
-    @Nullable
-    MutableModelNode node(ModelPath path);
 }

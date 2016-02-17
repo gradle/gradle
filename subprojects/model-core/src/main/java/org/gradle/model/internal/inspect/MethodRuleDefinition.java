@@ -19,22 +19,27 @@ package org.gradle.model.internal.inspect;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 
 public interface MethodRuleDefinition<R, S> {
+    WeaklyTypeReferencingMethod<?, R> getMethod();
 
     String getMethodName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
+    @Nullable
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
     ModelType<R> getReturnType();
 
     List<ModelReference<?>> getReferences();
+
+    List<List<Annotation>> getParameterAnnotations();
 
     @Nullable
     ModelReference<S> getSubjectReference();
@@ -42,6 +47,4 @@ public interface MethodRuleDefinition<R, S> {
     List<ModelReference<?>> getTailReferences();
 
     ModelRuleDescriptor getDescriptor();
-
-    ModelRuleInvoker<R> getRuleInvoker();
 }

@@ -134,16 +134,17 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private final RelativePath path;
         private final Action<OutputStream> generator;
         private long lastModified;
+        private long size;
         private final AtomicBoolean stopFlag;
         private File file;
+        private final boolean isDirectory;
 
         public FileVisitDetailsImpl(RelativePath path, Action<OutputStream> generator, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.path = path;
             this.generator = generator;
             this.stopFlag = stopFlag;
-            // round to nearest second
-            lastModified = System.currentTimeMillis() / 1000 * 1000;
+            this.isDirectory = !path.isFile();
         }
 
         public String getDisplayName() {
@@ -160,39 +161,58 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 if (!file.exists()) {
                     copyTo(file);
                 } else if (!isDirectory()) {
-                    ByteArrayOutputStream buffer = new ByteArrayOutputStream(Math.max(((int) file.length()) + 64, 256));
-                    copyTo(buffer);
-                    byte[] newContent = buffer.toByteArray();
-                    boolean changed = false;
-                    if (newContent.length == file.length()) {
-                        try {
-                            byte[] oldContent = Files.toByteArray(file);
-                            if (!Arrays.equals(newContent, oldContent)) {
-                                changed = true;
-                            }
-                        } catch (IOException e) {
-                            // attempt to write new file if reading old file fails
-                            changed = true;
-                        }
-                    } else {
-                        changed = true;
-                    }
-                    if (changed) {
-                        try {
-                            Files.write(newContent, file);
-                        } catch (IOException e) {
-                            throw new org.gradle.api.UncheckedIOException(e);
-                        }
-                    }
+                    updateFileOnlyWhenGeneratedContentChanges();
                 }
                 // round to nearest second
                 lastModified = file.lastModified() / 1000 * 1000;
+                size = file.length();
             }
             return file;
         }
 
+        public void copyTo(OutputStream output) {
+            generator.execute(output);
+        }
+
+        // prevent file system change events when generated content
+        // remains the same as the content in the existing file
+        private void updateFileOnlyWhenGeneratedContentChanges() {
+            byte[] generatedContent = generateContent();
+            if (hasGeneratedContentChanged(generatedContent)) {
+                try {
+                    Files.write(generatedContent, file);
+                } catch (IOException e) {
+                    throw new org.gradle.api.UncheckedIOException(e);
+                }
+            }
+        }
+
+        private byte[] generateContent() {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream(Math.max(((int) file.length()) + 64, 256));
+            copyTo(buffer);
+            return buffer.toByteArray();
+        }
+
+        private boolean hasGeneratedContentChanged(byte[] generatedContent) {
+            boolean hasChanged = false;
+            if (generatedContent.length == file.length()) {
+                try {
+                    byte[] existingContent = Files.toByteArray(file);
+                    if (!Arrays.equals(generatedContent, existingContent)) {
+                        hasChanged = true;
+                    }
+                } catch (IOException e) {
+                    // attempt to write new file if reading old file fails
+                    hasChanged = true;
+                }
+            } else {
+                hasChanged = true;
+            }
+            return hasChanged;
+        }
+
         public boolean isDirectory() {
-            return !path.isFile();
+            return isDirectory;
         }
 
         public long getLastModified() {
@@ -201,11 +221,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public long getSize() {
-            return getFile().length();
-        }
-
-        public void copyTo(OutputStream outstr) {
-            generator.execute(outstr);
+            getFile();
+            return size;
         }
 
         public InputStream open() {
@@ -220,5 +237,10 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
 
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
     }
 }

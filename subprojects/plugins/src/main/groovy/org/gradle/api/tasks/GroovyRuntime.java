@@ -103,7 +103,7 @@ public class GroovyRuntime {
                     // add groovy-ant to bring in Groovydoc
                     dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
                 }
-                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
+                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

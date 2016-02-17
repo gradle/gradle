@@ -30,6 +30,7 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
         this.locators.addAll(locators);
     }
 
+    @Override
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         for (LibraryBinaryLocator locator : locators) {
             DomainObjectSet<NativeLibraryBinary> binaries = locator.getBinaries(requirement);

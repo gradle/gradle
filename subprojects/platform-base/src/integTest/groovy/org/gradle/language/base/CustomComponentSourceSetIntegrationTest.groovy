@@ -22,26 +22,22 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
-
-    interface LibrarySourceSet extends LanguageSourceSet {}
-    class DefaultLibrarySourceSet extends BaseLanguageSourceSet implements LibrarySourceSet { }
+    @Managed interface LibrarySourceSet extends LanguageSourceSet {}
 
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
-            @LanguageType
-            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
-                builder.setLanguageName("librarySource")
-                builder.defaultImplementation(DefaultLibrarySourceSet)
+            @ComponentType
+            void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
     }
@@ -54,7 +50,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
-    void tasks(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries) {
+    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
         tasks.create("verify") {
             doLast {
                 binaries.each { binary ->
@@ -129,8 +125,8 @@ model {
 '''
         expect:
         succeeds "verify"
-        output.contains """Binary sources: [LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
-        output.contains """Binary inputs: [LibrarySourceSet 'sampleLib:compA', LibrarySourceSet 'sampleLib:compB', LibrarySourceSet 'sampleLib:compC', LibrarySourceSet 'sampleLib:compD', LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary sources: [Library source 'sampleLib:bin:binaryA', Library source 'sampleLib:bin:binaryB', Library source 'sampleLib:bin:binaryC', Library source 'sampleLib:bin:binaryD']"""
+        output.contains """Binary inputs: [Library source 'sampleLib:compA', Library source 'sampleLib:compB', Library source 'sampleLib:compC', Library source 'sampleLib:compD', Library source 'sampleLib:bin:binaryA', Library source 'sampleLib:bin:binaryB', Library source 'sampleLib:bin:binaryC', Library source 'sampleLib:bin:binaryD']"""
     }
 
     def "fail when multiple source sets are registered with the same name"() {
@@ -162,11 +158,11 @@ model {
         fails("components")
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 41, column 9")
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 41, column 9 > components.sampleLib.getBinaries() > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 30, column 9 > create(bin) > create(main)' is already registered to create this model element.")
+        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 37, column 9")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 37, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 26, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 
-    def "user can attach unmanaged internal views to custom `LanguageSourceSet`"() {
+    def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {
@@ -183,9 +179,8 @@ model {
             }
 
             class HaxeRules extends RuleSource {
-                @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                @ComponentType
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                     builder.defaultImplementation(DefaultHaxeSourceSet)
                     builder.internalView(HaxeSourceSetInternal)
                 }
@@ -195,13 +190,9 @@ model {
             model {
                 components {
                     sampleLib(SampleLibrary) {
-                        binaries {
-                            sampleBin(SampleBinary) {
-                                sources {
-                                    haxe(HaxeSourceSet) {
-                                        publicData = "public"
-                                    }
-                                }
+                        sources {
+                            haxe(HaxeSourceSet) {
+                                publicData = "public"
                             }
                         }
                     }
@@ -210,7 +201,7 @@ model {
 
             class TestRules extends RuleSource {
                 @Defaults
-                void useInternalView(@Path("components.sampleLib.binaries.sampleBin.sources.haxe") HaxeSourceSetInternal lss) {
+                void useInternalView(@Path("components.sampleLib.sources.haxe") HaxeSourceSetInternal lss) {
                     lss.setInternalData("internal")
                 }
             }
@@ -218,13 +209,11 @@ model {
 
             class ValidateTaskRules extends RuleSource {
                 @Mutate
-                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
                     tasks.create("validate") {
-                        assert components*.name == ["sampleLib"]
-                        assert components.withType(SampleLibrary)*.name == ["sampleLib"]
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe != null
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe.publicData == "public"
-                        assert components.sampleLib.binaries.sampleBin.sources.haxe.internalData == "internal"
+                        assert sources.haxe != null
+                        assert sources.haxe.publicData == "public"
+                        assert sources.haxe.internalData == "internal"
                     }
                 }
             }
@@ -235,26 +224,22 @@ model {
         succeeds "validate"
     }
 
-    def "fails on registration when model type extends `LanguageSourceSet` without a default implementation"() {
+    def "fails on creation when model type extends `LanguageSourceSet` without a default implementation"() {
         given:
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {}
             class HaxeRules extends RuleSource {
-                @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                @ComponentType
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                 }
             }
             apply plugin: HaxeRules
+
             model {
                 components {
-                    sampleLib(SampleLibrary) {
-                        binaries {
-                            sampleBin(SampleBinary) {
-                                sources {
-                                    haxe(HaxeSourceSet)
-                                }
-                            }
+                    myComponent(GeneralComponentSpec) {
+                        sources {
+                            haxe(HaxeSourceSet)
                         }
                     }
                 }
@@ -265,7 +250,142 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: LanguageBasePlugin.Rules#registerSourceSetTypes")
-        failure.assertHasCause("No implementation type registered for 'HaxeSourceSet'")
+        failure.assertHasCause("Cannot create a 'HaxeSourceSet' because this type does not have an implementation registered.")
+    }
+
+    def "user can declare and use a custom managed LanguageSourceSet"() {
+        given:
+        buildFile << """
+            @Managed interface CustomManagedLSS extends LanguageSourceSet {
+                String getSomeProperty()
+                void setSomeProperty(String value)
+            }
+            class CustomManagedLSSPlugin extends RuleSource {
+                @ComponentType
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
+                }
+            }
+            apply plugin: CustomManagedLSSPlugin
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.sources.managed") CustomManagedLSS lss) {
+                    lss.setSomeProperty("default value")
+                }
+            }
+            apply plugin: TestRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            managed(CustomManagedLSS) {
+                                someProperty = "some value"
+                            }
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
+                    tasks.create("validate") {
+                        assert sources.managed != null
+                        assert sources.managed.someProperty == "some value"
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "user can declare custom managed LanguageSourceSet based on custom LanguageSourceSet component"() {
+        given:
+        buildFile << """
+            @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
+            class ChildCustomManagedLSSPlugin extends RuleSource {
+                @ComponentType
+                void registerChildCustomManagedLSSPType(TypeBuilder<ChildCustomManagedLSS> builder) {
+                }
+            }
+            apply plugin: ChildCustomManagedLSSPlugin
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            childcustom(ChildCustomManagedLSS) {}
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<LanguageSourceSet> sources) {
+                    tasks.create("validate") {
+                        assert sources.childcustom != null
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
+    }
+
+    def "user can target managed internal views of a custom managed LanguageSourceSet with rules"() {
+        given:
+        buildFile << """
+            @Managed interface CustomManagedLSS extends LanguageSourceSet {}
+            @Managed interface CustomManagedLSSInternal extends CustomManagedLSS {
+                String getInternal()
+                void setInternal(String internal)
+            }
+            class CustomManagedLSSPlugin extends RuleSource {
+                @ComponentType
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
+                    builder.internalView(CustomManagedLSSInternal)
+                }
+            }
+            apply plugin: CustomManagedLSSPlugin
+
+            class TestRules extends RuleSource {
+                @Defaults
+                void useInternalView(@Path("components.sampleLib.sources.managed") CustomManagedLSSInternal lss) {
+                    lss.setInternal("internal value")
+                }
+            }
+            apply plugin: TestRules
+
+            model {
+                components {
+                    sampleLib(SampleLibrary) {
+                        sources {
+                            managed(CustomManagedLSS) {}
+                        }
+                    }
+                }
+            }
+
+            class ValidateTaskRules extends RuleSource {
+                @Mutate
+                void createValidateTask(ModelMap<Task> tasks, @Path("components.sampleLib.sources") ModelMap<CustomManagedLSSInternal> sources) {
+                    tasks.create("validate") {
+                        assert sources.managed != null
+                        assert sources.managed.internal == "internal value"
+                    }
+                }
+            }
+            apply plugin: ValidateTaskRules
+        """
+
+        expect:
+        succeeds "validate"
     }
 }

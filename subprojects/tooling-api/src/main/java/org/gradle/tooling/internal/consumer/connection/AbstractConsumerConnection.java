@@ -24,11 +24,12 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public abstract class AbstractConsumerConnection implements ConsumerConnection {
+public abstract class AbstractConsumerConnection extends HasCompatibilityMapperAction implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
     private final VersionDetails providerMetaData;
 
     public AbstractConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
+        super(providerMetaData);
         this.delegate = delegate;
         this.providerMetaData = providerMetaData;
     }

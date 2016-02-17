@@ -48,6 +48,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         this.specTransformer = specTransformer;
     }
 
+    @Override
     public WorkResult execute(LinkerSpec spec) {
         BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         LinkerSpec transformedSpec = specTransformer.transform(spec);
@@ -62,6 +63,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(escapeUserArgs(spec.getAllArgs()));

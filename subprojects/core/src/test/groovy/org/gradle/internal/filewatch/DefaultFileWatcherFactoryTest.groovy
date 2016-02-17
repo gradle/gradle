@@ -20,6 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.logging.ConfigureLogging
+import org.gradle.logging.internal.LogEvent
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -29,14 +31,23 @@ import org.junit.Rule
 import org.spockframework.lang.ConditionBlock
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends Specification {
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging({
+        if (it instanceof LogEvent) {
+            println "[${it.timestamp}] ${it}"
+            it.throwable?.printStackTrace()
+        }
+    })
 
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
@@ -160,7 +171,9 @@ class DefaultFileWatcherFactoryTest extends Specification {
         when:
         fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventLatch.countDown()
-            waitOn(stopLatch)
+            try {
+                waitOn(stopLatch)
+            } catch(e) {}
             result.set(watcher.running)
         }
         fileWatcher.watch(fileSystemSubset)
@@ -193,6 +206,30 @@ class DefaultFileWatcherFactoryTest extends Specification {
         await { assert !fileWatcher.running }
     }
 
+    def "can interrupt watcher event delivery"() {
+        when:
+        def eventReceivedLatch = new CountDownLatch(1)
+        def interruptedLatch = new CountDownLatch(1)
+        fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
+            eventReceivedLatch.countDown()
+            try {
+                Thread.sleep(100000)
+            } catch (InterruptedException e) {
+                interruptedLatch.countDown()
+                throw e
+            }
+        }
+        fileWatcher.watch(fileSystemSubset)
+
+        and:
+        testDir.file("new") << "new"
+
+        then:
+        waitOn(eventReceivedLatch)
+        fileWatcher.stop()
+        waitOn(interruptedLatch)
+    }
+
     def "watcher can detects all files added to watched directory"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)
@@ -202,7 +239,9 @@ class DefaultFileWatcherFactoryTest extends Specification {
         fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventReceivedLatch.countDown()
             filesAddedLatch.await()
-            totalLatch.countDown()
+            if (event.type == FileWatcherEvent.Type.CREATE) {
+                totalLatch.countDown()
+            }
         }
         fileWatcher.watch(fileSystemSubset)
 
@@ -253,9 +292,142 @@ class DefaultFileWatcherFactoryTest extends Specification {
         onErrorStatus.get().right.message == "!!"
     }
 
-    private void waitOn(CountDownLatch latch) {
+    @Unroll
+    def "watcher should register to watch all added directories - #scenario"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def subdir1 = testDir.file('src/main/java')
+        def subdir1File = subdir1.file("SomeFile.java")
+        def subdir2 = testDir.file('src/main/groovy')
+        def subdir2File = subdir2.file("SomeFile.groovy")
+        def filesToSee = ([subdir1File, subdir2File].collect { it.absolutePath } as Set).asSynchronized()
+        def fileEventMatchedLatch = new CountDownLatch(filesToSee.size())
+
+        if (subdir1Create) {
+            subdir1.mkdirs()
+        }
+        if (subdir2Create) {
+            subdir2.mkdirs()
+        }
+        if (parentCreate) {
+            subdir1.getParentFile().mkdirs()
+        }
+        when:
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
+        subdir1.createFile("SomeFile.java").text = "Hello world"
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
+        subdir2.createFile("SomeFile.groovy").text = "Hello world"
+        waitOn(fileEventMatchedLatch, false)
+        then:
+        (1.._) * listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                if (filesToSee.remove(event.file.absolutePath)) {
+                    fileEventMatchedLatch.countDown()
+                }
+            }
+        }
+        filesToSee.isEmpty()
+        where:
+        scenario                         | subdir1Create | subdir2Create | parentCreate
+        'both exist'                     | true          | true          | false
+        'first exists'                   | true          | false         | false
+        //'second exists'                  | false         | true          | false
+        //'neither exists - parent exists' | false         | false         | true
+        //'neither exists'                 | false         | false         | false
+    }
+
+    def "checks for scenario when the first directory to watch doesn't exist"() {
+        // corner case scenario where the directory to watch doesn't exist
+        // internally it's parent will be watched for changes
+        //
+        // src/main/java is the missing directory here, src/main/groovy exists.
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatchReference = new AtomicReference(new CountDownLatch(1))
+        def subdir1 = testDir.file('src/main/java')
+        def subdir1File = subdir1.file("SomeFile.java")
+        def subdir2 = testDir.file('src/main/groovy')
+        def subdir2File = subdir2.file("SomeFile.groovy")
+        def subdir2File2 = subdir2.file("SomeFile2.groovy")
+        def filesSeen = ([] as Set).asSynchronized()
+        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                filesSeen.add(event.file.absolutePath)
+                fileEventMatchedLatchReference.get().countDown()
+            }
+        }
+        subdir2.mkdirs()
+
+        // check that filtering works in this case and change events for
+        // non-watched siblings don't get delivered
+        when: 'Adds watch for non-existing directory'
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
+
+        and: 'Content in non-watched sibling directory changes'
+        subdir2File.text = 'Some content'
+        fileEventMatchedLatchReference.get().await(2000L, TimeUnit.MILLISECONDS)
+
+        then: 'No changes should have been seen'
+        filesSeen.isEmpty()
+
+        // check that adding watch for sibling (src/main/groovy) later on is supported
+        when: 'Adds watch for sibling directory and creates file'
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
+        subdir2File2.text = 'Some content'
+        waitOn(fileEventMatchedLatchReference.get())
+
+        then: 'New file should be seen'
+        filesSeen == [subdir2File2.absolutePath] as Set
+
+        // check that watching changes to src/main/java works after it gets created
+        when: 'New file is created in first originally non-existing directory'
+        filesSeen.clear()
+        fileEventMatchedLatchReference.set(new CountDownLatch(1))
+        subdir1.createDir()
+        subdir1File.text = 'Some content'
+        waitOn(fileEventMatchedLatchReference.get())
+
+        then: 'New file should be seen'
+        filesSeen == [subdir1File.absolutePath] as Set
+    }
+
+
+    def "should support watching directory that didn't exist when watching started"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatch = new CountDownLatch(1)
+        def filesSeen = ([] as Set).asSynchronized()
+        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                filesSeen.add(event.file.absolutePath)
+                fileEventMatchedLatch.countDown()
+            }
+        }
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        def subdir = testDir.file('src/main/java')
+        def subdirFile = subdir.file("SomeFile.java")
+
+        when: 'Adds watch for non-existing directory'
+        fileWatcher.watch(FileSystemSubset.builder().add(subdir).build())
+
+        and: 'Creates file'
+        subdirFile.createFile().text = 'Some content'
+        waitOn(fileEventMatchedLatch)
+
+        then: 'File should have been noticed'
+        filesSeen.size() == 1
+        filesSeen[0] == subdirFile.absolutePath
+    }
+
+    private void waitOn(CountDownLatch latch, boolean checkLatch = true) {
         //println "waiting..."
         latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
+        sleep(100)
+        if (checkLatch) {
+            assert latch.count == 0 : "CountDownLatch didn't count down to zero within $waitForEventsMillis ms"
+        }
     }
 
     @ConditionBlock

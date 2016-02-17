@@ -17,6 +17,7 @@
 package org.gradle.model.internal.method;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -31,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
@@ -53,6 +55,10 @@ public class WeaklyTypeReferencingMethod<T, R> {
             }
         }));
         modifiers = method.getModifiers();
+    }
+
+    public static WeaklyTypeReferencingMethod<?, ?> of(Method method) {
+        return of(ModelType.declaringType(method), ModelType.returnType(method), method);
     }
 
     public static <T, R> WeaklyTypeReferencingMethod<T, R> of(ModelType<T> target, ModelType<R> returnType, Method method) {
@@ -81,12 +87,8 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return getMethod().getAnnotations();
     }
 
-    public Type[] getGenericParameterTypes() {
-        return Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Type>() {
-            public Type apply(ModelType<?> modelType) {
-                return modelType.getType();
-            }
-        }), Type.class);
+    public List<ModelType<?>> getGenericParameterTypes() {
+        return paramTypes;
     }
 
     public R invoke(T target, Object... args) {
@@ -142,5 +144,19 @@ public class WeaklyTypeReferencingMethod<T, R> {
                 .append(name, other.name)
                 .append(paramTypes, other.paramTypes)
                 .isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s.%s(%s)",
+            declaringType.getDisplayName(),
+            name,
+            Joiner.on(", ").join(Iterables.transform(paramTypes, new Function<ModelType<?>, String>() {
+                @Override
+                public String apply(ModelType<?> paramType) {
+                    return paramType.getDisplayName();
+                }
+            }))
+        );
     }
 }

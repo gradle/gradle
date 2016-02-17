@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r211
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,13 +36,13 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.javaSourceSettings.targetBytecodeLevel== JavaVersion.current()
+        rootProject.javaSourceSettings.targetBytecodeVersion== JavaVersion.current()
     }
 
-    def "Java project has target runtime"() {
+    def "Java project has jdk"() {
         given:
         buildFile << """
 apply plugin: 'java'
@@ -49,12 +50,12 @@ apply plugin: 'java'
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.javaSourceSettings.targetRuntime != null
-        rootProject.javaSourceSettings.targetRuntime.javaVersion == JavaVersion.current()
-        rootProject.javaSourceSettings.targetRuntime.homeDirectory.toString() == rootProject.gradleProject.description
+        rootProject.javaSourceSettings.jdk != null
+        rootProject.javaSourceSettings.jdk.javaVersion == JavaVersion.current()
+        rootProject.javaSourceSettings.jdk.javaHome.toString() == rootProject.gradleProject.description
     }
 
     def "target bytecode level respects explicit targetCompatibility configuration"() {
@@ -64,10 +65,10 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         targetCompatibility = 1.5
 """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
     }
 
     def "target bytecode level respects explicit configured eclipse config"() {
@@ -85,27 +86,27 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         }
         """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_5
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
     }
 
-    @TargetGradleVersion("=2.10")
+    @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target bytecode level"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
-        rootProject.javaSourceSettings.targetBytecodeLevel
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
+        rootProject.javaSourceSettings.targetBytecodeVersion
 
         then:
         thrown(UnsupportedMethodException)
     }
 
-    @TargetGradleVersion("=2.10")
+    @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target runtime"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
-        rootProject.javaSourceSettings.targetRuntime
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
+        rootProject.javaSourceSettings.jdk
 
         then:
         thrown(UnsupportedMethodException)
@@ -144,18 +145,15 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
         EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
         EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
 
         then:
-        subprojectA.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_1
-        subprojectB.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_2
-        subprojectC.javaSourceSettings.targetBytecodeLevel == JavaVersion.VERSION_1_3
+        subprojectA.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_1
+        subprojectB.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_2
+        subprojectC.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_3
     }
 
-    private EclipseProject loadEclipseProjectModel() {
-        withConnection { connection -> connection.getModel(EclipseProject) }
-    }
 }

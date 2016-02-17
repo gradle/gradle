@@ -27,7 +27,7 @@ import spock.lang.Unroll
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final ForkScalaCompileInDaemonModeFixture forkScalaCompileInDaemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
@@ -60,9 +60,11 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         compile 'org.scala-lang:scala-library:2.11.1'
                     }
 
-                    compileScala {
-                        scalaCompileOptions.useAnt = ${useAnt}
-                        scalaCompileOptions.fork = ${forkMode}
+                    DeprecationLogger.whileDisabled {
+                        compileScala {
+                            scalaCompileOptions.useAnt = ${useAnt}
+                            scalaCompileOptions.fork = ${forkMode}
+                        }
                     }
                     """
         when:
@@ -73,7 +75,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         forkMode | useAnt
-//        false    | false
+//      false    | false
         false    | true
         true     | false
         true     | true

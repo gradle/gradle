@@ -20,9 +20,9 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
-import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 public class DefaultResourceHandler implements ResourceHandler {
     private final FileOperations fileOperations;
@@ -33,11 +33,11 @@ public class DefaultResourceHandler implements ResourceHandler {
         textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider);
     }
 
-    public ReadableResource gzip(Object path) {
+    public ReadableResourceInternal gzip(Object path) {
         return new GzipArchiver(fileOperations.getFileResolver().resolveResource(path));
     }
 
-    public ReadableResource bzip2(Object path) {
+    public ReadableResourceInternal bzip2(Object path) {
         return new Bzip2Archiver(fileOperations.getFileResolver().resolveResource(path));
     }
 

@@ -15,27 +15,12 @@
  */
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collection;
-
 public class ScalarCollectionSchema<T, E> extends CollectionSchema<T, E> {
+
     public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type, elementType);
-    }
-
-    public static void clear(MutableModelNode node) {
-        node.setPrivateData(Collection.class, null);
-    }
-
-    public static <E> void set(MutableModelNode node, Collection<E> values) {
-        node.setPrivateData(Collection.class, values);
-    }
-
-    public static <E> Collection<E> get(MutableModelNode node) {
-        return Cast.uncheckedCast(node.getPrivateData(Collection.class));
     }
 
 }

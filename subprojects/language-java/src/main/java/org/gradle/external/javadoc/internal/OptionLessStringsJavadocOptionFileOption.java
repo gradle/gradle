@@ -33,10 +33,12 @@ public class OptionLessStringsJavadocOptionFileOption implements OptionLessJavad
         this.value = value;
     }
 
+    @Override
     public List<String> getValue() {
         return value;
     }
 
+    @Override
     public void setValue(List<String> value) {
         if (value == null) {
             this.value.clear();
@@ -45,6 +47,7 @@ public class OptionLessStringsJavadocOptionFileOption implements OptionLessJavad
         }
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && !value.isEmpty()) {
             for (String singleValue : value) {

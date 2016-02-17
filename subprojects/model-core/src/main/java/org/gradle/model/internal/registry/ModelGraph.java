@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
@@ -27,8 +26,8 @@ import org.gradle.model.internal.core.ModelPath;
 import java.util.*;
 
 class ModelGraph {
-    private static enum PendingState {
-        ADD, NOTIFY;
+    private enum PendingState {
+        ADD, NOTIFY
     }
 
     private final ModelNodeInternal root;
@@ -101,12 +100,8 @@ class ModelGraph {
     }
 
     private void notifyListeners(ModelNodeInternal node, Iterable<ModelListener> listeners) {
-        Iterator<ModelListener> iterator = listeners.iterator();
-        while (iterator.hasNext()) {
-            ModelListener listener = iterator.next();
-            if (maybeNotify(node, listener)) {
-                iterator.remove();
-            }
+        for (ModelListener listener : listeners) {
+            maybeNotify(node, listener);
         }
     }
 
@@ -143,9 +138,7 @@ class ModelGraph {
 
     private void addEverythingListener(ModelListener listener) {
         for (ModelNodeInternal node : flattened.values()) {
-            if (maybeNotify(node, listener)) {
-                return;
-            }
+            maybeNotify(node, listener);
         }
         listeners.add(listener);
     }
@@ -159,14 +152,12 @@ class ModelGraph {
 
         ModelNodeInternal ancestor = flattened.get(listener.getAncestor());
         if (ancestor != null) {
-            LinkedList<ModelNodeInternal> queue = new LinkedList<ModelNodeInternal>();
+            Deque<ModelNodeInternal> queue = new ArrayDeque<ModelNodeInternal>();
             queue.add(ancestor);
             while (!queue.isEmpty()) {
                 ModelNodeInternal parent = queue.removeFirst();
                 for (ModelNodeInternal node : parent.getLinks()) {
-                    if (maybeNotify(node, listener)) {
-                        return;
-                    }
+                    maybeNotify(node, listener);
                     queue.addFirst(node);
                 }
             }
@@ -178,9 +169,7 @@ class ModelGraph {
         ModelNodeInternal parent = flattened.get(listener.getParent());
         if (parent != null) {
             for (ModelNodeInternal node : parent.getLinks()) {
-                if (maybeNotify(node, listener)) {
-                    return;
-                }
+                maybeNotify(node, listener);
             }
         }
         parentListeners.put(listener.getParent(), listener);
@@ -189,9 +178,7 @@ class ModelGraph {
     private void addPathListener(ModelListener listener) {
         ModelNodeInternal node = flattened.get(listener.getPath());
         if (node != null) {
-            if (maybeNotify(node, listener)) {
-                return;
-            }
+            maybeNotify(node, listener);
         }
         pathListeners.put(listener.getPath(), listener);
     }
@@ -216,16 +203,11 @@ class ModelGraph {
         }
     }
 
-    private boolean maybeNotify(ModelNodeInternal node, ModelListener listener) {
-        if (listener.getType() != null) {
-            if (!node.isAtLeast(ModelNode.State.Discovered)) {
-                return false;
-            }
-            if (!node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
-                return false;
-            }
+    private void maybeNotify(ModelNodeInternal node, ModelListener listener) {
+        if (!node.isAtLeast(ModelNode.State.Discovered)) {
+            return;
         }
-        return listener.onDiscovered(node);
+        listener.onDiscovered(node);
     }
 
     @Nullable
@@ -240,14 +222,6 @@ class ModelGraph {
         }
 
         return found;
-    }
-
-    public Iterable<ModelNodeInternal> findAllInScope(ModelPath scope) {
-        ModelNodeInternal node = flattened.get(scope);
-        if (node == null) {
-            return Collections.emptyList();
-        }
-        return Iterables.concat(Collections.singleton(node), node.getLinks());
     }
 
     @Nullable

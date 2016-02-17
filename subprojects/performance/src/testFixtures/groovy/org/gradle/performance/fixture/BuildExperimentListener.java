@@ -19,8 +19,6 @@ package org.gradle.performance.fixture;
 import org.gradle.performance.measure.MeasuredOperation;
 
 public interface BuildExperimentListener {
-    GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo);
-
     void beforeInvocation(BuildExperimentInvocationInfo invocationInfo);
 
     void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback);

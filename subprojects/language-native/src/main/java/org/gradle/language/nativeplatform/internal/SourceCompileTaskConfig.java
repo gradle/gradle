@@ -35,6 +35,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
         super(languageTransform, taskType);
     }
 
+    @Override
     protected void configureCompileTask(AbstractNativeCompileTask abstractTask, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         AbstractNativeSourceCompileTask task = (AbstractNativeSourceCompileTask) abstractTask;
 

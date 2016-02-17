@@ -17,15 +17,20 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
 
-public class PreCompiledHeader extends AbstractBuildableModelElement {
+public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     FileCollection pchObjects;
     File prefixHeaderFile;
     String includeString;
+
+    public PreCompiledHeader(ComponentSpecIdentifier identifier) {
+        super(identifier, PreCompiledHeader.class);
+    }
 
     public File getObjectFile() {
         return pchObjects == null ? null : pchObjects.getSingleFile();

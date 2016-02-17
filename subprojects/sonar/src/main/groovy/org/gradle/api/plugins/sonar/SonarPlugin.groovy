@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.sonar.model.*
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.Instantiator
@@ -128,8 +129,8 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
         project.plugins.withType(JavaBasePlugin) {
             javaSettings.conventionMapping.with {
-                sourceCompatibility = { project.sourceCompatibility.toString() }
-                targetCompatibility = { project.targetCompatibility.toString() }
+                sourceCompatibility = { project.convention.getPlugin(JavaPluginConvention).sourceCompatibility.toString() }
+                targetCompatibility = { project.convention.getPlugin(JavaPluginConvention).targetCompatibility.toString() }
             }
         }
 

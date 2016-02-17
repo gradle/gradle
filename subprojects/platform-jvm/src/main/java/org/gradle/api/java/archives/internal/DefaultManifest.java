@@ -22,11 +22,11 @@ import org.apache.tools.ant.taskdefs.Manifest.Attribute;
 import org.apache.tools.ant.taskdefs.Manifest.Section;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.*;
@@ -39,14 +39,14 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
 
     private Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
 
-    private FileResolver fileResolver;
+    private PathToFileResolver fileResolver;
 
-    public DefaultManifest(FileResolver fileResolver) {
+    public DefaultManifest(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         init();
     }
 
-    public DefaultManifest(Object manifestPath, FileResolver fileResolver) {
+    public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
         read(manifestPath);
     }
@@ -59,11 +59,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return attributes(attributes);
     }
 
+    @Override
     public DefaultManifest attributes(Map<String, ?> attributes) {
         getAttributes().putAll(attributes);
         return this;
     }
 
+    @Override
     public DefaultManifest attributes(Map<String, ?> attributes, String sectionName) {
         if (!sections.containsKey(sectionName)) {
             sections.put(sectionName, new DefaultAttributes());
@@ -72,10 +74,12 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
     public Attributes getAttributes() {
         return attributes;
     }
 
+    @Override
     public Map<String, Attributes> getSections() {
         return sections;
     }
@@ -120,11 +124,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         }
     }
 
+    @Override
     public DefaultManifest from(Object... mergePaths) {
         from(mergePaths, null);
         return this;
     }
 
+    @Override
     public DefaultManifest from(Object mergePaths, Closure<?> closure) {
         DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
         mergeSpec.from(mergePaths);
@@ -133,6 +139,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
     public DefaultManifest getEffectiveManifest() {
         return getEffectiveManifestInternal(this);
     }
@@ -145,6 +152,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return resultManifest;
     }
 
+    @Override
     public DefaultManifest writeTo(Writer writer) {
         PrintWriter printWriter = new PrintWriter(writer);
         try {
@@ -156,6 +164,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
     public org.gradle.api.java.archives.Manifest writeTo(Object path) {
         IoActions.writeTextFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
             @Override

@@ -16,8 +16,15 @@
 package org.gradle.api.internal.file.pattern;
 
 public class AnyWildcardPatternStep implements PatternStep{
-    public boolean matches(String candidate) {
-        return true;
+
+    final boolean matchDirs;
+
+    public AnyWildcardPatternStep(boolean matchDirs) {
+        this.matchDirs = matchDirs;
+    }
+
+    public boolean matches(String candidate, boolean isFile) {
+        return matchDirs ? true : isFile;
     }
 
 }

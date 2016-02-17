@@ -70,7 +70,11 @@ Source sets
 Binaries
     Play Application Jar 'play:binary'
         build using task: :playBinary
-        targetPlatform: $defaultPlayPlatform
+        target platform: $defaultPlayPlatform
+        toolchain: Default Play Toolchain
+        classes dir: build/playBinary/classes
+        resources dir: build/playBinary/resources
+        JAR file: build/playBinary/lib/test.jar
 """
     }
 }

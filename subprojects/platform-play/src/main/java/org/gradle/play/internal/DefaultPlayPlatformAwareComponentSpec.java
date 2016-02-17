@@ -19,6 +19,10 @@ package org.gradle.play.internal;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import org.gradle.platform.base.ApplicationSpec;
+import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -27,7 +31,7 @@ import org.gradle.play.PlayPlatformAwareComponentSpec;
 /**
  * Default implementation of a platform aware aspect of a Play Framework software component.
  */
-public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec implements PlayPlatformAwareComponentSpec, PlayPlatformAwareComponentSpecInternal {
+public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec implements PlayPlatformAwareComponentSpec, PlayPlatformAwareComponentSpecInternal, ApplicationSpec {
 
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
 
@@ -36,17 +40,24 @@ public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec imp
         return "Play Application";
     }
 
+    @Override
     public List<PlatformRequirement> getTargetPlatforms() {
         return Collections.unmodifiableList(targetPlatforms);
     }
 
+    @Override
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
+    @Override
     public void platform(Object platformRequirements) {
         PlatformRequirement requirement = PlayPlatformNotationParser.parser().parseNotation(platformRequirements);
         this.targetPlatforms.add(requirement);
     }
 
+    @Override
+    public Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes() {
+        return Collections.emptySet();
+    }
 }

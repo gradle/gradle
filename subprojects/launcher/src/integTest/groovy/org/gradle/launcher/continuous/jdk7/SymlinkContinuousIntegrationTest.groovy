@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous.jdk7
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,7 +31,7 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         def baseDir = file("src").createDir()
         def sourceFile = baseDir.file("A")
         sourceFile.text = "original"
-        def symlink = baseDir.file("link")
+        def symlink = baseDir.createDir("linkdir").file("link")
         buildFile << """
     task echo {
         def symlink = file("${symlink.toURI()}")
@@ -73,7 +74,7 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         def targetDir = baseDir.file("target").createDir()
         targetDir.files("A", "B")*.createFile()
 
-        def symlink = baseDir.file("link")
+        def symlink = baseDir.createDir("linkdir").file("link")
         buildFile << """
     task echo {
         def symlink = files("${symlink.toURI()}")
@@ -91,25 +92,19 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         when: "symlink is deleted"
         symlink.delete()
         then:
-        noBuildTriggered()
-// TODO: This behavior seems inconsistent with symlinked files
-//        succeeds()
-//        executedAndNotSkipped(":echo")
-//        output.contains("isEmpty: true")
-//        when: "symlink is created"
-//        Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
-//        then:
-//        succeeds()
-//        executedAndNotSkipped(":echo")
-//        output.contains("isEmpty: false")
+        // OSX uses a polling implementation, so changes to links are detectable
+        if (OperatingSystem.current().isMacOsX()) {
+            succeeds()
+        } else {
+            // Other OS's do not produce filesystem events for deleted symlinks
+            noBuildTriggered()
+        }
         when: "changes made to target of symlink"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
         targetDir.file("C").createFile()
         then:
-        noBuildTriggered()
-        when: "target directory is removed"
-        targetDir.deleteDir()
-        then:
-        noBuildTriggered()
+        succeeds("echo")
+        executedAndNotSkipped(":echo")
+        output.contains("isEmpty: false")
     }
 }

@@ -38,6 +38,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
+    @Override
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 

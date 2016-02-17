@@ -35,25 +35,31 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
+    @Override
     public void explain(TreeVisitor<? super String> visitor) {
     }
 
+    @Override
     public String getExecutableName(String executablePath) {
         return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
     }
 
+    @Override
     public String getSharedLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
+    @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
+    @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
@@ -63,6 +69,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
 
+    @Override
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (CppCompileSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createCppCompiler());
@@ -155,6 +162,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         throw unavailableTool("Static library archiver is not available");
     }
 
+    @Override
     public String getObjectFileExtension() {
         return targetOperatingSystem.isWindows() ? ".obj" : ".o";
     }

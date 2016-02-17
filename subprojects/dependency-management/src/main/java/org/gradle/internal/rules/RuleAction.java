@@ -16,8 +16,6 @@
 
 package org.gradle.internal.rules;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -25,7 +23,6 @@ import java.util.List;
  *
  * @param <T> The subject type
  */
-@Incubating
 public interface RuleAction<T> {
     List<Class<?>> getInputTypes();
     void execute(T subject, List<?> inputs);

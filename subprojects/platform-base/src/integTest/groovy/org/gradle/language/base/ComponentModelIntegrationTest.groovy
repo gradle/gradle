@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.platform.base.*
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -87,27 +88,15 @@ class Rules extends RuleSource {
     }
 
     @Defaults
-    void verifyAsModelMap(ModelMap<ComponentSpec> c) {
+    void verifyAsModelMap(@Path("components") ModelMap<ComponentSpec> c) {
         assert c.toString() == "ModelMap<ComponentSpec> 'components'"
         assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 
     @Defaults
-    void verifyAsSpecializedModelMap(ModelMap<CustomComponent> c) {
+    void verifyAsSpecializedModelMap(@Path("components") ModelMap<CustomComponent> c) {
         assert c.toString() == "ModelMap<CustomComponent> 'components'"
-        assert !(c instanceof ComponentSpecContainer)
-    }
-
-    @Defaults
-    void verifyAsCollectionBuilder(CollectionBuilder<ComponentSpec> c) {
-//        assert c.toString() == "CollectionBuilder<ComponentSpec> 'components'"
-        assert !(c instanceof ComponentSpecContainer)
-    }
-
-    @Defaults
-    void verifyAsSpecializedCollectionBuilder(CollectionBuilder<CustomComponent> c) {
-//        assert c.toString() == "CollectionBuilder<CustomComponent> 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 }
@@ -140,7 +129,7 @@ model {
             }
         }
     }
-    
+
     def "plugin can create component"() {
         when:
         buildFile << """
@@ -391,17 +380,18 @@ afterEach CustomComponent 'newComponent'"""
         }
     }
 
-    def "reasonable error message when creating unmanaged component with default implementation"() {
+    def "reasonable error message when adding element to map using its default implementation"() {
         when:
         buildFile << """
         interface UnmanagedComponent extends ComponentSpec {}
         class DefaultUnmanagedComponent extends BaseComponentSpec implements UnmanagedComponent {}
         class MyRules extends RuleSource {
             @ComponentType
-            public void register(ComponentTypeBuilder<UnmanagedComponent> builder) {
+            public void register(TypeBuilder<UnmanagedComponent> builder) {
                 builder.defaultImplementation(DefaultUnmanagedComponent)
             }
         }
+        apply plugin: MyRules
         model {
             components {
                 another(DefaultUnmanagedComponent)
@@ -413,10 +403,10 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultUnmanagedComponent' because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'DefaultUnmanagedComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${BinarySpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LanguageSourceSet.name}, ${LibrarySpec.name}, UnmanagedComponent."))
     }
 
-    def "reasonable error message when creating component with no implementation"() {
+    def "reasonable error message when adding element of unknown component type to map"() {
         when:
         buildFile << """
         interface AnotherCustomComponent extends ComponentSpec {}
@@ -432,57 +422,7 @@ afterEach CustomComponent 'newComponent'"""
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
-    }
-
-    def "reasonable error message when creating binary with default implementation"() {
-        given:
-        withBinaries()
-
-        when:
-        buildFile << """
-        model {
-            components {
-                main {
-                    binaries {
-                        another(DefaultCustomBinary)
-                    }
-                }
-            }
-        }
-
-        """
-        then:
-        fails "model"
-
-        and:
-        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
-    }
-
-    def "reasonable error message when creating binary with no implementation"() {
-        given:
-        withBinaries()
-
-        when:
-        buildFile << """
-        interface AnotherCustomBinary extends BinarySpec {}
-
-        model {
-            components {
-                main {
-                    binaries {
-                        another(AnotherCustomBinary)
-                    }
-                }
-            }
-        }
-
-        """
-        then:
-        fails "model"
-
-        and:
-        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomBinary' because this type is not known to binaries. Known types are: CustomBinary"))
+        failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${BinarySpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LanguageSourceSet.name}, ${LibrarySpec.name}."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
@@ -525,7 +465,7 @@ afterEach CustomComponent 'newComponent'"""
             class ComponentSpecContainerRules extends RuleSource {
 
                 @Mutate
-                void addComponentTasks(TaskContainer tasks, $projectionType componentSpecs) {
+                void addComponentTasks(TaskContainer tasks, @Path("components") $projectionType componentSpecs) {
                     componentSpecs.all {
                         // some stuff here
                     }
@@ -541,10 +481,10 @@ afterEach CustomComponent 'newComponent'"""
         failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks'"
 
         where:
-        projectionType                     | fullQualified
-        "CollectionBuilder<ComponentSpec>" | "org.gradle.model.collection.CollectionBuilder<org.gradle.platform.base.ComponentSpec>"
-        "ModelMap<ComponentSpec>"          | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
-        "ComponentSpecContainer"           | "org.gradle.platform.base.ComponentSpecContainer"
+        projectionType              | fullQualified
+        "ModelMap<ComponentSpec>"   | "org.gradle.model.ModelMap<org.gradle.platform.base.ComponentSpec>"
+        "ModelMap<CustomComponent>" | "org.gradle.model.ModelMap<CustomComponent>"
+        "ComponentSpecContainer"    | "org.gradle.platform.base.ComponentSpecContainer"
     }
 
     def "component binaries container elements and their tasks containers are visible in model report"() {
@@ -651,6 +591,9 @@ afterEach CustomComponent 'newComponent'"""
                 }
             }
         '''
+        // Non-empty source set to trigger the corresponding task
+        file('src/main/someLang').mkdirs()
+        file('src/main/someLang/somefile.someLang').text = ""
 
         when:
         succeeds "printBinaryTaskNames"
@@ -659,15 +602,10 @@ afterEach CustomComponent 'newComponent'"""
         output.contains "names: [customMainB1MainSomeLang]"
     }
 
-    def "can view components container as a model map and as a collection builder"() {
+    def "can view components container as a model map"() {
         given:
         buildFile << '''
             class ComponentsRules extends RuleSource {
-                @Mutate
-                void addViaCollectionBuilder(@Path("components") CollectionBuilder<ComponentSpec> components) {
-                    components.create("viaCollectionBuilder", CustomComponent)
-                }
-
                 @Mutate
                 void addViaModelMap(@Path("components") ModelMap<ComponentSpec> components) {
                     components.create("viaModelMap", CustomComponent)
@@ -690,7 +628,7 @@ afterEach CustomComponent 'newComponent'"""
         succeeds "printComponentNames"
 
         then:
-        output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
+        output.contains "component names: [main, viaModelMap]"
     }
 
     @Issue("android problem with 2.8-rc-1")
@@ -717,7 +655,7 @@ afterEach CustomComponent 'newComponent'"""
                     void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
+                    void registerComponent(TypeBuilder<SampleComponent> builder) {}
                 }
 
             }
@@ -753,7 +691,7 @@ afterEach CustomComponent 'newComponent'"""
                     public void createManagedModel(MyModel value) {}
 
                     @ComponentType
-                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {}
+                    void registerComponent(TypeBuilder<SampleComponent> builder) {}
                 }
 
             }

@@ -15,11 +15,11 @@
  */
 
 package org.gradle.integtests.tooling.r211
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion(">=2.11")
@@ -30,19 +30,17 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion("=2.10")
-    def "older Gradle versions infer project and module source settings from default idea plugin language level"() {
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
 
         when:
-        def ideaProject = loadEclipseProjectModel()
+        def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
-        ideaProject.javaSourceSettings.sourceLanguageLevel == toJavaVersion(ideaProject.languageLevel)
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevel == expectedSourceLanguageLevel
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.isSourceLanguageLevelInherited()
+        ideaProject.javaLanguageSettings.languageLevel == expectedSourceLanguageLevel
+        ideaProject.javaLanguageSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
         projectAppliesJavaPlugin | expectedSourceLanguageLevel
@@ -50,8 +48,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         true                     | defaultIdeaPluginLanguageLevelForJavaProjects
     }
 
-    @TargetGradleVersion("=2.10")
-    def "older Gradle versions infer project and module source settings from configured idea plugin language level"() {
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle versions infer project source settings from configured idea plugin language level"() {
         given:
         buildFile << """
             apply plugin: 'idea'
@@ -64,27 +62,109 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def ideaProject = loadEclipseProjectModel()
+        def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_3
         toJavaVersion(ideaProject.languageLevel) == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings().sourceLanguageLevel == JavaVersion.VERSION_1_3
-        ideaProject.modules.find { it.name == 'root' }.getJavaSourceSettings().isSourceLanguageLevelInherited()
 
         where:
         applyJavaPlugin << [false, true]
     }
 
-    def "can retrieve project and module source language level for multi project build"() {
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle version throw exception when querying idea module java settings"() {
+        when:
+        def ideaProject = loadIdeaProjectModel()
+        ideaProject.modules.find { it.name == 'root' }.getJavaLanguageSettings()
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    def "older Gradle version throws exception when querying idea project java bytecode version or jdk"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        def ideaProject = loadIdeaProjectModel()
+
+        when:
+        ideaProject.javaLanguageSettings.getTargetBytecodeVersion()
+
+        then:
+        thrown(UnsupportedMethodException)
+
+        when:
+        ideaProject.javaLanguageSettings.getJdk()
+
+        then:
+        thrown(UnsupportedMethodException)
+    }
+
+    def "java source settings are null for non java modules"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', 'child2'"
         buildFile << """
-            ${rootProjectAppliesJavaPlugin ? "apply plugin: 'java'\nsourceCompatibility = '1.1'" : ""}
             apply plugin: 'idea'
             idea {
                 project {
                     languageLevel = '1.5'
+                }
+            }
+        """
+
+        when:
+        def ideaProject = loadIdeaProjectModel()
+
+        then:
+
+        ideaProject.javaLanguageSettings.languageLevel.isJava5()
+        // modules
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings == null
+    }
+
+    def "can retrieve project and module language level for multi project build"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        buildFile << """
+            apply plugin: 'idea'
+
+            project(':child1') {
+            }
+
+            project(':child2') {
+                apply plugin: 'java'
+                sourceCompatibility = '1.2'
+            }
+
+            project(':child3') {
+                apply plugin: 'java'
+                sourceCompatibility = '1.5'
+            }
+
+        """
+
+        when:
+        def ideaProject = loadIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null // inherited
+    }
+
+    def "explicit idea project language level overrules sourceCompatiblity settings"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        buildFile << """
+            apply plugin: 'idea'
+
+            idea {
+                project {
+                    languageLevel = 1.7
                 }
             }
 
@@ -104,26 +184,119 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def ideaProject = loadEclipseProjectModel()
+        def ideaProject = loadIdeaProjectModel()
 
         then:
-        ideaProject.javaSourceSettings.sourceLanguageLevel.isJava5()
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevel == expectedRootModuleLanguageLevel
-        ideaProject.modules.find { it.name == 'root' }.javaSourceSettings.sourceLanguageLevelInherited != rootProjectAppliesJavaPlugin
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child1' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
-        !ideaProject.modules.find { it.name == 'child2' }.javaSourceSettings.isSourceLanguageLevelInherited()
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_5
-        ideaProject.modules.find { it.name == 'child3' }.javaSourceSettings.isSourceLanguageLevelInherited()
-
-        where:
-        rootProjectAppliesJavaPlugin | expectedRootModuleLanguageLevel
-        false                        | JavaVersion.VERSION_1_5
-        true                         | JavaVersion.VERSION_1_1
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null
     }
 
-    private IdeaProject loadEclipseProjectModel() {
+    def "can query java sdk for idea project"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+
+description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
+"""
+        when:
+        def ideaProject = loadIdeaProjectModel()
+        def gradleProject = ideaProject.modules.find({ it.name == 'root' }).gradleProject
+
+        then:
+        ideaProject.javaLanguageSettings.jdk != null
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaHome.toString() == gradleProject.description
+    }
+
+    def "module java sdk overwrite always null"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        buildFile << """
+            allprojects {
+                apply plugin:'java'
+                apply plugin:'idea'
+                targetCompatibility = "1.5"
+            }
+
+        """
+
+        when:
+        def ideaProject = loadIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaHome
+
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.jdk == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.jdk == null
+    }
+
+    def "can query target bytecode version for idea project and modules"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        buildFile << """
+            allprojects {
+                apply plugin:'java'
+                apply plugin:'idea'
+                targetCompatibility = "1.5"
+            }
+
+        """
+
+        when:
+        def ideaProject = loadIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.targetBytecodeVersion== JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.targetBytecodeVersion == null
+    }
+
+    def "can have different target bytecode version among modules"() {
+        given:
+        settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
+        buildFile << """
+            apply plugin:'java'
+            targetCompatibility = "1.5"
+
+            project(':child1') {
+                apply plugin:'java'
+                targetCompatibility = "1.5"
+            }
+
+            project(':child2') {
+                apply plugin:'java'
+                targetCompatibility = '1.6'
+            }
+
+            project(':child2:child3') {
+                apply plugin:'java'
+                targetCompatibility = '1.7'
+            }
+            project(':child4') {
+            }
+        """
+
+        when:
+        def ideaProject = loadIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_7
+        ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
+        ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_6
+        ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.targetBytecodeVersion == null
+        ideaProject.modules.find { it.name == 'child4' }.javaLanguageSettings == null
+    }
+
+    private IdeaProject loadIdeaProjectModel() {
         withConnection { connection -> connection.getModel(IdeaProject) }
     }
 
@@ -136,6 +309,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
-        JavaVersion.current() // see IdeaPlugin#configureIdeaProjectForJava(Project)
+        // see IdeaPlugin#configureIdeaProjectForJava(Project)
+        println "GRADLE_VERSION " + getTargetDist().getVersion().toString()
+        getTargetDist().getVersion().version.startsWith("1.0-milestone-8") ? JavaVersion.VERSION_1_5 : JavaVersion.current()
     }
 }

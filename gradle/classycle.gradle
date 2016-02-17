@@ -17,14 +17,16 @@ allprojects {
             def taskName = sourceSet.getTaskName('classycle', null)
             task(taskName) {
                 def reportFile = reporting.file("classcycle/${sourceSet.name}.txt")
+                def analysisFile = reporting.file("classcycle/${sourceSet.name}_analysis.xml")
                 inputs.files sourceSet.output
                 outputs.file reportFile
-                doLast {
+                doLast { task ->
                     if (!sourceSet.output.classesDir.directory) {
                         return;
                     }
                     antBuilder.withClasspath(configurations.classycle.files).execute {
                         ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
+                        ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
                         reportFile.parentFile.mkdirs()
                         try {
                             ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
@@ -39,8 +41,23 @@ allprojects {
                                     }
                                 }
                             }
-                        } catch (Exception e) {
-                            throw new RuntimeException("Classycle check failed: $e.message. See report at ${new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(reportFile)}", e)
+                        } catch (e) {
+                            try {
+                                ant.unzip(src: rootProject.file("gradle/classycle_report_resources.zip"), dest: reporting.file("classcycle"))
+                                ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${task.project.name} ${sourceSet.name} (${task.path})") {
+                                    fileset(dir: sourceSet.output.classesDir) {
+                                        excludePatterns.each { excludePattern ->
+                                            exclude(name: excludePattern)
+                                        }
+                                    }
+                                }
+                            } catch (e2) {
+                                e2.printStackTrace()
+                            }
+                            def clickableUrl = {
+                                new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(it)
+                            }
+                            throw new RuntimeException("Classycle check failed: $e.message. See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}", e)
                         }
                     }
                 }

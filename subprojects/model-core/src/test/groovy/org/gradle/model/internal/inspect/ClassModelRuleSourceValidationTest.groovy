@@ -18,40 +18,39 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
-import spock.lang.Specification
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import spock.lang.Unroll
 
-class ClassModelRuleSourceValidationTest extends Specification {
+class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
+    def extractor = new ModelRuleExtractor([], proxyFactory, schemaStore, structBindingsStore)
 
     @Unroll
     def "invalid #type - #reason"() {
         when:
-        new ModelRuleExtractor([]).validate(type)
+        extractor.extract(type)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         def message = e.message
-        def actualReason = message.split(":", 2)[1].trim()
-        actualReason == reason
+        message.contains(reason)
 
         where:
         type                               | reason
-        OuterClass.AbstractClass           | "class cannot be abstract"
-        OuterClass.AnInterface             | "must be a class, not an interface"
-        OuterClass.InnerInstanceClass      | "enclosed classes must be static and non private"
-        new RuleSource() {}.getClass()     | "enclosed classes must be static and non private"
-        OuterClass.HasTwoConstructors      | "cannot declare a constructor that takes arguments"
-        OuterClass.HasInstanceVar          | "field foo is not static final"
-        OuterClass.HasFinalInstanceVar     | "field foo is not static final"
-        OuterClass.HasNonFinalStaticVar    | "field foo is not static final"
-        OuterClass.DoesNotExtendRuleSource | "rule source classes must directly extend org.gradle.model.RuleSource"
-        OuterClass.HasSuperclass           | "rule source classes must directly extend org.gradle.model.RuleSource"
+        OuterClass.AnInterface             | "Must be a class, not an interface"
+        OuterClass.InnerInstanceClass      | "Enclosed classes must be static and non private"
+        new RuleSource() {}.getClass()     | "Enclosed classes must be static and non private"
+        OuterClass.HasTwoConstructors      | "Cannot declare a constructor that takes arguments"
+        OuterClass.HasInstanceVar          | "Field foo is not valid: Fields must be static final."
+        OuterClass.HasFinalInstanceVar     | "Field foo is not valid: Fields must be static final."
+        OuterClass.HasNonFinalStaticVar    | "Field foo is not valid: Fields must be static final."
+        OuterClass.DoesNotExtendRuleSource | "Rule source classes must directly extend org.gradle.model.RuleSource"
+        OuterClass.HasSuperclass           | "Rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     @Unroll
     def "valid #type"() {
         when:
-        new ModelRuleExtractor([]).validate(type)
+        extractor.extract(type)
 
         then:
         noExceptionThrown()

@@ -17,8 +17,11 @@
 package org.gradle.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.LibraryBinarySpec;
 
 import java.io.File;
 import java.util.Set;
@@ -27,7 +30,19 @@ import java.util.Set;
  * Definition of a Jar file binary that is to be built by Gradle.
  */
 @Incubating @HasInternalProtocol
-public interface JarBinarySpec extends JvmBinarySpec {
+public interface JarBinarySpec extends LibraryBinarySpec, JvmBinarySpec {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    TasksCollection getTasks();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    JvmLibrarySpec getLibrary();
+
     /**
      * The unique identifier of this JarBinarySpec.
      */
@@ -56,4 +71,14 @@ public interface JarBinarySpec extends JvmBinarySpec {
     void setExportedPackages(Set<String> exportedPackages);
 
     Set<String> getExportedPackages();
+
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    interface TasksCollection extends BinaryTasksCollection {
+        /**
+         * The jar task used to create an archive for this binary.
+         */
+        Task getJar();
+    }
 }

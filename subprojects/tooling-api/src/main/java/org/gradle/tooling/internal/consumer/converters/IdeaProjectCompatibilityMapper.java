@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
@@ -27,10 +26,10 @@ import java.io.Serializable;
 
 public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
 
-    private final VersionDetails versionDetails;
+    private final String version;
 
     public IdeaProjectCompatibilityMapper(VersionDetails versionDetails) {
-        this.versionDetails = versionDetails;
+        version = versionDetails.getVersion();
     }
 
     @Override
@@ -38,13 +37,11 @@ public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMappin
         Class<?> targetType = mapping.getTargetType();
         if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings()) {
             mapping.mixIn(CompatibilityIdeaProjectMapping.class);
-        } else if (IdeaModule.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings()) {
-            mapping.mixIn(CompatibilityIdeaModuleMapping.class);
         }
     }
 
     private boolean versionSupportsIdeaJavaSourceSettings() {
-        GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
+        GradleVersion targetGradleVersion = GradleVersion.version(version);
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
     }

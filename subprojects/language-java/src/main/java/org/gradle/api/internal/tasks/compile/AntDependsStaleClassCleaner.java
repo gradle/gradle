@@ -41,6 +41,7 @@ public class AntDependsStaleClassCleaner extends StaleClassCleaner {
         this.dependencyCacheDir = dependencyCacheDir;
     }
 
+    @Override
     public void execute() {
         ImmutableMap.Builder<String, Object> options = ImmutableMap.builder();
         options.put("destDir", getDestinationDir());

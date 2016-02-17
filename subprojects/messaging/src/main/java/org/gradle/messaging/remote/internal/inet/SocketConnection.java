@@ -190,16 +190,15 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     }
 
     private static class SocketOutputStream extends OutputStream {
-        private final Selector selector;
+        private static final int RETRIES_WHEN_BUFFER_FULL = 2;
+        private Selector selector;
         private final SocketChannel socket;
         private final ByteBuffer buffer;
         private final byte[] writeBuffer = new byte[1];
 
         public SocketOutputStream(SocketChannel socket) throws IOException {
             this.socket = socket;
-            selector = Selector.open();
-            socket.register(selector, SelectionKey.OP_WRITE);
-            buffer = ByteBuffer.allocateDirect(4096);
+            buffer = ByteBuffer.allocateDirect(32 * 1024);
         }
 
         @Override
@@ -219,28 +218,63 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     remaining -= count;
                     currentPos += count;
                 }
-                if (buffer.remaining() == 0) {
-                    flush();
+                while (buffer.remaining() == 0) {
+                    writeBufferToChannel();
                 }
             }
         }
 
         @Override
         public void flush() throws IOException {
-            buffer.flip();
-            while (buffer.remaining() > 0) {
-                selector.select();
-                if (!selector.isOpen()) {
-                    throw new EOFException();
-                }
-                socket.write(buffer);
+            while (buffer.position() > 0) {
+                writeBufferToChannel();
             }
-            buffer.clear();
+        }
+
+        private void writeBufferToChannel() throws IOException {
+            buffer.flip();
+            int count = writeWithNonBlockingRetry();
+            if (count == 0) {
+                // buffer was still full after non-blocking retries, now block
+                waitForWriteBufferToDrain();
+            }
+            buffer.compact();
+        }
+
+        private int writeWithNonBlockingRetry() throws IOException {
+            int count = 0;
+            int retryCount = 0;
+            while (count == 0 && retryCount++ < RETRIES_WHEN_BUFFER_FULL) {
+                count = socket.write(buffer);
+                if (count < 0) {
+                    throw new EOFException();
+                } else if (count == 0) {
+                    // buffer was full, just call Thread.yield
+                    Thread.yield();
+                }
+            }
+            return count;
+        }
+
+        private void waitForWriteBufferToDrain() throws IOException {
+            if (selector == null) {
+                selector = Selector.open();
+            }
+            SelectionKey key = socket.register(selector, SelectionKey.OP_WRITE);
+            // block until ready for write operations
+            selector.select();
+            // cancel OP_WRITE selection
+            key.cancel();
+            // complete cancelling key
+            selector.selectNow();
         }
 
         @Override
         public void close() throws IOException {
-            selector.close();
+            if (selector != null) {
+                selector.close();
+                selector = null;
+            }
         }
     }
 }

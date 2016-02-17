@@ -377,8 +377,14 @@
             <tr>
                 <td>compile</td>
                 <td>-</td>
-                <td>compileJava</td>
+                <td>-</td>
                 <td>Compile time dependencies</td>
+            </tr>
+            <tr>
+                <td>compileOnly</td>
+                <td>compile</td>
+                <td>compileJava</td>
+                <td>Compile time only dependencies, not used at runtime</td>
             </tr>
             <tr>
                 <td>runtime</td>
@@ -389,20 +395,26 @@
             <tr>
                 <td>testCompile</td>
                 <td>compile</td>
+                <td>-</td>
+                <td>Additional dependencies for compiling tests</td>
+            </tr>
+            <tr>
+                <td>testCompileOnly</td>
+                <td>testCompile</td>
                 <td>compileTestJava</td>
-                <td>Additional dependencies for compiling tests.</td>
+                <td>Additional dependencies only for compiling tests, not used at runtime</td>
             </tr>
             <tr>
                 <td>testRuntime</td>
                 <td>runtime, testCompile</td>
                 <td>test</td>
-                <td>Additional dependencies for running tests only.</td>
+                <td>Additional dependencies for running tests only</td>
             </tr>
             <tr>
                 <td>archives</td>
                 <td>-</td>
                 <td>uploadArchives</td>
-                <td>Artifacts (e.g. jars) produced by this project.</td>
+                <td>Artifacts (e.g. jars) produced by this project</td>
             </tr>
             <tr>
                 <td>default</td>
@@ -433,8 +445,14 @@
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
                 <td>-</td>
-                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>-</td>
                 <td>Compile time dependencies for the given source set</td>
+            </tr>
+            <tr>
+                <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>Compile time only dependencies for the given source set, not used at runtime</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Runtime</literal></td>
@@ -1239,6 +1257,9 @@
                         <para><literal>gradle test --tests *SomeSpecificTest</literal></para>
                     </listitem>
                     <listitem>
+                        <para><literal>gradle test --tests *SomeSpecificTestSuite</literal></para>
+                    </listitem>
+                    <listitem>
                         <para><literal>gradle test --tests all.in.specific.package*</literal></para>
                     </listitem>
                     <listitem>
@@ -1349,6 +1370,34 @@
                 <sourcefile file="build.gradle" snippet="test-config"/>
             </sample>
         </section>
+
+        <section id="test_execution_order">
+            <title>Test execution order in TestNG</title>
+            <para>TestNG allows explicit control of the execution order of tests.</para>
+            <para>The <literal>preserveOrder</literal> property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including <literal>@BeforeXXX</literal> and <literal>@AfterXXX</literal>) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with <literal>testng.xml</literal> files, the <ulink url='http://testng.org/javadocs/org/testng/TestNG.html'>TestNG API</ulink>, that is used for running tests programmatically, as well as Gradle&apos;s TestNG integration execute tests in unpredictable order by default.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test ordering when working with <literal>testng.xml</literal> files:
+                        <ulink url='http://testng.org/doc/documentation-main.html#testng-xml'/>.
+                    </para>
+                </footnote>
+            Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the <literal>preserveOrder</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
+            </para>
+            <sample id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+            <para>The <literal>groupByInstance</literal> property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.
+                <footnote>
+                    <para>The TestNG documentation contains more details about grouping tests by instances:
+                        <ulink url='http://testng.org/doc/documentation-main.html#dependencies-with-annotations'/>.
+                    </para>
+                </footnote>
+            Grouping tests by instances was introduced with TestNG version 6.1. Setting the <literal>groupByInstances</literal> property to <literal>true</literal> for an older TestNG version will cause the build to fail.
+            </para>
+            <sample id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+        </section>
+
         <section id="test_reporting">
             <title>Test reporting</title>
 

@@ -20,11 +20,17 @@ import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.util.Requires
+
+import static org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor.TESTNG_JAVA6_WARNING
+import static org.gradle.util.TestPrecondition.JDK6
+import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
@@ -43,9 +49,53 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+        assertTestPassed("testSomeLibraryMethod")
+    }
+
+    def "creates sample source using spock instead of junit"() {
+        when:
+        succeeds('init', '--type', 'java-library', '--test-framework', 'spock')
+
+        then:
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapper.generated()
+
+        when:
+        succeeds("build")
+
+        then:
+        assertTestPassed("someLibraryMethod returns true")
+    }
+
+    @Requires(JDK7_OR_LATER)
+    def "creates sample source using testng instead of junit"() {
+        when:
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
+
+        then:
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapper.generated()
+
+        when:
+        succeeds("build")
+
+        then:
+        assertTestPassed("someLibraryMethodReturnsTrue")
+    }
+
+    @Requires(JDK6)
+    def "prints a warning when testng is used with java 6"() {
+        when:
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
+
+        then:
+        result.output.contains(TESTNG_JAVA6_WARNING)
     }
 
     def "setupProjectLayout is skipped when java sources detected"() {
@@ -71,5 +121,11 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
+    }
+
+    def assertTestPassed(String name) {
+        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted("LibraryTest")
+        testResult.testClass("LibraryTest").assertTestPassed(name)
     }
 }

@@ -86,7 +86,7 @@ model {
         buildFile << '''
 class DependencyResolutionObserver extends RuleSource {
     @Validate
-    void checkThatCyclicDependencyIsDefined(CollectionBuilder<Task> tasks) {
+    void checkThatCyclicDependencyIsDefined(ModelMap<Task> tasks) {
         def mainJar =  tasks.get('compileMainJarMainJava')
         def main2Jar = tasks.get('compileMain2JarMain2Java')
     }
@@ -561,8 +561,8 @@ model {
                     create('checkClasspath') {
                         doLast {
                             def cp = compileMainJarMainJava.classpath.files
-                            assert cp.contains(new File(project(':b').mainApiJar.destinationDir, "main.jar"))
-                            def cJar = new File(project(':c').mainApiJar.destinationDir, 'main.jar')
+                            assert cp.contains(project(':b').mainApiJar.outputFile)
+                            def cJar = project(':c').mainApiJar.outputFile
                             assert ${excludesOrIncludes == 'excludes' ? '!' : ''}cp.contains(cJar)
                         }
                     }
@@ -635,12 +635,12 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 
 class DependencyResolutionObserver extends RuleSource {
-    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+    @Mutate void createCheckTask(ModelMap<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')
                 def cp = task.classpath.files
-                assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.mainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
+                assert cp == [task.project.project(':b').tasks.mainApiJar.outputFile] as Set
             }
         }
     }
@@ -673,7 +673,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 
 class DependencyResolutionObserver extends RuleSource {
-    @Mutate void createCheckTask(CollectionBuilder<Task> tasks) {
+    @Mutate void createCheckTask(ModelMap<Task> tasks) {
         tasks.create('checkDependenciesForMainJar') {
             doLast {
                 def task = tasks.get('compileMainJarMainJava')
@@ -743,8 +743,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(new File(project(':b').mainApiJar.destinationDir, 'main.jar'))
-                assert !cp.contains(new File(project(':c').mainApiJar.destinationDir, 'main.jar'))
+                assert cp.contains(project(':b').mainApiJar.outputFile)
+                assert !cp.contains(project(':c').mainApiJar.outputFile)
             }
         }
         mainJar.finalizedBy('checkClasspath')
@@ -840,7 +840,7 @@ model {
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
-        failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JarBinarySpec")
+        failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JvmBinarySpec")
     }
 
     def "successfully selects a JVM library if no library name is provided and 2 components are available"() {
@@ -1275,7 +1275,7 @@ model {
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {}
+                void registerCustomComponentType(TypeBuilder<CustomLibrary> builder) {}
             }
 
             apply type: ComponentTypeRules

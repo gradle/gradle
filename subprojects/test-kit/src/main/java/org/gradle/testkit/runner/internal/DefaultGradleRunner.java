@@ -275,7 +275,8 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult createBuildResult(GradleExecutionResult execResult) {
-        return new DefaultBuildResult(
+        return new FeatureCheckBuildResult(
+            execResult.getBuildOperationParameters(),
             execResult.getOutput(),
             execResult.getTasks()
         );
@@ -288,7 +289,7 @@ public class DefaultGradleRunner extends GradleRunner {
                 throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
             }
             return dir;
-        } else if (dir.exists()) {
+        } else if (dir.exists() && !dir.isDirectory()) {
             throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
         } else if (dir.mkdirs() || dir.isDirectory()) {
             return dir;

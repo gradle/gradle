@@ -80,7 +80,6 @@
         <module name="UnusedImports"/>
 
         <!-- Naming -->
-        <module name="ClassTypeParameterName"/>
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
@@ -97,6 +96,15 @@
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="^[A-Z]+$"/>
+        </module>
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="^[A-Z]+$"/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="^[A-Z]+$"/>
+        </module>
 
         <!-- to enable SuppressionCommentFilter -->
         <module name="FileContentsHolder"/>

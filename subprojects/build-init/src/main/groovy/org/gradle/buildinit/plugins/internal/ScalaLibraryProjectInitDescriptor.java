@@ -21,27 +21,33 @@ import org.gradle.util.GUtil;
 
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor{
 
-    public ScalaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, final FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, TemplateOperation delegate) {
-        super("scala", templateOperationFactory, fileResolver);
+    public ScalaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+                                             TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
+        super("scala", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+    }
 
-        register(delegate);
-        register(templateOperationFactory.newTemplateOperation()
-                .withTemplate("scalalibrary/build.gradle.template")
-                .withTarget("build.gradle")
-                .withDocumentationBindings(GUtil.map("ref_userguide_scala_plugin", "scala_plugin"))
-                .withBindings(GUtil.map("scalaVersion", libraryVersionProvider.getVersion("scala")))
-                .withBindings(GUtil.map("scalaLibraryVersion", libraryVersionProvider.getVersion("scala-library")))
-                .withBindings(GUtil.map("scalaTestModule", "scalatest_" + libraryVersionProvider.getVersion("scala")))
-                .withBindings(GUtil.map("scalaTestVersion", libraryVersionProvider.getVersion("scalatest")))
-                .withBindings(GUtil.map("scalaXmlModule", "scala-xml_" + libraryVersionProvider.getVersion("scala")))
-                .withBindings(GUtil.map("scalaXmlVersion", libraryVersionProvider.getVersion("scala-xml")))
-                .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
-                .create()
-        );
-
+    @Override
+    public void generate(BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(testFramework);
+        templateOperationFactory.newTemplateOperation()
+            .withTemplate("scalalibrary/build.gradle.template")
+            .withTarget("build.gradle")
+            .withDocumentationBindings(GUtil.map("ref_userguide_scala_plugin", "scala_plugin"))
+            .withBindings(GUtil.map("scalaVersion", libraryVersionProvider.getVersion("scala")))
+            .withBindings(GUtil.map("scalaLibraryVersion", libraryVersionProvider.getVersion("scala-library")))
+            .withBindings(GUtil.map("scalaTestModule", "scalatest_" + libraryVersionProvider.getVersion("scala")))
+            .withBindings(GUtil.map("scalaTestVersion", libraryVersionProvider.getVersion("scalatest")))
+            .withBindings(GUtil.map("scalaXmlModule", "scala-xml_" + libraryVersionProvider.getVersion("scala")))
+            .withBindings(GUtil.map("scalaXmlVersion", libraryVersionProvider.getVersion("scala-xml")))
+            .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
+            .create().generate();
         TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
+    }
 
-        register(whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation));
+    @Override
+    public boolean supports(BuildInitTestFramework testFramework) {
+        return false;
     }
 }

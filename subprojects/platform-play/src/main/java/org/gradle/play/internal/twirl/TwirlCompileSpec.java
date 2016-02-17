@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.api.internal.file.RelativeFile;
+import org.gradle.language.twirl.TwirlImports;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.Serializable;
@@ -24,5 +25,5 @@ import java.io.Serializable;
 public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<RelativeFile> getSources();
 
-    boolean isJavaProject();
+    TwirlImports getDefaultImports();
 }

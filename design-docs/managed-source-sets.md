@@ -174,7 +174,7 @@ model {
 
 ### Implementation
 
-- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructableTypesRegistry`).
+- Add creation strategy for `LanguageSourceSet` backed by type registration (`ConstructibleTypesRegistry`).
 
 ### Test cases
 - Can not create a top level LSS for an LSS type that has not been registered
@@ -248,8 +248,21 @@ Converting this to a true `ModelMap` will add consistency, and enable the later 
     - Are added to the top-level 'sources' container
 - Reasonable error message when source set added to `BinarySpec.sources` cannot be constructed
 
-
 ## Story: Standalone `FunctionalSourceSet` has true `ModelMap` semantics
+
+This work involves converting `FunctionalSourceSet` to a node-backed `ModelMap` implementation, removing the use of a backing DomainObjectContainer. This change will add consistency, and enable the later transition to managed-type-aware node registration.
+
+We will add test coverage to ensure that it has true `ModelMap` semantics:
+- Elements appear in the model report
+- Elements can be addressed by model rules
+- Elements are configured on demand
+
+### Test cases
+
+- ~~Elements in a standalone `FunctionalSourceSet` are visible in the model report~~
+- ~~Elements in a standalone `FunctionalSourceSet` can be addressed by model rules~~
+- ~~Elements in a standalone `FunctionalSourceSet` are not created when defined: configuration is evaluated on-demand~~
+
 ## Story: Elements of `ProjectSourceSet` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
@@ -307,4 +320,14 @@ and is used as follows:
 
 ### Test cases
 
-- user can declare and use a custom managed `LanguageSourceSet`
+- ~~user can declare and use a custom managed `LanguageSourceSet`~~
+- ~~user can declare custom managed `LanguageSourceSet` based on custom `LanguageSourceSet` component~~
+- ~~user can target managed internal views to a custom managed `LanguageSourceSet` with rules~~
+- managed `LanguageSourceSet` can be used in all places where an unmanaged `LanguageSourceSet` can be used
+    - ~~as a binary's source~~
+    - ~~as a component's source~~
+    - as a standalone top-level source element
+    - as a property of a managed type
+    - as an element of a managed collection
+- custom managed `LanguageSourceSet` show up properly in `model` report
+- custom managed `LanguageSourceSet` show up properly in `component` report

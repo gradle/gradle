@@ -19,10 +19,11 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.junit.Ignore
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(BasicPerformanceTest)
+@Category(BasicPerformanceTest) @Ignore
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override
@@ -46,11 +47,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(task).useToolingApi()
             }
         }
-        runner.buildSpec {
-            projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().disableDaemonLogging()
-            }
-        }
         runner.baseline {
             projectName("${size}VariantsOldModel").displayName("old model").invocation {
                 tasksToRun(task).useDaemon()
@@ -59,11 +55,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.baseline {
             projectName("${size}VariantsOldModel").displayName("old model (tooling api)").invocation {
                 tasksToRun(task).useToolingApi()
-            }
-        }
-        runner.baseline {
-            projectName("${size}VariantsOldModel").displayName("old model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().disableDaemonLogging()
             }
         }
 
@@ -97,11 +88,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 tasksToRun(*tasks).useToolingApi()
             }
         }
-        runner.buildSpec {
-            projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
-            }
-        }
         runner.baseline {
             projectName("variantsOldModelMultiproject").displayName("old model").invocation {
                 tasksToRun(*tasks).useDaemon()
@@ -110,11 +96,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.baseline {
             projectName("variantsOldModelMultiproject").displayName("old model (tooling api)").invocation {
                 tasksToRun(*tasks).useToolingApi()
-            }
-        }
-        runner.baseline {
-            projectName("variantsOldModelMultiproject").displayName("old model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
 

@@ -109,4 +109,8 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         tree.visit(visitor);
         return this;
     }
+
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        getTree().visitTreeOrBackingFile(visitor);
+    }
 }

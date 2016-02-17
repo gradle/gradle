@@ -16,17 +16,31 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
-public class SimpleGlobalFilesBuildSettingsDescriptor extends TemplateBasedProjectInitDescriptor {
-    public SimpleGlobalFilesBuildSettingsDescriptor(TemplateOperationFactory templateOperationBuilder, FileResolver fileResolver) {
-        register(templateOperationBuilder.newTemplateOperation()
-                    .withTemplate("settings.gradle.template")
-                    .withTarget("settings.gradle")
-                    .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
-                    .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
-                    .create()
-        );
+public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDescriptor {
+
+    private final TemplateOperationFactory templateOperationBuilder;
+    private final PathToFileResolver fileResolver;
+
+    public SimpleGlobalFilesBuildSettingsDescriptor(TemplateOperationFactory templateOperationBuilder, PathToFileResolver fileResolver) {
+        this.templateOperationBuilder = templateOperationBuilder;
+        this.fileResolver = fileResolver;
+    }
+
+    @Override
+    public void generate(BuildInitTestFramework testFramework) {
+        templateOperationBuilder.newTemplateOperation()
+            .withTemplate("settings.gradle.template")
+            .withTarget("settings.gradle")
+            .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
+            .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
+            .create().generate();
+    }
+
+    @Override
+    public boolean supports(BuildInitTestFramework testFramework) {
+        return false;
     }
 }

@@ -17,10 +17,13 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
+import org.gradle.model.internal.inspect.ValidationProblemCollector;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
-public interface ModelSchemaExtractionContext<T> {
+import java.lang.reflect.Method;
+
+public interface ModelSchemaExtractionContext<T> extends ValidationProblemCollector {
     /**
      * Returns the type currently being inspected.
      */
@@ -40,4 +43,9 @@ public interface ModelSchemaExtractionContext<T> {
      * Marks the type as recognized.
      */
     void found(ModelSchema<T> result);
+
+    /**
+     * Adds a problem with a method.
+     */
+    void add(Method method, String problem);
 }

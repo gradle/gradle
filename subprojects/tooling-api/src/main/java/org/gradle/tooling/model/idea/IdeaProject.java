@@ -16,21 +16,27 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.java.JavaSourceAware;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
  * Represents the information about the IDEA project.
  *
  * @since 1.0-milestone-5
  */
-public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
+public interface IdeaProject extends HierarchicalElement {
 
     /**
-     * {@inheritDoc}
+     * Returns the Java language settings for this project.
+     *
+     * @return the Java language settings for the current project, never null.
+     * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
+     * @since 2.11
      */
-    IdeaProjectJavaSourceSettings getJavaSourceSettings();
+    @Incubating
+    IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**
      * Returns the name of the JDK.
@@ -42,6 +48,9 @@ public interface IdeaProject extends HierarchicalElement, JavaSourceAware {
 
     /**
      * Returns the language level to use within the current project.
+     * <p>
+     * Note: To determine the project language level {@link IdeaModule#getJavaLanguageSettings()}
+     * should be preferred.
      *
      * @return The language level to use within the current project.
      * @since 1.0-milestone-5

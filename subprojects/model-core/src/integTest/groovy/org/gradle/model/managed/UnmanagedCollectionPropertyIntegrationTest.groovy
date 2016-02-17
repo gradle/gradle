@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can have collections with unmanaged types which are not scalar types"() {
+    def "managed type can have unmanaged properties of collection type with types that are not scalar types"() {
         given:
         buildScript """
 
-        class Widget{
+        class Widget {
             String name
         }
 

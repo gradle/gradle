@@ -83,10 +83,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         return toolSearchPath.locate(gccTool.getToolType(), gccTool.getExecutable());
     }
 
+    @Override
     public List<File> getPath() {
         return toolSearchPath.getPath();
     }
 
+    @Override
     public void path(Object... pathEntries) {
         for (Object path : pathEntries) {
             toolSearchPath.path(resolve(path));
@@ -97,10 +99,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         return metaDataProvider;
     }
 
+    @Override
     public void target(String platformName) {
         target(platformName, Actions.<NativePlatformToolChain>doNothing());
     }
 
+    @Override
     public void target(String platformName, Action<? super GccPlatformToolChain> action) {
         target(new DefaultTargetPlatformConfiguration(asList(platformName), action));
     }
@@ -114,6 +118,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation++;
     }
 
+    @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         PlatformToolProvider toolProvider = toolProviders.get(targetPlatform);
         if (toolProvider == null) {
@@ -203,10 +208,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     private class Intel32Architecture implements TargetPlatformConfiguration {
 
+        @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
         }
 
+        @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
             gccToolChain.compilerProbeArgs("-m32");
             Action<List<String>> m32args = new Action<List<String>>() {
@@ -225,11 +232,13 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     private class Intel64Architecture implements TargetPlatformConfiguration {
+        @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture().isAmd64();
         }
 
+        @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
             gccToolChain.compilerProbeArgs("-m64");
             Action<List<String>> m64args = new Action<List<String>>() {
@@ -256,10 +265,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             this.configurationAction = configurationAction;
         }
 
+        @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return platformNames.contains(targetPlatform.getName());
         }
 
+        @Override
         public void apply(DefaultGccPlatformToolChain platformToolChain) {
             configurationAction.execute(platformToolChain);
         }

@@ -25,22 +25,22 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
     @Override
-    def getRoutesJavaFileNameTemplate(String packageName, String namespace) {
+    def getJavaRoutesFileName(String packageName, String namespace) {
         return "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}routes.java"
     }
 
     @Override
-    def getRoutesReverseFileNameTemplate(String packageName, String namespace) {
+    def getReverseRoutesFileName(String packageName, String namespace) {
         return "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}ReverseRoutes.scala"
     }
 
     @Override
-    def getRoutesScalaFileNameTemplate(String packageName, String namespace) {
+    def getScalaRoutesFileName(String packageName, String namespace) {
         return "${packageName?:'router'}/Routes.scala"
     }
 
     @Override
-    def getOtherRoutesFilesTemplates() {
+    def getOtherRoutesFileNames() {
         return [
             {packageName, namespace -> "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}javascript/JavaScriptReverseRoutes.scala" },
             {packageName, namespace -> "${packageName?:'router'}/RoutesPrefix.scala" }
@@ -85,7 +85,7 @@ model {
 """
         then:
         succeeds("compilePlayBinaryScala")
-        executedTasks.contains(":compilePlayBinaryRoutes")
+        executedTasks.contains(":compilePlayBinaryPlayRoutes")
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }

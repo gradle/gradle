@@ -18,12 +18,15 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 
-import java.lang.reflect.Type;
-
 interface TypeWrapper {
-    Type unwrap();
-
     void collectClasses(ImmutableList.Builder<Class<?>> builder);
 
     String getRepresentation(boolean full);
+
+    Class<?> getRawClass();
+
+    /**
+     * Is this type assignable from the given type?
+     */
+    boolean isAssignableFrom(TypeWrapper wrapper);
 }

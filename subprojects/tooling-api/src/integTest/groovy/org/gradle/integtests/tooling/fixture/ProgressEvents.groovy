@@ -25,14 +25,13 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
     private boolean dirty
-    private final Map<String, Operation> byDisplayName = new LinkedHashMap<>()
     private final List<Operation> operations= new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
 
     void clear() {
         events.clear()
-        byDisplayName.clear()
         operations.clear()
+        dirty = false
     }
 
     /**
@@ -52,15 +51,17 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    // ignore this check for TestOperationDescriptors as they can be
-                    // currently not unique when coming from different test tasks
+                    // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
                     if(!(descriptor instanceof TestOperationDescriptor)){
-                        assert !byDisplayName.containsKey(descriptor.displayName)
+                        def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
+                        if (duplicateName != null) {
+                            println "Found duplicate operation in events: " + events
+                        }
+                        assert duplicateName == null
                     }
 
                     Operation operation = new Operation(descriptor)
                     operations.add(operation)
-                    byDisplayName[descriptor.displayName] = operation
 
                     // parent should also be running
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
@@ -186,14 +187,14 @@ class ProgressEvents implements ProgressListener {
      */
     Operation operation(String displayName) {
         assertHasZeroOrMoreTrees()
-        assert byDisplayName.containsKey(displayName)
-        return byDisplayName[displayName]
+        def byName = operations.find({it.descriptor.displayName == displayName})
+        assert byName != null
+        return byName
     }
 
     @Override
     void statusChanged(ProgressEvent event) {
         dirty = true
-        byDisplayName.clear()
         operations.clear()
         events << event
     }

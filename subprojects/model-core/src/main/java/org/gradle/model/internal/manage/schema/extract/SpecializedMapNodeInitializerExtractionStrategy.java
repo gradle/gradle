@@ -17,16 +17,8 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Multimap;
-import org.gradle.api.Action;
-import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
-import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
@@ -37,12 +29,12 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
     };
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
-        return super.extractNodeInitializer(schema);
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerContext<T> context) {
+        return super.extractNodeInitializer(schema, context);
     }
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (schema instanceof SpecializedMapSchema) {
             return new SpecializedMapNodeInitializer<T, E>((SpecializedMapSchema<T, E>) schema);
         }
@@ -52,40 +44,5 @@ public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNod
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
         return ImmutableList.<ModelType<?>>of(MODEL_MAP_MODEL_TYPE);
-    }
-
-    private static class SpecializedMapNodeInitializer<T, E> implements NodeInitializer {
-        private final SpecializedMapSchema<T, E> schema;
-
-        public SpecializedMapNodeInitializer(SpecializedMapSchema<T, E> schema) {
-            this.schema = schema;
-        }
-
-        @Override
-        public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
-            return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
-                .put(ModelActionRole.Discover, DirectNodeNoInputsModelAction.of(subject, descriptor,
-                    new Action<MutableModelNode>() {
-                        @Override
-                        public void execute(MutableModelNode modelNode) {
-                            ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
-                            Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
-                            modelNode.addProjection(new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor));
-                            modelNode.addProjection(ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor));
-                        }
-                    }
-                ))
-                .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
-                    ModelReference.of(NodeInitializerRegistry.class),
-                    new BiAction<MutableModelNode, NodeInitializerRegistry>() {
-                        @Override
-                        public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ChildNodeInitializerStrategy<E> childFactory = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
-                            modelNode.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
-                        }
-                    }
-                ))
-                .build();
-        }
     }
 }

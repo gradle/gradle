@@ -31,4 +31,5 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":modelCore")
+useTestFixtures(project: ":platformBase")
 useClassycle()

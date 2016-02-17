@@ -79,14 +79,14 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
             class BinaryNameCollectorRules extends RuleSource {
                 @Finalize
-                void printJarBinaries(ModelMap<JarBinarySpec> jarBinaries) {
+                void printJarBinaries(@Path("binaries") ModelMap<JarBinarySpec> jarBinaries) {
                     for (JarBinarySpec jarBinary : jarBinaries) {
                         Results.jarBinaries.add jarBinary.name
                     }
                 }
 
                 @Finalize
-                void printCustomBinaries(ModelMap<CustomChildJarBinarySpec> customBinaries) {
+                void printCustomBinaries(@Path("binaries") ModelMap<CustomChildJarBinarySpec> customBinaries) {
                     for (CustomChildJarBinarySpec customBinary : customBinaries) {
                         Results.customBinaries.add customBinary.name
                     }
@@ -202,8 +202,9 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        def ex = fails "components"
-        ex.assertHasCause "Invalid managed model type IllegalJarBinarySpec: only paired getter/setter methods are supported (invalid methods: void IllegalJarBinarySpec#sayHello(java.lang.String))."
+        fails "components"
+        failure.assertHasCause """Type IllegalJarBinarySpec is not a valid managed type:
+- Method sayHello(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     def registerCustomJarBinaryType() {
@@ -223,12 +224,12 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 
             class ${binaryType}Rules extends RuleSource {
-                @BinaryType
-                void customJarBinary(BinaryTypeBuilder<${binaryType}> builder) {
+                @ComponentType
+                void customJarBinary(TypeBuilder<${binaryType}> builder) {
                 }
 
                 @Finalize
-                void setPlatformForBinaries(ModelMap<BinarySpec> binaries) {
+                void setPlatformForBinaries(BinaryContainer binaries) {
                     def platform = DefaultJavaPlatform.current()
                     binaries.withType(${binaryType}).beforeEach { binary ->
                         binary.targetPlatform = platform

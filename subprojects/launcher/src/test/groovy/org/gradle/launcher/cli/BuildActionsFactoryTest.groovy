@@ -66,6 +66,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
+        _ * loggingServices.getAll(_) >> []
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {

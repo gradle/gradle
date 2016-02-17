@@ -27,6 +27,10 @@ public class NotSpec<T> implements Spec<T> {
         this.sourceSpec = sourceSpec;
     }
 
+    Spec<? super T> getSourceSpec() {
+        return sourceSpec;
+    }
+
     public boolean isSatisfiedBy(T element) {
         return !sourceSpec.isSatisfiedBy(element);
     }

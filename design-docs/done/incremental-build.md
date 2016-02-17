@@ -149,11 +149,98 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 - Record profile findings
 
+## Story: Performance test for native incremental build where some files require recompilation
+
+##### Constraints
+- Change happens after a previous build, so it is not a clean build
+- Needs to be something that causes the linker to run, so not just a comment change
+
+##### Implementation
+- modify existing internal Performance testing framework to support measurements for these scenarios
+  - callbacks for before and after invocation with the information about the current test invocation
+    - test phase: warmup or measurement
+    - test loop number
+    - maximum number of loops
+    - BuildExperimentSpec instance
+  - in the before invocation callback, we can make changes to files
+  - add ability to omit measurements in the after invocation callback
+    - the build invocation that is done before changing files has to be omitted from measurements
+- implementation plan for the test:
+  - The build is run multiple times. Use the features added in the previous step for implementing the behaviour.
+    - on odd build loops, run the build and omit the measurement
+    - on even build loops, do the modification and run the build and record the measurement
+  - run the build loop 2 times in warmup phase and 10 times in execution phase (modification is made on every second loop).
+  - Create 2 new builds for performance tests that are downsized from the `nativeMonolithic` build
+    - `smallNativeMonolithic`: 1% of `nativeMonolithic` size
+        - use for all 3 scenarios
+    - `mediumNativeMonolithic`: 10% of `nativeMonolithic` size
+        - use for 2 scenarios (1 file changes, few files change)
+
+example of using `BuildExperimentListener` for testing
+```
+    @Unroll('Project #type native build 1 change')
+    def "build with 1 change"() {
+        given:
+        runner.testId = "native build ${type} 1 change"
+        runner.testProject = "${type}NativeMonolithic"
+        runner.tasksToRun = ["assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.8', 'last']
+        runner.buildExperimentListener = new BuildExperimentListener() {
+            @Override
+            GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
+                null
+            }
+
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                if(invocationInfo.loopNumber % 2 == 0) {
+                    // do change
+
+                } else if (invocationInfo.loopNumber > 2) {
+                    // remove change
+
+                }
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                if(invocationInfo.loopNumber % 2 == 1) {
+                    measurementCallback.omitMeasurement()
+                }
+            }
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        type     | maxExecutionTimeRegression
+        "small"  | millis(1000)
+        "medium" | millis(5000)
+    }
+```
+
+
+#### Scenarios:
+
+- Incremental build where 1 file requires recompilation
+    - 1 C source file changed
+- Incremental build where a few files require recompilation
+    - 1 header file (included in a few source files) changed
+- Incremental build where all files require recompilation
+    - 1 compiler option changed
+
+
 ### Test coverage
 
 - Test with --parallel --max-workers=4
 - add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
 
+# General Performance Improvements
 
 ## Story: Changes to reduce byte/char array allocations and array copying
 
@@ -175,4 +262,90 @@ See discussion about parameters.  Uses cpp software model plugins.
 ### Test coverage
 
 - No new test coverage is needed. Change existing test to follow the changed interface contract of LibraryBinaryLocator.
+
+## ~~Story: Speed up File metadata lookup in task input/output snapshotting~~
+
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are
+hotspots in task input/output snapshotting.
+
+The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file
+metadata used for directory scanning to "visiting" the file tree so that metadata
+(BasicFileAttributes) doesn't have to be re-read.
+
+### Implementation
+
+- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention.
+    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking
+- Otherwise, use default file walker implementation (current behavior).
+    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use.
+    - Maybe reuse isFile/isDirectory result from the walker implementation
+- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor
+
+### Test coverage
+
+- Test that correct implementation is chosen for JDK platform and file encoding
+- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started.
+- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both.
+- Performance gains will be measured from existing performance tests.
+- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations.
+
+## ~~Story: Reduce the in-memory size of the task history cache by interning file paths~~
+
+### Implementation
+
+- Use Guava's [`Interners.newWeakInterner()`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/collect/Interners.html#newWeakInterner%28%29) to create a cache `StringInterner` for sharing the file path Strings. Place this cache in `GlobalScopeServices` so that the instance lives across multiple builds in the daemon.
+- use the `StringInterner` to intern all duplicate path names contained in `fileSnapshots`, `taskArtifacts`, `outputFileStates` and `fileHashes` caches.
+- Implementation can be based on the solution developed in the spike. The commit is https://github.com/gradle/gradle/commit/d26d4ce1098e0eee9896279cbeabefb1ca3e871c .
+
+### Test coverage
+
+- Add basic unit test coverage for StringInterner
+  - interning different string instances with similar content return the first instance that was interned
+  - allows calling method with null, returns null in that case
+
+## ~~Story: Add caching to Specs returned from PatternSet.getAsSpecs()~~
+
+Evaluating patterns is a hotspot in directory scanning. The default excludes patterns
+contains 28 entries. Checking all rules for each file sums up in a lot of operations.
+Adding caching will improve performance of subsequent incremental builds.
+
+### Implementation
+
+Assumption: PatternSet class is part of the Gradle Public API and we cannot change it's interface.
+
+#### ~~1. phase - target release Gradle 2.9~~
+
+Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45dca8ee9dc2331559
+
+- Mainly based on the spike commit
+- Move Spec<FileTreeElement> creation logic to separate factory class from PatternSet class (currently in getAsSpec, getAsIncludeSpec, getAsExcludeSpec methods)
+- Add caching for Spec<FileTreeElement> instance creation and evaluation results
+- Only add caching to Spec<FileTreeElement> instances that are created from the include and exclude patterns.
+- A PatternSet can contain a list of includeSpecs and excludeSpecs. Don't add caching to these.
+
+#### Test coverage for 1. phase
+
+- Test that Spec<FileTreeElement> includes (added with PatternSet.include(Spec<FileTreeElement> spec)) and excludes (added with PatternSet.exclude(Spec<FileTreeElement> spec)) are not cached.
+- Existing PatternSet tests cover rest of the changes since there are no planned behavioural or API changes for 1. phase.
+
+#### ~~2. phase - target release Gradle 2.11~~
+
+Goal: manage the cache instance in Gradle infrastructure instead of a singleton instance
+- Use default non-caching PatternSpecFactory in PatternSet class, replace use of CachingPatternSpecFactory with plain PatternSpecFactory
+- Make the Gradle infrastructure manage the CachingPatternSpecFactory instance.
+- Create a new PatternSet subclass that takes the PatternSpecFactory instance in the constructor.
+- Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSpecFactory instance to the instances of the new PatternSet subclass.
+
+## ~~Story: Use source #include information as discovered inputs~~
+
+This story adds an internal mechanism way for native complication tasks task to register additional inputs that are discovered when parsing the source file inputs.  At the end of execution, the discovered inputs are recorded in the task's execution history, and will be compared when performing up-to-date checks for the next task execution.
+
+During native compilation, the source file parser searches the include path for any `#include` directives. Each header file found will be registered as a discovered input. In addition, each file location that is inspected as a candidate header file will be registered as a discovered input: the fact that a file is _not_ present will also be recorded as an input.
+
+A subsequent story will be required to turn "discovered inputs" into a generally available public feature.
+
+### Test coverage
+
+- Reuse existing test coverage for incremental native compilation
+- Measure improvement/regression with native perf tests
 

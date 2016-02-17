@@ -17,120 +17,36 @@
 package org.gradle.platform.base.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.util.DeprecationLogger;
-
-import java.util.Collections;
-import java.util.Set;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.GeneralComponentSpec;
+import org.gradle.platform.base.component.internal.DefaultComponentSpec;
 
 /**
- * Base class for custom component implementations. A custom implementation of {@link ComponentSpec} must extend this type.
+ * Base class that may be used for custom {@link GeneralComponentSpec} implementations. However, it is generally better to use an
+ * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
-@SuppressWarnings("deprecation")
-public class BaseComponentSpec implements ComponentSpecInternal {
-
-    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
-    private final ComponentSpecIdentifier identifier;
-    private final String typeName;
-
+public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
-    private final MutableModelNode modelNode;
-
-    public static <T extends BaseComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType.getSimpleName()));
-        try {
-            try {
-                return DirectInstantiator.INSTANCE.newInstance(implementationType);
-            } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
-            }
-        } finally {
-            nextComponentInfo.set(null);
-        }
-    }
 
     public BaseComponentSpec() {
-        this(nextComponentInfo.get());
-    }
-
-    private BaseComponentSpec(ComponentInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead.");
-        }
-
-        this.identifier = info.componentIdentifier;
-        this.typeName = info.typeName;
-
-        modelNode = info.modelNode;
+        MutableModelNode modelNode = getInfo().modelNode;
         binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
     }
 
-    public String getName() {
-        return identifier.getName();
-    }
-
-    public String getProjectPath() {
-        return identifier.getProjectPath();
-    }
-
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
-    public ModelMap<LanguageSourceSet> getSource() {
-        DeprecationLogger.nagUserOfReplacedProperty("source", "sources");
-        return getSources();
-    }
-
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.asMutableView(sources, LanguageSourceSet.class, modelNode.toString() + ".getSources()");
+        return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
     @Override
     public ModelMap<BinarySpec> getBinaries() {
-        return ModelMaps.asMutableView(binaries, BinarySpec.class, modelNode.toString() + ".getBinaries()");
+        return ModelMaps.toView(binaries, BinarySpec.class);
     }
-
-    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
-        return Collections.emptySet();
-    }
-
-    private static class ComponentInfo {
-        final ComponentSpecIdentifier componentIdentifier;
-        final MutableModelNode modelNode;
-        final String typeName;
-
-        private ComponentInfo(
-            ComponentSpecIdentifier componentIdentifier,
-            MutableModelNode modelNode,
-            String typeName
-        ) {
-            this.componentIdentifier = componentIdentifier;
-            this.modelNode = modelNode;
-            this.typeName = typeName;
-        }
-    }
-
 }

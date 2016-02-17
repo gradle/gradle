@@ -40,10 +40,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
-        synchronized (lock) {
-            ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
-            ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
+        ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
 
+        synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
             if (cachedLoader == null || !cachedLoader.is(spec)) {
                 CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);

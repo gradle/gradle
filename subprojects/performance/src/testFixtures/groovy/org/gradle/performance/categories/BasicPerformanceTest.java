@@ -19,5 +19,5 @@ package org.gradle.performance.categories;
 /**
  * Tests that exercise a generic feature that are not specific to a particular plugin (e.g., Java vs Native plugins)
  */
-public interface BasicPerformanceTest extends PerformanceTest {
+public interface BasicPerformanceTest extends GradleCorePerformanceTest {
 }

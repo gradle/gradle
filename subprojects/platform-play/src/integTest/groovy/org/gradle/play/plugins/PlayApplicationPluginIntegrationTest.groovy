@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Rule
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORES
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +35,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play-application'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
         """
     }
 
@@ -66,9 +66,10 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":compilePlayBinaryRoutes",
-                ":compilePlayBinaryTwirlTemplates",
-                ":compilePlayBinaryScala")
+        skipped(":compilePlayBinaryScala")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants()
@@ -126,8 +127,9 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":compilePlayBinaryRoutes",
-                ":compilePlayBinaryTwirlTemplates")
+        notExecuted(
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayTwirlTemplates")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")

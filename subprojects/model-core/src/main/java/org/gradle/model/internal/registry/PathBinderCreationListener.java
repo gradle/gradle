@@ -33,16 +33,17 @@ class PathBinderCreationListener extends ModelBinding {
 
     @Override
     public boolean canBindInState(ModelNode.State state) {
-        return predicate.isUntyped() || state.isAtLeast(ModelNode.State.Discovered);
+        return predicate.getReference().isUntyped() || state.isAtLeast(ModelNode.State.Discovered);
     }
 
+    @Override
     public void doOnBind(ModelNodeInternal node) {
-        if (predicate.isUntyped() || isTypeCompatible(node.getPromise())) {
+        if (predicate.matches(node)) {
             boundTo = node;
             bindAction.execute(this);
         } else {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                IncompatibleTypeReferenceReporter.of(node, node.getPromise(), predicate.getReference(), writable).asString()
+                IncompatibleTypeReferenceReporter.of(node, predicate.getReference().getType(), predicate.getReference().getDescription(), writable).asString()
             ));
         }
     }

@@ -16,11 +16,13 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.type.ModelType;
+
+import static org.gradle.model.internal.core.NodeInitializerContext.forType;
 
 public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerStrategy<T> {
 
@@ -31,7 +33,7 @@ public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerS
     }
 
     @Override
-    public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-        return nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(type));
+    public <S extends T> NodeInitializer initializer(ModelType<S> type, Spec<ModelType<?>> constraints) {
+        return nodeInitializerRegistry.getNodeInitializer(forType(type));
     }
 }

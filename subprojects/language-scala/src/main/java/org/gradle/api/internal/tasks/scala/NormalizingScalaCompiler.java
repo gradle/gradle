@@ -43,6 +43,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         this.delegate = delegate;
     }
 
+    @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);

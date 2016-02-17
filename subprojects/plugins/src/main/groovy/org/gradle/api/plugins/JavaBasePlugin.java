@@ -48,15 +48,15 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
-import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -93,6 +93,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
         project.getPluginManager().apply(LanguageBasePlugin.class);
+        project.getPluginManager().apply(BinaryBasePlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
@@ -127,11 +128,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 createBinaryLifecycleTask(sourceSet, project);
 
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, binaryId.child("resources"), sourceSet.getResources());
 
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
@@ -226,7 +228,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeConfiguration.extendsFrom(compileConfiguration);
         runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
 
-        sourceSet.setCompileClasspath(compileConfiguration);
+        Configuration compileOnlyConfiguration = configurations.findByName(sourceSet.getCompileOnlyConfigurationName());
+        if (compileOnlyConfiguration == null) {
+            compileOnlyConfiguration = configurations.create(sourceSet.getCompileOnlyConfigurationName());
+        }
+        compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.extendsFrom(compileConfiguration);
+        compileOnlyConfiguration.setDescription(String.format("Compile only classpath for %s.", sourceSet));
+
+        sourceSet.setCompileClasspath(compileOnlyConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 
@@ -395,14 +405,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     static class Rules extends RuleSource {
         @Mutate
-        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
+        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, BridgedBinaries bridgedBinaries) {
             for (ClassDirectoryBinarySpecInternal binary : bridgedBinaries.binaries) {
                 projectSourceSet.addAll(binary.getInputs());
             }
         }
 
         @Mutate
-        void attachBridgedBinaries(ModelMap<BinarySpec> binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
+        void attachBridgedBinaries(BinaryContainer binaries, BridgedBinaries bridgedBinaries) {
             for (BinarySpecInternal binary : bridgedBinaries.binaries) {
                 binaries.put(binary.getProjectScopedName(), binary);
             }

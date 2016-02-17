@@ -16,7 +16,6 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
@@ -40,7 +39,7 @@ project(':impl') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         def children = eclipseProject.children.sort { it.name }
@@ -59,7 +58,7 @@ allprojects {
         file('settings.gradle').text = "include 'services:api', 'contrib:api'"
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         String grandChildOne = eclipseProject.children[0].children[0].name
@@ -92,7 +91,7 @@ sourceSets {
         }
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject.sourceDirectories.size() == 3
@@ -114,10 +113,7 @@ eclipse { classpath { downloadJavadoc = true } }
 '''
 
         when:
-        EclipseProject eclipseProject = withConnection { ProjectConnection connection ->
-            def builder = connection.model(EclipseProject.class)
-            return builder.get()
-        }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject.classpath.size() == 2

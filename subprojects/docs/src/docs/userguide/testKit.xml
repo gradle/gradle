@@ -41,7 +41,7 @@
             The
             <literal>gradleTestKit()</literal>
             encompasses the classes of the TestKit, as well as the <link linkend="embedding">Gradle Tooling API client</link>.
-            It does not include a version of<ulink url="http://junit.org">JUnit</ulink>,<ulink url="http://testng.org">TestNG</ulink>, or any other test execution framework.
+            It does not include a version of <ulink url="http://junit.org">JUnit</ulink>, <ulink url="http://testng.org">TestNG</ulink>, or any other test execution framework.
             Such a dependency must be explicitly declared.
         </para>
         <sample id="junitDependency" dir="testKit/testKitJunit" title="Declaring the JUnit dependency">
@@ -94,7 +94,7 @@
             It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main
             driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
         </para>
-        <section>
+        <section id="sub:test-kit-classpath-injection">
             <title>Getting the code under test into the test build</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
@@ -133,7 +133,7 @@
                 <title>Working with Gradle versions prior to 2.8</title>
                 <para>
                     The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> method will not work when
-                    executing the build with a Gradle version earlier than 2.8 (see: <xref linkend="gradle-runner-gradle-version"/>),
+                    executing the build with a Gradle version earlier than 2.8 (see: <xref linkend="sub:gradle-runner-gradle-version"/>),
                     as this feature is not supported on such Gradle versions.
                 </para>
                 <para>
@@ -158,7 +158,7 @@
                 The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
             </para>
         </section>
-        <section id="gradle-runner-gradle-version">
+        <section id="sub:gradle-runner-gradle-version">
             <title>The Gradle version used to test</title>
             <para>
                 The Gradle runner requires a Gradle distribution in order to execute the build.
@@ -188,8 +188,54 @@
             <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
                 <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
             </sample>
+            <section id="sub:test-kit-compatibility">
+                <title>Feature support when testing with different Gradle versions</title>
+                <para>
+                    It is possible to use the GradleRunner to execute builds with Gradle 1.0 and later.
+                    However, some runner features are not supported on earlier versions.
+                    In such cases, the runner will throw an exception when attempting to use the feature.
+                </para>
+                <para>
+                    The following table lists the features that are sensitive to the Gradle version being used.
+                </para>
+                <table>
+                    <title>Gradle version compatibility</title>
+                    <thead>
+                        <tr>
+                            <td>Feature</td>
+                            <td>Minimum Version</td>
+                            <td>Description</td>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>
+                            <link>Inspecting executed tasks</link>
+                        </td>
+                        <td>2.5</td>
+                        <td>Inspecting the executed tasks, using
+                            <apilink class="org.gradle.testkit.runner.BuildResult" method="getTasks"/> and similar methods.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <link linkend="sub:test-kit-classpath-injection">Plugin classpath injection</link>
+                        </td>
+                        <td>2.8</td>
+                        <td>Injecting the code under test via <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>.</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <link linkend="sub:test-kit-debug">Inspecting build output in debug mode</link>
+                        </td>
+                        <td>2.9</td>
+                        <td>Inspecting the build's text output when run in debug mode, using
+                                <apilink class="org.gradle.testkit.runner.BuildResult" method="getOutput"/>.
+                        </td>
+                    </tr>
+                </table>
+            </section>
         </section>
-        <section id="test-kit-debug">
+        <section id="sub:test-kit-debug">
             <title>Debugging build logic</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.

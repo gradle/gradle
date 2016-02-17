@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Lists;
-import org.gradle.platform.base.internal.toolchain.ArgWriter;
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
+import org.gradle.internal.process.ArgWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,14 +33,14 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
     public GccOptionsFileArgsWriter(File tempDir) {
-        super(ArgWriter.unixStyleFactory(), tempDir);
+        super(tempDir);
     }
 
     @Override
     public List<String> transformArgs(List<String> originalArgs, File tempDir) {
         List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
         List<String> finalArgs = Lists.newArrayList();
-        finalArgs.addAll(super.transformArgs(originalArgs, tempDir));
+        finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory()).transform(originalArgs));
         finalArgs.addAll(commandLineOnlyArgs);
         return finalArgs;
     }

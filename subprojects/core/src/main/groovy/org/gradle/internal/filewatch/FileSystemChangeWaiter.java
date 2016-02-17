@@ -17,8 +17,10 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.internal.concurrent.Stoppable;
 
-public interface FileSystemChangeWaiter {
+public interface FileSystemChangeWaiter extends Stoppable {
     void watch(FileSystemSubset fileSystemSubset);
-    void wait(Runnable notifier);
+    void wait(Runnable notifier, FileWatcherEventListener eventListener);
+    boolean isWatching();
 }

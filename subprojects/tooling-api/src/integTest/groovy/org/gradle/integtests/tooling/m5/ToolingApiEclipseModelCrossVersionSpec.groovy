@@ -35,7 +35,7 @@ project(':impl') {
         file('settings.gradle').text = "include 'api', 'impl'; rootProject.name = 'root'"
 
         when:
-        def root = withConnection { it.getModel(EclipseProject.class) }
+        def root = loadToolingModel(EclipseProject)
 
         then:
         def impl = root.children.find { it.name == 'impl'}

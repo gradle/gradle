@@ -18,12 +18,14 @@ package org.gradle.platform.base;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.model.internal.core.UnmanagedStruct;
 
 /**
  * A collection of tasks associated to a binary
- * */
+ */
+@Incubating
 @UnmanagedStruct
 public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     /**
@@ -37,7 +39,7 @@ public interface BinaryTasksCollection extends DomainObjectSet<Task> {
     String taskName(String verb, String object);
 
     /**
-     * The 'lifecycle' task, that can be used to construct this binary.
+     * The task that can be used to assemble this binary.
      */
     Task getBuild();
 

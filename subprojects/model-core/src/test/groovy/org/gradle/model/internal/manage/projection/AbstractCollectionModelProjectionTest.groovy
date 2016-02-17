@@ -15,23 +15,23 @@
  */
 
 package org.gradle.model.internal.manage.projection
+
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.internal.core.*
-import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRegistrations
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.StructSchema
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Specification
 
-abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
+import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
-    def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
+abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends ProjectRegistrySpec {
+
     def collectionPath = ModelPath.path("collection")
-    def registry = new ModelRegistryHelper()
     def internalType
     def internalTypeSchema
     def collectionProperty
@@ -52,7 +52,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         collectionType = collectionProperty.type as ModelType<C>
         def collectionSchema = schemaStore.getSchema(collectionType)
         assert collectionSchema instanceof ManagedImplSchema
-        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(collectionSchema.getType()))
+        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(forType(collectionSchema.getType()))
         reference = ModelReference.of(collectionPath, collectionType)
         registry.register(
             ModelRegistrations.of(collectionPath, nodeInitializer)

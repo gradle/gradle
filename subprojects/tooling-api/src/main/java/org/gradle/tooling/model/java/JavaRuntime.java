@@ -18,15 +18,27 @@ package org.gradle.tooling.model.java;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+
 import java.io.File;
 
 /**
- * A model for information related the Java Runtime.
+ * Represents a Java virtual machine installation.
  *
  * @since 2.11
  */
 @Incubating
 public interface JavaRuntime {
+    /***
+     * The Java version of the Java runtime installation.
+     *
+     * @return The Java version. Never returns {@code null}.
+     */
     JavaVersion getJavaVersion();
-    File getHomeDirectory();
+
+    /**
+     * The home directory of the Java runtime installation.
+     *
+     * @return The home directory. Never returns {@code null}.
+     * */
+    File getJavaHome();
 }

@@ -17,15 +17,15 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.platform.base.internal.toolchain.ArgCollector;
-import org.gradle.platform.base.internal.toolchain.ArgWriter;
+import org.gradle.internal.process.ArgCollector;
+import org.gradle.internal.process.ArgWriter;
 
-import java.io.*;
-import java.util.Collections;
+import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
 public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
+    @Override
     public void collectArguments(JavaCompileSpec spec, ArgCollector collector) {
         for (String arg : generate(spec)) {
             collector.args(arg);
@@ -57,22 +57,8 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
     }
 
     private Iterable<String> shortenArgs(File tempDir, List<String> args) {
-        File file = new File(tempDir, "java-compiler-args.txt");
         // for command file format, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
         // use platform character and line encoding
-        try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
-            try {
-                ArgWriter argWriter = ArgWriter.unixStyle(writer);
-                for (String arg : args) {
-                    argWriter.args(arg);
-                }
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return Collections.singleton("@" + file.getPath());
+        return ArgWriter.argsFileGenerator(new File(tempDir, "java-compiler-args.txt"), ArgWriter.unixStyleFactory()).transform(args);
     }
 }

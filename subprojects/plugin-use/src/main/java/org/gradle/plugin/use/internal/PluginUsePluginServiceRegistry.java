@@ -29,20 +29,15 @@ import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
-import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
+import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.resolve.service.internal.*;
-
-import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -67,12 +62,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
-            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptySet()));
-            HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter, SslContextFactory sslContextFactory) {
             PluginResolutionServiceClient httpClient = startParameter.isOffline()
                 ? new OfflinePluginResolutionServiceClient()
-                : new HttpPluginResolutionServiceClient(accessor);
+                : new HttpPluginResolutionServiceClient(sslContextFactory);
 
             PersistentCache cache = cacheRepository
                 .cache(CACHE_NAME)

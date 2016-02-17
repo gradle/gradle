@@ -27,6 +27,10 @@ import spock.lang.IgnoreIf
 class SigningSamplesSpec extends AbstractIntegrationSpec {
     @Rule public final Sample mavenSample = new Sample(temporaryFolder)
 
+    void setup(){
+        using m2
+    }
+
     @UsesSample('signing/maven')
     def "upload attaches signatures"() {
         given:

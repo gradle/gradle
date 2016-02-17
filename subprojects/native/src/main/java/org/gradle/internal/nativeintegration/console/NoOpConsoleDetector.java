@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.console;
 
 public class NoOpConsoleDetector implements ConsoleDetector {
+    @Override
     public ConsoleMetaData getConsole() {
         return null;
     }

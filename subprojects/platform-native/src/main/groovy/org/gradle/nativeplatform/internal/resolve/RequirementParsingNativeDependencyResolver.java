@@ -28,6 +28,7 @@ public class RequirementParsingNativeDependencyResolver implements NativeDepende
         this.delegate = delegate;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
             NativeLibraryRequirement requirement = parser.parseNotation(resolution.getInput());

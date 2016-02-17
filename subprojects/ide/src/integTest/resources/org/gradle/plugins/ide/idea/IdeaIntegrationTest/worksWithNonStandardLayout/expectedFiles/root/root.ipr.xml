@@ -10,6 +10,7 @@
       <entry name="!?*.groovy"/>
       <entry name="!?*.java"/>
     </wildcardResourcePatterns>
+    <bytecodeTargetLevel target="1.5"/>
   </component>
   <component name="CopyrightManager" default="">
     <module2copyright/>

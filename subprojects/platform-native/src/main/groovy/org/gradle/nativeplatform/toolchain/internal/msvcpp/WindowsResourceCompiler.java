@@ -40,10 +40,12 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
     }
 
     private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
+        @Override
         protected void addToolSpecificArgs(WindowsResourceCompileSpec spec, List<String> args) {
             args.add(getLanguageOption());
             args.add("/nologo");
         }
+        @Override
         protected String getLanguageOption() {
             return "/r";
         }

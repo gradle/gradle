@@ -38,7 +38,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     private final String name;
     private final OperatingSystem operatingSystem;
-    private final FileResolver fileResolver;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
@@ -60,33 +59,38 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         this.name = name;
         this.operatingSystem = operatingSystem;
-        this.fileResolver = fileResolver;
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
         this.instantiator = instantiator;
     }
 
+    @Override
     protected String getTypeName() {
         return "Visual Studio";
     }
 
+    @Override
     public File getInstallDir() {
         return installDir;
     }
 
+    @Override
     public void setInstallDir(Object installDirPath) {
         this.installDir = resolve(installDirPath);
     }
 
+    @Override
     public File getWindowsSdkDir() {
         return windowsSdkDir;
     }
 
+    @Override
     public void setWindowsSdkDir(Object windowsSdkDirPath) {
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
+    @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
@@ -116,7 +120,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
-        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
+        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateDefaultVisualStudioInstall(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
             visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
@@ -128,10 +132,12 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         }
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }

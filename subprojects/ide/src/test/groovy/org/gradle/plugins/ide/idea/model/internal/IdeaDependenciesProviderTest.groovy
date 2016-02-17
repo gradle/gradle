@@ -177,6 +177,36 @@ public class IdeaDependenciesProviderTest extends Specification {
         }.size() == 1
     }
 
+    def "compile only dependencies"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('compile', project.files('lib/guava.jar'))
+        project.dependencies.add('compileOnly', project.files('lib/foo-api.jar'))
+        project.dependencies.add('testRuntime', project.files('lib/foo-impl.jar'))
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 3
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'COMPILE' &&
+                it.libraryFile.path.endsWith('guava.jar')
+        }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'PROVIDED' &&
+                it.libraryFile.path.endsWith('foo-api.jar')
+        }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'TEST' &&
+                it.libraryFile.path.endsWith('foo-impl.jar')
+        }.size() == 1
+    }
+
     def "ignore unknown configurations"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')
@@ -192,9 +222,9 @@ public class IdeaDependenciesProviderTest extends Specification {
         def result = dependenciesProvider.provide(module)
 
         then:
-        // only for compile, runtime, testCompile, testRuntime
-        4 * dependenciesExtractor.extractProjectDependencies(_, { !it.contains(extraConfiguration) }, _)
-        4 * dependenciesExtractor.extractLocalFileDependencies({ !it.contains(extraConfiguration) }, _)
+        // only for compile, runtime, testCompile, testRuntime, compileOnly, testCompileOnly
+        6 * dependenciesExtractor.extractProjectDependencies(_, { !it.contains(extraConfiguration) }, _)
+        6 * dependenciesExtractor.extractLocalFileDependencies({ !it.contains(extraConfiguration) }, _)
         // offline: 4 * dependenciesExtractor.extractRepoFileDependencies(_, { !it.contains(extraConfiguration) }, _, _, _)
         0 * dependenciesExtractor._
         result.size() == 1

@@ -47,8 +47,8 @@ allprojects { p ->
         })
     }
 
-    def NativeInstallationFixture installation(Object installDir) {
-        return new NativeInstallationFixture(file(installDir))
+    def NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
+        return new NativeInstallationFixture(file(installDir), os)
     }
 
     def ExecutableFixture executable(Object path) {

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.process.ExecSpec;
-import org.gradle.platform.base.internal.toolchain.ArgCollector;
+import org.gradle.internal.process.ArgCollector;
 
 public class ExecSpecBackedArgCollector implements ArgCollector {
     private final ExecSpec action;
@@ -26,11 +26,13 @@ public class ExecSpecBackedArgCollector implements ArgCollector {
         this.action = action;
     }
 
+    @Override
     public ArgCollector args(Object... args) {
         action.args(args);
         return this;
     }
 
+    @Override
     public ArgCollector args(Iterable<?> args) {
         action.args(args);
         return this;

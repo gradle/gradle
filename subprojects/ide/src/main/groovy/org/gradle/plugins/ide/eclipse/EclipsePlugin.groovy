@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
@@ -141,7 +142,7 @@ class EclipsePlugin extends IdePlugin {
                 }
 
                 project.plugins.withType(JavaPlugin) {
-                    classpath.plusConfigurations = [project.configurations.testRuntime]
+                    classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
                     classpath.conventionMapping.classFolders = {
                         return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
                     }
@@ -175,9 +176,9 @@ class EclipsePlugin extends IdePlugin {
                 inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 //model properties:
                 model.jdt = jdt
-                jdt.conventionMapping.sourceCompatibility = { project.sourceCompatibility }
-                jdt.conventionMapping.targetCompatibility = { project.targetCompatibility }
-                jdt.conventionMapping.javaRuntimeName = { String.format("JavaSE-%s", project.targetCompatibility) }
+                jdt.conventionMapping.sourceCompatibility = { project.convention.getPlugin(JavaPluginConvention).sourceCompatibility }
+                jdt.conventionMapping.targetCompatibility = { project.convention.getPlugin(JavaPluginConvention).targetCompatibility }
+                jdt.conventionMapping.javaRuntimeName = { String.format("JavaSE-%s", project.convention.getPlugin(JavaPluginConvention).targetCompatibility) }
             }
         }
     }

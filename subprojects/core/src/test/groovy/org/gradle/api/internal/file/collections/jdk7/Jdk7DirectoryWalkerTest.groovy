@@ -28,11 +28,11 @@ import org.gradle.internal.resource.CharsetUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -45,15 +45,11 @@ class Jdk7DirectoryWalkerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    @Shared
-    private String originalFileEncoding
+    @Rule
+    SetSystemProperties setSystemPropertiesRule
 
-    def setupSpec() {
-        originalFileEncoding = System.getProperty("file.encoding")
-    }
 
     def cleanup() {
-        System.setProperty("file.encoding", originalFileEncoding)
         Charset.defaultCharset = null // clear cache
     }
 
@@ -255,6 +251,39 @@ class Jdk7DirectoryWalkerTest extends Specification {
         walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
+    @Issue("GRADLE-3400")
+    @Requires(TestPrecondition.SYMLINKS)
+    @Unroll
+    def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.createDir("target")
+        def link = rootDir.file("source")
+        link.createLink(dir)
+        dir.deleteDir()
+        def file = rootDir.createFile("hello.txt")
+        file << "Hello world"
+
+        def patternSet = new PatternSet()
+        patternSet.include("*.txt")
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory)
+        def visited = []
+        def visitClosure = { visited << it.file.absolutePath }
+        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
+
+        when:
+        fileTree.visit(fileVisitor)
+
+        then:
+        visited.size() == 1
+        visited[0] == file.absolutePath
+
+        cleanup:
+        link.delete()
+
+        where:
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+    }
 
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:

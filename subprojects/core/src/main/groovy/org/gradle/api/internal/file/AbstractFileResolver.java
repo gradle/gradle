@@ -22,7 +22,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -45,10 +46,12 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
+    private final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileResolver(FileSystem fileSystem) {
+    protected AbstractFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.fileSystem = fileSystem;
         this.fileNotationParser = FileOrUriNotationConverter.parser(fileSystem);
+        this.patternSetFactory = patternSetFactory;
     }
 
     public FileSystem getFileSystem() {
@@ -56,7 +59,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     }
 
     public FileResolver withBaseDir(Object path) {
-        return new BaseDirFileResolver(fileSystem, resolve(path));
+        return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
     }
 
     public File resolve(Object path) {
@@ -254,10 +257,15 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
-    public ReadableResource resolveResource(Object path) {
-        if (path instanceof ReadableResource) {
-            return (ReadableResource) path;
+    public ReadableResourceInternal resolveResource(Object path) {
+        if (path instanceof ReadableResourceInternal) {
+            return (ReadableResourceInternal) path;
         }
         return new FileResource(resolve(path));
+    }
+
+    @Override
+    public Factory<PatternSet> getPatternSetFactory() {
+        return patternSetFactory;
     }
 }

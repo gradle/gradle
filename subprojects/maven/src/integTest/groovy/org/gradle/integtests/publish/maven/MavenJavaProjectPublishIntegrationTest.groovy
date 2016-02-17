@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
-    public void "can publish jar and meta-data to maven repository"() {
+   def "can publish jar and meta-data to maven repository"() {
         given:
         using m2
 
@@ -59,5 +59,45 @@ uploadArchives {
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
         mavenModule.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.1")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:1.4")
+    }
+
+    def "compile only dependencies are not included in published pom"() {
+        given:
+        using m2
+
+        file("settings.gradle") << "rootProject.name = 'publishTest' "
+
+        and:
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle.test'
+version = '1.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "javax.servlet:servlet-api:2.5"
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+"""
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.1")
+        mavenModule.assertArtifactsPublished("publishTest-1.1.pom", "publishTest-1.1.jar")
+        mavenModule.parsedPom.scopes.size() == 0
     }
 }

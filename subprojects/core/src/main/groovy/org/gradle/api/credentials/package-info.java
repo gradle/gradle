@@ -18,7 +18,5 @@
  *
  * @since 2.4
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.api.credentials;
-
-import org.gradle.api.Incubating;

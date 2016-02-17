@@ -259,7 +259,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: CustomLanguageSourceSet 'mylib:someLang'"
+        output.contains "sources display name: Custom source 'mylib:main:someLang'"
     }
 
     def "elements in binary.sources should not be created when defined"() {
@@ -325,7 +325,7 @@ model {
         fails "model"
 
         then:
-        failure.assertHasCause("Cannot create a 'UnregisteredSourceSetType' because this type is not known to sourceSets. Known types are: CustomLanguageSourceSet")
+        failure.assertHasCause("Cannot create an instance of type 'UnregisteredSourceSetType' as this type is not known. Known types: CustomLanguageSourceSet, ${LanguageSourceSet.name}.")
     }
 
 }

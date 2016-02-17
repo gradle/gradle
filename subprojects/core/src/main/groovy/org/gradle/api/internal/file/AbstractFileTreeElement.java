@@ -51,11 +51,11 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         return getRelativePath().getPathString();
     }
 
-    public void copyTo(OutputStream outstr) {
+    public void copyTo(OutputStream output) {
         try {
             InputStream inputStream = open();
             try {
-                IOUtils.copyLarge(inputStream, outstr);
+                IOUtils.copyLarge(inputStream, output);
             } finally {
                 inputStream.close();
             }

@@ -16,7 +16,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ForkScalaCompileInDaemonModeFixture
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Ignore
@@ -25,7 +25,7 @@ import spock.lang.Issue
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ForkScalaCompileInDaemonModeFixture daemonModeFixture = new ForkScalaCompileInDaemonModeFixture(executer, temporaryFolder)
+    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
         expect:
@@ -50,6 +50,25 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+    }
+
+    def compilesAllScalaCodeWhenForced() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala") << "class Person"
+        args("-i")
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() != old(other.lastModified())
     }
 
     @Issue("GRADLE-2548")

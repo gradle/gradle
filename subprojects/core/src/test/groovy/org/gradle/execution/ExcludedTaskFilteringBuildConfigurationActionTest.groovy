@@ -56,7 +56,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
 
         then:
         1 * selector.getFilter('a') >> filter
-        1 * taskGraph.useFilter({it.specs == [filter]})
+        1 * taskGraph.useFilter(filter)
         1 * context.proceed()
     }
 }

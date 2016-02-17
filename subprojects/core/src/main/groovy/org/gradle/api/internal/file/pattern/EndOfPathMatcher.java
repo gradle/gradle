@@ -25,11 +25,11 @@ public class EndOfPathMatcher implements PathMatcher {
         return 0;
     }
 
-    public boolean matches(String[] segments, int startIndex) {
+    public boolean matches(String[] segments, int startIndex, boolean isFile) {
         return startIndex == segments.length;
     }
 
-    public boolean isPrefix(String[] segments, int startIndex) {
+    public boolean isPrefix(String[] segments, int startIndex, boolean isFile) {
         return false;
     }
 }

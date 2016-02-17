@@ -16,40 +16,73 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
+
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.GradleVersion
+
 import org.junit.Rule
+
+import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
     @Rule
     CyclicBarrierHttpServer cyclicBarrierHttpServer = new CyclicBarrierHttpServer()
 
+    @ToolingApiVersion(">2.1")
     def "client can cancel during execution of a continuous build"() {
         given:
-        buildFile << """
-            gradle.taskGraph.whenReady { new URL('${cyclicBarrierHttpServer.uri}').text }
-        """
+        setupCancellationBuild()
 
         when:
-        runBuild {
-            cyclicBarrierHttpServer.waitFor()
-            cancel()
-            cyclicBarrierHttpServer.release()
-        }
+        cancelBuild()
 
         then:
-        if (toolingApiVersion.equals(GradleVersion.version("2.1"))) {
-            assert buildResult.failure instanceof GradleConnectionException
-        } else {
-            assert buildResult.failure instanceof BuildCancelledException
-        }
+        assert buildResult.failure instanceof BuildCancelledException
         !stdout.toString().contains(WAITING_MESSAGE)
     }
 
+    @ToolingApiVersion("=2.1")
+    def "client can cancel during execution of a continuous build for 2.1"() {
+        given:
+        setupCancellationBuild()
+
+        when:
+        cancelBuild()
+
+        then:
+        assert buildResult.failure instanceof GradleConnectionException
+        !stdout.toString().contains(WAITING_MESSAGE)
+    }
+
+    private TestFile setupCancellationBuild() {
+        buildFile << """
+import org.gradle.initialization.BuildCancellationToken
+import java.util.concurrent.CountDownLatch
+
+def cancellationToken = services.get(BuildCancellationToken.class)
+def latch = new CountDownLatch(1)
+
+cancellationToken.addCallback {
+    latch.countDown()
+}
+
+gradle.taskGraph.whenReady {
+    new URL('${cyclicBarrierHttpServer.uri}').text
+    latch.await()
+}
+"""
+    }
+
+    private boolean cancelBuild() {
+        runBuild {
+            cyclicBarrierHttpServer.sync()
+            cancel()
+        }
+    }
 
     def "logging does not include message to use ctrl-d to exit"() {
         when:

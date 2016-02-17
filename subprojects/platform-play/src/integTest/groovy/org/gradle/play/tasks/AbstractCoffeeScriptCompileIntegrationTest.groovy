@@ -20,36 +20,34 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractCoffeeScriptCompileIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
-    TestFile compiled(String fileName) {
-        return compiled(getDefaultSourceSet(), fileName)
+    TestFile getProcessedJavaScriptDir(String sourceSet) {
+        file("build/src/play/binary/minifyPlayBinaryPlayBinary${sourceSet != null ? sourceSet.capitalize() : "CoffeeScript"}JavaScript")
     }
 
-    TestFile compiled(String sourceSet, String fileName) {
-        file("build/playBinary/src/compilePlayBinary${sourceSet}/${fileName}")
+    TestFile getCompiledCoffeeScriptDir() {
+        getCompiledCoffeeScriptDir(null)
     }
 
-    void matchesExpectedRaw(String fileName) {
-        matchesExpectedRaw(getDefaultSourceSet(), fileName)
+    TestFile getCompiledCoffeeScriptDir(String sourceSet) {
+        file("build/src/play/binary/${sourceSet ?: "coffeeScript"}JavaScript")
     }
 
-    void matchesExpectedRaw(String sourceSet, String fileName) {
-        assert compiled(sourceSet, fileName).exists()
-        matchesExpectedRaw(compiled(sourceSet, fileName))
+    TestFile compiledCoffeeScript(String fileName) {
+        return compiledCoffeeScript(null, fileName)
     }
 
-    @Override
-    TestFile copied(String fileName) {
-        return super.copied("${defaultSourceSet}JavaScript", fileName)
+    TestFile compiledCoffeeScript(String sourceSet, String fileName) {
+        getCompiledCoffeeScriptDir(sourceSet).file(fileName)
     }
 
-    @Override
-    void matchesExpected(String fileName) {
-        super.matchesExpected("${defaultSourceSet}JavaScript", fileName)
+    void hasProcessedCoffeeScript(file) {
+        hasProcessedCoffeeScript(null, file)
     }
 
-    @Override
-    TestFile minified(String fileName) {
-        return super.minified("${defaultSourceSet}JavaScript", fileName)
+    void hasProcessedCoffeeScript(sourceSet, file) {
+        hasExpectedJavaScript(compiledCoffeeScript(sourceSet, "${file}.js" ))
+        hasExpectedJavaScript(processedJavaScript(sourceSet, "${file}.js" ))
+        hasMinifiedJavaScript(processedJavaScript(sourceSet, "${file}.min.js"))
     }
 
     def withCoffeeScriptSource(String path) {

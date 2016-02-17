@@ -32,4 +32,9 @@ class AdvancedPlayApp extends PlayApp {
         """
         return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
     }
+
+    @Override
+    List<SourceFile> getViewSources() {
+        return super.getViewSources() + sourceFiles("templates")
+    }
 }

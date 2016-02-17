@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -28,6 +29,7 @@ import java.io.File;
 /**
  * Generates a prefix header file from a list of headers to be precompiled.
  */
+@Incubating
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
     @Input
     String header;

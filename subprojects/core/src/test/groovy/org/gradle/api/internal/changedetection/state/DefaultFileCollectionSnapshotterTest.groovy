@@ -18,20 +18,19 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-@UsesNativeServices
 public class DefaultFileCollectionSnapshotterTest extends Specification {
-    def fileSnapshotter = Stub(FileTreeElementSnapshotter)
+    def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver())
 
     def listener = Mock(ChangeListener)
     @Rule
@@ -63,7 +62,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist))
 
         then:
-        snapshot.files.files as List == [file]
+        snapshot.files as List == [file]
     }
 
     def notifiesListenerWhenFileAdded() {

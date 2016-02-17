@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.scala
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -35,14 +36,14 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
 
-    private final FileResolver fileResolver
+    private final SourceDirectorySetFactory sourceDirectorySetFactory
 
     private Project project
     private ScalaRuntime scalaRuntime
 
     @Inject
-    ScalaBasePlugin(FileResolver fileResolver) {
-        this.fileResolver = fileResolver
+    ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory
     }
 
     void apply(Project project) {
@@ -69,7 +70,7 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
+            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, sourceDirectorySetFactory)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala") }
             sourceSet.allJava.source(sourceSet.scala)
             sourceSet.allSource.source(sourceSet.scala)

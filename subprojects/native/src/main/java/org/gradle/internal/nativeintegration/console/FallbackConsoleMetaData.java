@@ -17,14 +17,17 @@
 package org.gradle.internal.nativeintegration.console;
 
 public class FallbackConsoleMetaData implements ConsoleMetaData {
+    @Override
     public boolean isStdOut() {
         return true;
     }
 
+    @Override
     public boolean isStdErr() {
         return true;
     }
 
+    @Override
     public int getCols() {
         return 0;
     }

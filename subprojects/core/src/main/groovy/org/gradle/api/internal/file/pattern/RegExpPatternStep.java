@@ -45,7 +45,7 @@ public class RegExpPatternStep implements PatternStep {
         return result.toString();
     }
 
-    public boolean matches(String testString) {
+    public boolean matches(String testString, boolean isFile) {
         Matcher matcher = pattern.matcher(testString);
         return matcher.matches();
     }

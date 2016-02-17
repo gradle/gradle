@@ -31,12 +31,12 @@ class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec)
-        }
-    }
-"""
+            model {
+                components {
+                    myLib(JvmLibrarySpec)
+                }
+            }
+        """
         then:
         fails "assemble"
 

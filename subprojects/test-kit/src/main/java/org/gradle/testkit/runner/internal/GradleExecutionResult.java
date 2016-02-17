@@ -22,18 +22,24 @@ import java.util.List;
 
 public class GradleExecutionResult {
 
+    private final BuildOperationParameters buildOperationParameters;
     private final String output;
     private final List<BuildTask> tasks;
     private final Throwable throwable;
 
-    public GradleExecutionResult(String standardOutput, List<BuildTask> tasks) {
-        this(standardOutput, tasks, null);
+    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String standardOutput, List<BuildTask> tasks) {
+        this(buildOperationParameters, standardOutput, tasks, null);
     }
 
-    public GradleExecutionResult(String output, List<BuildTask> tasks, Throwable throwable) {
+    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String output, List<BuildTask> tasks, Throwable throwable) {
+        this.buildOperationParameters = buildOperationParameters;
         this.output = output;
         this.tasks = tasks;
         this.throwable = throwable;
+    }
+
+    public BuildOperationParameters getBuildOperationParameters() {
+        return buildOperationParameters;
     }
 
     public String getOutput() {

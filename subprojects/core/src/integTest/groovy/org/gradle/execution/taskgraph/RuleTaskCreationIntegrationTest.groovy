@@ -244,7 +244,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         fails "bar"
 
         then:
-        failure.assertHasCause('Exception thrown while executing model rule: MyPlugin#checkTask')
+        failure.assertHasDescription('Exception thrown while executing model rule: MyPlugin#checkTask')
         failure.assertHasCause('task is invalid!')
     }
 

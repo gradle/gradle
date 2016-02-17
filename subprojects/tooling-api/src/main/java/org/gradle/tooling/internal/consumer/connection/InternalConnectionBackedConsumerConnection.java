@@ -21,9 +21,6 @@ import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
-import org.gradle.tooling.internal.consumer.converters.CompositeMappingAction;
-import org.gradle.tooling.internal.consumer.converters.IdeaProjectCompatibilityMapper;
-import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -49,7 +46,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
+        ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate, getCompatibilityMapperAction());
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         modelProducer = new BuildExecutingModelProducer(modelProducer);
@@ -133,17 +130,14 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;
         private final InternalConnection delegate;
-        private final Action<SourceObjectMapping> mapper;
+        private final Action<? super SourceObjectMapping> mapper;
 
-        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate) {
+        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate, Action<? super SourceObjectMapping> mapper) {
             this.adapter = adapter;
             this.versionDetails = versionDetails;
             this.modelMapping = modelMapping;
             this.delegate = delegate;
-            this.mapper = CompositeMappingAction.builder()
-                .add(new TaskPropertyHandlerFactory().forVersion(versionDetails))
-                .add(new IdeaProjectCompatibilityMapper(versionDetails))
-                .build();
+            this.mapper = mapper;
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {

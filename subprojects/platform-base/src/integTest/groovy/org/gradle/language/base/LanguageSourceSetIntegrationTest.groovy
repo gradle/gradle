@@ -18,7 +18,6 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -42,14 +41,13 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("A model element of type: 'org.gradle.language.java.JavaSourceSet' can not be constructed.")
     }
 
-    @Unroll
-    def "can not create a top level LSS for base or implementation types (#type)"() {
+    def "can not create a top level LSS for using an implementation class"() {
         buildFile.text = """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguageWithImpl()}
 
         class Rules extends RuleSource {
             @Model
-            void lss($type javaSource) {
+            void lss(DefaultCustomSourceSet source) {
             }
         }
         apply plugin: Rules
@@ -59,22 +57,19 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         then:
-        failure.assertHasCause("Cannot create a '$type' because this type is not known to sourceSets. Known types are: org.gradle.language.java.JavaSourceSet")
-
-        where:
-        type << ['org.gradle.api.internal.java.DefaultJavaSourceSet', 'org.gradle.language.base.LanguageSourceSet']
+        failure.assertHasCause("Cannot create an instance of type 'DefaultCustomSourceSet' as this type is not known. Known types: org.gradle.platform.base.ComponentSpec, CustomSourceSet, ${LanguageSourceSet.name}")
     }
 
     def "can create a top level LSS with a rule"() {
         buildScript """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguage()}
 
         ${addPrintSourceDirTask()}
 
         class Rules extends RuleSource {
             @Model
-            void lss(JavaSourceSet javaSource) {
-                javaSource.source.srcDir("src/main/lss")
+            void lss(CustomSourceSet sourceSet) {
+                sourceSet.source.srcDir("src/main/lss")
             }
         }
         apply plugin: Rules
@@ -87,10 +82,10 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create a top level LSS via the model DSL"() {
         buildFile.text = """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguage()}
 
         model {
-            lss(JavaSourceSet)
+            lss(CustomSourceSet)
         }
         """
 
@@ -99,23 +94,22 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.lss.@creator[0] == "lss(org.gradle.language.java.JavaSourceSet) @ build.gradle line 18, column 13"
-        modelNode.lss.@type[0] == "org.gradle.language.java.JavaSourceSet"
+        modelNode.lss.@creator[0] == "lss(CustomSourceSet) @ build.gradle line 13, column 13"
+        modelNode.lss.@type[0] == "CustomSourceSet"
     }
-
 
     def "can create a LSS as property of a managed type"() {
         buildFile << """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguage()}
 
         @Managed
         interface BuildType {
             //Readonly
-            JavaSourceSet getSources()
+            CustomSourceSet getSources()
 
             //Read/write
-            JavaSourceSet getInputs()
-            void setInputs(JavaSourceSet sources)
+            CustomSourceSet getInputs()
+            void setInputs(CustomSourceSet sources)
         }
 
         class Rules extends RuleSource {
@@ -130,23 +124,23 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
-        buildType.inputs.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.inputs.@nodeValue[0] == "Java source 'buildType:inputs'"
+        buildType.inputs.@type[0] == 'CustomSourceSet'
+        buildType.inputs.@nodeValue[0] == 'null'
         buildType.inputs.@creator[0] == 'Rules#buildType'
 
-        buildType.sources.@type[0] == 'org.gradle.language.java.JavaSourceSet'
-        buildType.sources.@nodeValue[0] == "Java source 'buildType:sources'"
+        buildType.sources.@type[0] == 'CustomSourceSet'
+        buildType.sources.@nodeValue[0] == "Custom source 'sources'"
         buildType.sources.@creator[0] == 'Rules#buildType'
     }
 
     def "An LSS can be an element of managed collections"() {
         buildFile << """
-        ${registerJavaLanguage()}
+        ${registerCustomLanguage()}
 
         @Managed
         interface BuildType {
-            ModelMap<JavaSourceSet> getComponentSources()
-            ModelSet<JavaSourceSet> getTestSources()
+            ModelMap<CustomSourceSet> getComponentSources()
+            ModelSet<CustomSourceSet> getTestSources()
         }
 
         class Rules extends RuleSource {
@@ -167,47 +161,55 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
-        buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.java.JavaSourceSet>'
+        buildType.componentSources.@type[0] == "org.gradle.model.ModelMap<CustomSourceSet>"
         buildType.componentSources.@creator[0] == 'Rules#buildType'
-        buildType.componentSources.componentA.@type[0] == 'org.gradle.language.java.JavaSourceSet'
+        buildType.componentSources.componentA.@type[0] == 'CustomSourceSet'
         buildType.componentSources.componentA.@creator[0] == 'Rules#addSources > create(componentA)'
 
-        buildType.testSources.@type[0] == 'org.gradle.model.ModelSet<org.gradle.language.java.JavaSourceSet>'
+        buildType.testSources.@type[0] == "org.gradle.model.ModelSet<CustomSourceSet>"
         buildType.testSources.@creator[0] == 'Rules#buildType'
-        buildType.testSources."0".@type[0] == 'org.gradle.language.java.JavaSourceSet'
+        buildType.testSources."0".@type[0] == 'CustomSourceSet'
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 
-    private String registerJavaLanguage() {
+    private String registerCustomLanguage() {
         return """
-            import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet
-
-            class JavaLangRuleSource extends RuleSource {
-
-                @LanguageType
-                void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-                    builder.setLanguageName("java");
-                    builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+            @Managed interface CustomSourceSet extends LanguageSourceSet {}
+            class CustomSourceSetPlugin extends RuleSource {
+                @ComponentType
+                void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
                 }
-
             }
-            apply plugin: JavaLangRuleSource
-        """
+            apply plugin: CustomSourceSetPlugin
+        """.stripIndent()
+    }
+
+    private String registerCustomLanguageWithImpl() {
+        return """
+            interface CustomSourceSet extends LanguageSourceSet {}
+            class DefaultCustomSourceSet extends BaseLanguageSourceSet implements CustomSourceSet {}
+            class CustomSourceSetPlugin extends RuleSource {
+                @ComponentType
+                void registerCustomLanguage(TypeBuilder<CustomSourceSet> builder) {
+                    builder.defaultImplementation(DefaultCustomSourceSet)
+                }
+            }
+            apply plugin: CustomSourceSetPlugin
+        """.stripIndent()
     }
 
     private String addPrintSourceDirTask() {
         """
-class PrintSourceDirectoryRules extends RuleSource {
-    @Mutate void printTask(ModelMap<Task> tasks, LanguageSourceSet lss) {
-        tasks.create("printSourceDirs") {
-          doLast {
-            println ("source dirs: \${lss.source.getSrcDirs()}")
-          }
-      }
+            class PrintSourceDirectoryRules extends RuleSource {
+                @Mutate void printTask(ModelMap<Task> tasks, LanguageSourceSet lss) {
+                    tasks.create("printSourceDirs") {
+                      doLast {
+                        println ("source dirs: \${lss.source.getSrcDirs()}")
+                      }
+                  }
+                }
+            }
+            apply plugin: PrintSourceDirectoryRules
+        """.stripIndent()
     }
-}
-apply plugin: PrintSourceDirectoryRules
-"""
-    }
-
 }

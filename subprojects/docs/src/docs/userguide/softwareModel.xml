@@ -82,7 +82,7 @@
         <para>
             Another <emphasis>key</emphasis> motivation is performance and scale.
             Aspects of the current approach that Gradle takes to modelling the build prevent pervasive parallelism and limit scalability.
-            The new model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
+            The software model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
         </para>
     </section>
     <section>
@@ -354,7 +354,7 @@
                                 <itemizedlist>
                                     <listitem>Any managed type</listitem>
                                     <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
-                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.ComponentType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
@@ -368,7 +368,7 @@
                                     <listitem>A Scalar Collection</listitem>
                                     <listitem>A Managed collection containing managed types</listitem>
                                     <listitem>A Managed collection containing <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
-                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.ComponentType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
@@ -380,7 +380,7 @@
             <title>Language source sets</title>
             <para>
                 <apilink class="org.gradle.language.base.FunctionalSourceSet"/>s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
-                registered via <apilink class="org.gradle.platform.base.LanguageType"/>) can be added to the model space via rules or via the model DSL.
+                registered via <apilink class="org.gradle.platform.base.ComponentType"/>) can be added to the model space via rules or via the model DSL.
             </para>
             <sample id='model-language-support-all' dir='modelRules/language-support' includeLocation="true" title='strongly modelling sources sets'>
                 <sourcefile file='build.gradle' snippet="model-language-support"/>
@@ -439,6 +439,22 @@
                 <para>
                     For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
                 </para>
+            </section>
+            <section id="binding_all_elements_in_scope">
+                <title>Binding to all elements in a scope matching type</title>
+                <para>
+                    Mutating or validating all elements of a given type in some scope is a common use-case.
+                    To accommodate this rules can be applied via the <literal>@Each</literal> annotation.
+                </para>
+                <para>
+                    In the example below a <literal>@Defaults</literal> rule is applied to each <code>FileItem</code>
+                    in the model setting a default file size of "1024". Another rule applies a
+                    <apilink class="org.gradle.model.RuleSource" /> to every <code>DirectoryItem</code> that makes sure
+                    all file sizes are positive and divisible by "16".
+                </para>
+                <sample id='ruleSourcePluginEach' dir='modelRules/ruleSourcePluginEach' includeLocation="true" title="a DSL example applying a rule to every element in a scope">
+                    <sourcefile file='build.gradle'/>
+                </sample>
             </section>
         </section>
     </section>
@@ -499,49 +515,145 @@
     <section id="model-dsl">
         <title>The model DSL</title>
         <para>
-            It is also possible to declare a model and rules directly in the build script using the “model DSL”.
+            It is also possible to declare a model and rules directly in a build script using the “model DSL”.
         </para>
-        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="the model dsl">
-            <sourcefile file='build.gradle' snippet='dsl'/>
-        </sample>
-        <para>
-            Continuing with the example so far of the model element <literal>"person"</literal> of type <literal>Person</literal> being present,
-            the above DSL snippet effectively adds a mutation rule for the person that sets its <literal>lastName</literal> property.
-        </para>
+        <tip>
+            <para>The model DSL makes heavy use of various Groovy DSL features. Please have a read of <xref linkend="groovy-dsl-basics"/> for an introduction to these Groovy features.</para>
+        </tip>
         <para>
             The general form of the model DSL is:
         </para>
         <programlisting>model {
-  «model-path-to-subject» {
-    «imperative code»
-  }
+    «rule-definitions»
 }</programlisting>
         <para>
-            Where there may be multiple blocks.
+            All rules are nested inside a <code>model </code> block. There may be any number of rule definitions inside each <code>model</code> block,
+            and there may be any number of <code>model</code> blocks in a build script. You can also use a <code>model</code> block in build scripts that are applied using <code>apply from: $uri</code>.
         </para>
-        <para>
-            It is also possible to create <apilink class="org.gradle.model.Managed" /> type elements at the root level.
-        </para>
-        <para>
-            The general form of a creation rule is:
-        </para>
-        <programlisting>model {
-  «element-name»(«element-type») {
-    «imperative code»
-  }
+        <para>There are currently 2 kinds of rule that you can define using the model DSL: configuration rules, and creation rules.</para>
+        <section>
+            <title>Configuration rules</title>
+            <para>You can define a rule that configures a particular model element. A configuration rule has the following form:</para>
+            <programlisting>
+model {
+    «model-path-to-subject» {
+        «configuration code»
+    }
 }</programlisting>
-        <para>
-            The following model rule is creating the person element:
-        </para>
-        <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="a DSL creation rule">
-            <sourcefile file='build.gradle' snippet="create-rule"/>
-        </sample>
-        <para>
-            The model DSL is currently quite limited.
-            It is only possible to declare creation and general mutation rules.
-            It is also only possible to refer to the subject by-path.
-            These are all limitations that will be addressed in future Gradle versions.
-        </para>
+            <para>
+                Continuing with the example so far of the model element <literal>"person"</literal> of type <literal>Person</literal> being present,
+                the following DSL snippet adds a configuration rule for the person that sets its <literal>lastName</literal> property.
+            </para>
+            <sample id='modelDslConfigure' dir='modelRules/modelDsl' title="DSL configuration rule">
+                <sourcefile file='build.gradle' snippet='configure-rule'/>
+            </sample>
+            <para>A configuration rule specifies a path to the subject that should be configured and a closure containing the code to run when the subject is
+                configured. The closure is executed with the subject passed as the closure delegate.
+                Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
+            </para>
+            <para>You should note that the configuration code is not executed immediately but is instead executed only when the subject is required.
+                This is an important behaviour of model rules and allows Gradle to configure only those elements that are required for the build, which helps
+                reduce build time.
+                For example, let's run a task that uses the "person" object:</para>
+            <sample id='modelDslConfigureRuleRunWhenRequired' dir='userguide/modelRules/configureAsRequired' title="Configuration run when required">
+                <sourcefile file='build.gradle' snippet='configure-rule'/>
+                <output args="showPerson"/>
+            </sample>
+            <para>You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:</para>
+            <sample id='modelDslConfigureRuleNotRunWhenNotRequired' dir='userguide/modelRules/configureAsRequired' title="Configuration not run when not required">
+                <output args="somethingElse"/>
+            </sample>
+            <para>In this instance, you can see that the "person" element is not configured at all.</para>
+        </section>
+        <section>
+            <title>Creation rules</title>
+            <para>
+                It is also possible to create model elements at the root level. The general form of a creation rule is:
+            </para>
+                <programlisting>
+model {
+    «element-name»(«element-type») {
+        «initialization code»
+    }
+}</programlisting>
+            <para>
+                The following model rule creates the  <literal>"person"</literal> element:
+            </para>
+            <sample id='modelDslCreate' dir='modelRules/modelDsl' title="DSL creation rule">
+                <sourcefile file='build.gradle' snippet="create-rule"/>
+            </sample>
+            <para>A creation rule definition specifies the path of the element to create, plus its public type, represented as a Java interface or class. Only certain types of model elements can be created.</para>
+            <para>A creation rule may also provide a closure containing the initialization code to run when the element is created. The closure is executed with the element passed as
+                the closure delegate. Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
+            </para>
+            <para>The initialization closure is optional and can be omitted, for example:</para>
+            <sample id='modelDslCreateNoConfig' dir='modelRules/modelDsl' title="DSL creation rule without initialization">
+                <sourcefile file='build.gradle' snippet="create-rule-no-config"/>
+            </sample>
+            <para>You should note that the initialization code is not executed immediately but is instead executed only when the element is required.
+                The initialization code is executed before any configuration rules are run. For example:
+            </para>
+            <sample id='modelDslInitializationRuleRunsBeforeConfigurationRule' dir='userguide/modelRules/initializationRuleRunsBeforeConfigurationRules' title="Initialization before configuration">
+                <sourcefile file='build.gradle' snippet="configure-and-create-rules"/>
+                <output args="showPerson"/>
+            </sample>
+            <para>Notice that the creation rule appears in the build script <emphasis>after</emphasis> the configuration rule, but its code runs before the code of the configuration rule.
+                Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.</para>
+        </section>
+        <section>
+            <title>Model rule closures</title>
+            <para>Most DSL rules take a closure containing some code to run to configure the subject. The code you can use in this closure depends on the type of the subject of the rule.</para>
+            <tip>
+                <para>You can use the <link linkend="model-report">model report</link> to determine the type of a particular model element.</para>
+            </tip>
+            <para>In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.</para>
+            <section>
+                <title><classname>ModelMap&lt;T></classname> subject</title>
+                <para>A <apilink class="org.gradle.model.ModelMap"/> is basically a map of model elements, indexed by some name.
+                    When a <classname>ModelMap</classname> is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the
+                    <apilink class="org.gradle.model.ModelMap"/> interface.
+                </para>
+                <para>A rule closure with <classname>ModelMap</classname> as a subject can also include nested creation or configuration rules. These behave in a similar way
+                    to the creation and configuration rules that appear directly under the <literal>model</literal> block.
+                </para>
+                <para>Here is an example of a nested creation rule:</para>
+                <sample id='modelDslModelMapNestedCreate' dir='modelRules/modelDsl' title="Nested DSL creation rule">
+                    <sourcefile file='build.gradle' snippet="model-map-nested-create-rule"/>
+                </sample>
+                <para>As before, a nested creation rule defines a name and public type for the element, and optionally, a closure containing code to use to initialize the element.
+                    The code is run only when the element is required in the build.
+                </para>
+                <para>Here is an example of a nested configuration rule:</para>
+                <sample id='modelDslModelMapNestedConfig' dir='modelRules/modelDsl' title="Nested DSL configuration rule">
+                    <sourcefile file='build.gradle' snippet="model-map-nested-configure-rule"/>
+                </sample>
+                <para>As before, a nested configuration rule defines the name of the element to configure and a closure containing code to use to configure the element.
+                    The code is run only when the element is required in the build.
+                </para>
+                <para><classname>ModelMap</classname> introduces several other kinds of rules. For example, you can define a rule that targets each of the elements in the map.
+                    The code in the rule closure is executed once for each element in the map, when that element is required. Let's run a task that requires
+                    all of the children of the "people" element:
+                </para>
+                <sample id='modelDslModelMapNestedAll' dir='userguide/modelRules/configureElementsOfMap' title="DSL configuration rule for each element in a map">
+                    <sourcefile file='build.gradle' snippet="create-and-configure"/>
+                    <output args="listPeople"/>
+                </sample>
+                <para>Any method on <apilink class="org.gradle.model.ModelMap"/> that accepts an <apilink class="org.gradle.api.Action"/> as its last parameter can also be used to define a nested rule.</para>
+            </section>
+            <section>
+                <title><classname>@Managed</classname> type subject</title>
+                <para>When a managed type is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the managed type interface.</para>
+                <para>A rule closure can also configure the properties of the element using nested closures. For example:</para>
+                <sample id='modelDslManagedTypeNestedConfigure' dir='modelRules/modelDsl' title="Nested DSL property configuration">
+                    <sourcefile file='build.gradle' snippet="managed-type-nested-config-rule"/>
+                </sample>
+                <note><para>Currently, the nested closures do not define rules and are executed immediately. Please be aware that this behaviour will change in a future Gradle release.</para></note>
+            </section>
+            <section>
+                <title>All other subjects</title>
+                <para>For all other types, the rule closure can use any of the methods defined by the type. There is no special DSL defined for these elements.</para>
+            </section>
+        </section>
         <section id="dsl-type-coercion">
             <title>Automatic type coercion</title>
             <para>
@@ -601,14 +713,18 @@
                 However, some legacy type objects do not currently implement such checks.
                 Regardless, it is always invalid to attempt to mutate an input to a rule.
             </para>
+            <section>
+                <title>Using <classname>ModelMap&lt;T></classname> as an input</title>
+                <para>When you use a <apilink class="org.gradle.model.ModelMap"/> as input, each item in the map is made available as a property.</para>
+            </section>
         </section>
     </section>
     <section id="model-report">
-        <title>The Model Report</title>
+        <title>The model report</title>
         <para>
             The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
-            Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model
-            path (e.g. `tasks.help`). The model report displays the following details about each model element:
+            Each item prefixed with a <literal>+</literal> on the model report is a model element and the visual nesting of these elements correlates to the model
+            path (e.g. <literal>tasks.help</literal>). The model report displays the following details about each model element:
         </para>
 
         <table>

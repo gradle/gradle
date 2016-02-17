@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.test.googletest
-
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppPlugin
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestPlugin
-import org.gradle.platform.base.test.TestSuiteSpec
+import org.gradle.nativeplatform.test.googletest.plugins.GoogleTestConventionPlugin
+import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -31,7 +30,7 @@ class GoogleTestTest extends Specification {
     def "creates a test suite for each library under test"() {
         given:
         project.apply(plugin: CppPlugin)
-        project.apply(plugin: GoogleTestPlugin)
+        project.apply(plugin: GoogleTestConventionPlugin)
         project.model {
             components {
                 main(NativeLibrarySpec)

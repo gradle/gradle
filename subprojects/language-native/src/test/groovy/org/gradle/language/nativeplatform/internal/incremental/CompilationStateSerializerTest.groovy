@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 
 class CompilationStateSerializerTest extends SerializerSpec {
     def state = new CompilationState()
@@ -52,7 +52,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def fileTwo = new File("two")
         def stateTwo = new CompilationFileState("FooBar".getBytes())
-        stateTwo.sourceIncludes = createSourceIncludes("<system>", '"quoted"', "MACRO")
+        stateTwo.includeDirectives = createSourceIncludes("<system>", '"quoted"', "MACRO")
         stateTwo.resolvedIncludes = [resolvedInclude("ONE"), resolvedInclude("TWO")]
         state.fileStates.put(fileTwo, stateTwo)
 
@@ -63,21 +63,21 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash.length == 0
-        emptyCompileState.sourceIncludes.macroIncludes.empty
-        emptyCompileState.sourceIncludes.quotedIncludes.empty
-        emptyCompileState.sourceIncludes.systemIncludes.empty
+        emptyCompileState.includeDirectives.macroIncludes.empty
+        emptyCompileState.includeDirectives.quotedIncludes.empty
+        emptyCompileState.includeDirectives.systemIncludes.empty
         emptyCompileState.resolvedIncludes.empty
 
         def otherCompileState = newState.getState(fileTwo)
         new String(otherCompileState.hash) == "FooBar"
-        otherCompileState.sourceIncludes.systemIncludes.collect { it.value } == ["system"]
-        otherCompileState.sourceIncludes.quotedIncludes.collect { it.value } == ["quoted"]
-        otherCompileState.sourceIncludes.macroIncludes.collect { it.value } == ["MACRO"]
+        otherCompileState.includeDirectives.systemIncludes.collect { it.value } == ["system"]
+        otherCompileState.includeDirectives.quotedIncludes.collect { it.value } == ["quoted"]
+        otherCompileState.includeDirectives.macroIncludes.collect { it.value } == ["MACRO"]
         otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
     }
 
-    private static DefaultSourceIncludes createSourceIncludes(String... strings) {
-        final DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes()
+    private static DefaultIncludeDirectives createSourceIncludes(String... strings) {
+        final DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives()
         sourceIncludes.addAll(strings.collect { DefaultInclude.parse(it, false) })
         sourceIncludes
     }

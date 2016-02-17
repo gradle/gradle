@@ -24,16 +24,14 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
     FileResolver fileResolver = Mock()
     TemplateOperationFactory templateOperationFactory = Mock()
+    TemplateLibraryVersionProvider libraryVersionProvider = Mock()
+    ProjectInitDescriptor globalSettingsDescriptor = Mock()
     LanguageLibraryProjectInitDescriptor descriptor
     TemplateOperationFactory.TemplateOperationBuilder templateOperationBuilder = Mock(TemplateOperationFactory.TemplateOperationBuilder)
-    def setup(){
-
-    }
 
     def "generates from template within sourceSet"(){
         setup:
-
-        descriptor = new LanguageLibraryProjectInitDescriptor(language, templateOperationFactory, fileResolver)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
 
         when:
@@ -43,6 +41,7 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(target) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
+
         where:
         language        |  sourceSet       |   target
         "somelang"      |    "main"        |   "src/main/somelang/SomeClazz.somelang"
@@ -55,16 +54,16 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         def mainSourceDirectory = Mock(FileTreeInternal)
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
 
-        descriptor = new LanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver)
         when:
         descriptor.whenNoSourcesAvailable(delegate).generate()
+
         then:
         1 * mainSourceDirectory.empty >> noMainSources
         _ * testSourceDirectory.empty >> noTestSources
         1 * fileResolver.resolveFilesAsTree("src/main/somelang") >> mainSourceDirectory
         _ * fileResolver.resolveFilesAsTree("src/test/somelang") >> testSourceDirectory
-
         delegateInvocation * delegate.generate()
 
         where:
@@ -72,5 +71,23 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         true          |    true       |  1
         true          |    false      |  1
         false         |    false      |  0
+    }
+
+    class TestLanguageLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+
+        TestLanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+                                                 TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
+            super(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        }
+
+        @Override
+        void generate(BuildInitTestFramework testFramework) {
+
+        }
+
+        @Override
+        boolean supports(BuildInitTestFramework testFramework) {
+            return false
+        }
     }
 }

@@ -21,30 +21,73 @@ import spock.lang.Specification
 
 class InstanceOptionDescriptorSpec extends Specification{
 
-    OptionElement delegate = Mock(OptionElement)
-
-    def setup(){
-        _ * delegate.getOptionType() >> String.class
-        _ * delegate.getAvailableValues() >> new ArrayList<String>()
-        _ * delegate.getOptionName() >> "someOption"
-    }
+    OptionElement optionElement = optionElement("someOption")
 
     def testGetAvailableValuesWithNoDefaults() {
+        given:
+        optionElement.getAvailableValues() >> []
+
         when:
-        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate)
+        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), optionElement)
+
         then:
-        descriptor.getAvailableValues() == []
+        descriptor.getAvailableValues() == [] as Set
     }
 
     def getAvailableValuesCallsWhenOptionValueMethodAvailable() {
-        setup:
+        given:
         JavaMethod<Object, Collection> optionValueMethod = Mock(JavaMethod)
+
         when:
-        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate, optionValueMethod)
-        List<String> values = descriptor.getAvailableValues()
+        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), optionElement, optionValueMethod)
+        def values = descriptor.getAvailableValues()
+
         then:
-        values == ["dynValue1", "dynValue2"]
+        values == ["dynValue1", "dynValue2"] as Set
         1 * optionValueMethod.invoke(_,_) >> ["dynValue1", "dynValue2"]
+    }
+
+    def "should sort alphabetically by name by default"() {
+        given:
+        InstanceOptionDescriptor optionC = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionC"))
+        InstanceOptionDescriptor optionA = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionA"))
+        InstanceOptionDescriptor optionB = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionB"))
+        def descriptors = Arrays.asList(optionC, optionA, optionB)
+
+        when:
+        Collections.sort(descriptors)
+
+        then:
+        descriptors[0].name == "optionA"
+        descriptors[1].name == "optionB"
+        descriptors[2].name == "optionC"
+    }
+
+    def "should sort by custom order if specified"() {
+        given:
+        InstanceOptionDescriptor optionA1 = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionA", 1))
+        InstanceOptionDescriptor optionB0 = new InstanceOptionDescriptor(new SomeClass(), optionElement("optionB", 0))
+        def descriptors = Arrays.asList(optionA1, optionB0)
+
+        when:
+        Collections.sort(descriptors)
+
+        then:
+        descriptors[0].name == "optionB"
+        descriptors[1].name == "optionA"
+    }
+
+    def optionElement(String name) {
+        optionElement(name, 0)
+    }
+
+    def optionElement(String name, int order) {
+        OptionElement optionElement = Mock(OptionElement)
+        optionElement.getOptionName() >> name
+        optionElement.getOptionType() >> String.class
+        optionElement.getAvailableValues() >> []
+        optionElement.getOrder() >> order
+        optionElement
     }
 
     public class SomeClass {

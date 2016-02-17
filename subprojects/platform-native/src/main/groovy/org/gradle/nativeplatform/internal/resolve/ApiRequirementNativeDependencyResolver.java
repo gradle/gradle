@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 
@@ -26,11 +26,14 @@ import org.gradle.nativeplatform.NativeLibraryRequirement;
  */
 public class ApiRequirementNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public ApiRequirementNativeDependencyResolver(NativeDependencyResolver delegate) {
+    public ApiRequirementNativeDependencyResolver(NativeDependencyResolver delegate, FileCollectionFactory fileCollectionFactory) {
         this.delegate = delegate;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
             String linkage = getLinkage(resolution);
@@ -46,7 +49,7 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
                 ApiAdaptedNativeLibraryRequirement adaptedRequirement = (ApiAdaptedNativeLibraryRequirement) resolution.getRequirement();
                 resolution.setRequirement(adaptedRequirement.getOriginal());
 //                resolution.setLibraryBinary(null);
-                resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet()));
+                resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet(), fileCollectionFactory));
             }
         }
     }
@@ -68,14 +71,17 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
             return original;
         }
 
+        @Override
         public String getProjectPath() {
             return original.getProjectPath();
         }
 
+        @Override
         public String getLibraryName() {
             return original.getLibraryName();
         }
 
+        @Override
         public String getLinkage() {
             // Rely on the default linkage for providing the headers
             return null;
@@ -84,21 +90,26 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
 
     private static class ApiNativeDependencySet implements NativeDependencySet {
         private final NativeDependencySet delegate;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        public ApiNativeDependencySet(NativeDependencySet delegate) {
+        public ApiNativeDependencySet(NativeDependencySet delegate, FileCollectionFactory fileCollectionFactory) {
             this.delegate = delegate;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
+        @Override
         public FileCollection getIncludeRoots() {
             return delegate.getIncludeRoots();
         }
 
+        @Override
         public FileCollection getLinkFiles() {
-            return new SimpleFileCollection();
+            return fileCollectionFactory.empty(delegate.getLinkFiles().toString());
         }
 
+        @Override
         public FileCollection getRuntimeFiles() {
-            return new SimpleFileCollection();
+            return fileCollectionFactory.empty(delegate.getRuntimeFiles().toString());
         }
     }
 }

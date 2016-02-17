@@ -16,19 +16,16 @@
 package org.gradle.nativeplatform.test.cunit
 
 import org.gradle.api.reporting.components.AbstractNativeComponentReportIntegrationTest
-import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class CUnitComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
-    private String currentNative = NativePlatformsTestFixture.defaultPlatformName
-
     @RequiresInstalledToolChain
-    def "shows details of native C executable with test suite"() {
+    def "fails with a reasonable error if component under test is not specified"() {
         given:
         buildFile << """
 plugins {
     id 'c'
-    id 'cunit'
+    id 'cunit-test-suite'
 }
 
 model {
@@ -37,6 +34,39 @@ model {
     }
     components {
         someExe(NativeExecutableSpec)
+    }
+    testSuites {
+        someExeTest(CUnitTestSuiteSpec)
+    }
+}
+"""
+        when:
+        fails "components"
+
+        then:
+        errorOutput.contains "Test suite 'someExeTest' doesn't declare component under test. Please specify it with `testing \$.components.myComponent`."
+    }
+
+    @RequiresInstalledToolChain
+    def "shows details of native C executable with test suite"() {
+        given:
+        buildFile << """
+plugins {
+    id 'c'
+    id 'cunit-test-suite'
+}
+
+model {
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+    components {
+        someExe(NativeExecutableSpec)
+    }
+    testSuites {
+        someExeTest(CUnitTestSuiteSpec) {
+            testing \$.components.someExe
+        }
     }
 }
 """
@@ -56,9 +86,9 @@ Binaries
     Executable 'someExe:executable'
         build using task: :someExeExecutable
         install using task: :installSomeExeExecutable
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/exe/someExe/someExe
 
@@ -76,9 +106,9 @@ Binaries
         build using task: :someExeTestCUnitExe
         install using task: :installSomeExeTestCUnitExe
         run using task: :runSomeExeTestCUnitExe
-        buildType: build type 'debug'
+        build type: build type 'debug'
         flavor: flavor 'default'
-        targetPlatform: platform '$currentNative'
+        target platform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/exe/someExeTest/someExeTest
 """

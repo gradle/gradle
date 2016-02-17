@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.CachingFileVisitDetails;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -68,7 +68,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         this.directoryWalkerFactory = directoryWalkerFactory;
     }
 
-
     public String getDisplayName() {
         String includes = patternSet.getIncludes().isEmpty() ? "" : String.format(" include %s", GUtil.toString(patternSet.getIncludes()));
         String excludes = patternSet.getExcludes().isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(patternSet.getExcludes()));
@@ -107,40 +106,44 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         builder.add(this);
     }
 
-    /**
-     * Process the specified file or directory.  Note that the startFile parameter
-     * may be either a directory or a file.  If it is a directory, then its contents
-     * (but not the directory itself) will be checked with isAllowed and notified to
-     * the listener.  If it is a file, the file will be checked and notified.
-     */
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
     public void visit(FileVisitor visitor) {
         visitFrom(visitor, dir, new RelativePath(false));
     }
 
-    public void visitFrom(FileVisitor visitor, File dir, RelativePath path) {
+    /**
+     * Process the specified file or directory.  If it is a directory, then its contents
+     * (but not the directory itself) will be checked with {@link #isAllowed(FileTreeElement, Spec)} and notified to
+     * the listener.  If it is a file, the file will be checked and notified.
+     */
+    public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path) {
         AtomicBoolean stopFlag = new AtomicBoolean();
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
-        if (dir.exists()) {
-            if (dir.isFile()) {
-                processSingleFile(dir, visitor, spec, stopFlag);
+        if (fileOrDirectory.exists()) {
+            if (fileOrDirectory.isFile()) {
+                processSingleFile(fileOrDirectory, visitor, spec, stopFlag);
             } else {
-                walkDir(dir, path, visitor, spec, stopFlag);
+                walkDir(fileOrDirectory, path, visitor, spec, stopFlag);
             }
         } else {
-            LOGGER.info("file or directory '{}', not found", dir);
+            LOGGER.info("file or directory '{}', not found", fileOrDirectory);
         }
     }
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = new CachingFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem, false);
+        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem, false);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }
     }
 
     private void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
-        directoryWalkerFactory.create().walkDir(file, path, visitor, spec, stopFlag, fileSystem, postfix);
+        directoryWalkerFactory.create().walkDir(file, path, visitor, spec, stopFlag, postfix);
     }
 
     static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {

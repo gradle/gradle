@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrat
 class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {
-        return "minifyPlayBinaryJavaScript"
+        return "minifyPlayBinaryPlayJavaScript"
     }
 
     @Override

@@ -17,10 +17,8 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -31,19 +29,21 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements NativeLibraryBinary {
+public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final NativePlatform targetPlatform;
     private final Flavor flavor;
+    protected final FileCollectionFactory fileCollectionFactory;
 
-    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor) {
+    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         this.name = name;
         this.library = library;
         this.buildType = buildType;
         this.targetPlatform = targetPlatform;
         this.flavor = flavor;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -59,47 +59,53 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
         return library;
     }
 
+    @Override
     public BuildType getBuildType() {
         return buildType;
     }
 
+    @Override
     public Flavor getFlavor() {
         return flavor;
     }
 
+    @Override
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
+    @Override
     public FileCollection getHeaderDirs() {
-        return new SimpleFileCollection(library.getHeaders().getSrcDirs());
+        return fileCollectionFactory.fixed("Headers for " + getDisplayName(), library.getHeaders().getSrcDirs());
     }
 
-    protected FileCollection createFileCollection(File file, String fileDescription) {
-        return new FileCollectionAdapter(new ValidatingFileSet(file, getComponent().getName(), fileDescription));
+    protected FileCollection createFileCollection(File file, String fileCollectionDisplayName, String fileDescription) {
+        return fileCollectionFactory.create(new ValidatingFileSet(file, fileCollectionDisplayName, fileDescription));
     }
 
-    private static class ValidatingFileSet implements MinimalFileSet {
+    private class ValidatingFileSet implements MinimalFileSet {
         private final File file;
-        private final String libraryName;
+        private final String fileCollectionDisplayName;
         private final String fileDescription;
 
-        private ValidatingFileSet(File file, String libraryName, String fileDescription) {
+        private ValidatingFileSet(File file, String fileCollectionDisplayName, String fileDescription) {
             this.file = file;
-            this.libraryName = libraryName;
+            this.fileCollectionDisplayName = fileCollectionDisplayName;
             this.fileDescription = fileDescription;
         }
 
+        @Override
         public String getDisplayName() {
-            return String.format("%s for prebuilt library '%s'", fileDescription, libraryName);
+            return fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
         }
 
+        @Override
         public Set<File> getFiles() {
             if (file == null) {
-                throw new PrebuiltLibraryResolveException(String.format("%s not set for prebuilt library '%s'.", fileDescription, libraryName));
+                throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));
             }
             if (!file.exists() || !file.isFile()) {
-                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for prebuilt library '%s'.", fileDescription, file.getAbsolutePath(), libraryName));
+                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for %s.", fileDescription, file.getAbsolutePath(), AbstractPrebuiltLibraryBinary.this.getDisplayName()));
             }
             return Collections.singleton(file);
         }

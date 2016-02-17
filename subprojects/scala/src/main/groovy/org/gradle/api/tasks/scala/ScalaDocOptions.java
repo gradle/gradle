@@ -15,11 +15,11 @@
  */
 package org.gradle.api.tasks.scala;
 
-import com.google.common.base.Joiner;
-import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.compile.AbstractOptions;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -194,7 +194,7 @@ public class ScalaDocOptions extends AbstractOptions {
     @Override
     protected String getAntPropertyName(String fieldName) {
         if (fieldName.equals("additionalParameters")) {
-            return "addParams";
+            return "addparams";
         }
         return fieldName;
     }
@@ -208,7 +208,7 @@ public class ScalaDocOptions extends AbstractOptions {
             return toOnOffString(unchecked);
         }
         if (fieldName.equals("additionalParameters")) {
-            return additionalParameters.isEmpty() ? ' ' : Joiner.on(' ').join(additionalParameters);
+            return CollectionUtils.asCommandLine(getAdditionalParameters());
         }
         return value;
     }

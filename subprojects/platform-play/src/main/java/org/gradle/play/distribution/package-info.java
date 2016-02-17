@@ -17,4 +17,5 @@
 /**
  * Classes related to creating a Play distribution.
  */
+@org.gradle.api.Incubating
 package org.gradle.play.distribution;

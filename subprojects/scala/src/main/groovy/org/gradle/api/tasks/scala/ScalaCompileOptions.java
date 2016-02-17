@@ -18,6 +18,8 @@ package org.gradle.api.tasks.scala;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * Options for Scala compilation, including the use of the Ant-backed compiler.
@@ -34,9 +36,9 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             .put("additionalParameters", "addparams")
             .build();
 
-    private boolean fork;
+    private boolean fork = true;
 
-    private boolean useAnt = true;
+    private boolean useAnt;
 
     private boolean useCompileDaemon;
 
@@ -52,7 +54,12 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return useAnt;
     }
 
+
+    @Deprecated
     public void setUseAnt(boolean useAnt) {
+        SingleMessageLogger.nagUserOfDeprecated("useAnt",
+            "The Ant-Based Scala compiler is deprecated, please see "
+            + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.useAnt = useAnt;
         if (!useAnt) {
             setFork(true);
@@ -125,10 +132,10 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return toOnOffString(isOptimize());
         }
         if (fieldName.equals("loggingPhases")) {
-            return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
+            return Joiner.on(",").join(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(getAdditionalParameters());
+            return CollectionUtils.asCommandLine(getAdditionalParameters());
         }
         return value;
     }

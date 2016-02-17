@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -562,5 +563,81 @@ dependencies {
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.isEmpty()
+    }
+
+    @Test
+    @Issue("GRADLE-1945")
+    void unresolvedDependenciesAreLogged() {
+        //given
+        def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
+        module.publish()
+
+        //when
+        ExecutionResult result = runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations {
+    myPlusConfig
+    myMinusConfig
+}
+
+dependencies {
+    myPlusConfig group: 'myGroup', name: 'missing-extra-artifact', version: '1.0'
+    myPlusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    myMinusConfig group: 'myGroup', name: 'filtered-artifact', version: '1.0'
+    runtime  group: 'myGroup', name: 'missing-artifact', version: '1.0'
+    compile  group: 'myGroup', name: 'existing-artifact', version: '1.0'
+
+    idea {
+        module {
+            scopes.COMPILE.plus += [ configurations.myPlusConfig ]
+            scopes.COMPILE.minus += [ configurations.myMinusConfig ]
+        }
+    }
+}
+"""
+        String expected = """:ideaModule
+Could not resolve: myGroup:missing-artifact:1.0
+Could not resolve: myGroup:missing-extra-artifact:1.0
+:ideaProject
+:ideaWorkspace
+:idea
+"""
+        result.assertOutputEquals(expected, true, false)
+    }
+
+    @Test
+    void "compile only dependencies handled correctly"() {
+        // given
+        def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared).publish()
+
+        // when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile 'org.gradle.test:compile:1.0'
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'shared-1.0.jar')
+        dependencies.assertHasLibrary('COMPILE', 'compile-1.0.jar')
+        dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
     }
 }

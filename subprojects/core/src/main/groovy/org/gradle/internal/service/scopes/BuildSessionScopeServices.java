@@ -22,11 +22,9 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.DefaultCacheScopeMapping;
+import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
@@ -38,9 +36,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
-import org.gradle.util.GradleVersion;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -59,40 +57,33 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             }
         });
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
+        addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
     }
 
     DeploymentRegistry createDeploymentRegistry() {
         return new DefaultDeploymentRegistry();
     }
 
-    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                                       FileResolver fileResolver) {
+    Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
+                                                             TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
             classPathRegistry,
-            fileResolver,
             new LongIdGenerator(),
-            startParameter.getGradleUserHomeDir());
+            startParameter.getGradleUserHomeDir(),
+            temporaryFileProvider,
+            execHandleFactory);
     }
 
-    protected CacheRepository createCacheRepository() {
-        CacheFactory factory = get(CacheFactory.class);
-        StartParameter startParameter = get(StartParameter.class);
-        DefaultCacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(), GradleVersion.current());
-        return new DefaultCacheRepository(
-            scopeMapping,
-            factory);
-    }
-
-    protected ClassPathRegistry createClassPathRegistry() {
+    ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
-            new DefaultClassPathProvider(get(ModuleRegistry.class)),
-            get(WorkerProcessClassPathProvider.class)
+                new DefaultClassPathProvider(get(ModuleRegistry.class)),
+                get(WorkerProcessClassPathProvider.class)
         );
     }
 
-    protected WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
+    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
     }
 }

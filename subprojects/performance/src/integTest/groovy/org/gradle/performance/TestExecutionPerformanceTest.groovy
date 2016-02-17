@@ -32,7 +32,7 @@ class TestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', 'last']
+        runner.targetVersions = ['1.0', '2.0', '2.10', '2.11', 'last']
         runner.useDaemon = true
 
         when:

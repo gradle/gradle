@@ -33,6 +33,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory, Stoppable {
         this.clientsManager = clientsManager;
     }
 
+    @Override
     public CompilerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
         return new CompilerDaemon() {
             public <T extends CompileSpec> CompileResult execute(org.gradle.language.base.internal.compile.Compiler<T> compiler, T spec) {
@@ -49,6 +50,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory, Stoppable {
         };
     }
 
+    @Override
     public void stop() {
         clientsManager.stop();
     }

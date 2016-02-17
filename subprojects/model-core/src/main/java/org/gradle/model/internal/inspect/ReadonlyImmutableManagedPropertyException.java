@@ -17,13 +17,11 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.model.internal.type.ModelType;
 
 /**
  * Thrown when a managed model has a read-only (immutable) value type. e.g java.lang.String
  */
-@Incubating
 public class ReadonlyImmutableManagedPropertyException extends GradleException {
 
     public ReadonlyImmutableManagedPropertyException(ModelType<?> managedModelType, String name, ModelType<?> propertyType) {

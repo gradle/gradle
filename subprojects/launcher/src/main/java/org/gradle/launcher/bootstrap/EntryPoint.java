@@ -34,7 +34,7 @@ import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
  * by subclasses as they define our entry point behaviour, but they are protected to enable
  * testing as it's difficult to test something that will call System.exit().
  */
-abstract public class EntryPoint {
+public abstract class EntryPoint {
 
     /**
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.

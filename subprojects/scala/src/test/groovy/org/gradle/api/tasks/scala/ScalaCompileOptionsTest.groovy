@@ -15,130 +15,109 @@
  */
 package org.gradle.api.tasks.scala
 
-import org.junit.Before
-import org.junit.Test
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.*
+import spock.lang.Unroll
 
-class ScalaCompileOptionsTest {
+class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
 
-    private ScalaCompileOptions compileOptions
-
-    @Before void setUp() {
-        compileOptions = new ScalaCompileOptions()
+    @Override
+    ScalaCompileOptions newTestObject() {
+        return new ScalaCompileOptions()
     }
 
-    @Test void testOptionMapDoesNotContainCompileDaemon() {
-        String antProperty = 'useCompileDaemon'
-        assertFalse(compileOptions.useCompileDaemon)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.useCompileDaemon = true
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
+    @Override
+    List<Map<String, String>> stringProperties() {
+        [
+                [fieldName: 'daemonServer', antProperty: 'server', defaultValue: null, testValue: 'host:9000'],
+                [fieldName: 'encoding', antProperty: 'encoding', defaultValue: null, testValue: 'utf8'],
+                [fieldName: 'debugLevel', antProperty: 'debuginfo', defaultValue: null, testValue: 'line'],
+                [fieldName: 'loggingLevel', antProperty: 'logging', defaultValue: null, testValue: 'verbose']
+        ]
     }
 
-    @Test void testOptionMapContainsDaemonServerIfSpecified() {
-        assertSimpleStringValue('daemonServer', 'server', null, 'host:9000')
+    @Override
+    List<Map<String, String>> onOffProperties() {
+        [
+                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
+                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
+        ]
     }
 
-    @Test void testOptionMapContainsFailOnError() {
-        assertBooleanValue('failOnError', 'failOnError', true)
+    @Override
+    List<Map<String, String>> listProperties() {
+        [
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: [], expected: ''],
+                [fieldName: 'loggingPhases', antProperty: 'logphase', args: ['pickler', 'tailcalls'], expected: 'pickler,tailcalls'],
+                [fieldName: 'loggingPhases', antProperty: 'logphase', args: [], expected: '']
+        ]
     }
 
-    @Test void testOptionMapContainsDeprecation() {
-        assertOnOffValue('deprecation', 'deprecation', true)
+    /* TODO(pepper): Figure out what to do instead.*/
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def setup() {
+        testObject.useAnt = true;
+        testObject.fork = false;
     }
 
-    @Test void testOptionMapContainsUnchecked() {
-        assertOnOffValue('unchecked', 'unchecked', true)
+    @Unroll("Boolean #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "boolean values"(Map<String, String> fixture) {
+        given:
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
+
+        when:
+        testObject."${fixture.fieldName}" = true
+        then:
+        value(fixture.antProperty) as String == 'true'
+
+        when:
+        testObject."${fixture.fieldName}" = false
+        then:
+        value(fixture.antProperty) as String == 'false'
+
+        where:
+        fixture << [
+                [fieldName: 'failOnError', antProperty: 'failOnError', defaultValue: true],
+                [fieldName: 'force', antProperty: 'force', defaultValue: false],
+                [fieldName: 'listFiles', antProperty: 'scalacdebugging', defaultValue: false]
+        ]
     }
 
-    @Test void testOptionMapContainsDebugLevelIfSpecified() {
-        assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
+    def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
+        setup:
+        testObject.useCompileDaemon = compileDaemonIsEnabled
+        expect:
+        doesNotContain('useCompileDaemon')
+        where:
+        compileDaemonIsEnabled << [true, false]
     }
 
-    @Test void testOptionMapContainsOptimize() {
-        assertFalse(compileOptions.optionMap().containsKey('optimise'))
-
-        compileOptions.optimize = true
-        assertThat(compileOptions.optionMap()['optimise'], equalTo('on'))
+    def "optionMap contains optimise when set"() {
+        given:
+        assert doesNotContain('optimise')
+        when:
+        testObject.optimize = true
+        then:
+        value('optimise') == 'on'
     }
 
-    @Test void testOptionMapContainsEncodingIfSpecified() {
-        assertSimpleStringValue('encoding', 'encoding', null, 'utf8')
+    def "testOptionMapDoesNotContainTargetCompatibility"() {
+        expect:
+        value("target") == null
     }
 
-    @Test void testOptionMapContainsForce() {
-        assertSimpleStringValue('force', 'force', 'never', 'changed')
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "disabling UseAnt enables Fork"() {
+        given:
+        assert !testObject.fork
+        when:
+        testObject.useAnt = false
+        then:
+        testObject.fork == true
     }
 
-    @Test void testOptionMapDoesNotContainTargetCompatibility() {
-        assert !compileOptions.optionMap().containsKey("target")
-    }
-
-    @Test void testOptionMapContainsValuesForAdditionalParameters() {
-        String antProperty = 'addparams'
-        assertNull(compileOptions.additionalParameters)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.additionalParameters = ['-opt1', '-opt2']
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('-opt1 -opt2' as String))
-    }
-
-    @Test void testOptionMapContainsListFiles() {
-        assertBooleanValue('listFiles', 'scalacdebugging', false)
-    }
-
-    @Test void testOptionMapContainsLoggingLevelIfSpecified() {
-        assertSimpleStringValue('loggingLevel', 'logging', null, 'verbose')
-    }
-
-    @Test void testOptionMapContainsValueForLoggingPhase() {
-        String antProperty = 'logphase'
-        Map optionMap = compileOptions.optionMap()
-        assertFalse(optionMap.containsKey(antProperty))
-
-        compileOptions.loggingPhases = ['pickler', 'tailcalls']
-        optionMap = compileOptions.optionMap()
-        assertThat(optionMap[antProperty] as String, equalTo('pickler,tailcalls' as String))
-    }
-
-    @Test void disablingUseAntEnablesFork() {
-        assert !compileOptions.fork
-
-        compileOptions.useAnt = false
-        assert compileOptions.fork
-    }
-
-    private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
-        assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('true'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('false'))
-    }
-
-    private assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
-        assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('on'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('off'))
-    }
-
-    private assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
-        assertThat(compileOptions."${fieldName}" as String, equalTo(defaultValue))
-        if (defaultValue == null) {
-            assertFalse(compileOptions.optionMap().containsKey(antProperty))
-        } else {
-            assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(defaultValue))
-        }
-        compileOptions."${fieldName}" = testValue
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(testValue))
-    }
 
 }

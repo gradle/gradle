@@ -26,8 +26,10 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        ${PLAY_REPOSITORES}
+        ${PLAY_REPOSITORIES}
     """
+
+    def twirlOutputDir = "build/src/play/binary/twirlTemplatesScalaSources"
 
     def setup() {
         settingsFile << """ rootProject.name = 'twirl-play-app' """
@@ -41,20 +43,20 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":compilePlayBinaryTwirlTemplates", ":compilePlayBinaryScala")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
         withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":compilePlayBinaryTwirlTemplates", ":compilePlayBinaryScala")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
     }
 
     def "changing between twirl-compatible versions of play does NOT cause Twirl to recompile" () {
@@ -65,17 +67,17 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "playBinary"
 
         then:
-        executedAndNotSkipped(":compilePlayBinaryTwirlTemplates", ":compilePlayBinaryScala")
+        executedAndNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
 
         and:
-        file("build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html/index.template.scala").exists()
+        file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
         withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         succeeds "playBinary"
 
         then:
-        skipped(":compilePlayBinaryTwirlTemplates")
+        skipped(":compilePlayBinaryPlayTwirlTemplates")
         executedAndNotSkipped(":compilePlayBinaryScala")
     }
 

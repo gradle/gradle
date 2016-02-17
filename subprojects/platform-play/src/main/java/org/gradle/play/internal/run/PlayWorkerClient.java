@@ -26,6 +26,7 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
     private final BlockingQueue<PlayAppLifecycleUpdate> startEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
     private final BlockingQueue<PlayAppLifecycleUpdate> stopEvent = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
+    @Override
     public void update(PlayAppLifecycleUpdate update) {
         try {
             if (update.isStopped()) {

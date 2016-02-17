@@ -47,6 +47,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
         this.invocationContext = invocationContext;
     }
 
+    @Override
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
@@ -71,6 +72,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     }
 
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
             List<String> args = new ArrayList<String>();
             // -r : Add files to static archive, creating if required

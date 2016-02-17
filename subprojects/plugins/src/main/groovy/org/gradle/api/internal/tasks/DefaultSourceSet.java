@@ -20,8 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
@@ -41,22 +40,22 @@ public class DefaultSourceSet implements SourceSet {
     private final ClassDirectoryBinaryNamingScheme namingScheme;
     private DefaultSourceSetOutput output;
 
-    public DefaultSourceSet(String name, FileResolver fileResolver) {
+    public DefaultSourceSet(String name, SourceDirectorySetFactory sourceDirectorySetFactory) {
         this.name = name;
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 
         String javaSrcDisplayName = String.format("%s Java source", displayName);
 
-        javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
+        javaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);
         javaSource.getFilter().include("**/*.java");
 
-        allJavaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
+        allJavaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);
         allJavaSource.getFilter().include("**/*.java");
         allJavaSource.source(javaSource);
 
         String resourcesDisplayName = String.format("%s resources", displayName);
-        resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
+        resources = sourceDirectorySetFactory.create(resourcesDisplayName);
         resources.getFilter().exclude(new Spec<FileTreeElement>() {
             public boolean isSatisfiedBy(FileTreeElement element) {
                 return javaSource.contains(element.getFile());
@@ -64,7 +63,7 @@ public class DefaultSourceSet implements SourceSet {
         });
 
         String allSourceDisplayName = String.format("%s source", displayName);
-        allSource = new DefaultSourceDirectorySet(allSourceDisplayName, fileResolver);
+        allSource = sourceDirectorySetFactory.create(allSourceDisplayName);
         allSource.source(resources);
         allSource.source(javaSource);
     }
@@ -116,6 +115,10 @@ public class DefaultSourceSet implements SourceSet {
 
     public String getRuntimeConfigurationName() {
         return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName()));
+    }
+
+    public String getCompileOnlyConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sCompileOnly", getTaskBaseName()));
     }
 
     public SourceSetOutput getOutput() {

@@ -30,57 +30,71 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private String sourceCompatibility;
     private String targetCompatibility;
 
+    @Override
     public File getWorkingDir() {
         return workingDir;
     }
 
+    @Override
     public void setWorkingDir(File workingDir) {
         this.workingDir = workingDir;
     }
 
+    @Override
     public File getDestinationDir() {
         return destinationDir;
     }
+    @Override
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
+    @Override
     public File getTempDir() {
         return tempDir;
     }
 
+    @Override
     public void setTempDir(File tempDir) {
         this.tempDir = tempDir;
     }
 
+    @Override
     public FileCollection getSource() {
         return source;
     }
 
+    @Override
     public void setSource(FileCollection source) {
         this.source = source;
     }
 
+    @Override
     public Iterable<File> getClasspath() {
         return classpath;
     }
 
+    @Override
     public void setClasspath(Iterable<File> classpath) {
         this.classpath = classpath;
     }
 
+    @Override
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
 
+    @Override
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
     }
 
+    @Override
     public String getTargetCompatibility() {
         return targetCompatibility;
     }
 
+    @Override
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
     }

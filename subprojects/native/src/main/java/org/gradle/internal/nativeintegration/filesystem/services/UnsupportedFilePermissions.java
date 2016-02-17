@@ -31,11 +31,13 @@ public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMut
     private final FallbackStat stat = new FallbackStat();
     private final EmptyChmod chmod = new EmptyChmod();
 
+    @Override
     public int getUnixMode(File f) throws IOException {
         maybeWarn();
         return stat.getUnixMode(f);
     }
 
+    @Override
     public void chmod(File file, int mode) throws Exception {
         maybeWarn();
         chmod.chmod(file, mode);

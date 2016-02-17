@@ -17,67 +17,55 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
-import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
+@NonCrossVersion
+@NoDebug
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTest {
+
+    public static final String VERSION = "2.10"
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    def "execute build with different distribution types"(Action<GradleRunner> configurer) {
+    def "execute build with different distribution types"(String version, Action<GradleRunner> configurer) {
         given:
-        buildFile << helloWorldTaskWithLoggerOutput()
+        requireIsolatedTestKitDir = true
+        buildFile << """
+            task writeVersion << {
+                file("version.txt").with {
+                    createNewFile()
+                    text = gradle.gradleVersion
+                }
+            }
+        """
 
         when:
-        def runner = runner('helloWorld')
+        def runner = runner('writeVersion')
         configurer.execute(runner)
-        def result = runner.build()
+        runner.build()
 
         then:
-        result.taskPaths(SUCCESS) == [':helloWorld']
+        file("version.txt").text == version
 
         where:
-        configurer << [
-            { it.withGradleInstallation(buildContext.gradleHomeDir) },
-            { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))) },
-            { it.withGradleVersion("2.7") }
-        ]
+        version                      | configurer
+        buildContext.version.version | { it.withGradleInstallation(buildContext.gradleHomeDir) }
+        VERSION                      | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(VERSION))) }
+        VERSION                      | { it.withGradleVersion(VERSION) }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "execute build for multiple Gradle versions of the same distribution type"() {
-        given:
-        buildFile << helloWorldTaskWithLoggerOutput()
-
-        when:
-        def result = runner('helloWorld')
-            .withGradleVersion(gradleVersion)
-            .build()
-
-        then:
-        result.taskPaths(SUCCESS) == [':helloWorld']
-
-        where:
-        gradleVersion << ['2.6', '2.7']
-    }
-
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "distributions are not stored in the test kit dir"() {
         given:
         requireIsolatedTestKitDir = true
 
-        def version = "2.6"
         buildFile << '''task v << {
             file("gradleVersion.txt").text = gradle.gradleVersion
             file("gradleHomeDir.txt").text = gradle.gradleHomeDir.canonicalPath
@@ -85,58 +73,20 @@ class GradleRunnerGradleVersionIntegrationTest extends AbstractGradleRunnerInteg
 
         when:
         runner('v')
-            .withGradleVersion(version)
+            .withGradleVersion(VERSION)
             .build()
 
         then:
-        file("gradleVersion.txt").text == version
+        file("gradleVersion.txt").text == VERSION
 
-        // Note: GradleRunnerIntegTestRunner configures the test env to use this gradle user home dir
-        file("gradleHomeDir.txt").text.startsWith(new IntegrationTestBuildContext().gradleUserHomeDir.absolutePath)
+        and:
+        // Note: AbstractGradleRunnerIntegTest configures the test env to use this gradle user home dir
+        file("gradleHomeDir.txt").text.startsWith(buildContext.gradleUserHomeDir.absolutePath)
 
+        and:
         testKitDir.eachFileRecurse {
-            assert !it.name.contains("gradle-$version-bin.zip")
-        }
-
-        cleanup:
-        if (!GradleRunnerIntegTestRunner.debug) {
-            DaemonsFixture gradleVersionUnderTest = daemons(testKitDir, ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME, version)
-            gradleVersionUnderTest.killAll()
+            assert !it.name.contains("gradle-$VERSION-bin.zip")
         }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    def "fails a build that uses unsupported APIs for a Gradle version"() {
-        given:
-        buildFile << """
-            configurations {
-                functionalTestCompile
-            }
-
-            dependencies {
-                // method was introduced in Gradle 2.6
-                functionalTestCompile gradleTestKit()
-            }
-        """
-
-        when:
-        def result = runner('dependencies')
-            .withGradleVersion("2.5")
-            .buildAndFail()
-
-        then:
-        result.output.contains("Could not find method gradleTestKit() for arguments [] on root project '$rootProjectName'")
-    }
-
-    static String helloWorldTaskWithLoggerOutput() {
-        """
-            task helloWorld {
-                doLast {
-                    // standard output wasn't parsed properly for pre-2.8 Gradle versions in embedded mode
-                    // using the Gradle logger instead
-                    logger.quiet 'Hello world!'
-                }
-            }
-        """
-    }
 }

@@ -28,10 +28,6 @@ integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
 }
 
-integTest {
-    jvmArgs "-XX:MaxPermSize=500m"
-}
-
 forkingIntegTest {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
@@ -63,6 +59,8 @@ task jarjarJar(type: JarJarJar) {
 
     keep('org.gradle.tooling.**')
 }
+
+apply from: 'buildship.gradle'
 
 task publishJar(type: Zip) {
     appendix = "bundle"

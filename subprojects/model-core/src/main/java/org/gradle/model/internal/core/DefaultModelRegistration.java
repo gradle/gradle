@@ -16,57 +16,34 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-
-import java.util.Set;
 
 @ThreadSafe
 public class DefaultModelRegistration implements ModelRegistration {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
-    private final boolean service;
     private final boolean hidden;
-    private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
+    private final Multimap<ModelActionRole, ? extends ModelAction> actions;
 
-    public DefaultModelRegistration(
-        ModelPath path,
-        ModelRuleDescriptor descriptor,
-        boolean service,
-        boolean hidden,
-        Multimap<ModelActionRole, ? extends ModelAction> actions) {
-        this.path = path;
-        this.descriptor = descriptor;
-        this.service = service;
+    public DefaultModelRegistration(ModelPath path, ModelRuleDescriptor descriptor,
+                                    boolean hidden, Multimap<ModelActionRole, ? extends ModelAction> actions) {
+        this.path = Preconditions.checkNotNull(path, "path");
+        this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         this.hidden = hidden;
-        this.actions = ImmutableListMultimap.copyOf(actions);
+        this.actions = Preconditions.checkNotNull(actions, "actions");
     }
 
+    @Override
     public ModelPath getPath() {
         return path;
     }
 
     @Override
-    public ListMultimap<ModelActionRole, ? extends ModelAction> getActions() {
+    public Multimap<ModelActionRole, ? extends ModelAction> getActions() {
         return actions;
-    }
-
-    @Override
-    public Set<? extends ModelReference<?>> getInputs() {
-        final ImmutableSet.Builder<ModelReference<?>> builder = ImmutableSet.builder();
-        for (ModelAction action : actions.values()) {
-            builder.addAll(action.getInputs());
-        }
-        return builder.build();
-    }
-
-    @Override
-    public boolean isService() {
-        return service;
     }
 
     @Override

@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.tasks.api.internal;
 
-import com.google.common.collect.Sets;
-
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -26,6 +24,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.SortedSet;
 
+import static com.google.common.collect.Sets.newTreeSet;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -36,9 +35,9 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class ApiMemberSelector extends ClassVisitor {
 
-    private final SortedSet<MethodMember> methods = Sets.newTreeSet();
-    private final SortedSet<FieldMember> fields = Sets.newTreeSet();
-    private final SortedSet<InnerClassMember> innerClasses = Sets.newTreeSet();
+    private final SortedSet<MethodMember> methods = newTreeSet();
+    private final SortedSet<FieldMember> fields = newTreeSet();
+    private final SortedSet<InnerClassMember> innerClasses = newTreeSet();
 
     private final ClassVisitor apiMemberAdapter;
     private final boolean apiIncludesPackagePrivateMembers;
@@ -70,7 +69,7 @@ public class ApiMemberSelector extends ClassVisitor {
         for (MethodMember method : methods) {
             MethodVisitor mv = apiMemberAdapter.visitMethod(
                 method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
-                method.getExceptions().toArray(new String[method.getExceptions().size()]));
+                method.getExceptions().toArray(new String[0]));
             visitAnnotationMembers(mv, method.getAnnotations());
             visitAnnotationMembers(mv, method.getParameterAnnotations());
             mv.visitEnd();
@@ -201,7 +200,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (innerName == null) {
             return;
         }
-        if (isPackagePrivateMember(access) && !apiIncludesPackagePrivateMembers) {
+        if (!apiIncludesPackagePrivateMembers && isPackagePrivateMember(access)) {
             return;
         }
         innerClasses.add(new InnerClassMember(access, name, outerName, innerName));
@@ -209,9 +208,9 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
-        return  isPublicMember(access)
+        return isPublicMember(access)
             || isProtectedMember(access)
-            || (isPackagePrivateMember(access) && apiIncludesPackagePrivateMembers);
+            || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
     }
 
     private static boolean isPublicMember(int access) {

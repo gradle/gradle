@@ -25,10 +25,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.FileTreeWithBackingFile;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -42,14 +39,16 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithBackingFile {
+public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File zipFile;
     private final Chmod chmod;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
 
-    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod) {
+    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.zipFile = zipFile;
         this.chmod = chmod;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
         String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createCompactMD5(zipFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
@@ -59,7 +58,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public DirectoryFileTree getMirror() {
-        return new DirectoryFileTree(tmpDir);
+        return directoryFileTreeFactory.create(tmpDir);
     }
 
     public void visit(FileVisitor visitor) {
@@ -100,8 +99,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
-    @Override
-    public File getBackingFile() {
+    private File getBackingFile() {
         return zipFile;
     }
 
@@ -175,5 +173,15 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         builder.add(zipFile);
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        File backingFile = getBackingFile();
+        if (backingFile!=null) {
+            new SingletonFileTree(backingFile).visit(visitor);
+        } else {
+            visit(visitor);
+        }
     }
 }

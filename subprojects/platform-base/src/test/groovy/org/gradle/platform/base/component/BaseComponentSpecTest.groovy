@@ -20,10 +20,10 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import spock.lang.Specification
 
-class BaseComponentSpecTest extends Specification {
+class BaseComponentSpecTest extends PlatformBaseSpecification {
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
 
     def "cannot instantiate directly"() {
@@ -32,7 +32,7 @@ class BaseComponentSpecTest extends Specification {
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a ComponentTypeBuilder instead."
+        e.message == "Direct instantiation of a BaseComponentSpec is not permitted. Use a @ComponentType rule instead."
     }
 
     private <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType) {
@@ -74,17 +74,6 @@ class BaseComponentSpecTest extends Specification {
 
         then:
         component.sources as List == [lss1, lss2]
-    }
-
-    def "source property is the same as sources property"() {
-        when:
-        def component = create(SampleComponent, MySampleComponent)
-        def lss1 = languageSourceSet("lss1")
-        component.sources.put("lss1", lss1)
-
-        then:
-        component.source.values() == [lss1]
-        component.sources.values() == [lss1]
     }
 
     def languageSourceSet(String name) {

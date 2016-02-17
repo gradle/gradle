@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber
@@ -51,14 +52,11 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
             toolVersion = DEFAULT_PMD_VERSION
-            // NOTE: should change default rule set to java-basic once we bump default version to 5.0+
-            // this will also require a change to Pmd.run() (convert java-basic to basic for old versions,
-            // instead of basic to java-basic for new versions)
-            ruleSets = ["basic"]
+            ruleSets = ["java-basic"]
             ruleSetFiles = project.files()
         }
-        extension.getConventionMapping().with{
-            targetJdk = { getDefaultTargetJdk(project.sourceCompatibility) }
+        extension.getConventionMapping().with {
+            targetJdk = { getDefaultTargetJdk(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility) }
         }
         return extension
     }

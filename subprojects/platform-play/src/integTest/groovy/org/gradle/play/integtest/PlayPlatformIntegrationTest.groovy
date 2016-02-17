@@ -38,7 +38,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/stage/playBinary/lib").assertContainsDescendants(
-            "play_2.11-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
+            "com.typesafe.play-play_2.11-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
         )
     }
 
@@ -59,7 +59,7 @@ model {
 
         then:
         file("build/stage/playBinary/lib").assertContainsDescendants(
-                "play_${scalaPlatform}-${playVersion}.jar"
+                "com.typesafe.play-play_${scalaPlatform}-${playVersion}.jar"
         )
 
         where:
@@ -95,7 +95,7 @@ model {
 
         then:
         file("build/stage/playBinary/lib").assertContainsDescendants(
-            "play_${scalaPlatform}-${playVersion}.jar"
+            "com.typesafe.play-play_${scalaPlatform}-${playVersion}.jar"
         )
 
         where:

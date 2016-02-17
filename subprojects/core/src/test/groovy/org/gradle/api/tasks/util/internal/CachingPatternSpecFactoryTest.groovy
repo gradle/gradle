@@ -19,22 +19,14 @@ package org.gradle.api.tasks.util.internal
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.NotSpec
-import org.gradle.api.specs.OrSpec
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 
-
 class CachingPatternSpecFactoryTest extends Specification {
-    def "check that the PatternSpecFactory used in PatternSet class is the caching PatternSpecFactory"() {
-        expect:
-        PatternSet.PATTERN_SPEC_FACTORY.getClass() == CachingPatternSpecFactory
-    }
-
     def "check that Spec<FileTreeElement> instances added to include/exclude aren't cached"() {
         given:
-        assert PatternSet.PATTERN_SPEC_FACTORY.getClass() == CachingPatternSpecFactory
-        def patternSet = new PatternSet()
+        def patternSet = new PatternSet(new CachingPatternSpecFactory())
         boolean desiredResult = true
         def includeSpecClosure = { FileTreeElement e -> desiredResult } as Spec
         patternSet.include(includeSpecClosure)
@@ -63,24 +55,20 @@ class CachingPatternSpecFactoryTest extends Specification {
         then:
         !spec.isSatisfiedBy(fileTreeElement)
         expect:
-        spec.specs[0].specs[0].is(includeSpecClosure)
+        spec.specs[0].is(includeSpecClosure)
         spec.specs[1].sourceSpec.specs[1].is(excludeSpecClosure)
     }
 
     def "check that patterns are cached"() {
         given:
-        def patternSet = new PatternSet()
+        def patternSet = new PatternSet(new CachingPatternSpecFactory())
         patternSet.include("pattern")
         def spec = patternSet.getAsSpec()
         expect:
         spec instanceof AndSpec
         spec.specs.size() == 2
-        spec.specs[0] instanceof OrSpec
-        spec.specs[0].specs.size() == 1
-        spec.specs[0].specs[0] instanceof CachingPatternSpecFactory.CachingSpec
+        spec.specs[0] instanceof CachingPatternSpecFactory.CachingSpec
         spec.specs[1] instanceof NotSpec
-        spec.specs[1].sourceSpec instanceof OrSpec
-        spec.specs[1].sourceSpec.specs.size() == 1
-        spec.specs[1].sourceSpec.specs[0] instanceof CachingPatternSpecFactory.CachingSpec
+        spec.specs[1].sourceSpec instanceof CachingPatternSpecFactory.CachingSpec
     }
 }

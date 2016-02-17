@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 import java.util.List;
@@ -24,8 +23,7 @@ import java.util.List;
 /**
  * Defines Platform specific operations for ComponentSpecs
  */
-@Incubating
-public interface PlatformAwareComponentSpecInternal extends PlatformAwareComponentSpec, ComponentSpecInternal {
+public interface PlatformAwareComponentSpecInternal extends PlatformAwareComponentSpec, HasIntermediateOutputsComponentSpec {
     /**
      * Get the names of the targeted platforms that this component should be built for.
      *

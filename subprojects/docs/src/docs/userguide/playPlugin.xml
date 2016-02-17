@@ -211,7 +211,7 @@
                     <literal>dist</literal>
                 </td>
                 <td>
-                    <literal>createPlayBinaryDist</literal>
+                    <literal>createPlayBinaryZipDist</literal>, <literal>createPlayBinaryTarDist</literal>
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Assembles the Play distribution.</td>
@@ -282,7 +282,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compilePlayBinaryTwirlTemplates</literal>
+                    <literal>compilePlayBinaryPlayTwirlTemplates</literal>
                 </td>
                 <td>
                     Twirl HTML templates
@@ -292,7 +292,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compilePlayBinaryRoutes</literal>
+                    <literal>compilePlayBinaryPlayRoutes</literal>
                 </td>
                 <td>
                     Play Route files
@@ -454,7 +454,7 @@
             See the <filename>play/multiproject</filename> sample provided in the Gradle distribution for a working example.
         </para>
     </section>
-    <section>
+    <section id="packaging_play_distribution">
         <title>Packaging a Play application for distribution</title>
         <para>
             Gradle provides the capability to package your Play application so that it can easily be distributed and run in a target environment.
@@ -495,11 +495,19 @@
             </tr>
             <tr>
                 <td>
-                    <literal>createPlayBinaryDist</literal>
+                    <literal>createPlayBinaryZipDist</literal>
                 </td>
-                <td><literal>stagePlayBinaryDist</literal></td>
+                <td></td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
-                <td>Bundles the Play application as a distribution.</td>
+                <td>Bundles the Play application as a standalone distribution packaged as a zip.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>createPlayBinaryTarDist</literal>
+                </td>
+                <td></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Tar"/></td>
+                <td>Bundles the Play application as a standalone distribution packaged as a tar.</td>
             </tr>
             <tr>
                 <td>
@@ -513,12 +521,14 @@
                 <td>
                     <literal>dist</literal>
                 </td>
-                <td><literal>createPlayBinaryDist</literal></td>
+                <td>
+                    <literal>createPlayBinaryZipDist</literal>, <literal>createPlayBinaryTarDist</literal>
+                </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Lifecycle task for creating a Play distribution.</td>
             </tr>
         </table>
-        <section>
+        <section id="adding_files_to_play_distribution">
             <title>Adding additional files to your Play application distribution</title>
             <para>
                 You can add additional files to the distribution package using the <apilink class="org.gradle.api.distribution.Distribution"/> API.

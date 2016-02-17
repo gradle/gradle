@@ -217,8 +217,7 @@ Configure a `TestReport` task to always run after the `Test` task, and change th
 ### Problems
 
 * When a test class' test runner does not implement Filterable, gradle runs all the tests from that class, regardless of whether they were requested or not.
-* When a test's name does not exactly match the method name, gradle cannot run the test. Think Spock @Unroll, JUnits @RunWith(Parameterized.class) and similar.
-* When a test's suite name does not exactly match the class name, gradle doesn't show the tests correctly in the UI and we cannot rerun them.
+* When a test's name does not exactly match the method name, gradle cannot run the test. Think Spock @Unroll and similar.
 * Gradle generates empty test suites for all test classes that don't match, and generated test descriptors for them.
 * The 'could not find any matches' validation is not robust wrt things like #1 and so in this instance when you make a typo in your test request, we run exactly the wrong tests _and_ don't tell you about it.
 
@@ -237,6 +236,34 @@ However, the latter class is geared towards the JUnit model, where we receive no
 In TestNG, we only receive notification on entire suite start / end and then on each test method start / end.
 This means that with TestNG, the CaptureTestOutputTestResultProcessor is started only when the first test starts.
 We could possibly fix it by starting redirecting the output at suite start in the TestNG scenario.
+
+## Story: Adding support for TestNG's preserveOrder and groupByInstances options
+
+### Implementation plan
+
+Add options 'preserveOrder' and 'groupByInstances' to TestNGOptions. Both options should default to 'false'.
+Handling of these options has to be done in TestNGTestClassProcessor. Use reflection to call TestNG.setPreserveOrder(boolean)
+and TestNG.setGroupByInstances(boolean) to keep with TestNG versions not having these features implemented.
+Add documentation and samples for these options.
+
+### User visible changes
+
+The TestNGOptions closure will expose the new options
+
+    test {
+      useTestNG {
+        preserveOrder = true
+        groupByInstances = true
+      }
+    }
+    
+### Test coverage
+
+- Test default values of preserveOrder and groupByInstances
+- Test multiple tests are executed in the correct order when preserveOrder is set to true
+- Test multiple instances created by a test class factory are executed in the correct order when groupByInstances is set to true
+- Test error handling in case of preserveOrder option is set to true and TestNG version does not support preserving order (version <= 5.14.4)
+- Test error handling in case of groupByInstances option is set to true and TestNG version does not support grouping by instances (version <= 6.0.1)
 
 # Other issues
 

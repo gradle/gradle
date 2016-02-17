@@ -27,7 +27,7 @@ import java.util.List;
 public class CompositeMappingAction implements Action<SourceObjectMapping>, Serializable {
 
     public static class Builder {
-        private final ArrayList<Action<SourceObjectMapping>> mappings = new ArrayList<Action<SourceObjectMapping>>();
+        private final List<Action<SourceObjectMapping>> mappings = new ArrayList<Action<SourceObjectMapping>>();
 
         public Builder add(Action<SourceObjectMapping> mapping) {
             mappings.add(mapping);

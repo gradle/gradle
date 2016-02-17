@@ -32,7 +32,7 @@ class RealizableTaskCollectionTest extends Specification {
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceRegistration(taskPath, Mock(realizableType)))
+                it.addLinkInstance(taskPath, Mock(realizableType))
             }
         }
 
@@ -56,7 +56,7 @@ class RealizableTaskCollectionTest extends Specification {
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceRegistration("tasks.redundant", Mock(RedundantTask)))
+                it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
             }
         }
 
@@ -76,7 +76,7 @@ class RealizableTaskCollectionTest extends Specification {
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
             it.path "tasks" node {
-                it.addLink(registry.instanceRegistration("tasks.redundant", Mock(RedundantTask)))
+                it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
             }
         }
 

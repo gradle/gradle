@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry
 
+import com.google.common.base.Predicate
 import org.gradle.api.Nullable
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
@@ -29,12 +30,12 @@ abstract class RegistrySpec extends Specification {
         def links = []
 
         TestNode(String creationPath, Class<?> type) {
-            super(ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
+            super(null, ModelRegistrations.of(ModelPath.path(creationPath)).descriptor("test").build())
             addProjection(new UnmanagedModelProjection(ModelType.of(type)))
         }
 
         TestNode(ModelRegistration registration) {
-            super(registration)
+            super(null, registration)
         }
 
         @Override
@@ -48,20 +49,14 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        boolean canBeViewedAs(ModelType<?> type) {
-            return true
-        }
-
-        @Override
         def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
             return null
         }
 
         @Override
-        void addReference(ModelRegistration registration) {
+        def <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
 
         }
-
 
         @Override
         void addLink(ModelRegistration registration) {
@@ -74,42 +69,17 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def void applyToSelf(ModelActionRole type, ModelAction action) {
-
-        }
-
-        @Override
-        def void applyToAllLinks(ModelActionRole type, ModelAction action) {
-
-        }
-
-        @Override
-        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
-
-        }
-
-        @Override
         def void applyToLink(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        void applyToLinks(ModelType<?> type, Class<? extends RuleSource> rules) {
+        void applyTo(NodePredicate predicate, ModelActionRole role, ModelAction action) {
 
         }
 
         @Override
-        void applyToAllLinksTransitive(ModelType<?> type, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToLink(String name, Class<? extends RuleSource> rules) {
-
-        }
-
-        @Override
-        void applyToSelf(Class<? extends RuleSource> rules) {
+        void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
 
         }
 
@@ -119,17 +89,17 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        int getLinkCount(ModelType<?> type) {
+        int getLinkCount(Predicate<? super MutableModelNode> predicate) {
             return 0
         }
 
         @Override
-        Set<String> getLinkNames(ModelType<?> type) {
+        Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
             return null
         }
 
         @Override
-        Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+        Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
             return null
         }
 
@@ -144,7 +114,7 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        boolean hasLink(String name, ModelType<?> type) {
+        boolean hasLink(String name, Predicate<? super MutableModelNode> predicate) {
             return false
         }
 
@@ -157,7 +127,6 @@ abstract class RegistrySpec extends Specification {
         def <T> void setPrivateData(Class<? super T> type, T object) {
 
         }
-
 
         @Override
         def <T> T getPrivateData(ModelType<T> type) {

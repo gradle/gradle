@@ -110,7 +110,6 @@ buildTypes {
 
 apply from: "gradle/testGroupings.gradle"
 apply from: 'gradle/buildSplits.gradle'
-
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
@@ -145,9 +144,9 @@ ext {
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
-        'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
-        'toolingApiBuilders'
+        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingBase',
+        'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
+        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
     ].collect {
         project(it)
     }
@@ -175,6 +174,7 @@ apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
+apply from: 'gradle/customM2Check.gradle'
 
 allprojects {
     group = 'org.gradle'
@@ -277,24 +277,30 @@ def reportsFolder = new File(buildDir, "reports")
 ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
 def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.userPrefs")
 
-gradle.addListener(new TaskExecutionListener(){
+gradle.addListener(new TaskExecutionListener() {
     public void beforeExecute(Task task) {
-        doLog("before executing ", task)
-        if(userPrefsDirectory.exists()){
-            GFileUtils.forceDelete(userPrefsDirectory)
+        if (task.name != "clean") {
+            doLog("before executing ", task)
+            if (userPrefsDirectory.exists()) {
+                GFileUtils.forceDelete(userPrefsDirectory)
+            }
         }
     }
 
     public void afterExecute(Task task, TaskState state) {
-        doLog("after executing", task)
-        if(userPrefsDirectory.exists()){
-            GFileUtils.forceDelete(userPrefsDirectory)
+        if (task.name != "clean") {
+            doLog("after executing", task)
+            if (userPrefsDirectory.exists()) {
+                GFileUtils.forceDelete(userPrefsDirectory)
+            }
         }
     }
-    void doLog(String descr, Task task){
-        if(!reportsFolder.exists()){
+
+    void doLog(String descr, Task task) {
+        if (!reportsFolder.exists()) {
             reportsFolder.mkdirs()
         }
+        preferencesTraceFile.createNewFile()
         preferencesTraceFile << "$descr , '${task.path}', ${userPrefsDirectory.absolutePath}, ${userPrefsDirectory.exists()}\n"
     }
 })

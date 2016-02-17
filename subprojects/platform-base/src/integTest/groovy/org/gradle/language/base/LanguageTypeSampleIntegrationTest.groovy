@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -39,12 +37,14 @@ DocumentationComponent 'docs'
 -----------------------------
 
 Source sets
-    MarkdownSourceSet 'docs:userguide'
+    Markdown source 'docs:userguide'
         srcDir: src${File.separator}docs${File.separator}userguide
+    Text source 'docs:reference'
+        srcDir: src${File.separator}docs${File.separator}reference
 
 Binaries
-    DocumentationBinary 'docs:binary'
-        build using task: :docsBinary
+    DocumentationBinary 'docs:exploded'
+        build using task: :docsExploded
 """
     }
 
@@ -54,12 +54,12 @@ Binaries
         when:
         succeeds "assemble"
         then:
-        executedTasks == [":compileDocsBinaryUserguide", ":zipDocsBinary", ":docsBinary", ":assemble"]
+        executedTasks == [":compileDocsExplodedReference", ":compileDocsExplodedUserguide", ":docsExploded", ":assemble"]
         and:
-        new ZipTestFixture(languageTypeSample.dir.file("build/binary/binary.zip")).containsDescendants(
+        languageTypeSample.dir.file("build/docs/exploded").assertHasDescendants(
+                "reference/README.txt",
                 "userguide/chapter1.html",
                 "userguide/chapter2.html",
                 "userguide/index.html")
-
     }
 }

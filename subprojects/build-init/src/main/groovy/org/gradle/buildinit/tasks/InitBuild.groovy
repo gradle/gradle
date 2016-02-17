@@ -22,8 +22,12 @@ import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
+import org.gradle.buildinit.plugins.internal.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
+import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+
+import static BuildInitTestFramework.NONE
 
 /**
  * Generates a Gradle project structure.
@@ -31,17 +35,27 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 @Incubating
 class InitBuild extends DefaultTask {
     private String type
+    private String testFramework
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
     /**
-     * The desired type of build to create, defaults to {@value BuildInitTypeIds#POM} if 'pom.xml' is found in project root
-     * if no pom.xml is found, it defaults to {@value BuildInitTypeIds#BASIC}.
+     * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root
+     * if no pom.xml is found, it defaults to 'basic'.
      *
      * This property can be set via command-line option '--type'.
      */
     String getType() {
         type ?: project.file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC
+    }
+
+    /**
+     * Alternative test framework to be used in the generated project.
+     *
+     * This property can be set via command-line option '--test-framework'
+     */
+    String getTestFramework() {
+        testFramework
     }
 
     ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -54,14 +68,19 @@ class InitBuild extends DefaultTask {
     @TaskAction
     void setupProjectLayout() {
         def type = getType()
+        def testFramework = BuildInitTestFramework.fromName(getTestFramework())
         def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
             throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
-        projectLayoutRegistry.get(type).generate()
+        ProjectInitDescriptor initDescriptor = (ProjectInitDescriptor) projectLayoutRegistry.get(type)
+        if (testFramework != NONE && !initDescriptor.supports(testFramework)) {
+            throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
+        }
+        initDescriptor.generate(testFramework)
     }
 
-    @Option(option = "type", description = "Set type of build to create.")
+    @Option(option = "type", description = "Set type of build to create.", order = 0)
     public void setType(String type) {
         this.type = type;
     }
@@ -69,5 +88,15 @@ class InitBuild extends DefaultTask {
     @OptionValues("type")
     List<String> getAvailableBuildTypes(){
         return getProjectLayoutRegistry().getSupportedTypes();
+    }
+
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 1)
+    public void setTestFramework(String testFramework) {
+        this.testFramework = testFramework
+    }
+
+    @OptionValues("test-framework")
+    List<String> getAvailableTestFrameworks() {
+        return BuildInitTestFramework.listSupported();
     }
 }

@@ -20,11 +20,6 @@ import org.gradle.performance.measure.MeasuredOperation;
 
 public class BuildExperimentListenerAdapter implements BuildExperimentListener {
     @Override
-    public GradleInvocationCustomizer createInvocationCustomizer(BuildExperimentInvocationInfo invocationInfo) {
-        return null;
-    }
-
-    @Override
     public void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
 
     }

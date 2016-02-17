@@ -148,25 +148,26 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type'))
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: $varname for class: Props to value: java.lang.Object")
+        failure.assertThatCause(containsString('''The following types/formats are supported:
+  - A String or CharSequence
+  - Any Number'''))
 
         where:
         // not including char, Character, and String since Groovy auto-coerces to String,
         // or boolean/Boolean since those are special cased for 'true'
         varname << ['theBigDecimal', 'theBigInteger', 'theDouble', 'thedouble', 'thefloat', 'theFloat', 'theint',
-                    'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte', 'theThing']
+                    'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte']
     }
 
-    @Unroll
-    void 'number types require stringified numeric inputs'() {
+    void 'reports supported input types for enum property'() {
         when:
         buildFile << CLASSES
         buildFile << """
             model {
                 props {
-                    $varname = '${value}foo'
+                    theThing = $value
                 }
             }
             """
@@ -175,24 +176,52 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot coerce string value '42foo' to type $type.simpleName"))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: theThing for class: Props to value: $value.")
+        failure.assertHasCause("""Cannot convert the provided notation to an object of type Thing: $value.
+The following types/formats are supported:
+  - One of the following values: 'TOASTER', 'NOT_A_TOASTER'""")
 
         where:
-        varname         | value | type
-        'theBigDecimal' | 42    | BigDecimal
-        'theBigInteger' | 42    | BigInteger
-        'theDouble'     | 42    | Double
-        'thedouble'     | 42    | double
-        'thefloat'      | 42    | float
-        'theFloat'      | 42    | Float
-        'theint'        | 42    | int
-        'theInteger'    | 42    | Integer
-        'theLong'       | 42    | Long
-        'thelong'       | 42    | long
-        'theshort'      | 42    | short
-        'theShort'      | 42    | Short
-        'thebyte'       | 42    | byte
-        'theByte'       | 42    | Byte
+        value << ["12", "false"]
+    }
+
+    @Unroll
+    void 'number types require stringified numeric inputs - #varname'() {
+        when:
+        buildFile << CLASSES
+        buildFile << """
+            model {
+                props {
+                    $varname = '42foo'
+                }
+            }
+            """
+
+        then:
+        fails 'printResolvedValues'
+
+        and:
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: ${varname} for class: Props to value: 42foo.")
+        failure.assertHasCause("Cannot convert value '42foo' to type $type.simpleName")
+
+        where:
+        varname         | type
+        'theBigDecimal' | BigDecimal
+        'theBigInteger' | BigInteger
+        'theDouble'     | Double
+        'thedouble'     | double
+        'thefloat'      | float
+        'theFloat'      | Float
+        'theint'        | int
+        'theInteger'    | Integer
+        'theLong'       | Long
+        'thelong'       | long
+        'theshort'      | short
+        'theShort'      | Short
+        'thebyte'       | byte
+        'theByte'       | Byte
     }
 
     @Unroll
@@ -211,11 +240,13 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot assign null value to primitive type $type"))
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: $varname for class: Props to value: null.")
+        failure.assertHasCause("""Cannot convert a null value to an object of type $type.
+The following types/formats are supported:
+  - A String or CharSequence""")
 
-        where:
+                where:
         varname     | type
         'bool1'     | boolean
         'thedouble' | double
@@ -283,7 +314,9 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'printResolvedValues'
 
         and:
-        failure.assertThatCause(containsString("Cannot coerce string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'"))
+        failure.assertHasLineNumber(111)
+        failure.assertHasCause("Cannot set property: theThing for class: Props to value: IS_NOT_A_TOASTER.")
+        failure.assertHasCause("Cannot convert string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
     }
 
     @Unroll
@@ -367,6 +400,32 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         output.contains 'prop theCharacter : g'
         output.contains 'prop theString    : bar/foo'
         output.contains 'prop theThing     : NOT_A_TOASTER'
+    }
+
+    void 'scalar conversion works from a Groovy RuleSource'() {
+        when:
+        buildFile << CLASSES
+        buildFile << '''
+            class ConvertRules extends RuleSource {
+                @Mutate
+                void change(Props p) {
+                    p.theBoolean = 'true'
+                    p.thelong = '123'
+                    p.theString = p.thelong
+                    p.theThing = null
+                }
+            }
+            apply plugin: ConvertRules
+        '''
+
+        then:
+        succeeds 'printResolvedValues'
+
+        and:
+        output.contains 'prop theBoolean   : true'
+        output.contains 'prop thelong      : 123'
+        output.contains 'prop theString    : 123'
+        output.contains 'prop theThing     : null'
     }
 
     void 'can convert CharSequence to File'() {
@@ -494,9 +553,10 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         fails 'model'
 
         and:
-        failure.assertThatCause(containsString('Cannot convert the provided notation to an object of type File'))
-        failure.assertThatCause(containsString('The following types/formats are supported:'))
-        failure.assertThatCause(containsString('CharSequence instances'))
+        failure.assertHasCause('Cannot convert the provided notation to an object of type File: ')
+        failure.assertThatCause(containsString('''The following types/formats are supported:
+  - A String or CharSequence
+  - A File'''))
     }
 
     void 'can convert CharSequence to File for multi-project build'() {

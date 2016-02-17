@@ -15,11 +15,22 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 import java.util.Set;
 
 public interface SourceIncludesResolver {
-    Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes);
+    interface ResolvedSourceIncludes {
+        /**
+         * Each include directive resolved to a file.
+         */
+        Set<ResolvedInclude> getResolvedIncludes();
+
+        /**
+         * Every file path searched as part of resolution.
+         */
+        Set<File> getCheckedLocations();
+    }
+    ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes);
 }

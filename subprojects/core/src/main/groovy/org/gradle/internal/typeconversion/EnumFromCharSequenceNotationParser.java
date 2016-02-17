@@ -16,6 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
+import com.google.common.base.Joiner;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.CollectionUtils;
@@ -23,10 +25,9 @@ import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-public class EnumFromCharSequenceNotationParser<T extends Enum> implements ValueAwareNotationParser<T> {
+public class EnumFromCharSequenceNotationParser<T extends Enum> implements NotationConverter<CharSequence, T> {
     private final Class<? extends T> type;
 
     public EnumFromCharSequenceNotationParser(Class<? extends T> enumType) {
@@ -34,7 +35,8 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
         this.type = enumType;
     }
 
-    public T parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
+    @Override
+    public void convert(CharSequence notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         final String enumString = notation.toString();
         List<? extends T> enumConstants = Arrays.asList(type.getEnumConstants());
         T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
@@ -44,26 +46,27 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
         });
         if (match == null) {
             throw new TypeConversionException(
-                    String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                            enumString, type.getName(), CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))
+                    String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                            enumString, type.getName(), Joiner.on(", ").join(CollectionUtils.collect(Arrays.asList(type.getEnumConstants()), new Transformer<String, T>() {
+                                @Override
+                                public String transform(T t) {
+                                    return t.name();
+                                }
+                            }))
                     )
             );
-        } else {
-            return match;
         }
+        result.converted(match);
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         List<String> values = new ArrayList<String>();
-        describeValues(values);
-        visitor.candidate(String.format("One of the following values: %s", GUtil.toString(values)));
-    }
-
-    public void describeValues(Collection<String> collector) {
         final Enum[] enumConstants = type.getEnumConstants();
         for (Enum enumConstant : enumConstants) {
-            collector.add(enumConstant.name());
+            values.add(enumConstant.name());
         }
+        visitor.candidate(String.format("One of the following values: %s", GUtil.toString(values)));
+        visitor.values(values);
     }
 }

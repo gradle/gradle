@@ -20,6 +20,7 @@ import groovy.lang.MetaProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.lang.reflect.Method;
 
@@ -80,7 +81,11 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     }
 
     static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
-        EnumFromCharSequenceNotationParser<T> notationParser = new EnumFromCharSequenceNotationParser<T>(enumType);
-        return notationParser.parseNotation(charSequence);
+        return NotationParserBuilder
+                .toType(enumType)
+                .noImplicitConverters()
+                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(enumType))
+                .toComposite()
+                .parseNotation(charSequence);
     }
 }

@@ -35,32 +35,39 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
+    @Override
     public File getSharedLibraryFile() {
         return sharedLibraryFile;
     }
 
+    @Override
     public void setSharedLibraryFile(File sharedLibraryFile) {
         this.sharedLibraryFile = sharedLibraryFile;
     }
 
+    @Override
     public File getSharedLibraryLinkFile() {
         return sharedLibraryLinkFile;
     }
 
+    @Override
     public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
         this.sharedLibraryLinkFile = sharedLibraryLinkFile;
     }
 
+    @Override
     public File getPrimaryOutput() {
         return getSharedLibraryFile();
     }
 
+    @Override
     public FileCollection getLinkFiles() {
-        return new SharedLibraryLinkOutputs();
+        return getFileCollectionFactory().create(new SharedLibraryLinkOutputs());
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
-        return new SharedLibraryRuntimeOutputs();
+        return getFileCollectionFactory().create(new SharedLibraryRuntimeOutputs());
     }
 
     @Override
@@ -68,6 +75,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks.getLink();
     }
 
+    @Override
     public SharedLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
@@ -77,12 +85,18 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
             super(delegate);
         }
 
+        @Override
         public LinkSharedLibrary getLink() {
             return findSingleTaskWithType(LinkSharedLibrary.class);
         }
     }
 
     private class SharedLibraryLinkOutputs extends LibraryOutputs {
+        @Override
+        public String getDisplayName() {
+            return "Link files for " + DefaultSharedLibraryBinarySpec.this.getDisplayName();
+        }
+
         @Override
         protected boolean hasOutputs() {
             return hasSources() && !isResourceOnly();
@@ -119,6 +133,11 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     private class SharedLibraryRuntimeOutputs extends LibraryOutputs {
+        @Override
+        public String getDisplayName() {
+            return "Runtime files for " + DefaultSharedLibraryBinarySpec.this.getDisplayName();
+        }
+
         @Override
         protected boolean hasOutputs() {
             return hasSources();

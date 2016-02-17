@@ -29,21 +29,26 @@ import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
 
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
@@ -54,16 +59,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class GlobalScopeServices {
-        MethodModelRuleExtractor createLanguageTypePluginInspector(ModelSchemaStore schemaStore) {
-            return new LanguageTypeModelRuleExtractor(schemaStore);
-        }
-
         MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
             return new ComponentTypeModelRuleExtractor(schemaStore);
-        }
-
-        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(ModelSchemaStore schemaStore) {
-            return new BinaryTypeModelRuleExtractor(schemaStore);
         }
 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {

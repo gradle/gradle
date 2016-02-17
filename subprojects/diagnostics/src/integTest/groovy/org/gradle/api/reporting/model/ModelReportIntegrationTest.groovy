@@ -71,28 +71,88 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure({
-            model {
-                container {
-                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5')
-                    labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
-                    values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5')
-                }
-                tasks {
-                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
-                    components(nodeValue: "task ':components'")
-                    dependencies(nodeValue: "task ':dependencies'")
-                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
-                    help(nodeValue: "task ':help'")
-                    init(nodeValue: "task ':init'")
-                    model(nodeValue: "task ':model'")
-                    projects(nodeValue: "task ':projects'")
-                    properties(nodeValue: "task ':properties'")
-                    tasks(nodeValue: "task ':tasks'")
-                    wrapper()
-                }
+        ModelReportOutput.from(output).hasNodeStructure {
+            container {
+                ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
+                labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
+                values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
             }
-        })
+        }
+    }
+
+    def "display unset primitive and null scalar values"() {
+        given:
+        buildFile << '''
+            @Managed
+            interface Container {
+
+                boolean getPrimitiveBoolean()
+                void setPrimitiveBoolean(boolean value)
+                char getPrimitiveChar()
+                void setPrimitiveChar(char value)
+                byte getPrimitiveByte()
+                void setPrimitiveByte(byte value)
+                short getPrimitiveShort()
+                void setPrimitiveShort(short value)
+                int getPrimitiveInt()
+                void setPrimitiveInt(int value)
+                float getPrimitiveFloat()
+                void setPrimitiveFloat(float value)
+                long getPrimitiveLong()
+                void setPrimitiveLong(long value)
+                double getPrimitiveDouble()
+                void setPrimitiveDouble(double value)
+
+                Boolean getScalarBoolean()
+                void setScalarBoolean(Boolean value)
+                Character getScalarChar()
+                void setScalarChar(Character value)
+                Byte getScalarByte()
+                void setScalarByte(Byte value)
+                Short getScalarShort()
+                void setScalarShort(Short value)
+                Integer getScalarInt()
+                void setScalarInt(Integer value)
+                Float getScalarFloat()
+                void setScalarFloat(Float value)
+                Long getScalarLong()
+                void setScalarLong(Long value)
+                Double getScalarDouble()
+                void setScalarDouble(Double value)
+
+            }
+
+            model {
+                container(Container)
+            }
+            '''.stripIndent()
+
+        when:
+        run 'model'
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure {
+            container {
+
+                primitiveBoolean(nodeValue: 'false')
+                primitiveByte(nodeValue: '0')
+                primitiveChar(nodeValue: '\u0000' as char)
+                primitiveDouble(nodeValue: '0.0')
+                primitiveFloat(nodeValue: '0.0')
+                primitiveInt(nodeValue: '0')
+                primitiveLong(nodeValue: '0')
+                primitiveShort(nodeValue: '0')
+
+                scalarBoolean(nodeValue: 'null')
+                scalarByte(nodeValue: 'null')
+                scalarChar(nodeValue: 'null')
+                scalarDouble(nodeValue: 'null')
+                scalarFloat(nodeValue: 'null')
+                scalarInt(nodeValue: 'null')
+                scalarLong(nodeValue: 'null')
+                scalarShort(nodeValue: 'null')
+            }
+        }
     }
 
     def "displays basic values of a simple model graph with values"() {
@@ -121,6 +181,7 @@ model {
         value = 5
         threshold = 0.8
     }
+    unsetNumbers(Numbers) { }
 }
 
 """
@@ -129,36 +190,24 @@ model {
         run "model"
 
         then:
-        ModelReportOutput.from(output).hasNodeStructure({
-            model {
-                nullCredentials {
-                    password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
-                    username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
-                }
-
-                numbers {
-                    threshold(nodeValue: "0.8")
-                    value(nodeValue: "5")
-                }
-                primaryCredentials {
-                    password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
-                    username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
-                }
-                tasks {
-                    buildEnvironment(nodeValue: "task ':buildEnvironment'")
-                    components(nodeValue: "task ':components'")
-                    dependencies(nodeValue: "task ':dependencies'")
-                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
-                    help(nodeValue: "task ':help'")
-                    init(nodeValue: "task ':init'")
-                    model(nodeValue: "task ':model'")
-                    projects(nodeValue: "task ':projects'")
-                    properties(nodeValue: "task ':properties'")
-                    tasks(nodeValue: "task ':tasks'")
-                    wrapper()
-                }
+        ModelReportOutput.from(output).hasNodeStructure {
+            nullCredentials {
+                password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
+                username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
             }
-        })
+            numbers {
+                threshold(nodeValue: "0.8")
+                value(nodeValue: "5")
+            }
+            primaryCredentials {
+                password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
+                username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
+            }
+            unsetNumbers {
+                threshold(nodeValue: '0.0')
+                value(nodeValue: 'null')
+            }
+        }
     }
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
@@ -189,6 +238,7 @@ model {
         value = 5
         threshold = 0.8
     }
+    unsetNumbers(Numbers) { }
 }
 
 """
@@ -207,9 +257,11 @@ model {
       | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
     + password
           | Type:   \tjava.lang.String
+          | Value:  \tnull
           | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
     + username
           | Type:   \tjava.lang.String
+          | Value:  \tnull
           | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
 + numbers
       | Type:   \tNumbers
@@ -303,6 +355,17 @@ model {
           | Creator: \ttasks.addPlaceholderAction(wrapper)
           | Rules:
              ⤷ copyToTaskContainer
++ unsetNumbers
+      | Type:   \tNumbers
+      | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+    + threshold
+          | Type:   \tdouble
+          | Value:  \t0.0
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+    + value
+          | Type:   \tjava.lang.Integer
+          | Value:  \tnull
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
 ''')
     }
 
@@ -349,11 +412,11 @@ apply plugin: ClassHolder.InnerRules
         rules[i] == 'NumberRules#validateRule'
     }
 
-    def "service nodes are not displayed on the report"() {
+    def "hidden nodes are not displayed on the report"() {
         given:
         buildFile << """
         class Rules extends RuleSource {
-            @org.gradle.model.internal.core.Service
+            @org.gradle.model.internal.core.Hidden @Model
             String thingamajigger() {
                 return "hello"
             }
@@ -391,12 +454,12 @@ apply plugin: ClassHolder.InnerRules
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void register1(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register2(TypeBuilder<SampleComponentSpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }
@@ -445,13 +508,13 @@ apply plugin: ClassHolder.InnerRules
             }
 
             class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void register1(BinaryTypeBuilder<UnmanagedBinarySpec> builder) {
+                @ComponentType
+                void register1(TypeBuilder<UnmanagedBinarySpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedBinarySpec)
                 }
 
-                @BinaryType
-                void register2(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void register2(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }
@@ -477,6 +540,87 @@ apply plugin: ClassHolder.InnerRules
 
         then:
         ModelReportOutput.from(output).modelNode.binaries.sample.internalData
+    }
+
+    def "managed reference properties are displayed with correct type"() {
+        given:
+        buildFile << """
+            @Managed
+            interface Person {
+                Person getFather()
+                void setFather(Person person)
+            }
+
+            class Rules extends RuleSource {
+                @Model
+                void father(Person father) {}
+
+                @Model
+                void person(Person child, @Path("father") Person father) {
+                    child.father = father
+                }
+            }
+            apply plugin: Rules
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.person.father.size() == 1
+        modelNode.person.father[0].type == "Person"
+        modelNode.person.father[0].nodeValue == "reference to element 'father'"
+        modelNode.father.father.size() == 1
+        modelNode.father.father[0].type == "Person"
+        modelNode.father.father[0].nodeValue == "null"
+    }
+
+    def "renders cycle in model graph"() {
+        given:
+        buildFile << """
+            @Managed
+            interface Person {
+                Person getFather()
+                void setFather(Person person)
+            }
+
+            class Rules extends RuleSource {
+                @Model
+                void father(Person father) {
+                    father.father = father
+                }
+            }
+            apply plugin: Rules
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.father.father.size() == 1
+        modelNode.father.father[0].type == "Person"
+        modelNode.father.father[0].nodeValue == "reference to element 'father'"
+    }
+
+    def "renders sensible value for node whose toString() method returns null"() {
+        given:
+        buildFile << """
+            @Managed abstract class SomeType {
+                String toString() { null }
+            }
+            model {
+                something(SomeType)
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'model'
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.something[0].nodeValue == 'SomeType#toString() returned null'
     }
 
     private String managedNumbers() {

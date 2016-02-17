@@ -18,7 +18,8 @@ package org.gradle.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.model.collection.ManagedSet;
+
+import java.util.Set;
 
 /**
  * A set of managed model objects.
@@ -32,7 +33,7 @@ import org.gradle.model.collection.ManagedSet;
  * @param <T> the type of model object
  */
 @Incubating
-public interface ModelSet<T> extends ManagedSet<T> {
+public interface ModelSet<T> extends Set<T> {
 
     /**
      * Declares a new set element, configured by the given action.

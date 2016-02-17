@@ -19,31 +19,39 @@ package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.UnsupportedPropertyValueException
 import org.gradle.internal.typeconversion.DefaultTypeConverter
+import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.UnmanagedStruct
+import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.manage.instance.GeneratedViewState
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ManagedProxyClassGeneratorTest extends Specification {
+class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     static def generator = new ManagedProxyClassGenerator()
-    static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
-    def schemaStore = DefaultModelSchemaStore.instance
+    static Map<List<?>, Class<?>> generated = [:]
     def typeConverter = new DefaultTypeConverter(Stub(FileResolver))
 
-    def "generates a proxy class for an interface"() {
+    def "generates a node backed view class for an interface"() {
         expect:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
         impl instanceof SomeType
     }
 
-    def "generates a proxy class for an interface with type parameters"() {
+    def "generates a view class for an interface"() {
+        expect:
+        def impl = newSimpleInstance(SomeType)
+        impl instanceof SomeType
+    }
+
+    def "generates a view class for an interface with type parameters"() {
         when:
         def generatedType = generate(SomeTypeWithParameters)
 
@@ -57,7 +65,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         generatedType.getMethod("setOptional", Optional).genericParameterTypes*.actualTypeArguments == [[Boolean]]
     }
 
-    def "mixes in ManagedInstance"() {
+    def "mixes in ManagedInstance to node backed view"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
@@ -91,10 +99,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * state.get("value") >> { 1 }
     }
 
+    def "does not mix in ManagedInstance for view that is not node backed"() {
+        expect:
+        def impl = newSimpleInstance(SomeType)
+        !(impl instanceof ManagedInstance)
+    }
+
     @Unroll
-    def "only generates the requested boolean getter methods"() {
+    def "only generates the requested boolean getter methods for type #type.simpleName"() {
         given:
-        def impl = newInstance(type)
+        def impl = newNodeBackedInstance(type)
 
         when:
         def methods = impl.class.declaredMethods
@@ -144,50 +158,44 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     def "equals() returns false for non-compatible types"() {
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
         expect:
         !impl.equals(null)
         !impl.equals(1)
     }
 
-    def "Two views are equal when they are backed by the same node"() {
-        def node1 = Mock(MutableModelNode)
-        def node2 = Mock(MutableModelNode)
-        def state1 = Mock(ModelElementState) {
-            getBackingNode() >> node1
-        }
-        def state1alternative = Mock(ModelElementState) {
-            getBackingNode() >> node1
-        }
-        def state2 = Mock(ModelElementState) {
-            getBackingNode() >> node2
-        }
+    def "Two node backed views are equal when their state objects are equal"() {
+        def state1 = Mock(ModelElementState)
+        def state2 = Mock(ModelElementState)
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl1 = proxyClass.newInstance(state1, typeConverter)
-        SomeType impl1alternative = proxyClass.newInstance(state1alternative, typeConverter)
-        SomeType impl2 = proxyClass.newInstance(state2, typeConverter)
+        def impl1 = proxyClass.newInstance(state1, typeConverter)
+        def sameState = proxyClass.newInstance(state1, typeConverter)
+        def sameStateDifferentType = generate(SomeTypeWithReadOnly).newInstance(state1, typeConverter)
+        def impl2 = proxyClass.newInstance(state2, typeConverter)
 
         then:
-        Matchers.strictlyEquals(impl1, impl1alternative)
+        Matchers.strictlyEquals(impl1, sameState)
+        Matchers.strictlyEquals(impl1, sameStateDifferentType)
         !impl1.equals(impl2)
     }
 
-    def "hashCode() works as expected"() {
-        def node = Mock(MutableModelNode)
-        def state = Mock(ModelElementState) {
-            getBackingNode() >> node
-        }
+    def "Two views are equal when their state objects are equal"() {
+        def state1 = Mock(GeneratedViewState)
+        def state2 = Mock(GeneratedViewState)
 
         when:
-        Class<? extends SomeType> proxyClass = generate(SomeType)
-        SomeType impl = proxyClass.newInstance(state, typeConverter)
-        def hashCode = impl.hashCode()
+        Class<? extends SomeType> proxyClass = generateSimpleView(SomeType)
+        def impl1 = proxyClass.newInstance(state1, typeConverter)
+        def sameState = proxyClass.newInstance(state1, typeConverter)
+        def sameStateDifferentType = generateSimpleView(SomeTypeWithReadOnly).newInstance(state1, typeConverter)
+        def impl2 = proxyClass.newInstance(state2, typeConverter)
 
         then:
-        hashCode == 123
-        1 * node.hashCode() >> 123
+        Matchers.strictlyEquals(impl1, sameState)
+        Matchers.strictlyEquals(impl1, sameStateDifferentType)
+        !impl1.equals(impl2)
     }
 
     @Unroll
@@ -396,6 +404,58 @@ class ManagedProxyClassGeneratorTest extends Specification {
         0 * state._
     }
 
+    def "mixes in converting setter for managed property with scalar type"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value = "12"
+        impl.primitive = "14"
+
+        then:
+        1 * state.set("value", 12)
+        1 * state.set("primitive", 14L)
+        0 * state._
+    }
+
+    def "mixes in converting setter for delegated property with scalar type"() {
+        def state = Mock(ModelElementState)
+        def delegate = Mock(UnmanagedImplType)
+
+        given:
+        def proxyClass = generate(PublicUnmanagedType, UnmanagedImplType)
+        def impl = proxyClass.newInstance(state, typeConverter, delegate)
+
+        when:
+        impl.intValue = "12"
+
+        then:
+        1 * delegate.setIntValue(12)
+        0 * delegate._
+    }
+
+    def "converting setter for property with scalar type reports conversion problem"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value = "not-a-number"
+
+        then:
+        def e = thrown(UnsupportedPropertyValueException)
+        e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
+        e.cause instanceof TypeConversionException
+
+        and:
+        0 * state._
+    }
+
     def "mixes in set method for managed property with scalar type"() {
         def state = Mock(ModelElementState)
 
@@ -445,6 +505,25 @@ class ManagedProxyClassGeneratorTest extends Specification {
         0 * delegate._
     }
 
+    def "set method for property with scalar type reports conversion problem"() {
+        def state = Mock(ModelElementState)
+
+        given:
+        def proxyClass = generate(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+
+        when:
+        impl.value "not-a-number"
+
+        then:
+        def e = thrown(UnsupportedPropertyValueException)
+        e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
+        e.cause instanceof TypeConversionException
+
+        and:
+        0 * state._
+    }
+
     def "mixes in toString() implementation that delegates to delegate object when it has a displayName property"() {
         def state = Stub(ModelElementState)
         def delegate = new Object() {
@@ -459,7 +538,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         impl.toString() == "<delegate>"
     }
 
-    def "mixes in toString() implementation that delegates to element state"() {
+    def "mixes in toString() implementation that delegates to node state"() {
         def state = Stub(ModelElementState) {
             getDisplayName() >> "<display-name>"
         }
@@ -470,9 +549,20 @@ class ManagedProxyClassGeneratorTest extends Specification {
         impl.toString() == "<display-name>"
     }
 
+    def "mixes in toString() implementation that delegates to view state"() {
+        def state = Stub(GeneratedViewState) {
+            getDisplayName() >> "<display-name>"
+        }
+
+        expect:
+        def proxyClass = generateSimpleView(SomeType)
+        def impl = proxyClass.newInstance(state, typeConverter)
+        impl.toString() == "<display-name>"
+    }
+
     def "reports contract type rather than implementation class in groovy missing property error message"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.unknown
@@ -489,10 +579,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message == "No such property: unknown for class: ${SomeType.name}"
     }
 
-    @NotYetImplemented
     def "reports contract type rather than implementation class when attempting to set read-only property"() {
         given:
-        def impl = newInstance(SomeTypeWithReadOnly)
+        def impl = newNodeBackedInstance(SomeTypeWithReadOnly)
 
         when:
         impl.readOnly = '12'
@@ -504,7 +593,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def "reports contract type rather than implementation class when attempting to invoke unknown method"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.unknown('12')
@@ -516,7 +605,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def "reports contract type rather than implementation class when attempting to invoke configure method for property that does not have one"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newNodeBackedInstance(SomeType)
 
         when:
         impl.value { broken }
@@ -528,9 +617,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     def "reports contract type rather than implementation class when attempting to invoke set method for property that does not have one"() {
         given:
-        def state = Mock(ModelElementState) {
-            get("readOnly") >> true
-        }
+        def state = Mock(ModelElementState)
         def impl = generate(SomeTypeWithReadOnlyProperty).newInstance(state, typeConverter)
 
         when:
@@ -539,6 +626,38 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         MissingMethodException e = thrown()
         e.message.startsWith("No signature of method: ${SomeTypeWithReadOnlyProperty.name}.readOnly() is applicable")
+    }
+
+    def "generates getter and setter that delegates to state for abstract property "() {
+        def state = Mock(GeneratedViewState)
+
+        def proxy = generateSimpleView(SomeType)
+        def instance = proxy.newInstance(state, typeConverter)
+
+        when:
+        instance.value
+
+        then:
+        1 * state.get("value") >> 10
+
+        when:
+        instance.value = 12
+
+        then:
+        1 * state.set("value", 12)
+    }
+
+    def "generates getter that delegates to state for abstract read-only property "() {
+        def state = Mock(GeneratedViewState)
+
+        def proxy = generateSimpleView(SomeTypeWithReadOnlyProperty)
+        def instance = proxy.newInstance(state, typeConverter)
+
+        when:
+        instance.value
+
+        then:
+        1 * state.get("value") >> Stub(SomeType)
     }
 
     @Unroll
@@ -555,7 +674,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         """
 
         def data = [:]
-        def state = Mock(ModelElementState)
+        def state = Mock(GeneratedViewState)
         state.get(_) >> { args ->
             data[args[0]]
         }
@@ -563,7 +682,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
             data[args[0]] = args[1]
         }
 
-        def proxy = generate(interfaceWithPrimitiveProperty)
+        def proxy = generateSimpleView(interfaceWithPrimitiveProperty)
         def instance = proxy.newInstance(state, typeConverter)
 
         then:
@@ -601,7 +720,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
 
         def data = [:]
-        def state = Mock(ModelElementState)
+        def state = Mock(GeneratedViewState)
         state.get(_) >> { args ->
             data[args[0]]
         }
@@ -609,7 +728,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
             data[args[0]] = args[1]
         }
 
-        def proxy = generate(clazz)
+        def proxy = generateSimpleView(clazz)
         def instance = proxy.newInstance(state, typeConverter)
 
         then:
@@ -647,21 +766,34 @@ class ManagedProxyClassGeneratorTest extends Specification {
         File       | "[new File('foo')]"
     }
 
-    def <T> T newInstance(Class<T> type) {
+    def <T> T newNodeBackedInstance(Class<T> type) {
         def generated = generate(type)
         return generated.newInstance(Stub(ModelElementState), typeConverter)
     }
 
+    def <T> T newSimpleInstance(Class<T> type) {
+        def generated = generate(GeneratedViewState, type, null)
+        return generated.newInstance(Stub(GeneratedViewState), typeConverter)
+    }
+
+    def <T, M extends T, D extends T> Class<? extends T> generateSimpleView(Class<T> viewType) {
+        return generate(GeneratedViewState, viewType, null)
+    }
+
     def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {
-        Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
-        Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
-        if (generated == null) {
-            def managedSchema = schemaStore.getSchema(managedType)
-            def delegateSchema = delegateType == null ? null : schemaStore.getSchema(delegateType)
-            generated = generator.generate((StructSchema) managedSchema, (StructSchema) delegateSchema)
-            generatedForDelegateType[delegateType] = generated
+        return generate(ModelElementState, managedType, delegateType)
+    }
+
+    def <T, M extends T, D extends T> Class<? extends T> generate(Class<? extends GeneratedViewState> backingStateType, Class<T> managedType, Class<D> delegateType) {
+        def key = [backingStateType, managedType, delegateType]
+        Class<?> generatedClass = generated[key] as Class<? extends T>
+        if (generatedClass == null) {
+            def managedSchema = (StructSchema) schemaStore.getSchema(managedType)
+            def bindings = structBindingsStore.getBindings(ModelType.of(managedType), [], delegateType == null ? null : ModelType.of(delegateType))
+            generatedClass = generator.generate(backingStateType, managedSchema, bindings)
+            generated[key] = generatedClass
         }
-        return generated
+        return generatedClass
     }
 
     @Managed
@@ -761,7 +893,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
     }
 
-    @Managed static abstract class PublicTypeAsAbstractClassWithMethod extends UnmanagedSuperType {
+    @Managed static abstract class PublicTypeAsAbstractClassWithMethod implements UnmanagedSuperType {
         String getSomeValue() {
             "from abstract class"
         }

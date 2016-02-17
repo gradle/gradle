@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.collections.FilteredFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -27,7 +26,10 @@ import org.gradle.internal.Cast;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
@@ -60,8 +62,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree matching(PatternFilterable patterns) {
-        PatternSet patternSet = new PatternSet();
-        patternSet.copyFrom(patterns);
+        PatternSet patternSet = (PatternSet) patterns;
         return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
     }
 
@@ -112,7 +113,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
 
-    private static class FilteredFileTreeImpl extends AbstractFileTree implements FilteredFileTree {
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        visit(visitor);
+    }
+
+    private static class FilteredFileTreeImpl extends AbstractFileTree {
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
 
@@ -155,14 +161,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         }
 
         @Override
-        public FileTreeInternal getOriginalFileTree() {
-            return fileTree;
-        }
-
-        @Override
-        public Spec<FileTreeElement> getFilter() {
-            return spec;
+        public void visitTreeOrBackingFile(FileVisitor visitor) {
+            fileTree.visitTreeOrBackingFile(visitor);
         }
     }
-
 }

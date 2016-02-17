@@ -34,10 +34,6 @@ class BaselineVersion implements VersionResults {
         results.name = "Gradle $version"
     }
 
-    void clearResults() {
-        results.clear()
-    }
-
     String getSpeedStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
         def thisVersionAverage = results.totalTime.average

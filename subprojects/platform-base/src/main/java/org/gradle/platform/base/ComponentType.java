@@ -38,12 +38,12 @@ import java.lang.annotation.Target;
  *
  * class MySamplePlugin extends RuleSource {
  *     {@literal @}ComponentType
- *     void register(ComponentTypeBuilder<SampleComponent> builder) {
+ *     void register(TypeBuilder&lt;SampleComponent&gt; builder) {
  *         builder.defaultImplementation(DefaultSampleComponent)
  *     }
  *
  *     {@literal @}Mutate
- *     void createSampleLibraryComponents(ModelMap<SampleComponent> componentSpecs) {
+ *     void createSampleLibraryComponents(ModelMap&lt;SampleComponent&gt; componentSpecs) {
  *         componentSpecs.create("sampleComponent")
  *     }
  * }

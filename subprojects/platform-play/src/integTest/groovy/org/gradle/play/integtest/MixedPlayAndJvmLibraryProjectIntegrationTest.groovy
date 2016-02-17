@@ -40,7 +40,7 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
                 id 'play'
             }
 
-            ${PLAY_REPOSITORES}
+            ${PLAY_REPOSITORIES}
 
             model {
                 components {
@@ -53,12 +53,19 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
     def "assemble builds jvm component and play component binaries"() {
         when:
         succeeds("assemble")
+
         then:
-        executedAndNotSkipped(":compileJvmLibJarJvmLibJava", ":processJvmLibJarJvmLibResources", ":createJvmLibJar", ":jvmLibJar", ":createPlayBinaryAssetsJar",
-                ":compilePlayBinaryRoutes", ":compilePlayBinaryTwirlTemplates", ":compilePlayBinaryScala", ":createPlayBinaryJar", ":playBinary", ":assemble")
+        executedAndNotSkipped(
+                ":createJvmLibJar",
+                ":jvmLibJar",
+                ":createPlayBinaryJar",
+                ":playBinary",
+                ":assemble")
+
         and:
         file("build/classes/jvmLib/jar").assertHasDescendants(jvmApp.expectedClasses*.fullPath as String[])
         file("build/resources/jvmLib/jar").assertHasDescendants(jvmApp.resources*.fullPath as String[])
+
         new JarTestFixture(file("build/jars/jvmLib/jar/jvmLib.jar")).hasDescendants(jvmApp.expectedOutputs*.fullPath as String[])
         file("build/playBinary/lib/mixedJvmAndPlay.jar").exists()
         file("build/playBinary/lib/mixedJvmAndPlay-assets.jar").exists()

@@ -107,7 +107,7 @@ public class NativeBinaryRules extends RuleSource {
         return nativeBinary.getPlatformToolProvider().getStaticLibraryName(baseNameOf(nativeBinary));
     }
 
-    private static String baseNameOf(NativeBinarySpecInternal nativeBinary) {
+    private static String baseNameOf(NativeBinarySpec nativeBinary) {
         return nativeBinary.getComponent().getBaseName();
     }
 

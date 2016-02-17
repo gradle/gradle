@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
  * @since 2.4
  */
 @Incubating
-abstract public class AbstractPublishToMaven extends DefaultTask {
+public abstract class AbstractPublishToMaven extends DefaultTask {
 
     private MavenPublicationInternal publication;
 

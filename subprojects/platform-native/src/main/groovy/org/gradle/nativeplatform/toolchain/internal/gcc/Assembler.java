@@ -39,6 +39,7 @@ class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
     }
 
     private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {
+        @Override
         protected String getLanguage() {
             return "assembler";
         }

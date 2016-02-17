@@ -88,16 +88,18 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
 
         expect:
         binary.headerDirs.files == [headerDir] as Set
+        binary.headerDirs.toString() == "Headers for static library 'main:staticLibrary'"
         binary.staticLibraryFile == outputFile
 
         and:
         binary.linkFiles.files == [binary.staticLibraryFile] as Set
         binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        binary.linkFiles.toString() == "static library 'main:staticLibrary'"
+        binary.linkFiles.toString() == "Link files for static library 'main:staticLibrary'"
 
         and:
         binary.runtimeFiles.files.isEmpty()
         binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [] as Set
+        binary.runtimeFiles.toString() == "Runtime files for static library 'main:staticLibrary'"
     }
 
     def "includes additional link files in native dependency"() {

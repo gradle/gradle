@@ -101,7 +101,7 @@ public interface Configuration extends FileCollection {
     boolean isVisible();
 
     /**
-     * Sets the visibility of this configuration. When visible is set to true, this configuration is visibile outside
+     * Sets the visibility of this configuration. When visible is set to true, this configuration is visible outside
      * the project it belongs to. The default value is true.
      *
      * @param visible true if this is a visible configuration

@@ -6,16 +6,13 @@ plugins {
 }
 
 repositories {
-    jcenter()
-}
-
 <% if (repository) { %>
-repositories {
     maven {
         url rootProject.file("${repository.rootDir.name}").toURI().toURL()
     }
-}
 <% } %>
+    jcenter()
+}
 
 configurations {
     compile

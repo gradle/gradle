@@ -16,17 +16,17 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 
 public class FileCopyAction implements CopyAction {
 
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
 
-    public FileCopyAction(FileResolver fileResolver) {
+    public FileCopyAction(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
 

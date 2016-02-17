@@ -74,7 +74,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
             annotationValueName = null;
         } else if (arrayValueName != null) {
             ArrayAnnotationValue value = new ArrayAnnotationValue(
-                arrayValueName, annotationValues.toArray(new AnnotationValue<?>[annotationValues.size()]));
+                arrayValueName, annotationValues.toArray(new AnnotationValue<?>[0]));
             annotation.addValue(value);
             arrayValueName = null;
         }

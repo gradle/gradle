@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +37,29 @@ import java.util.*;
 import static org.gradle.internal.Cast.cast;
 
 public abstract class CollectionUtils {
+
+    /**
+     * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
+     */
+    @Nullable
+    public static <T> T findSingle(Collection<T> source) {
+        return source.isEmpty() ? null : single(source);
+    }
+
+    /**
+     * Returns the single element in the collection or throws.
+     */
+    public static <T> T single(Iterable<? extends T> source) {
+        Iterator<? extends T> iterator = source.iterator();
+        if (!iterator.hasNext()) {
+            throw new NoSuchElementException("Expecting collection with single element, got none.");
+        }
+        T element = iterator.next();
+        if (iterator.hasNext()) {
+            throw new IllegalArgumentException("Expecting collection with single element, got multiple.");
+        }
+        return element;
+    }
 
     public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
         for (Object o : input) {
@@ -62,6 +86,10 @@ public abstract class CollectionUtils {
         }
 
         return null;
+    }
+
+    public static <T> T first(Iterable<? extends T> source) {
+        return source.iterator().next();
     }
 
     public static <T> boolean any(Iterable<? extends T> source, Spec<? super T> filter) {
@@ -612,4 +640,7 @@ public abstract class CollectionUtils {
         }));
     }
 
+    public static String asCommandLine(Iterable<String> arguments) {
+        return Joiner.on(" ").join(collect(arguments, Transformers.asSafeCommandLineArgument()));
+    }
 }

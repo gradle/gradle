@@ -31,7 +31,7 @@ public interface TypeBuilder<T> {
      * Allows the plugin to register the implementation type.
      * @param implementation the implementation class.
      */
-    TypeBuilder<T> defaultImplementation(Class<? extends T> implementation);
+    TypeBuilder<T> defaultImplementation(Class<?> implementation);
 
     /**
      * Allows type registration rules to add internal views to the registered type.

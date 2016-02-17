@@ -153,6 +153,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
                 assert events.tests.size() == 6
                 events.clear()
+
+                // Change the tests sources and wait for the tests to run again
                 changeTestSource()
                 waitingForBuild()
             }

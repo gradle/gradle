@@ -32,7 +32,10 @@ import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
 import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
-import static org.gradle.util.CollectionUtils.*;
+import static org.gradle.util.CollectionUtils.sort;
+import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.filter;
+import static org.apache.commons.collections.CollectionUtils.intersection;
 
 public class TaskDetailPrinter {
     private final String taskPath;
@@ -165,25 +168,15 @@ public class TaskDetailPrinter {
             output.println();
             output.text("Options").println();
         }
-        final ListMultimap<String, OptionDescriptor> optionsByName = groupDescriptorsByName(allOptions);
-        Iterator<String> optionNames = sort(optionsByName.asMap().keySet()).iterator();
+        Map<String, Set<String>> optionToAvailableOptionsValues = optionToAvailableValues(allOptions);
+        Map<String, String> optionToDescription = optionToDescription(allOptions);
+        Iterator<String> optionNames = optionToAvailableOptionsValues.keySet().iterator();
         while (optionNames.hasNext()) {
-            final String currentOption = optionNames.next();
-            final List<OptionDescriptor> descriptorsForCurrentName = optionsByName.get(currentOption);
-
-            final String optionString = String.format("--%s", currentOption);
+            String currentOption = optionNames.next();
+            Set<String> availableValues = optionToAvailableOptionsValues.get(currentOption);
+            String optionString = String.format("--%s", currentOption);
             output.text(INDENT).withStyle(UserInput).text(optionString);
-
-            List<List<String>> availableValuesByDescriptor = collect(descriptorsForCurrentName, new Transformer<List<String>, OptionDescriptor>() {
-                public List<String> transform(OptionDescriptor original) {
-                    return original.getAvailableValues();
-                }
-            });
-
-            List<String> commonAvailableValues = intersection(availableValuesByDescriptor);
-            Set<String> availableValues = new TreeSet<String>(commonAvailableValues);
-            //description does not differ between task objects, grab first one
-            output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
+            output.text(INDENT).text(optionToDescription.get(currentOption));
             if (!availableValues.isEmpty()) {
                 final int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
                 final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);
@@ -202,12 +195,26 @@ public class TaskDetailPrinter {
         }
     }
 
-    private ListMultimap<String, OptionDescriptor> groupDescriptorsByName(List<OptionDescriptor> allOptions) {
-        ListMultimap<String, OptionDescriptor> optionsGroupedByName = ArrayListMultimap.create();
-        for (final OptionDescriptor option : allOptions) {
-            optionsGroupedByName.put(option.getName(), option);
+    @SuppressWarnings("unchecked")
+    private Map<String, Set<String>> optionToAvailableValues(List<OptionDescriptor> allOptions) {
+        Map<String, Set<String>> result = new LinkedHashMap<String, Set<String>>();
+        for (OptionDescriptor optionDescriptor : allOptions) {
+            if (result.containsKey(optionDescriptor.getName())) {
+                Collection<String> commonValues = intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
+                result.put(optionDescriptor.getName(), new TreeSet<String>(commonValues));
+            } else {
+                result.put(optionDescriptor.getName(), optionDescriptor.getAvailableValues());
+            }
         }
-        return optionsGroupedByName;
+        return result;
+    }
+
+    private Map<String, String> optionToDescription(List<OptionDescriptor> allOptions) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (OptionDescriptor optionDescriptor : allOptions) {
+            result.put(optionDescriptor.getName(), optionDescriptor.getDescription());
+        }
+        return result;
     }
 
     private LinePrefixingStyledTextOutput createIndentedOutput(StyledTextOutput output, int offset) {

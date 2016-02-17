@@ -24,4 +24,13 @@ import org.gradle.language.base.LanguageSourceSet;
  */
 @Incubating
 public interface TwirlSourceSet extends LanguageSourceSet {
+    /**
+     * The default imports that should be added to generated source files
+     */
+    public TwirlImports getDefaultImports();
+
+    /**
+     * Sets the default imports that should be added to generated source files to the given language
+     */
+    public void setDefaultImports(TwirlImports defaultImports);
 }

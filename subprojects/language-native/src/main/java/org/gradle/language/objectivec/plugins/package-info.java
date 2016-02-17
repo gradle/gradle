@@ -17,4 +17,5 @@
 /**
  * Plugins for building from Objective-C language sources.
  */
+@org.gradle.api.Incubating
 package org.gradle.language.objectivec.plugins;

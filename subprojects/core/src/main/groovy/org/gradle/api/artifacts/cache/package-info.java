@@ -17,4 +17,5 @@
 /**
  * Classes for controlling dependency resolution.
  */
+@org.gradle.api.Incubating
 package org.gradle.api.artifacts.cache;

@@ -17,4 +17,5 @@
 /**
  * Plugins for building from C++ language sources.
  */
+@org.gradle.api.Incubating
 package org.gradle.language.cpp.plugins;

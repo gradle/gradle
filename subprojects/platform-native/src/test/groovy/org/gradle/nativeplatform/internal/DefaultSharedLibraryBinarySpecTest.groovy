@@ -93,16 +93,17 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         binary.sharedLibraryLinkFile == sharedLibraryLinkFile
 
         binary.headerDirs.files == [headerDir] as Set
+        binary.headerDirs.toString() == "Headers for shared library 'main:sharedLibrary'"
 
         and:
         binary.linkFiles.files == [binary.sharedLibraryLinkFile] as Set
         binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        binary.linkFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.linkFiles.toString() == "Link files for shared library 'main:sharedLibrary'"
 
         and:
         binary.runtimeFiles.files == [binary.sharedLibraryFile] as Set
         binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        binary.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.runtimeFiles.toString() == "Runtime files for shared library 'main:sharedLibrary'"
     }
 
     def "has empty link files when has resources and no symbols are exported from library"() {

@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
+public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
     private final LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform;
     private final Class<? extends DefaultTask> taskType;
@@ -52,14 +52,17 @@ abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
         this.taskType = taskType;
     }
 
+    @Override
     public String getTaskPrefix() {
         return "compile";
     }
 
+    @Override
     public Class<? extends DefaultTask> getTaskType() {
         return taskType;
     }
 
+    @Override
     public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureCompileTaskCommon((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);

@@ -18,29 +18,44 @@ package org.gradle.internal.typeconversion
 
 import spock.lang.Specification
 
-class EnumFromCharSequenceNotationParserSpec extends Specification{
+class EnumFromCharSequenceNotationParserSpec extends Specification {
 
-    NotationParser<Object, TestEnum> parser = new EnumFromCharSequenceNotationParser(TestEnum.class);
+    def parser = new NotationConverterToNotationParserAdapter(new EnumFromCharSequenceNotationParser(TestEnum.class))
 
-    def "can convert strings to enums"(){
+    def "can convert strings to enums using the enum value names"() {
         expect:
         TestEnum.ENUM1 == parser.parseNotation("ENUM1")
         TestEnum.ENUM1 == parser.parseNotation("enum1")
         TestEnum.ENUM1 == parser.parseNotation("EnUm1")
         TestEnum.ENUM2 == parser.parseNotation("enum2")
+        TestEnum.ENUM3 == parser.parseNotation("enum3")
+        TestEnum.ENUM_4_1 == parser.parseNotation("enum_4_1")
     }
 
-    def "throws decent error for non convertable strings"(){
+    def "reports available values for non convertable strings"() {
         when:
-        parser.parseNotation("notKnown")
+        parser.parseNotation(value)
 
         then:
         def e = thrown(TypeConversionException)
-        e.message == "Cannot coerce string value 'notKnown' to an enum value of type 'org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParserSpec\$TestEnum' (valid case insensitive values: [ENUM1, ENUM2, ENUM3])"
+        e.message == "Cannot convert string value '$value' to an enum value of type 'org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParserSpec\$TestEnum' (valid case insensitive values: ENUM1, ENUM2, ENUM3, ENUM_4_1)"
+
+        where:
+        value      | _
+        "notKnown" | _
+        "3"        | _
     }
 
     static enum TestEnum {
-        ENUM1, ENUM2, ENUM3
+        ENUM1,
+        ENUM2,
+        ENUM3(){
+            @Override
+            String toString() {
+                return "3"
+            }
+        },
+        ENUM_4_1
     }
 
 }

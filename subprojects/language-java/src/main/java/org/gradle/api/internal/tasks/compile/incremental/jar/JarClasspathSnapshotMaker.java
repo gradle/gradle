@@ -38,6 +38,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         this.classpathJarFinder = classpathJarFinder;
     }
 
+    @Override
     public void storeJarSnapshots(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
         Clock clock = new Clock();
@@ -45,6 +46,7 @@ public class JarClasspathSnapshotMaker implements JarClasspathSnapshotProvider, 
         LOG.info("Written jar classpath snapshot for incremental compilation in {}.", clock.getTime());
     }
 
+    @Override
     public JarClasspathSnapshot getJarClasspathSnapshot(Iterable<File> classpath) {
         maybeInitialize(classpath); //clients may or may not have already created jar classpath snapshot
         return jarClasspathSnapshot;

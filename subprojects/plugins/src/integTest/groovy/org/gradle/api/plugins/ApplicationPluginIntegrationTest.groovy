@@ -170,6 +170,29 @@ task execStartScript(type: Exec) {
         result.output.contains('Hello World!')
     }
 
+    def "compile only dependencies are not included in distribution"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url '$mavenRepo.uri' }
+}
+
+dependencies {
+    compile 'org.gradle.test:compile:1.0'
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
+    }
+
     private void createSampleProjectSetup() {
         createMainClass()
         populateBuildFile()

@@ -1,0 +1,57 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// START SNIPPET type-declaration
+@Managed interface MyComponent extends ComponentSpec {
+    String getPublicData()
+    void setPublicData(String data)
+}
+@Managed interface MyComponentInternal extends MyComponent {
+    String getInternalData()
+    void setInternalData(String internal)
+}
+// END SNIPPET type-declaration
+
+// START SNIPPET type-registration
+// START SNIPPET internal-view-mutation
+class MyPlugin extends RuleSource {
+// END SNIPPET internal-view-mutation
+    @ComponentType
+    void registerMyComponent(TypeBuilder<MyComponent> builder) {
+        builder.internalView(MyComponentInternal)
+    }
+// END SNIPPET type-registration
+// START SNIPPET internal-view-mutation
+    @Mutate
+    void mutateMyComponents(ModelMap<MyComponentInternal> components) {
+        components.all { component ->
+            component.publicData = "Some PUBLIC data"
+            component.internalData = "Some INTERNAL data"
+        }
+    }
+// START SNIPPET type-registration
+}
+// END SNIPPET type-registration
+// END SNIPPET internal-view-mutation
+
+// START SNIPPET build-script
+apply plugin: MyPlugin
+model {
+    components {
+        my(MyComponent)
+    }
+}
+// END SNIPPET build-script

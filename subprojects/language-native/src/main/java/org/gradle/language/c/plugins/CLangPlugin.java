@@ -27,15 +27,16 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -45,16 +46,17 @@ import java.util.Map;
 @Incubating
 public class CLangPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<CSourceSet> builder) {
-            builder.setLanguageName("c");
+        @ComponentType
+        void registerLanguage(TypeBuilder<CSourceSet> builder) {
             builder.defaultImplementation(DefaultCSourceSet.class);
+            builder.internalView(DependentSourceSetInternal.class);
         }
 
         @Mutate
@@ -64,20 +66,29 @@ public class CLangPlugin implements Plugin<Project> {
     }
 
     private static class C extends NativeLanguageTransform<CSourceSet> implements PchEnabledLanguageTransform<CSourceSet> {
+        @Override
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("cCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "c";
+        }
+
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, CCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, CPreCompiledHeaderCompile.class);
         }

@@ -86,8 +86,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         def e = thrown(TaskConfigurationException)
         e.message == "Problem configuring option 'someEnum' on task ':someTask' from command line."
         e.cause instanceof TypeConversionException
-        e.cause.message == "Cannot coerce string value 'unsupportedEnumValue' to an enum value of type 'org.gradle.execution.commandline.CommandLineTaskConfigurerSpec\$TestEnum' (valid case insensitive values: [value1, value2])"
-
+        e.cause.message == "Cannot convert string value 'unsupportedEnumValue' to an enum value of type 'org.gradle.execution.commandline.CommandLineTaskConfigurerSpec\$TestEnum' (valid case insensitive values: value1, value2)"
     }
 
     def "configures options on all types that can accommodate the setting"() {

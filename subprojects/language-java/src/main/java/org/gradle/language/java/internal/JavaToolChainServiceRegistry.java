@@ -35,19 +35,24 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import javax.tools.JavaCompiler;
 
 public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeCompileServices());
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }

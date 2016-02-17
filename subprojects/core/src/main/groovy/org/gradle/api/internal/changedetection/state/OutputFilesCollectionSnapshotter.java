@@ -102,7 +102,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             this.filesSnapshot = filesSnapshot;
         }
 
-        public FileCollection getFiles() {
+        public Collection<File> getFiles() {
             return filesSnapshot.getFiles();
         }
 

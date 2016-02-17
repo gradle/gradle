@@ -60,23 +60,20 @@ public class ResolvedInclude implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return String.format("Resolved include '%s'", include);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ResolvedInclude)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
         ResolvedInclude that = (ResolvedInclude) o;
 
-        return include.equals(that.include)
-                && (dependencyFile == null ? that.dependencyFile == null : dependencyFile.equals(that.dependencyFile));
+        if (!include.equals(that.include)) {
+            return false;
+        }
+        return !(dependencyFile != null ? !dependencyFile.equals(that.dependencyFile) : that.dependencyFile != null);
 
     }
 
@@ -84,4 +81,17 @@ public class ResolvedInclude implements Serializable {
     public int hashCode() {
         return include.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return String.format("Resolved include '%s' -> '%s'", include, resolved());
+    }
+
+    private String resolved() {
+        if (isUnknown()) {
+            return "???";
+        }
+        return dependencyFile.getAbsolutePath();
+    }
+
 }

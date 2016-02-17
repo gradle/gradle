@@ -41,11 +41,6 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
         module {
             testSourceDirs += sourceSets.testFixtures.groovy.srcDirs
             testSourceDirs += sourceSets.testFixtures.resources.srcDirs
-            scopes.TEST.plus.add(configurations.testFixturesCompile)
-            scopes.TEST.plus.add(configurations.testFixturesRuntime)
-
-            //avoiding the certain output directories from the classpath in IDEA
-            scopes.TEST.minus.add(configurations.outputDirs)
         }
     }
 }

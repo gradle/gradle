@@ -44,6 +44,7 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
+    @Override
     public CompilerDaemon getDaemon(File workingDir, final DaemonForkOptions forkOptions) {
         return new CompilerDaemon() {
             public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
@@ -91,6 +92,7 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
             this.gradleUserHome = gradleUserHome;
         }
 
+        @Override
         public Object call() throws Exception {
             // We have to initialize this here because we're in an isolated classloader
             NativeServices.initialize(gradleUserHome);

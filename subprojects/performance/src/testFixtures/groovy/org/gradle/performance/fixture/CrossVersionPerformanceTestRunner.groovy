@@ -32,6 +32,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
+    final ReleasedVersionDistributions releases
 
     String testProject
     boolean useDaemon
@@ -39,6 +40,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> tasksToRun = []
     List<String> args = []
     List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+    List<String> previousTestIds = []
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -46,41 +48,60 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     BuildExperimentListener buildExperimentListener
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
+        this.releases = releases
     }
 
     CrossVersionPerformanceResults run() {
-        assert testId
+        if (testId == null) {
+            throw new IllegalStateException("Test id has not been specified")
+        }
+        if (testProject == null) {
+            throw new IllegalStateException("Test project has not been specified")
+        }
+        if (!targetVersions) {
+            throw new IllegalStateException("Target versions have not been specified")
+        }
 
         def results = new CrossVersionPerformanceResults(
-                testId: testId,
-                testProject: testProject,
-                tasks: tasksToRun,
-                args: args,
-                jvm: Jvm.current().toString(),
-                operatingSystem: OperatingSystem.current().toString(),
-                versionUnderTest: GradleVersion.current().getVersion(),
-                vcsBranch: Git.current().branchName,
-                vcsCommit: Git.current().commitId,
-                testTime: System.currentTimeMillis())
+            testId: testId,
+            previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
+            testProject: testProject,
+            tasks: tasksToRun.collect { it.toString() },
+            args: args.collect { it.toString() },
+            gradleOpts: gradleOpts.collect { it.toString() },
+            daemon: useDaemon,
+            jvm: Jvm.current().toString(),
+            operatingSystem: OperatingSystem.current().toString(),
+            versionUnderTest: GradleVersion.current().getVersion(),
+            vcsBranch: Git.current().branchName,
+            vcsCommits: [Git.current().commitId],
+            testTime: System.currentTimeMillis())
 
-        def releasedDistributions = new ReleasedVersionDistributions()
-        def releasedVersions = releasedDistributions.all*.version.version
-        def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
+        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
+        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
-        allVersions.remove(currentBaseVersion)
+        def baselineVersions = new LinkedHashSet()
+        for (String version: targetVersions) {
+            if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
+                // These are all treated specially below
+                continue
+            }
+            baselineVersions.add(findRelease(version).version.version)
+        }
 
-        // A target version may be something that is yet unreleased, so filter that out
-        allVersions.removeAll { !releasedVersions.contains(it) }
+        if (!targetVersions.contains('nightly')) {
+            // Include the most recent final release if we're not testing against a nightly
+            baselineVersions.add(mostRecentFinalRelease)
+        } else {
+            baselineVersions.add(mostRecentSnapshot)
+        }
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
-        println "Running performance tests for test project '$testProject', no. of runs: $runs"
-
-        allVersions.each { it ->
+        baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
@@ -90,20 +111,39 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         runVersion(current, projectDir, results.current)
 
-        reporter.report(results)
         results.assertEveryBuildSucceeds()
+        results.assertCurrentVersionHasNotRegressed()
+
+        // Don't store results when builds have failed
+        reporter.report(results)
 
         return results
     }
 
+    GradleDistribution findRelease(String requested) {
+        GradleDistribution best = null
+        for (GradleDistribution release : releases.all) {
+            if (release.version.version == requested) {
+                return release
+            }
+            if (!release.version.snapshot && release.version.baseVersion.version == requested && (best == null || best.version < release.version)) {
+                best = release
+            }
+        }
+        if (best != null) {
+            return best
+        }
+        throw new RuntimeException("Cannot find Gradle release that matches version '" + requested + "'")
+    }
+
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def builder = BuildExperimentSpec.builder()
-                .projectName(testId)
-                .displayName(dist.version.version)
-                .warmUpCount(warmUpRuns)
-                .invocationCount(runs)
-                .listener(buildExperimentListener)
-                .invocation {
+            .projectName(testId)
+            .displayName(dist.version.version)
+            .warmUpCount(warmUpRuns)
+            .invocationCount(runs)
+            .listener(buildExperimentListener)
+            .invocation {
             workingDirectory(projectDir)
             distribution(dist)
             tasksToRun(this.tasksToRun as String[])

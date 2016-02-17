@@ -15,12 +15,13 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
-import org.gradle.api.internal.AbstractBuildableModelElement
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
@@ -28,12 +29,13 @@ import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
+import org.gradle.platform.base.internal.ComponentSpecIdentifier
 import org.gradle.util.CollectionUtils
+
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
-    private final String name
+class DefaultVisualStudioProject extends AbstractBuildableComponentSpec implements VisualStudioProject {
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
     private final NativeComponentSpec component
@@ -41,15 +43,11 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinarySpec, VisualStudioProjectConfiguration> configurations = [:]
 
-    DefaultVisualStudioProject(String name, NativeComponentSpec component, FileResolver fileResolver, Instantiator instantiator) {
-        this.name = name
+    DefaultVisualStudioProject(ComponentSpecIdentifier componentIdentifier, NativeComponentSpec component, PathToFileResolver fileResolver, Instantiator instantiator) {
+        super(componentIdentifier, VisualStudioProject.class)
         this.component = component
         projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj" as String)
         filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj.filters" as String)
-    }
-
-    String getName() {
-        return name
     }
 
     DefaultConfigFile getProjectFile() {
@@ -127,10 +125,10 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     public static class DefaultConfigFile implements XmlConfigFile {
         private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
-        private final FileResolver fileResolver
+        private final PathToFileResolver fileResolver
         private Object location
 
-        DefaultConfigFile(FileResolver fileResolver, String defaultLocation) {
+        DefaultConfigFile(PathToFileResolver fileResolver, String defaultLocation) {
             this.fileResolver = fileResolver
             this.location = defaultLocation
         }

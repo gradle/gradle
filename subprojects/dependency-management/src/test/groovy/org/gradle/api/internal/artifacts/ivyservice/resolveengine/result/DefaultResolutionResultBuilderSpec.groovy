@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -29,6 +28,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
+import static org.gradle.util.CollectionUtils.first
 
 class DefaultResolutionResultBuilderSpec extends Specification {
 
@@ -169,10 +169,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         first(b.dependents).from.is(a)
         first(c.dependents).from.is(b)
         first(a.dependents).from.is(c)
-    }
-
-    ResolvedDependencyResult first(Set<? extends ResolvedDependencyResult> dependencies) {
-        dependencies.iterator().next()
     }
 
     def "accumulates and avoids duplicate dependencies"() {

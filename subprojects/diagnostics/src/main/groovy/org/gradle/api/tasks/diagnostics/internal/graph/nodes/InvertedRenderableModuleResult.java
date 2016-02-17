@@ -34,6 +34,7 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult {
         super(module);
     }
 
+    @Override
     public Set<RenderableDependency> getChildren() {
         Map<ComponentIdentifier, RenderableDependency> children = new LinkedHashMap<ComponentIdentifier, RenderableDependency>();
         for (ResolvedDependencyResult dependent : module.getDependents()) {

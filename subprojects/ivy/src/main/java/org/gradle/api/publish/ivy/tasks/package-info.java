@@ -19,7 +19,5 @@
  *
  * @since 1.3
  */
-@Incubating
+@org.gradle.api.Incubating
 package org.gradle.api.publish.ivy.tasks;
-
-import org.gradle.api.Incubating;

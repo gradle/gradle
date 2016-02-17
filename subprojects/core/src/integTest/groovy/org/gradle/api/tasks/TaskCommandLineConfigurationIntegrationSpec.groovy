@@ -261,7 +261,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         failure.assertHasDescription("Problem configuring option 'third' on task ':someTask' from command line.")
-        failure.assertHasCause("Cannot coerce string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: [valid1, valid2, valid3])")
+        failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: valid1, valid2, valid3)")
     }
 
     def "can set enum value from commandline"() {

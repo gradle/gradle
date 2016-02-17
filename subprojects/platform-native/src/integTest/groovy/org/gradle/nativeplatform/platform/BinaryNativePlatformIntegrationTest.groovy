@@ -246,8 +246,8 @@ model {
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86_64/mainCpp")).arch.name == "x86_64"
         }
 
-        // ARM only supported on visualCpp 2013
-        if (toolChain.meets(ToolChainRequirement.VisualCpp2013)) {
+        // ARM only supported on visualCpp 2012+
+        if (toolChain.meets(ToolChainRequirement.VISUALCPP_2012_OR_NEWER)) {
             executable("build/exe/main/arm/main").binaryInfo.arch.name == "arm"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/arm/mainCpp")).arch.name == "arm"
         } else {
@@ -361,7 +361,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: NativeComponentRules#createBinaries")
+        failure.assertHasCause("Exception thrown while executing model rule: NativeComponentModelPlugin.Rules#createBinaries")
         failure.assertHasCause("Invalid NativePlatform: unknown")
     }
 

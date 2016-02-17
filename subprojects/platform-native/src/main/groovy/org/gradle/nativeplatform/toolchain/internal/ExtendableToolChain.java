@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.listener.ActionBroadcast;
@@ -28,23 +28,25 @@ import java.io.File;
 public abstract class ExtendableToolChain<T extends NativePlatformToolChain> implements NativeToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     protected final ActionBroadcast<T> configureActions = new ActionBroadcast<T>();
     protected final BuildOperationProcessor buildOperationProcessor;
 
-    protected ExtendableToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver) {
+    protected ExtendableToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, PathToFileResolver fileResolver) {
         this.name = name;
         this.operatingSystem = operatingSystem;
         this.fileResolver = fileResolver;
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     protected abstract String getTypeName();
 
+    @Override
     public String getDisplayName() {
         return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }
@@ -54,6 +56,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         return getDisplayName();
     }
 
+    @Override
     public String getOutputType() {
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }

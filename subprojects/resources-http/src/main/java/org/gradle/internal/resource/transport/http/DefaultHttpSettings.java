@@ -22,14 +22,17 @@ import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
     private final HttpProxySettings proxySettings = new JavaSystemPropertiesHttpProxySettings();
+    private final HttpProxySettings secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
     private final Collection<Authentication> authenticationSettings;
+    private final SslContextFactory sslContextFactory;
 
-    public DefaultHttpSettings(Collection<Authentication> authenticationSettings) {
+    public DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory) {
         if (authenticationSettings == null) {
             throw new IllegalArgumentException("Authentication settings cannot be null.");
         }
 
         this.authenticationSettings = authenticationSettings;
+        this.sslContextFactory = sslContextFactory;
     }
 
     @Override
@@ -38,7 +41,17 @@ public class DefaultHttpSettings implements HttpSettings {
     }
 
     @Override
+    public HttpProxySettings getSecureProxySettings() {
+        return secureProxySettings;
+    }
+
+    @Override
     public Collection<Authentication> getAuthenticationSettings() {
         return authenticationSettings;
+    }
+
+    @Override
+    public SslContextFactory getSslContextFactory() {
+        return sslContextFactory;
     }
 }

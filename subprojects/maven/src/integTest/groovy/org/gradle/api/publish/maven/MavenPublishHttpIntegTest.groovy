@@ -109,7 +109,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.versions == ["2"]
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
     }
 
     @Unroll
@@ -133,7 +133,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
     }
 
     @Unroll
@@ -155,7 +155,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
     }
 
     @Issue("GRADLE-3312")

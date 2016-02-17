@@ -23,6 +23,7 @@ task java9IntegTest(type: Test) {
             'ScalaCompilerContinuousIntegrationTest', // scala compile broken
             'ScalaLanguageIncrementalBuildIntegrationTest', // scala compile broken
             'ScalaLanguageIntegrationTest', // scala compile broken
+            'ScalaCompileParallelIntegrationTest', // scala compile broken
             'SystemClassLoaderTest', // system classpath changed, test expectation is wrong
             'MultipleNativeToolChainIntegrationTest',
             'Play', // scala runtime doesn't load, scala compile broken
@@ -78,9 +79,9 @@ task java9Test(type: Test) {
         "ATestClassWithBrokenConstructor",
         "ATestClassWithBrokenRunner",
         "ATestClassWithRunner",
-        "ATestClassWithRunnerThatBreaksAfterRuningSomeTests",
+        "ATestClassWithRunnerThatBreaksAfterRunningSomeTests",
         "ATestClassWithSeveralMethods",
-        "ATestClassWithUnconstructableRunner"
+        "ATestClassWithUnconstructibleRunner"
     ].collect { "**/*${it}*" }
 }
 

@@ -22,7 +22,7 @@ public interface ModelViewState {
 
     void assertCanReadChildren();
 
-    boolean isCanMutate();
+    void assertCanReadChild(String name);
 
-    boolean isCanReadChildren();
+    boolean isCanMutate();
 }

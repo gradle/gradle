@@ -25,7 +25,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 
-abstract public class AbstractCompositeSpecTest {
+public abstract class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;
 
@@ -60,7 +60,7 @@ abstract public class AbstractCompositeSpecTest {
                 }
             });
         }
-        return result.toArray(new Spec[result.size()]);
+        return result.toArray(new Spec[0]);
     }
 
     @Test

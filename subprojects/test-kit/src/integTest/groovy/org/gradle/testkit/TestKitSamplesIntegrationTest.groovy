@@ -15,16 +15,21 @@
  */
 package org.gradle.testkit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.testkit.runner.GradleRunnerIntegrationTest
+import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
+@NonCrossVersion
+@NoDebug
+class TestKitSamplesIntegrationTest extends GradleRunnerIntegrationTest {
 
-    @Rule Sample sample = new Sample(testDirectoryProvider)
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
         executer.requireGradleHome()

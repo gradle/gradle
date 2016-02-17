@@ -23,6 +23,7 @@ import spock.lang.Unroll
 import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.DIGEST
 import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.HIDE_UNAUTHORIZED
+import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.NTLM
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
@@ -80,6 +81,7 @@ task listJars << {
         'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
         'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
         'default'          | ''                                                                            | DIGEST            | ['None', 'Digest']
+        'default'          | ''                                                                            | NTLM              | ['None', 'NTLM']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
@@ -149,6 +151,7 @@ task listJars << {
         'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
         'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
         'default'          | ''                                                                            | DIGEST            | ['None', 'Digest']
+        'default'          | ''                                                                            | NTLM              | ['None', 'NTLM']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
@@ -192,8 +195,10 @@ task listJars << {
         authScheme | credsName | creds
         BASIC      | 'missing' | ''
         DIGEST     | 'missing' | ''
+        NTLM       | 'missing' | ''
         BASIC      | 'bad'     | badCredentials
         DIGEST     | 'bad'     | badCredentials
+        NTLM       | 'bad'     | badCredentials
     }
 
     @Unroll
@@ -236,8 +241,10 @@ task listJars << {
         authScheme | credsName | creds
         BASIC      | 'missing' | ''
         DIGEST     | 'missing' | ''
+        NTLM       | 'missing' | ''
         BASIC      | 'bad'     | badCredentials
         DIGEST     | 'bad'     | badCredentials
+        NTLM       | 'bad'     | badCredentials
     }
 
     @Unroll

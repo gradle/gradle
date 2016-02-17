@@ -19,6 +19,8 @@ import org.gradle.api.Action;
 
 import java.io.File;
 
+import static org.gradle.internal.FileUtils.hasExtension;
+
 public enum SourceUpdateCardinality {
     ONE_FILE(1, "one file is updated"),
     ALL_FILES(Integer.MAX_VALUE, "all files are updated");
@@ -38,7 +40,7 @@ public enum SourceUpdateCardinality {
     public void onSourceFile(File dir, String extension, Action<? super File> action) {
         int idx = 0;
         for (File f: dir.listFiles()) {
-            if (f.getName().endsWith(extension)) {
+            if (hasExtension(f, extension)) {
                 action.execute(f);
             }
             if (++idx==maxNumberOfUpdatedSourceFiles) {
