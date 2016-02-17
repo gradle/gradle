@@ -24,8 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface LanguageSourceSet extends Named, BuildableComponentSpec {
-    String getDisplayName();
+public interface LanguageSourceSet extends BuildableComponentSpec {
 
     // TODO: do we want to keep using SourceDirectorySet in the new API?
     // would feel more natural if dirs could be added directly to LanguageSourceSet
