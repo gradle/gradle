@@ -28,6 +28,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private Iterable<File> zincClasspath;
     private Map<File, File> analysisMap;
 
+    @Override
     public BaseScalaCompileOptions getScalaCompileOptions() {
         return options;
     }
@@ -52,10 +53,12 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
         this.zincClasspath = zincClasspath;
     }
 
+    @Override
     public Map<File, File> getAnalysisMap() {
         return analysisMap;
     }
 
+    @Override
     public void setAnalysisMap(Map<File, File> analysisMap) {
         this.analysisMap = analysisMap;
     }

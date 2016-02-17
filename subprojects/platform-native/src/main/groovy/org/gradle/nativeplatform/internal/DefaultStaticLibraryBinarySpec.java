@@ -35,26 +35,32 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File staticLibraryFile;
 
+    @Override
     public File getStaticLibraryFile() {
         return staticLibraryFile;
     }
 
+    @Override
     public void setStaticLibraryFile(File staticLibraryFile) {
         this.staticLibraryFile = staticLibraryFile;
     }
 
+    @Override
     public File getPrimaryOutput() {
         return getStaticLibraryFile();
     }
 
+    @Override
     public void additionalLinkFiles(FileCollection files) {
         this.additionalLinkFiles.add(files);
     }
 
+    @Override
     public FileCollection getLinkFiles() {
         return getFileCollectionFactory().create(new StaticLibraryLinkOutputs());
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
         return getFileCollectionFactory().empty("Runtime files for " + getDisplayName());
     }
@@ -64,6 +70,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks.getCreateStaticLib();
     }
 
+    @Override
     public StaticLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
@@ -73,6 +80,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
             super(delegate);
         }
 
+        @Override
         public CreateStaticLibrary getCreateStaticLib() {
             return findSingleTaskWithType(CreateStaticLibrary.class);
         }

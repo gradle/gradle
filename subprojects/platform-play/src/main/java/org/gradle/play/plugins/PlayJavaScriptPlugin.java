@@ -81,18 +81,22 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
             return "javaScript";
         }
 
+        @Override
         public Class<JavaScriptSourceSet> getSourceSetType() {
             return JavaScriptSourceSet.class;
         }
 
+        @Override
         public Class<JavaScriptSourceCode> getOutputType() {
             return JavaScriptSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -124,6 +128,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

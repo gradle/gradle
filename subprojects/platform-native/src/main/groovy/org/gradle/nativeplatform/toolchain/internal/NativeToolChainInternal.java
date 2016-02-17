@@ -24,6 +24,7 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
     /**
      * Locates the tools that can target the given platform.
      */
+    @Override
     PlatformToolProvider select(NativePlatformInternal targetPlatform);
 
     /**

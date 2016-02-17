@@ -29,22 +29,27 @@ public abstract class AbstractRenderableModuleResult implements RenderableDepend
         this.module = module;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         return module.getId();
     }
 
+    @Override
     public String getName() {
         return getId().getDisplayName();
     }
 
+    @Override
     public String getDescription() {
         return null;
     }
 
+    @Override
     public boolean isResolvable() {
         return true; // TODO
     }
 
+    @Override
     public abstract Set<RenderableDependency> getChildren();
 
     @Override

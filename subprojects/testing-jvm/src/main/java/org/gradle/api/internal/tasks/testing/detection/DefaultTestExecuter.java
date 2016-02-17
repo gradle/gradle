@@ -44,6 +44,7 @@ public class DefaultTestExecuter implements TestExecuter {
         this.actorFactory = actorFactory;
     }
 
+    @Override
     public void execute(final Test testTask, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testTask.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();

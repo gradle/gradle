@@ -36,6 +36,7 @@ class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtoc
         this.server = server;
     }
 
+    @Override
     public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
         // currently we just allow a single compilation thread at a time (per compiler daemon)
         // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
@@ -51,11 +52,13 @@ class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtoc
         return forkOptions.isCompatibleWith(required);
     }
 
+    @Override
     public void stop() {
         server.stop();
         workerProcess.waitForStop();
     }
 
+    @Override
     public void executed(CompileResult result) {
         try {
             compileResults.put(result);

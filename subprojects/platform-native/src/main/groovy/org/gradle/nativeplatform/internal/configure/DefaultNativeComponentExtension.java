@@ -31,18 +31,22 @@ public class DefaultNativeComponentExtension implements NativeComponentExtension
         this.libraries = libraries;
     }
 
+    @Override
     public NamedDomainObjectContainer<NativeExecutableSpec> getExecutables() {
         return executables;
     }
 
+    @Override
     public void executables(Action<? super NamedDomainObjectContainer<? super NativeExecutableSpec>> action) {
         action.execute(executables);
     }
 
+    @Override
     public NamedDomainObjectContainer<NativeLibrarySpec> getLibraries() {
         return libraries;
     }
 
+    @Override
     public void libraries(Action<? super NamedDomainObjectContainer<? super NativeLibrarySpec>> action) {
         action.execute(libraries);
     }

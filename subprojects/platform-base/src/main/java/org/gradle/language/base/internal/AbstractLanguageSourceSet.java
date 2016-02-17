@@ -43,6 +43,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         return typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
     }
 
+    @Override
     public String getProjectScopedName() {
         return getIdentifier().getProjectScopedName();
     }
@@ -53,20 +54,24 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         super.builtBy(tasks);
     }
 
+    @Override
     public void generatedBy(Task generatorTask) {
         this.generatorTask = generatorTask;
     }
 
+    @Override
     public Task getGeneratorTask() {
         return generatorTask;
     }
 
+    @Override
     public boolean getMayHaveSources() {
         // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
         // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
         return generated || !source.isEmpty();
     }
 
+    @Override
     public String getDisplayName() {
         String languageName = getLanguageName();
         if (languageName.toLowerCase().endsWith("resources")) {
@@ -75,6 +80,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         return String.format("%s source '%s'", languageName, getIdentifier().getPath());
     }
 
+    @Override
     public SourceDirectorySet getSource() {
         return source;
     }

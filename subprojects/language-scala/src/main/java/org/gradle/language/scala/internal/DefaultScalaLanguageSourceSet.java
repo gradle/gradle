@@ -25,6 +25,7 @@ public class DefaultScalaLanguageSourceSet extends BaseLanguageSourceSet impleme
 
     private final EmptyClasspath compileClasspath = new EmptyClasspath();
 
+    @Override
     public Classpath getCompileClasspath() {
         return compileClasspath;
     }

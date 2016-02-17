@@ -36,6 +36,7 @@ public class CachingJarSnapshotter implements JarSnapshotter {
         this.cache = cache;
     }
 
+    @Override
     public JarSnapshot createSnapshot(final JarArchive jarArchive) {
         final byte[] hash = getHash(jarArchive);
         return cache.get(hash, new Factory<JarSnapshot>() {

@@ -78,18 +78,22 @@ public class PlayRoutesPlugin extends RuleSource {
             return "routes";
         }
 
+        @Override
         public Class<RoutesSourceSet> getSourceSetType() {
             return RoutesSourceSet.class;
         }
 
+        @Override
         public Class<ScalaSourceCode> getOutputType() {
             return ScalaSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -121,6 +125,7 @@ public class PlayRoutesPlugin extends RuleSource {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

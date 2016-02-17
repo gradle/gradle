@@ -69,10 +69,12 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         });
     }
 
+    @Override
     public DependencyReportContainer getReports() {
         return reports;
     }
 
+    @Override
     public DependencyReportContainer reports(Closure closure) {
         reports.configure(closure);
         return reports;

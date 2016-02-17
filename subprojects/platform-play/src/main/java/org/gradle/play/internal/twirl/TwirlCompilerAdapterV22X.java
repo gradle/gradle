@@ -63,6 +63,7 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
         this.scalaVersion = scalaVersion;
     }
 
+    @Override
     public ScalaMethod getCompileMethod(final ClassLoader cl) throws ClassNotFoundException {
         return ScalaReflectionUtil.scalaMethod(
                 cl,
@@ -87,10 +88,12 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
         };
     }
 
+    @Override
     public Iterable<String> getClassLoaderPackages() {
         return SHARED_PACKAGES;
     }
 
+    @Override
     public String getDependencyNotation() {
         return String.format("com.typesafe.play:templates-compiler_%s:%s", scalaVersion, twirlVersion);
     }

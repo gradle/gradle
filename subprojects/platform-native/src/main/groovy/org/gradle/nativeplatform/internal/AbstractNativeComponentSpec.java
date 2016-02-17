@@ -28,14 +28,17 @@ import java.util.Set;
 public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, HasIntermediateOutputsComponentSpec {
     private String baseName;
 
+    @Override
     public String getBaseName() {
         return GUtil.elvis(baseName, getName());
     }
 
+    @Override
     public void setBaseName(String baseName) {
         this.baseName = baseName;
     }
 
+    @Override
     public Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes() {
         return Collections.singleton(ObjectFile.class);
     }

@@ -36,10 +36,12 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor;
     }
 
+    @Override
     public TestDescriptorInternal getParent() {
         return parent;
     }
 
+    @Override
     public Object getId() {
         return descriptor.getId();
     }
@@ -50,14 +52,17 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.getOwnerBuildOperationId();
     }
 
+    @Override
     public String getClassName() {
         return descriptor.getClassName();
     }
 
+    @Override
     public String getName() {
         return descriptor.getName();
     }
 
+    @Override
     public boolean isComposite() {
         return descriptor.isComposite();
     }

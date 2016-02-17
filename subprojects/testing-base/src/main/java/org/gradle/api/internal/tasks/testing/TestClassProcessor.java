@@ -42,5 +42,6 @@ public interface TestClassProcessor extends Stoppable {
      * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
      * returned.
      */
+    @Override
     void stop();
 }

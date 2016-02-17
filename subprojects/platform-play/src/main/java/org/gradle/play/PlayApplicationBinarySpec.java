@@ -38,6 +38,7 @@ public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
     /**
      * {@inheritDoc}
      */
+    @Override
     PlayApplicationSpec getApplication();
 
     /**

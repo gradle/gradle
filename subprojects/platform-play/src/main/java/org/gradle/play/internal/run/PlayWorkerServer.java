@@ -42,6 +42,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         this.runAdapter = runAdapter;
     }
 
+    @Override
     public void execute(WorkerProcessContext context) {
         stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
@@ -101,6 +102,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         }
     }
 
+    @Override
     public void stop() {
         stop.countDown();
     }

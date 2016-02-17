@@ -327,6 +327,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     /**
      * Internal method.
      */
+    @Override
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(forkOptions.optionMap());

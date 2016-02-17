@@ -56,6 +56,7 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
         this.clang = expectClang;
     }
 
+    @Override
     public GccVersionResult getGccMetaData(File gccBinary, List<String> args) {
         List<String> allArgs = new ArrayList<String>(args);
         allArgs.add("-dM");
@@ -168,22 +169,27 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             this.clang = clang;
         }
 
+        @Override
         public VersionNumber getVersion() {
             return scrapedVersion;
         }
 
+        @Override
         public boolean isClang() {
             return clang;
         }
 
+        @Override
         public ArchitectureInternal getDefaultArchitecture() {
             return architecture;
         }
 
+        @Override
         public boolean isAvailable() {
             return true;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
     }
@@ -195,22 +201,27 @@ public class GccVersionDeterminer implements CompilerMetaDataProvider {
             this.message = message;
         }
 
+        @Override
         public VersionNumber getVersion() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean isClang() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ArchitectureInternal getDefaultArchitecture() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
         }

@@ -34,12 +34,14 @@ public class DefaultTestFilter implements TestFilter {
         }
     }
 
+    @Override
     public TestFilter includeTestsMatching(String testNamePattern) {
         validateName(testNamePattern);
         testNames.add(testNamePattern);
         return this;
     }
 
+    @Override
     public TestFilter includeTest(String className, String methodName) {
         validateName(className);
         if(methodName == null || methodName.trim().isEmpty()){
@@ -60,11 +62,13 @@ public class DefaultTestFilter implements TestFilter {
         return failOnNoMatching;
     }
 
+    @Override
     @Input
     public Set<String> getIncludePatterns() {
         return testNames;
     }
 
+    @Override
     public TestFilter setIncludePatterns(String... testNamePatterns) {
         for (String name : testNamePatterns) {
             validateName(name);

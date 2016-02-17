@@ -62,6 +62,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    @Override
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);

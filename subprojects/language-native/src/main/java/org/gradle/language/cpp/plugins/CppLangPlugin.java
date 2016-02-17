@@ -45,6 +45,7 @@ import java.util.Map;
  */
 @Incubating
 public class CppLangPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -64,10 +65,12 @@ public class CppLangPlugin implements Plugin<Project> {
     }
 
     private static class Cpp extends NativeLanguageTransform<CppSourceSet> implements PchEnabledLanguageTransform<CppSourceSet> {
+        @Override
         public Class<CppSourceSet> getSourceSetType() {
             return CppSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("cppCompiler", DefaultPreprocessingTool.class);
@@ -79,10 +82,12 @@ public class CppLangPlugin implements Plugin<Project> {
             return "cpp";
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, CppCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, CppPreCompiledHeaderCompile.class);
         }

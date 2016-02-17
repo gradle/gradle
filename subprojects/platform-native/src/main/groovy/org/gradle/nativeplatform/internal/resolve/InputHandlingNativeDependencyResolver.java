@@ -25,6 +25,7 @@ public class InputHandlingNativeDependencyResolver implements NativeDependencyRe
         this.delegate = delegate;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
             if (resolution.getInput() instanceof NativeDependencySet) {

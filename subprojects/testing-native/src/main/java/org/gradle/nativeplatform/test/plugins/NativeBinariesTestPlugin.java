@@ -43,6 +43,7 @@ import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         project.getPluginManager().apply(TestingModelBasePlugin.class);

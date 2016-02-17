@@ -37,6 +37,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         return ruleDefinition.getAnnotation(annotationType) != null;
     }
 
+    @Override
     public String getDescription() {
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }

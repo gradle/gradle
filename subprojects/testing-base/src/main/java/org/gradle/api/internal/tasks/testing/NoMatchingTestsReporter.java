@@ -28,15 +28,19 @@ public class NoMatchingTestsReporter implements TestListener {
         this.message = message;
     }
 
+    @Override
     public void beforeSuite(TestDescriptor suite) {}
 
+    @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null && result.getTestCount() == 0) {
             throw new TestExecutionException(message);
         }
     }
 
+    @Override
     public void beforeTest(TestDescriptor testDescriptor) {}
 
+    @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {}
 }

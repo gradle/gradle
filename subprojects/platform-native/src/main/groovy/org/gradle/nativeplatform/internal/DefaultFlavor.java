@@ -26,6 +26,7 @@ public class DefaultFlavor implements Flavor {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -35,6 +36,7 @@ public class DefaultFlavor implements Flavor {
         return getDisplayName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("flavor '%s'", name);
     }

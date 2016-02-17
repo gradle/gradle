@@ -72,6 +72,7 @@ class ModelElementNode extends ModelNodeInternal {
         return getPrivateData(ModelType.of(type));
     }
 
+    @Override
     public <T> T getPrivateData(ModelType<T> type) {
         if (privateData == null) {
             return null;
@@ -93,6 +94,7 @@ class ModelElementNode extends ModelNodeInternal {
         setPrivateData(ModelType.of(type), object);
     }
 
+    @Override
     public <T> void setPrivateData(ModelType<? super T> type, T object) {
         if (!isMutable()) {
             throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
@@ -101,15 +103,18 @@ class ModelElementNode extends ModelNodeInternal {
         this.privateData = object;
     }
 
+    @Override
     public boolean hasLink(String name) {
         return links.containsKey(name);
     }
 
+    @Override
     @Nullable
     public ModelNodeInternal getLink(String name) {
         return links.get(name);
     }
 
+    @Override
     public Iterable<? extends ModelNodeInternal> getLinks() {
         return links.values();
     }

@@ -49,11 +49,13 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         this.actorFactory = actorFactory;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         resultProcessorActor = actorFactory.createActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
@@ -70,6 +72,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         processor.processTestClass(testClass);
     }
 
+    @Override
     public void stop() {
         try {
             CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();

@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class DiagnosticsServices implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
             TypeAwareBinaryRenderer createBinaryRenderer(ServiceRegistry services, ModelSchemaStore schemaStore) {
@@ -35,15 +36,19 @@ public class DiagnosticsServices implements PluginServiceRegistry {
         });
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 }

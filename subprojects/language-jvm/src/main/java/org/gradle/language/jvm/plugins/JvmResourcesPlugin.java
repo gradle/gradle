@@ -46,6 +46,7 @@ import static org.gradle.util.CollectionUtils.first;
 @Incubating
 public class JvmResourcesPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -69,18 +70,22 @@ public class JvmResourcesPlugin implements Plugin<Project> {
             return "resources";
         }
 
+        @Override
         public Class<JvmResourceSet> getSourceSetType() {
             return JvmResourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public Class<org.gradle.jvm.JvmResources> getOutputType() {
             return org.gradle.jvm.JvmResources.class;
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -105,6 +110,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 }
             };
         }
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
         }

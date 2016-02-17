@@ -34,18 +34,22 @@ public class DefaultVisualStudioExtension implements VisualStudioExtensionIntern
         solutionRegistry = new VisualStudioSolutionRegistry(projectIdentifier, fileResolver, projectResolver, instantiator);
     }
 
+    @Override
     public NamedDomainObjectSet<? extends VisualStudioProject> getProjects() {
         return projectRegistry;
     }
 
+    @Override
     public VisualStudioProjectRegistry getProjectRegistry() {
         return projectRegistry;
     }
 
+    @Override
     public NamedDomainObjectSet<? extends VisualStudioSolution> getSolutions() {
         return solutionRegistry;
     }
 
+    @Override
     public VisualStudioSolutionRegistry getSolutionRegistry() {
         return solutionRegistry;
     }

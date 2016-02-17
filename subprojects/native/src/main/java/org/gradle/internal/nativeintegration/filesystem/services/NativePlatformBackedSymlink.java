@@ -29,10 +29,12 @@ class NativePlatformBackedSymlink implements Symlink {
         this.posixFiles = posixFiles;
     }
 
+    @Override
     public boolean isSymlinkSupported() {
         return true;
     }
 
+    @Override
     public void symlink(File link, File target) throws IOException {
         link.getParentFile().mkdirs();
         posixFiles.symlink(link, target.getPath());

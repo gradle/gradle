@@ -34,15 +34,18 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
         super(identifier, publicType);
     }
 
+    @Override
     public Task getBuildTask() {
         return buildTask;
     }
 
+    @Override
     public void setBuildTask(Task buildTask) {
         this.buildTask = buildTask;
         buildTask.dependsOn(buildTaskDependencies);
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task other) {
@@ -54,10 +57,12 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
         };
     }
 
+    @Override
     public void builtBy(Object... tasks) {
         buildTaskDependencies.add(tasks);
     }
 
+    @Override
     public boolean hasBuildDependencies() {
         return buildTaskDependencies.getDependencies(buildTask).size() > 0;
     }

@@ -41,6 +41,7 @@ public class VisualCppInstall implements Named {
         this.architectureDescriptors = architectureDescriptors;
     }
 
+    @Override
     public String getName() {
         return name;
     }

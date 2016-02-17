@@ -45,6 +45,7 @@ import java.util.Map;
  */
 @Incubating
 public class ObjectiveCppLangPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -64,10 +65,12 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     }
 
     private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet> implements PchEnabledLanguageTransform<ObjectiveCppSourceSet> {
+        @Override
         public Class<ObjectiveCppSourceSet> getSourceSetType() {
             return ObjectiveCppSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("objcppCompiler", DefaultPreprocessingTool.class);
@@ -79,10 +82,12 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
             return "objcpp";
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, ObjectiveCppCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, ObjectiveCppPreCompiledHeaderCompile.class);
         }

@@ -71,6 +71,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         this.instantiator = instantiator;
     }
 
+    @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
 
@@ -352,6 +353,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
+        @Override
         public String determineName(ArtifactRepository object) {
             return object.getName();
         }

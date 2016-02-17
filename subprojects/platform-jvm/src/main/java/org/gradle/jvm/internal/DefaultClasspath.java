@@ -29,10 +29,12 @@ public class DefaultClasspath implements Classpath {
         files = new DefaultConfigurableFileCollection(fileResolver, taskResolver);
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return files.getBuildDependencies();
     }

@@ -27,6 +27,7 @@ public class DefaultScalaJvmAssembly extends DefaultJvmAssembly implements Scala
         super(identifier, ScalaJvmAssembly.class);
     }
 
+    @Override
     public ScalaPlatform getScalaPlatform() {
         return scalaPlatform;
     }

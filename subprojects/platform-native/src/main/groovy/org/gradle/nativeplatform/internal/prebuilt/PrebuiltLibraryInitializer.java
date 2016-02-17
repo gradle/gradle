@@ -54,6 +54,7 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
         this.allFlavors.addAll(allFlavors);
     }
 
+    @Override
     public void execute(PrebuiltLibrary prebuiltLibrary) {
         for (NativePlatform platform : allPlatforms) {
             for (BuildType buildType : allBuildTypes) {

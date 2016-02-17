@@ -30,10 +30,12 @@ public class DefaultTestOutputEvent implements Serializable, TestOutputEvent {
         this.message = message;
     }
 
+    @Override
     public Destination getDestination() {
         return destination;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }

@@ -59,6 +59,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         this.actorFactory = actorFactory;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Wrap the processor in an actor, to make it thread-safe
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
@@ -66,6 +67,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
         try {
@@ -75,6 +77,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
     public void stop() {
         try {
             runTests();
@@ -154,6 +157,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             matcher = new TestSelectionMatcher(includedTests);
         }
 
+        @Override
         public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
             ISuite suite = context.getSuite();
             List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();

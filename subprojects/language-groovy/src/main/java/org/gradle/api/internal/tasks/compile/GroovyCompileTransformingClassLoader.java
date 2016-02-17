@@ -59,6 +59,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
             super(Opcodes.ASM5);
         }
 
+        @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
             if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                 found = true;
@@ -87,6 +88,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
                 super(Opcodes.ASM5, annotationVisitor);
             }
 
+            @Override
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
                     return new AnnotationVisitor(Opcodes.ASM5){
@@ -109,6 +111,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
                 }
             }
 
+            @Override
             public void visitEnd() {
                 if (!names.isEmpty()) {
                     AnnotationVisitor visitor = super.visitArray("value");

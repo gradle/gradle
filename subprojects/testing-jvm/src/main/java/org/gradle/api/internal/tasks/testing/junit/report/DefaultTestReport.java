@@ -37,6 +37,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 public class DefaultTestReport implements TestReporter {
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
 
+    @Override
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
         LOG.info("Generating HTML test report...");
 

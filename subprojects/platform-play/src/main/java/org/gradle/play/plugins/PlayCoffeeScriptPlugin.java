@@ -109,18 +109,22 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             return "coffeeScript";
         }
 
+        @Override
         public Class<CoffeeScriptSourceSet> getSourceSetType() {
             return CoffeeScriptSourceSet.class;
         }
 
+        @Override
         public Class<JavaScriptSourceCode> getOutputType() {
             return JavaScriptSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -150,6 +154,7 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

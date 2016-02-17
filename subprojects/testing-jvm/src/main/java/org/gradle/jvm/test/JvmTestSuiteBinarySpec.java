@@ -36,6 +36,7 @@ public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySp
      * Provides direct access to important build tasks of JVM test suites.
      */
     interface JvmTestSuiteTasks extends TestSuiteTaskCollection {
+        @Override
         Test getRun();
     }
 

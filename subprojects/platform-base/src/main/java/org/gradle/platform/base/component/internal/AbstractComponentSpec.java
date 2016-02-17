@@ -29,14 +29,17 @@ public class AbstractComponentSpec implements ComponentSpec, ComponentSpecIntern
         this.identifier = identifier;
     }
 
+    @Override
     public ComponentSpecIdentifier getIdentifier() {
         return identifier;
     }
 
+    @Override
     public String getName() {
         return identifier.getName();
     }
 
+    @Override
     public String getProjectPath() {
         return identifier.getProjectPath();
     }
@@ -45,6 +48,7 @@ public class AbstractComponentSpec implements ComponentSpec, ComponentSpecIntern
         return publicType.getSimpleName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("%s '%s'", getTypeName(), identifier.getPath());
     }

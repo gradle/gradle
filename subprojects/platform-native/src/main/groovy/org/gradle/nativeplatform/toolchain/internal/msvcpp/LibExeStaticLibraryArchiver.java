@@ -50,6 +50,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         this.invocationContext = invocationContext;
     }
 
+    @Override
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         StaticLibraryArchiverSpec transformedSpec = specTransformer.transform(spec);
@@ -64,6 +65,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
             List<String> args = new ArrayList<String>();
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());

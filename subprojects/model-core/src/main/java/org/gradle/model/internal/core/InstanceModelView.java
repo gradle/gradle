@@ -49,14 +49,17 @@ public class InstanceModelView<T> implements ModelView<T> {
         return path;
     }
 
+    @Override
     public ModelType<T> getType() {
         return type;
     }
 
+    @Override
     public T getInstance() {
         return instance;
     }
 
+    @Override
     public void close() {
         onClose.execute(instance);
     }

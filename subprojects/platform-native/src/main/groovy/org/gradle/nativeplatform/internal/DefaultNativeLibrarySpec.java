@@ -25,14 +25,17 @@ public class DefaultNativeLibrarySpec extends AbstractTargetedNativeComponentSpe
         return "native library";
     }
 
+    @Override
     public NativeLibraryRequirement getShared() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "shared");
     }
 
+    @Override
     public NativeLibraryRequirement getStatic() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "static");
     }
 
+    @Override
     public NativeLibraryRequirement getApi() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
     }

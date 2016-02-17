@@ -28,6 +28,7 @@ public class DefaultGoogleTestTestSuiteSpec extends AbstractNativeComponentSpec 
         return "Google test suite";
     }
 
+    @Override
     public NativeComponentSpec getTestedComponent() {
         return testedComponent;
     }

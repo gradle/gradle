@@ -32,6 +32,7 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         this.testLogging = testLogging;
     }
 
+    @Override
     public String format(TestDescriptor descriptor, List<Throwable> exceptions) {
         StringBuilder builder = new StringBuilder();
         for (Throwable exception : exceptions) {

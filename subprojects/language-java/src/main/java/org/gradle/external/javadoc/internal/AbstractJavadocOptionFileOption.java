@@ -40,14 +40,17 @@ public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptio
         this.value = value;
     }
 
+    @Override
     public final String getOption() {
         return option;
     }
 
+    @Override
     public T getValue() {
         return value;
     }
 
+    @Override
     public void setValue(T value) {
         this.value = value;
     }

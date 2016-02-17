@@ -40,14 +40,17 @@ public class DefaultPlayPlatformAwareComponentSpec extends BaseComponentSpec imp
         return "Play Application";
     }
 
+    @Override
     public List<PlatformRequirement> getTargetPlatforms() {
         return Collections.unmodifiableList(targetPlatforms);
     }
 
+    @Override
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
+    @Override
     public void platform(Object platformRequirements) {
         PlatformRequirement requirement = PlayPlatformNotationParser.parser().parseNotation(platformRequirements);
         this.targetPlatforms.add(requirement);

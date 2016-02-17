@@ -46,6 +46,7 @@ import java.util.Map;
 @Incubating
 public class CLangPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -65,10 +66,12 @@ public class CLangPlugin implements Plugin<Project> {
     }
 
     private static class C extends NativeLanguageTransform<CSourceSet> implements PchEnabledLanguageTransform<CSourceSet> {
+        @Override
         public Class<CSourceSet> getSourceSetType() {
             return CSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("cCompiler", DefaultPreprocessingTool.class);
@@ -80,10 +83,12 @@ public class CLangPlugin implements Plugin<Project> {
             return "c";
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, CCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, CPreCompiledHeaderCompile.class);
         }

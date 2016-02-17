@@ -27,6 +27,7 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         this.processor = processor;
     }
 
+    @Override
     public void started(TestDescriptorInternal test, TestStartEvent event) {
         if (rootId == null) {
             assert test.isComposite();
@@ -37,14 +38,17 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         processor.started(test, event);
     }
 
+    @Override
     public void failure(Object testId, Throwable result) {
         processor.failure(testId, result);
     }
 
+    @Override
     public void output(Object testId, TestOutputEvent event) {
         processor.output(testId, event);
     }
 
+    @Override
     public void completed(Object testId, TestCompleteEvent event) {
         if (testId.equals(rootId)) {
             rootId = null;

@@ -128,6 +128,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         return publicType;
     }
 
+    @Override
     @Nullable
     public ComponentSpec getComponent() {
         return getComponentAs(ComponentSpec.class);
@@ -154,6 +155,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         this.disabled = !buildable;
     }
 
+    @Override
     public final boolean isBuildable() {
         return getBuildAbility().isBuildable();
     }
@@ -168,18 +170,22 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
+    @Override
     public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
+    @Override
     public boolean isLegacyBinary() {
         return false;
     }
 
+    @Override
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
     }
 
+    @Override
     public void setNamingScheme(BinaryNamingScheme namingScheme) {
         this.namingScheme = namingScheme;
     }

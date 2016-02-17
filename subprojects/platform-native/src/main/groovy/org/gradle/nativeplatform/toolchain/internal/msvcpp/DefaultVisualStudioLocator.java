@@ -86,10 +86,12 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
+    @Override
     public SearchResult locateDefaultVisualStudioInstall() {
         return locateDefaultVisualStudioInstall(null);
     }
 
+    @Override
     public SearchResult locateDefaultVisualStudioInstall(File candidate) {
         initializeVisualStudioInstalls();
 
@@ -246,14 +248,17 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             this.install = install;
         }
 
+        @Override
         public VisualStudioInstall getVisualStudio() {
             return install;
         }
 
+        @Override
         public boolean isAvailable() {
             return true;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
     }
@@ -265,14 +270,17 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             this.message = message;
         }
 
+        @Override
         public VisualStudioInstall getVisualStudio() {
             return null;
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
         }
@@ -327,6 +335,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return definitions;
         }
 
+        @Override
         public boolean isInstalled() {
             return binPath.exists() && compilerPath.exists() && libPath.exists();
         }

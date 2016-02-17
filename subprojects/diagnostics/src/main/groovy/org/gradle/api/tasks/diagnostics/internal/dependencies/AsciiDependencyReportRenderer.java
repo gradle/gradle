@@ -55,6 +55,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         super.completeProject(project);
     }
 
+    @Override
     public void startConfiguration(final Configuration configuration) {
         if (hasConfigs) {
             getTextOutput().println();
@@ -76,8 +77,10 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
     }
 
+    @Override
     public void completeConfiguration(Configuration configuration) {}
 
+    @Override
     public void render(Configuration configuration) throws IOException {
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
@@ -94,6 +97,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         dependencyGraphRenderer.render(root);
     }
 
+    @Override
     public void complete() {
         if (dependencyGraphRenderer != null) {
             dependencyGraphRenderer.printLegend();

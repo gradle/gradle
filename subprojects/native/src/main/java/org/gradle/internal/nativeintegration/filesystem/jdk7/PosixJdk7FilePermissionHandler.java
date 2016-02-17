@@ -30,11 +30,13 @@ import static org.gradle.internal.nativeintegration.filesystem.jdk7.PosixFilePer
 
 public class PosixJdk7FilePermissionHandler implements FileModeAccessor, FileModeMutator {
 
+    @Override
     public int getUnixMode(File file) throws IOException {
         final PosixFileAttributes posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class);
         return convertToInt(posixFileAttributes.permissions());
     }
 
+    @Override
     public void chmod(File f, int mode) throws IOException {
         PosixFileAttributeView fileAttributeView = Files.getFileAttributeView(f.toPath(), PosixFileAttributeView.class);
         fileAttributeView.setPermissions(convertToPermissionsSet(mode));

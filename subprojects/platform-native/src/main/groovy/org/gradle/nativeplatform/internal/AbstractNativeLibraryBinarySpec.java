@@ -59,6 +59,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
     }
 
     protected abstract class LibraryOutputs implements MinimalFileSet, Buildable {
+        @Override
         public final Set<File> getFiles() {
             if (hasOutputs()) {
                 return getOutputs();
@@ -66,6 +67,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
             return Collections.emptySet();
         }
 
+        @Override
         public final TaskDependency getBuildDependencies() {
             if (hasOutputs()) {
                 return AbstractNativeLibraryBinarySpec.this.getBuildDependencies();
@@ -79,10 +81,12 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
     }
 
     private class HeaderFileSet implements MinimalFileSet, Buildable {
+        @Override
         public String getDisplayName() {
             return "Headers for " + AbstractNativeLibraryBinarySpec.this.getDisplayName();
         }
 
+        @Override
         public Set<File> getFiles() {
             Set<File> headerDirs = new LinkedHashSet<File>();
             for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {

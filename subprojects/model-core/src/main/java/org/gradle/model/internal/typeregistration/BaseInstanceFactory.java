@@ -372,6 +372,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             return implementationFactory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
         }
 
+        @Override
         public ModelType<?> getDelegateType() {
             return implementationRegistration.implementationType;
         }

@@ -42,6 +42,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         this.schemaStore = schemaStore;
     }
 
+    @Override
     public String getDescription() {
         return String.format("%s and taking a managed model element", super.getDescription());
     }

@@ -29,6 +29,7 @@ class NativePlatformBackedStat implements FileModeAccessor {
         this.posixFiles = posixFiles;
     }
 
+    @Override
     public int getUnixMode(File f) throws IOException {
         return posixFiles.getMode(f);
     }

@@ -35,14 +35,17 @@ public class DefaultJavaPlatform implements JavaPlatform {
         return new DefaultJavaPlatform(JavaVersion.current());
     }
 
+    @Override
     public JavaVersion getTargetCompatibility() {
         return targetCompatibility;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Java SE %s", targetCompatibility.getMajorVersion());
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -51,6 +54,7 @@ public class DefaultJavaPlatform implements JavaPlatform {
         return getDisplayName();
     }
 
+    @Override
     public void setTargetCompatibility(JavaVersion targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
     }

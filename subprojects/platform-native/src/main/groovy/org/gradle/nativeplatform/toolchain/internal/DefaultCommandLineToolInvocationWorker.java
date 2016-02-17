@@ -38,6 +38,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         this.execActionFactory = execActionFactory;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("command line tool '%s'", name);
     }
@@ -47,6 +48,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         return getDisplayName();
     }
 
+    @Override
     public void execute(CommandLineToolInvocation invocation) {
         ExecAction toolExec = execActionFactory.newExecAction();
 

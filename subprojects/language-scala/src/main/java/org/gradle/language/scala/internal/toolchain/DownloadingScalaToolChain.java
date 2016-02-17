@@ -46,14 +46,17 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
         this.javaVersion = JavaVersion.current();
     }
 
+    @Override
     public String getName() {
         return String.format("Scala Toolchain");
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Scala Toolchain (JDK %s (%s))", javaVersion.getMajorVersion(), javaVersion);
     }
 
+    @Override
     public ToolProvider select(ScalaPlatform targetPlatform) {
         try {
             Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", targetPlatform.getScalaVersion()));

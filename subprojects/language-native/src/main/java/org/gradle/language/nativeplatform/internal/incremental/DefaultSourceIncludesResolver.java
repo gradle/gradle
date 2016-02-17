@@ -32,6 +32,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         this.includePaths = includePaths;
     }
 
+    @Override
     public ResolvedSourceIncludes resolveIncludes(File sourceFile, IncludeDirectives includes) {
         BuildableResolvedSourceIncludes resolvedSourceIncludes = new BuildableResolvedSourceIncludes();
         searchForDependencies(prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes(), resolvedSourceIncludes);

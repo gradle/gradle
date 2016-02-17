@@ -39,6 +39,7 @@ import java.util.Map;
 @Incubating
 public class AssemblerLangPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -56,6 +57,7 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     }
 
     private static class Assembler extends NativeLanguageTransform<AssemblerSourceSet> {
+        @Override
         public Class<AssemblerSourceSet> getSourceSetType() {
             return AssemblerSourceSet.class;
         }
@@ -65,12 +67,14 @@ public class AssemblerLangPlugin implements Plugin<Project> {
             return "asm";
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("assembler", DefaultTool.class);
             return tools;
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new AssembleTaskConfig();
         }

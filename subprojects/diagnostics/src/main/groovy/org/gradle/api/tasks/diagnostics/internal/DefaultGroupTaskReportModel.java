@@ -72,10 +72,12 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
         return null;
     }
 
+    @Override
     public Set<String> getGroups() {
         return groups.keySet();
     }
 
+    @Override
     public Set<TaskDetails> getTasksForGroup(String group) {
         return groups.get(group);
     }

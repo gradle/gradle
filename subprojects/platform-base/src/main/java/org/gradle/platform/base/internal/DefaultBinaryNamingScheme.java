@@ -101,6 +101,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return parentName;
     }
 
+    @Override
     public String getBinaryName() {
         return binaryName != null ? binaryName : makeName(dimensionPrefix, binaryType);
     }
@@ -134,6 +135,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return new File(baseDir, getOutputDirectoryBase(outputType));
     }
 
+    @Override
     public String getDescription() {
         StringBuilder builder = new StringBuilder();
         builder.append(GUtil.toWords(binaryType));
@@ -151,14 +153,17 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return builder.toString();
     }
 
+    @Override
     public List<String> getVariantDimensions() {
         return dimensions;
     }
 
+    @Override
     public String getTaskName(@Nullable String verb) {
         return getTaskName(verb, null);
     }
 
+    @Override
     public String getTaskName(@Nullable String verb, @Nullable String target) {
         if (binaryName != null) {
             return makeName(verb, parentName, binaryName, target);

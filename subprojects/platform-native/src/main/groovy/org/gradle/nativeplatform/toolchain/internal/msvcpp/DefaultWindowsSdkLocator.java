@@ -75,6 +75,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         this.windowsRegistry = windowsRegistry;
     }
 
+    @Override
     public SearchResult locateWindowsSdks(File candidate) {
         if (!initialised) {
             locateSdksInRegistry();
@@ -241,14 +242,17 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
             this.sdk = sdk;
         }
 
+        @Override
         public WindowsSdk getSdk() {
             return sdk;
         }
 
+        @Override
         public boolean isAvailable() {
             return true;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
     }
@@ -260,14 +264,17 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
             this.message = message;
         }
 
+        @Override
         public WindowsSdk getSdk() {
             return null;
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
         }

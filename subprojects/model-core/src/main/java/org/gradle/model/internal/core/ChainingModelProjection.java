@@ -49,6 +49,7 @@ public class ChainingModelProjection implements ModelProjection {
         }));
     }
 
+    @Override
     @Nullable
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {

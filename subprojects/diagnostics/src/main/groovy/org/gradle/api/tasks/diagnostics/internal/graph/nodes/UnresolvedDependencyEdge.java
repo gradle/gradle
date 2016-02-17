@@ -37,26 +37,32 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
         actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersion());
     }
 
+    @Override
     public boolean isResolvable() {
         return false;
     }
 
+    @Override
     public ComponentSelector getRequested() {
         return dependency.getRequested();
     }
 
+    @Override
     public ModuleComponentIdentifier getActual() {
         return actual;
     }
 
+    @Override
     public ComponentSelectionReason getReason() {
         return dependency.getAttemptedReason();
     }
 
+    @Override
     public ModuleComponentIdentifier getFrom() {
         return (ModuleComponentIdentifier)dependency.getFrom().getId();
     }
 
+    @Override
     public Set<? extends RenderableDependency> getChildren() {
         return Collections.singleton(new InvertedRenderableModuleResult(dependency.getFrom()));
     }

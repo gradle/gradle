@@ -59,18 +59,22 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
         return library;
     }
 
+    @Override
     public BuildType getBuildType() {
         return buildType;
     }
 
+    @Override
     public Flavor getFlavor() {
         return flavor;
     }
 
+    @Override
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
+    @Override
     public FileCollection getHeaderDirs() {
         return fileCollectionFactory.fixed("Headers for " + getDisplayName(), library.getHeaders().getSrcDirs());
     }
@@ -90,10 +94,12 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
             this.fileDescription = fileDescription;
         }
 
+        @Override
         public String getDisplayName() {
             return fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
         }
 
+        @Override
         public Set<File> getFiles() {
             if (file == null) {
                 throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));

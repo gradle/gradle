@@ -43,6 +43,7 @@ import java.util.Map;
 @Incubating
 public class WindowsResourceScriptPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
@@ -61,10 +62,12 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     }
 
     private static class WindowsResources extends NativeLanguageTransform<WindowsResourceSet> {
+        @Override
         public Class<WindowsResourceSet> getSourceSetType() {
             return WindowsResourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("rcCompiler", DefaultPreprocessingTool.class);
@@ -76,6 +79,7 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
             return "rc";
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new WindowsResourcesCompileTaskConfig();
         }

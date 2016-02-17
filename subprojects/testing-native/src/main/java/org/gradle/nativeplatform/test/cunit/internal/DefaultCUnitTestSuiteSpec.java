@@ -28,6 +28,7 @@ public class DefaultCUnitTestSuiteSpec extends AbstractNativeComponentSpec imple
         return "Cunit test suite";
     }
 
+    @Override
     public NativeComponentSpec getTestedComponent() {
         return testedComponent;
     }

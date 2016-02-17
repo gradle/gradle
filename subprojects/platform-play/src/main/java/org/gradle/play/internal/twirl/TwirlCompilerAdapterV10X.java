@@ -62,6 +62,7 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         this.twirlVersion = twirlVersion;
     }
 
+    @Override
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
         return ScalaReflectionUtil.scalaMethod(
                 cl,
@@ -78,6 +79,7 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         );
     }
 
+    @Override
     public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
@@ -99,10 +101,12 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
         return false;
     }
 
+    @Override
     public Iterable<String> getClassLoaderPackages() {
         return SHARED_PACKAGES;
     }
 
+    @Override
     public String getDependencyNotation() {
         return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);
     }

@@ -38,6 +38,7 @@ import org.gradle.platform.base.plugins.ComponentBasePlugin;
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentBasePlugin.class);
     }

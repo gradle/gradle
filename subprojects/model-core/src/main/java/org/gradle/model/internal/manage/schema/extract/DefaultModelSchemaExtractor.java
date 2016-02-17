@@ -57,6 +57,7 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
         this.strategies = strategies;
     }
 
+    @Override
     public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         DefaultModelSchemaExtractionContext<T> context = DefaultModelSchemaExtractionContext.root(type);
         List<DefaultModelSchemaExtractionContext<?>> validations = Lists.newArrayList();

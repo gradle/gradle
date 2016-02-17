@@ -53,6 +53,7 @@ import static com.google.common.base.Strings.emptyToNull;
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);

@@ -30,10 +30,11 @@ import java.util.concurrent.CountDownLatch;
 
 public class CompilerDaemonServer implements Action<WorkerProcessContext>, CompilerDaemonServerProtocol, Serializable {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonServer.class);
-    
+
     private volatile CompilerDaemonClientProtocol client;
     private volatile CountDownLatch stop;
-    
+
+    @Override
     public void execute(WorkerProcessContext context) {
         stop = new CountDownLatch(1);
         client = context.getServerConnection().addOutgoing(CompilerDaemonClientProtocol.class);
@@ -47,6 +48,7 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
 
     }
 
+    @Override
     public <T extends CompileSpec> void execute(Compiler<T> compiler, T spec) {
         try {
             LOGGER.info("Executing {} in compiler daemon.", compiler);
@@ -59,6 +61,7 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
         }
     }
 
+    @Override
     public void stop() {
         stop.countDown();
     }

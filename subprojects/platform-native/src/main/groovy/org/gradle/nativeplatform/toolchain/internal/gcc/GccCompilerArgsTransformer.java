@@ -29,6 +29,7 @@ import java.util.List;
  * Maps common options for C/C++ compiling with GCC
  */
 abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    @Override
     public List<String> transform(T spec) {
         List<String> args = Lists.newArrayList();
         addToolSpecificArgs(spec, args);

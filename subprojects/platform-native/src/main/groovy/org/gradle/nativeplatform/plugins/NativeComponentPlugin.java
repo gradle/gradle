@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPl
  */
 @Incubating
 public class NativeComponentPlugin implements Plugin<ProjectInternal> {
+    @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);

@@ -109,18 +109,22 @@ public class PlayTwirlPlugin extends RuleSource {
             return "twirl";
         }
 
+        @Override
         public Class<TwirlSourceSet> getSourceSetType() {
             return TwirlSourceSet.class;
         }
 
+        @Override
         public Class<ScalaSourceCode> getOutputType() {
             return ScalaSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -152,6 +156,7 @@ public class PlayTwirlPlugin extends RuleSource {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

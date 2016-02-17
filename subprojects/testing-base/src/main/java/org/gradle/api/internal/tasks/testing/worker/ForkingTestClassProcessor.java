@@ -47,10 +47,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.buildConfigAction = buildConfigAction;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         this.resultProcessor = resultProcessor;
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (remoteProcessor == null) {
             remoteProcessor = forkProcess();
@@ -80,6 +82,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         return remoteProcessor;
     }
 
+    @Override
     public void stop() {
         if (remoteProcessor != null) {
             remoteProcessor.stop();

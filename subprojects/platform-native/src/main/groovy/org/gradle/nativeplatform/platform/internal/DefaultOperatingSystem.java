@@ -32,10 +32,12 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
         this.internalOs = internalOs;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("operating system '%s'", name);
     }
@@ -45,30 +47,37 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
         return getDisplayName();
     }
 
+    @Override
     public OperatingSystem getInternalOs() {
         return internalOs;
     }
 
+    @Override
     public boolean isCurrent() {
         return internalOs == CURRENT_OS;
     }
 
+    @Override
     public boolean isWindows() {
         return internalOs.isWindows();
     }
 
+    @Override
     public boolean isLinux() {
         return internalOs.isLinux();
     }
 
+    @Override
     public boolean isMacOsX() {
         return internalOs.isMacOsX();
     }
 
+    @Override
     public boolean isSolaris() {
         return internalOs == OperatingSystem.SOLARIS;
     }
 
+    @Override
     public boolean isFreeBSD() {
         return internalOs == OperatingSystem.FREE_BSD;
     }

@@ -42,30 +42,37 @@ public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolC
         tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
     }
 
+    @Override
     public CommandLineToolConfiguration getcCompiler() {
         return tools.get(ToolType.C_COMPILER);
     }
 
+    @Override
     public CommandLineToolConfiguration getCppCompiler() {
         return tools.get(ToolType.CPP_COMPILER);
     }
 
+    @Override
     public CommandLineToolConfiguration getRcCompiler() {
         return tools.get(ToolType.WINDOW_RESOURCES_COMPILER);
     }
 
+    @Override
     public CommandLineToolConfiguration getAssembler() {
         return tools.get(ToolType.ASSEMBLER);
     }
 
+    @Override
     public CommandLineToolConfiguration getLinker() {
         return tools.get(ToolType.LINKER);
     }
 
+    @Override
     public CommandLineToolConfiguration getStaticLibArchiver() {
         return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }
 
+    @Override
     public NativePlatform getPlatform() {
         return platform;
     }

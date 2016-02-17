@@ -70,48 +70,59 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
         return getComponentAs(PlayApplicationSpec.class);
     }
 
+    @Override
     public PlayPlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public PlayToolChainInternal getToolChain() {
         return toolChain;
     }
 
+    @Override
     public ScalaJvmAssembly getAssembly() {
         return jvmAssembly;
     }
 
+    @Override
     public File getJarFile() {
         return jarFile;
     }
 
+    @Override
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
         jvmAssembly.setTargetPlatform(platform.getJavaPlatform());
         jvmAssembly.setScalaPlatform(platform.getScalaPlatform());
     }
 
+    @Override
     public void setToolChain(PlayToolChainInternal toolChain) {
         this.toolChain = toolChain;
     }
 
+    @Override
     public void setJarFile(File file) {
         this.jarFile = file;
     }
 
+    @Override
     public File getAssetsJarFile() {
         return assetsJarFile;
     }
 
+    @Override
     public void setAssetsJarFile(File assetsJarFile) {
         this.assetsJarFile = assetsJarFile;
     }
 
+    @Override
     public JvmClasses getClasses() {
         return new JvmClassesAdapter(jvmAssembly);
     }
 
+    @Override
     public PublicAssets getAssets() {
         return assets;
     }
@@ -186,39 +197,48 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
             return jvmAssembly.getName();
         }
 
+        @Override
         public File getClassesDir() {
             return single(jvmAssembly.getClassDirectories());
         }
 
+        @Override
         public void setClassesDir(File classesDir) {
             replaceSingleDirectory(jvmAssembly.getClassDirectories(), classesDir);
         }
 
+        @Override
         public Set<File> getResourceDirs() {
             return jvmAssembly.getResourceDirectories();
         }
 
+        @Override
         public void addResourceDir(File resourceDir) {
             jvmAssembly.getResourceDirectories().add(resourceDir);
         }
 
+        @Override
         public void builtBy(Object... tasks) {
             jvmAssembly.builtBy(tasks);
         }
 
+        @Override
         @Nullable
         public Task getBuildTask() {
             return jvmAssembly.getBuildTask();
         }
 
+        @Override
         public void setBuildTask(Task lifecycleTask) {
             jvmAssembly.setBuildTask(lifecycleTask);
         }
 
+        @Override
         public boolean hasBuildDependencies() {
             return jvmAssembly.hasBuildDependencies();
         }
 
+        @Override
         public TaskDependency getBuildDependencies() {
             return jvmAssembly.getBuildDependencies();
         }
@@ -231,10 +251,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
             super(identifier, PublicAssets.class);
         }
 
+        @Override
         public Set<File> getAssetDirs() {
             return resourceDirs;
         }
 
+        @Override
         public void addAssetDir(File assetDir) {
             resourceDirs.add(assetDir);
         }

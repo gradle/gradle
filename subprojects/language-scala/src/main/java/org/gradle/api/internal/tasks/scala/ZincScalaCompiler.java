@@ -60,6 +60,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         this.gradleUserHome = gradleUserHome;
     }
 
+    @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         return Compiler.execute(scalaClasspath, zincClasspath, gradleUserHome, spec);
     }
@@ -155,22 +156,27 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     }
 
     private static class SbtLoggerAdapter implements xsbti.Logger {
+        @Override
         public void error(F0<String> msg) {
             LOGGER.error(msg.apply());
         }
 
+        @Override
         public void warn(F0<String> msg) {
             LOGGER.warn(msg.apply());
         }
 
+        @Override
         public void info(F0<String> msg) {
             LOGGER.info(msg.apply());
         }
 
+        @Override
         public void debug(F0<String> msg) {
             LOGGER.debug(msg.apply());
         }
 
+        @Override
         public void trace(F0<Throwable> exception) {
             LOGGER.trace(exception.apply().toString());
         }

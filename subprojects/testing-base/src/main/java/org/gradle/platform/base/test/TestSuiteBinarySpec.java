@@ -30,6 +30,7 @@ public interface TestSuiteBinarySpec extends org.gradle.testing.base.TestSuiteBi
      * Returns the test suite that this binary belongs to.
      */
     // DO NOT REMOVE this method or you will break binary compatibility
+    @Override
     TestSuiteSpec getTestSuite();
 
 }

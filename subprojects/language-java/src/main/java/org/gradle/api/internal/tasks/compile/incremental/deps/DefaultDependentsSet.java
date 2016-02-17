@@ -38,14 +38,17 @@ public class DefaultDependentsSet implements DependentsSet {
 
     public DefaultDependentsSet() {}
 
+    @Override
     public Set<String> getDependentClasses() {
         return dependentClasses;
     }
 
+    @Override
     public boolean isDependencyToAll() {
         return dependencyToAll;
     }
 
+    @Override
     public String getDescription() {
         return null;
     }

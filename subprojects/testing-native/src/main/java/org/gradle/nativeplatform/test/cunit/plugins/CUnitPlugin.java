@@ -47,6 +47,7 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class CUnitPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CLangPlugin.class);

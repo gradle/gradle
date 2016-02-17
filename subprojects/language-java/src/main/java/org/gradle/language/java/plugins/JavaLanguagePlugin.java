@@ -64,6 +64,7 @@ import static org.gradle.util.CollectionUtils.first;
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
@@ -98,22 +99,27 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return "java";
         }
 
+        @Override
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public Class<JvmByteCode> getOutputType() {
             return JvmByteCode.class;
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return config;
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
         }
@@ -126,14 +132,17 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 this.schemaStore = schemaStore;
             }
 
+            @Override
             public String getTaskPrefix() {
                 return "compile";
             }
 
+            @Override
             public Class<? extends DefaultTask> getTaskType() {
                 return PlatformJavaCompile.class;
             }
 
+            @Override
             public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                 PlatformJavaCompile compile = (PlatformJavaCompile) task;
                 JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;

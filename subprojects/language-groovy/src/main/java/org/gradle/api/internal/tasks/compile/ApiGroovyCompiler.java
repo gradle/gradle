@@ -58,6 +58,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         this.javaCompiler = javaCompiler;
     }
 
+    @Override
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
         ClassLoader compilerClassLoader = this.getClass().getClassLoader();

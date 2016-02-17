@@ -24,6 +24,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private CompileOptions compileOptions;
     private File dependencyCacheDir;
 
+    @Override
     public CompileOptions getCompileOptions() {
         return compileOptions;
     }
@@ -32,10 +33,12 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         this.compileOptions = compileOptions;
     }
 
+    @Override
     public File getDependencyCacheDir() {
         return dependencyCacheDir;
     }
 
+    @Override
     public void setDependencyCacheDir(File dependencyCacheDir) {
         this.dependencyCacheDir = dependencyCacheDir;
     }

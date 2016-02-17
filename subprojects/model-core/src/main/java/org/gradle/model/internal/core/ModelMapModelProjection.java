@@ -103,10 +103,12 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return itemType(targetType) != null || targetType.equals(MANAGED_INSTANCE_TYPE);
     }
 
+    @Override
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
         return doAs(type, modelNode, ruleDescriptor, false);
     }
 
+    @Override
     public <T> ModelView<? extends T> asMutable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         return doAs(targetType, node, ruleDescriptor, true);
     }

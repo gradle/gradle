@@ -57,6 +57,7 @@ import static org.gradle.util.CollectionUtils.single;
 @Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
@@ -88,18 +89,22 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return "scala";
         }
 
+        @Override
         public Class<ScalaLanguageSourceSet> getSourceSetType() {
             return ScalaLanguageSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public Class<JvmByteCode> getOutputType() {
             return JvmByteCode.class;
         }
 
+        @Override
         public JointCompileTaskConfig getTransformTask() {
             return new JointCompileTaskConfig() {
                 public String getTaskPrefix() {
@@ -162,6 +167,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
         }

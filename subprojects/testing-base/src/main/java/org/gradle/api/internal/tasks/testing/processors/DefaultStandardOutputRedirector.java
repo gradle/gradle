@@ -32,14 +32,17 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut);
     private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr);
 
+    @Override
     public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);
     }
 
+    @Override
     public void redirectStandardErrorTo(StandardOutputListener stdErrDestination) {
         stdErr.setDestination(stdErrDestination);
     }
 
+    @Override
     public StandardOutputCapture start() {
         if (stdOut.destination != null) {
             originalStdOut = System.out;
@@ -52,6 +55,7 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         return this;
     }
 
+    @Override
     public StandardOutputCapture stop() {
         try {
             if (originalStdOut != null) {
@@ -72,6 +76,7 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     }
 
     private static class DiscardAction implements StandardOutputListener {
+        @Override
         public void onOutput(CharSequence output) {
         }
     }
@@ -79,10 +84,12 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private static class WriteAction implements TextStream {
         private StandardOutputListener destination;
 
+        @Override
         public void text(String message) {
             destination.onOutput(message);
         }
 
+        @Override
         public void endOfStream(@Nullable Throwable failure) {
         }
 

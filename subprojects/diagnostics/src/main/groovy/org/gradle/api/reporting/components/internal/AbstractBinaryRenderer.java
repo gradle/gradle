@@ -43,6 +43,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         this.schemaStore = schemaStore;
     }
 
+    @Override
     public void render(BinarySpec binary, TextReportBuilder builder) {
         String heading = StringUtils.capitalize(binary.getDisplayName());
         if (!binary.isBuildable()) {

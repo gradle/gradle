@@ -21,6 +21,7 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 public interface PlayToolChainInternal extends PlayToolChain, ToolChainInternal<PlayPlatform> {
+    @Override
     PlayToolProvider select(PlayPlatform targetPlatform);
 
 }

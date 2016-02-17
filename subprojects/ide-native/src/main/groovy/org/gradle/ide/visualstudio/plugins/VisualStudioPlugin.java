@@ -48,6 +48,7 @@ import org.gradle.platform.base.BinaryContainer;
 @Incubating
 public class VisualStudioPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
     }

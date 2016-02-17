@@ -28,6 +28,7 @@ class NativePlatformBackedChmod implements FileModeMutator {
         this.posixFiles = posixFiles;
     }
 
+    @Override
     public void chmod(File file, int mode) {
         posixFiles.setMode(file, mode);
     }

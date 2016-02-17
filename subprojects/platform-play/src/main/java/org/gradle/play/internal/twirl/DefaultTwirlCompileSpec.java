@@ -35,18 +35,22 @@ public class DefaultTwirlCompileSpec implements TwirlCompileSpec {
         this.defaultImports = defaultImports;
     }
 
+    @Override
     public TwirlImports getDefaultImports() {
         return defaultImports;
     }
 
+    @Override
     public File getDestinationDir() {
         return destinationDir;
     }
 
+    @Override
     public Iterable<RelativeFile> getSources() {
         return sources;
     }
 
+    @Override
     public BaseForkOptions getForkOptions() {
         return forkOptions;
     }

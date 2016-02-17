@@ -59,6 +59,7 @@ public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
         return parent == null ? name : parent.getQualifiedPath() + Project.PATH_SEPARATOR + name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -68,6 +69,7 @@ public class DefaultComponentSpecIdentifier implements ComponentSpecIdentifier {
         return parent == null ? name : parent.getProjectScopedName() + StringUtils.capitalize(name);
     }
 
+    @Override
     public String getProjectPath() {
         return projectPath;
     }

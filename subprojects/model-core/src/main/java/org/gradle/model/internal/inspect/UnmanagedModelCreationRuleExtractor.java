@@ -35,6 +35,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         return new ExtractedUnmanagedCreationRule<R, S>(modelPath, ruleDefinition);
     }
 
+    @Override
     public String getDescription() {
         return String.format("%s and returning a model element", super.getDescription());
     }

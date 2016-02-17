@@ -44,34 +44,42 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
         this.httpPort = httpPort;
     }
 
+    @Override
     public BaseForkOptions getForkOptions() {
         return forkOptions;
     }
 
+    @Override
     public Iterable<File> getClasspath() {
         return classpath;
     }
 
+    @Override
     public Iterable<File> getChangingClasspath() {
         return changingClasspath;
     }
 
+    @Override
     public File getProjectPath() {
         return projectPath;
     }
 
+    @Override
     public int getHttpPort() {
         return httpPort;
     }
 
+    @Override
     public File getApplicationJar() {
         return applicationJar;
     }
 
+    @Override
     public File getAssetsJar() {
         return assetsJar;
     }
 
+    @Override
     public Iterable<File> getAssetsDirs() {
         return assetsDirs;
     }

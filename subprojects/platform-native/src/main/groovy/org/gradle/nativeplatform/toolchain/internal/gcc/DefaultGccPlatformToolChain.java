@@ -50,6 +50,7 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
         this.compilerProbeArgs.addAll(Arrays.asList(args));
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
         return tools.get(toolType);
     }
@@ -66,34 +67,42 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
         tools.put(tool.getToolType(), tool);
     }
 
+    @Override
     public NativePlatform getPlatform() {
         return platform;
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getcCompiler() {
         return tools.get(ToolType.C_COMPILER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getCppCompiler() {
         return tools.get(ToolType.CPP_COMPILER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getObjcCompiler() {
         return tools.get(ToolType.OBJECTIVEC_COMPILER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getObjcppCompiler() {
         return tools.get(ToolType.OBJECTIVECPP_COMPILER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getAssembler() {
         return tools.get(ToolType.ASSEMBLER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getLinker() {
         return tools.get(ToolType.LINKER);
     }
 
+    @Override
     public GccCommandLineToolConfigurationInternal getStaticLibArchiver() {
         return tools.get(ToolType.STATIC_LIB_ARCHIVER);
     }

@@ -32,18 +32,22 @@ public class DefaultScalaPlatform implements ScalaPlatform {
         this.scalaCompatibilityVersion = versionNumber.getMajor() + "." + versionNumber.getMinor();
     }
 
+    @Override
     public String getScalaVersion() {
         return scalaVersion;
     }
 
+    @Override
     public String getScalaCompatibilityVersion() {
         return scalaCompatibilityVersion;
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Scala Platform (Scala %s)", scalaVersion);
     }
 
+    @Override
     public String getName() {
         return String.format("ScalaPlatform%s", scalaVersion);
     }

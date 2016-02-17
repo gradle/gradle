@@ -93,14 +93,17 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return dependents;
     }
 
+    @Override
     public ModelPath getPath() {
         return path;
     }
 
+    @Override
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 
+    @Override
     public ModelNode.State getState() {
         return state;
     }
@@ -109,6 +112,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
         this.state = state;
     }
 
+    @Override
     public boolean isMutable() {
         return state.mutable;
     }

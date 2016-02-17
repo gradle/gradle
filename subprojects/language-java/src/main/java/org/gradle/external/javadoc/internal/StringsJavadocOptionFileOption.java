@@ -29,6 +29,7 @@ public class StringsJavadocOptionFileOption extends AbstractListJavadocOptionFil
         super(option, value, joinBy);
     }
 
+    @Override
     public void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
         writerContext.writeValuesOption(option, value, joinBy);
     }

@@ -26,6 +26,7 @@ public class TruncatedStackTraceSpec implements Spec<StackTraceElement> {
         this.truncationPointDetector = truncationPointDetector;
     }
 
+    @Override
     public boolean isSatisfiedBy(StackTraceElement element) {
         return truncationPointReached |= truncationPointDetector.isSatisfiedBy(element);
     }
