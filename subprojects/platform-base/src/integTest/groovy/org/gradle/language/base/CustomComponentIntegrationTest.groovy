@@ -652,7 +652,7 @@ class MyRules extends RuleSource {
     @ComponentType
     void registerComponent(TypeBuilder<TheApp> builder) {}
 
-    @BinaryType
+    @ComponentType
     void registerBinary(TypeBuilder<TheAppBinary> builder) {}
 
     @ComponentBinaries
