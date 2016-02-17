@@ -38,7 +38,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
 
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
-        return ruleDefinition.getAnnotation(annotationType) != null;
+        return ruleDefinition.isAnnotationPresent(annotationType);
     }
 
     @Override
