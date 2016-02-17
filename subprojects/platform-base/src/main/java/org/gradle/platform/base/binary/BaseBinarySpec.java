@@ -21,7 +21,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -46,7 +46,7 @@ import java.util.Set;
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
+public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();

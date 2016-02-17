@@ -16,19 +16,19 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
+public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec implements LanguageSourceSetInternal {
     private final String languageName;
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
 
-    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType, SourceDirectorySet source) {
+    public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType, SourceDirectorySet source) {
         super(identifier, publicType);
         this.source = source;
         this.languageName = guessLanguageName(getTypeName());

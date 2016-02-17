@@ -24,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface LanguageSourceSet extends Named, BuildableModelElement {
+public interface LanguageSourceSet extends Named, BuildableComponentSpec {
     String getDisplayName();
 
     // TODO: do we want to keep using SourceDirectorySet in the new API?

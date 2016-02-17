@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -28,7 +28,7 @@ import org.gradle.model.ModelMap;
  * Represents a binary that is the result of building a component.
  */
 @Incubating @HasInternalProtocol
-public interface BinarySpec extends BuildableModelElement, Named {
+public interface BinarySpec extends BuildableComponentSpec, Named {
 
     /**
      * Can this binary be built in the current environment?

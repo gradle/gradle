@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.internal.JvmAssembly;
@@ -49,7 +49,7 @@ import java.util.Set;
 
 import static org.gradle.util.CollectionUtils.single;
 
-public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
+public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements PlayApplicationBinarySpecInternal {
     private final DefaultScalaJvmAssembly jvmAssembly = new DefaultScalaJvmAssembly(getIdentifier().child("assembly"));
     private final PublicAssets assets = new DefaultPublicAssets(getIdentifier().child("publicAssets"));
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
@@ -224,7 +224,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         }
     }
 
-    private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
+    private static class DefaultPublicAssets extends AbstractBuildableComponentSpec implements PublicAssets {
         private Set<File> resourceDirs = Sets.newLinkedHashSet();
 
         public DefaultPublicAssets(ComponentSpecIdentifier identifier) {

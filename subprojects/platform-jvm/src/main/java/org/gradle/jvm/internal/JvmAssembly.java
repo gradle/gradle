@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 
@@ -28,7 +28,7 @@ import java.util.Set;
  *  - a set of directories containing class files
  *  - a set of directories containing resource files
  */
-public interface JvmAssembly extends BuildableModelElement {
+public interface JvmAssembly extends BuildableComponentSpec {
     /**
      * Set of directories containing the class files that
      * belong to this assembly.

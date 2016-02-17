@@ -16,12 +16,12 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
 
-public class DefaultJarFile extends AbstractBuildableModelElement implements JarFile {
+public class DefaultJarFile extends AbstractBuildableComponentSpec implements JarFile {
     private File file;
 
     public DefaultJarFile(ComponentSpecIdentifier identifier) {

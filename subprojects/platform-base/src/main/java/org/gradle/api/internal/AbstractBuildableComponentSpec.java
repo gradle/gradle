@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -26,39 +26,39 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractBuildableModelElement extends AbstractComponentSpec implements BuildableModelElement {
-    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-    private Task lifecycleTask;
+public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec {
+    private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
+    private Task buildTask;
 
-    public AbstractBuildableModelElement(ComponentSpecIdentifier identifier, Class<? extends BuildableModelElement> publicType) {
+    public AbstractBuildableComponentSpec(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType) {
         super(identifier, publicType);
     }
 
     public Task getBuildTask() {
-        return lifecycleTask;
+        return buildTask;
     }
 
-    public void setBuildTask(Task lifecycleTask) {
-        this.lifecycleTask = lifecycleTask;
-        lifecycleTask.dependsOn(buildDependencies);
+    public void setBuildTask(Task buildTask) {
+        this.buildTask = buildTask;
+        buildTask.dependsOn(buildTaskDependencies);
     }
 
     public TaskDependency getBuildDependencies() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task other) {
-                if (lifecycleTask == null) {
-                    return buildDependencies.getDependencies(other);
+                if (buildTask == null) {
+                    return buildTaskDependencies.getDependencies(other);
                 }
-                return Collections.singleton(lifecycleTask);
+                return Collections.singleton(buildTask);
             }
         };
     }
 
     public void builtBy(Object... tasks) {
-        buildDependencies.add(tasks);
+        buildTaskDependencies.add(tasks);
     }
 
     public boolean hasBuildDependencies() {
-        return buildDependencies.getDependencies(lifecycleTask).size() > 0;
+        return buildTaskDependencies.getDependencies(buildTask).size() > 0;
     }
 }

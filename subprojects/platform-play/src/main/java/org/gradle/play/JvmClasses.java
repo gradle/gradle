@@ -16,7 +16,7 @@
 
 package org.gradle.play;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Incubating;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.util.Set;
  * A set of classes and resources that operate together.
  */
 @Incubating
-public interface JvmClasses extends BuildableModelElement {
+public interface JvmClasses extends BuildableComponentSpec {
     /**
      * The classes directory for this binary.
      */

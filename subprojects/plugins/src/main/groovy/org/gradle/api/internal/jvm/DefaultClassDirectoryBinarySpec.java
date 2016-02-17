@@ -18,7 +18,7 @@ package org.gradle.api.internal.jvm;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -36,7 +36,7 @@ import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
-public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
+public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;

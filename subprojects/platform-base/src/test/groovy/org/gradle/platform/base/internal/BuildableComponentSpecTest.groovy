@@ -16,13 +16,13 @@
 package org.gradle.platform.base.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-public class BuildableModelElementTest extends Specification {
+public class BuildableComponentSpecTest extends Specification {
 
-    def element = new TestBuildableModelElement(Stub(ComponentSpecIdentifier))
+    def element = new TestBuildableComponentSpec(Stub(ComponentSpecIdentifier))
     def dependedOn1 = Stub(Task)
     def dependedOn2 = Stub(Task)
     def lifecycleTask = TestUtil.createTask(DefaultTask)
@@ -48,9 +48,9 @@ public class BuildableModelElementTest extends Specification {
         lifecycleTask.getTaskDependencies().getDependencies(Stub(Task)) == [dependedOn1, dependedOn2] as Set
     }
 
-    class TestBuildableModelElement extends AbstractBuildableModelElement {
-        TestBuildableModelElement(ComponentSpecIdentifier identifier) {
-            super(identifier, TestBuildableModelElement)
+    class TestBuildableComponentSpec extends AbstractBuildableComponentSpec {
+        TestBuildableComponentSpec(ComponentSpecIdentifier identifier) {
+            super(identifier, TestBuildableComponentSpec)
         }
     }
 }

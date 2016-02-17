@@ -18,7 +18,7 @@ package org.gradle.language.base.internal.registry
 
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
@@ -106,7 +106,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     class NotImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet {}
 
-    class NotExtendingBaseLanguageSourceSet extends AbstractBuildableModelElement implements CustomLanguageSourceSet {
+    class NotExtendingBaseLanguageSourceSet extends AbstractBuildableComponentSpec implements CustomLanguageSourceSet {
         @Override
         String getDisplayName() {
             return null

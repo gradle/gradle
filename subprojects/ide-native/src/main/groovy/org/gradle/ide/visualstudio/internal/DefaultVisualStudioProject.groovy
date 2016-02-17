@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
 import org.gradle.internal.file.PathToFileResolver
@@ -35,7 +35,7 @@ import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
+class DefaultVisualStudioProject extends AbstractBuildableComponentSpec implements VisualStudioProject {
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
     private final NativeComponentSpec component

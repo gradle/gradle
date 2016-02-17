@@ -16,7 +16,7 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.NativeComponentSpec;
 
@@ -43,7 +43,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
  * </pre>
  */
 @Incubating
-public interface VisualStudioProject extends BuildableModelElement {
+public interface VisualStudioProject extends BuildableComponentSpec {
     /**
      * The component that this project represents.
      */

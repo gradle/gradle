@@ -19,25 +19,24 @@ package org.gradle.api;
 import org.gradle.platform.base.ComponentSpec;
 
 /**
- * A model element that is directly buildable.
- * Such an element mirrors a specified lifecycle task in the task graph, and can accept dependencies which are then associated with the lifecycle task.
+ * A {@link ComponentSpec} that is directly {@link Buildable} via a specified task.
  */
 @Incubating
-public interface BuildableModelElement extends Buildable, ComponentSpec {
+public interface BuildableComponentSpec extends Buildable, ComponentSpec {
     /**
-     * Returns the 'lifecycle' task associated with the construction of this element.
+     * Returns the task responsible for building this component.
      */
     @Nullable
     Task getBuildTask();
 
     /**
-     * Associates a 'lifecycle' task with the construction of this element.
+     * Specifies the task responsible for building this component.
      */
-    void setBuildTask(Task lifecycleTask);
+    void setBuildTask(Task buildTask);
 
     /**
-     * Adds a task that is required for the construction of this element.
-     * A task added this way is then added as a dependency of the associated lifecycle task.
+     * Adds tasks required to build this component. Tasks added this way are subsequently
+     * added as dependencies of this component's {@link #getBuildTask() build task}.
      */
     void builtBy(Object... tasks);
 

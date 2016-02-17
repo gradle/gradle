@@ -164,7 +164,7 @@ The `ComponentSpec` hierarchy has been reorganised.
 
 - The `sources` and `binaries` properties of `ComponentSpec` have been moved to several subtypes.
 - You can extend either `LibrarySpec` or `ApplicationSpec` to pick up these properties. Also `GeneralComponentSpec`.
-- `BuildableModelElement` now extends `ComponentSpec`.
+- `BuildableModelElement` has been renamed to `BuildableComponentSpec`, which in turn now extends `ComponentSpec`.
 
 #### Type registration
 

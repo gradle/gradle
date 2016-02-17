@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.ide.visualstudio.TextConfigFile
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.VisualStudioProject
@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.platform.base.internal.ComponentSpecIdentifier
 
-class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
+class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec implements VisualStudioSolution {
     final DefaultVisualStudioProject rootProject
     private final SolutionFile solutionFile
     private final VisualStudioProjectResolver vsProjectResolver
