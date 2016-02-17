@@ -337,7 +337,7 @@
         </para>
 
         <para>
-            The Scala plugin now defaults to incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
+            The Scala plugin defaults to incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
             a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler.
         </para>
 
