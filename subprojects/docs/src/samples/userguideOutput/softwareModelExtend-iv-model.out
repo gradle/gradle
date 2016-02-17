@@ -3,14 +3,9 @@
 Root project
 ------------------------------------------------------------
 
-+ binaries
-      | Type:   	org.gradle.platform.base.BinaryContainer
-      | Creator: 	BinaryBasePlugin.Rules#binaries
-      | Rules:
-         ⤷ ComponentModelBasePlugin.PluginRules#collectBinaries
 + components
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
-      | Creator: 	ComponentModelBasePlugin.PluginRules#components
+      | Creator: 	ComponentBasePlugin.PluginRules#components
       | Rules:
          ⤷ components { ... } @ build.gradle line 42, column 5
          ⤷ MyPlugin#mutateMyComponents
@@ -23,14 +18,6 @@ Root project
               | Type:   	java.lang.String
               | Value:  	Some PUBLIC data
               | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-+ platforms
-      | Type:   	org.gradle.platform.base.PlatformContainer
-      | Value:  	[]
-      | Creator: 	ComponentModelBasePlugin.PluginRules#platforms
-+ sources
-      | Type:   	org.gradle.language.base.ProjectSourceSet
-      | Value:  	[]
-      | Creator: 	LanguageBasePlugin.Rules#sources
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
