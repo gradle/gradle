@@ -6,14 +6,14 @@ version = '1.0'
 
 repositories {
     maven {
-        url("file://" + file("../../repo"))
+        url("file://" + file("../repo"))
     }
 }
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://" + file("../../repo"))
+            repository(url: "file://" + file("../repo"))
         }
     }
 }
