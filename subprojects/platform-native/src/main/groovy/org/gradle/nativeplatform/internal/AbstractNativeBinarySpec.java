@@ -171,7 +171,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     public void addPreCompiledHeaderFor(DependentSourceSet sourceSet) {
         prefixFileToPCH.put(
             ((DependentSourceSetInternal)sourceSet).getPrefixHeaderFile(),
-            new PreCompiledHeader(createChildIdentifier("pch")));
+            new PreCompiledHeader(getIdentifier().child("pch")));
     }
 
     private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {

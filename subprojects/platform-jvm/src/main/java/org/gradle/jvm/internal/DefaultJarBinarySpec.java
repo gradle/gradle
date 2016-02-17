@@ -44,7 +44,7 @@ public class DefaultJarBinarySpec extends DefaultJvmBinarySpec implements JarBin
     }
 
     private DefaultJarFile childJarFile(String childName) {
-        return new DefaultJarFile(createChildIdentifier(childName));
+        return new DefaultJarFile(getIdentifier().child(childName));
     }
 
     @Override
