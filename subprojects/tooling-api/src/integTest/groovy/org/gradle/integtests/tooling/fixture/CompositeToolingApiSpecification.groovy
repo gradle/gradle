@@ -17,11 +17,12 @@
 package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.composite.GradleConnection
 
-@ToolingApiVersion('>=2.12')
-@TargetGradleVersion('>=2.12')
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
+@TargetGradleVersion(GradleVersions.SUPPORTS_COMPOSITE_BUILD)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     boolean useEmbeddedParticipants = false
