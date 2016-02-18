@@ -19,7 +19,8 @@ package org.gradle.plugin.devel.plugins.internal.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.TextUtil
+
+import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
@@ -47,9 +48,9 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        TextUtil.normaliseLineSeparators(classpathManifest.text) == """${file('build/classes/main').absolutePath}
+        normaliseFileAndLineSeparators(classpathManifest.text) == normaliseFileAndLineSeparators("""${file('build/classes/main').absolutePath}
 ${file('build/resources/main').absolutePath}
-${module.artifactFile.absolutePath}"""
+${module.artifactFile.absolutePath}""")
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -81,9 +82,9 @@ ${module.artifactFile.absolutePath}"""
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        TextUtil.normaliseLineSeparators(classpathManifest.text) == """${file('build/classes/custom').absolutePath}
+        normaliseFileAndLineSeparators(classpathManifest.text) == normaliseFileAndLineSeparators("""${file('build/classes/custom').absolutePath}
 ${file('build/resources/custom').absolutePath}
-${module.artifactFile.absolutePath}"""
+${module.artifactFile.absolutePath}""")
     }
 
     def "fails the task for null plugin classpath"() {
