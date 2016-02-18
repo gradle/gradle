@@ -314,11 +314,7 @@
     <section>
         <title>Compiling in external process</title>
         <para>
-            When <literal>scalaCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
-            in an external process. The Ant based compiler
-            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every invocation of the <literal>ScalaCompile</literal> task,
-            and does not fork by default. The Zinc based compiler (<literal>scalaCompileOptions.useAnt = false</literal>) will leverage
-            the Gradle compiler daemon, and does so by default.
+            Scala compilation takes place in an external process.
         </para>
         <para>Memory settings for the external process default to the defaults of the JVM. To adjust memory settings,
             configure the <literal>scalaCompileOptions.forkOptions</literal> property as needed:
