@@ -31,4 +31,9 @@ class UnsupportedSymlink implements Symlink {
     public void symlink(File link, File target) throws IOException {
         throw new IOException("Support for the creation of symlinks is only available on this platform using Java 7 or later.");
     }
+
+    @Override
+    public boolean isSymlink(File suspect) {
+        return false;
+    }
 }

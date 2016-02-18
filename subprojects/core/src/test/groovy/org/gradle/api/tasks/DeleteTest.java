@@ -17,7 +17,10 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.Requires;
+import org.gradle.util.TestPrecondition;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +29,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
@@ -73,5 +77,38 @@ public class DeleteTest extends AbstractConventionTaskTest {
         delete.getTargetFiles();
         assertThat(delete.getDelete(), equalTo(WrapUtil.<Object>toSet("someFile", new File("someOtherFile"))));
         assertThat(delete.getTargetFiles().getFiles(), equalTo(getProject().files(delete.getDelete()).getFiles()));
+    }
+
+    @Requires({TestPrecondition.UNIX_DERIVATIVE})
+    public void canFollowSymlinks() throws IOException {
+        TestFile keepTxt = tmpDir.createFile("originalDir", "keep.txt");
+        TestFile originalDir = keepTxt.getParentFile();
+        File link = new File(tmpDir.getTestDirectory(), "link");
+
+        fileSystem().createSymbolicLink(link, originalDir);
+
+        delete.delete(link);
+        delete.setFollowSymlinks(true);
+        delete.execute();
+
+        assertTrue(delete.getDidWork());
+        assertFalse(link.exists());
+        assertFalse(keepTxt.exists());
+    }
+
+    @Requires({TestPrecondition.UNIX_DERIVATIVE})
+    public void willNotFollowSymlinksByDefault() throws IOException {
+        TestFile keepTxt = tmpDir.createFile("originalDir", "keep.txt");
+        TestFile originalDir = keepTxt.getParentFile();
+        File link = new File(tmpDir.getTestDirectory(), "link");
+
+        fileSystem().createSymbolicLink(link, originalDir);
+
+        delete.delete(link);
+        delete.execute();
+
+        assertTrue(delete.getDidWork());
+        assertFalse(link.exists());
+        assertTrue(keepTxt.exists());
     }
 }
