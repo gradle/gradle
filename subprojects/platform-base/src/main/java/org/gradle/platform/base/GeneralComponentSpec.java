@@ -16,9 +16,12 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Incubating;
+
 /**
  * A general purpose component specification, that can be used to represent some software component built from source and producing
  * multiple output variants.
  */
+@Incubating
 public interface GeneralComponentSpec extends ComponentSpec, SourceComponentSpec, VariantComponentSpec {
 }
