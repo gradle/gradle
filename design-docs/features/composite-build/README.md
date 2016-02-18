@@ -40,6 +40,13 @@ TAPI clients must use the latest version of Gradle to use composite builds. Part
 
 A command-line client will be able to point to a composite build definition, and execute tasks for the composite as a whole.
 
+## Target use-case
+
+- All projects use the same, latest version of Gradle
+- Java projects, using either `uploadArchives` or the publishing plugins
+- Maximum 10 Gradle projects involved, split into <= 10 participant build
+- May take up to twice as much time for task execution as a 10 project multi-project build: goal is to take less time for execution
+
 ## Milestones
 
 ### Milestone: Tooling client can define a composite build and request tooling models
@@ -132,17 +139,22 @@ Tooling client defines a composite and:
 ##### Out of scope
 
 - Execute all tasks matching name across all projects in composite
+- Handling command-line arguments that might not be appropriate for composite build (e.g. --project-dir)
 
 ### Milestone: Command-line user can execute tasks in composite build
 
 After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
 
-- [ ] Developer executes tasks in a single project with implicit composite defined by directory
-    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
-    - Command-line switch to target a particular project within the composite (likely the same switch)
-    - All directories in the current directory are considered to be builds participating in a composite
 - [ ] Developer declares composite participants using composite descriptor
-- More TBD...
+    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
+    - Gradle lists all of the participants
+- [ ] Developer executes tasks in a single project within defined composite
+    - Command-line switch to target a particular project within the composite (likely the same switch)
+    - Prevent certain inappropriate arguments
+
+##### Out of scope
+
+- Execution of tasks across all projects in composite
 
 ### Milestone: Projects within a composite are configured at most once per task execution
 
@@ -158,6 +170,11 @@ The initial implementation of composite build will require every project in the 
     - Every root project in the composite will be configured _once_ for task execution
 - Determine publication coordinates for each project without fully configuration (possibly via caching)
     - Projects that are not producers or consumers in a particular execution are not configured
+- Use coordinator process for one or more participant builds
+
+##### Out of scope
+
+- Optimize number and lifecycle of daemons generated for composite build
 
 ### Milestone: Integrated composite build can contain participants using older versions of Gradle
 
@@ -176,6 +193,8 @@ The `play-application` plugin is built on the experimental software model, but u
 ### Milestone: JVM Software Model components are integrated into a composite build
 
 The experimental JVM software model does not use regular `Configuration` instances for dependency resolution. As such, there is likely to be additional work required so that JVM software model projects can behave as fully-fledged composite build participants.
+
+### Milestone: Tooling API executes tests in a composite build
 
 ## Later
 
