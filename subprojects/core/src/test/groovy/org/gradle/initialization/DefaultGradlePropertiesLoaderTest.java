@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
+import org.gradle.util.SetSystemProperties;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,6 +42,8 @@ public class DefaultGradlePropertiesLoaderTest {
     private StartParameter startParameter = new StartParameter();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule
+    public SetSystemProperties sysProp = new SetSystemProperties();
 
     @Before
     public void setUp() {
