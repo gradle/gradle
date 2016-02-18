@@ -23,6 +23,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.CompositeBuildActionParameters;
 import org.gradle.launcher.exec.CompositeBuildActionRunner;
 import org.gradle.launcher.exec.CompositeBuildController;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -55,7 +56,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         final String requestedModelName = ((BuildModelAction) action).getModelName();
         Class<? extends HierarchicalElement> modelType = modelRequestTypeToModelTypeMapping.get(requestedModelName);
         if (modelType != null) {
-            Set<Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken());
+            ProgressLoggerFactory progressLoggerFactory = buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
+            Set<Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
             SetContainer setContainer = new SetContainer(results);
             PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
             buildController.setResult(new BuildActionResult(payloadSerializer.serialize(setContainer), null));
@@ -64,22 +66,23 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    private Set<Object> aggregateModels(Class<? extends HierarchicalElement> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken) {
+    private Set<Object> aggregateModels(Class<? extends HierarchicalElement> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
         Set<Object> results = new LinkedHashSet<Object>();
         final CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters.getGradleUserHomeDir(), compositeParameters.getDaemonBaseDir(), compositeParameters.getDaemonMaxIdleTimeValue(), compositeParameters.getDaemonMaxIdleTimeUnits()));
+        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters.getGradleUserHomeDir(), compositeParameters.getDaemonBaseDir(), compositeParameters.getDaemonMaxIdleTimeValue(), compositeParameters.getDaemonMaxIdleTimeUnits(), progressLoggerFactory));
         return results;
     }
 
-    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<T> modelType, final BuildCancellationToken cancellationToken, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<? extends HierarchicalElement> modelType, final BuildCancellationToken cancellationToken, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, final ProgressLoggerFactory progressLoggerFactory) {
         final Set<T> results = new LinkedHashSet<T>();
         for (GradleParticipantBuild participant : participantBuilds) {
             if (cancellationToken.isCancellationRequested()) {
                 break;
             }
             ProjectConnection projectConnection = connect(participant, gradleUserHomeDir, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
-            ModelBuilder<T> modelBuilder = projectConnection.model(modelType);
+            ModelBuilder<? extends HierarchicalElement> modelBuilder = projectConnection.model(modelType);
             modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+            modelBuilder.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
             if (cancellationToken.isCancellationRequested()) {
                 projectConnection.close();
                 break;
@@ -157,5 +160,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             return token;
         }
     }
+
 }
 
