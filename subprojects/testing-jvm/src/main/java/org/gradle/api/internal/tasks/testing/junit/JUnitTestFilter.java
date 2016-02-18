@@ -69,7 +69,7 @@ class JUnitTestFilter {
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
             if (!isSuite || !matcher.matchesTest(testClassName, null)) {
-                includeExcludeFilters.add(new MethodNameIncludeFilter(matcher));
+                includeExcludeFilters.add(new MethodNameFilter(matcher));
             }
         }
 
@@ -78,18 +78,18 @@ class JUnitTestFilter {
     }
 
 
-    private static class MethodNameIncludeFilter extends org.junit.runner.manipulation.Filter {
+    private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
 
         private final TestSelectionMatcher matcher;
         private static final String FILTER_DESCRIPTION = "Includes matching test methods";
 
-        public MethodNameIncludeFilter(TestSelectionMatcher matcher) {
+        public MethodNameFilter(TestSelectionMatcher matcher) {
             this.matcher = matcher;
         }
 
-
-        protected boolean matchCheck(Description description) {
-            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
+        @Override
+        public boolean shouldRun(Description description) {
+            if (matcher.shouldRun(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
                 return true;
             }
 
@@ -100,11 +100,6 @@ class JUnitTestFilter {
             }
 
             return false;
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return matchCheck(description);
         }
 
         public String describe(){

@@ -64,11 +64,15 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
+        return matchesTest(className, methodName, includePatterns) || matchesTest(className, methodName, excludePatterns);
+    }
 
+    public boolean shouldRun(String className, String methodName){
         boolean allowedByIncludePatterns = includePatterns.isEmpty() || matchesTest(className, methodName, includePatterns);
         boolean matchedAnyExcludePatterns = !excludePatterns.isEmpty() && matchesTest(className, methodName, excludePatterns);
 
         return allowedByIncludePatterns && !matchedAnyExcludePatterns;
+
     }
 
     private boolean matchesTest(String className, String methodName, List<Pattern> patterns) {
