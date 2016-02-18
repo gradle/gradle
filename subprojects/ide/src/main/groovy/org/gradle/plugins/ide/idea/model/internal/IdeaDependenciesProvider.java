@@ -144,7 +144,7 @@ public class IdeaDependenciesProvider {
                         ideProjectDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeProjectDependency, Dependency>() {
                             public Dependency buildDependency(IdeProjectDependency dependency, String scope) {
-                                return new ModuleDependencyBuilder().create(dependency.getProject(), scope);
+                                return new ModuleDependencyBuilder().create(dependency, scope);
                             }});
                 dependencyToConfigurations.put(key, configuration.getName());
             }

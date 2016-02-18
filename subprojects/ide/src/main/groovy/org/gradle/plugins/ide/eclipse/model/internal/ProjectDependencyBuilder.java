@@ -20,11 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.util.DeprecationLogger;
 
 public class ProjectDependencyBuilder {
-    public ProjectDependency build(Project project, final String declaredConfigurationName) {
-        return buildProjectDependency(determineProjectName(project), project.getPath(), declaredConfigurationName);
+    public ProjectDependency build(IdeProjectDependency dependency) {
+        Project project = dependency.getProject();
+        return buildProjectDependency(determineProjectName(project), project.getPath(), dependency.getDeclaredConfiguration());
     }
 
     private String determineProjectName(Project project) {
