@@ -80,10 +80,9 @@
             </para>
         </section>
         <section>
-            <title>The component -> binary -> task chain</title>
+            <title>Components all the way down</title>
             <para>
-                Components generate binaries. Binaries are built by tasks.
-                You write rules to generate both binaries from components and tasks from binaries.
+                Components are composed of other components. A source set is just a special kind of component representing sources. It might be that the sources are provided, or generated. Similarily, some components are composed of different binaries, which are built by tasks. All buildable components are built by tasks. In the software model, you will write rules to generate both binaries from components and tasks from binaries.
             </para>
         </section>
     </section>
@@ -91,13 +90,20 @@
         <title>Components</title>
         <para>
             To declare a custom component type one must extend
-            <apilink class="org.gradle.platform.base.ComponentSpec"/>.
+            <apilink class="org.gradle.platform.base.ComponentSpec"/>, or one of the following, depending on the use case:
+            <itemizedlist>
+                <listitem><apilink class="org.gradle.platform.base.SourceComponentSpec"/> represents a component which has sources</listitem>
+                <listitem><apilink class="org.gradle.platform.base.VariantComponentSpec"/> represents a component which generates different binaries based on context (target platforms, build flavors, ...). Such a component generally produces multiple binaries.</listitem>
+                <listitem><apilink class="org.gradle.platform.base.GeneralComponentSpec"/> is a convenient base interface for components that are built from sources and variant-aware. This is the typical case for a lot of software components, and therefore it should be in most of the cases the base type to be extended.</listitem>
+            </itemizedlist>
         </para>
         <para>
+            The core software model includes more types that can be used as base for extension. For example:
             <apilink class="org.gradle.platform.base.LibrarySpec"/> and
             <apilink class="org.gradle.platform.base.ApplicationSpec"/> can also be extended in this manner.
-            As of today theses are no-op extensions of <literal>ComponentSpec</literal> used to describe a software
+            Theses are no-op extensions of <literal>GeneralComponentSpec</literal> used to describe a software
             model better by distinguishing libraries and applications components.
+            <apilink class="org.gradle.testing.base.TestSuiteSpec"/> should be used for all components that describe a test suite.
         </para>
         <sample id="component-declaration" title="Declare a custom component"
                 dir="customModel/languageType/buildSrc/src/main/groovy/sample/documentation">
