@@ -91,6 +91,20 @@ def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def
     }
 }
 
+def removeCachedScripts(File cachesDir) {
+    if (cachesDir.directory) {
+        for (File cacheDir : cachesDir.listFiles()) {
+            if(cacheDir.directory) {
+                File scriptsCacheDir = new File(cacheDir, "scripts")
+                if(scriptsCacheDir.directory) {
+                    println "Removing scripts cache directory : ${scriptsCacheDir}"
+                    delete(scriptsCacheDir)
+                }
+            }
+        }
+    }
+}
+
 project(":") {
     if (tasks.findByName('cleanUpCaches')) {
         return
@@ -118,6 +132,14 @@ project(":") {
             removeOldVersionsFromDir(file("buildSrc/.gradle"), expireTaskCache)
             removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
+            
+            // Remove scripts caches
+            removeCachedScripts(file("intTestHomeDir/worker-1/caches"))
+            // Remove script caches from TestKit integTest temp dir
+            // location defined in TempTestKitDirProvider, copied here
+            def testKitTmpDir = new File(new File(System.getProperty("java.io.tmpdir")), String.format(".gradle-test-kit-%s", System.getProperty("user.name")))
+            removeCachedScripts(new File(testKitTmpDir, "caches"))
+            
             removeOldVersionsFromDir(file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
 
             // Remove old distributions used by wrapper that we're unlikely to ever require again

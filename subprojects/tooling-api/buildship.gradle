@@ -1,5 +1,5 @@
 /**
- * This script generates an Eclipse plug-in project from a local Tooling API build. It can
+ * This script generates an Eclipse plug-in project from a local Tooling API build.
  * It can be used to compile and execute Buildship from an Eclipse workspace.
  *
  * To generate the Eclipse project, execute the 'buildshipEclipseProject' task. The task
@@ -19,30 +19,21 @@ import java.util.zip.ZipInputStream
 task buildshipEclipseProject(type: CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     dependsOn jarjarJar
+
+    jarFile = jarjarJar.outputs.files.singleFile
+    projectDirectory = file("$buildDir/buildshipProject")
 }
 
 class CreateBuildshipEclipseProjectTask extends DefaultTask {
 
-    @Input
-    File jarFile = project.tasks['jarjarJar'].outputs.files[0]
+    @InputFile
+    File jarFile
 
     @OutputDirectory
-    File projectDirectory = project.file("${project.buildDir}/buildshipProject")
+    File projectDirectory
 
     @TaskAction
     void generateBuildshipProject() {
-        // if an old jar file is present from a previous execution, then delete it
-        if (projectDirectory.exists()) {
-            projectDirectory.eachFile { file ->
-                if (file.name.endsWith('.jar')) {
-                    def success = file.delete()
-                    if (!success) {
-                        throw new GradleException("Unable to delete ${file.absolutePath}")
-                    }
-                }
-            }
-        }
-
         // create manifest and place it in the META-INF folder
         def manifestFile = new File(projectDirectory, "META-INF/MANIFEST.MF")
         if (!manifestFile.parentFile.exists()) {

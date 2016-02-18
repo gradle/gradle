@@ -112,10 +112,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         runVersion(current, projectDir, results.current)
 
         results.assertEveryBuildSucceeds()
-        results.assertCurrentVersionHasNotRegressed()
 
         // Don't store results when builds have failed
         reporter.report(results)
+
+        results.assertCurrentVersionHasNotRegressed()
 
         return results
     }

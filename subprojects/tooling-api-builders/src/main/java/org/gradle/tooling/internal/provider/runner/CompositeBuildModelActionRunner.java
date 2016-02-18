@@ -16,11 +16,9 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.Sets;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.CompositeBuildActionParameters;
 import org.gradle.launcher.exec.CompositeBuildActionRunner;
@@ -41,9 +39,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
     private Map<String, Class<? extends HierarchicalElement>> modelRequestTypeToModelTypeMapping = new HashMap<String, Class<? extends HierarchicalElement>>() {{
@@ -76,26 +72,34 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<T> modelType, final BuildCancellationToken cancellationToken, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
-        final Set<T> results = Sets.newConcurrentHashSet();
-        final AtomicReference<Throwable> firstFailure = new AtomicReference<Throwable>();
-        final CountDownLatch countDownLatch = new CountDownLatch(participantBuilds.size());
+        final Set<T> results = new LinkedHashSet<T>();
         for (GradleParticipantBuild participant : participantBuilds) {
+            if (cancellationToken.isCancellationRequested()) {
+                break;
+            }
             ProjectConnection projectConnection = connect(participant, gradleUserHomeDir, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
             ModelBuilder<T> modelBuilder = projectConnection.model(modelType);
-            if (cancellationToken != null) {
-                modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+            modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
+            if (cancellationToken.isCancellationRequested()) {
+                projectConnection.close();
+                break;
             }
-            modelBuilder.get(new MultiResultHandler<T>(projectConnection, countDownLatch, firstFailure, new HierarchicalResultAdapter<T>(results)));
+            try {
+                accumulate(results, modelBuilder.get());
+            } catch (GradleConnectionException e) {
+                throw new CompositeBuildExceptionVersion1(e);
+            } finally {
+                projectConnection.close();
+            }
         }
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            UncheckedException.throwAsUncheckedException(e);
+        return results;
+    }
+
+    private <T extends HierarchicalElement> void accumulate(Set<T> allResults, HierarchicalElement element) {
+        allResults.add(Cast.<T>uncheckedCast(element));
+        for (HierarchicalElement child : element.getChildren().getAll()) {
+            accumulate(allResults, child);
         }
-        if (firstFailure.get() != null) {
-            throw new CompositeBuildExceptionVersion1(firstFailure.get());
-        }
-        return new HashSet<T>(results);
     }
 
     private ProjectConnection connect(GradleParticipantBuild build, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
@@ -115,7 +119,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private DefaultGradleConnector getInternalConnector() {
-        return (DefaultGradleConnector)GradleConnector.newConnector();
+        return (DefaultGradleConnector) GradleConnector.newConnector();
     }
 
     private GradleConnector configureDistribution(GradleConnector connector, GradleParticipantBuild build) {
@@ -153,69 +157,5 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             return token;
         }
     }
-
-    private final static class MultiResultHandler<T> implements ResultHandler<T> {
-        private final ProjectConnection projectConnection;
-        private final CountDownLatch countDownLatch;
-        private final AtomicReference<Throwable> firstFailure;
-        private final ResultHandler<T> delegate;
-
-        private MultiResultHandler(ProjectConnection projectConnection, CountDownLatch countDownLatch, AtomicReference<Throwable> firstFailure, ResultHandler<T> delegate) {
-            this.projectConnection = projectConnection;
-            this.countDownLatch = countDownLatch;
-            this.firstFailure = firstFailure;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void onComplete(T result) {
-            try {
-                delegate.onComplete(result);
-            } finally {
-                finishUsage();
-            }
-        }
-
-        private void finishUsage() {
-            try {
-                projectConnection.close();
-            } finally {
-                countDownLatch.countDown();
-            }
-        }
-
-        @Override
-        public void onFailure(GradleConnectionException failure) {
-            try {
-                firstFailure.compareAndSet(null, failure);
-                delegate.onFailure(failure);
-            } finally {
-                finishUsage();
-            }
-        }
-    }
-
-    private static class HierarchicalResultAdapter<T extends HierarchicalElement> implements ResultHandler<T> {
-        private final Set<T> allResults;
-
-        private HierarchicalResultAdapter(Set<T> allResults) {
-            this.allResults = allResults;
-        }
-
-        public void onComplete(T result) {
-            accumulate(result);
-        }
-
-        @Override
-        public void onFailure(GradleConnectionException failure) {
-
-        }
-
-        private void accumulate(HierarchicalElement element) {
-            allResults.add(Cast.<T>uncheckedCast(element));
-            for (HierarchicalElement child : element.getChildren().getAll()) {
-                accumulate(child);
-            }
-        }
-    }
 }
+

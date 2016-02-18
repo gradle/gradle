@@ -63,6 +63,10 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new ComponentTypeModelRuleExtractor(schemaStore);
         }
 
+        MethodModelRuleExtractor createDeprecatedBinaryTypeAndLanguageTypeAnnotationsInspector() {
+            return new DeprecatedAnnotationsInspector();
+        }
+
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {
             return new ComponentBinariesModelRuleExtractor();
         }
