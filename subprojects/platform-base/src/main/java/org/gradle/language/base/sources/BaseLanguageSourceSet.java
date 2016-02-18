@@ -22,7 +22,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
@@ -31,7 +30,7 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseLanguageSourceSet extends AbstractLanguageSourceSet implements LanguageSourceSetInternal {
+public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
     protected final SourceDirectorySetFactory sourceDirectorySetFactory;
 
