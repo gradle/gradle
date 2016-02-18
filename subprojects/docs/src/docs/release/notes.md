@@ -111,7 +111,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Ant-based Scala compiler deprecation
 
-The [Zinc Scala comiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of `useAnt` to `false` and we are deprecating the option. Please update your build scripts to remove uses of that option.
+The [Zinc Scala compiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of `useAnt` to `false` and we are deprecating the option. Also, since the Zinc Scala Compiler only works in `fork` mode, we are also defaulting that option to `true` and deprecating the option. Please update your build scripts to remove uses of that option.
 
 <!--
 ### Example deprecation
