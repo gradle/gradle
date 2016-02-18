@@ -231,4 +231,16 @@ public class DefaultGradlePropertiesLoaderTest {
         assertTrue(gradlePropertiesLoader.getAllSystemProperties().containsKey("gradle-loader-test"));
         assertEquals("value", gradlePropertiesLoader.getAllSystemProperties().get("gradle-loader-test"));
     }
+
+    @Test
+    public void startParameterSystemPropertiesHavePrecedenceOverPropertiesFiles() {
+        writePropertyFile(gradleUserHomeDir, GUtil.map("systemProp.prop", "user value"));
+        writePropertyFile(settingsDir, GUtil.map("systemProp.prop", "settings value"));
+        systemProperties = GUtil.map("prop", "system value");
+        startParameter.setSystemPropertiesArgs(WrapUtil.toMap("prop", "commandline value"));
+
+        gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
+
+        assertEquals("commandline value", System.getProperty("prop"));
+    }
 }
