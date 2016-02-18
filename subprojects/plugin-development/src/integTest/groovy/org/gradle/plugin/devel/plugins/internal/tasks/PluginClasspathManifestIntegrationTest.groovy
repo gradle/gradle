@@ -38,7 +38,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
             task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()})
         """
         MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency(module, 'compile')
+        buildFile << compileDependency('compile', module)
 
         when:
         ExecutionResult result = succeeds TASK_NAME
@@ -48,7 +48,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        normaliseFileAndLineSeparators(classpathManifest.text) == normaliseFileAndLineSeparators("""${file('build/classes/main').absolutePath}
+        classpathManifest.text == normaliseFileAndLineSeparators("""${file('build/classes/main').absolutePath}
 ${file('build/resources/main').absolutePath}
 ${module.artifactFile.absolutePath}""")
     }
@@ -72,7 +72,7 @@ ${module.artifactFile.absolutePath}""")
             }
         """
         MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency(module, 'customCompile')
+        buildFile << compileDependency('customCompile', module)
 
         when:
         ExecutionResult result = succeeds TASK_NAME
@@ -82,7 +82,7 @@ ${module.artifactFile.absolutePath}""")
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        normaliseFileAndLineSeparators(classpathManifest.text) == normaliseFileAndLineSeparators("""${file('build/classes/custom').absolutePath}
+        classpathManifest.text == normaliseFileAndLineSeparators("""${file('build/classes/custom').absolutePath}
 ${file('build/resources/custom').absolutePath}
 ${module.artifactFile.absolutePath}""")
     }
@@ -117,7 +117,7 @@ ${module.artifactFile.absolutePath}""")
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
     }
 
-    private String compileDependency(MavenModule module, String configurationName) {
+    private String compileDependency(String configurationName, MavenModule module) {
         """
             repositories {
                 maven { url "$mavenRepo.uri" }
