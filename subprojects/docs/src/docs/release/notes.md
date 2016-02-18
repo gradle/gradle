@@ -30,6 +30,10 @@ only during source compilation and are not included in the runtime classpath or 
 
 More details about declaring compile only configurations can be found in the [Java plugin chapter](userguide/java_plugin.html#sec:java_plugin_and_dependency_management) of the user guide.
 
+### Faster build script compilation
+
+TBD
+
 ### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
 
 You can use [test filtering](userguide/java_plugin.html#test_filtering) in the Java Plugin to execute a specific subset of tests. Now, you can match against TestSuite names in both JUnit and TestNG test tasks. You can also filter against Parameterized Tests in JUnit test tasks. Try some of the following command-line invocations:
