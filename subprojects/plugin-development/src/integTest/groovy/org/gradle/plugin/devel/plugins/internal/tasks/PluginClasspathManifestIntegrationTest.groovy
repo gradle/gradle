@@ -18,11 +18,12 @@ package org.gradle.plugin.devel.plugins.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.TextUtil
 
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final String TASK_NAME = 'generatePluginClasspathManifest'
+    private static final String TASK_NAME = 'generatePluginClasspathManifest'
 
     def setup() {
         buildFile << """
@@ -35,6 +36,8 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()})
         """
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency(module, 'compile')
 
         when:
         ExecutionResult result = succeeds TASK_NAME
@@ -45,7 +48,8 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
         TextUtil.normaliseLineSeparators(classpathManifest.text) == """${file('build/classes/main').absolutePath}
-${file('build/resources/main').absolutePath}"""
+${file('build/resources/main').absolutePath}
+${module.artifactFile.absolutePath}"""
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -66,6 +70,8 @@ ${file('build/resources/main').absolutePath}"""
                 pluginClasspath = sourceSets.custom.runtimeClasspath
             }
         """
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency(module, 'customCompile')
 
         when:
         ExecutionResult result = succeeds TASK_NAME
@@ -76,7 +82,8 @@ ${file('build/resources/main').absolutePath}"""
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
         TextUtil.normaliseLineSeparators(classpathManifest.text) == """${file('build/classes/custom').absolutePath}
-${file('build/resources/custom').absolutePath}"""
+${file('build/resources/custom').absolutePath}
+${module.artifactFile.absolutePath}"""
     }
 
     def "fails the task for null plugin classpath"() {
@@ -107,5 +114,17 @@ ${file('build/resources/custom').absolutePath}"""
 
         then:
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
+    }
+
+    private String compileDependency(MavenModule module, String configurationName) {
+        """
+            repositories {
+                maven { url "$mavenRepo.uri" }
+            }
+
+            dependencies {
+                $configurationName '$module.groupId:$module.artifactId:$module.version'
+            }
+        """
     }
 }
