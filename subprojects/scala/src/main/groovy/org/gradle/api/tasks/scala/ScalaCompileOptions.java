@@ -83,9 +83,6 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             "The fork option for the scala compiler is deprecated, please see "
                 + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.fork = fork;
-        if (fork == useAnt) {
-            setUseAnt(!fork);
-        }
     }
 
     /**
