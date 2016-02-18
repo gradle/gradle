@@ -49,7 +49,7 @@ public class MethodOptionElement extends AbstractOptionElement {
     public void apply(Object object, List<String> parameterValues) {
         if (parameterValues.size() == 0) {
             invokeMethod(object, method, true);
-        } else if (parameterValues.size() > 1) {
+        } else if (parameterValues.size() > 1  || List.class.equals(getOptionType())) {
             invokeMethod(object, method, parameterValues);
         } else {
             invokeMethod(object, method, getNotationParser().parseNotation(parameterValues.get(0)));

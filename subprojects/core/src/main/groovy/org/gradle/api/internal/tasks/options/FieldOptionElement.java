@@ -69,8 +69,8 @@ public class FieldOptionElement extends AbstractOptionElement {
     public void apply(Object object, List<String> parameterValues) {
         if (getOptionType() == Void.TYPE && parameterValues.size() == 0) {
             setFieldValue(object, true);
-        } else if (parameterValues.size() > 1) {
-            throw new IllegalArgumentException(String.format("Lists not supported for option"));
+        } else if (parameterValues.size() > 1  || List.class.equals(getOptionType())) {
+            setFieldValue(object, parameterValues);
         } else {
             Object arg = getNotationParser().parseNotation(parameterValues.get(0));
             setFieldValue(object, arg);
