@@ -157,18 +157,17 @@ To reproduce the behavior of earlier releases, change the single-level wildcard 
 
 ### Changes to the experimental software model
 
-TBD: explain the motivation, add more details
+One of the objectives of the software model is to describe _what_ you want to build instead of _how_. In particular, you might want to describe that you are building a web application. That application as an aggregate of libraries, but also sources, static resources, ... A library can be seen as an aggregate of sources, producing different binaries depending on the target platform, the CPU architecture, ... A source set may also be viewed as a component that can itself be built (think of generated sources). To reflect this idea that "everything is a component" and "components are composed of other components", the `ComponentSpec` hierarchy has been reorganised. This will greatly simplify the creation of custom components, as well as allowing to reduce the amount of specific code for each component type by composing behavior instead of inheriting behavior:
 
-The `ComponentSpec` hierarchy has been reorganised.
-
-- The `sources` and `binaries` properties of `ComponentSpec` have been moved to several subtypes.
-- You can extend either `LibrarySpec` or `ApplicationSpec` to pick up these properties. Also `GeneralComponentSpec`.
+- The `sources` and `binaries` properties of `ComponentSpec` have been moved to dedicated subtypes (resp. `SourceComponentSpec` and `VariantComponentSpec`)
+- `GeneralComponentSpec` is the base interface for all components that are built from sources and can generate multiple variants (typically, depending on the target platform)
+- `LibrarySpec` and `ApplicationSpec` are two typical examples of components that extend `GeneralComponentSpec`, that you can leverage to build your own component types.
 - `BuildableModelElement` has been renamed to `BuildableComponentSpec`, which in turn now extends `ComponentSpec`.
 
 #### Type registration
 
-- `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` replaced by `TypeBuilder`.
-- The `BinaryType` and `LanguageType` annotations are no longer supported. They have been replaced by `ComponentType`.
+- `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` have been unified into a single `TypeBuilder`.
+- The `BinaryType` and `LanguageType` annotations are no longer supported. They have been replaced by a single `ComponentType` annotation.
 - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
 
 #### Other changes
