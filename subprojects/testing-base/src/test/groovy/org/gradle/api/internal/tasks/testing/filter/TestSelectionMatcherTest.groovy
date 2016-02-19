@@ -54,7 +54,7 @@ class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class with excludes"() {
         expect:
-        new TestSelectionMatcher(include, exclude).matchesTest(className, methodName) == match
+        new TestSelectionMatcher(include, exclude).shouldRun(className, methodName) == match
 
         where:
         include             | exclude       | className             | methodName | match
@@ -98,7 +98,7 @@ class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches with excludes"() {
         expect:
-        new TestSelectionMatcher(include, exclude).matchesTest(className, methodName) == match
+        new TestSelectionMatcher(include, exclude).shouldRun(className, methodName) == match
 
         where:
         include                 | exclude            | className     | methodName | match
