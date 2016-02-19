@@ -43,7 +43,7 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
         return toMavenSyntax(defaultVersionSelectorScheme.renderSelector(selector));
     }
 
-    // TODO:DAZ VersionSelector should be more descriptive, so it can be directly translated
+    // TODO: VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
         if (version.equals(LATEST_INTEGRATION)) {
             return LATEST;

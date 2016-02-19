@@ -21,7 +21,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
         withCustomComponentType()
-        withCustomBinaryType() 
+        withCustomBinaryType()
         withCustomLanguageType()
 
         buildFile << '''
@@ -72,7 +72,7 @@ model {
         succeeds "verify"
     }
 
-    // TODO:DAZ Fix this regression in behaviour: Fails because the `binary.sources` modelmap is closed before we have a chance to append another source set
+    // TODO Fix this regression in behaviour: Fails because the `binary.sources` modelmap is closed before we have a chance to append another source set
     // Needs a few things
     //   1. Copy each component binary into `binaries` early enough for rules to be applied
     //   2. Make `binaries` container have references to the actual binary nodes, rather than unmanaged nodes

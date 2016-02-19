@@ -118,7 +118,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
 
     @Override
     public LibraryBinaryIdentifier getId() {
-        // TODO:DAZ This can throw a NPE: will need an identifier for a variant without an owning component
+        // TODO: This can throw a NPE: will need an identifier for a variant without an owning component
         ComponentSpec component = getComponent();
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }

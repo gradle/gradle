@@ -66,7 +66,7 @@ public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
      * A buildable object representing the class files and resources that will be included in the application jar file.
      * @return the JvmClasses for this binary
      */
-    // TODO:DAZ Replace this with `JvmAssembly` once that type is public
+    // TODO: Replace this with `JvmAssembly` once that type is public
     JvmClasses getClasses();
 
     /**

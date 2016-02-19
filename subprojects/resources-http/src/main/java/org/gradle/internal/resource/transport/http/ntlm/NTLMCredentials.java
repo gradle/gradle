@@ -47,7 +47,7 @@ public class NTLMCredentials {
     }
 
     private String determineWorkstationName() {
-        // TODO:DAZ This is a temporary (hidden) property that may be useful to track down issues. Remove when NTLM Auth is solid.
+        // This is a hidden property that may be useful to track down issues. Remove when NTLM Auth is solid.
         String sysPropWorkstation = System.getProperty("http.auth.ntlm.workstation");
         if (sysPropWorkstation != null) {
             return sysPropWorkstation;

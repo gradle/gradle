@@ -90,7 +90,7 @@ public class BinarySourceTransformations {
                 }
             }
         }
-        // TODO:DAZ Should fail here if sourcesToCompile is not empty: no transform for this source set in this binary
+        // Should really fail here if sourcesToCompile is not empty: no transform for this source set in this binary
     }
 
     private Iterable<LanguageTransform<?, ?>> prioritize(LanguageTransformContainer languageTransforms) {

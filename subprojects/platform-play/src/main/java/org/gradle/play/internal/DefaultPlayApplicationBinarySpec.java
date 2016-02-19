@@ -135,7 +135,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
     @Override
     public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
         String lssName = String.format("%sScalaSources", input.getName());
-        // TODO:DAZ To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
+        // TODO: To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
         ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, getIdentifier().child(lssName), sourceDirectorySetFactory);
         generatedScalaSources.builtBy();
         generatedScala.put(input, generatedScalaSources);

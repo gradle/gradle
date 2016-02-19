@@ -52,6 +52,5 @@ public interface LanguageTransform<U extends LanguageSourceSet, V extends Transf
      */
     SourceTransformTaskConfig getTransformTask();
 
-    // TODO:DAZ This should be declarative, not imperative
     boolean applyToBinary(BinarySpec binary);
 }

@@ -71,7 +71,6 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             super(ModelReference.of(binaryType), binaryType, ruleDefinition, ModelReference.of(TASK_FACTORY));
         }
 
-        // TODO:DAZ Clean this up, and remove DomainObjectCollectionBackedModelMap
         @Override
         protected void execute(ModelRuleInvoker<?> invoker, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), TASK_FACTORY));

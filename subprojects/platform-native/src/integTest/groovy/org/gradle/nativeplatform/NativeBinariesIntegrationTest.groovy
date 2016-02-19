@@ -166,7 +166,6 @@ model {
         executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
-    // TODO:DAZ Should not need a component here
     def "assemble executable binary directly from language source sets"() {
         given:
         useMixedSources()

@@ -66,7 +66,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
 
     @Override
     public boolean getMayHaveSources() {
-        // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
+        // This doesn't take into account build dependencies of the SourceDirectorySet.
         // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
         return generated || !source.isEmpty();
     }
