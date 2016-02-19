@@ -55,8 +55,28 @@ For each source set (`main` and `test`), create an `apt` (resp. `testApt`) confi
 
 ![Java Plugin Configurations](img/annotation_processing_javaPluginConfigurations.png)
 
+### Story - Automatically configure IDEs through their Gradle plugins
+
+For Eclipse, if any of `compileJava.options.proc` or `compileTestJava.options.proc` is `null`, create a `.factorypath` file:
+
+ * if `compileJava.options.proc` is `null`:
+   * if `compileJava.options.processorpath` is not empty, include its entries,
+   * otherwise include the entries of the `compileOnly` configuration.
+ * if `compileTestJava.options.proc` is `null`:
+   * if `compileTestJava.options.processorpath` is not empty, include its entries,
+   * otherwise include the entries of the `testCompileOnly` configuration.
+
+This means that, for Eclipse, annotation processors are applied to all sources, whether they've been configure for main or test sources only.
+This is a limitation of Eclipse's project model.
+
+TODO: IntelliJ IDEA (things need to be configure both at the project and module level, can be pretty hairy to get "right")
+
+### Story - Expose the configuration through the Tooling API
+
+Expose the `apt` and `testApt` configurations through the Tooling API such that Buildship and IntelliJ IDEA (and others) integrations can make use of them to automatically configure the projects.
+
 ## Open for discussion
 
  * Should the `testApt` configuration extends from the `apt` one?
  * Should there be a new task to call annotation processors on already-compiled classes (passing the class names to the Java compiler in lieu of source file names), possibly coming from dependencies.
-
+ * Should there be new properties to the `eclipse` and `idea` plugins to enable/disable annotation processing in the IDE irrespective of the `JavaCompile` tasks? Sometimes you want it in Gradle but not in IDEs (Eclipse is known to be buggy, and not flexible enough)
