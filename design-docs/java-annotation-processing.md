@@ -4,9 +4,8 @@ This spec aims at making Java annotation processing a first-class citizen in Gra
 
 ## Use cases
 
- * Simplify configuration for Java annotation processing:
-   * annotation processor dependencies used as `-processorpath` of the Java compiler, and
-   * compile-time-only dependencies: e.g. containing annotations that are only needed at compile-time to be processed by annotation processors (e.g. Immutables.org or Google's "auto" projects), or possibly for documentation purpose only (e.g. `@Nullable`, `@NotNull` et al.)
+ * Simplify configuration for annotation processor dependencies used as `-processorpath` of the Java compiler  
+   Compile-time-only dependencies (e.g. containing annotations that are only needed at compile-time to be processed by annotation processors (e.g. Immutables.org or Google's "auto" projects), or possibly for documentation purpose only (e.g. `@Nullable`, `@NotNull` et al.)) can already be configured through the `compileOnly` and `testCompileOnly` configurations in the Java Plugin
  * Configure annotation processing in IDEs through the IDE-specific Gradle plugins (`./gradlew eclipse` or `./gradlew idea`)
  * Expose the configuration through the Tooling API for IDEs to configure themselves (Buildship, etc.)
 
@@ -48,14 +47,11 @@ Set the source set's `processorpath` and check that it's reflected in the corres
 
 For each source set (`main` and `test`), create an `apt` (resp. `testApt`) configuration and wire it as the source set's `processorpath`.
 
-Also create, for each source set, a `compileOnly` (resp. `testCompileOnly`) configuration that extends the `compile` (resp. `testCompile`) configuration, and wire it as the `JavaCompile`'s `classpath` (in lieu of the `compile` –resp. `testCompile`– configuration).
-
 ![Java Plugin Configurations](img/annotation_processing_javaPluginConfigurations.png)
 
 ## Open for discussion
 
  * Should  `CompileOptions` also have a property for the `-proc:none` / `-proc:only` Java compile arguments?
  * Should the `testApt` configuration extends from the `apt` one?
- * Similarly, should the `testCompileOnly` configuration extends from the `compileOnly` one?
  * Should there be a new task to call annotation processors on already-compiled classes (passing the class names to the Java compiler in lieu of source file names), possibly coming from dependencies.
 
