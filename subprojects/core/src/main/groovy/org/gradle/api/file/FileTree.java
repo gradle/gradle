@@ -19,6 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.io.File;
+import java.util.Set;
+
 /**
  * <p>A {@code FileTree} represents a hierarchy of files. It extends {@link FileCollection} to add hierarchy query and
  * manipulation methods. You typically use a {@code FileTree} to represent files to copy or the contents of an
@@ -91,4 +94,11 @@ public interface FileTree extends FileCollection {
      * @return this
      */
     FileTree getAsFileTree();
+
+    /**
+     * Returns the contents of this tree as a flattened Set.
+     *
+     * @return The files. Returns an empty set if this tree is empty.
+     */
+    Set<File> getFiles();
 }
