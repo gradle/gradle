@@ -12,7 +12,7 @@ This spec aims at making Java annotation processing a first-class citizen in Gra
 
 ## Implementation plan
 
-### Add properties to `CompileOptions`
+### Story - Add properties to `CompileOptions`
 
 Add a `processorpath` (similar to the existing `sourcepath`), `processors` and `processorArgs`:
 
@@ -32,11 +32,11 @@ Add a `processorpath` (similar to the existing `sourcepath`), `processors` and `
  * a non-empty `processors` list adds a `-processor` argument with the `processors` joined with a `,` as value
  * each entry in `processorArgs` is added as `-Akey=value` arguments
 
-### Add processor path to `SourceSet`
+### Story - Add processor path to `SourceSet`
 
 Add a `processorpath` property to `SourceSet`, like the existing `compileClasspath`.
 
-### Update the Java plugin to wire the above two `processorpath`s
+### Story - Update the Java plugin to wire the above two `processorpath`s
 
 Configure the `compileJava` task's `options.processorpath` to the `main` source set's `processorpath`, and similarly for the `compileTestJava` task and `test` source set.
 
@@ -44,7 +44,7 @@ Configure the `compileJava` task's `options.processorpath` to the `main` source 
 
 Set the source set's `processorpath` and check that it's reflected in the corresponding task's `options.processorpath`.
 
-### Create default/conventional dependency configurations
+### Story - Create default/conventional dependency configurations
 
 For each source set (`main` and `test`), create an `apt` (resp. `testApt`) configuration and wire it as the source set's `processorpath`.
 
