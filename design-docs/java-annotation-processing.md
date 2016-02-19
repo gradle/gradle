@@ -13,11 +13,12 @@ This spec aims at making Java annotation processing a first-class citizen in Gra
 
 ### Story - Add properties to `CompileOptions`
 
-Add a `processorpath` (similar to the existing `sourcepath`), `processors` and `processorArgs`:
+Add a `processorpath` (similar to the existing `sourcepath`), `processors`, `processorArgs`, and `proc`:
 
  * `processorpath` as a `FileCollection`: when non-empty, it is passed as a `-processorpath` argument to the Java compiler.
  * `processors` as a `List<String>` (or `Set<String>` or `Collection<String>`?); when non-empty, it is passed as a `-processor` argument to the Java compiler (values joined with a `,`).
  * `processorArgs` as a `Map<String, ?>` (or `Map<String, String>`?); each entry is passed as a `-Akey=value` argument to the Java compiler.
+ * `proc` as an enum with values `none` and `only`, defaults to `null`; when non-`null`, it is passed a `-proc` argument to the Java compiler (`-proc:none` or `-proc:only`).
 
 #### Backwards compatibility
 
@@ -30,6 +31,8 @@ Add a `processorpath` (similar to the existing `sourcepath`), `processors` and `
  * a non-empty `processorpath` adds a `-processorpath` argument with `processorpath.asPath` as value
  * a non-empty `processors` list adds a `-processor` argument with the `processors` joined with a `,` as value
  * each entry in `processorArgs` is added as `-Akey=value` arguments
+ * `proc` with a value of `none` is added as a `-proc:none` argument
+ * `proc` with a value of `only` is added as a `-proc:only` argument
 
 ### Story - Add processor path to `SourceSet`
 
@@ -51,7 +54,6 @@ For each source set (`main` and `test`), create an `apt` (resp. `testApt`) confi
 
 ## Open for discussion
 
- * Should  `CompileOptions` also have a property for the `-proc:none` / `-proc:only` Java compile arguments?
  * Should the `testApt` configuration extends from the `apt` one?
  * Should there be a new task to call annotation processors on already-compiled classes (passing the class names to the Java compiler in lieu of source file names), possibly coming from dependencies.
 
