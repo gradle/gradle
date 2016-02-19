@@ -622,6 +622,12 @@ task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
         json.versionNumber
     }
 
+    dependencyGraph {
+        size = 100
+        depth = 4
+        useSnapshotVersions = true
+    }
+
     projects = buildReceiptParams.projects
     sourceFiles = buildReceiptParams.sourceFiles
     subProjectTemplates = [buildReceiptParams.template]
