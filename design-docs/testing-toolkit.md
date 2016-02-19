@@ -496,8 +496,9 @@ for functional testing with TestKit.
     * The source set for the project containing the code under test. Default value: `sourceSets.main`.
     * The test source sets that require the code under test to be visible to test builds. Default value: `sourceSets.test`.
 * Automatically assign the task `generatePluginClasspathManifest` to the test source sets runtime configuration via `dependencies.<runtime-configuration> files(generatePluginClasspathManifest)`.
-* When instantiating a `GradleRunner` instance with the `create()` method, the `plugin-classpath.txt` is read, the classpath constructed and assigned via the method
-`withPluginClasspath(Iterable<? extends File> classpath)`.
+* The `plugin-classpath.txt` is read, the classpath constructed and provided to the call `AbstractLongRunningOperation.withInjectedClassPath(ClassPath classpath)`.
+    * The method call is only made if the constructed classpath is not empty and the target Gradle version supports the API (>= 2.8).
+    * If the user provided a custom classpath then classpath provided by `plugin-classpath.txt` is overridden.
 * The plugin will not provide direct support for implementing plugins in languages other than Java. If a user prefers to write a plugin in a different JVM language, the build script
  needs to apply the corresponding JVM language plugin e.g. `apply plugin: 'groovy'` for a plugin written in Groovy. There's nothing to be done for the plugin-dev-plugin.
 * Add or expand sample to demonstrate this feature.
@@ -550,8 +551,9 @@ The usage of the extension looks as follows:
     * An exception is thrown, if the file does not exist.
     * An exception is thrown, if the file cannot be parsed or the classpath cannot be constructed from its contents.
 * The end user is provided with automatic plugin classpath injection with just the default conventions.
-* The plugin classpath can be provided for multiple test source sets.
-* If the user calls the method `GradleRunner.withPluginClasspath(Iterable<? extends File> classpath)` for the same `GradleRunner` instance, the classpath set by the last method 
+    * Automatic injection of the classpath only works if the target Gradle version is >= 2.8.
+    * The plugin classpath can be provided for multiple test source sets.
+    * If the user calls the method `GradleRunner.withPluginClasspath(Iterable<? extends File> classpath)` for the same `GradleRunner` instance, the classpath set by the last method 
 invocation wins.
 * Manually verify that executing tests in the IDE (say IDEA) works reasonably well. Document any unforeseen caveats.
 
