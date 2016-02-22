@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.internal.composite;
 
-import org.gradle.tooling.internal.provider.connection.CompositeParameters;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.invocation.BuildAction;
 
-public interface CompositeBuildActionParameters extends BuildActionParameters {
-    CompositeParameters getCompositeParameters();
+public interface CompositeBuildActionRunner {
+    void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController);
 }

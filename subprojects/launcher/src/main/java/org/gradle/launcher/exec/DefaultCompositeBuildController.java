@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class DefaultCompositeBuildController implements CompositeBuildController {

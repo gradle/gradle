@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.internal.composite;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.service.ServiceRegistry;
+import java.io.File;
+import java.net.URI;
 
-public interface CompositeBuildController {
-    ServiceRegistry getBuildScopeServices();
+public interface GradleParticipantBuild {
+    File getProjectDir();
 
-    /**
-     * Returns true if a result (possibly null) has been specified.
-     */
-    boolean hasResult();
+    File getGradleHome();
 
-    /**
-     * Returns the result for the build action.
-     */
-    @Nullable
-    Object getResult();
+    URI getGradleDistribution();
 
-    /**
-     * Sets the result for the build action.
-     */
-    void setResult(@Nullable Object result);
+    String getGradleVersion();
 }
