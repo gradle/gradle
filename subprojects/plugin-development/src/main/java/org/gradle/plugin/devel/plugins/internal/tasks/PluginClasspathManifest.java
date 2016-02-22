@@ -17,9 +17,9 @@
 package org.gradle.plugin.devel.plugins.internal.tasks;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -31,7 +31,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.List;
 
-public class PluginClasspathManifest extends DefaultTask {
+public class PluginClasspathManifest extends ConventionTask {
 
     private FileCollection pluginClasspath;
     private File outputFile;
