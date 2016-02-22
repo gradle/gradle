@@ -10,6 +10,17 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Automatic plugin classpath injection for TestKit
+
+Previous versions of Gradle required significant amounts of boilerplate code for [injecting the plugin classpath](userguide/test_kit.html#sub:test-kit-classpath-injection). 
+This version of Gradle provides a direct integration of TestKit with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html). By applying the plugin, 
+declaring the `gradleTestKit()` dependency and injecting code under test happens automatically under the covers. As result, you don't have to write boilerplate code anymore
+to functionally test your plugin code. To apply the Java Gradle Plugin Development Plugin to your project, add the following code to your build script.
+
+    apply plugin: 'java-gradle-plugin'
+
+You can read more about this functionality in the [user guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
