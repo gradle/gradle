@@ -2,11 +2,13 @@ Changes to improve build execution time when a build is mostly up-to-date.
 
 Audience is developers that are using the Gradle daemon.
 
+### Implementation plan
+
 - Review and update performance tests to measure this and lock in improvements.
     - Incremental build for large Java project
     - Incremental build for project with large dependency graph
-- Profile to validate the following plan.
-    
+- Profile test builds and use results to select improvements to implement 
+        
 ### Potential improvements
     
 Up-to-date checks    

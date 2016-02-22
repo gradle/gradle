@@ -9,6 +9,10 @@
     - Adjust test suites and fixtures for this.
     - Remove single use daemon
     
+## Notes    
+
+Notes extracted from old feature specs
+    
 ## Feature - Daemon robustness    
 
 - All client and daemon reads on the connection should have a timeout.

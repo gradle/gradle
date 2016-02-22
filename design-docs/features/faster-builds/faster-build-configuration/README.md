@@ -2,8 +2,10 @@ Changes to improve build configuration time, when build configuration inputs hav
 
 Audience is developers that are using the Gradle daemon.
 
+### Implementation plan
+
 - Review and update performance tests to measure this and lock in improvements.
-- Profile to validate the following plan
+- Profile test builds and use results to select improvements to implement 
 
 ### Potential improvements 
 
