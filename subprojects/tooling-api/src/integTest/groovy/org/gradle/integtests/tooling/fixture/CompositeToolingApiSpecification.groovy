@@ -29,6 +29,8 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.NOT_WINDOWS)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
+    boolean useEmbeddedParticipants = false
+
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
     }
@@ -45,7 +47,9 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        toolingApi.createCompositeBuilder()
+        def builder = toolingApi.createCompositeBuilder()
+        builder.embeddedParticipants(useEmbeddedParticipants)
+        return builder
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {

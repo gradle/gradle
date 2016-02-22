@@ -21,4 +21,5 @@ import java.util.List;
 
 public interface CompositeConnectionParameters extends ConnectionParameters {
     List<GradleParticipantBuild> getBuilds();
+    boolean isEmbeddedParticipants();
 }
