@@ -44,6 +44,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Alexander Afanasyev](https://github.com/cawka) - allow configuring java.util.logging in tests ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
+
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
