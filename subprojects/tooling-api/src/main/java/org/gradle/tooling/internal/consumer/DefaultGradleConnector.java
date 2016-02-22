@@ -15,11 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,20 +37,6 @@ public class DefaultGradleConnector extends GradleConnector {
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
         this.distributionFactory = distributionFactory;
-    }
-
-
-    /**
-     * TODO: Move to public API
-     *
-     * Creates a new connection builder instance for creating Gradle composite builds.
-     *
-     * @return The instance. Never returns null.
-     * @since 2.12
-     */
-    @Incubating
-    public static GradleConnection.Builder newGradleConnectionBuilder() {
-        return ConnectorServices.createGradleConnectionBuilder();
     }
 
     /**
