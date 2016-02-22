@@ -3,22 +3,29 @@ A series of features to make Gradle faster in many common cases.
 ### Audience
 
 *Developers* working in the Java and Android ecosystems and whose builds use the
-current software model and and who are using the Gradle daemon (possibly via the IDE). 
-However the improvements will be cross-cutting and will benefit all Gradle users, to greater and lesser degrees.
+current software model and and who are using the Gradle daemon (possibly implicitly via the IDE). 
+
+The improvements will be general purpose and so will benefit all Gradle users, to greater and lesser degrees.
+
+Note that one of the goals of this work is to deliver to many more users the performance improvements that have already been implemented by the Gradle daemon, by enabling the
+Gradle daemon by default.
 
 ### Out of scope
 
-Out-of-scope are the following improvements
+Out-of-scope are the following improvements:
 
-- Making other ecosystems faster: native, Play, Scala, Groovy.
+- Making other ecosystems faster: native, Play, Scala, Groovy, web.
 - Making software model builds faster.
 - Making build authoring and other non-dev loop use cases faster.
 - Making non-daemon usage faster.
+- Making specific task implementations faster, such as incremental Java compilation.
 
-TBD: parallel execution in scope or out of scope?
-TBD: configure-on-demand in scope or out of scope?
+Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to work on other use cases, then that's a good thing. 
 
-Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve thanks to other use cases, then that's a good thing. 
+TBD: 
+
+- parallel execution in scope or out of scope?
+- configure-on-demand in scope or out of scope?
 
 ## Features
 
@@ -28,8 +35,10 @@ Here 'out-of-scope' means only that these use cases won't be specifically priori
     - [ ] Improved file system scanning
     - [ ] Faster dependency resolution
 - [ ] [Daemon on by default](daemon-on-by-default)
-    - [ ] Improved lifecycle
+    - [ ] Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
+    - [ ] Enable daemon self-monitoring
     - [ ] Fix Windows specific blockers
+    - [ ] Enable by default
     
 TBD:    
 

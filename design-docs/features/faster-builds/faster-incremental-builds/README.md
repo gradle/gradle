@@ -3,18 +3,31 @@ Changes to improve build execution time when a build is mostly up-to-date.
 Audience is developers that are using the Gradle daemon.
 
 - Review and update performance tests to measure this and lock in improvements.
-- Profile to validate the following plan:
+    - Incremental build for large Java project
+    - Incremental build for project with large dependency graph
+- Profile to validate the following plan.
+    
+### Potential improvements
+    
+Up-to-date checks    
+
+- Fix hotspots identified by profiling
 - Reuse the result of directory scanning
 - Don't scan input directory multiple times when executing a task
 - Improve in-heap cache management to evict entries that aren't likely to be used, such as when switching builds.
 - Don't cache the result of `PatternSpec` evaluation. It's now faster to evaluate each time than cache the result
-- Profile and improve dependency resolution speed, in particular when nothing has changed.
-    - Reuse resolution result for configuration that has same inputs as another.
-    - Reuse resolution result across builds.
-    
-### Dependency resolution result reuse    
 
-Some notes:
+Dependency resolution
+
+- Fix hotspots identified by profiling
+- Reuse resolution result for configuration that has same inputs as another.
+- Reuse resolution result across builds.
+    
+## Notes    
+
+Various notes collected from old design specs.
+
+### Dependency resolution result reuse    
 
 Results are reused when all is true:
 

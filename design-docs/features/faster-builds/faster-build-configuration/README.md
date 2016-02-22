@@ -3,7 +3,11 @@ Changes to improve build configuration time, when build configuration inputs hav
 Audience is developers that are using the Gradle daemon.
 
 - Review and update performance tests to measure this and lock in improvements.
-- Profile to validate the following plan:
+- Profile to validate the following plan
+
+### Potential improvements 
+
+- Fix hotspots identified by profiling
 - Send messages to daemon client asynchronously
 - Faster rule execution for task configuration
 - Reuse build script cache instances across builds
