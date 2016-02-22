@@ -1,4 +1,6 @@
 
+## Features
+
 - [ ] Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
     - Clean up cached `ClassLoaders` that cannot be used again.
 - [ ] [Fix Windows specific blockers](windows-blockers)
