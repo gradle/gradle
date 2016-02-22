@@ -1,4 +1,4 @@
-Changes to improve build execution time when a build is mostly up-to-date. 
+Changes to improve build execution time when build outputs are mostly up-to-date. 
 
 Audience is developers that are using the Gradle daemon.
 

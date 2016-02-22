@@ -7,8 +7,8 @@ to more users, by enabling the Gradle daemon by default.
 
 ### Audience
 
-The improvements are aimed at *Developers* working in the Java and Android ecosystems and whose builds use the
-current software model and and who are using the Gradle daemon (possibly implicitly via the IDE). 
+The improvements are aimed at *developers* working in the Java and Android ecosystems and whose builds use the
+current software model and and who are using the Gradle daemon (possibly implicitly through the IDE). 
 
 The improvements will be general purpose and so will benefit all Gradle users, to greater and lesser degrees.
 
@@ -22,7 +22,7 @@ Out-of-scope are the following improvements:
 - Faster builds for non-daemon usage.
 - Making Java compilation faster, including improvements to incremental compile or adding compile avoidance.
 
-Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to work on other use cases, then that's a good thing. 
+Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to other work, then that's a good thing. 
 
 TBD: 
 
