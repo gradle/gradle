@@ -316,6 +316,10 @@ class IdeaModule {
         if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
             return true
         }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedTargetBytecodeVersion){
+            return false;
+        }
         return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
     }
 
