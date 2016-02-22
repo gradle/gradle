@@ -133,6 +133,7 @@ class IdeaProject {
      */
     private boolean hasUserSpecifiedLanguageLevel
 
+
     /**
      * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
@@ -140,6 +141,21 @@ class IdeaProject {
     @PackageScope
     boolean  getHasUserSpecifiedLanguageLevel() {
         return hasUserSpecifiedLanguageLevel
+    }
+
+    /**
+     * Marker for tracking explicit configured bytecode level: this is consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     */
+    private boolean hasUserSpecifiedTargetBytecodeVersion
+
+    /**
+     * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
+     * and is not part of the IdeaProject API.
+     * */
+    @PackageScope
+    boolean getHasUserSpecifiedTargetBytecodeVersion() {
+        return hasUserSpecifiedTargetBytecodeVersion
     }
 
     /**
@@ -153,6 +169,19 @@ class IdeaProject {
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
         this.hasUserSpecifiedLanguageLevel = true
+    }
+
+    /**
+     * Sets java language level of the project.
+     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}.
+     * <p>
+     * When explicitly set, this setting overrides any calculated values for Idea project and Idea module.
+     */
+    void setTargetBytecodeVersion(Object value) {
+        this.targetBytecodeVersion = JavaVersion.toVersion(value)
+        this.hasUserSpecifiedTargetBytecodeVersion = true
     }
 
     /**
