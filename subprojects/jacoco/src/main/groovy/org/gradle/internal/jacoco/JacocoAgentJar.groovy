@@ -50,8 +50,15 @@ class JacocoAgentJar {
 
     boolean supportsJmx() {
         def pre062 = getAgentConf().any {
-            it.name ==~ /org.jacoco.agent-([0]\.[0-6]\.[0-1\.].*)\.jar/
+            it.name ==~ /org.jacoco.agent-([0]\.[0-6]\.[0-1]\..*)\.jar/
         }
         return !pre062
+    }
+
+    boolean supportsInclNoLocationClasses() {
+        def pre076 = getAgentConf().any {
+            it.name ==~ /org.jacoco.agent-([0]\.[0-7]\.[0-5]\..*)\.jar/
+        }
+        return !pre076;
     }
 }
