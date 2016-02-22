@@ -14,11 +14,11 @@ Gradle daemon by default.
 
 Out-of-scope are the following improvements:
 
-- Making other ecosystems faster: native, Play, Scala, Groovy, web.
-- Making software model builds faster.
-- Making build authoring and other non-dev loop use cases faster.
-- Making non-daemon usage faster.
-- Making specific task implementations faster, such as incremental Java compilation.
+- Faster builds for other ecosystems: native, Play, Scala, Groovy, web.
+- Faster builds for software model builds.
+- Faster builds for build authoring and other use cases outside the dev loop.
+- Faster builds for non-daemon usage.
+- Making specific task implementations, such as incremental Java compilation, faster.
 
 Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to work on other use cases, then that's a good thing. 
 
