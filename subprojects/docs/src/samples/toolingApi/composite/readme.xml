@@ -1,3 +1,0 @@
-<sample>
-    <para>An application that uses the tooling API to create a composite Gradle build and queries for the Eclipse model for the set of all build participants.</para>
-</sample>
