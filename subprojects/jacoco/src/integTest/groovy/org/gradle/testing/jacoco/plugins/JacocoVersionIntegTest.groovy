@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Test
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
-@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002', '0.7.1.201405082137'])
+@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002', '0.7.1.201405082137', '0.7.6.201602180812'])
 class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
     @Test
