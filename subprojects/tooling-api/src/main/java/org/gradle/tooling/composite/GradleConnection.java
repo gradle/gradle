@@ -103,7 +103,6 @@ public interface GradleConnection {
      *
      * @param modelType
      * @param <T>
-     * @return
      * @throws GradleConnectionException
      * @throws IllegalStateException
      */
@@ -136,7 +135,6 @@ public interface GradleConnection {
      *
      * @param modelType
      * @param <T>
-     * @return
      */
     <T> ModelBuilder<Set<T>> models(Class<T> modelType);
 
