@@ -1,0 +1,45 @@
+// START SNIPPET automatic-classpath
+apply plugin: 'groovy'
+apply plugin: 'java-gradle-plugin'
+
+sourceSets {
+    functionalTest {
+        groovy {
+            srcDir file('src/functionalTest/groovy')
+        }
+        resources {
+            srcDir file('src/functionalTest/resources')
+        }
+        compileClasspath += sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+task functionalTest(type: Test) {
+    testClassesDir = sourceSets.functionalTest.output.classesDir
+    classpath = sourceSets.functionalTest.runtimeClasspath
+}
+
+check.dependsOn functionalTest
+
+javaGradlePlugin {
+    functionalTestClasspath {
+        testSourceSets sourceSets.functionalTest
+    }
+}
+
+dependencies {
+    compile localGroovy()
+    functionalTestCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+// END SNIPPET automatic-classpath
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(":lib")
+}
