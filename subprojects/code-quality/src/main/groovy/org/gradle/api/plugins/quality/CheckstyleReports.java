@@ -34,7 +34,7 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      * @return The checkstyle HTML report
      * @since 2.10
      */
-    CheckstyleHtmlReport getHtml();
+    SingleFileReport getHtml();
 
     /**
      * The checkstyle XML report

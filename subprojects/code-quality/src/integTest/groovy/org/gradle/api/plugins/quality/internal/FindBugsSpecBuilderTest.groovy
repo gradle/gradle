@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsHtmlReportImpl
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
@@ -159,7 +158,7 @@ class FindBugsSpecBuilderTest extends Specification {
 
     def "with html with custom stylesheet"() {
         setup:
-        FindBugsHtmlReportImpl singleReport = Mock()
+        CustomizableHTMLReportImpl singleReport = Mock()
         File destination = Mock()
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()

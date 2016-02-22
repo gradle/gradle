@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal.findbugs;
+package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.plugins.quality.FindBugsHtmlReport;
+import org.gradle.api.plugins.quality.CustomizableHTMLReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 
-public class FindBugsHtmlReportImpl extends TaskGeneratedSingleFileReport implements FindBugsHtmlReport {
+public class CustomizableHTMLReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHTMLReport {
 
     private String stylesheet;
 
-    public FindBugsHtmlReportImpl(String name, Task task) {
+    public CustomizableHTMLReportImpl(String name, Task task) {
         super(name, task);
     }
 

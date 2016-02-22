@@ -16,17 +16,17 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The single file HTML report for Checkstyle.
+ * A HTML Report whose generation can be customized with a XSLT stylesheet.
  */
-public interface CheckstyleHtmlReport extends SingleFileReport {
+@Incubating
+public interface CustomizableHTMLReport extends SingleFileReport {
 
     /**
      * The stylesheet to use to generate the HTML report.
-     * <p>
-     * If {@code null} or empty, the plugin will use its default stylesheet.
      *
      * @return the stylesheet to use to generate the HTML report
      */
