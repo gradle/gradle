@@ -163,6 +163,24 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsString("A custom Checkstyle stylesheet"))
     }
 
+    def "can configure the html report with a custom stylesheet in the classpath"() {
+        given:
+        goodCode()
+
+        when:
+        buildFile << """
+            checkstyleMain.reports {
+                html.enabled true
+                html.stylesheet 'checkstyle-custom-stylesheet.xsl'
+            }
+        """
+
+        then:
+        succeeds "checkstyleMain"
+        file("build/reports/checkstyle/main.html").exists()
+        file("build/reports/checkstyle/main.html").assertContents(containsString("A custom Checkstyle stylesheet"))
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
