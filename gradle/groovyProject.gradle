@@ -4,8 +4,8 @@ apply plugin: 'groovy'
 
 archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }}"
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 ext {
     compileTasks = tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }

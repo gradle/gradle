@@ -55,7 +55,6 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        languageLevel = '1.6'
         vcs = 'Git'
         ipr {
             withXml { provider ->
