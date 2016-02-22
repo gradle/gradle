@@ -1,32 +1,26 @@
 
-- Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
+- [ ] Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
     - Clean up cached `ClassLoaders` that cannot be used again.
-- Fix Windows specific blockers
-- Enable by default
+- [ ] [Fix Windows specific blockers](windows-blockers)
+- [ ] Enable by default
     - Documentation
     - Adjust test suites and fixtures for this.
+    - Remove single use daemon
     
 ## Feature - Daemon robustness    
 
 - All client and daemon reads on the connection should have a timeout.
-- Daemon should exit when its entry is removed from the registry.
-    
+- Daemon should exit when its entry is removed from the registry [GRADLE-1763](https://issues.gradle.org/browse/GRADLE-1763)
+- Client should be more forceful when stopping daemons [GRADLE-1638](https://issues.gradle.org/browse/GRADLE-1638)
+
 ## Feature - Daemon usability improvements
-
-### Story - Build script classpath can contain a changing jar
-
-Fix ClassLoader caching to detect when a build script classpath has changed.
-
-Fix the ClassLoading implementation to avoid locking these Jars on Windows.
-
-### Story - Can clean after compiling on Windows
-
-Fix GRADLE-2275.
 
 ### Story - Prefer a single daemon instance
 
 Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
 selected as the survivor and the others expire quickly (say, as soon as they become idle).
+
+See (GRADLE-1890)[https://issues.gradle.org/browse/GRADLE-1890]
 
 ### Story - Daemon handles additional immutable system properties
 
@@ -35,21 +29,55 @@ a new daemon instance must be started. Currently, only `file.encoding` is treate
 
 Add support for the following properties:
 
-- The jmxremote system properties (GRADLE-2629)
-- The SSL system properties (GRADLE-2367)
+- The jmxremote system properties [GRADLE-2629](https://issues.gradle.org/browse/GRADLE-2629)
+- The SSL system properties [GRADLE-2367](https://issues.gradle.org/browse/GRADLE-2637)
 - 'java.io.tmpdir' : this property is only read once at JVM startup
+
+### Story - Allow Ant task output to be captured
+
+Often reported as 'log level changes are not honoured':
+
+- [GRADLE-2828](https://issues.gradle.org/browse/GRADLE-2828)
+- [GRADLE-2273](https://issues.gradle.org/browse/GRADLE-2273)
+- [GRADLE-2271](https://issues.gradle.org/browse/GRADLE-2271)
+
+Should be implemented by providing a way to ask that Ant task output be captured, by mapping the task output to some higher level or perhaps marking as 'do not filter'.
+
+Also deprecate changing the log level from build logic. This kind of global state doesn't work well for parallel execution.
+
+### Story - Daemon cancels build when client is killed using ctrl-c
+
+ie don't kill the daemon when using `ctrl-c`.
+
+### Story - improved cancellation
+
+- Exec task should handle cancel request by killing child process [GRADLE-3083](https://issues.gradle.org/browse/GRADLE-3083)
+- Test execution should handle cancel request
+
+### Story - Correct up-to-date processing
+
+- Handle enums and changing buildscript classpath [GRADLE-3018](https://issues.gradle.org/browse/GRADLE-3018)
 
 ### Story - Daemon process expires when a memory pool is exhausted
 
 Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
 
+See [GRADLE-2193](https://issues.gradle.org/browse/GRADLE-2193)
+See [GRADLE-1839](https://issues.gradle.org/browse/GRADLE-1839)
+
 ### Story - Cross-version daemon management
 
 Daemon management, such as `gradle --stop` and the daemon expiration algorithm should consider daemons across all Gradle versions.
 
+See [GRADLE-1891](https://issues.gradle.org/browse/GRADLE-1891)
+
 ### Story - Reduce the default daemon maximum heap and permgen sizes
 
 Should be done in a backwards compatible way.
+
+### Story - Build logic prompts user for password
+
+Replacement for `System.console` [GRADLE-2310](https://issues.gradle.org/browse/GRADLE-2310)
 
 ## Feature - Daemon is “usable” when under memory pressure
 
