@@ -20,6 +20,43 @@ Add a `processorpath` (similar to the existing `sourcepath`), `processors`, `pro
  * `processorArgs` as a `Map<String, ?>` (or `Map<String, String>`?); each entry is passed as a `-Akey=value` argument to the Java compiler.
  * `proc` as an enum with values `none` and `only`, defaults to `null`; when non-`null`, it is passed a `-proc` argument to the Java compiler (`-proc:none` or `-proc:only`).
 
+#### The API
+
+```
+public enum AnnotationProcessingOption {
+    PROC,
+    NONE;
+}
+
+public class CompileOptions extends AbstractOptions {
+    ...
+
+    @Input
+    @Optional
+    public AnnotationProcessingOption getProc() { ... }
+
+    public void setProc(AnnotationProcessingOption proc) { ... }
+
+    @Input
+    @Optional
+    public FileCollection getProcessorpath() { ... }
+
+    public void setProcessorpath(FileCollection processorpath) { ... }
+
+    @Input
+    @Optional
+    public List<String> getProcessors() { ... }
+
+    public void setProcessors(List<String> processors) { ... }
+
+    @Input
+    @Optional
+    public Map<String, ?> getProcessorArgs() { ... }
+
+    public void setProcessorArgs(Map<String, ?> processorArgs) { ... }
+}
+```
+
 #### Backwards compatibility
 
  * The new arguments must be added before the `compilerArgs` so that user-specified arguments in `compilerArgs` override the ones added by those new properties (similar to how `compilerArgs` can override `sourcepath` added in Gradle 2.4, or any other compiler argument
