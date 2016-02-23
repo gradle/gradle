@@ -59,6 +59,7 @@ We would like to thank the following community members for making contributions 
 * [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
 * [Randall Becker](https://github.com/rsbecker) - bypass ulimit in NONSTOP os
 * [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
+* [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
