@@ -7,7 +7,7 @@ Daemon uses fewer resources on developer machine.
 Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
 selected as the survivor and the others expire quickly (say, as soon as they become idle).
 
-See (GRADLE-1890)[https://issues.gradle.org/browse/GRADLE-1890]
+See [GRADLE-1890](https://issues.gradle.org/browse/GRADLE-1890)
 
 ### Story - Cross-version daemon management
 

@@ -10,8 +10,8 @@ Fix robustness and diagnostic issues that prevent the daemon to be enabled by de
 
 Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
 
-See [GRADLE-2193](https://issues.gradle.org/browse/GRADLE-2193)
-See [GRADLE-1839](https://issues.gradle.org/browse/GRADLE-1839)
+- See [GRADLE-2193](https://issues.gradle.org/browse/GRADLE-2193)
+- See [GRADLE-1839](https://issues.gradle.org/browse/GRADLE-1839)
 
 ## Feature - Daemon is “usable” when under memory pressure
 
