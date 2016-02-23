@@ -86,7 +86,7 @@ project(':child3') {
         iml("child3").languageLevel == null
     }
 
-    void "use project language level when explicitly set"() {
+    void "use project language level for source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
 allprojects {
@@ -94,6 +94,7 @@ allprojects {
     apply plugin:'java'
 
     sourceCompatibility = 1.4
+    targetCompatibility = 1.4
 }
 
 idea {
@@ -105,14 +106,17 @@ idea {
 
 project(':child1') {
     sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 }
 
 project(':child2') {
     sourceCompatibility = 1.5
+    targetCompatibility = 1.5
 }
 
 project(':child3') {
     sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 """
         when:
@@ -125,48 +129,6 @@ project(':child3') {
         iml('child1').languageLevel == null
         iml('child2').languageLevel == null
         iml('child3').languageLevel == null
-    }
-
-    void "use project target bytecode level when explicitly set"() {
-        given:
-        settingsFile << """
-rootProject.name = "root"
-include 'subprojectA'
-include 'subprojectB'
-include 'subprojectC'
-"""
-
-        buildFile << """
-allprojects {
-    apply plugin:'idea'
-    apply plugin:'java'
-
-    targetCompatibility = 1.4
-}
-
-idea {
-    project {
-        jdkName   = 1.8
-        targetBytecodeVersion = 1.7
-    }
-}
-
-project(':subprojectA') {
-    targetCompatibility = 1.6
-}
-
-project(':subprojectB') {
-    targetCompatibility = 1.5
-}
-
-project(':subprojectC') {
-    targetCompatibility = 1.8
-}
-"""
-        when:
-        succeeds "idea"
-
-        then:
         ipr.bytecodeTargetLevel.children().size() == 0
         ipr.bytecodeTargetLevel.@target == '1.7'
     }
