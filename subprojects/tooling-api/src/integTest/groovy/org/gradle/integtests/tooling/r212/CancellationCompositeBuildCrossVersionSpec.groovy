@@ -41,9 +41,9 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         def cancellationToken = services.get(BuildCancellationToken.class)
 
-        def cancelledFile = new File('${cancelledFile.absolutePath}')
-        if(cancelledFile.exists()) {
-           new File('${executedAfterCancellingFile.absolutePath}') << "executed \${project.name} token cancelled:\${cancellationToken.isCancellationRequested()}\\n"
+        def cancelledFile = file('${cancelledFile.toURI()}')
+        if (cancelledFile.exists()) {
+           file('${executedAfterCancellingFile.toURI()}') << "executed \${project.name} token cancelled:\${cancellationToken.isCancellationRequested()}\\n"
            throw new RuntimeException("Build should not get executed since composite has been cancelled.")
         }
 
@@ -56,7 +56,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         println "Connecting to server..."
         new URL('${server.uri}').text
         latch.await()
-        new File('${participantCancelledFile.absolutePath}') << "participant \${project.name} cancelled\\n"
+        file('${participantCancelledFile.toURI()}') << "participant \${project.name} cancelled\\n"
 """
         def build1 = populate("build-1") {
             buildFile << buildFileText
@@ -95,7 +95,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         given:
         def executedAfterCancellingFile = file("executed")
         def buildFileText = """
-        new File("${executedAfterCancellingFile.absolutePath}").text = << "executed \${project.name}\\n"
+        file("${executedAfterCancellingFile.toURI()}").text = << "executed \${project.name}\\n"
         throw new RuntimeException("Build should not get executed")
 """
         def build1 = populate("build-1") {
