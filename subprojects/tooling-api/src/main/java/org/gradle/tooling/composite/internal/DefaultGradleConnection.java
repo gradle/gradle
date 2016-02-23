@@ -23,7 +23,6 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
-import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.model.eclipse.EclipseProject;
@@ -43,8 +42,6 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
         private Integer daemonMaxIdleTimeValue;
         private TimeUnit daemonMaxIdleTimeUnits;
         private File daemonBaseDir;
-        private boolean useClasspathDistribution;
-        private boolean emeddedParticipants;
 
         public Builder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
             this.gradleConnectionFactory = gradleConnectionFactory;
@@ -94,17 +91,10 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
             compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
             compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
             compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
-            compositeConnectionParametersBuilder.setEmbeddedParticipants(emeddedParticipants);
 
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-            final Distribution distribution;
-            if (useClasspathDistribution) {
-                distribution = distributionFactory.getClasspathDistribution();
-            } else {
-                distribution = FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants);
-            }
-            return gradleConnectionFactory.create(distribution, connectionParameters);
+            return gradleConnectionFactory.create(FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants), connectionParameters);
         }
 
         @Override
@@ -123,18 +113,6 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
         @Override
         public GradleConnectionInternal.Builder daemonBaseDir(File daemonBaseDir) {
             this.daemonBaseDir = daemonBaseDir;
-            return this;
-        }
-
-        @Override
-        public GradleConnectionInternal.Builder useClasspathDistribution() {
-            this.useClasspathDistribution = true;
-            return this;
-        }
-
-        @Override
-        public GradleConnectionInternal.Builder embeddedParticipants(boolean embedded) {
-            this.emeddedParticipants = true;
             return this;
         }
     }
