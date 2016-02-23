@@ -111,6 +111,9 @@ class IdeaPlugin extends IdePlugin {
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
                 ideaProject.conventionMapping.targetBytecodeVersion = {
+                    if (ideaProject.hasUserSpecifiedLanguageLevel) {
+                        return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"))
+                    }
                     List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
                         it.convention.getPlugin(JavaPluginConvention).targetCompatibility
                     }
@@ -203,7 +206,7 @@ class IdeaPlugin extends IdePlugin {
             return true
         }
         IdeaProject ideaProject = rootProject.idea.project
-        if (ideaProject.hasUserSpecifiedTargetBytecodeVersion) {
+        if (ideaProject.hasUserSpecifiedLanguageLevel) {
             return false
         }
         return moduleTargetBytecodeLevel != ideaProject.getTargetBytecodeVersion()

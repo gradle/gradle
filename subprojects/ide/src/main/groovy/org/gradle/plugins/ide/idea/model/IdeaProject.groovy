@@ -111,20 +111,20 @@ class IdeaProject {
 
     /**
      * The Java language Level to use for this project. For backwards compatibility, this can be explicitly set
-     * as part of the build script in which case it provides a global override. You are instead encouraged to set
-     * {@code sourceCompatibility} for your project/subprojects which allows you to have full control over language
-     * levels in your projects/modules.
+     * as part of the build script in which case it provides a global override (also overriding the target bytecode version).
+     * This isn't recommended. Instead, you are encouraged to set {@code sourceCompatibility} and {@code targetCompatibility}
+     * for your project/subprojects which allows you to have full control over language levels in your projects/modules.
      * <p>
-     * This is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
+     * When not explicitly set, this is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
      * Idea modules of this Idea project, defaulting to JDK_1_6.
      */
     IdeaLanguageLevel languageLevel
 
     /**
-     * The default target bytecode version to use for this project.
+     * The target bytecode version to use for this project.
      * <p>
-     * This is calculated as the maximum {@code targetCompatibility} value for all Java projects that form the
-     * Idea modules of this Idea project.
+     * When {@code languageLevel} is not explicitly set, this is calculated as the maximum {@code targetCompatibility}
+     * value for all Java projects that form the Idea modules of this Idea project.
      */
     @Incubating
     JavaVersion targetBytecodeVersion
@@ -146,44 +146,17 @@ class IdeaProject {
     }
 
     /**
-     * Marker for tracking explicit configured bytecode level: this is consumed by `IdeaModule`,
-     * and is not part of the IdeaProject API.
-     */
-    private boolean hasUserSpecifiedTargetBytecodeVersion
-
-    /**
-     * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
-     * and is not part of the IdeaProject API.
-     */
-    @Incubating
-    boolean getHasUserSpecifiedTargetBytecodeVersion() {
-        return hasUserSpecifiedTargetBytecodeVersion
-    }
-
-    /**
-     * Sets java language level of the project.
+     * Sets the java language level for the project.
      * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
      * <p>
-     * When explicitly set, this setting overrides any calculated values for Idea project and Idea module.
+     * When explicitly set in the build script, this setting overrides any calculated values for Idea project
+     * and Idea module.
      */
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
         this.hasUserSpecifiedLanguageLevel = true
-    }
-
-    /**
-     * Sets java language level of the project.
-     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}.
-     * <p>
-     * When explicitly set, this setting overrides any calculated values for Idea project and Idea module.
-     */
-    void setTargetBytecodeVersion(Object value) {
-        this.targetBytecodeVersion = JavaVersion.toVersion(value)
-        this.hasUserSpecifiedTargetBytecodeVersion = true
     }
 
     /**
