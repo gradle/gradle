@@ -15,7 +15,7 @@
  */
 
 package org.gradle.plugins.ide.idea.model
-import groovy.transform.PackageScope
+
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -110,13 +110,15 @@ class IdeaProject {
     String jdkName
 
     /**
-     * The default Java language Level to use for this project.
+     * The Java language Level to use for this project. For backwards compatibility, this can be explicitly set
+     * as part of the build script in which case it provides a global override. You are instead encouraged to set
+     * {@code sourceCompatibility} for your project/subprojects which allows you to have full control over language
+     * levels in your projects/modules.
      * <p>
      * This is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
-     * Idea modules of this Idea project.
+     * Idea modules of this Idea project, defaulting to JDK_1_6.
      */
     IdeaLanguageLevel languageLevel
-
 
     /**
      * The default target bytecode version to use for this project.
@@ -137,9 +139,8 @@ class IdeaProject {
     /**
      * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
-     * */
-    @PackageScope
-    boolean  getHasUserSpecifiedLanguageLevel() {
+     */
+    boolean getHasUserSpecifiedLanguageLevel() {
         return hasUserSpecifiedLanguageLevel
     }
 
@@ -152,8 +153,7 @@ class IdeaProject {
     /**
      * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
-     * */
-    @PackageScope
+     */
     boolean getHasUserSpecifiedTargetBytecodeVersion() {
         return hasUserSpecifiedTargetBytecodeVersion
     }
