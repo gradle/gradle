@@ -18,9 +18,9 @@ dependencies {
     compile libraries.groovy
     compile project(':core')
     compile project(':plugins')
-    compile project(':testKit')
     testRuntime project(':toolingApi')
     testRuntime project(':launcher')
+    testRuntime project(':testKit')
 }
 
 useTestFixtures()

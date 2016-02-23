@@ -37,10 +37,9 @@ import java.util.concurrent.Callable;
 /**
  * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
  * <p>
- * Provides a direct integration with TestKit by setting up the {@code gradleTestKit()} dependency for the test
- * runtime configuration and automatically injecting the plugin classpath for a {@code GradleRunner} instance.
- *
- * @see org.gradle.testkit.runner.GradleRunner
+ * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
+ * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
+ * configuration.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -99,21 +98,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         return pluginClasspathTask;
     }
 
-    private void establishTestKitAndPluginClasspathDependencies(Project project, final JavaGradlePluginExtension extension, final PluginClasspathManifest pluginClasspathTask) {
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                DependencyHandler dependencies = project.getDependencies();
-                Set<SourceSet> testSourceSets = extension.getFunctionalTestClasspath().getTestSourceSets();
-
-                for (SourceSet testSourceSet : testSourceSets) {
-                    String compileConfigurationName = testSourceSet.getCompileConfigurationName();
-                    dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
-                    String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
-                    dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
-                }
-            }
-        });
+    private void establishTestKitAndPluginClasspathDependencies(Project project, JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
     /**
@@ -195,6 +181,33 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         public void execute(FileCopyDetails fileCopyDetails) {
             classList.add(fileCopyDetails.getRelativePath().toString());
+        }
+    }
+
+    /**
+     * An action that automatically declares TestKit dependency for the test compile configuration and a dependency
+     * on the plugin classpath manifest generation task for the test runtime configuration.
+     */
+    static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
+        private final JavaGradlePluginExtension extension;
+        private final PluginClasspathManifest pluginClasspathTask;
+
+        TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+            this.extension = extension;
+            this.pluginClasspathTask = pluginClasspathTask;
+        }
+
+        @Override
+        public void execute(Project project) {
+            DependencyHandler dependencies = project.getDependencies();
+            Set<SourceSet> testSourceSets = extension.getFunctionalTestClasspath().getTestSourceSets();
+
+            for (SourceSet testSourceSet : testSourceSets) {
+                String compileConfigurationName = testSourceSet.getCompileConfigurationName();
+                dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
+                String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
+                dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
+            }
         }
     }
 }
