@@ -25,7 +25,13 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
-import org.gradle.plugins.ide.idea.model.*
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.IdeaModuleIml
+import org.gradle.plugins.ide.idea.model.IdeaProject
+import org.gradle.plugins.ide.idea.model.IdeaWorkspace
+import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
@@ -178,10 +184,40 @@ class IdeaPlugin extends IdePlugin {
                     TEST: project.sourceSets.test.output.dirs
                 ]
             }
+            module.conventionMapping.targetBytecodeVersion = {
+                JavaVersion moduleTargetBytecodeLevel = project.convention.getPlugin(JavaPluginConvention).targetCompatibility
+                includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null
+            }
+            module.conventionMapping.languageLevel = {
+                def moduleLanguageLevel = new IdeaLanguageLevel(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility)
+                includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel) ? moduleLanguageLevel : null
+            }
             dependsOn {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
         }
+    }
+
+    private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+        if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
+            return true
+        }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedTargetBytecodeVersion) {
+            return false
+        }
+        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
+    }
+
+    private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+        if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
+            return true
+        }
+        IdeaProject ideaProject = rootProject.idea.project
+        if (ideaProject.hasUserSpecifiedLanguageLevel) {
+            return false
+        }
+        return moduleLanguageLevel != ideaProject.languageLevel
     }
 
     private void configureForScalaPlugin() {
