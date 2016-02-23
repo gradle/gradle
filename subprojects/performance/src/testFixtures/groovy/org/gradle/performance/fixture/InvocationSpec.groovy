@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.fixture
 
-import java.util.List;
-import java.util.Map;
+interface InvocationSpec {
 
-public interface Profiler {
-    void addProfilerDefaults(GradleInvocationSpec.InvocationBuilder invocation);
+    List<String> getTasksToRun()
 
-    List<String> profilerArguments(Map<String, Object> yourkitOptions);
+    interface Builder {
+        File getWorkingDirectory()
+        void setWorkingDirectory(File workingDirectory)
+    }
 }

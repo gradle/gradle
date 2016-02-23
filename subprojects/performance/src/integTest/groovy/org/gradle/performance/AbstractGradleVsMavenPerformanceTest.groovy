@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.performance.categories.GradleCorePerformanceTest
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
-import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
+import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
+import org.gradle.performance.results.GradleVsMavenBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -30,23 +30,24 @@ import spock.lang.Specification
 
 @Category(GradleCorePerformanceTest)
 @CompileStatic
-class AbstractCrossBuildPerformanceTest extends Specification {
-    private static final CrossBuildResultsStore resultStore = new CrossBuildResultsStore()
+class AbstractGradleVsMavenPerformanceTest extends Specification {
+    private static final GradleVsMavenBuildResultsStore resultStore = new GradleVsMavenBuildResultsStore()
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
+        new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), resultStore) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
-            AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
+            AbstractGradleVsMavenPerformanceTest.this.defaultSpec(builder)
         }
 
         @Override
         protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
             super.finalizeSpec(builder)
-            AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
+            AbstractGradleVsMavenPerformanceTest.this.finalizeSpec(builder)
         }
     }
 
@@ -64,4 +65,5 @@ class AbstractCrossBuildPerformanceTest extends Specification {
             resultStore.close()
         }
     }
+
 }

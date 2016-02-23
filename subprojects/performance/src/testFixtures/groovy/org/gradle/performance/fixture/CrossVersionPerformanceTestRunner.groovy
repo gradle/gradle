@@ -145,7 +145,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def builder = BuildExperimentSpec.builder()
+        def builder = GradleBuildExperimentSpec.builder()
             .projectName(testId)
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)

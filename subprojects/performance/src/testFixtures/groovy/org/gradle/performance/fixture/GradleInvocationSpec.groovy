@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.configuration.GradleProperties
 
 @CompileStatic
 @EqualsAndHashCode
-class GradleInvocationSpec {
+class GradleInvocationSpec implements InvocationSpec {
 
     final GradleDistribution gradleDistribution
     final File workingDirectory
@@ -46,12 +46,12 @@ class GradleInvocationSpec {
         return useDaemon || useToolingApi
     }
 
-    static Builder builder() {
-        return new Builder()
+    static InvocationBuilder builder() {
+        return new InvocationBuilder()
     }
 
-    Builder withBuilder() {
-        Builder builder = new Builder()
+    InvocationBuilder withBuilder() {
+        InvocationBuilder builder = new InvocationBuilder()
         builder.distribution(gradleDistribution)
         builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
@@ -63,18 +63,18 @@ class GradleInvocationSpec {
     }
 
     GradleInvocationSpec withAdditionalJvmOpts(List<String> additionalJvmOpts) {
-        Builder builder = withBuilder()
+        InvocationBuilder builder = withBuilder()
         builder.gradleOptions.addAll(additionalJvmOpts)
         return builder.build()
     }
 
     GradleInvocationSpec withAdditionalArgs(List<String> additionalArgs) {
-        Builder builder = withBuilder()
+        InvocationBuilder builder = withBuilder()
         builder.args.addAll(additionalArgs)
         return builder.build()
     }
 
-    static class Builder {
+    static class InvocationBuilder implements InvocationSpec.Builder {
         Profiler profiler = new YourKitProfiler()
         GradleDistribution gradleDistribution
         File workingDirectory
@@ -86,75 +86,75 @@ class GradleInvocationSpec {
         boolean useToolingApi
         boolean useProfiler
 
-        Builder distribution(GradleDistribution gradleDistribution) {
+        InvocationBuilder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
             this
         }
 
-        Builder workingDirectory(File workingDirectory) {
+        InvocationBuilder workingDirectory(File workingDirectory) {
             this.workingDirectory = workingDirectory
             this
         }
 
-        Builder tasksToRun(String... taskToRun) {
+        InvocationBuilder tasksToRun(String... taskToRun) {
             this.tasksToRun.addAll(Arrays.asList(taskToRun))
             this
         }
 
-        Builder args(String... args) {
+        InvocationBuilder args(String... args) {
             this.args.addAll(Arrays.asList(args))
             this
         }
 
-        Builder gradleOpts(String... gradleOpts) {
+        InvocationBuilder gradleOpts(String... gradleOpts) {
             this.gradleOptions.addAll(Arrays.asList(gradleOpts))
             this
         }
 
-        Builder useDaemon() {
+        InvocationBuilder useDaemon() {
             useDaemon(true)
         }
 
-        Builder useDaemon(boolean flag) {
+        InvocationBuilder useDaemon(boolean flag) {
             this.useDaemon = flag
             this
         }
 
-        Builder useToolingApi() {
+        InvocationBuilder useToolingApi() {
             useToolingApi(true)
             // Can't use tooling API with profiler yet
             assert !isUseProfiler()
             this
         }
 
-        Builder useToolingApi(boolean flag) {
+        InvocationBuilder useToolingApi(boolean flag) {
             this.useToolingApi = flag
             this
         }
 
-        Builder disableParallelWorkers() {
+        InvocationBuilder disableParallelWorkers() {
             gradleOpts("-D${GradleProperties.WORKERS_PROPERTY}=1")
         }
 
-        Builder useProfiler() {
+        InvocationBuilder useProfiler() {
             useProfiler = true
             // Can't use tooling API with profiler yet
             assert !isUseToolingApi()
             this
         }
 
-        Builder useProfiler(Profiler profiler) {
+        InvocationBuilder useProfiler(Profiler profiler) {
             useProfiler()
             this.profiler = profiler
             this
         }
 
-        Builder profilerOpts(Map<String, Object> profilerOpts) {
+        InvocationBuilder profilerOpts(Map<String, Object> profilerOpts) {
             this.profilerOpts.putAll(profilerOpts)
             this
         }
 
-        Builder buildInfo(String displayName, String projectName) {
+        InvocationBuilder buildInfo(String displayName, String projectName) {
             this.profilerOpts.put("sessionname", "$projectName $displayName".replace(' ', "_").toString())
             this
         }

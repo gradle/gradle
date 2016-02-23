@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.GradleVersion
+import org.gradle.util.GradleVersion;
 
-class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
+@CompileStatic
+class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
 
-    public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
+    GradleVsMavenPerformanceTestRunner(GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter) {
         super(experimentRunner, dataReporter)
     }
 
+    @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.distribution(gradleDistribution)
+            ((GradleInvocationSpec.InvocationBuilder)builder.invocation).distribution(gradleDistribution)
         }
+    }
+
+    public void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
+        configureAndAddSpec(MavenBuildExperimentSpec.builder(), configureAction)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
@@ -40,12 +46,21 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
             if (!invocation.gradleOptions) {
                 invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
             }
+        } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
+            def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
+            invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+            if (!invocation.mavenHome) {
+                def home = System.getProperty("MAVEN_HOME")
+                if (home) {
+                    invocation.mavenHome(new File(home))
+                }
+            }
         }
     }
 
     @Override
-    CrossBuildPerformanceResults newResult() {
-        new CrossBuildPerformanceResults(
+    GradleVsMavenBuildPerformanceResults newResult() {
+        new GradleVsMavenBuildPerformanceResults(
             testId: testId,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
@@ -58,9 +73,7 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
     }
 
     @Override
-    MeasuredOperationList operations(CrossBuildPerformanceResults result, BuildExperimentSpec spec) {
+    MeasuredOperationList operations(GradleVsMavenBuildPerformanceResults result, BuildExperimentSpec spec) {
         result.buildResult(spec.displayInfo)
     }
-
-
 }
