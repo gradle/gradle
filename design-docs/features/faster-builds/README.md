@@ -21,13 +21,10 @@ Out-of-scope are the following improvements:
 - Faster builds for build authoring and other use cases outside the dev loop.
 - Faster builds for non-daemon usage.
 - Making Java compilation faster, including improvements to incremental compile or adding compile avoidance.
+- Improving parallel project execution
+- Improving configure on demand
 
 Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to other work, then that's a good thing. 
-
-TBD: 
-
-- parallel execution in or out of scope?
-- configure-on-demand in or out of scope?
 
 ## Features
 
@@ -47,10 +44,3 @@ TBD:
     - Enable daemon self-monitoring
     - [Fix Windows specific blockers](daemon-on-by-default/windows-blockers)
     - Enable by default
-    
-TBD:    
-
-- Finish parallel project execution and mark as stable?
-- Switch on parallel project execution as default?
-- Finish configure on demand and mark as stable?
-- Switch on configure on demand as default?
