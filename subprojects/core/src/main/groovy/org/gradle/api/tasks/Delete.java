@@ -42,7 +42,6 @@ import java.util.Set;
 public class Delete extends ConventionTask {
     private Set<Object> delete = new LinkedHashSet<Object>();
 
-    @Incubating
     private boolean followSymlinks;
 
     @Inject
@@ -96,6 +95,7 @@ public class Delete extends ConventionTask {
      *
      * @return true if symlinks will be followed.
      */
+    @Incubating
     public boolean isFollowSymlinks() {
         return followSymlinks;
     }
@@ -105,6 +105,7 @@ public class Delete extends ConventionTask {
      *
      * @param followSymlinks if symlinks should be followed.
      */
+    @Incubating
     public void setFollowSymlinks(boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
     }
