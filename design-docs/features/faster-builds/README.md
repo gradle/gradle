@@ -28,8 +28,8 @@ Here 'out-of-scope' means only that these use cases won't be specifically priori
 
 ## Features
 
-- [ ] [Easier performance test experiments](run-performance-experiments)
-    - Infrastructure changes to improve efficiency when developing performance tests
+- [ ] [More efficient performance metrics gathering](more-efficient-performance-metrics-gathering)
+    - Infrastructure changes to improve efficiency when using or developing performance tests
 - [ ] [Faster test execution startup](faster-test-execution-startup)
     - Maven vs Gradle benchmarks
     - Investigate hotspots in test execution startup
