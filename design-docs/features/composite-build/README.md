@@ -69,9 +69,8 @@ On completion of the milestone, a user will be able to use the demo for composit
 - [ ] [Tooling client provides `EclipseProject` model for "composite" with one multi-project participant](tooling-api-model/single-build)
 - [ ] [Tooling client provides `EclipseProject` model for composite containing multiple participants](tooling-api-model/multiple-builds)
 - [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
-- [ ] Tooling client requests `IdeaModule` model for every project in a composite
-- [ ] Tooling client requests `BuildEnvironment` model for every project in a composite
-- [ ] Tooling client requests arbitrary model type for every project in a composite
+- [ ] [Tooling client requests arbitrary model type for every project in a composite](tooling-api-model/arbitrary-types)
+- [ ] [Tooling client can correlate model instances to projects in a composite](tooling-api-model/correlate-models)
 
 ### Milestone: Buildship (or IDEA) uses Tooling client to define composite
 
