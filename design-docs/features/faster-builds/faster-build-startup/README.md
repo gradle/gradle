@@ -1,4 +1,4 @@
-Changes to improve build configuration time, when build configuration inputs such as build scripts or Gradle or Java version have not changed.
+Investigate and improve build configuration time, when build configuration inputs such as build scripts or Gradle or Java version have not changed.
 
 Audience is developers that are using the Gradle daemon.
 

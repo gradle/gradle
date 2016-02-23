@@ -1,8 +1,8 @@
+Improve and enable the daemon by default.
 
 ## Features
 
 - [ ] Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
-    - Clean up cached `ClassLoaders` that cannot be used again.
 - [ ] [Fix Windows specific blockers](windows-blockers)
 - [ ] Enable by default
     - Documentation
@@ -11,13 +11,17 @@
     
 ## Notes    
 
-Notes extracted from old feature specs
+The following are notes extracted from old feature specs. These are candidate features.
     
 ## Feature - Daemon robustness    
 
 - All client and daemon reads on the connection should have a timeout.
 - Daemon should exit when its entry is removed from the registry [GRADLE-1763](https://issues.gradle.org/browse/GRADLE-1763)
 - Client should be more forceful when stopping daemons [GRADLE-1638](https://issues.gradle.org/browse/GRADLE-1638)
+
+## Clean up build ClassLoaders
+
+Also close the associated caches.
 
 ## Feature - Daemon usability improvements
 

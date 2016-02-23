@@ -1,4 +1,4 @@
-Changes to improve build execution time when build outputs are mostly up-to-date. 
+Investigate and improve build execution time when build outputs are mostly up-to-date. 
 
 Audience is developers that are using the Gradle daemon.
 
@@ -28,7 +28,7 @@ Dependency resolution
     
 ## Notes    
 
-Various notes collected from old design specs.
+The following are notes collected from old design specs.
 
 ### Dependency resolution result reuse    
 

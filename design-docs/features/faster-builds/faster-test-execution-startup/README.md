@@ -1,3 +1,5 @@
+Investigate and improve test execution startup time.
+
 ### Implementation plan
 
 - Review and update performance tests to measure this and lock in improvements.

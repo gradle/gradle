@@ -32,15 +32,21 @@ TBD:
 ## Features
 
 - [ ] [Faster test execution startup](faster-test-execution-startup)
+    - Maven vs Gradle benchmarks
+    - Investigate hotspots in test execution startup
+    - Improve progress logging to indicate the actual start of test execution
 - [ ] [Faster build startup](faster-build-startup)
+    - Reduce per build and per project fixed costs
+    - Fix startup and configuration hotspots
+    - Improve progress logging to give better insight to startup
 - [ ] [Faster incremental builds](faster-incremental-builds)
-    - [ ] Improved file system scanning
-    - [ ] Faster dependency resolution
+    - Faster up-to-date checks
+    - Faster dependency resolution
 - [ ] [Daemon on by default for all users](daemon-on-by-default)
-    - [ ] Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
-    - [ ] Enable daemon self-monitoring
-    - [ ] [Fix Windows specific blockers](daemon-on-by-default/windows-blockers)
-    - [ ] Enable by default
+    - Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
+    - Enable daemon self-monitoring
+    - [Fix Windows specific blockers](daemon-on-by-default/windows-blockers)
+    - Enable by default
     
 TBD:    
 
