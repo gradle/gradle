@@ -32,7 +32,7 @@ More details about declaring compile only configurations can be found in the [Ja
 
 ### Faster build script compilation
 
-TBD
+Gradle build scripts compilation has been optimized, resulting in 20% faster startup on the 1st run, or when scripts are updated.
 
 ### Test filtering support for Test Suites and (in JUnit) Parameterized Tests
 
