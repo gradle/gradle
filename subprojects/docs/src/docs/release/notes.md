@@ -60,7 +60,7 @@ Beginning with IntelliJ IDEA version 14 Scala projects are no longer configured 
 [Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be
 generated. Using the 'idea' plugin in conjunction with Scala projects for newer IDEA version would cause errors due to the Scala facet being unrecognized. The 'idea' plugin
 now by default creates a Scala SDK project library as well as adds this library to all Scala modules. More information can be found in the
-[user guide](https://docs.gradle.org/current/userguide/scala_plugin.html#sec:intellij_idea_integration).
+[user guide](userguide/scala_plugin.html#sec:intellij_idea_integration).
 
 This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
 
