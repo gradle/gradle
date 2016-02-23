@@ -12,8 +12,8 @@ Add-->
 
 ### Automatic plugin classpath injection for TestKit
 
-Previous versions of Gradle required significant amounts of boilerplate code for [injecting the plugin classpath](userguide/test_kit.html#sub:test-kit-classpath-injection). 
-This version of Gradle provides a direct integration of TestKit with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html). By applying the plugin, 
+Previous versions of Gradle required significant amounts of boilerplate code for [injecting the plugin classpath](userguide/test_kit.html#sub:test-kit-classpath-injection).
+This version of Gradle provides a direct integration of TestKit with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html). By applying the plugin,
 declaring the `gradleTestKit()` dependency and injecting code under test happens automatically under the covers. As result, you don't have to write boilerplate code anymore
 to functionally test your plugin code. To apply the Java Gradle Plugin Development Plugin to your project, add the following code to your build script.
 
@@ -56,6 +56,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Alexander Afanasyev](https://github.com/cawka) - allow configuring java.util.logging in tests ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
+* [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
