@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r212
-
 import groovy.transform.NotYetImplemented
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
@@ -26,12 +25,9 @@ import org.gradle.tooling.CompositeBuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
-
 /**
  * Tests composites with a different Gradle version than the client and coordinator.
  */
-@Ignore("TODO: Causes too many open file errors")
 class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     private final static List GRADLE_ALL_RELEASES = new ReleasedVersionDistributions().all
