@@ -32,7 +32,7 @@ TBD:
 ## Features
 
 - [ ] [Faster test execution startup](faster-test-execution-startup)
-- [ ] [Faster build configuration](faster-build-configuration)
+- [ ] [Faster build startup](faster-build-startup)
 - [ ] [Faster incremental builds](faster-incremental-builds)
     - [ ] Improved file system scanning
     - [ ] Faster dependency resolution
