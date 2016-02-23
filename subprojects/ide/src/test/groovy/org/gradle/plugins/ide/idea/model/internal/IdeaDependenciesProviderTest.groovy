@@ -58,14 +58,8 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 2
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'COMPILE' &&
-            it.libraryFile.path.endsWith('guava.jar')
-        }.size() == 1
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'TEST' &&
-            it.libraryFile.path.endsWith('mockito.jar')
-        }.size() == 1
+        assertSingleLibrary(result, 'COMPILE', 'guava.jar')
+        assertSingleLibrary(result, 'TEST', 'mockito.jar')
     }
 
     def "dependency is excluded if added to minus configuration"() {
@@ -163,18 +157,9 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 3
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'COMPILE' &&
-                    it.libraryFile.path.endsWith('foo-api.jar')
-        }.size() == 1
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'TEST' &&
-                    it.libraryFile.path.endsWith('foo-impl.jar')
-        }.size() == 1
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'RUNTIME' &&
-                    it.libraryFile.path.endsWith('foo-impl.jar')
-        }.size() == 1
+        assertSingleLibrary(result, 'COMPILE', 'foo-api.jar')
+        assertSingleLibrary(result, 'TEST', 'foo-impl.jar')
+        assertSingleLibrary(result, 'RUNTIME', 'foo-impl.jar')
     }
 
     def "compile only dependencies"() {
@@ -193,18 +178,9 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 3
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'COMPILE' &&
-                it.libraryFile.path.endsWith('guava.jar')
-        }.size() == 1
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'PROVIDED' &&
-                it.libraryFile.path.endsWith('foo-api.jar')
-        }.size() == 1
-        result.findAll { SingleEntryModuleLibrary it ->
-            it.scope == 'TEST' &&
-                it.libraryFile.path.endsWith('foo-impl.jar')
-        }.size() == 1
+        assertSingleLibrary(result, 'COMPILE', 'guava.jar')
+        assertSingleLibrary(result, 'PROVIDED', 'foo-api.jar')
+        assertSingleLibrary(result, 'TEST', 'foo-impl.jar')
     }
 
     def "ignore unknown configurations"() {
@@ -234,5 +210,12 @@ public class IdeaDependenciesProviderTest extends Specification {
     private applyPluginToProjects() {
         project.apply plugin: IdeaPlugin
         childProject.apply plugin: IdeaPlugin
+    }
+
+    private void assertSingleLibrary(Set<Dependency> dependencies, String scope, String artifactName) {
+        def size = dependencies.findAll { SingleEntryModuleLibrary module ->
+            module.scope == scope && module.libraryFile.path.endsWith(artifactName)
+        }.size()
+        assert size == 1 : "Expected single entry for artifact $artifactName in scope $scope but found $size"
     }
 }
