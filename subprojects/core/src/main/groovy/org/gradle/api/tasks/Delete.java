@@ -35,6 +35,9 @@ import java.util.Set;
  *   followSymlinks = true
  * }
  * </pre>
+ *
+ * Be default symlinks will not be followed when deleting files. To change this behavior set {@link Delete#followSymlinks} to true.
+ * On systems that do not support symlinks, this will have no effect.
  */
 public class Delete extends ConventionTask {
     private Set<Object> delete = new LinkedHashSet<Object>();
