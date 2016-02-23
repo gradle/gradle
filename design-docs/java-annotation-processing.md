@@ -37,7 +37,7 @@ public class CompileOptions extends AbstractOptions {
 
     public void setProc(AnnotationProcessingOption proc) { ... }
 
-    @Input
+    @InputFiles
     @Optional
     public FileCollection getProcessorpath() { ... }
 
