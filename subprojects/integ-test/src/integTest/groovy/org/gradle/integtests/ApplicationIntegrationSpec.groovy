@@ -265,17 +265,17 @@ class Main {
         def installDir = file('build/install/application')
         installDir.assertIsDir()
         checkApplicationImage('application', installDir)
-        
+
         def distZipFile = file('build/distributions/application.zip')
         distZipFile.assertIsFile()
-        
+
         def distZipDir = file('build/unzip')
         distZipFile.usingNativeTools().unzipTo(distZipDir)
         checkApplicationImage('application', distZipDir.file('application'))
-        
+
         def distTarFile = file('build/distributions/application.tar')
         distTarFile.assertIsFile()
-		
+
         def distTarDir = file('build/untar')
         distTarFile.usingNativeTools().untarTo(distTarDir)
         checkApplicationImage('application', distTarDir.file('application'))
@@ -317,7 +317,7 @@ ${installTask}.destinationDir = buildDir
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 160);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 164);
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()
@@ -434,13 +434,13 @@ class Main {
         installDir.file("bin/${applicationName}").assertIsFile()
         installDir.file("bin/${applicationName}.bat").assertIsFile()
         installDir.file("lib/application.jar").assertIsFile()
-        
+
         def builder = new ScriptExecuter()
         builder.workingDir installDir.file('bin')
         builder.executable applicationName
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
-        
+
         def result = builder.run()
         result.assertNormalExitValue()
     }
