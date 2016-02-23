@@ -16,6 +16,7 @@ Up-to-date checks
 - Fix hotspots identified by profiling
 - Reuse the result of directory scanning
 - Don't scan input directory multiple times when executing a task
+- Use a hash to short circuit loading task input/output snapshots into heap
 - Improve in-heap cache management to evict entries that aren't likely to be used, such as when switching builds.
 - Don't cache the result of `PatternSpec` evaluation. It's now faster to evaluate each time than cache the result
 
