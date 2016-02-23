@@ -1,6 +1,6 @@
 # Java Annotation Processing
 
-This spec aims at making Java annotation processing a first-class citizen in Gradle.
+This spec aims to improve Java annotation processing in Gradle. Some stories might not live in Gradle core but describe functionality that might can live better in 3party plugins.
 
 ## Use cases
 
@@ -8,17 +8,6 @@ This spec aims at making Java annotation processing a first-class citizen in Gra
    Compile-time-only dependencies (e.g. containing annotations that are only needed at compile-time to be processed by annotation processors (e.g. Immutables.org or Google's "auto" projects), or possibly for documentation purpose only (e.g. `@Nullable`, `@NotNull` et al.)) can already be configured through the `compileOnly` and `testCompileOnly` configurations in the Java Plugin
  * Configure annotation processing in IDEs through the IDE-specific Gradle plugins (`./gradlew eclipse` or `./gradlew idea`)
  * Expose the configuration through the Tooling API for IDEs to configure themselves (Buildship, etc.)
-
-## Implementation plan
-
-### Story - Add properties to `CompileOptions`
-
-Add a `processorpath` (similar to the existing `sourcepath`), `processors`, `processorArgs`, and `proc`:
-
- * `processorpath` as a `FileCollection`: when non-empty, it is passed as a `-processorpath` argument to the Java compiler.
- * `processors` as a `List<String>` (or `Set<String>` or `Collection<String>`?); when non-empty, it is passed as a `-processor` argument to the Java compiler (values joined with a `,`).
- * `processorArgs` as a `Map<String, ?>` (or `Map<String, String>`?); each entry is passed as a `-Akey=value` argument to the Java compiler.
- * `proc` as an enum with values `none` and `only`, defaults to `null`; when non-`null`, it is passed a `-proc` argument to the Java compiler (`-proc:none` or `-proc:only`).
 
 #### The API
 
@@ -57,6 +46,18 @@ public class CompileOptions extends AbstractOptions {
 }
 ```
 
+## Implementation plan
+
+### Story - Add properties to `CompileOptions`
+
+Add a `processorpath` (similar to the existing `sourcepath`), `processors`, `processorArgs`, and `proc`:
+
+ * `processorpath` as a `FileCollection`: when non-empty, it is passed as a `-processorpath` argument to the Java compiler.
+ * `processors` as a `List<String>` (or `Set<String>` or `Collection<String>`?); when non-empty, it is passed as a `-processor` argument to the Java compiler (values joined with a `,`).
+ * `processorArgs` as a `Map<String, ?>` (or `Map<String, String>`?); each entry is passed as a `-Akey=value` argument to the Java compiler.
+ * `proc` as an enum with values `none` and `only`, defaults to `null`; when non-`null`, it is passed a `-proc` argument to the Java compiler (`-proc:none` or `-proc:only`).
+
+
 #### Backwards compatibility
 
  * The new arguments must be added before the `compilerArgs` so that user-specified arguments in `compilerArgs` override the ones added by those new properties (similar to how `compilerArgs` can override `sourcepath` added in Gradle 2.4, or any other compiler argument
@@ -73,26 +74,23 @@ public class CompileOptions extends AbstractOptions {
  * Add integration test with an annotation processor in the `compileOnly` configuration and an empty `compileJava.processorpath`, and verify that it ran (checks non-regression)
  * Add integration test with an annotation processor in the `compileJava.options.processorpath` and another in the `compileOnly` configuration, and verify that the former ran but the latter didn't
 
+### Story - Add processor path to `SourceSet` (TBD if this should live in gradle core)
 
-### Story - Add processor path to `SourceSet`
-
-Add a `processorpath` property to `SourceSet`, like the existing `compileClasspath`.
-
-### Story - Update the Java plugin to wire the above two `processorpath`s
-
-Configure the `compileJava` task's `options.processorpath` to the `main` source set's `processorpath`, and similarly for the `compileTestJava` task and `test` source set.
+- Add a `processorpath` property to `SourceSet`, like the existing `compileClasspath`.
+- Update java base plugin to wire sourcesets processorpath with the according compiler classpath.
 
 #### Test cases
 
-Set the source set's `processorpath` and check that it's reflected in the corresponding task's `options.processorpath`.
+- in a java project configure `sourceSets.main.processorpath` and check that it's reflected in the compiled main classes.
+- use a custom sourceSet with custom `processorpath`.
 
-### Story - Create default/conventional dependency configurations
+### Story - Create default/conventional dependency configurations (TBD if this should live in gradle core)
 
 For each source set (`main` and `test`), create an `apt` (resp. `testApt`) configuration and wire it as the source set's `processorpath`.
 
 ![Java Plugin Configurations](img/annotation_processing_javaPluginConfigurations.png)
 
-### Story - Automatically configure IDEs through their Gradle plugins
+### Story - Automatically configure IDEs through their Gradle plugins (TBD if this should live in gradle core)
 
 For Eclipse, if any of `compileJava.options.proc` or `compileTestJava.options.proc` is `null`, create a `.factorypath` file:
 
@@ -108,7 +106,7 @@ This is a limitation of Eclipse's project model.
 
 TODO: IntelliJ IDEA (things need to be configure both at the project and module level, can be pretty hairy to get "right")
 
-### Story - Expose the configuration through the Tooling API
+### Story - Expose the configuration through the Tooling API (TBD if this should live in gradle core)
 
 Expose the `apt` and `testApt` configurations through the Tooling API such that Buildship and IntelliJ IDEA (and others) integrations can make use of them to automatically configure the projects.
 
