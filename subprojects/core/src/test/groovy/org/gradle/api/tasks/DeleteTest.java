@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.Requires;
 import org.gradle.util.TestPrecondition;

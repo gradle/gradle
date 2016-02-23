@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,12 +32,15 @@ import java.util.Set;
  * <pre autoTested=''>
  * task makePretty(type: Delete) {
  *   delete 'uglyFolder', 'uglyFile'
+ *   followSymlinks = true
  * }
  * </pre>
  */
 public class Delete extends ConventionTask {
     private Set<Object> delete = new LinkedHashSet<Object>();
-    private boolean followSymlinks = false;
+
+    @Incubating
+    private boolean followSymlinks;
 
     @Inject
     public FileSystem getFileSystem() {
