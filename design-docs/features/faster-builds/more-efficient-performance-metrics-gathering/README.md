@@ -1,4 +1,8 @@
-Changes to improve efficiency of Gradle developers who are using or improving the performance test infrastructure, while working on performance improvements.
+## Goal
+
+The performance improvement features rely on the automated metrics gathering to track progress and avoid regressions. 
+The performance test suite and related infrastructure is used for this.
+This feature outlines a small set of changes to this infrastructure to improve efficiency of Gradle developers who are using or improving the performance tests are part of working on performance improvements.
 
 ## Potential changes
 
