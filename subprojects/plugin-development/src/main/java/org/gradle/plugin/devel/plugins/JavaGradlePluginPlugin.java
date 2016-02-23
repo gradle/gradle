@@ -35,7 +35,10 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
- * A plugin for validating java gradle plugins during the jar task.  Emits warnings for common error conditions.
+ * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
+ * <p>
+ * Provides a direct integration with TestKit by setting up the {@code gradleTestKit()} dependency for the test
+ * runtime configuration and automatically injecting the plugin classpath for a {@code GradleRunner} instance.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
