@@ -22,7 +22,7 @@ Ensure there is a performance test build that:
 
 - Uses the current Java plugin
 - Has many projects
-- Has a small number of source files per project
+- Has reasonable number of test classes per project
 - Has JUnit tests
 
 Use this build in a performance test that:
@@ -32,10 +32,7 @@ Use this build in a performance test that:
 
 Tune the number of projects in the test build based on this. We're aiming for a build that takes around 30 - 60 seconds.
 
-Note: review the existing test builds and _reuse_ an existing build if possible. Should also reuse existing test execution performance test class. 
-
-TBD - Potentially also add a story to instrument and report on the test start up time, which would be measured as the time between the start of the
-test task and the first atomic test started event. 
+Note: review the existing test builds and _reuse_ an existing build and existing templates if possible. Should also reuse existing test execution performance test class if possible. 
 
 ### Compare Maven and Gradle build performance
 
@@ -60,7 +57,14 @@ This doesn't make test execution faster, makes for a fairer subjective compariso
 
 Add some basic test coverage for test progress logging. Use the progress logging test fixture.
 
-### Profile test execution build
+### Understand where test task is spending its time
+
+Instrument Gradle to get a breakdown of how long each of the main activities in test start up take:
+
+- Up-to-date check of the task inputs and outputs
+- Scanning the test classes to identify test classes
+- Starting the test process
+- Initialisation of the test process, the time from test process start to when the first atomic test is started
 
 Profile the above test build to identify hotspots and potential improvements. Generate further stories based on this.
 

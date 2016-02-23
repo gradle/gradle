@@ -2,7 +2,7 @@ Investigate and improve build execution time when build outputs are mostly up-to
 
 Audience is developers that are using the Gradle daemon.
 
-### Implementation plan
+## Implementation plan
 
 - Review and update performance tests to measure this and lock in improvements.
     - Incremental build for large Java project
@@ -25,7 +25,11 @@ Dependency resolution
 - Fix hotspots identified by profiling
 - Reuse resolution result for configuration that has same inputs as another.
 - Reuse resolution result across builds.
-    
+
+## Stories
+
+TBD
+   
 ## Notes    
 
 The following are notes collected from old design specs.
