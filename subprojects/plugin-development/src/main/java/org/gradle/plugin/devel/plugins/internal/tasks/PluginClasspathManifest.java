@@ -34,7 +34,7 @@ import java.util.List;
 public class PluginClasspathManifest extends ConventionTask {
 
     private FileCollection pluginClasspath;
-    private File outputFile;
+    private final File outputFile;
 
     public PluginClasspathManifest() {
         pluginClasspath = getDefaultPluginClasspath();

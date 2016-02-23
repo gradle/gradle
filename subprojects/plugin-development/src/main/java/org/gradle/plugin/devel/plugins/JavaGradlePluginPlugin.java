@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * <p>
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
- * configuration.
+ * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension#getFunctionalTestClasspath()}.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -188,11 +188,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * An action that automatically declares TestKit dependency for the test compile configuration and a dependency
      * on the plugin classpath manifest generation task for the test runtime configuration.
      */
-    static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
+    private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
         private final JavaGradlePluginExtension extension;
         private final PluginClasspathManifest pluginClasspathTask;
 
-        TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        private TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
             this.extension = extension;
             this.pluginClasspathTask = pluginClasspathTask;
         }
