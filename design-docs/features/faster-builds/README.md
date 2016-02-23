@@ -42,7 +42,8 @@ Here 'out-of-scope' means only that these use cases won't be specifically priori
     - Faster up-to-date checks
     - Faster dependency resolution
 - [ ] [Daemon on by default for all users](daemon-on-by-default)
-    - Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
-    - Enable daemon self-monitoring
+    - [Daemon uses fewer developer machine resources](daemon-on-by-default/daemon-uses-fewer-resources)
+    - [Daemon is robust](daemon-on-by-default/daemon-is-robust)
+    - [Support all use cases that are supported by non-daemon execution](daemon-on-by-default/daemon-use-case-parity)
     - [Fix Windows specific blockers](daemon-on-by-default/windows-blockers)
     - Enable by default
