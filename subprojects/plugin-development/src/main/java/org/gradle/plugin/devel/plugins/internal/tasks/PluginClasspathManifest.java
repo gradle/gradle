@@ -66,6 +66,8 @@ public class PluginClasspathManifest extends ConventionTask {
 
     /**
      * The target output file used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name/plugin-classpath.txt"}.
+     * <p>
+     * The target output file cannot be changed.
      */
     @OutputFile
     public File getOutputFile() {

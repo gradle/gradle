@@ -353,6 +353,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/nativeplatform/**'
     include 'org/gradle/platform/**'
     include 'org/gradle/play/**'
+    include 'org/gradle/plugin/devel/plugins/*'
     include 'org/gradle/plugin/use/*'
     include 'org/gradle/plugins/**'
     include 'org/gradle/process/**'

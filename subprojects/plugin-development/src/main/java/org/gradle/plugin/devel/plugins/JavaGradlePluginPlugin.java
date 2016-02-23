@@ -39,6 +39,8 @@ import java.util.concurrent.Callable;
  * <p>
  * Provides a direct integration with TestKit by setting up the {@code gradleTestKit()} dependency for the test
  * runtime configuration and automatically injecting the plugin classpath for a {@code GradleRunner} instance.
+ *
+ * @see org.gradle.testkit.runner.GradleRunner
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
