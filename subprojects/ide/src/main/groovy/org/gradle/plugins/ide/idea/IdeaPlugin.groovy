@@ -206,7 +206,7 @@ class IdeaPlugin extends IdePlugin {
         if (ideaProject.hasUserSpecifiedTargetBytecodeVersion) {
             return false
         }
-        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
+        return moduleTargetBytecodeLevel != ideaProject.getTargetBytecodeVersion()
     }
 
     private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {

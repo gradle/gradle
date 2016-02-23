@@ -140,6 +140,7 @@ class IdeaProject {
      * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
      */
+    @Incubating
     boolean getHasUserSpecifiedLanguageLevel() {
         return hasUserSpecifiedLanguageLevel
     }
@@ -154,6 +155,7 @@ class IdeaProject {
      * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
      * and is not part of the IdeaProject API.
      */
+    @Incubating
     boolean getHasUserSpecifiedTargetBytecodeVersion() {
         return hasUserSpecifiedTargetBytecodeVersion
     }
