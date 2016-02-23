@@ -72,7 +72,7 @@ public class CompileOptions extends AbstractOptions {
  * `proc` with a value of `only` is added as a `-proc:only` argument
  * Add integration test with an annotation processor in the `compileOnly` configuration and an empty `compileJava.processorpath`, and verify that it ran (checks non-regression)
  * Add integration test with an annotation processor in the `compileJava.options.processorpath` and another in the `compileOnly` configuration, and verify that the former ran but the latter didn't
- * TODO: more integration tests
+
 
 ### Story - Add processor path to `SourceSet`
 
