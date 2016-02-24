@@ -41,9 +41,13 @@ public class GradleVsMavenBuildResultsStore implements ResultsStore, DataReporte
     private final File dbFile;
     private final H2FileDb db;
 
-    public GradleVsMavenBuildResultsStore() {
-        dbFile = new File(System.getProperty("user.home"), ".gradle-performance-test-data/gvsm-build-results");
+    public GradleVsMavenBuildResultsStore(File dbFile) {
+        this.dbFile = dbFile;
         this.db = new H2FileDb(dbFile, new GradleVsMavenBuildResultsSchemaInitializer());
+    }
+
+    public GradleVsMavenBuildResultsStore() {
+        this(new File(System.getProperty("user.home"), ".gradle-performance-test-data/gvsm-build-results"));
     }
 
 

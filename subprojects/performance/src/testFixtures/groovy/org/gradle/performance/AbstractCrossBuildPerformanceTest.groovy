@@ -31,12 +31,12 @@ import spock.lang.Specification
 @Category(GradleCorePerformanceTest)
 @CompileStatic
 class AbstractCrossBuildPerformanceTest extends Specification {
-    private static final CrossBuildResultsStore resultStore = new CrossBuildResultsStore()
+    private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
@@ -61,7 +61,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            resultStore.close()
+            RESULT_STORE.close()
         }
     }
 }

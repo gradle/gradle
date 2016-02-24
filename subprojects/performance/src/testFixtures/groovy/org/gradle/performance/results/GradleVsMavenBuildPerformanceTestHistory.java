@@ -19,7 +19,6 @@ package org.gradle.performance.results;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.performance.fixture.BuildDisplayInfo;
-import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 import org.gradle.performance.fixture.GradleVsMavenBuildPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
 

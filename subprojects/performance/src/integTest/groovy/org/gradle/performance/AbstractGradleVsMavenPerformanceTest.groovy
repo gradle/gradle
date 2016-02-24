@@ -31,13 +31,13 @@ import spock.lang.Specification
 @Category(GradleCorePerformanceTest)
 @CompileStatic
 class AbstractGradleVsMavenPerformanceTest extends Specification {
-    private static final GradleVsMavenBuildResultsStore resultStore = new GradleVsMavenBuildResultsStore()
+    private static final GradleVsMavenBuildResultsStore RESULT_STORE = new GradleVsMavenBuildResultsStore()
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), resultStore) {
+        new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), RESULT_STORE) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
@@ -62,7 +62,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            resultStore.close()
+            RESULT_STORE.close()
         }
     }
 
