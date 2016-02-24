@@ -31,6 +31,11 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Custom task for generating a plugin classpath manifest for the given classpath.
+ *
+ * @since 2.13
+ */
 public class PluginClasspathManifest extends ConventionTask {
 
     private FileCollection pluginClasspath;

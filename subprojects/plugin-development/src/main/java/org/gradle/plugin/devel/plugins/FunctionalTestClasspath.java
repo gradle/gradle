@@ -22,6 +22,7 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ import java.util.Set;
 public class FunctionalTestClasspath {
 
     private SourceSet pluginSourceSet;
-    private Set<SourceSet> testSourceSets = new HashSet<SourceSet>();
+    private Set<SourceSet> testSourceSets = Collections.emptySet();
 
     public FunctionalTestClasspath(Project project) {
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
@@ -60,7 +61,7 @@ public class FunctionalTestClasspath {
      * @param testSourceSets the test source sets
      */
     public void testSourceSets(SourceSet... testSourceSets) {
-        this.testSourceSets = new HashSet<SourceSet>(Arrays.asList(testSourceSets));
+        this.testSourceSets = Collections.unmodifiableSet(new HashSet<SourceSet>(Arrays.asList(testSourceSets)));
     }
 
     /**

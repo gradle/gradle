@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.util.ConfigureUtil;
 
 /**
- * Configuration options for the JavaGradlePlugin plugin.
+ * Configuration options for the {@link JavaGradlePluginPlugin}.
  *
  * <p>Below is a full configuration example. Since all properties have sensible defaults,
  * typically only selected properties will be configured.

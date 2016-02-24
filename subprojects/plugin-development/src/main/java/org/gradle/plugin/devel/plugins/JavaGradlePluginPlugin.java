@@ -185,7 +185,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     /**
-     * An action that automatically declares TestKit dependency for the test compile configuration and a dependency
+     * An action that automatically declares the TestKit dependency for the test compile configuration and a dependency
      * on the plugin classpath manifest generation task for the test runtime configuration.
      */
     private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {

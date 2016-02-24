@@ -152,7 +152,8 @@
                     under test and injects it via
                     <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> for any <literal>GradleRunner</literal> instance created by the user.
                     Successive invocations of the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> for a <literal>GradleRunner</literal>
-                    instance override the automatically injected plugin classpath.
+                    instance override the automatically injected plugin classpath. If the <link linkend="sub:gradle-runner-gradle-version">target Gradle version</link> is prior
+                    to 2.8, automatic plugin classpath injection is omitted.
                 </para>
                 <para>
                     The plugin uses the following conventions for applying the TestKit dependency and injecting the classpath:
