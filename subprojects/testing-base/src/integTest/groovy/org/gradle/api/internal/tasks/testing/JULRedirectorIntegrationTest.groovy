@@ -33,13 +33,13 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
     ]
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
-    /* Relies on the resources directory to differentiate from the other test(s) in this file. The
-     * primary differences being that in this one's build.gradle file there is no setting of the
-     * java.util.logging.config.file SystemProperty and the properties file itself does not exist.
-     *
-     * integTest/resources/org/gradle/api/internal/tasks/testing/defaultLoggingConfigNoFineLevel
+    /* Relies on the resources directory:
+     * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
     def defaultLoggingConfigNoFineLevel() {
+        given:
+        testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')
+
         when:
         run("test")
 
@@ -50,14 +50,19 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    /* Relies on the resources directory to differentiate from the other test(s) in this file. The
-     * primary difference being that in this one's build.gradle file there is a setting of the
-     * java.util.logging.config.file SystemProperty.
-     *
-     * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfigRespected
+    /* Relies on the resources directory:
+     * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
     def loggingConfigRespected() {
-       when:
+        given:
+        testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')
+        buildFile << """
+            test {
+                systemProperty 'java.util.logging.config.file', 'src/test/resources/logging.properties'
+            }
+        """
+
+        when:
         run("test")
 
         then:
