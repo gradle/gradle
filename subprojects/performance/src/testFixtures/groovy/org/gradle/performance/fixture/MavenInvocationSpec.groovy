@@ -18,19 +18,26 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import org.gradle.wrapper.GradleUserHomeLookup
 
 @CompileStatic
 @EqualsAndHashCode
 class MavenInvocationSpec implements InvocationSpec {
 
+    private static final String DEFAULT_MAVEN_VERSION = "3.3.9"
+
+    final MavenInstallation installation
+    final String mavenVersion
     final File mavenHome
     final File workingDirectory
     final List<String> tasksToRun
     final List<String> jvmOpts
     final List<String> args
 
-    MavenInvocationSpec(File mavenHome, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts, List<String> args) {
-        this.mavenHome = mavenHome
+    MavenInvocationSpec(MavenInstallation installation, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts, List<String> args) {
+        this.installation = installation
+        this.mavenVersion = installation.version
+        this.mavenHome = installation.home
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.jvmOpts = jvmOpts
@@ -43,6 +50,7 @@ class MavenInvocationSpec implements InvocationSpec {
 
     InvocationBuilder withBuilder() {
         InvocationBuilder builder = new InvocationBuilder()
+        builder.mavenVersion(mavenVersion)
         builder.mavenHome(mavenHome)
         builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
@@ -52,11 +60,17 @@ class MavenInvocationSpec implements InvocationSpec {
     }
 
     static class InvocationBuilder implements InvocationSpec.Builder {
+        String mavenVersion
         File mavenHome
         File workingDirectory
         List<String> tasksToRun = []
         List<String> jvmOpts = []
         List<String> args = []
+
+        InvocationBuilder mavenVersion(String mavenVersion) {
+            this.mavenVersion = mavenVersion
+            this
+        }
 
         InvocationBuilder mavenHome(File home) {
             this.mavenHome = home
@@ -94,10 +108,32 @@ class MavenInvocationSpec implements InvocationSpec {
         }
 
         MavenInvocationSpec build() {
+            def mavenInstallation
+            if (mavenVersion != null && mavenHome != null) {
+                assertMavenHomeAndVersionMatch()
+            } else if (mavenHome != null) {
+                mavenVersion = MavenInstallation.probeVersion(mavenHome)
+            } else {
+                mavenVersion = mavenVersion ?: DEFAULT_MAVEN_VERSION
+                mavenInstallation = eventuallyDownloadMavenHome()
+                mavenHome = mavenInstallation.home
+            }
+            assert mavenVersion != null
             assert mavenHome != null
             assert workingDirectory != null
+            mavenInstallation = mavenInstallation ?: new MavenInstallation(mavenVersion, mavenHome)
+            return new MavenInvocationSpec(mavenInstallation, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable(), args.asImmutable())
+        }
 
-            return new MavenInvocationSpec(mavenHome, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable(), args.asImmutable())
+        private void assertMavenHomeAndVersionMatch() {
+            def probedVersion = MavenInstallation.probeVersion(mavenHome)
+            assert mavenVersion == probedVersion
+        }
+
+        private MavenInstallation eventuallyDownloadMavenHome() {
+            def installsRoot = new File(GradleUserHomeLookup.gradleUserHome(), "caches${File.separator}maven-installs")
+            def downloader = new MavenInstallationDownloader(installsRoot)
+            downloader.getMavenInstallation(mavenVersion)
         }
     }
 }
