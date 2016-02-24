@@ -20,6 +20,7 @@ interface InvocationSpec {
 
     List<String> getTasksToRun()
     List<String> getJvmOpts()
+    List<String> getArgs()
     File getWorkingDirectory()
 
     interface Builder {

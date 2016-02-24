@@ -27,12 +27,14 @@ class MavenInvocationSpec implements InvocationSpec {
     final File workingDirectory
     final List<String> tasksToRun
     final List<String> jvmOpts
+    final List<String> args
 
-    MavenInvocationSpec(File mavenHome, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts) {
+    MavenInvocationSpec(File mavenHome, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts, List<String> args) {
         this.mavenHome = mavenHome
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.jvmOpts = jvmOpts
+        this.args = args
     }
 
     static InvocationBuilder builder() {
@@ -45,6 +47,7 @@ class MavenInvocationSpec implements InvocationSpec {
         builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
         builder.jvmOpts(this.jvmOpts)
+        builder.args(this.args)
         builder
     }
 
@@ -53,6 +56,7 @@ class MavenInvocationSpec implements InvocationSpec {
         File workingDirectory
         List<String> tasksToRun = []
         List<String> jvmOpts = []
+        List<String> args = []
 
         InvocationBuilder mavenHome(File home) {
             this.mavenHome = home
@@ -79,11 +83,21 @@ class MavenInvocationSpec implements InvocationSpec {
             this
         }
 
+        InvocationBuilder args(String... args) {
+            this.args.addAll(Arrays.asList(args))
+            this
+        }
+
+        InvocationBuilder args(Iterable<String> args) {
+            this.args.addAll(args)
+            this
+        }
+
         MavenInvocationSpec build() {
             assert mavenHome != null
             assert workingDirectory != null
 
-            return new MavenInvocationSpec(mavenHome, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable())
+            return new MavenInvocationSpec(mavenHome, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable(), args.asImmutable())
         }
     }
 }

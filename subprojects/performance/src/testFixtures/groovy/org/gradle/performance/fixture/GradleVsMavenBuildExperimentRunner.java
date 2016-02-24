@@ -71,6 +71,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         ExecAction execAction = execActionFactory.newExecAction();
         execAction.setWorkingDir(buildSpec.getWorkingDirectory());
         execAction.executable(new File(buildSpec.getMavenHome(), "bin/mvn"));
+        execAction.args(buildSpec.getArgs());
         execAction.args(buildSpec.getTasksToRun());
         execAction.environment("MAVEN_OPTS", Joiner.on(' ').join(buildSpec.getJvmOpts()));
         return execAction;
