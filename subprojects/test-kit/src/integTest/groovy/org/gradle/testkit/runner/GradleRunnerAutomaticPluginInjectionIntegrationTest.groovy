@@ -18,11 +18,9 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.testkit.runner.fixtures.AutomaticClasspathInjectionFixture
 import org.gradle.testkit.runner.fixtures.annotations.InjectsPluginClasspath
 import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GFileUtils
 import org.gradle.util.UsesNativeServices
 
@@ -33,7 +31,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @UsesNativeServices
 class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIntegrationTest {
 
-    private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
+    private final AutomaticClasspathInjectionFixture fixture = new AutomaticClasspathInjectionFixture()
     private final File projectDir = file('sampleProject')
 
     def setup() {
@@ -47,10 +45,11 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
     def "automatically injects plugin classpath if manifest is found"() {
         given:
-        File pluginClasspathFile = createPluginClasspathManifestFile(getPluginClasspath())
+        List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
+        File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
 
         when:
-        BuildResult result = withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
             runner('helloWorld').build()
         }
 
@@ -60,11 +59,12 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
     def "automatically injected plugin classpath can be overridden"() {
         given:
-        File pluginClasspathFile = createPluginClasspathManifestFile(getPluginClasspath())
+        List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
+        File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
         List<File> userDefinedClasspath = [projectDir.file('does/not/exist')]
 
         when:
-        BuildResult result = withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
             runner('helloWorld').withPluginClasspath(userDefinedClasspath).buildAndFail()
         }
 
@@ -74,26 +74,6 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle TestKit (classpath: ${userDefinedClasspath*.absolutePath.join(File.pathSeparator)})
-            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
-    }
-
-    @NoDebug
-    def "plugin classpath is not injected automatically if target Gradle version does not support feature"() {
-        given:
-        File pluginClasspathFile = createPluginClasspathManifestFile(getPluginClasspath())
-        String unsupportedGradleVersion = RELEASED_VERSION_DISTRIBUTIONS.getPrevious(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since).version.version
-
-        when:
-        BuildResult result = withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').withGradleVersion(unsupportedGradleVersion).buildAndFail()
-        }
-
-        then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
@@ -113,10 +93,10 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
     def "does not inject plugin classpath if manifest content is empty"() {
         given:
-        File pluginClasspathFile = createPluginClasspathManifestFile([])
+        File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [])
 
         when:
-        BuildResult result = withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
             runner('helloWorld').buildAndFail()
         }
 
@@ -133,75 +113,10 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
     private void compilePluginProjectSources() {
         GFileUtils.mkdirs(projectDir)
-        createPluginProjectSourceFiles()
+        fixture.createPluginProjectSourceFiles(projectDir)
         new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(projectDir)
             .withArguments('classes', '--no-daemon')
             .run()
-    }
-
-    private void createPluginProjectSourceFiles() {
-        projectDir.file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
-            package org.gradle.test
-
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class HelloWorldPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.task('helloWorld', type: HelloWorld)
-                }
-            }
-        """
-
-        projectDir.file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
-            package org.gradle.test
-
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.tasks.TaskAction
-
-            class HelloWorld extends DefaultTask {
-                @TaskAction
-                void doSomething() {
-                    println 'Hello world!'
-                }
-            }
-        """
-
-        projectDir.file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
-            implementation-class=org.gradle.test.HelloWorldPlugin
-        """
-
-        projectDir.file("build.gradle") << """
-            apply plugin: 'groovy'
-
-            dependencies {
-                compile gradleApi()
-                compile localGroovy()
-            }
-        """
-    }
-
-    private List<File> getPluginClasspath() {
-        [projectDir.file("build/classes/main"), projectDir.file('build/resources/main')]
-    }
-
-    private File createPluginClasspathManifestFile(List<File> classpath) {
-        String content = classpath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join('\n')
-        File pluginClasspathFile = projectDir.file("build/generatePluginClasspathManifest/plugin-classpath.txt")
-        pluginClasspathFile << content
-        pluginClasspathFile
-    }
-
-    def withClasspath(List<File> classpathFiles, Closure closure) {
-        ClassLoader originalClassLoader = getClass().classLoader
-
-        try {
-            URLClassLoader classLoader = new URLClassLoader(classpathFiles.collect { file -> file.toURI().toURL() } as URL[], Thread.currentThread().contextClassLoader)
-            Thread.currentThread().contextClassLoader = classLoader
-            return closure()
-        } finally {
-            Thread.currentThread().contextClassLoader = originalClassLoader
-        }
     }
 }
