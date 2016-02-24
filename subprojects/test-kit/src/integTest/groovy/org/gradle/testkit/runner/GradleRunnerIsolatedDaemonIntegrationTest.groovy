@@ -25,12 +25,14 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 @InspectsExecutedTasks
 @NoDebug
+@UsesNativeServices
 class GradleRunnerIsolatedDaemonIntegrationTest extends GradleRunnerIntegrationTest {
 
     def setup() {
