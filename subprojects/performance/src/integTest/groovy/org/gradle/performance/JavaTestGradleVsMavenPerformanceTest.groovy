@@ -35,7 +35,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         }
         runner.mavenBuildSpec {
             projectName(template).displayName("Maven runs test for project $template").invocation {
-                tasksToRun(mavenTasks.toArray(new String[0]))
+                tasksToRun(mavenTasks.toArray(new String[0])).jvmOpts('-Xms1G', '-Xmx1G')
             }.warmUpCount(1).invocationCount(1)
         }
 

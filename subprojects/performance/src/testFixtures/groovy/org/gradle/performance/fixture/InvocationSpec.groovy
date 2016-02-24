@@ -19,6 +19,8 @@ package org.gradle.performance.fixture
 interface InvocationSpec {
 
     List<String> getTasksToRun()
+    List<String> getJvmOpts()
+    File getWorkingDirectory()
 
     interface Builder {
         File getWorkingDirectory()
