@@ -26,6 +26,7 @@ import org.gradle.tooling.model.idea.IdeaProject
  * Basic tests for building and retrieving models from a composite.
  */
 class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+
     def "throws IllegalStateException when no participants are added"() {
         when:
         createComposite()

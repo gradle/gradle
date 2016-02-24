@@ -28,5 +28,9 @@ public interface GradleConnectionInternal extends GradleConnection {
         public Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
 
         public Builder daemonBaseDir(File daemonBaseDir);
+
+        public Builder useClasspathDistribution();
+
+        public Builder embeddedParticipants(boolean embedded);
     }
 }
