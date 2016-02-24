@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
@@ -57,7 +58,8 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,dumponexit=true,output=file"
     }
 
-    def 'asJvmArg with all arguments assembles correct string'() {
+    @Unroll
+    def 'asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
@@ -70,7 +72,7 @@ class JacocoTaskExtensionSpec extends Specification {
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
             excludeClassLoaders = ['com.sun.*', 'org.fak?.*']
-            includeNoLocationClasses = false
+            includeNoLocationClasses = includeNoLocationClassesValue
             sessionId = 'testSession'
             dumpOnExit = false
             output = JacocoTaskExtension.Output.TCP_SERVER
@@ -87,7 +89,7 @@ class JacocoTaskExtensionSpec extends Specification {
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
             builder << "exclclassloader=com.sun.*:org.fak?.*,"
-            builder << "inclnolocationclasses=false,"
+            builder << "inclnolocationclasses=$includeNoLocationClassesValue,"
             builder << "sessionid=testSession,"
             builder << "dumponexit=false,"
             builder << "output=tcpserver,"
@@ -99,6 +101,9 @@ class JacocoTaskExtensionSpec extends Specification {
         }
         expect:
         extension.asJvmArg == expected
+
+        where:
+        includeNoLocationClassesValue << [true, false]
     }
 
     def 'asJvmArg fails if agent cannot extract the JAR'() {
