@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.performance.fixture.BuildDisplayInfo;
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
+import org.gradle.performance.fixture.GradleVsMavenBuildPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
 
 import javax.annotation.Nullable;
@@ -29,9 +30,9 @@ public class GradleVsMavenBuildPerformanceTestHistory implements PerformanceTest
     private final String name;
     private final List<BuildDisplayInfo> builds;
 
-    private final List<CrossBuildPerformanceResults> newestFirst;
+    private final List<GradleVsMavenBuildPerformanceResults> newestFirst;
 
-    public GradleVsMavenBuildPerformanceTestHistory(String name, List<BuildDisplayInfo> builds, List<CrossBuildPerformanceResults> newestFirst) {
+    public GradleVsMavenBuildPerformanceTestHistory(String name, List<BuildDisplayInfo> builds, List<GradleVsMavenBuildPerformanceResults> newestFirst) {
         this.name = name;
         this.builds = builds;
         this.newestFirst = newestFirst;
@@ -41,7 +42,7 @@ public class GradleVsMavenBuildPerformanceTestHistory implements PerformanceTest
         return builds;
     }
 
-    public List<CrossBuildPerformanceResults> getResults() {
+    public List<GradleVsMavenBuildPerformanceResults> getResults() {
         return newestFirst;
     }
 
@@ -56,8 +57,8 @@ public class GradleVsMavenBuildPerformanceTestHistory implements PerformanceTest
 
     @Override
     public List<PerformanceTestExecution> getExecutions() {
-        return Lists.transform(newestFirst, new Function<CrossBuildPerformanceResults, PerformanceTestExecution>() {
-            public PerformanceTestExecution apply(@Nullable final CrossBuildPerformanceResults results) {
+        return Lists.transform(newestFirst, new Function<GradleVsMavenBuildPerformanceResults, PerformanceTestExecution>() {
+            public PerformanceTestExecution apply(@Nullable final GradleVsMavenBuildPerformanceResults results) {
                 return new KnownBuildSpecificationsPerformanceTestExecution(results);
             }
         });
@@ -120,9 +121,9 @@ public class GradleVsMavenBuildPerformanceTestHistory implements PerformanceTest
     }
 
     private class KnownBuildSpecificationsPerformanceTestExecution implements PerformanceTestExecution {
-        private final CrossBuildPerformanceResults results;
+        private final GradleVsMavenBuildPerformanceResults results;
 
-        public KnownBuildSpecificationsPerformanceTestExecution(CrossBuildPerformanceResults results) {
+        public KnownBuildSpecificationsPerformanceTestExecution(GradleVsMavenBuildPerformanceResults results) {
             this.results = results;
         }
 

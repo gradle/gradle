@@ -17,8 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.CrossVersionPerformanceResults;
@@ -36,6 +34,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 
 /**
  * A {@link org.gradle.performance.fixture.DataReporter} implementation that stores results in an H2 relational database.
@@ -180,14 +180,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
                         performanceResults.setVersionUnderTest(testExecutions.getString(3));
                         performanceResults.setTestProject(testExecutions.getString(4));
-                        performanceResults.setTasks(toList(testExecutions.getObject(5)));
-                        performanceResults.setArgs(toList(testExecutions.getObject(6)));
-                        performanceResults.setGradleOpts(toList(testExecutions.getObject(7)));
+                        performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
+                        performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                        performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
                         performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
                         performanceResults.setOperatingSystem(testExecutions.getString(9));
                         performanceResults.setJvm(testExecutions.getString(10));
                         performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(12)));
+                        performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
 
                         results.add(performanceResults);
                         allBranches.add(performanceResults.getVcsBranch());
@@ -229,29 +229,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
         }
-    }
-
-    public static List<String> splitVcsCommits(String string) {
-        if (null != string) {
-            return ImmutableList.copyOf(Splitter.on(",").split(string));
-        }
-        return Collections.emptyList();
-    }
-
-    private String[] toArray(List<String> list) {
-        return list == null ? null : list.toArray(new String[0]);
-    }
-
-    private List<String> toList(Object object) {
-        Object[] value = (Object[]) object;
-        if (value == null) {
-            return null;
-        }
-        List<String> result = new ArrayList<String>(value.length);
-        for (Object aValue : value) {
-            result.add(aValue.toString());
-        }
-        return result;
     }
 
     public void close() {
