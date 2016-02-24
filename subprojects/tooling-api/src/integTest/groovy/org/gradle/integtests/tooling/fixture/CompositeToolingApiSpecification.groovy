@@ -25,7 +25,7 @@ import org.gradle.tooling.composite.GradleConnection
 @TargetGradleVersion(GradleVersions.SUPPORTS_COMPOSITE_BUILD)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
-    boolean useEmbeddedParticipants = false
+    boolean embedCoordinatorAndParticipants = false
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -44,7 +44,12 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
     GradleConnection.Builder createCompositeBuilder() {
         def builder = toolingApi.createCompositeBuilder()
-        builder.embeddedParticipants(useEmbeddedParticipants)
+        if (embedCoordinatorAndParticipants) {
+            // Embed everything if requested
+            builder.embeddedParticipants(true)
+            builder.embeddedCoordinator(true)
+            builder.useClasspathDistribution()
+        }
         return builder
     }
 
