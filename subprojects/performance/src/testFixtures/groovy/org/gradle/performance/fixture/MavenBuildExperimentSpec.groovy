@@ -36,7 +36,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
     @Override
     BuildDisplayInfo getDisplayInfo() {
-        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.getArgs(), [], false)
+        new BuildDisplayInfo(projectName, displayName, invocation.tasksToRun, invocation.getArgs(), invocation.getMavenOpts(), false)
     }
 
     static class MavenBuilder implements BuildExperimentSpec.Builder {

@@ -26,18 +26,18 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
     @Unroll("Gradle vs Maven #gradleTasks build for #template")
     def "cleanTest test performance test"() {
         given:
-        runner.testGroup = "$gradleTasks build using Java plugin"
-        runner.testId = "$size $gradleTasks build with Java plugin"
+        runner.testGroup = "Gradle vs Maven test build using Java plugin"
+        runner.testId = "$size $description with Java plugin"
         runner.baseline {
-            projectName(template).displayName("Gradle runs test for project $template").invocation {
-                tasksToRun(gradleTasks.toArray(new String[0])).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
-            }.warmUpCount(1).invocationCount(1)
+            projectName(template).displayName("Gradle $description for project $template").invocation {
+                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
+            }.warmUpCount(1).invocationCount(5)
         }
         runner.mavenBuildSpec {
-            projectName(template).displayName("Maven runs test for project $template").invocation {
-                tasksToRun(mavenTasks.toArray(new String[0])).jvmOpts('-Xms1G', '-Xmx1G')
+            projectName(template).displayName("Maven $description for project $template").invocation {
+                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
                     .args('-q', '-Dsurefire.printSummary=false')
-            }.warmUpCount(1).invocationCount(1)
+            }.warmUpCount(1).invocationCount(5)
         }
 
 
@@ -46,10 +46,11 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
 
         then:
         noExceptionThrown()
-        // results.fasterThanMaven()
+        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
 
         where:
-        template          | size     | gradleTasks           | mavenTasks
-        'mediumWithJUnit' | 'medium' | ['cleanTest', 'test'] | ['clean', 'test']
+        template          | size     | description                 | gradleTasks           | equivalentMavenTasks | maxDiffMillis | maxDiffMB
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 60
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 60
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.process.internal.ExecAction;
@@ -73,7 +74,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         execAction.executable(buildSpec.getInstallation().getMvn());
         execAction.args(buildSpec.getArgs());
         execAction.args(buildSpec.getTasksToRun());
-        execAction.environment("MAVEN_OPTS", Joiner.on(' ').join(buildSpec.getJvmOpts()));
+        execAction.environment("MAVEN_OPTS", Joiner.on(' ').join(Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts())));
         return execAction;
     }
 

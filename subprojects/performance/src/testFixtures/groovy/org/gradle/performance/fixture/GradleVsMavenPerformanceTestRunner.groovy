@@ -41,10 +41,13 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         super.finalizeSpec(builder)
-        if (builder instanceof GradleInvocationSpec) {
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
             if (!invocation.gradleOptions) {
                 invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+            }
+            if (!builder.displayName.startsWith("Gradle ")) {
+                throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
             }
         } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
@@ -54,6 +57,9 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
                 if (home) {
                     invocation.mavenHome(new File(home))
                 }
+            }
+            if (!builder.displayName.startsWith("Maven ")) {
+                throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
             }
         }
     }

@@ -17,6 +17,8 @@
 package org.gradle.performance.fixture
 
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.Duration
 
 class GradleVsMavenBuildPerformanceResults extends PerformanceTestResult {
     String testGroup
@@ -59,6 +61,31 @@ class GradleVsMavenBuildPerformanceResults extends PerformanceTestResult {
     void assertEveryBuildSucceeds() {
         if (failures) {
             throw new DefaultMultiCauseException("Performance test '$testId' failed", failures)
+        }
+    }
+
+    void assertComparesWithMaven(double maxTimeDifference, double maxMemoryDifference) {
+        builds.groupBy { it.displayName - 'Gradle ' - 'Maven ' }.each { scenario, infos ->
+            def gradle = buildResults[infos.find { it.displayName.startsWith 'Gradle ' }]
+            def maven = buildResults[infos.find { it.displayName.startsWith 'Maven ' }]
+            def baselineVersion = new BaselineVersion("Maven")
+            baselineVersion.results.addAll(maven)
+            baselineVersion.setMaxExecutionTimeRegression(Duration.millis(maxTimeDifference))
+            baselineVersion.setMaxMemoryRegression(DataAmount.mbytes(maxMemoryDifference))
+            def stats = [baselineVersion.getSpeedStatsAgainst("Gradle", gradle), baselineVersion.getMemoryStatsAgainst("Gradle", gradle)]
+            stats.each {
+                println it
+            }
+
+            def mavenIsFaster = baselineVersion.fasterThan(gradle)
+            def mavenUsesLessMemory = baselineVersion.usesLessMemoryThan(gradle)
+            if (mavenIsFaster && mavenUsesLessMemory) {
+                throw new AssertionError(stats.join('\n'))
+            } else if (mavenIsFaster) {
+                throw new AssertionError(stats[0])
+            } else if (mavenUsesLessMemory) {
+                throw new AssertionError(stats[1])
+            }
         }
     }
 }

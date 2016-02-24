@@ -32,15 +32,17 @@ class MavenInvocationSpec implements InvocationSpec {
     final File workingDirectory
     final List<String> tasksToRun
     final List<String> jvmOpts
+    final List<String> mavenOpts
     final List<String> args
 
-    MavenInvocationSpec(MavenInstallation installation, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts, List<String> args) {
+    MavenInvocationSpec(MavenInstallation installation, File workingDirectory, List<String> tasksToRun, List<String> jvmOpts, List<String> mavenOpts, List<String> args) {
         this.installation = installation
         this.mavenVersion = installation.version
         this.mavenHome = installation.home
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.jvmOpts = jvmOpts
+        this.mavenOpts = mavenOpts
         this.args = args
     }
 
@@ -55,6 +57,7 @@ class MavenInvocationSpec implements InvocationSpec {
         builder.workingDirectory(workingDirectory)
         builder.tasksToRun.addAll(this.tasksToRun)
         builder.jvmOpts(this.jvmOpts)
+        builder.mavenOpts(this.mavenOpts)
         builder.args(this.args)
         builder
     }
@@ -65,6 +68,7 @@ class MavenInvocationSpec implements InvocationSpec {
         File workingDirectory
         List<String> tasksToRun = []
         List<String> jvmOpts = []
+        List<String> mavenOpts = []
         List<String> args = []
 
         InvocationBuilder mavenVersion(String mavenVersion) {
@@ -87,6 +91,11 @@ class MavenInvocationSpec implements InvocationSpec {
             this
         }
 
+        InvocationBuilder tasksToRun(Iterable<String> taskToRun) {
+            this.tasksToRun.addAll(taskToRun)
+            this
+        }
+
         InvocationBuilder jvmOpts(String... args) {
             this.jvmOpts.addAll(Arrays.asList(args))
             this
@@ -94,6 +103,16 @@ class MavenInvocationSpec implements InvocationSpec {
 
         InvocationBuilder jvmOpts(Iterable<String> args) {
             this.jvmOpts.addAll(args)
+            this
+        }
+
+        InvocationBuilder mavenOpts(String... args) {
+            this.mavenOpts.addAll(Arrays.asList(args))
+            this
+        }
+
+        InvocationBuilder mavenOpts(Iterable<String> args) {
+            this.mavenOpts.addAll(args)
             this
         }
 
@@ -122,7 +141,7 @@ class MavenInvocationSpec implements InvocationSpec {
             assert mavenHome != null
             assert workingDirectory != null
             mavenInstallation = mavenInstallation ?: new MavenInstallation(mavenVersion, mavenHome)
-            return new MavenInvocationSpec(mavenInstallation, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable(), args.asImmutable())
+            return new MavenInvocationSpec(mavenInstallation, workingDirectory, tasksToRun.asImmutable(), jvmOpts.asImmutable(), mavenOpts.asImmutable(), args.asImmutable())
         }
 
         private void assertMavenHomeAndVersionMatch() {

@@ -49,6 +49,7 @@ abstract class BuildExperimentSpec {
     abstract InvocationSpec getInvocation()
 
     interface Builder {
+        String getDisplayName()
         String getProjectName()
         void setProjectName(String projectName)
 

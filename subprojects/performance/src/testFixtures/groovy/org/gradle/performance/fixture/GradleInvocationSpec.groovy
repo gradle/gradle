@@ -101,6 +101,11 @@ class GradleInvocationSpec implements InvocationSpec {
             this
         }
 
+        InvocationBuilder tasksToRun(Iterable<String> taskToRun) {
+            this.tasksToRun.addAll(taskToRun)
+            this
+        }
+
         InvocationBuilder args(String... args) {
             this.args.addAll(Arrays.asList(args))
             this
