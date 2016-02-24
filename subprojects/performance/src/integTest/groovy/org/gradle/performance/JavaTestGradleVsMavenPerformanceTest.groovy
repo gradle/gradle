@@ -53,4 +53,35 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 60
         'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 60
     }
+
+    @Unroll("Gradle vs Maven #description build for #template")
+    def "build performance test"() {
+        given:
+        runner.testGroup = "Gradle vs Maven build using Java plugin"
+        runner.testId = "$size $description with Java plugin"
+        runner.baseline {
+            projectName(template).displayName("Gradle $description for project $template").invocation {
+                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
+            }.warmUpCount(1).invocationCount(5)
+        }
+        runner.mavenBuildSpec {
+            projectName(template).displayName("Maven $description for project $template").invocation {
+                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
+                    .args('-q', '-Dsurefire.printSummary=false')
+            }.warmUpCount(1).invocationCount(5)
+        }
+
+
+        when:
+        def results = runner.run()
+
+        then:
+        noExceptionThrown()
+        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+
+        where:
+        template          | size     | description        | gradleTasks        | equivalentMavenTasks | maxDiffMillis | maxDiffMB
+        'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build'] | ['clean', 'verify']  | 1000          | 60
+        'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['build']          | ['verify']           | 0             | 60
+    }
 }
