@@ -207,8 +207,7 @@ class ToolingApi implements TestRule {
         if (useClasspathImplementation) {
             builder.useClasspathDistribution()
         } else {
-            // TODO: Support this later
-            // connector.useInstallation(dist.gradleHomeDir.absoluteFile)
+            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
         }
         builder
     }

@@ -43,7 +43,7 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
         private Integer daemonMaxIdleTimeValue;
         private TimeUnit daemonMaxIdleTimeUnits;
         private File daemonBaseDir;
-        private boolean useClasspathDistribution;
+        private Distribution coordinatorDistribution;
         private boolean emeddedParticipants;
 
         public Builder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
@@ -98,10 +98,8 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
 
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-            final Distribution distribution;
-            if (useClasspathDistribution) {
-                distribution = distributionFactory.getClasspathDistribution();
-            } else {
+            Distribution distribution = coordinatorDistribution;
+            if (distribution == null) {
                 distribution = FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants);
             }
             return gradleConnectionFactory.create(distribution, connectionParameters);
@@ -128,13 +126,19 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
 
         @Override
         public GradleConnectionInternal.Builder useClasspathDistribution() {
-            this.useClasspathDistribution = true;
+            this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
+            return this;
+        }
+
+        @Override
+        public GradleConnectionInternal.Builder useInstallation(File gradleHome) {
+            this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
             return this;
         }
 
         @Override
         public GradleConnectionInternal.Builder embeddedParticipants(boolean embedded) {
-            this.emeddedParticipants = true;
+            this.emeddedParticipants = embedded;
             return this;
         }
     }
