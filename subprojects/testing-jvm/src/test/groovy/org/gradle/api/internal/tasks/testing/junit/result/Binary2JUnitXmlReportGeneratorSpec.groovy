@@ -29,7 +29,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE)
 
     def setup() {
-        generator.saxWriter = Mock(JUnitXmlResultWriter)
+        generator.xmlWriter = Mock(JUnitXmlResultWriter)
     }
 
     def "writes results"() {
@@ -49,9 +49,9 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        1 * generator.saxWriter.write(fooTest, _)
-        1 * generator.saxWriter.write(barTest, _)
-        0 * generator.saxWriter._
+        1 * generator.xmlWriter.write(fooTest, _)
+        1 * generator.xmlWriter.write(barTest, _)
+        0 * generator.xmlWriter._
     }
 
     def "adds context information to the failure if something goes wrong"() {
@@ -61,7 +61,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
         }
-        generator.saxWriter.write(fooTest, _) >> { throw new IOException("Boo!") }
+        generator.xmlWriter.write(fooTest, _) >> { throw new IOException("Boo!") }
 
         when:
         generator.generate()
