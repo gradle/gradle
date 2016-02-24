@@ -19,6 +19,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import org.junit.Assume
@@ -75,7 +76,10 @@ class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToo
         println "Testing with ${distribution.version}"
         Assume.assumeFalse("${distribution.version} doesn't seem to work?", distribution in QUIRKY_GRADLE_VERSIONS)
         def builder = createCompositeBuilder()
-        builder.addBuild(project.absoluteFile, distribution.gradleHomeDir)
+        def gradleBuild = GradleConnector.newGradleBuildBuilder().
+            forProjectDirectory(project.absoluteFile).
+            useInstallation(distribution.gradleHomeDir).create()
+        builder.addBuild(gradleBuild)
         def connection = builder.build()
         def models = connection.getModels(EclipseProject)
         then:

@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.composite.internal.GradleBuildInternal;
+package org.gradle.tooling.composite.internal;
 
-import java.util.List;
+import org.gradle.tooling.composite.GradleBuild;
 
-public interface CompositeConnectionParameters extends ConnectionParameters {
-    List<GradleBuildInternal> getBuilds();
-    boolean isEmbeddedParticipants();
+import java.io.File;
+import java.net.URI;
+
+public interface GradleBuildInternal extends GradleBuild {
+    File getProjectDir();
+
+    String getDisplayName();
+
+    File getGradleHome();
+
+    URI getGradleDistribution();
+
+    String getGradleVersion();
 }

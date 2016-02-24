@@ -19,6 +19,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
@@ -36,7 +37,11 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
         rootProjectDirectories.each {
             // TODO: this isn't the right way to configure the gradle distribution
-            builder.addBuild(it, dist.gradleHomeDir)
+            def gradleBuild = GradleConnector.newGradleBuildBuilder().
+                forProjectDirectory(it).
+                useInstallation(dist.gradleHomeDir).
+                create()
+            builder.addBuild(gradleBuild)
         }
 
         builder.build()

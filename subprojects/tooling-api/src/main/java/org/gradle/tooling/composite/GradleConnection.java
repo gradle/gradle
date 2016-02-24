@@ -22,7 +22,6 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Set;
 
 /**
@@ -51,41 +50,11 @@ public interface GradleConnection {
         /**
          * Adds a Gradle build as a participant in a composite.
          *
-         * Defaults to a project-specific Gradle version.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
+         * @param gradleBuild Gradle build to add to the composite
          *
          * @return this
          */
-        Builder addBuild(File rootProjectDirectory);
-
-        /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
-         * @param gradleHome The Gradle installation directory.
-         * @return this
-         */
-        Builder addBuild(File rootProjectDirectory, File gradleHome);
-
-        /**
-         * Adds a Gradle build as a participant in a composite, specifying the version of Gradle to use.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
-         * @param gradleVersion The version to use.
-         * @return this
-         */
-        Builder addBuild(File rootProjectDirectory, String gradleVersion);
-
-        /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
-         * @param gradleDistribution The distribution to use.
-         *
-         * @return this
-         */
-        Builder addBuild(File rootProjectDirectory, URI gradleDistribution);
+        Builder addBuild(GradleBuild... gradleBuild);
 
         /**
          * Builds the connection. You should call {@link org.gradle.tooling.composite.GradleConnection#close()} when you are finished with the connection.

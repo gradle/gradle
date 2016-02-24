@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.composite.GradleBuild;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
@@ -70,11 +71,16 @@ public abstract class GradleConnector {
      * Creates a new connection builder instance for creating Gradle composite builds.
      *
      * @return The instance. Never returns null.
-     * @since 2.12
+     * @since 2.13
      */
     @Incubating
     public static GradleConnection.Builder newGradleConnectionBuilder() {
         return ConnectorServices.createGradleConnectionBuilder();
+    }
+
+    @Incubating
+    public static GradleBuild.Builder newGradleBuildBuilder() {
+        return ConnectorServices.createGradleBuildBuilder();
     }
 
     /**

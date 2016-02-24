@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.composite;
 
-import java.io.File;
-import java.net.URI;
-
-public interface GradleParticipantBuild {
-    File getProjectDir();
-
-    String getDisplayName();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
+public interface ProjectIdentity {
+    BuildIdentity getBuild();
+    ProjectIdentity getParent();
 }
