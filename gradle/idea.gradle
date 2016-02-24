@@ -56,7 +56,6 @@ idea {
         wildcards += ['?*.gradle']
 
         languageLevel = '1.6'
-        targetBytecodeVersion = JavaVersion.VERSION_1_6
 
         vcs = 'Git'
         ipr {
