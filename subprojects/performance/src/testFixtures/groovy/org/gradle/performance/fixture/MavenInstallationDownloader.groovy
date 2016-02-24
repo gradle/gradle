@@ -20,8 +20,12 @@ import groovy.json.JsonSlurper
 import org.apache.commons.io.FileUtils
 import org.gradle.internal.os.OperatingSystem
 
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+
 class MavenInstallationDownloader {
 
+    private final static Lock LOCK = new ReentrantLock()
     private final File installsRoot
 
     public MavenInstallationDownloader(File installsRoot) {
@@ -29,15 +33,20 @@ class MavenInstallationDownloader {
     }
 
     public MavenInstallation getMavenInstallation(String mavenVersion) {
-        def home = mavenInstallDirectory(installsRoot, mavenVersion)
-        if (MavenInstallation.valid(home)) {
-            return new MavenInstallation(mavenVersion, home)
+        LOCK.lock()
+        try {
+            def home = mavenInstallDirectory(installsRoot, mavenVersion)
+            if (MavenInstallation.valid(home)) {
+                return new MavenInstallation(mavenVersion, home)
+            }
+            def preferredUrl = fetchPreferredUrl(mavenVersion)
+            def binArchive = downloadBinArchive(mavenVersion, preferredUrl)
+            def tempHome = extractBinArchive(mavenVersion, binArchive)
+            home = moveToInstallsRoot(tempHome)
+            new MavenInstallation(mavenVersion, home)
+        } finally {
+            LOCK.unlock()
         }
-        def preferredUrl = fetchPreferredUrl(mavenVersion)
-        def binArchive = downloadBinArchive(mavenVersion, preferredUrl)
-        def tempHome = extractBinArchive(mavenVersion, binArchive)
-        home = moveToInstallsRoot(tempHome)
-        new MavenInstallation(mavenVersion, home)
     }
 
     private static File mavenInstallDirectory(File parent, String mavenVersion) {
