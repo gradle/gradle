@@ -35,7 +35,7 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         super.finalizeSpec(builder)
-        if (builder instanceof GradleInvocationSpec) {
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
             if (!invocation.gradleOptions) {
                 invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
