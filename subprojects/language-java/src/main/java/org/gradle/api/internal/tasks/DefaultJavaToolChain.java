@@ -57,7 +57,6 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
 
     @Override
     public ToolProvider select(JavaPlatform targetPlatform) {
-        // TODO:DAZ Remove all of the calls to this method with null platform
         if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(javaVersion) > 0) {
             return new UnavailableToolProvider(targetPlatform);
         }

@@ -26,7 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
-// TODO:DAZ Test incremental
+
+// TODO: Test incremental
 @LeaksFileHandles
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 

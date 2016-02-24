@@ -33,7 +33,7 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.tasksToRun = ['clean']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', '2.10', '2.11', 'last']
+        runner.targetVersions = ['2.9', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 

@@ -73,7 +73,6 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         task.setTargetPlatform(binary.getTargetPlatform());
         task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
 
-        // TODO:DAZ Not sure if these both need to be lazy
         task.includes(new Callable<Set<File>>() {
             public Set<File> call() throws Exception {
                 return ((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs();

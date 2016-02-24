@@ -118,12 +118,12 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
     private DependencyMetaData moduleDependencyMetadata(ModuleDependencySpec moduleDependency, String usageConfigurationName) {
         ModuleVersionSelector requested = moduleVersionSelectorFrom(moduleDependency);
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
-        // TODO:DAZ: This hard-codes the assumption of a 'compile' configuration on the external module
+        // TODO: This hard-codes the assumption of a 'compile' configuration on the external module
         // Instead, we should be creating an API configuration for each resolved module
         return dependencyMetadataFor(selector, requested, usageConfigurationName, CONFIGURATION_COMPILE);
     }
 
-    // TODO:DAZ:RBO: projectDependency should be transformed based on defaultProject (and other context) elsewhere.
+    // TODO: projectDependency should be transformed based on defaultProject (and other context) elsewhere.
     private DependencyMetaData projectDependencyMetadata(ProjectDependencySpec projectDependency, String defaultProject, String usageConfigurationName) {
         String projectPath = projectDependency.getProjectPath();
         if (isNullOrEmpty(projectPath)) {

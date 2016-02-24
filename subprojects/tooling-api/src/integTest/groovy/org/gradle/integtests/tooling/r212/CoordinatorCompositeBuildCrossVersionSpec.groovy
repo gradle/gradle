@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r212
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
-
 /**
  * Tooling models for composite are produced by a single daemon instance.
  */

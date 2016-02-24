@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.artifacts.Configuration;
-
 import java.io.File;
 
 public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
@@ -25,7 +23,7 @@ public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependen
     private final Throwable problem;
     private final String displayName;
 
-    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file, Throwable problem, String displayName) {
+    public UnresolvedIdeRepoFileDependency(String declaredConfiguration, File file, Throwable problem, String displayName) {
         super(declaredConfiguration, file);
 
         this.displayName = displayName;

@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, JavaPerformanceTest])
+@Category([JavaPerformanceTest])
 class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Up-to-date assemble Java software model build - #testProject")
     def "up-to-date assemble Java software model build"() {
@@ -34,7 +33,7 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.9', '2.10', '2.11', 'last']
+        runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
 

@@ -25,6 +25,7 @@ import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String TASK_NAME = 'generatePluginClasspathManifest'
+    private static final String TASK_PATH = ":$TASK_NAME"
 
     def setup() {
         buildFile << """
@@ -44,7 +45,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         ExecutionResult result = succeeds TASK_NAME
 
         then:
-        result.executedTasks.containsAll([':compileJava', ':processResources'])
+        result.executedTasks.containsAll([':compileJava', ':processResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
@@ -78,7 +79,7 @@ ${module.artifactFile.absolutePath}""")
         ExecutionResult result = succeeds TASK_NAME
 
         then:
-        result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources'])
+        result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")

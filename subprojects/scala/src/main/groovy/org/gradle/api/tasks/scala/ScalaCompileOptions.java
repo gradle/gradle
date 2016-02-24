@@ -56,13 +56,14 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
 
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void setUseAnt(boolean useAnt) {
         SingleMessageLogger.nagUserOfDeprecated("useAnt",
             "The Ant-Based Scala compiler is deprecated, please see "
             + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.useAnt = useAnt;
-        if (!useAnt) {
-            setFork(true);
+        if (useAnt == fork) {
+            setFork(!useAnt);
         }
     }
 
@@ -75,7 +76,12 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return fork;
     }
 
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public void setFork(boolean fork) {
+        SingleMessageLogger.nagUserOfDeprecated("fork",
+            "The fork option for the scala compiler is deprecated, please see "
+                + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.fork = fork;
     }
 

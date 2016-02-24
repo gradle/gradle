@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package com.example;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.service.ServiceRegistry;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
-public interface CompositeBuildController {
-    ServiceRegistry getBuildScopeServices();
+import org.junit.Test;
 
-    /**
-     * Returns true if a result (possibly null) has been specified.
-     */
-    boolean hasResult();
-
-    /**
-     * Returns the result for the build action.
-     */
-    @Nullable
-    Object getResult();
-
-    /**
-     * Sets the result for the build action.
-     */
-    void setResult(@Nullable Object result);
+public class LumberJackTest {
+    @Test
+    public void singsTheSong() {
+        LumberJack jack = new LumberJack();
+        jack.sing();
+    }
 }

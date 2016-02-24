@@ -48,7 +48,7 @@ public class NativeTestSuites {
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
         for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
-                // TODO:DAZ For now, we only create test suites for static library variants
+                // For now, we only create test suites for static library variants
                 continue;
             }
             createNativeTestSuiteBinary(binaries, testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);

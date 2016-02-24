@@ -289,6 +289,26 @@ task bigNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
+task multiNative(type: NativeProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 20
+    templateArgs = [
+        moduleCount: 10,
+        functionCount: 20
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
+task manyProjectsNative(type: NativeProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1
+    templateArgs = [
+        moduleCount: 3,
+        functionCount: 1
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
 task smallPCHNative(type: NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
@@ -317,26 +337,6 @@ task bigPCHNative(type: NativeProjectGeneratorTask) {
         functionCount: 1
     ]
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
-}
-
-task multiNative(type: NativeProjectGeneratorTask) {
-    projects = 10
-    sourceFiles = 20
-    templateArgs = [
-        moduleCount: 10,
-        functionCount: 20
-    ]
-    subProjectTemplates = ['native-source', 'native-component']
-}
-
-task manyProjectsNative(type: NativeProjectGeneratorTask) {
-    projects = 100
-    sourceFiles = 1
-    templateArgs = [
-        moduleCount: 3,
-        functionCount: 1
-    ]
-    subProjectTemplates = ['native-source', 'native-component']
 }
 
 task smallScenarioNative(type: NativeProjectGeneratorTask) {
@@ -620,6 +620,12 @@ task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
         def json = new JsonSlurper().parse(pluginInfo)
         assert json.versionNumber
         json.versionNumber
+    }
+
+    dependencyGraph {
+        size = 100
+        depth = 4
+        useSnapshotVersions = true
     }
 
     projects = buildReceiptParams.projects

@@ -493,6 +493,252 @@ class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
         killDaemons()
     }
 
+    def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
+        file("settings.gradle") << "include 'sub'"
+        file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
+        file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
+
+        buildFile << """
+            apply plugin: 'java-gradle-plugin'
+
+            dependencies {
+              compile project(":sub")
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class HelloWorldPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorld', type: HelloWorld)
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.test.lib.Support
+
+            class HelloWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println Support.MSG
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/ByeWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class ByeWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Bye world!'
+                }
+            }
+        """
+
+        file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
+            implementation-class=org.gradle.test.HelloWorldPlugin
+        """
+
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << \"\"\"
+                        plugins {
+                            id 'com.company.helloworld'
+                        }
+
+                        import org.gradle.test.ByeWorld
+
+                        task byeWorld(type: ByeWorld)
+                    \"\"\"
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld', 'byeWorld')
+                        .withDebug($debug)
+                        .build()
+
+                    then:
+                    noExceptionThrown()
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
+    }
+
+    def "can test plugin and custom task as external files by configuring custom test source set with Java Gradle plugin development plugin"() {
+        file("settings.gradle") << "include 'sub'"
+        file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
+        file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
+
+        buildFile << """
+            apply plugin: 'java-gradle-plugin'
+
+            sourceSets {
+                functionalTest {
+                    groovy.srcDir file('src/functionalTest/groovy')
+                    resources.srcDir file('src/functionalTest/resources')
+                    compileClasspath += sourceSets.main.output + configurations.testRuntime
+                    runtimeClasspath += output + compileClasspath
+                }
+            }
+
+            task functionalTest(type: Test) {
+                testClassesDir = sourceSets.functionalTest.output.classesDir
+                classpath = sourceSets.functionalTest.runtimeClasspath
+            }
+
+            check.dependsOn functionalTest
+
+            javaGradlePlugin {
+                functionalTestClasspath {
+                    testSourceSets sourceSets.functionalTest
+                }
+            }
+
+            dependencies {
+              compile project(":sub")
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class HelloWorldPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorld', type: HelloWorld)
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.test.lib.Support
+
+            class HelloWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println Support.MSG
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/ByeWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class ByeWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Bye world!'
+                }
+            }
+        """
+
+        file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
+            implementation-class=org.gradle.test.HelloWorldPlugin
+        """
+
+        file("src/functionalTest/groovy/org/gradle/test/BuildLogicFunctionalTest.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << \"\"\"
+                        plugins {
+                            id 'com.company.helloworld'
+                        }
+
+                        import org.gradle.test.ByeWorld
+
+                        task byeWorld(type: ByeWorld)
+                    \"\"\"
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld', 'byeWorld')
+                        .withDebug($debug)
+                        .build()
+
+                    then:
+                    noExceptionThrown()
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':functionalTest')
+        assertDaemonsAreStopping()
+
+        cleanup:
+        killDaemons()
+    }
+
     def "can control debug mode through system property"() {
         buildFile << gradleTestKitDependency()
         buildFile << """

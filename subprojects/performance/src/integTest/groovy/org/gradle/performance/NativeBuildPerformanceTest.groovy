@@ -15,14 +15,14 @@
  */
 
 package org.gradle.performance
-
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(NativePerformanceTest)
+@Category([Experiment, NativePerformanceTest])
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll('Project #type native build')
     def "build" () {
@@ -31,7 +31,8 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = "${type}Native"
         runner.tasksToRun = [ "clean", "assemble" ]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = [ '2.4', '2.8', 'last' ]
+        runner.targetVersions = ['2.8', 'last' ]
+        runner.useDaemon = true
 
         when:
         def result = runner.run()

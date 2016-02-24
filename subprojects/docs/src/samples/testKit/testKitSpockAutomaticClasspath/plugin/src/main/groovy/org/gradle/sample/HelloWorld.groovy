@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.sample
 
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.invocation.BuildAction;
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+import org.gradle.sample.lib.Messages
 
-public interface CompositeBuildActionRunner {
-    void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController);
+class HelloWorld extends DefaultTask {
+    @TaskAction
+    void printMessage() {
+        println Messages.HELLO_WORLD
+    }
 }

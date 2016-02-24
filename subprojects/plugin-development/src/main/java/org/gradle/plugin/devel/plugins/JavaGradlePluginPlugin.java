@@ -23,16 +23,23 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
- * A plugin for validating java gradle plugins during the jar task.  Emits warnings for common error conditions.
+ * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
+ * <p>
+ * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
+ * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
+ * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension#getFunctionalTestClasspath()}.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -45,11 +52,15 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String EXTENSION_NAME = "javaGradlePlugin";
+    static final String PLUGIN_CLASSPATH_TASK_NAME = "generatePluginClasspathManifest";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
+        JavaGradlePluginExtension extension = project.getExtensions().create(EXTENSION_NAME, JavaGradlePluginExtension.class, project);
+        configureTestKit(project, extension);
     }
 
     private void applyDependencies(Project project) {
@@ -68,6 +79,27 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
         jarTask.appendParallelSafeAction(pluginValidationAction);
+    }
+
+    private void configureTestKit(Project project, JavaGradlePluginExtension extension) {
+        PluginClasspathManifest pluginClasspathTask = createAndConfigurePluginClasspathManifestTask(project, extension);
+        establishTestKitAndPluginClasspathDependencies(project, extension, pluginClasspathTask);
+    }
+
+    private PluginClasspathManifest createAndConfigurePluginClasspathManifestTask(Project project, final JavaGradlePluginExtension extension) {
+        PluginClasspathManifest pluginClasspathTask = project.getTasks().create(PLUGIN_CLASSPATH_TASK_NAME, PluginClasspathManifest.class);
+
+        pluginClasspathTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
+            public Object call() throws Exception {
+                return extension.getFunctionalTestClasspath().getPluginSourceSet().getRuntimeClasspath();
+            }
+        });
+
+        return pluginClasspathTask;
+    }
+
+    private void establishTestKitAndPluginClasspathDependencies(Project project, JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
     /**
@@ -149,6 +181,33 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         public void execute(FileCopyDetails fileCopyDetails) {
             classList.add(fileCopyDetails.getRelativePath().toString());
+        }
+    }
+
+    /**
+     * An action that automatically declares the TestKit dependency for the test compile configuration and a dependency
+     * on the plugin classpath manifest generation task for the test runtime configuration.
+     */
+    private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
+        private final JavaGradlePluginExtension extension;
+        private final PluginClasspathManifest pluginClasspathTask;
+
+        private TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+            this.extension = extension;
+            this.pluginClasspathTask = pluginClasspathTask;
+        }
+
+        @Override
+        public void execute(Project project) {
+            DependencyHandler dependencies = project.getDependencies();
+            Set<SourceSet> testSourceSets = extension.getFunctionalTestClasspath().getTestSourceSets();
+
+            for (SourceSet testSourceSet : testSourceSets) {
+                String compileConfigurationName = testSourceSet.getCompileConfigurationName();
+                dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
+                String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
+                dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
+            }
         }
     }
 }

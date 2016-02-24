@@ -15,18 +15,14 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.composite.GradleConnection
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@ToolingApiVersion('>=2.12')
-@TargetGradleVersion('>=2.12')
-// Hack, disable tests on windows temporarily until I figure out why the tests are taking so long
-@Requires(TestPrecondition.NOT_WINDOWS)
+@ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
+@TargetGradleVersion(GradleVersions.SUPPORTS_COMPOSITE_BUILD)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     GradleConnection createComposite(File... rootProjectDirectories) {

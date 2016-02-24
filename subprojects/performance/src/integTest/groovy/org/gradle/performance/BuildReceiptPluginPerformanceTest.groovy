@@ -66,11 +66,13 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         runner.testId = "large java project with and without build receipt"
         def opts = ["-Dreceipt", "-Dreceipt.dump"]
         def tasks = ['clean', 'build']
+        def gradleArgs = ["--info"]
 
         runner.baseline {
             projectName("largeJavaSwModelProjectWithBuildReceipts").displayName(WITH_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
+                args(*gradleArgs)
             }
         }
 
@@ -78,6 +80,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
             projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 gradleOpts(*opts)
                 tasksToRun(*tasks).useDaemon()
+                args(*gradleArgs)
             }
         }
 

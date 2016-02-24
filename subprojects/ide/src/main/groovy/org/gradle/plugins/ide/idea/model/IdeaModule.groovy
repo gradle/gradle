@@ -20,18 +20,15 @@ import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
 
 /**
- * Enables fine-tuning module details (*.iml file) of the IDEA plugin .
+ * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
  * <p>
- * Example of use with a blend of all possible properties.
- * Typically you don't have configure this model directly because Gradle configures it for you.
+ * Example of use with a blend of most possible properties.
+ * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
@@ -91,11 +88,11 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  *
- * For tackling edge cases users can perform advanced configuration on resulting XML file.
+ * For tackling edge cases, users can perform advanced configuration on the resulting XML file.
  * It is also possible to affect the way the IDEA plugin merges the existing configuration
  * via beforeMerged and whenMerged closures.
  * <p>
- * beforeMerged and whenMerged closures receive {@link Module} object
+ * beforeMerged and whenMerged closures receive a {@link Module} parameter
  * <p>
  * Examples of advanced configuration:
  *
@@ -285,15 +282,7 @@ class IdeaModule {
      * unless the {@link IdeaProject#languageLevel} is explicitly set.
      */
     @Incubating
-    IdeaLanguageLevel getLanguageLevel() {
-        if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            def moduleLanguageLevel = new IdeaLanguageLevel(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility)
-            if (includeModuleLanguageLevelOverride(project.rootProject, moduleLanguageLevel)) {
-                return moduleLanguageLevel;
-            }
-        }
-        return null;
-    }
+    IdeaLanguageLevel languageLevel
 
     /**
      * The module specific bytecode version to use for this module. When {@code null}, the module will inherit the
@@ -302,33 +291,7 @@ class IdeaModule {
      * Idea project and module byte code versions are based on the {@code targetCompatibility} settings for each Gradle project.
      */
     @Incubating
-    JavaVersion getTargetBytecodeVersion() {
-        if (project.plugins.hasPlugin(JavaBasePlugin)) {
-            JavaVersion moduleTargetBytecodeLevel = project.convention.getPlugin(JavaPluginConvention).targetCompatibility
-            if (includeModuleBytecodeLevelOverride(project.rootProject, moduleTargetBytecodeLevel)) {
-                return moduleTargetBytecodeLevel;
-            }
-        }
-        return null;
-    }
-
-    private boolean includeModuleBytecodeLevelOverride(org.gradle.api.Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
-        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
-            return true
-        }
-        return moduleTargetBytecodeLevel != rootProject.idea.project.getTargetBytecodeVersion()
-    }
-
-    private boolean includeModuleLanguageLevelOverride(org.gradle.api.Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
-        if(!rootProject.plugins.hasPlugin(IdeaPlugin)){
-            return true
-        }
-        IdeaProject ideaProject = rootProject.idea.project
-        if (ideaProject.hasUserSpecifiedLanguageLevel){
-            return false;
-        }
-        return moduleLanguageLevel != ideaProject.languageLevel
-    }
+    JavaVersion targetBytecodeVersion
 
     /**
      * See {@link #iml(Closure)}

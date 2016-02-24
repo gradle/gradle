@@ -40,18 +40,25 @@ TAPI clients must use the latest version of Gradle to use composite builds. Part
 
 A command-line client will be able to point to a composite build definition, and execute tasks for the composite as a whole.
 
+## Target use-case
+
+- All projects use the same, latest version of Gradle
+- Java projects, using either `uploadArchives` or the publishing plugins
+- Maximum 10 Gradle projects involved, split into <= 10 participant build
+- May take up to twice as much time for task execution as a 10 project multi-project build: goal is to take less time for execution
+
 ## Milestones
 
 ### Milestone: Tooling client can define a composite build and request tooling models
 
-After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` or other tooling model for each included project. First class IDE integration support for composite build is a high priority and starting with a Tooling API interface to composite build has a number of advantages:
+This milestone adds a new Tooling client API that can define a composite build, and request the `EclipseProject` or other tooling model for each included project. First class IDE integration support for composite build is a high priority and starting with a Tooling API interface to composite build has a number of advantages:
  - Ensure that composite build is designed and developed in a way that will support IDE import of a composite
  - Allow for multiple schemes for declaring the set of participants in a composite
  - Ensure that non-homogeneous composites are considered early on
 
 ##### Overview
 
-On completion of this milestone, a user will be able to use the demonstration client for composite build to:
+On completion of the milestone, a user will be able to use the demo for composite build to:
 
 - Use a `GradleConnection` to define a set of builds to participate in a composite
 - View error messages when the composite participants are not valid (e.g. not root projects)
@@ -62,15 +69,12 @@ On completion of this milestone, a user will be able to use the demonstration cl
 - [ ] [Tooling client provides `EclipseProject` model for "composite" with one multi-project participant](tooling-api-model/single-build)
 - [ ] [Tooling client provides `EclipseProject` model for composite containing multiple participants](tooling-api-model/multiple-builds)
 - [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
-- [ ] Tooling client requests `IdeaModule` model for every project in a composite
-- [ ] Tooling client requests `BuildEnvironment` model for every project in a composite
-- [ ] Tooling client requests arbitrary model type for every project in a composite
+- [ ] [Tooling client requests arbitrary model type for every project in a composite](tooling-api-model/arbitrary-types)
+- [ ] [Tooling client can correlate model instances to projects in a composite](tooling-api-model/correlate-models)
 
 ### Milestone: Buildship (or IDEA) uses Tooling client to define composite
 
 In order to be fully usable integrated into a real IDE, several additional features will need to be implemented on the existing tooling client for composite builds. These features include: cancellation of model requests, progress events for model requests, specifying per-participant build parameters (project args, JVM args, etc), and others.
-
-##### Overview
 
 On completion of this milestone, the Buildship plugin for Eclipse will be modified so that it uses the Gradle Tooling API to define a composite for all Gradle builds that are imported into the workspace. Buildship will use a `GradleConnection` to define the composite and to retrieve models in any associated Gradle builds.
 
@@ -87,7 +91,7 @@ It is possible that further work will be required to allow to fully integrate Bu
 
 ### Milestone: IDE models for a composite include dependency substitution
 
-After this milestone, when a Tooling client defines an _integrated_ composite build, the `EclipseProject` model (and other IDE models) will have external dependencies replaced with project dependencies.
+When a Tooling client defines an _integrated_ composite build, the `EclipseProject` model (and other IDE models) should have appropriate external dependencies replaced with project dependencies.
 
 In this initial milestone, an integrated composite will be one where the coordinator and all participants are configured to build with the same, latest version of Gradle . This will be the case where:
 - The Tooling Client is using the latest version of Gradle to declare the composite
@@ -99,17 +103,13 @@ The metadata for each project publication will be derived via a simple mechanism
 
 When substituting, the version of the project publication will not be considered.
 
-##### Overview:
-
-On completion of this milestone, a user will be able to use the demonstration client for composite build to:
+On completion of this milestone, a user will be able to use the demo client for composite build to:
 
 - Define an integrated composite consisting of a build participant A and a number of other single-project and multi-project build participants
 - Using build participant A as a _consumer_, declare dependencies on external publications from other build participants
 - View the `EclipseProject` model for build participant A, noting that the external dependencies have been substituted by project dependencies
     - Transitive dependencies resolved for build A will also be substituted
-    - Metadata (dependencies and excludes) for substituted project will be honoured
-
-TODO: Create a sample project that can be used to demonstrate this
+    - Dependency metadata (dependencies and excludes) for substituted project will be honoured
 
 ##### Stories:
 
@@ -129,25 +129,53 @@ Tooling client defines a composite and:
 - [ ] Executes task in a single project within a heterogeneous composite
     - Need API that provides a `BuildLauncher` for a particular project
 - [ ] Executes `dependencies` task for a single project, demonstrating appropriate dependency substitution
+    - This is likely to "just work", and require some basic test coverage
 - [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
+    - This wires in the artifact files from the producer projects, but does not wire in the task dependency
 - [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
+    - This wires in the task dependency to produce the actual artifact
 
 ##### Out of scope
 
-- Execute all tasks with name across all projects in composite
+- Execute all tasks matching name across all projects in composite
+- Handling command-line arguments that might not be appropriate for composite build (e.g. --project-dir)
 
 ### Milestone: Command-line user can execute tasks in composite build
 
 After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
 
-- [ ] Developer executes tasks in a single project with implicit composite defined by directory
-    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
-    - Command-line switch to target a particular project within the composite (likely the same switch)
-    - All directories in the current directory are considered to be builds participating in a composite
 - [ ] Developer declares composite participants using composite descriptor
-- More TBD...
+    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
+    - Gradle lists all of the participants
+- [ ] Developer executes tasks in a single project within defined composite
+    - Command-line switch to target a particular project within the composite (likely the same switch)
+    - Prevent certain inappropriate arguments
 
-### Milestone: Integrated composite build containing participants using older versions of Gradle
+##### Out of scope
+
+- Execution of tasks across all projects in composite
+
+### Milestone: Projects within a composite are configured at most once per task execution
+
+The initial implementation of composite build will require every project in the composite to be configured once, with the target consumer project and any producer projects involved being configured twice. The performance impact of this will be unacceptable, and will be addressed through some additional features in composite build.
+
+##### Stories:
+
+- Retrieve models for all projects in a multi-project build in a single request
+    - Don't configure non-root projects to construct the publication model or other requested models
+- When a project is configured to construct the publication model, reuse that configured project to construct other models
+    - Every root project in the composite will be configured _once_ for a model request
+- When a project is configured to construct the publication model, reuse that configured project for task execution
+    - Every root project in the composite will be configured _once_ for task execution
+- Determine publication coordinates for each project without fully configuration (possibly via caching)
+    - Projects that are not producers or consumers in a particular execution are not configured
+- Use coordinator process for one or more participant builds
+
+##### Out of scope
+
+- Optimize number and lifecycle of daemons generated for composite build
+
+### Milestone: Integrated composite build can contain participants using older versions of Gradle
 
 This milestone will add support for an _integrated_ composite consisting of participants that build with different versions of Gradle, some of which are not the latest version. The exact versions that will be supported is to be determined.
 
@@ -157,13 +185,15 @@ The Gradle version for a participant build can be declared either:
 
 On completion of this milestone, a composite build will be _integrated_ as long as all participants are configured to build with a Gradle version that is supported for composite build, and the coordinator is executed with the latest version of Gradle.
 
-### Milestone: Support for Play projects
+### Milestone: Play application projects are integrated into a composite build
 
 The `play-application` plugin is built on the experimental software model, but uses regular `Configuration` instances for dependency resolution. It's possible that a composite will "just work" when a Play project is included, with Play projects behaving as fully-fledged composite build participants. However, further investigation and additional test coverage will be required.
 
-### Milestone: Support JVM Software Model components
+### Milestone: JVM Software Model components are integrated into a composite build
 
 The experimental JVM software model does not use regular `Configuration` instances for dependency resolution. As such, there is likely to be additional work required so that JVM software model projects can behave as fully-fledged composite build participants.
+
+### Milestone: Tooling API executes tests in a composite build
 
 ## Later
 

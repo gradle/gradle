@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.artifacts.Configuration;
-
 import java.io.File;
 import java.util.Comparator;
 import java.util.Set;
@@ -29,7 +27,7 @@ public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
     private final SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
     private final SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
 
-    public IdeExtendedRepoFileDependency(Configuration declaredConfiguration, File file) {
+    public IdeExtendedRepoFileDependency(String declaredConfiguration, File file) {
         super(declaredConfiguration, file);
     }
 

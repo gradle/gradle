@@ -56,13 +56,6 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
         ]
     }
 
-    /* TODO(pepper): Figure out what to do instead.*/
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def setup() {
-        testObject.useAnt = true;
-        testObject.fork = false;
-    }
-
     @Unroll("Boolean #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
     def "boolean values"(Map<String, String> fixture) {
         given:
@@ -110,14 +103,23 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "enabling UseAnt disables Fork"() {
+        given:
+        assert testObject.fork
+        when:
+        testObject.useAnt = true
+        then:
+        testObject.fork == false
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
     def "disabling UseAnt enables Fork"() {
         given:
+        testObject.useAnt = true
         assert !testObject.fork
         when:
         testObject.useAnt = false
         then:
         testObject.fork == true
     }
-
-
 }

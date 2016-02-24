@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.connection;
+package org.gradle.internal.composite;
 
 import java.io.File;
 import java.net.URI;

@@ -129,7 +129,8 @@ public class DefaultCompositeModelBuilder<T> implements ModelBuilder<Set<T>> {
 
     @Override
     public ModelBuilder<Set<T>> addProgressListener(ProgressListener listener) {
-        return unsupportedMethod();
+        delegate.addProgressListener(listener);
+        return this;
     }
 
     @Override

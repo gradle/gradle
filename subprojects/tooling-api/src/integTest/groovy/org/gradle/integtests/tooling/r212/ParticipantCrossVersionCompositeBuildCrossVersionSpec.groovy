@@ -15,14 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r212
-
-import groovy.transform.NotYetImplemented
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.CompositeBuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GradleVersion
@@ -31,12 +27,11 @@ import spock.lang.Ignore
 /**
  * Tests composites with a different Gradle version than the client and coordinator.
  */
-@Ignore("TODO: Causes too many open file errors")
+@Ignore // TODO: Broken on Java 6?
 class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     private final static List GRADLE_ALL_RELEASES = new ReleasedVersionDistributions().all
     private final static List SUPPORTED_GRADLE_VERSIONS = CollectionUtils.filter(GRADLE_ALL_RELEASES, new UnsupportedGradleVersionSpec())
-    private final static List UNSUPPORTED_GRADLE_VERSIONS = CollectionUtils.filter(GRADLE_ALL_RELEASES, Specs.negate(new UnsupportedGradleVersionSpec()))
 
     private final static class UnsupportedGradleVersionSpec implements Spec<GradleDistribution> {
         private final static GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.version("1.0")
@@ -70,28 +65,5 @@ class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToo
 
         where:
         gradleDist << SUPPORTED_GRADLE_VERSIONS
-    }
-
-    // Validation of composite is disabled
-    @NotYetImplemented
-    def "gets reasonable failure message when using unsupported Gradle version with #gradleDist"() {
-        given:
-        def project = populate("project") {
-            buildFile << "apply plugin: 'java'"
-        }
-
-        when:
-        def builder = createCompositeBuilder()
-        builder.addBuild(project.absoluteFile, gradleDist.gradleHomeDir)
-        def connection = builder.build()
-        def models = connection.getModels(EclipseProject)
-        then:
-        def e = thrown(CompositeBuildException)
-
-        cleanup:
-        connection?.close()
-
-        where:
-        gradleDist << UNSUPPORTED_GRADLE_VERSIONS
     }
 }

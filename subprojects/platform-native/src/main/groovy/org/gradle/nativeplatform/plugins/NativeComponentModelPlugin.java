@@ -141,7 +141,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
 
-            // TODO:DAZ This is only here for backward compatibility: platforms should be typed on creation, I think.
             platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 

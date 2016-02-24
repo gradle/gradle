@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package com.example;
 
-import org.gradle.tooling.internal.provider.connection.CompositeParameters;
+import java.util.logging.Logger;
 
-public interface CompositeBuildActionParameters extends BuildActionParameters {
-    CompositeParameters getCompositeParameters();
+public class LumberJack {
+    private static final Logger ROOT = Logger.getLogger("");
+    private static final Logger OAK = Logger.getLogger("oak");
+    private static final Logger ELM = Logger.getLogger("elm");
+    private static final Logger ELMER = Logger.getLogger("elm.er");
+
+    public void sing() {
+        ROOT.fine("Oh, I'm a lumberjack, and I'm okay.");
+        OAK.fine("I sleep all night and I work all day.");
+        ELM.fine("He's a lumberjack, and He's okay.");
+        ELMER.fine("He sleeps all night and he works all day.");
+    }
 }

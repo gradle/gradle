@@ -143,7 +143,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private void clearEnvironmentVars(MutableCommandLineToolContext invocation, String... names) {
-        // TODO:DAZ This check should really be done in the compiler process
+        // TODO: This check should really be done in the compiler process
         Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
         for (String name : names) {
             Object value = environmentVariables.get(name);
@@ -171,7 +171,6 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         };
     }
 
-    // TODO:DAZ These should be modelled properly, not hidden in a compile spec transformation
     private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
             public T transform(T original) {

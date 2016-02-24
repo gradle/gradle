@@ -18,8 +18,9 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.composite.CompositeBuildActionParameters;
+import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
-import org.gradle.tooling.internal.provider.connection.CompositeParameters;
 
 import java.io.File;
 import java.util.Map;

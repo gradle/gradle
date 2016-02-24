@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
 
+import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -34,7 +35,11 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
         super.start();
         if (!reset) {
             LogManager.getLogManager().reset();
-            Logger.getLogger("").addHandler(new ConsoleHandler());
+            try {
+                LogManager.getLogManager().readConfiguration();
+            } catch (IOException error) {
+                Logger.getLogger("").addHandler(new ConsoleHandler());
+            }
             reset = true;
         }
         return this;

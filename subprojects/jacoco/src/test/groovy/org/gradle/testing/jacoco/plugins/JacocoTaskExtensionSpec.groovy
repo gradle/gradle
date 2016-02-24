@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
@@ -30,10 +31,11 @@ class JacocoTaskExtensionSpec extends Specification {
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:
         agent.supportsJmx() >> true
+        agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('fakeagent.jar')
         task.getWorkingDir() >> temporaryFolder.file(".")
         expect:
-        extension.asJvmArg == "-javaagent:fakeagent.jar=append=true,dumponexit=true,output=file,jmx=false"
+        extension.asJvmArg == "-javaagent:fakeagent.jar=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
     }
 
     def 'supports jacocoagent with no jmx support'() {
@@ -46,9 +48,21 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,dumponexit=true,output=file"
     }
 
-    def 'asJvmArg with all arguments assembles correct string'() {
+    def 'supports jacocoagent with no inclNoLocationClasses support'() {
+        given:
+        agent.supportsInclNoLocationClasses() >> false
+        agent.jar >> temporaryFolder.file('fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+
+        expect:
+        extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,dumponexit=true,output=file"
+    }
+
+    @Unroll
+    def 'asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         agent.supportsJmx() >> true
+        agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('workingDir/subfolder/fakeagent.jar')
         task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
@@ -58,6 +72,7 @@ class JacocoTaskExtensionSpec extends Specification {
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
             excludeClassLoaders = ['com.sun.*', 'org.fak?.*']
+            includeNoLocationClasses = includeNoLocationClassesValue
             sessionId = 'testSession'
             dumpOnExit = false
             output = JacocoTaskExtension.Output.TCP_SERVER
@@ -74,6 +89,7 @@ class JacocoTaskExtensionSpec extends Specification {
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
             builder << "exclclassloader=com.sun.*:org.fak?.*,"
+            builder << "inclnolocationclasses=$includeNoLocationClassesValue,"
             builder << "sessionid=testSession,"
             builder << "dumponexit=false,"
             builder << "output=tcpserver,"
@@ -85,6 +101,9 @@ class JacocoTaskExtensionSpec extends Specification {
         }
         expect:
         extension.asJvmArg == expected
+
+        where:
+        includeNoLocationClassesValue << [true, false]
     }
 
     def 'asJvmArg fails if agent cannot extract the JAR'() {
