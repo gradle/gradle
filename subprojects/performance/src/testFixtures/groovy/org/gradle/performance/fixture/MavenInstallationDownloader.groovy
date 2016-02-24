@@ -64,15 +64,15 @@ class MavenInstallationDownloader {
         def ant = new AntBuilder()
         ant.mkdir(dir: target)
         ant.untar(src: binArchive, dest: target, compression: "gzip")
-        def home = mavenInstallDirectory(target, mavenVersion)
-        if (!OperatingSystem.current().isWindows()) {
-            ant.chmod(file: MavenInstallation.findMvnExecutable(home), perm: "+x")
-        }
-        home
+        mavenInstallDirectory(target, mavenVersion)
     }
 
-    private File moveToInstallsRoot(File home) {
-        FileUtils.moveDirectoryToDirectory(home, installsRoot, true)
-        new File(installsRoot, home.getName())
+    private File moveToInstallsRoot(File tmpHome) {
+        FileUtils.moveDirectoryToDirectory(tmpHome, installsRoot, true)
+        def home = new File(installsRoot, tmpHome.getName())
+        if (!OperatingSystem.current().isWindows()) {
+            new AntBuilder().chmod(file: MavenInstallation.findMvnExecutable(home), perm: "+x")
+        }
+        home
     }
 }
