@@ -23,7 +23,7 @@ import spock.lang.Unroll
  * sure we are always faster than Maven.
  */
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
-    @Unroll("Gradle vs Maven #gradleTasks build for #template")
+    @Unroll("Gradle vs Maven #description build for #template")
     def "cleanTest test performance test"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
