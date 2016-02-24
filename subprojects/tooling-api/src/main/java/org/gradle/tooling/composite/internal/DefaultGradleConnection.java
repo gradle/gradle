@@ -98,6 +98,7 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
 
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
+            // TODO: The coordinator distribution should really be explicitly set or match the client (not the first participant)
             Distribution distribution = coordinatorDistribution;
             if (distribution == null) {
                 distribution = FirstParticipantDistributionChooser.chooseDistribution(distributionFactory, participants);

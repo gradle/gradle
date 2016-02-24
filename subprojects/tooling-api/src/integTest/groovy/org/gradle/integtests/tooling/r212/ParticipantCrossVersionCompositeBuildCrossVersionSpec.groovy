@@ -21,24 +21,24 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
-import org.gradle.util.GradleVersion
+import org.junit.Assume
 import spock.lang.Ignore
 
 /**
  * Tests composites with a different Gradle version than the client and coordinator.
  */
-@Ignore // TODO: Broken on Java 6?
 class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     private final static List GRADLE_ALL_RELEASES = new ReleasedVersionDistributions().all
     private final static List SUPPORTED_GRADLE_VERSIONS = CollectionUtils.filter(GRADLE_ALL_RELEASES, new UnsupportedGradleVersionSpec())
+    private final static List QUIRKY_GRADLE_VERSIONS = CollectionUtils.filter(GRADLE_ALL_RELEASES, new QuirkyGradleVersionSpec())
 
     private final static class UnsupportedGradleVersionSpec implements Spec<GradleDistribution> {
-        private final static GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.version("1.0")
-
         @Override
         boolean isSatisfiedBy(GradleDistribution distribution) {
-            if (distribution.version.compareTo(MINIMUM_SUPPORTED_VERSION) < 0) {
+            def current = distribution.version
+            def minimumGradleVersion = current.getClass().version("1.0")
+            if (distribution.version.compareTo(minimumGradleVersion) < 0) {
                 // too old
                 return false
             }
@@ -47,15 +47,35 @@ class ParticipantCrossVersionCompositeBuildCrossVersionSpec extends CompositeToo
         }
     }
 
+    // These versions of Gradle don't seem to work with the coordinator as participants?
+    private final static class QuirkyGradleVersionSpec implements Spec<GradleDistribution> {
+        @Override
+        boolean isSatisfiedBy(GradleDistribution distribution) {
+            def current = distribution.version
+            def minimumGradleVersion = current.getClass().version("1.8")
+            def maximumGradleVersion = current.getClass().version("2.1")
+            if (current.compareTo(minimumGradleVersion) < 0 || current.compareTo(maximumGradleVersion) > 0) {
+                // not quirky
+                return false
+            }
+
+            return true
+        }
+    }
+
+    @Ignore("Spawns too many daemons and loads all versions of Gradle into the test process")
     def "retrieve EclipseProject from all supported Gradle versions #gradleDist"() {
         given:
+        GradleDistribution distribution = gradleDist
         def project = populate("project") {
             buildFile << "apply plugin: 'java'"
         }
 
         when:
+        println "Testing with ${distribution.version}"
+        Assume.assumeFalse("${distribution.version} doesn't seem to work?", distribution in QUIRKY_GRADLE_VERSIONS)
         def builder = createCompositeBuilder()
-        builder.addBuild(project.absoluteFile, gradleDist.gradleHomeDir)
+        builder.addBuild(project.absoluteFile, distribution.gradleHomeDir)
         def connection = builder.build()
         def models = connection.getModels(EclipseProject)
         then:
