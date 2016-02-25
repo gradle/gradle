@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.composite.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -26,38 +27,41 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.SetContainer;
-import org.gradle.tooling.internal.protocol.eclipse.SetOfEclipseProjects;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
-    private Map<String, Class<? extends HierarchicalElement>> modelRequestTypeToModelTypeMapping = new HashMap<String, Class<? extends HierarchicalElement>>() {{
-        this.put(SetOfEclipseProjects.class.getName(), EclipseProject.class);
-    }};
-
     public void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController) {
         if (!(action instanceof BuildModelAction)) {
             return;
         }
-        final String requestedModelName = ((BuildModelAction) action).getModelName();
-        Class<? extends HierarchicalElement> modelType = modelRequestTypeToModelTypeMapping.get(requestedModelName);
-        if (modelType != null) {
-            ProgressLoggerFactory progressLoggerFactory = buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
-            Set<Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
-            SetContainer setContainer = new SetContainer(results);
-            PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
-            buildController.setResult(new BuildActionResult(payloadSerializer.serialize(setContainer), null));
-        } else {
-            throw new CompositeBuildExceptionVersion1(new IllegalArgumentException("Unknown model " + requestedModelName));
+        Class<? extends HierarchicalElement> modelType = resolveModelType((BuildModelAction) action);
+        ProgressLoggerFactory progressLoggerFactory = buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
+        Set<Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
+        PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
+        buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results), null));
+    }
+
+    private Class<? extends HierarchicalElement> resolveModelType(BuildModelAction action) {
+        final String requestedModelName = action.getModelName();
+        Class<? extends HierarchicalElement> modelType;
+        try {
+            modelType = Cast.uncheckedCast(HierarchicalElement.class.getClassLoader().loadClass(requestedModelName));
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+        if (!HierarchicalElement.class.isAssignableFrom(modelType)) {
+            throw new CompositeBuildExceptionVersion1(new UnsupportedOperationException("Unsupported model type " + requestedModelName + ". Must be subtype of HierarchicalElement."));
+        }
+        return modelType;
     }
 
     private Set<Object> aggregateModels(Class<? extends HierarchicalElement> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {

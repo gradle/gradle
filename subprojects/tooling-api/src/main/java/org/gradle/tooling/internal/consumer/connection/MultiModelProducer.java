@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.internal.consumer.connection;
 
-import java.io.Serializable;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+
 import java.util.Set;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.12
- */
-public class SetContainer implements Serializable {
-    private final Set<?> containedSet;
-
-    public SetContainer(Set<?> containedSet) {
-        this.containedSet = containedSet;
-    }
-
-    public Set<?> getResult() {
-        return containedSet;
-    }
+public interface MultiModelProducer extends ModelProducer {
+    <T> Set<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters);
 }

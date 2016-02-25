@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.StartParameter;
 
-import java.util.Set;
-
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.12
- */
-public interface SetOfEclipseProjects {
-
-    /**
-     * A flattened set of all projects in the Eclipse workspace.
-     * These project models are fully configured, and may be expensive to calculate.
-     * Note that not all projects necessarily share the same root.
-     */
-    Set<EclipseProject> getResult();
+public class BuildModelsAction extends BuildModelAction {
+    public BuildModelsAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+        super(startParameter, modelName, runTasks, clientSubscriptions);
+    }
 }

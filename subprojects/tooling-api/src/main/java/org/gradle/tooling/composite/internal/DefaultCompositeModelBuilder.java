@@ -18,133 +18,146 @@ package org.gradle.tooling.composite.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.tooling.*;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
+import org.gradle.tooling.internal.consumer.BlockingResultHandler;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
-import org.gradle.tooling.internal.consumer.DefaultModelBuilder;
+import org.gradle.tooling.internal.consumer.ResultHandlerAdapter;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
-import org.gradle.tooling.internal.protocol.eclipse.SetOfEclipseProjects;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.internal.Exceptions;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
-public class DefaultCompositeModelBuilder<T> implements ModelBuilder<Set<T>> {
-    private final ModelBuilder<SetOfEclipseProjects> delegate;
+public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<Set<T>> {
+    private final Class<T> modelType;
+    private final AsyncConsumerActionExecutor connection;
 
-    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
-        delegate = new DefaultModelBuilder<SetOfEclipseProjects>(SetOfEclipseProjects.class, asyncConnection, parameters);
-        //delegate.setJvmArguments("-Xmx1G", "-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
+        super(parameters);
+        this.modelType = modelType;
+        this.connection = connection;
+        operationParamsBuilder.setEntryPoint("CompositeModelBuilder API");
+    }
+
+    @Override
+    protected DefaultCompositeModelBuilder<T> getThis() {
+        return this;
     }
 
     @Override
     public Set<T> get() throws GradleConnectionException, IllegalStateException {
-        return (Set<T>) delegate.get().getResult();
+        BlockingResultHandler<Set> handler = new BlockingResultHandler<Set>(Set.class);
+        get(handler);
+        return handler.getResult();
     }
 
     @Override
     public void get(final ResultHandler<? super Set<T>> handler) throws IllegalStateException {
-        delegate.get(new ResultHandler<SetOfEclipseProjects>() {
-                         @Override
-                         public void onComplete(SetOfEclipseProjects result) {
-                             handler.onComplete((Set<T>) result.getResult());
-                         }
+        final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
+        connection.run(new ConsumerAction<Set<T>>() {
+            public ConsumerOperationParameters getParameters() {
+                return operationParameters;
+            }
 
-                         @Override
-                         public void onFailure(GradleConnectionException failure) {
-                             handler.onFailure(failure);
-                         }
-                     }
-        );
-    }
-
-    @Override
-    public ModelBuilder<Set<T>> withCancellationToken(CancellationToken cancellationToken) {
-        delegate.withCancellationToken(cancellationToken);
-        return this;
+            public Set<T> run(ConsumerConnection connection) {
+                Set<T> model = connection.buildModels(modelType, operationParameters);
+                return model;
+            }
+        }, new ResultHandlerAdapter<Set<T>>(handler) {
+            @Override
+            protected String connectionFailureMessage(Throwable failure) {
+                String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                }
+                return message;
+            }
+        });
     }
 
     // TODO: Make all configuration methods configure underlying model builders
-
-    private ModelBuilder<Set<T>> unsupportedMethod() {
+    private DefaultCompositeModelBuilder<T> unsupportedMethod() {
         throw new UnsupportedMethodException("Not supported for composite connections.");
     }
 
     @Override
-    public ModelBuilder<Set<T>> forTasks(String... tasks) {
+    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
         return forTasks(Lists.newArrayList(tasks));
     }
 
     @Override
-    public ModelBuilder<Set<T>> forTasks(Iterable<String> tasks) {
+    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
         return unsupportedMethod();
     }
 
+
     @Override
-    public ModelBuilder<Set<T>> withArguments(String... arguments) {
+    public DefaultCompositeModelBuilder<T> withArguments(String... arguments) {
         return withArguments(Lists.newArrayList(arguments));
     }
 
     @Override
-    public ModelBuilder<Set<T>> withArguments(Iterable<String> arguments) {
+    public DefaultCompositeModelBuilder<T> withArguments(Iterable<String> arguments) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setStandardOutput(OutputStream outputStream) {
+    public DefaultCompositeModelBuilder<T> setStandardOutput(OutputStream outputStream) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setStandardError(OutputStream outputStream) {
+    public DefaultCompositeModelBuilder<T> setStandardError(OutputStream outputStream) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setColorOutput(boolean colorOutput) {
+    public DefaultCompositeModelBuilder<T> setColorOutput(boolean colorOutput) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setStandardInput(InputStream inputStream) {
+    public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setJavaHome(File javaHome) {
+    public DefaultCompositeModelBuilder<T> setJavaHome(File javaHome) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setJvmArguments(String... jvmArguments) {
+    public DefaultCompositeModelBuilder<T> setJvmArguments(String... jvmArguments) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> setJvmArguments(Iterable<String> jvmArguments) {
+    public DefaultCompositeModelBuilder<T> setJvmArguments(Iterable<String> jvmArguments) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> addProgressListener(ProgressListener listener) {
-        delegate.addProgressListener(listener);
-        return this;
-    }
-
-    @Override
-    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
+    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
         return unsupportedMethod();
     }
 
     @Override
-    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
+    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
         return addProgressListener(listener, Sets.newHashSet(operationTypes));
     }
 
     @Override
-    public ModelBuilder<Set<T>> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
+    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
         return unsupportedMethod();
     }
 }

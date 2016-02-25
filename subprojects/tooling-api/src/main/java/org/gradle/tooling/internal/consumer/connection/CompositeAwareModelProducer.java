@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,40 +23,46 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
+import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class CancellableModelBuilderBackedModelProducer extends HasCompatibilityMapperAction implements ModelProducer {
-    protected final ProtocolToModelAdapter adapter;
-    protected final VersionDetails versionDetails;
-    protected final ModelMapping modelMapping;
-    private final InternalCancellableConnection builder;
-    protected final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
-        super(versionDetails);
-        this.adapter = adapter;
-        this.versionDetails = versionDetails;
-        this.modelMapping = modelMapping;
-        this.builder = builder;
-        this.exceptionTransformer = exceptionTransformer;
+public class CompositeAwareModelProducer extends CancellableModelBuilderBackedModelProducer implements MultiModelProducer {
+    private final InternalCompositeAwareConnection connection;
+
+    public CompositeAwareModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCompositeAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+        super(adapter, versionDetails, modelMapping, connection, exceptionTransformer);
+        this.connection = connection;
     }
 
-    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+    @Override
+    public <T> Set<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        BuildResult<?> result = buildModels(elementType, operationParameters);
+        Set<T> models = new LinkedHashSet<T>();
+        if (result.getModel() instanceof Iterable) {
+            adapter.convertCollection(models, elementType, Iterable.class.cast(result.getModel()), getCompatibilityMapperAction());
+        }
+        return models;
+    }
+
+    private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!versionDetails.maySupportModel(type)) {
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result;
         try {
-            result = builder.getModel(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+            result = connection.getModels(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         } catch (RuntimeException e) {
             throw exceptionTransformer.transform(e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction());
+        return result;
     }
+
 }

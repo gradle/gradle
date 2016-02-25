@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-class BlockingResultHandler<T> implements ResultHandler<T> {
+public class BlockingResultHandler<T> implements ResultHandler<T> {
     private final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
     private final Class<T> resultType;
     private static final Object NULL = new Object();
