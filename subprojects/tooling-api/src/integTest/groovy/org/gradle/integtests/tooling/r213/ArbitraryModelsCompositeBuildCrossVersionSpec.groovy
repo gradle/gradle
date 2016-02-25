@@ -22,7 +22,6 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -36,7 +35,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> hiearchicalModels = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> hiearchicalSpecialModels = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> buildModels = [BuildEnvironment, GradleBuild]
-    private static final List<Class<?>> projectModels = [BuildInvocations, ProjectPublications, BasicGradleProject]
+    private static final List<Class<?>> projectModels = [BuildInvocations, ProjectPublications]
     private static final List<Class<?>> allModels = [] + hiearchicalModels + hiearchicalSpecialModels + buildModels + projectModels
 
 
@@ -59,7 +58,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios(buildModels)
+        testScenario << createTestScenarios(allModels)
     }
 
     private static List<TestScenario> createTestScenarios(List<Class<?>> modelTypes) {

@@ -10,7 +10,6 @@ Tooling API supports retrieving these model types:
   - EclipseProject
   - HierarchicalEclipseProject
   - GradleProject
-  - BasicGradleProject
 - hierarchical models where the model is returned for the root project. models for sub-projects are different type than the parent.
   - IdeaProject
   - BasicIdeaProject
