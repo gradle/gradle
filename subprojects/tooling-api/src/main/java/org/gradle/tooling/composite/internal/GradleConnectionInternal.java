@@ -33,8 +33,5 @@ public interface GradleConnectionInternal extends GradleConnection {
 
         Builder embeddedParticipants(boolean embedded);
 
-        // TODO: Make this public
-        Builder useInstallation(File gradleHome);
-
     }
 }

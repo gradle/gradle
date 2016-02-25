@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -53,14 +54,15 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnection.Builder addBuild(GradleBuild... gradleBuilds) {
+    public GradleConnection.Builder addBuilds(GradleBuild... gradleBuilds) {
         for (GradleBuild gradleBuild : gradleBuilds) {
             addBuild(gradleBuild);
         }
         return this;
     }
 
-    private void addBuild(GradleBuild gradleBuild) {
+    @Override
+    public GradleConnection.Builder addBuild(GradleBuild gradleBuild) {
         if (gradleBuild==null) {
             throw new NullPointerException("gradleBuild must not be null");
         }
@@ -68,6 +70,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
             throw new IllegalArgumentException("GradleBuild has an internal API that must be implemented.");
         }
         participants.add((GradleBuildInternal)gradleBuild);
+        return this;
     }
 
     @Override
@@ -120,8 +123,20 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnectionInternal.Builder useInstallation(File gradleHome) {
+    public GradleConnection.Builder useInstallation(File gradleHome) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
+        return this;
+    }
+
+    @Override
+    public GradleConnection.Builder useDistribution(URI gradleDistribution) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleDistribution);
+        return this;
+    }
+
+    @Override
+    public GradleConnection.Builder useGradleVersion(String gradleVersion) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
 
