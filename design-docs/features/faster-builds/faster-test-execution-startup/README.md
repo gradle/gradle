@@ -64,6 +64,14 @@ The following directory is scanned during execution of `test`:
 
 - `build/classes/test`. This is scanned by test detection (more on this below)
 
+The following directories are scanned at the end of the task to detect outputs:
+
+- `build/reports/tests` is scanned twice
+- `build/test-results` is scanned twice
+- `build/test-results/binary/test` is scanned once
+
+Each of these should be scanned once.
+
 ### `Test` task progress logging reports the start of test execution 
 
 Change progress reporting to indicate when Gradle _starts_ running tests. Currently, progress is updated only on completion of the first test.
@@ -98,11 +106,17 @@ Some initial profiling results: Some potential hotspots:
     - Scan to detect test classes. The improvements to reuse directory scanning result could be used here to avoid the scanning. 
     - Calculate class files hash. This should be removed, as it overlaps with `Test.candidateClassFiles`
 
-A breakdown of the wall clock time spent by `test` with 1000 main and tests classes:
+A typical breakdown of the wall clock time spent by `test` with 1000 main and tests classes:
 
--   74ms, up-to-date check
--  354ms, start and connect to worker process
-- 3023ms, detect and run tests
--    6ms, serialize binary results 
--  504ms, generate XML and HTML reports
--  236ms, detect output files and write task history
+- 62ms, up-to-date check
+- 11ms, start worker process
+- 3246ms, detect and run tests (includes the above time) 
+    - 351ms, initialise worker process
+        - 181ms, setup in worker
+    - 443ms, detect test classes (mostly blocked waiting for worker to start)
+    - 2930ms, run tests in worker
+- 3ms, serialize binary results 
+- 226ms, generate XML reports
+- 384ms, generate HTML reports
+- 190ms, snapshot outputs
+- 9ms, write task history
