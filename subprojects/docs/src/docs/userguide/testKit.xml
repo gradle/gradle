@@ -262,7 +262,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <link linkend="sub:test-kit-automatic-classpath-injection">Automatic plugin class injection</link>
+                            <link linkend="sub:test-kit-automatic-classpath-injection">Automatic plugin classpath injection</link>
                         </td>
                         <td>2.13</td>
                         <td>
