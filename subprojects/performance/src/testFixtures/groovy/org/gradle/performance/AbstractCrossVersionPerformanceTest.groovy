@@ -33,13 +33,13 @@ import spock.lang.Specification
 
 @Category(GradleCorePerformanceTest)
 class AbstractCrossVersionPerformanceTest extends Specification {
-    public static final boolean adhocRun = System.getProperty("GRADLE_ADHOC_PERF_TESTS") != null
+    public static final boolean ADHOC_RUN = System.getProperty("GRADLE_ADHOC_PERF_TESTS") != null
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = adhocRun ? new CrossVersionResultsStore() : new NoResultsStore()
+    static def resultStore = ADHOC_RUN ? new CrossVersionResultsStore() : new NoResultsStore()
 
-    final def runner = new CrossVersionPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions(), adhocRun)
+    final def runner = new CrossVersionPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions(), ADHOC_RUN)
 
     def setup() {
         runner.current = new UnderDevelopmentGradleDistribution()
