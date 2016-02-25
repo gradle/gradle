@@ -117,7 +117,11 @@ abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         if (requireIsolatedTestKitDir) {
             def daemonDir = new File(testKitDir, TEST_KIT_DAEMON_DIR_NAME)
             def versions = daemonDir.listFiles({ it.name ==~ /\d.+/ } as FileFilter)*.name
-            versions.each { daemons(it).killAll() }
+            versions.each {
+                DaemonsFixture daemonsFixture = daemons(it)
+                daemonsFixture.visible*.becomesIdle()
+                daemonsFixture.killAll()
+            }
         }
     }
 
