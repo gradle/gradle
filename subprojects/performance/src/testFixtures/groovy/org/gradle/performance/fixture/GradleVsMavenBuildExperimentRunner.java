@@ -70,7 +70,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                 }
             });
         }
-        return Cast.uncheckedCast(super.<S,T>createInvocationCustomizer(info));
+        return Cast.uncheckedCast(super.<S, T>createInvocationCustomizer(info));
     }
 
     private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {
