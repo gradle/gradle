@@ -82,6 +82,8 @@ For integrated composites, project dependency substitution will automatically be
 
 ##### Stories
 
+- [ ] Tooling client requests `EclipseProject` models for composite containing participants with multiple Gradle versions
+    - Needs further test coverage (test is disabled due to flakeyness)
 - [ ] [Tooling client cancels composite model request](tooling-api-model/cancellation)
 - [ ] [Tooling client provides progress listener for composite model request](tooling-api-model/progress-listener)
 - [ ] Tooling client specifies stdout and stderr for composite model request
