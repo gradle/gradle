@@ -39,7 +39,7 @@ class MavenInstallation {
 
     static boolean valid(File home) {
         def mvn = findMvnExecutable(home)
-        home.isDirectory() && home.canExecute() && mvn.isFile() && mvn.canExecute()
+        home.isDirectory() && mvn.isFile()
     }
 
     static String probeVersion(File home) {
