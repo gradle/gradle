@@ -1269,6 +1269,18 @@
                         <para><literal>gradle test --tests *IntegTest*ui*</literal></para>
                     </listitem>
                     <listitem>
+                        <para><literal>gradle test --tests "com.example.MyTestSuite"</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests "com.example.ParameterizedTest"</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests "*ParameterizedTest.foo*"</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests "*ParameterizedTest.*[2]"</literal></para>
+                    </listitem>
+                    <listitem>
                         <para><literal>gradle someTestTask --tests *UiTest someOtherTestTask --tests *WebTest*ui</literal></para>
                     </listitem>
                 </itemizedlist>
