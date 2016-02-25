@@ -564,6 +564,10 @@ for TestKit, the Tooling API and Gradle API. External dependencies (required by 
 by plugins. The solution will basically provide a fix for [GRADLE-1715](https://issues.gradle.org/browse/GRADLE-1715) by isolating the external libraries required by the Gradle
 API from the classpath defined by a user when building a custom plugin.
 
+### Estimate
+
+6-20 days
+
 ### Implementation
 
 * Create a fat jar for Gradle API, the Tooling API and TestKit.
