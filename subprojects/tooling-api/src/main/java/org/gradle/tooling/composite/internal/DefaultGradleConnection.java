@@ -22,7 +22,6 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 
 public class DefaultGradleConnection implements GradleConnectionInternal {
     private final AsyncConsumerActionExecutor asyncConnection;
@@ -52,11 +51,6 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
     private <T> void checkSupportedModelType(Class<T> modelType) {
         if (!modelType.isInterface()) {
             throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
-        }
-
-        // TODO: Remove
-        if (!modelType.equals(EclipseProject.class)) {
-            throw new UnsupportedOperationException(String.format("The only supported model for a Gradle composite is %s.class.", EclipseProject.class.getSimpleName()));
         }
     }
 
