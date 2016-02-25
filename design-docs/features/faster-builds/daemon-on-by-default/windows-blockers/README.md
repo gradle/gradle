@@ -1,5 +1,7 @@
 Windows specific daemon problems
 
+## Implementation plan
+
 ## Candidate stories
 
 - Can change test code when using JUnit categories [GRADLE-3315](https://issues.gradle.org/browse/GRADLE-3315)

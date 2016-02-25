@@ -1,6 +1,8 @@
 
 Support all use cases that are supported by non-daemon execution
 
+## Implementation plan
+
 ## Candidate stories
 
 ### Story - Daemon handles additional immutable system properties
