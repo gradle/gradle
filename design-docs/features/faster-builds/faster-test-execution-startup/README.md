@@ -50,6 +50,18 @@ The `Test` task has been observed scanning its inputs more times that expected. 
 
 Note: this goal for this story is only to understand the behaviour, not to fix anything.
 
+#### Some results
+
+The following directories are scanned in the up-to-date check for `test`
+    - `build/classes/test` is scanned 4 times
+    - `build/classes/main` is scanned once
+    - `src/test/java` is scanned once
+
+Each of these should be scanned once. In addition, the source directory should only be scanned when using very old versions of TestNG that use source annotations.
+    
+The following directory is scanned during execution of `test`:
+    - `build/classes/test`. This is scanned by test detection (more on this below)
+
 ### `Test` task progress logging reports the start of test execution 
 
 Change progress reporting to indicate when Gradle _starts_ running tests. Currently, progress is updated only on completion of the first test.
@@ -69,3 +81,26 @@ Instrument Gradle to get a breakdown of how long each of the main activities in 
 Profile the above test build to identify hotspots and potential improvements. Generate further stories based on this.
 
 Note: this goal for this story is only to understand the behaviour, not to fix anything.
+
+#### Some results
+
+Some initial profiling results: Some potential hotspots:
+
+- Test execution generates many, many progress and logging events. The improvements for build startup would also improve this. 
+    - Could fix some hotspots in how messages are shipped between daemon process and test process, and between daemon process and daemon client.
+- Report generation is expensive. Could potentially generate the xml and html concurrently (in the workers pool).
+- Test class detection could benefit from some caching of extracted metadata. Implementation should extract some shared infrastructure for this from
+  native and Java incremental compile.
+- Directory scanning is expensive.
+    - Up-to-date check.
+    - Scan to detect test classes. The improvements to reuse directory scanning result could be used here to avoid the scanning. 
+    - Calculate class files hash. This should be removed, as it overlaps with `Test.candidateClassFiles`
+
+A breakdown of the wall clock time spent by `test` with 1000 main and tests classes:
+
+-   74ms, up-to-date check
+-  354ms, start and connect to worker process
+- 3023ms, detect and run tests
+-    6ms, serialize binary results 
+-  504ms, generate XML and HTML reports
+-  236ms, detect output files and write task history
