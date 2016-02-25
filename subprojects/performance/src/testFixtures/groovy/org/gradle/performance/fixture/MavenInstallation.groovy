@@ -33,8 +33,13 @@ class MavenInstallation {
     }
 
     static File findMvnExecutable(File home) {
-        def mvnName = IS_WINDOWS ? "mvn.bat" : "mvn"
-        new File(home, "bin${File.separator}$mvnName")
+        def bin = new File(home,"bin")
+        if(IS_WINDOWS) {
+            // Maven moved from .bat to .cmd starting with 3.3.1 (3.3.0 was canceled)
+            def bat = new File(bin, "mvn.bat")
+            return bat.isFile() ? bat : new File(home, "mvn.cmd")
+        }
+        return new File(bin, "mvn")
     }
 
     static boolean valid(File home) {
