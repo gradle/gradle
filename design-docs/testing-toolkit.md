@@ -573,7 +573,7 @@ API from the classpath defined by a user when building a custom plugin.
     * For Gradle core, this means Ant, Groovy, SLF4J and `@Inject`.
 * The fat Gradle API JAR will created in a new directory of the Gradle distribution e.g. `jarjar`. If the size of the Gradle distribution increases significantly, this JAR might
 have to be published instead. An acceptable, increased distribution size is 5MB. **Having to publish the JARs will change the scope of work drastically. If we identify during
- development that the distribution size exceeds the threshold, a different story will have to be specified and implemented resulting in addi**
+ development that the distribution size exceeds the threshold, a different story will have to be specified and implemented resulting in additional effort.**
 * The fat Tooling API JAR will not become part of the Gradle distribution. It will only be published.
 * The fat TestKit JAR will be part of the Gradle distribution under `lib/plugins`.
 * At runtime `gradleApi()` will reference the fat Gradle API JAR in the distribution.
