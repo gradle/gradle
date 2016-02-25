@@ -35,32 +35,42 @@ public class DefaultGradleBuildBuilder implements GradleBuild.Builder {
 
     @Override
     public GradleBuild.Builder useBuildDistribution() {
-        this.gradleHome = null;
-        this.gradleDistribution = null;
-        this.gradleVersion = null;
+        resetDistribution();
         return this;
     }
 
     @Override
     public GradleBuild.Builder useInstallation(File gradleHome) {
+        resetDistribution();
         this.gradleHome = gradleHome;
         return this;
     }
 
     @Override
     public GradleBuild.Builder useGradleVersion(String gradleVersion) {
+        resetDistribution();
         this.gradleVersion = gradleVersion;
         return this;
     }
 
     @Override
     public GradleBuild.Builder useDistribution(URI gradleDistribution) {
+        resetDistribution();
         this.gradleDistribution = gradleDistribution;
         return this;
     }
 
     @Override
     public GradleBuildInternal create() {
+        if (projectDir == null) {
+            throw new IllegalArgumentException("Project directory must be defined for a participant.");
+        }
         return new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+    }
+
+    private void resetDistribution() {
+        this.gradleHome = null;
+        this.gradleDistribution = null;
+        this.gradleVersion = null;
     }
 }

@@ -28,6 +28,39 @@ public class DefaultGradleBuild implements GradleBuildInternal {
     private final URI gradleDistribution;
     private final String gradleVersion;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGradleBuild that = (DefaultGradleBuild) o;
+
+        if (!projectDir.equals(that.projectDir)) {
+            return false;
+        }
+        if (gradleHome != null ? !gradleHome.equals(that.gradleHome) : that.gradleHome != null) {
+            return false;
+        }
+        if (gradleDistribution != null ? !gradleDistribution.equals(that.gradleDistribution) : that.gradleDistribution != null) {
+            return false;
+        }
+        return !(gradleVersion != null ? !gradleVersion.equals(that.gradleVersion) : that.gradleVersion != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = projectDir.hashCode();
+        result = 31 * result + (gradleHome != null ? gradleHome.hashCode() : 0);
+        result = 31 * result + (gradleDistribution != null ? gradleDistribution.hashCode() : 0);
+        result = 31 * result + (gradleVersion != null ? gradleVersion.hashCode() : 0);
+        return result;
+    }
+
     public DefaultGradleBuild(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
         this.projectDir = projectDir;
         this.gradleHome = gradleHome;
@@ -42,6 +75,12 @@ public class DefaultGradleBuild implements GradleBuildInternal {
 
     @Override
     public ProjectIdentity toProjectIdentity(String projectPath) {
+        if (projectPath==null) {
+            throw new NullPointerException("projectPath cannot be null");
+        }
+        if (!projectPath.startsWith(":")) {
+            throw new IllegalArgumentException("projectPath must be absolute and start with a :");
+        }
         return new DefaultProjectIdentity(toBuildIdentity(), projectDir, projectPath);
     }
 
