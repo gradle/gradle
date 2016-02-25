@@ -21,18 +21,17 @@ import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 @InspectsExecutedTasks
 @NoDebug
-@UsesNativeServices
 class GradleRunnerIsolatedDaemonIntegrationTest extends GradleRunnerIntegrationTest {
 
     def setup() {
@@ -42,6 +41,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends GradleRunnerIntegrationT
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(20000)
 
+    @LeaksFileHandles
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
         def userHome = file("user-home")
