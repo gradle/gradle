@@ -28,6 +28,8 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
+import java.lang.reflect.Proxy
+
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
@@ -37,7 +39,6 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> buildModels = [BuildEnvironment, GradleBuild]
     private static final List<Class<?>> projectModels = [BuildInvocations, ProjectPublications]
     private static final List<Class<?>> allModels = [] + hiearchicalModels + hiearchicalSpecialModels + buildModels + projectModels
-
 
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
@@ -50,11 +51,22 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }.asList()
         def models = modelResults*.model
 
+        def implementationClassNames = models.collect {
+            // get the name of the implementation class behind the proxy
+            unpackProxy(it).getClass().name
+        } as Set
+
         then:
         models.each {
             // this will never fail because of the proxy adapter solution
             assert testScenario.modelType.isInstance(it)
         }
+
+        // check that all returned models are of the same implementation class
+        // instanceof checks aren't useful because instances will always implement the requested model type
+        implementationClassNames.size() == 1
+
+        // check that we get the expected number of model results
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
@@ -97,7 +109,6 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
     }
 
-
     private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects) {
         if (numberOfBuilds < 1) {
             return []
@@ -121,5 +132,15 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             }
         }
         builds
+    }
+
+    private Object unpackProxy(Object obj) {
+        if (Proxy.isProxyClass(obj.getClass())) {
+            def handler = Proxy.getInvocationHandler(obj)
+            if (handler.hasProperty("delegate")) {
+                return unpackProxy(handler.delegate)
+            }
+        }
+        return obj
     }
 }
