@@ -551,3 +551,7 @@ to publish to the Gradle plugin portal. The `buildPlatform` definition of a plat
 
 -
 
+## Open issues
+
+- Potential performance impact when parsing the `settings.gradle` file
+- Enforcing a specific build platform definition version across all projects in an organization
