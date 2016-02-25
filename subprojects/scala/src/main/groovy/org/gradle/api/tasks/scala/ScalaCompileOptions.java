@@ -63,7 +63,8 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.useAnt = useAnt;
         if (useAnt == fork) {
-            setFork(!useAnt);
+            // Not using setFork so we don't get two deprecation nag messages.
+            fork = !useAnt;
         }
     }
 

@@ -338,12 +338,6 @@
         </para>
 
         <para>
-            Except where noted in the <ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
-            the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
-            Java 6 or higher to run. This means that Gradle itself has to be run with Java 6 or higher.
-        </para>
-
-        <para>
             The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
             Gradle will have a default version of the Zinc library, but if you want to override the
             Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
@@ -352,8 +346,8 @@
         </para>
 
         <para>
-            Just like Gradle's Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
-            under <literal>src/main/scala</literal> will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
+            The Zinc-based Scala Compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
+            under <literal>src/main/scala</literal> will participate in joint compilation. Even Java code will be compiled incrementally.
         </para>
 
         <para>
@@ -365,11 +359,6 @@
             to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
             Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes,
             leading to incorrect compilation results.
-        </para>
-
-        <para>
-            Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
-            For CI builds and release builds, we currently recommend to use the Ant based compiler.
         </para>
 
         <para>
