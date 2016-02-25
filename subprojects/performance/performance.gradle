@@ -69,6 +69,12 @@ task withJUnit(type: JvmProjectGeneratorTask) {
     subProjectTemplates << 'with-junit'
 }
 
+task mediumWithJUnit(type: JvmProjectGeneratorTask) {
+    projects = 25
+    sourceFiles = 200
+    subProjectTemplates << 'with-junit'
+}
+
 task withTestNG(type: JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 100
@@ -543,7 +549,7 @@ task all {
 }
 
 task prepareSamples {
-    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
         smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
@@ -610,6 +616,13 @@ task performanceExperiments(type: Test) {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
+
+task performanceAdhocTest(type: Test) {
+    dependsOn prepareSamples
+    systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
+    maxParallelForks = 1
+}
+
 
 def buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source']
 

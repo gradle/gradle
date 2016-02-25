@@ -1,7 +1,15 @@
 Fix robustness and diagnostic issues that prevent the daemon to be enabled by default
 
+## Implementation plan
+
+- Add daemon stability tests
+- Review and tune the existing disabled health monitoring
+- Add diagnostics
+- Spike additional strategies for health monitoring
+
 ## Candidate stories
 
+- Add daemon stability tests
 - All client and daemon reads on the connection should have a timeout.
 - Daemon should exit when its entry is removed from the registry [GRADLE-1763](https://issues.gradle.org/browse/GRADLE-1763)
 - Client should be more forceful when stopping daemons [GRADLE-1638](https://issues.gradle.org/browse/GRADLE-1638)

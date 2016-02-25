@@ -30,12 +30,14 @@ public class ClassTestResults extends CompositeTestResults {
     private final String name;
     private final PackageTestResults packageResults;
     private final Set<TestResult> results = new TreeSet<TestResult>();
+    private final String baseUrl;
 
     public ClassTestResults(long id, String name, PackageTestResults packageResults) {
         super(packageResults);
         this.id = id;
         this.name = name;
         this.packageResults = packageResults;
+        baseUrl = String.format("classes/%s.html", FileUtils.toSafeFileName(name));
     }
 
     public long getId() {
@@ -49,7 +51,7 @@ public class ClassTestResults extends CompositeTestResults {
 
     @Override
     public String getBaseUrl() {
-        return String.format("classes/%s.html", FileUtils.toSafeFileName(name));
+        return baseUrl;
     }
 
     public String getName() {

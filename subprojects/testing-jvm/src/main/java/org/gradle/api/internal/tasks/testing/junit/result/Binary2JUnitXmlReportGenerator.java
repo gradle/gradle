@@ -21,10 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.Clock;
 import org.gradle.internal.FileUtils;
+import org.gradle.util.Clock;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -35,13 +34,13 @@ public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
-    JUnitXmlResultWriter saxWriter;
+    private JUnitXmlResultWriter xmlWriter;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
     public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.saxWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
+        this.xmlWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
     }
 
     public void generate() {
@@ -51,8 +50,8 @@ public class Binary2JUnitXmlReportGenerator {
                 File file = new File(testResultsDir, getReportFileName(result));
                 OutputStream output = null;
                 try {
-                    output = new BufferedOutputStream(new FileOutputStream(file));
-                    saxWriter.write(result, output);
+                    output = new FileOutputStream(file);
+                    xmlWriter.write(result, output);
                     output.close();
                 } catch (Exception e) {
                     throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), file), e);

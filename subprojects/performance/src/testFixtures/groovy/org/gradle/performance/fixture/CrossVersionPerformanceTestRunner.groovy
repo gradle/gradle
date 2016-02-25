@@ -47,8 +47,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BuildExperimentListener buildExperimentListener
+    private boolean adhocRun
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, adhocRun) {
+        this.adhocRun = adhocRun
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
@@ -84,19 +86,24 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
         def baselineVersions = new LinkedHashSet()
-        for (String version: targetVersions) {
-            if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
-                // These are all treated specially below
-                continue
-            }
-            baselineVersions.add(findRelease(version).version.version)
-        }
 
-        if (!targetVersions.contains('nightly')) {
-            // Include the most recent final release if we're not testing against a nightly
-            baselineVersions.add(mostRecentFinalRelease)
-        } else {
+
+        if (adhocRun) {
             baselineVersions.add(mostRecentSnapshot)
+        } else {
+            for (String version : targetVersions) {
+                if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
+                    // These are all treated specially below
+                    continue
+                }
+                baselineVersions.add(findRelease(version).version.version)
+            }
+            if (!targetVersions.contains('nightly')) {
+                // Include the most recent final release if we're not testing against a nightly
+                baselineVersions.add(mostRecentFinalRelease)
+            } else {
+                baselineVersions.add(mostRecentSnapshot)
+            }
         }
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
@@ -138,7 +145,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def builder = BuildExperimentSpec.builder()
+        def builder = GradleBuildExperimentSpec.builder()
             .projectName(testId)
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)

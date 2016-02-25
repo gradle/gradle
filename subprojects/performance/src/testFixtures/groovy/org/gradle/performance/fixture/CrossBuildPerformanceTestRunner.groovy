@@ -16,88 +16,51 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
-class CrossBuildPerformanceTestRunner {
-    final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
-    final BuildExperimentRunner experimentRunner
-    final TestProjectLocator testProjectLocator = new TestProjectLocator()
-
-    String testId
-    String testGroup
-    List<BuildExperimentSpec> specs = []
-
-    final DataReporter<CrossBuildPerformanceResults> reporter
-
-    BuildExperimentListener buildExperimentListener
+class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
 
     public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
-        this.reporter = dataReporter
-        this.experimentRunner = experimentRunner
-    }
-
-    public void baseline(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
-        buildSpec(configureAction)
-    }
-
-    public void buildSpec(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
-        def builder = BuildExperimentSpec.builder()
-        defaultSpec(builder)
-        builder.with(configureAction)
-        finalizeSpec(builder)
-        def specification = builder.build()
-
-        if (specs.any { it.displayName == specification.displayName }) {
-            throw new IllegalStateException("Multiple specifications with display name '${specification.displayName}.")
-        }
-        specs << specification
+        super(experimentRunner, dataReporter)
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.distribution(gradleDistribution)
-        builder.listener(buildExperimentListener)
+        super.defaultSpec(builder)
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+            builder.invocation.distribution(gradleDistribution)
+        }
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-        assert builder.projectName
-        builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
-        if (!builder.invocation.gradleOptions) {
-            builder.invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+        super.finalizeSpec(builder)
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+            def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
+            if (!invocation.gradleOptions) {
+                invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+            }
         }
     }
 
-    public CrossBuildPerformanceResults run() {
-        assert !specs.empty
-        assert testId
-
-        def results = new CrossBuildPerformanceResults(
-                testId: testId,
-                testGroup: testGroup,
-                jvm: Jvm.current().toString(),
-                operatingSystem: OperatingSystem.current().toString(),
-                versionUnderTest: GradleVersion.current().getVersion(),
-                vcsBranch: Git.current().branchName,
-                vcsCommits: [Git.current().commitId],
-                testTime: System.currentTimeMillis()
+    @Override
+    CrossBuildPerformanceResults newResult() {
+        new CrossBuildPerformanceResults(
+            testId: testId,
+            testGroup: testGroup,
+            jvm: Jvm.current().toString(),
+            operatingSystem: OperatingSystem.current().toString(),
+            versionUnderTest: GradleVersion.current().getVersion(),
+            vcsBranch: Git.current().branchName,
+            vcsCommits: [Git.current().commitId],
+            testTime: System.currentTimeMillis()
         )
-
-        runAllSpecifications(results)
-
-        results.assertEveryBuildSucceeds()
-        reporter.report(results)
-
-        return results
     }
 
-    void runAllSpecifications(CrossBuildPerformanceResults results) {
-        specs.each {
-            def operations = results.buildResult(it.displayInfo)
-            experimentRunner.run(it, operations)
-        }
+    @Override
+    MeasuredOperationList operations(CrossBuildPerformanceResults result, BuildExperimentSpec spec) {
+        result.buildResult(spec.displayInfo)
     }
+
 
 }

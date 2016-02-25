@@ -43,8 +43,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         this.put(SetOfEclipseProjects.class.getName(), EclipseProject.class);
     }};
 
-
-    @Override
     public void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController) {
         if (!(action instanceof BuildModelAction)) {
             return;
@@ -65,17 +63,17 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     private Set<Object> aggregateModels(Class<? extends HierarchicalElement> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
         Set<Object> results = new LinkedHashSet<Object>();
         final CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters.getGradleUserHomeDir(), compositeParameters.getDaemonBaseDir(), compositeParameters.getDaemonMaxIdleTimeValue(), compositeParameters.getDaemonMaxIdleTimeUnits(), progressLoggerFactory));
+        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters, progressLoggerFactory));
         return results;
     }
 
-    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<? extends HierarchicalElement> modelType, final BuildCancellationToken cancellationToken, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, final ProgressLoggerFactory progressLoggerFactory) {
+    private <T extends HierarchicalElement> Set<T> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<? extends HierarchicalElement> modelType, final BuildCancellationToken cancellationToken, CompositeParameters compositeParameters, final ProgressLoggerFactory progressLoggerFactory) {
         final Set<T> results = new LinkedHashSet<T>();
         for (GradleParticipantBuild participant : participantBuilds) {
             if (cancellationToken.isCancellationRequested()) {
                 break;
             }
-            ProjectConnection projectConnection = connect(participant, gradleUserHomeDir, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+            ProjectConnection projectConnection = connect(participant, compositeParameters);
             ModelBuilder<? extends HierarchicalElement> modelBuilder = projectConnection.model(modelType);
             modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
             modelBuilder.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
@@ -101,8 +99,14 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    private ProjectConnection connect(GradleParticipantBuild build, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private ProjectConnection connect(GradleParticipantBuild build, CompositeParameters compositeParameters) {
         DefaultGradleConnector connector = getInternalConnector();
+        File gradleUserHomeDir = compositeParameters.getGradleUserHomeDir();
+        File daemonBaseDir = compositeParameters.getDaemonBaseDir();
+        Integer daemonMaxIdleTimeValue = compositeParameters.getDaemonMaxIdleTimeValue();
+        TimeUnit daemonMaxIdleTimeUnits = compositeParameters.getDaemonMaxIdleTimeUnits();
+        Boolean embeddedParticipants = compositeParameters.isEmbeddedParticipants();
+
         if (gradleUserHomeDir != null) {
             connector.useGradleUserHomeDir(gradleUserHomeDir);
         }
@@ -114,7 +118,14 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
         connector.searchUpwards(false);
         connector.forProjectDirectory(build.getProjectDir());
-        return configureDistribution(connector, build).connect();
+
+        if (embeddedParticipants) {
+            connector.embedded(true);
+            connector.useClasspathDistribution();
+            return connector.connect();
+        } else {
+            return configureDistribution(connector, build).connect();
+        }
     }
 
     private DefaultGradleConnector getInternalConnector() {
@@ -146,12 +157,10 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             this.token = token;
         }
 
-        @Override
         public boolean isCancellationRequested() {
             return token.isCancellationRequested();
         }
 
-        @Override
         public BuildCancellationToken getToken() {
             return token;
         }

@@ -37,7 +37,7 @@ class GradleExecuterBackedSession implements GradleSession {
         cleanup()
     }
 
-    @Override
+
     Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationCustomizer, true)
         return { runner.run() }

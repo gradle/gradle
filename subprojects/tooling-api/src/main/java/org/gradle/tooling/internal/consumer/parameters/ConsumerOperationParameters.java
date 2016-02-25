@@ -373,4 +373,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     public List<GradleParticipantBuild> getBuilds() {
         return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters) parameters).getBuilds() : null;
     }
+
+    public Boolean isEmbeddedParticipants() {
+        return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters) parameters).isEmbeddedParticipants() : Boolean.FALSE;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.fixture
 
-public interface GradleInvocationCustomizer extends InvocationCustomizer<GradleInvocationSpec> {
+interface InvocationSpec {
+
+    List<String> getTasksToRun()
+    List<String> getJvmOpts()
+    List<String> getArgs()
+    File getWorkingDirectory()
+
+    interface Builder {
+        File getWorkingDirectory()
+        void setWorkingDirectory(File workingDirectory)
+    }
 }

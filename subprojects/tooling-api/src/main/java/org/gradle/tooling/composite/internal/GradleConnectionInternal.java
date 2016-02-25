@@ -22,11 +22,19 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 public interface GradleConnectionInternal extends GradleConnection {
-    public interface Builder extends GradleConnection.Builder {
-        public Builder embeddedCoordinator(boolean embedded);
+    interface Builder extends GradleConnection.Builder {
+        Builder embeddedCoordinator(boolean embedded);
 
-        public Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
+        Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
 
-        public Builder daemonBaseDir(File daemonBaseDir);
+        Builder daemonBaseDir(File daemonBaseDir);
+
+        Builder useClasspathDistribution();
+
+        Builder embeddedParticipants(boolean embedded);
+
+        // TODO: Make this public
+        Builder useInstallation(File gradleHome);
+
     }
 }
