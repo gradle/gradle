@@ -20,7 +20,6 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.idea.IdeaProject
 
 /**
  * Basic tests for building and retrieving models from a composite.
@@ -32,16 +31,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         createComposite()
         then:
         thrown(IllegalStateException)
-    }
-
-    // TODO: Remove this test when we support more model types
-    def "throws UnsupportedOperationException when trying to retrieve anything other than EclipseProject"() {
-        when:
-        withCompositeConnection(projectDir("project")) { connection ->
-            connection.getModels(IdeaProject)
-        }
-        then:
-        thrown(UnsupportedOperationException)
     }
 
     @NotYetImplemented
