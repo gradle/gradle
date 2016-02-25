@@ -49,10 +49,8 @@ It's really not a hierarchical structure since a build returns a `IdeaProject` w
   - scenario #2, participant:
     - 1 multi-project build with 3 projects
   - scenario #3, participants:
-    - 3 single-project builds
-  - scenario #4, participants:
     - 1 single-project build
-    - 2 multi-project builds with 3 projects
+    - 1 multi-project builds with 3 projects
 - each sample project is a java project with publications for each project so that `ProjectPublications` can be tested.
 
 - test that each model type can be retrieved 
