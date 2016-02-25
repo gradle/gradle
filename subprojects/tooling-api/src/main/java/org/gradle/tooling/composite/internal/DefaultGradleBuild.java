@@ -17,63 +17,12 @@
 package org.gradle.tooling.composite.internal;
 
 import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.GradleBuild;
 import org.gradle.tooling.composite.ProjectIdentity;
-import org.gradle.tooling.internal.consumer.DistributionFactory;
 
 import java.io.File;
 import java.net.URI;
 
 public class DefaultGradleBuild implements GradleBuildInternal {
-    public static class Builder implements GradleBuild.Builder {
-        private final DistributionFactory distributionFactory;
-        private File projectDir;
-        private File gradleHome;
-        private URI gradleDistribution;
-        private String gradleVersion;
-
-        public Builder(DistributionFactory distributionFactory) {
-            this.distributionFactory = distributionFactory;
-        }
-
-        @Override
-        public GradleBuild.Builder forProjectDirectory(File projectDir) {
-            this.projectDir = projectDir;
-            return this;
-        }
-
-        @Override
-        public GradleBuild.Builder useBuildDistribution() {
-            this.gradleHome = null;
-            this.gradleDistribution = null;
-            this.gradleVersion = null;
-            return this;
-        }
-
-        @Override
-        public GradleBuild.Builder useInstallation(File gradleHome) {
-            this.gradleHome = gradleHome;
-            return this;
-        }
-
-        @Override
-        public GradleBuild.Builder useGradleVersion(String gradleVersion) {
-            this.gradleVersion = gradleVersion;
-            return this;
-        }
-
-        @Override
-        public GradleBuild.Builder useDistribution(URI gradleDistribution) {
-            this.gradleDistribution = gradleDistribution;
-            return this;
-        }
-
-        @Override
-        public GradleBuild create() {
-            return new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
-        }
-    }
-
     private final File projectDir;
     private final File gradleHome;
     private final URI gradleDistribution;

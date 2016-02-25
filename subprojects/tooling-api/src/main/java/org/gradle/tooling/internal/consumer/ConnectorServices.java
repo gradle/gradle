@@ -24,8 +24,9 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.composite.GradleBuild;
-import org.gradle.tooling.composite.internal.DefaultGradleBuild;
-import org.gradle.tooling.composite.internal.DefaultGradleConnection;
+import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.composite.internal.DefaultGradleBuildBuilder;
+import org.gradle.tooling.composite.internal.DefaultGradleConnectionBuilder;
 import org.gradle.tooling.composite.internal.GradleConnectionFactory;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -40,14 +41,14 @@ public class ConnectorServices {
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
 
-    public static DefaultGradleConnection.Builder createGradleConnectionBuilder() {
+    public static GradleConnection.Builder createGradleConnectionBuilder() {
         assertJava6();
-        return singletonRegistry.getFactory(DefaultGradleConnection.Builder.class).create();
+        return singletonRegistry.getFactory(GradleConnection.Builder.class).create();
     }
 
     public static GradleBuild.Builder createGradleBuildBuilder() {
         assertJava6();
-        return singletonRegistry.getFactory(DefaultGradleBuild.Builder.class).create();
+        return singletonRegistry.getFactory(GradleBuild.Builder.class).create();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {
@@ -84,18 +85,18 @@ public class ConnectorServices {
             };
         }
 
-        protected Factory<DefaultGradleConnection.Builder> createGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
-            return new Factory<DefaultGradleConnection.Builder>() {
-                public DefaultGradleConnection.Builder create() {
-                    return new DefaultGradleConnection.Builder(gradleConnectionFactory, distributionFactory);
+        protected Factory<GradleConnection.Builder> createGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
+            return new Factory<GradleConnection.Builder>() {
+                public GradleConnection.Builder create() {
+                    return new DefaultGradleConnectionBuilder(gradleConnectionFactory, distributionFactory);
                 }
             };
         }
 
-        protected Factory<DefaultGradleBuild.Builder> createGradleBuildBuilder(final DistributionFactory distributionFactory) {
-            return new Factory<DefaultGradleBuild.Builder>() {
-                public DefaultGradleBuild.Builder create() {
-                    return new DefaultGradleBuild.Builder(distributionFactory);
+        protected Factory<GradleBuild.Builder> createGradleBuildBuilder() {
+            return new Factory<GradleBuild.Builder>() {
+                public GradleBuild.Builder create() {
+                    return new DefaultGradleBuildBuilder();
                 }
             };
         }
