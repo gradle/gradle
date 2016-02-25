@@ -34,11 +34,11 @@ import java.lang.reflect.Proxy
  * Tooling client requests arbitrary model type for every project in a composite
  */
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    private static final List<Class<?>> hiearchicalModels = [EclipseProject, HierarchicalEclipseProject, GradleProject]
-    private static final List<Class<?>> hiearchicalSpecialModels = [IdeaProject, BasicIdeaProject]
-    private static final List<Class<?>> buildModels = [BuildEnvironment, GradleBuild]
-    private static final List<Class<?>> projectModels = [BuildInvocations, ProjectPublications]
-    private static final List<Class<?>> allModels = [] + hiearchicalModels + hiearchicalSpecialModels + buildModels + projectModels
+    private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
+    private static final List<Class<?>> HIERARCHICAL_SPECIAL_MODELS = [IdeaProject, BasicIdeaProject]
+    private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
+    private static final List<Class<?>> PROJECT_MODELS = [BuildInvocations, ProjectPublications]
+    private static final List<Class<?>> ALL_MODELS = [] + HIERARCHICAL_MODELS + HIERARCHICAL_SPECIAL_MODELS + BUILD_MODELS + PROJECT_MODELS
 
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
@@ -70,7 +70,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios(allModels)
+        testScenario << createTestScenarios(ALL_MODELS)
     }
 
     private static List<TestScenario> createTestScenarios(List<Class<?>> modelTypes) {
