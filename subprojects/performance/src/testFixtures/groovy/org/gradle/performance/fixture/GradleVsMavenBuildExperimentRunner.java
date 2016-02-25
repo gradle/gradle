@@ -54,7 +54,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         for (int i = 0; i < warmUpCount; i++) {
             System.out.println();
             System.out.println(String.format("Warm-up #%s", i + 1));
-            runOnce(experiment, buildSpec, results, projectDir, Phase.WARMUP, i + 1, warmUpCount);
+            runOnce(experiment, buildSpec, new MeasuredOperationList(), projectDir, Phase.WARMUP, i + 1, warmUpCount);
         }
         waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
         int invocationCount = invocationsForExperiment(experiment);
