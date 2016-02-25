@@ -18,14 +18,12 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
-import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.internal.Cast;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     private final ExecActionFactory execActionFactory;
@@ -47,25 +45,32 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         }
     }
 
-    private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, MavenInvocationSpec buildSpec) {
+    private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
-
-        int warmUpCount = warmupsForExperiment(experiment);
-        for (int i = 0; i < warmUpCount; i++) {
-            System.out.println();
-            System.out.println(String.format("Warm-up #%s", i + 1));
-            runOnce(experiment, buildSpec, new MeasuredOperationList(), projectDir, Phase.WARMUP, i + 1, warmUpCount);
-        }
-        waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
-        int invocationCount = invocationsForExperiment(experiment);
-        for (int i = 0; i < invocationCount; i++) {
-            if (i > 0) {
-                waitForMillis(experiment, experiment.getSleepAfterTestRoundMillis());
+        performMeasurements(new InvocationExecutorProvider<InvocationCustomizer<MavenInvocationSpec>>() {
+            public Runnable runner(final InvocationCustomizer<MavenInvocationSpec> invocationCustomizer) {
+                return new Runnable() {
+                    public void run() {
+                        ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(buildSpec));
+                        System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
+                        mavenInvocation.execute();
+                    }
+                };
             }
-            System.out.println();
-            System.out.println(String.format("Test run #%s", i + 1));
-            runOnce(experiment, buildSpec, results, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
+        }, experiment, results, projectDir);
+    }
+
+    @Override
+    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> T createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
+        if (info.getBuildExperimentSpec() instanceof MavenBuildExperimentSpec) {
+            return Cast.uncheckedCast(new InvocationCustomizer<MavenInvocationSpec>() {
+                public MavenInvocationSpec customize(MavenInvocationSpec invocationSpec) {
+                    final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
+                    return invocationSpec.withBuilder().args(iterationInfoArguments).build();
+                }
+            });
         }
+        return Cast.uncheckedCast(super.createInvocationCustomizer(info));
     }
 
     private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {
@@ -78,45 +83,5 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         return execAction;
     }
 
-    private void runOnce(final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec, MeasuredOperationList results, final File projectDir, final Phase phase, final int iterationNumber, final int iterationMax) {
-        final BuildExperimentInvocationInfo invocationInfo = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, phase, iterationNumber, iterationMax);
-
-        final Runnable runner = new Runnable() {
-            public void run() {
-                ExecAction mavenInvocation = createMavenInvocation(buildSpec);
-                System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
-                mavenInvocation.execute();
-            }
-        };
-
-        if (experiment.getListener() != null) {
-            experiment.getListener().beforeInvocation(invocationInfo);
-        }
-
-        MeasuredOperation operation = getTimer().measure(new Action<MeasuredOperation>() {
-            @Override
-            public void execute(MeasuredOperation measuredOperation) {
-                runner.run();
-            }
-        });
-
-        final AtomicBoolean omitMeasurement = new AtomicBoolean();
-        if (experiment.getListener() != null) {
-            experiment.getListener().afterInvocation(invocationInfo, operation, new BuildExperimentListener.MeasurementCallback() {
-                @Override
-                public void omitMeasurement() {
-                    omitMeasurement.set(true);
-                }
-            });
-        }
-
-        if (!omitMeasurement.get()) {
-            if (operation.getException() == null) {
-                getDataCollector().collect(invocationInfo, operation);
-            }
-
-            results.add(operation);
-        }
-    }
 
 }
