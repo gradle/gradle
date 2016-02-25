@@ -16,6 +16,22 @@
 
 package org.gradle.tooling.composite;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Identifies a Gradle project.
+ *
+ * <p>
+ *     A Gradle Project is a project in a multi-project Gradle build or a single "standalone" project.
+ * </p>
+ *
+ * @since 2.13
+ */
+@Incubating
 public interface ProjectIdentity {
+    /**
+     * Identity of the build this project is a member of.
+     * @return build identity, never null.
+     */
     BuildIdentity getBuild();
 }

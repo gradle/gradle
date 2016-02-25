@@ -21,24 +21,35 @@ import org.gradle.api.Incubating;
 import java.io.File;
 import java.net.URI;
 
+/**
+ * Represents a participant in a composite.
+ *
+ */
 @Incubating
 public interface GradleBuild {
+    /**
+     * Builds a new Gradle composite participant.
+     */
+    @Incubating
     interface Builder {
 
+        /**
+         * Sets the root project directory for this Gradle Build.
+         *
+         * @param projectDir root project directory.
+         * @return this
+         */
         Builder forProjectDirectory(File projectDir);
 
         /**
-         * Adds a Gradle build as a participant in a composite.
-         *
-         * Defaults to a project-specific Gradle version.
-         *
+         * Specifies the Gradle distribution described in the build should be used.
          *
          * @return this
          */
         Builder useBuildDistribution();
 
         /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
+         * Specifies the Gradle distribution to use.
          *
          * @param gradleHome The Gradle installation directory.
          * @return this
@@ -46,7 +57,7 @@ public interface GradleBuild {
         Builder useInstallation(File gradleHome);
 
         /**
-         * Adds a Gradle build as a participant in a composite, specifying the version of Gradle to use.
+         * Specifies the version of Gradle to use.
          *
          * @param gradleVersion The version to use.
          * @return this
@@ -54,7 +65,7 @@ public interface GradleBuild {
         Builder useGradleVersion(String gradleVersion);
 
         /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
+         * Specifies the Gradle distribution to use.
          *
          * @param gradleDistribution The distribution to use.
          *
@@ -62,8 +73,26 @@ public interface GradleBuild {
          */
         Builder useDistribution(URI gradleDistribution);
 
+        /**
+         * Creates an immutable GradleBuild instance based on this builder.
+         *
+         * @return a new instance, never null.
+         */
         GradleBuild create();
     }
+
+    /**
+     * Build Identity to be used to correlate results.
+     *
+     * @return this build's identity, never null
+     */
     BuildIdentity toBuildIdentity();
+
+    /**
+     * Project Identity to be used to correlate results.
+     *
+     * @param projectPath path to project in a Gradle build (e.g., :foo:bar)
+     * @return identity for a project in this build with the given path
+     */
     ProjectIdentity toProjectIdentity(String projectPath);
 }

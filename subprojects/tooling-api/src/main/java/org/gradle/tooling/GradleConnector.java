@@ -78,6 +78,12 @@ public abstract class GradleConnector {
         return ConnectorServices.createGradleConnectionBuilder();
     }
 
+    /**
+     * Creates a new GradleBuild builder instance for creating Gradle composite participants.
+     *
+     * @return The instance. Never returns null.
+     * @since 2.13
+     */
     @Incubating
     public static GradleBuild.Builder newGradleBuildBuilder() {
         return ConnectorServices.createGradleBuildBuilder();

@@ -89,7 +89,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
 
         Distribution distribution = coordinatorDistribution;
         if (distribution == null) {
-            distributionFactory.getDistribution(GradleVersion.current().getVersion());
+            distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
         }
         return gradleConnectionFactory.create(distribution, connectionParameters);
     }

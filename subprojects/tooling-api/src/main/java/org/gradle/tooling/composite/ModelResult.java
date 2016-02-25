@@ -16,7 +16,27 @@
 
 package org.gradle.tooling.composite;
 
+import org.gradle.api.Incubating;
+
+/**
+ * TODO: Javadoc
+ *
+ * @param <T> Type of model in the result
+ * @since 2.13
+ */
+@Incubating
 public interface ModelResult<T> {
+    /**
+     * Model produced
+     *
+     * @return the model, never null.
+     */
     T getModel();
+
+    /**
+     * Identity of the project this model was produced from.
+     *
+     * @return the project identity, never null.
+     */
     ProjectIdentity getProjectIdentity();
 }

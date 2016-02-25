@@ -16,5 +16,16 @@
 
 package org.gradle.tooling.composite;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Identifies a Gradle build.
+ * <p>
+ *     A Gradle Build is a collection of one or more projects.
+ * </p>
+ *
+ * @since 2.13
+ */
+@Incubating
 public interface BuildIdentity {
 }

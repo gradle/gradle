@@ -31,12 +31,15 @@ import java.io.File;
  * able to coordinate across these projects, so that they appear in some way as a single build unit.</p>
  *
  * <p>Operations (fetching models, executing tasks, etc) are performed across all Gradle projects in a composite.</p>
+ *
+ * @since 2.13
  */
 @Incubating
 public interface GradleConnection {
     /**
      * Builds a new composite Gradle connection.
      */
+    @Incubating
     interface Builder {
         /**
          * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
