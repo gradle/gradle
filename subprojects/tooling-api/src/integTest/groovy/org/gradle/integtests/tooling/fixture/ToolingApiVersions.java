@@ -27,6 +27,6 @@ public class ToolingApiVersions {
     public static final String SUPPORTS_CANCELLATION = ">=2.1";
     public static final String SUPPORTS_RICH_PROGRESS_EVENTS = ">=2.5";
     public static final String PRE_CANCELLATION = ">=1.2 <2.1";
-    public static final String SUPPORTS_COMPOSITE_BUILD = ">=2.12";
+    public static final String SUPPORTS_COMPOSITE_BUILD = ">=2.13";
 
 }
