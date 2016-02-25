@@ -22,7 +22,6 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * Represents a connection to a composite Gradle build.
@@ -75,7 +74,7 @@ public interface GradleConnection {
      * @throws GradleConnectionException
      * @throws IllegalStateException
      */
-    <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
+    <T> Iterable<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
      * Starts fetching a Set of snapshots of the model of the given type for this composite, passing the result to the given handler when complete. This method returns immediately, and the result is later
@@ -94,7 +93,7 @@ public interface GradleConnection {
      * @param <T>
      * @throws IllegalStateException
      */
-    <T> void getModels(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException;
+    <T> void getModels(Class<T> modelType, ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException;
 
     /**
      * Creates a builder which can be used to query the model of the given type for all projects in the composite.
@@ -105,7 +104,7 @@ public interface GradleConnection {
      * @param modelType
      * @param <T>
      */
-    <T> ModelBuilder<Set<T>> models(Class<T> modelType);
+    <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

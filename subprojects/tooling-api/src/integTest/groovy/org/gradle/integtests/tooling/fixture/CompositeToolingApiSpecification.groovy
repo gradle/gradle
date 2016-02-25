@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleConnection
+import org.gradle.tooling.composite.ModelResult
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(GradleVersions.SUPPORTS_COMPOSITE_BUILD)
@@ -106,6 +107,11 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         TestFile getSettingsFile() {
             file("settings.gradle")
         }
+    }
+
+    // Transforms Iterable<ModelResult<T>> into Iterable<T>
+    def unwrap(Iterable<ModelResult> modelResults) {
+        modelResults.collect { it.model }
     }
 
     List<Throwable> getCausalChain(Throwable throwable) {

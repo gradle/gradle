@@ -57,7 +57,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         when:
         def models = withCompositeConnection([ multiBuild1, multiBuild2 ]) { connection ->
-            connection.getModels(EclipseProject)
+            unwrap(connection.getModels(EclipseProject))
         }
         then:
         models.size() == 8
@@ -95,7 +95,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         when:
         def models = withCompositeConnection([ singleBuild1, singleBuild2 ]) { connection ->
-            connection.getModels(EclipseProject)
+            unwrap(connection.getModels(EclipseProject))
         }
         then:
         models.size() == 2
@@ -136,7 +136,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         def connection = createComposite(singleBuild1, singleBuild2)
 
         when:
-        def models = connection.getModels(EclipseProject)
+        def models = unwrap(connection.getModels(EclipseProject))
         then:
         models.size() == 2
         containsProjects(models, [':', ':'])
@@ -189,7 +189,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         when:
         def models = withCompositeConnection([ singleBuild, multiBuild ]) { connection ->
-            connection.getModels(EclipseProject)
+            unwrap(connection.getModels(EclipseProject))
         }
         then:
         models.size() == 5
@@ -227,7 +227,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         def composite = createComposite(singleBuild, multiBuild)
 
         when:
-        def firstRetrieval = composite.getModels(EclipseProject)
+        def firstRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         firstRetrieval.size() == 5
@@ -242,7 +242,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 """
         }
         and:
-        def secondRetrieval = composite.getModels(EclipseProject)
+        def secondRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         secondRetrieval.size() == 6
@@ -255,7 +255,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
             file("settings.gradle") << "include 'b2', 'c2'"
         }
         and:
-        def thirdRetrieval = composite.getModels(EclipseProject)
+        def thirdRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         thirdRetrieval.size() == 8
@@ -267,7 +267,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         singleBuild.deleteDir()
 
         and:
-        def fourthRetrieval = composite.getModels(EclipseProject)
+        def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         def e = thrown(BuildException)
@@ -283,7 +283,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         composite?.close()
     }
 
-    Set<EclipseProject> rootProjects(Set<EclipseProject> projects) {
+    Iterable<EclipseProject> rootProjects(Iterable<EclipseProject> projects) {
         projects.findAll { it.parent == null }
     }
 
