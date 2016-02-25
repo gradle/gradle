@@ -40,7 +40,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> allModels = [] + hiearchicalModels + hiearchicalSpecialModels + buildModels + projectModels
 
 
-    def "check that all hierarchical models are returned for composite"(TestScenario testScenario) {
+    def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
         def builds = testScenario.createBuilds(this.&createBuilds)
 
@@ -49,15 +49,17 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             def modelBuilder = connection.models(testScenario.modelType)
             modelBuilder.get()
         }.asList()
+        def models = modelResults*.model
 
         then:
-        modelResults.size() == testScenario.expectedNumberOfModelResults
-        modelResults.every {
-            testScenario.modelType.isInstance(it.model)
+        models.each {
+            // this will never fail because of the proxy adapter solution
+            assert testScenario.modelType.isInstance(it)
         }
+        models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios(hiearchicalModels)
+        testScenario << createTestScenarios(buildModels)
     }
 
     private static List<TestScenario> createTestScenarios(List<Class<?>> modelTypes) {
