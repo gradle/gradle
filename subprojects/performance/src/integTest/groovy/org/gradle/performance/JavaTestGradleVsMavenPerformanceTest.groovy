@@ -62,13 +62,13 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         runner.baseline {
             projectName(template).displayName("Gradle $description for project $template").invocation {
                 tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
-            }.warmUpCount(1).invocationCount(5)
+            }
         }
         runner.mavenBuildSpec {
             projectName(template).displayName("Maven $description for project $template").invocation {
                 tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
                     .args('-q', '-Dsurefire.printSummary=false')
-            }.warmUpCount(1).invocationCount(5)
+            }
         }
 
 
