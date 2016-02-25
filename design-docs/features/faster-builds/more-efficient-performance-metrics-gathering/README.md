@@ -16,6 +16,8 @@ This feature outlines a small set of changes to this infrastructure to improve e
 
 ## Backlog
 
+These are currently out of scope:
+
 - Shorter performance test feedback
     - Move the test results to a db-as-a-service somewhere (Heroku, for example)
     - Split the performance tests into several chunks 
