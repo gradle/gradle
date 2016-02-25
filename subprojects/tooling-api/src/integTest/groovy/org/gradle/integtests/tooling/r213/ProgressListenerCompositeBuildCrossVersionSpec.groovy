@@ -25,6 +25,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Tooling client provides progress listener for composite model request
  */
 class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+    static final List<String> IGNORED_EVENTS = ['Validate distribution', '']
+
     def "compare events from a composite build and a regular build with single build"() {
         given:
         def builds = createBuilds(1)
@@ -36,9 +38,11 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
         then:
         progressListenerForComposite.eventDescriptions.size() > 0
-        progressListenerForRegularBuild.eventDescriptions.each {
-            assert progressListenerForComposite.eventDescriptions.contains(it)
-            progressListenerForComposite.eventDescriptions.remove(it)
+        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
+            if (!(eventDescription in IGNORED_EVENTS)) {
+                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
+                progressListenerForComposite.eventDescriptions.remove(eventDescription)
+            }
         }
     }
 
@@ -53,10 +57,10 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
         then:
         progressListenerForComposite.eventDescriptions.size() > 0
-        progressListenerForRegularBuild.eventDescriptions.each {
-            assert progressListenerForComposite.eventDescriptions.contains(it)
-            if(it != '') {
-                progressListenerForComposite.eventDescriptions.remove(it)
+        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
+            if (!(eventDescription in IGNORED_EVENTS)) {
+                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
+                progressListenerForComposite.eventDescriptions.remove(eventDescription)
             }
         }
     }
