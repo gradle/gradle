@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.composite;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 import java.net.URI;
 
+@Incubating
 public interface GradleBuild {
     interface Builder {
 

@@ -37,12 +37,12 @@ public class DefaultGradleBuild implements GradleBuildInternal {
 
     @Override
     public BuildIdentity toBuildIdentity() {
-        return null;
+        return new DefaultBuildIdentity(projectDir);
     }
 
     @Override
     public ProjectIdentity toProjectIdentity(String projectPath) {
-        return null;
+        return new DefaultProjectIdentity(toBuildIdentity(), projectDir, projectPath);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DefaultGradleBuild implements GradleBuildInternal {
 
     @Override
     public String getDisplayName() {
-        return "build " + projectDir.getAbsolutePath();
+        return toBuildIdentity().toString();
     }
 
     @Override

@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite;
+package org.gradle.tooling.composite.internal;
 
-public interface ProjectIdentity {
-    BuildIdentity getBuild();
+import org.gradle.tooling.composite.BuildIdentity;
+
+import java.io.File;
+
+public class DefaultBuildIdentity implements BuildIdentity {
+    private final File rootDir;
+
+    public DefaultBuildIdentity(File rootDir) {
+        this.rootDir = rootDir;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("build=%s", rootDir.getAbsolutePath());
+    }
 }
