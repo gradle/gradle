@@ -79,36 +79,12 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
     }
 
     private void runOnce(final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec, MeasuredOperationList results, final File projectDir, final Phase phase, final int iterationNumber, final int iterationMax) {
-        final BuildExperimentInvocationInfo invocationInfo = new BuildExperimentInvocationInfo() {
-            @Override
-            public BuildExperimentSpec getBuildExperimentSpec() {
-                return experiment;
-            }
-
-            @Override
-            public File getProjectDir() {
-                return projectDir;
-            }
-
-            @Override
-            public Phase getPhase() {
-                return phase;
-            }
-
-            @Override
-            public int getIterationNumber() {
-                return iterationNumber;
-            }
-
-            @Override
-            public int getIterationMax() {
-                return iterationMax;
-            }
-        };
+        final BuildExperimentInvocationInfo invocationInfo = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, phase, iterationNumber, iterationMax);
 
         final Runnable runner = new Runnable() {
             public void run() {
                 ExecAction mavenInvocation = createMavenInvocation(buildSpec);
+                System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
                 mavenInvocation.execute();
             }
         };

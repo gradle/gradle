@@ -141,32 +141,7 @@ public class BuildExperimentRunner {
     }
 
     private void runOnce(final GradleSession session, final BuildExperimentSpec experiment, MeasuredOperationList results, final File projectDir, final Phase phase, final int iterationNumber, final int iterationMax) {
-        final BuildExperimentInvocationInfo invocationInfo = new BuildExperimentInvocationInfo() {
-            @Override
-            public BuildExperimentSpec getBuildExperimentSpec() {
-                return experiment;
-            }
-
-            @Override
-            public File getProjectDir() {
-                return projectDir;
-            }
-
-            @Override
-            public Phase getPhase() {
-                return phase;
-            }
-
-            @Override
-            public int getIterationNumber() {
-                return iterationNumber;
-            }
-
-            @Override
-            public int getIterationMax() {
-                return iterationMax;
-            }
-        };
+        final BuildExperimentInvocationInfo invocationInfo = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, phase, iterationNumber, iterationMax);
 
         final Runnable runner = session.runner(new GradleInvocationCustomizer() {
             @Override
