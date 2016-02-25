@@ -18,13 +18,18 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion;
 
 @CompileStatic
 class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
 
-    GradleVsMavenPerformanceTestRunner(GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter) {
+    final M2Installation m2
+
+    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter) {
         super(experimentRunner, dataReporter)
+        m2 = new M2Installation(testDirectoryProvider)
     }
 
     @Override
@@ -52,6 +57,9 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
             invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+            if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
+                invocation.args.add("-Dmaven.repo.local=\"${m2.mavenRepo().rootDir.absolutePath}\"".toString())
+            }
             if (!invocation.mavenHome) {
                 def home = System.getProperty("MAVEN_HOME")
                 if (home) {

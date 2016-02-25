@@ -37,7 +37,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), RESULT_STORE) {
+        tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), RESULT_STORE) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
