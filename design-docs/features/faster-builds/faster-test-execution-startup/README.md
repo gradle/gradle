@@ -54,15 +54,15 @@ Note: this goal for this story is only to understand the behaviour, not to fix a
 
 The following directories are scanned in the up-to-date check for `test`:
 
-    - `build/classes/test` is scanned 4 times
-    - `build/classes/main` is scanned once
-    - `src/test/java` is scanned once
+- `build/classes/test` is scanned 4 times
+- `build/classes/main` is scanned once
+- `src/test/java` is scanned once
 
 Each of these should be scanned once. In addition, the source directory should only be scanned when using very old versions of TestNG that use source annotations.
     
 The following directory is scanned during execution of `test`:
 
-    - `build/classes/test`. This is scanned by test detection (more on this below)
+- `build/classes/test`. This is scanned by test detection (more on this below)
 
 ### `Test` task progress logging reports the start of test execution 
 
