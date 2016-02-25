@@ -25,6 +25,7 @@ import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.performance.results.NoResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -34,7 +35,7 @@ import spock.lang.Specification
 class AbstractCrossVersionPerformanceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = new CrossVersionResultsStore()
+    static def resultStore = System.getProperty("GRADLE_ADHOC_PERF_TESTS") == null ? new CrossVersionResultsStore() : new NoResultsStore()
 
     final def runner = new CrossVersionPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions())
 

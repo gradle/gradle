@@ -611,6 +611,16 @@ task performanceExperiments(type: Test) {
     }
 }
 
+task performanceAdhocTest(type: Test) {
+    dependsOn prepareSamples
+    systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
+    maxParallelForks = 1
+    options {
+        includeCategories 'org.gradle.performance.categories.Experiment'
+    }
+}
+
+
 def buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source']
 
 task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
