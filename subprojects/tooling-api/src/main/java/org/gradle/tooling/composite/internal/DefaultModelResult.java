@@ -37,4 +37,9 @@ public class DefaultModelResult<T> implements ModelResult<T> {
     public T getModel() {
         return model;
     }
+
+    @Override
+    public String toString() {
+        return String.format("result={ project=%s, model=%s }", projectIdentity, model.getClass().getCanonicalName());
+    }
 }

@@ -31,4 +31,24 @@ public class DefaultBuildIdentity implements BuildIdentity {
     public String toString() {
         return String.format("build=%s", rootDir.getAbsolutePath());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultBuildIdentity that = (DefaultBuildIdentity) o;
+
+        return rootDir.equals(that.rootDir);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return rootDir.hashCode();
+    }
 }

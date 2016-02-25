@@ -39,6 +39,35 @@ public class DefaultProjectIdentity implements ProjectIdentity {
 
     @Override
     public String toString() {
-        return String.format("project={ %s:%s, (%s) }", rootDir.getName(), projectPath, build);
+        return String.format("project={ cpath=%s:%s, (%s) }", rootDir.getName(), projectPath, build);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultProjectIdentity that = (DefaultProjectIdentity) o;
+
+        if (!build.equals(that.build)) {
+            return false;
+        }
+        if (!rootDir.equals(that.rootDir)) {
+            return false;
+        }
+        return projectPath.equals(that.projectPath);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = build.hashCode();
+        result = 31 * result + rootDir.hashCode();
+        result = 31 * result + projectPath.hashCode();
+        return result;
     }
 }

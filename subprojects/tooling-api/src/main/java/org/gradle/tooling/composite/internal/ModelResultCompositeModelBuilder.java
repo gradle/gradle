@@ -20,7 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.*;
 import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -60,9 +62,23 @@ public class ModelResultCompositeModelBuilder<T> implements ModelBuilder<Iterabl
         return CollectionUtils.collect(results, new Transformer<ModelResult<T>, T>() {
             @Override
             public ModelResult<T> transform(T t) {
-                return new DefaultModelResult<T>(t, null);
+                return new DefaultModelResult<T>(t, extractProjectIdentityHack(t));
             }
         });
+    }
+
+    private ProjectIdentity extractProjectIdentityHack(T result) {
+        if (result instanceof EclipseProject) {
+            EclipseProject eclipseProject = (EclipseProject)result;
+            EclipseProject rootProject = eclipseProject;
+            while (rootProject.getParent()!=null) {
+                rootProject = rootProject.getParent();
+            }
+            File rootDir = rootProject.getGradleProject().getProjectDirectory();
+            String projectPath = eclipseProject.getGradleProject().getPath();
+            return new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), rootDir, projectPath);
+        }
+        return null;
     }
 
     @Override

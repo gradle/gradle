@@ -20,6 +20,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
 
@@ -37,12 +38,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         GradleConnection.Builder builder = createCompositeBuilder()
 
         rootProjectDirectories.each {
-            // TODO: this isn't the right way to configure the gradle distribution
-            def gradleBuild = GradleConnector.newGradleBuildBuilder().
-                forProjectDirectory(it).
-                useInstallation(dist.gradleHomeDir).
-                create()
-            builder.addBuild(gradleBuild)
+            builder.addBuild(createGradleBuildParticipant(it))
         }
 
         builder.build()
@@ -112,6 +108,12 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     // Transforms Iterable<ModelResult<T>> into Iterable<T>
     def unwrap(Iterable<ModelResult> modelResults) {
         modelResults.collect { it.model }
+    }
+
+    GradleBuild createGradleBuildParticipant(File rootDir) {
+        // TODO: this isn't the right way to configure the gradle distribution of the participant if
+        // we want to support varying it
+        GradleConnector.newGradleBuildBuilder().forProjectDirectory(rootDir).useInstallation(dist.gradleHomeDir).create()
     }
 
     List<Throwable> getCausalChain(Throwable throwable) {

@@ -77,13 +77,13 @@
 
 ### Test coverage
 
-- For a single project/single participant composite, getModels(X) returns a single entry Map with
+- For a single project/single participant composite, getModels(X) returns a single entry with
     - ProjectIdentity for single project
     - BuildIdentity for single project
-- For a N-multi-project/single participant composite, getModels(X) returns a Map with N-entries that have
+- For a N-multi-project/single participant composite, getModels(X) returns N-entries that have
     - ProjectIdentity for each project
     - BuildIdentity for all results are equal
-- For a single-project + N-multi-project multi-participant composite, getModels(X) returns a Map with (N+1)-entries that have
+- For a single-project + N-multi-project multi-participant composite, getModels(X) returns (N+1)-entries that have
     - ProjectIdentity for each project
     - BuildIdentity for all results from the multi-project participant are equal
     - BuildIdentity from the single-project participant is not equal to the others
