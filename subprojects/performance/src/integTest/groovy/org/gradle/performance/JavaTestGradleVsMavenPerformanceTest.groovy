@@ -50,8 +50,8 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
 
         where:
         template          | size     | description                 | gradleTasks           | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 60
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 60
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | 10000         | 100
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | 5000          | 100
     }
 
     @Unroll("Gradle vs Maven #description build for #template")
@@ -80,8 +80,8 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
 
         where:
-        template          | size     | description        | gradleTasks        | equivalentMavenTasks | maxDiffMillis | maxDiffMB
-        'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build'] | ['clean', 'verify']  | 1000          | 60
-        'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['build']          | ['verify']           | 0             | 60
+        template          | size     | description        | gradleTasks            | equivalentMavenTasks | maxDiffMillis | maxDiffMB
+        'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build']     | ['clean', 'verify']  | 1000          | 100
+        'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['cleanTest', 'build'] | ['verify']           | 5000          | 100
     }
 }
