@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.Nullable;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.Cast;
@@ -31,6 +32,7 @@ import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -81,7 +83,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             ProjectConnection projectConnection = connect(participant, compositeParameters);
             try {
                 if (HierarchicalElement.class.isAssignableFrom(modelType) && modelType != IdeaProject.class && modelType != BasicIdeaProject.class) {
-                    fetchHierarchicalModels(results, projectConnection, (Class<? extends HierarchicalElement>) modelType, cancellationToken, progressLoggerFactory);
+                    fetchHierarchicalModels(results, projectConnection, Cast.<Class<? extends HierarchicalElement>>uncheckedCast(modelType), cancellationToken, progressLoggerFactory);
+                } else if (modelType == BuildEnvironment.class) {
+                    fetchPerBuildModels(results, projectConnection, modelType, cancellationToken, progressLoggerFactory);
                 } else {
                     fetchPerProjectModels(results, projectConnection, modelType, cancellationToken, progressLoggerFactory);
                 }
@@ -92,6 +96,13 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             }
         }
         return results;
+    }
+
+    private void fetchPerBuildModels(Set<Object> results, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+        Object result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
+        if(result != null) {
+            results.add(result);
+        }
     }
 
     private void fetchPerProjectModels(Set<Object> results, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
@@ -133,13 +144,22 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private void fetchHierarchicalModels(Set<Object> results, ProjectConnection projectConnection, Class<? extends HierarchicalElement> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        ModelBuilder<? extends HierarchicalElement> modelBuilder = projectConnection.model(modelType);
+        HierarchicalElement result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
+        if (result == null) {
+            return;
+        }
+        accumulateHierarchicalModels(results, result);
+    }
+
+    @Nullable
+    private <T> T fetchModel(ProjectConnection projectConnection, Class<T> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+        ModelBuilder<T> modelBuilder = projectConnection.model(modelType);
         modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
         modelBuilder.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
         if (cancellationToken.isCancellationRequested()) {
-            return;
+            return null;
         }
-        accumulateHierarchicalModels(results, modelBuilder.get());
+        return modelBuilder.get();
     }
 
     private void accumulateHierarchicalModels(Set<Object> allResults, HierarchicalElement element) {

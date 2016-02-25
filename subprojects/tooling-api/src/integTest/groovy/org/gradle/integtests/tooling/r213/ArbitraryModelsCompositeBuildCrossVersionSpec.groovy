@@ -82,7 +82,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         int getExpectedNumberOfModelResults() {
-            if (modelType in buildModels || modelType in hiearchicalSpecialModels) {
+            if (modelType == BuildEnvironment) {
                 getNumberOfBuilds()
             } else {
                 getNumberOfProjects()
