@@ -176,7 +176,7 @@ public class BuildExperimentRunner {
         final MeasuredOperationList results,
         final BuildExperimentInvocationInfo invocationInfo) {
         BuildExperimentSpec experiment = invocationInfo.getBuildExperimentSpec();
-        final Runnable runner = session.runner(Cast.<T>uncheckedCast(createInvocationCustomizer(invocationInfo)));
+        final Runnable runner = session.runner(Cast.<T>uncheckedCast(this.<S,T>createInvocationCustomizer(invocationInfo)));
 
         if (experiment.getListener() != null) {
             experiment.getListener().beforeInvocation(invocationInfo);
