@@ -56,7 +56,6 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
 
     @Deprecated
-    @SuppressWarnings("deprecation")
     public void setUseAnt(boolean useAnt) {
         SingleMessageLogger.nagUserOfDeprecated("useAnt",
             "The Ant-Based Scala compiler is deprecated, please see "
@@ -78,7 +77,6 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     }
 
     @Deprecated
-    @SuppressWarnings("deprecation")
     public void setFork(boolean fork) {
         SingleMessageLogger.nagUserOfDeprecated("fork",
             "The fork option for the scala compiler is deprecated, please see "
@@ -93,6 +91,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return useCompileDaemon;
     }
 
+    @Deprecated
     public void setUseCompileDaemon(boolean useCompileDaemon) {
         this.useCompileDaemon = useCompileDaemon;
     }
@@ -108,6 +107,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return daemonServer;
     }
 
+    @Deprecated
     public void setDaemonServer(String daemonServer) {
         this.daemonServer = daemonServer;
     }

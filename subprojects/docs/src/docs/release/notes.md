@@ -88,7 +88,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Ant-based Scala compiler deprecation
 
-The [Zinc Scala compiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of [`ScalaCompileOptions#isUseAnt`](javadoc/org/gradle/api/tasks/scala/ScalaCompileOptions.html#isUseAnt%28%29) to `false` and we are deprecating the option. Also, since the Zinc Scala Compiler only works in `fork` mode, we are also defaulting that option to `true` and deprecating it. Please update your build scripts to remove uses of that option. For more information, see the [Scala Plugin](https://docs.gradle.org/current/userguide/scala_plugin.html) section of the User Guide.
+The [Zinc Scala compiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of [`ScalaCompileOptions#isUseAnt`](javadoc/org/gradle/api/tasks/scala/ScalaCompileOptions.html#isUseAnt%28%29) to `false` and we are deprecating the option. Also, since the Zinc Scala Compiler only works in `fork` mode, we are also defaulting that option to `true` and deprecating it. Please update your build scripts to remove uses of that option. For more information, see the [Scala Plugin](userguide/scala_plugin.html) section of the User Guide.
 
 ## Potential breaking changes
 
@@ -131,6 +131,10 @@ Should you want to exclude all files, including those in subdirectories, a multi
     }
 
 Note, this change affects all implementations of [`PatternFilterable`](javadoc/org/gradle/api/tasks/util/PatternFilterable.html), not just `FileTree`.
+
+### Undocumented `force` option on [Scala Plugin](userguide/scala_plugin.html) changed to `boolean`
+
+You may have a `force = <something>` option in your build file. Previously, this option was ignored by Gradle's Zinc Scala Compiler, but now it will be read and interpreted as a `boolean` value. Read more at [Scala Plugin](userguide/scala_plugin.html)
 
 ### Changes to the experimental software model
 

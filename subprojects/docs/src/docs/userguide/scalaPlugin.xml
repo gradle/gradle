@@ -298,20 +298,6 @@
     </section>
 
     <section>
-        <title>Fast Scala Compiler</title>
-        <para>The Scala plugin includes support for <ulink url="http://www.scala-lang.org/docu/files/tools/fsc.html">fsc</ulink>,
-            the Fast Scala Compiler. <literal>fsc</literal> runs in a separate daemon process and can speed up
-            compilation significantly.
-            <sample id="fsc" dir="scala/fsc" title="Enabling the Fast Scala Compiler">
-                <sourcefile file="build.gradle" snippet="use-fsc"/>
-            </sample>
-            Note that <literal>fsc</literal> expects to be restarted whenever the <emphasis>contents</emphasis> of its
-            compile class path change. (It does detect changes to the compile class path itself.) This makes it
-            less suitable for multi-project builds.
-        </para>
-    </section>
-
-    <section>
         <title>Compiling in external process</title>
         <para>
             Scala compilation takes place in an external process.
@@ -334,7 +320,13 @@
 
         <para>
             The Scala plugin defaults to incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
-            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler.
+            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. If you want to disable the
+            incremental compilation, set <literal>force = true</literal> in your build file:
+            <sample id="zinc" dir="scala/force" title="Forcing all code to be compiled">
+                <sourcefile file="build.gradle" snippet="force-compilation"/>
+            </sample>
+            <emphasis>Note:</emphasis> This will only cause all classes to be recompiled if at least one input source file has changed. If there are
+            no changes to the source files, the <literal>compileScala</literal> task will still be considered <literal>UP-TO-Date</literal> as usual.
         </para>
 
         <para>
