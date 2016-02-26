@@ -47,8 +47,8 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
     @Override
     public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
-        final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
         if (result.getModel() instanceof Map) {
+            final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
             Map<Object, Object> targetMap = new HashMap<Object, Object>();
             adapter.convertMap(targetMap, ProjectIdentity.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
             for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
@@ -56,9 +56,10 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
                 T model = (T)e.getValue();
                 models.add(new DefaultModelResult<T>(model, projectIdentity));
             }
+            return models;
         }
         // TODO: Adapt other types?
-        return models;
+        throw new UnsupportedOperationException(String.format("Produced result of type %s for model %s", result.getModel().getClass().getCanonicalName(), elementType.getCanonicalName()));
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {
