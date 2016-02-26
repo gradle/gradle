@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import org.apache.commons.io.FileUtils
 import org.gradle.wrapper.GradleUserHomeLookup
 
 @CompileStatic
@@ -151,6 +152,14 @@ class MavenInvocationSpec implements InvocationSpec {
 
         private MavenInstallation eventuallyDownloadMavenHome() {
             def installsRoot = new File(GradleUserHomeLookup.gradleUserHome(), "caches${File.separator}maven-installs")
+
+            // Temporary forced cleanup as an attempt to put windows agents back in proper shape
+            def target = new File(installsRoot, "apache-maven-$mavenVersion")
+            if(target.isDirectory() && !MavenInstallation.valid(target)) {
+                println "Forcibly cleaned up invalid $target"
+                FileUtils.deleteDirectory(target);
+            }
+
             def downloader = new MavenInstallationDownloader(installsRoot)
             downloader.getMavenInstallation(mavenVersion)
         }
