@@ -18,6 +18,8 @@ package org.gradle.tooling.composite.internal;
 
 import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 
 import java.io.File;
 import java.net.URI;
@@ -81,7 +83,7 @@ public class DefaultGradleBuild implements GradleBuildInternal {
         if (!projectPath.startsWith(":")) {
             throw new IllegalArgumentException("projectPath must be absolute and start with a :");
         }
-        return new DefaultProjectIdentity(toBuildIdentity(), projectDir, projectPath);
+        return new DefaultProjectIdentity((DefaultBuildIdentity)toBuildIdentity(), projectDir, projectPath);
     }
 
     @Override

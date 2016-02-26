@@ -17,12 +17,9 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
-import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
-import org.gradle.tooling.composite.internal.DefaultBuildIdentity;
 import org.gradle.tooling.composite.internal.DefaultModelResult;
-import org.gradle.tooling.composite.internal.DefaultProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -34,7 +31,6 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,16 +49,10 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
         BuildResult<?> result = buildModels(elementType, operationParameters);
         final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
         if (result.getModel() instanceof Map) {
-            // TODO: Convert to ModelResult
             Map<Object, Object> targetMap = new HashMap<Object, Object>();
-            adapter.convertMap(targetMap, String.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
+            adapter.convertMap(targetMap, ProjectIdentity.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
             for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
-                String projectIdentityString = (String)e.getKey();
-                String[] splits = projectIdentityString.split("[$]");
-                File rootDir = new File(splits[0]);
-                String projectPath = splits[1];
-                BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
-                ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, projectPath);
+                ProjectIdentity projectIdentity = (ProjectIdentity)e.getKey();
                 T model = (T)e.getValue();
                 models.add(new DefaultModelResult<T>(model, projectIdentity));
             }

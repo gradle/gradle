@@ -14,32 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.internal.protocol;
 
 import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.ProjectIdentity;
 
 import java.io.File;
+import java.io.Serializable;
 
-public class DefaultProjectIdentity implements ProjectIdentity {
-    private final BuildIdentity build;
+public class DefaultBuildIdentity implements BuildIdentity, Serializable {
     private final File rootDir;
-    private final String projectPath;
 
-    public DefaultProjectIdentity(BuildIdentity build, File rootDir, String projectPath) {
-        this.build = build;
+    public DefaultBuildIdentity(File rootDir) {
         this.rootDir = rootDir;
-        this.projectPath = projectPath;
     }
 
-    @Override
-    public BuildIdentity getBuild() {
-        return build;
+    public File getRootDir() {
+        return rootDir;
     }
 
     @Override
     public String toString() {
-        return String.format("project={ cpath=%s:%s, (%s) }", rootDir.getName(), projectPath, build);
+        return String.format("build=%s", rootDir.getAbsolutePath());
     }
 
     @Override
@@ -51,23 +46,14 @@ public class DefaultProjectIdentity implements ProjectIdentity {
             return false;
         }
 
-        DefaultProjectIdentity that = (DefaultProjectIdentity) o;
+        DefaultBuildIdentity that = (DefaultBuildIdentity) o;
 
-        if (!build.equals(that.build)) {
-            return false;
-        }
-        if (!rootDir.equals(that.rootDir)) {
-            return false;
-        }
-        return projectPath.equals(that.projectPath);
+        return rootDir.equals(that.rootDir);
 
     }
 
     @Override
     public int hashCode() {
-        int result = build.hashCode();
-        result = 31 * result + rootDir.hashCode();
-        result = 31 * result + projectPath.hashCode();
-        return result;
+        return rootDir.hashCode();
     }
 }

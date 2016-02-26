@@ -25,9 +25,12 @@ import org.gradle.internal.composite.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.*;
+import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
@@ -35,6 +38,8 @@ import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,11 +82,11 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             ProjectConnection projectConnection = connect(participant, compositeParameters);
             try {
                 if (modelType == BuildEnvironment.class) {
-                    // TODO:
-                    Object projectIdentity = participant.getProjectDir() + "$:";
-                    fetchPerBuildModels(results, projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory);
+                    File rootDir = participant.getProjectDir();
+                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), rootDir, ":");
+                    results.putAll(fetchPerBuildModels(projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 } else {
-                    fetchPerProjectModels(results, projectConnection, modelType, cancellationToken, progressLoggerFactory);
+                    results.putAll(fetchPerProjectModels(projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 }
             } catch (GradleConnectionException e) {
                 throw new CompositeBuildExceptionVersion1(e);
@@ -92,21 +97,31 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return results;
     }
 
-    private void fetchPerBuildModels(Map<Object, Object> results, Object projectIdentity, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+    private Map<Object, Object> fetchPerBuildModels(Object projectIdentity, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
         Object result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
         if(result != null) {
-            results.put(projectIdentity, result);
+            return Collections.singletonMap(projectIdentity, result);
         }
+        return Collections.emptyMap();
     }
 
-    private void fetchPerProjectModels(Map<Object, Object> results, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+    private Map<Object, Object> fetchPerProjectModels(ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+        Map<Object, Object> results = new HashMap<Object, Object>();
         BuildActionExecuter<Map<Object, Object>> buildActionExecuter = projectConnection.action(new FetchPerProjectModelAction(modelType.getName()));
         buildActionExecuter.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
         buildActionExecuter.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
-        if (cancellationToken.isCancellationRequested()) {
-            return;
+
+        if (!cancellationToken.isCancellationRequested()) {
+            for (Map.Entry<Object, Object> e : buildActionExecuter.run().entrySet()) {
+                InternalProjectIdentity internalProjectIdentity = (InternalProjectIdentity) e.getKey();
+                results.put(convertToProjectIdentity(internalProjectIdentity), e.getValue());
+            }
         }
-        results.putAll(buildActionExecuter.run());
+        return results;
+    }
+
+    private DefaultProjectIdentity convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
+        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.rootDir, internalProjectIdentity.projectPath);
     }
 
     private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<Map<Object, Object>> {
@@ -130,12 +145,20 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         private void fetchResults(Class<?> modelType, Map<Object, Object> results, BuildController controller, BasicGradleProject project, BasicGradleProject rootProject) {
             File rootDir = rootProject.getProjectDirectory();
-            // TODO: What kind of ProjectIdentity do we create?
-            Object projectIdentity = rootDir + "$" + project.getPath();
-            results.put(projectIdentity, controller.getModel(project, modelType));
+            results.put(new InternalProjectIdentity(rootDir, project.getPath()), controller.getModel(project, modelType));
             for (BasicGradleProject child : project.getChildren()) {
                 fetchResults(modelType, results, controller, child, rootProject);
             }
+        }
+    }
+
+    private static final class InternalProjectIdentity implements Serializable {
+        private final File rootDir;
+        private final String projectPath;
+
+        private InternalProjectIdentity(File rootDir, String projectPath) {
+            this.rootDir = rootDir;
+            this.projectPath = projectPath;
         }
     }
 
