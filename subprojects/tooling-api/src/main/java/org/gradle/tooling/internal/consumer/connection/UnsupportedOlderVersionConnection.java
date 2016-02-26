@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import java.util.Set;
+
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  *
@@ -71,5 +73,10 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
 
     private UnsupportedVersionException fail() {
         return new UnsupportedVersionException(String.format("Support for Gradle version %s was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later.", version));
+    }
+
+    @Override
+    public <T> Set<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "2.13");
     }
 }

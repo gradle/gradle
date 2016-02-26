@@ -50,31 +50,32 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
     private final Map<Class, TaskClassInfo> classInfos;
 
-    private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+    private final static Transformer<Iterable<File>, Object> FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
         public Iterable<File> transform(Object original) {
             File file = (File) original;
             return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
         }
     };
 
-    private final Transformer<Iterable<File>, Object> iterableFilePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+    private final static Transformer<Iterable<File>, Object> ITERABLE_FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
         @SuppressWarnings("unchecked")
         public Iterable<File> transform(Object original) {
             return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
         }
     };
 
-    private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
+    private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
             new InputFilePropertyAnnotationHandler(),
             new InputDirectoryPropertyAnnotationHandler(),
             new InputFilesPropertyAnnotationHandler(),
-            new OutputFilePropertyAnnotationHandler(OutputFile.class, filePropertyTransformer),
-            new OutputFilePropertyAnnotationHandler(OutputFiles.class, iterableFilePropertyTransformer),
-            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, filePropertyTransformer),
-            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, iterableFilePropertyTransformer),
+            new OutputFilePropertyAnnotationHandler(OutputFile.class, FILE_PROPERTY_TRANSFORMER),
+            new OutputFilePropertyAnnotationHandler(OutputFiles.class, ITERABLE_FILE_PROPERTY_TRANSFORMER),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, FILE_PROPERTY_TRANSFORMER),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, ITERABLE_FILE_PROPERTY_TRANSFORMER),
             new InputPropertyAnnotationHandler(),
             new NestedBeanPropertyAnnotationHandler());
-    private final ValidationAction notNullValidator = new ValidationAction() {
+
+    private final static ValidationAction NOT_NULL_VALIDATOR = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
             if (value == null) {
                 messages.add(String.format("No value has been specified for property '%s'.", propertyName));
@@ -252,7 +253,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         public boolean incremental;
     }
 
-    private class Validator implements Action<Task>, TaskValidator {
+    private static class Validator implements Action<Task>, TaskValidator {
         private Set<PropertyInfo> properties = new LinkedHashSet<PropertyInfo>();
 
         public void addInputsAndOutputs(final TaskInternal task) {
@@ -309,7 +310,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 }
                 Field field = fields.get(fieldName);
 
-                PropertyInfo propertyInfo = new PropertyInfo(type, this, parent, propertyName, method, field);
+                PropertyInfo propertyInfo = new PropertyInfo(this, parent, propertyName, method, field);
 
                 attachValidationActions(propertyInfo, fieldName, field);
 
@@ -329,7 +330,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         private void attachValidationActions(PropertyInfo propertyInfo, String fieldName, Field field) {
             final Method method = propertyInfo.method;
-            for (PropertyAnnotationHandler handler : handlers) {
+            for (PropertyAnnotationHandler handler : HANDLERS) {
                 attachValidationAction(handler, propertyInfo, fieldName, method, field);
             }
         }
@@ -349,7 +350,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
             Annotation optional = annotationTarget.getAnnotation(org.gradle.api.tasks.Optional.class);
             if (optional == null) {
-                propertyInfo.setNotNullValidator(notNullValidator);
+                propertyInfo.setNotNullValidator(NOT_NULL_VALIDATOR);
             }
 
             propertyInfo.attachActions(handler);
@@ -393,11 +394,9 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         private ValidationAction notNullValidator = NO_OP_VALIDATION_ACTION;
         private UpdateAction configureAction = NO_OP_CONFIGURATION_ACTION;
         public boolean required;
-        private final Class<?> type;
         private final Field instanceVariableField;
 
-        private PropertyInfo(Class<?> type, Validator validator, PropertyInfo parent, String propertyName, Method method, Field instanceVariableField) {
-            this.type = type;
+        private PropertyInfo(Validator validator, PropertyInfo parent, String propertyName, Method method, Field instanceVariableField) {
             this.validator = validator;
             this.parent = parent;
             this.propertyName = propertyName;

@@ -38,6 +38,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def converter = new PropertiesToDaemonParametersConverter()
     def params = new DaemonParameters(new BuildLayoutParameters())
 
+    def "allows whitespace around boolean properties"() {
+        when:
+        converter.convert([ (DAEMON_ENABLED_PROPERTY): 'true ' ], params)
+        then:
+        params.daemonUsage == EXPLICITLY_ENABLED
+    }
+
     def "can configure jvm args combined with a system property"() {
         when:
         converter.convert([(JVM_ARGS_PROPERTY): '-Xmx512m -Dprop=value'], params)

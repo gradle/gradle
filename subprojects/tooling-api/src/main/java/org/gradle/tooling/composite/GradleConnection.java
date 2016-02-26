@@ -23,7 +23,6 @@ import org.gradle.tooling.ResultHandler;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Set;
 
 /**
  * Represents a connection to a composite Gradle build.
@@ -33,12 +32,15 @@ import java.util.Set;
  * able to coordinate across these projects, so that they appear in some way as a single build unit.</p>
  *
  * <p>Operations (fetching models, executing tasks, etc) are performed across all Gradle projects in a composite.</p>
+ *
+ * @since 2.13
  */
 @Incubating
 public interface GradleConnection {
     /**
      * Builds a new composite Gradle connection.
      */
+    @Incubating
     interface Builder {
         /**
          * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
@@ -49,43 +51,47 @@ public interface GradleConnection {
         Builder useGradleUserHomeDir(File gradleUserHomeDir);
 
         /**
-         * Adds a Gradle build as a participant in a composite.
+         * Specifies the Gradle distribution for the coordinator to use.
          *
-         * Defaults to a project-specific Gradle version.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
-         *
-         * @return this
-         */
-        Builder addBuild(File rootProjectDirectory);
-
-        /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
-         *
-         * @param rootProjectDirectory Root directory of Gradle build
          * @param gradleHome The Gradle installation directory.
          * @return this
          */
-        Builder addBuild(File rootProjectDirectory, File gradleHome);
+        Builder useInstallation(File gradleHome);
 
         /**
-         * Adds a Gradle build as a participant in a composite, specifying the version of Gradle to use.
+         * Specifies the version of Gradle for the coordinator to use.
          *
-         * @param rootProjectDirectory Root directory of Gradle build
          * @param gradleVersion The version to use.
          * @return this
          */
-        Builder addBuild(File rootProjectDirectory, String gradleVersion);
+        Builder useGradleVersion(String gradleVersion);
 
         /**
-         * Adds a Gradle build as a participant in a composite, specifying the Gradle distribution to use.
+         * Specifies the Gradle distribution for the coordinator to use.
          *
-         * @param rootProjectDirectory Root directory of Gradle build
          * @param gradleDistribution The distribution to use.
          *
          * @return this
          */
-        Builder addBuild(File rootProjectDirectory, URI gradleDistribution);
+        Builder useDistribution(URI gradleDistribution);
+
+        /**
+         * Adds a Gradle build as a participant in a composite.
+         *
+         * @param gradleBuild Gradle build to add to the composite
+         *
+         * @return this
+         */
+        Builder addBuild(GradleBuild gradleBuild);
+
+        /**
+         * Add Gradle builds as participants in a composite.
+         *
+         * @param gradleBuilds Gradle builds to add to the composite
+         *
+         * @return this
+         */
+        Builder addBuilds(GradleBuild... gradleBuilds);
 
         /**
          * Builds the connection. You should call {@link org.gradle.tooling.composite.GradleConnection#close()} when you are finished with the connection.
@@ -106,7 +112,7 @@ public interface GradleConnection {
      * @throws GradleConnectionException
      * @throws IllegalStateException
      */
-    <T> Set<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
+    <T> Iterable<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
      * Starts fetching a Set of snapshots of the model of the given type for this composite, passing the result to the given handler when complete. This method returns immediately, and the result is later
@@ -125,7 +131,7 @@ public interface GradleConnection {
      * @param <T>
      * @throws IllegalStateException
      */
-    <T> void getModels(Class<T> modelType, ResultHandler<? super Set<T>> handler) throws IllegalStateException;
+    <T> void getModels(Class<T> modelType, ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException;
 
     /**
      * Creates a builder which can be used to query the model of the given type for all projects in the composite.
@@ -136,7 +142,7 @@ public interface GradleConnection {
      * @param modelType
      * @param <T>
      */
-    <T> ModelBuilder<Set<T>> models(Class<T> modelType);
+    <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

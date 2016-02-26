@@ -39,13 +39,15 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         super(delegate, new R21VersionDetails(delegate.getMetaData().getVersion()));
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
+        modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
+        actionRunner = new CancellableActionRunner(connection, adapter, exceptionTransformer);
+    }
 
-        modelProducer = new PluginClasspathInjectionSupportedCheckModelProducer(
+    protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+        return new PluginClasspathInjectionSupportedCheckModelProducer(
             getVersionDetails().getVersion(),
             new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer)
         );
-
-        actionRunner = new CancellableActionRunner(connection, adapter, exceptionTransformer);
     }
 
     @Override

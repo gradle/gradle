@@ -72,6 +72,10 @@ The script block (or data extracted from it) and the build platform definition w
  and the location of the build platform definition. Given this information, Gradle will resolve and cache the information. Out of scope for this stories is the evaluation
 of the build platform meta-data.
 
+### Estimate
+
+5 days
+
 ### API
 
     package org.gradle.api.buildplatform;
@@ -150,11 +154,19 @@ definitions would behave based on the usual TTL definitions.
     - For dynamic/changing versions TTL is adhered.
     - The resolved build platform artifacts are not further processed.
 
+### Open issue
+
+- Customizing the TTL for a build platform version
+
 ## Story - Gradle evaluates base information in build platform meta-data
 
 Gradle needs to automatically evaluate and apply the resolved build platform definition. A build platform definition will only support a JSON format for now. The scope of this story
 is to parse the JSON file, extract the relevant information and apply the definition to the build. For the scope of this story the information that is extracted is the base information
 about the build platform: `group`, `name` and `version`.
+
+### Estimate
+
+3 days
 
 ### Build platform meta-data
 
@@ -192,6 +204,10 @@ about the build platform: `group`, `name` and `version`.
 
 The build platform meta-data can include an optional init script declaration that should be processed automatically by the build.
 This story extends the JSON definition by an init script attribute. Gradle evaluates this flag upon resolution and processes the provided init script.
+
+### Estimate
+
+4 days
 
 ### Build platform meta-data
 
@@ -232,6 +248,10 @@ A current limitation of Gradle is the inability to apply an external (outside th
 plugin from an init script by identifier (see [GRADLE-2407](https://issues.gradle.org/browse/GRADLE-2407)).
 Instead of using the identifier, the fully qualified plugin class name has to be used. This story removes
 the limitation to provide a smoother user experience.
+
+### Estimate
+
+10 days
 
 ### Example of current behavior
 
@@ -310,6 +330,10 @@ The execution of `gradle wrapper` uses the version "2.8" as value for the Gradle
 The build platform meta-data can specify the Gradle version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
 to the meta-data that verifies the compatibility with Gradle version executing the Gradle build.
 
+### Estimate
+
+3 days
+
 ### Build platform meta-data
 
     {
@@ -344,6 +368,10 @@ to the meta-data that verifies the compatibility with Gradle version executing t
 
 The `wrapper` task uses the Gradle version definition to provide a default value for the Gradle distribution URL.
 
+### Estimate
+
+4 days
+
 ### Implementation
 
 - The build platform definition supports a way to declare a Gradle version.
@@ -358,6 +386,10 @@ The `wrapper` task uses the Gradle version definition to provide a default value
 
 - If no Gradle version is specified in the build platform definition, the `wrapper` task works as before.
 - If a build platform definition specifies a Gradle version, the `wrapper` task reflects the value in the Gradle distribution URL.
+- If the command line option specifies the Gradle version with `--gradle-version` then validate if the provided version is compatible with the one
+provided by the build platform.
+    - If versions match, use the version in the Gradle distribution URL.
+    - If versions don't match, fail the build with an error message.
 - Up-to-date checks for the `wrapper` task takes into account the Gradle version of the build platform definition.
 
 ## Open issues
@@ -369,6 +401,10 @@ The `wrapper` task uses the Gradle version definition to provide a default value
 
 The build platform meta-data can specify the Java version compatible with any of the builds consuming the build platform definition. This story introduces a compatibility attribute
 to the meta-data that verifies the compatibility with Java version executing the Gradle build.
+
+### Estimate
+
+3 days
 
 ### Build platform meta-data
 
@@ -515,3 +551,7 @@ to publish to the Gradle plugin portal. The `buildPlatform` definition of a plat
 
 -
 
+## Open issues
+
+- Potential performance impact when parsing the `settings.gradle` file
+- Enforcing a specific build platform definition version across all projects in an organization

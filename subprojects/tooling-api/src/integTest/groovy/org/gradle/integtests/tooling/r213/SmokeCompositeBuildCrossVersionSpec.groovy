@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r212
+package org.gradle.integtests.tooling.r213
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.idea.IdeaProject
 
 /**
  * Basic tests for building and retrieving models from a composite.
@@ -32,16 +31,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         createComposite()
         then:
         thrown(IllegalStateException)
-    }
-
-    // TODO: Remove this test when we support more model types
-    def "throws UnsupportedOperationException when trying to retrieve anything other than EclipseProject"() {
-        when:
-        withCompositeConnection(projectDir("project")) { connection ->
-            connection.getModels(IdeaProject)
-        }
-        then:
-        thrown(UnsupportedOperationException)
     }
 
     @NotYetImplemented
@@ -130,6 +119,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         then:
         // should only find 'project', not the other projects defined in root.
         models.size() == 1
-        models[0].gradleProject.projectDirectory == project
+        models[0].model.gradleProject.projectDirectory == project
     }
 }

@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.composite;
 
-import java.io.Serializable;
-import java.util.Set;
+import org.gradle.api.Incubating;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Identifies a Gradle project.
  *
- * @since 2.12
+ * <p>
+ *     A Gradle Project is a project in a multi-project Gradle build or a single "standalone" project.
+ * </p>
+ *
+ * @since 2.13
  */
-public class SetContainer implements Serializable {
-    private final Set<?> containedSet;
-
-    public SetContainer(Set<?> containedSet) {
-        this.containedSet = containedSet;
-    }
-
-    public Set<?> getResult() {
-        return containedSet;
-    }
+@Incubating
+public interface ProjectIdentity {
+    /**
+     * Identity of the build this project is a member of.
+     * @return build identity, never null.
+     */
+    BuildIdentity getBuild();
 }

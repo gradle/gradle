@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r212
+package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.BuildException
@@ -41,7 +41,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         }
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
-            connection.getModels(EclipseProject)
+            unwrap(connection.getModels(EclipseProject))
         }
         then:
         models.size() == 4
@@ -63,7 +63,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         }
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
-            connection.getModels(EclipseProject)
+            unwrap(connection.getModels(EclipseProject))
         }
         then:
         models.size() == 1
@@ -88,7 +88,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         def composite = createComposite(singleBuild)
 
         when:
-        def firstRetrieval = composite.getModels(EclipseProject)
+        def firstRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         firstRetrieval.size() == 1
@@ -103,7 +103,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 """
         }
         and:
-        def secondRetrieval = composite.getModels(EclipseProject)
+        def secondRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         secondRetrieval.size() == 2
@@ -116,7 +116,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
             settingsFile << "include 'b', 'c'"
         }
         and:
-        def thirdRetrieval = composite.getModels(EclipseProject)
+        def thirdRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         thirdRetrieval.size() == 4
@@ -128,7 +128,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         singleBuild.deleteDir()
 
         and:
-        def fourthRetrieval = composite.getModels(EclipseProject)
+        def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
         def e = thrown(BuildException)
@@ -144,7 +144,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         composite?.close()
     }
 
-    Set<EclipseProject> rootProjects(Set<EclipseProject> projects) {
+    Iterable<EclipseProject> rootProjects(Iterable<EclipseProject> projects) {
         projects.findAll { it.parent == null }
     }
 

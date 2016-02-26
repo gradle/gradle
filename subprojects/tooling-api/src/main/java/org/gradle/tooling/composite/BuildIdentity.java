@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.composite;
 
-import org.gradle.tooling.model.eclipse.EclipseProject;
-
-import java.util.Set;
+import org.gradle.api.Incubating;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Identifies a Gradle build.
+ * <p>
+ *     A Gradle Build is a collection of one or more projects.
+ * </p>
  *
- * @since 2.12
+ * @since 2.13
  */
-public interface SetOfEclipseProjects {
-
-    /**
-     * A flattened set of all projects in the Eclipse workspace.
-     * These project models are fully configured, and may be expensive to calculate.
-     * Note that not all projects necessarily share the same root.
-     */
-    Set<EclipseProject> getResult();
+@Incubating
+public interface BuildIdentity {
 }

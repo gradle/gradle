@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.composite;
 
-import java.io.File;
-import java.net.URI;
+import org.gradle.api.Incubating;
 
-public interface GradleParticipantBuild {
-    File getProjectDir();
+/**
+ * TODO: Javadoc
+ *
+ * @param <T> Type of model in the result
+ * @since 2.13
+ */
+@Incubating
+public interface ModelResult<T> {
+    /**
+     * Model produced
+     *
+     * @return the model, never null.
+     */
+    T getModel();
 
-    String getDisplayName();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
+    /**
+     * Identity of the project this model was produced from.
+     *
+     * @return the project identity, never null.
+     */
+    ProjectIdentity getProjectIdentity();
 }
