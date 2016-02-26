@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal
+package org.gradle.tooling.internal.composite
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;

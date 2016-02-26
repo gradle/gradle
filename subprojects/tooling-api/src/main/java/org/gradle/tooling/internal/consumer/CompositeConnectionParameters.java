@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.composite.internal.GradleBuildInternal;
+import org.gradle.tooling.internal.composite.GradleBuildInternal;
 
 import java.util.List;
 

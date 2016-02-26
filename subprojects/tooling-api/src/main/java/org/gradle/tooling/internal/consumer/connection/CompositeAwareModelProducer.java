@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
-import org.gradle.tooling.composite.internal.DefaultModelResult;
+import org.gradle.tooling.internal.composite.DefaultModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
