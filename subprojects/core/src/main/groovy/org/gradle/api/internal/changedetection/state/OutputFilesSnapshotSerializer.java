@@ -21,8 +21,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionSnapshotter.OutputFilesSnapshot> {
     private final Serializer<FileCollectionSnapshot> serializer;
@@ -34,31 +34,22 @@ class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionS
     }
 
     public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
-        Map<String, Long> rootFileIds = new HashMap<String, Long>();
+        Set<String> roots = new LinkedHashSet<String>();
         int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
-            String key = stringInterner.intern(decoder.readString());
-            boolean notNull = decoder.readBoolean();
-            Long value = notNull? decoder.readLong() : null;
-            rootFileIds.put(key, value);
+            String path = stringInterner.intern(decoder.readString());
+            roots.add(path);
         }
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
-        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
+        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(roots, snapshot);
     }
 
     public void write(Encoder encoder, OutputFilesCollectionSnapshotter.OutputFilesSnapshot value) throws Exception {
-        int rootFileIds = value.rootFileIds.size();
+        int rootFileIds = value.roots.size();
         encoder.writeSmallInt(rootFileIds);
-        for (String key : value.rootFileIds.keySet()) {
-            Long id = value.rootFileIds.get(key);
+        for (String key : value.roots) {
             encoder.writeString(key);
-            if (id == null) {
-                encoder.writeBoolean(false);
-            } else {
-                encoder.writeBoolean(true);
-                encoder.writeLong(id);
-            }
         }
 
         serializer.write(encoder, value.filesSnapshot);

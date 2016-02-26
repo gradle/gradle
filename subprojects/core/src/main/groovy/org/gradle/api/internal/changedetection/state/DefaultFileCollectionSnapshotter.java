@@ -50,7 +50,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(new HashMap<String, IncrementalFileSnapshot>());
+        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
     }
 
     public FileCollectionSnapshot snapshot(final FileCollection input) {

@@ -36,7 +36,7 @@ class OutputFilesSnapshotSerializerTest extends SerializerSpec {
         OutputFilesCollectionSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, serializer)
 
         then:
-        out.rootFileIds == ['x': 14L]
+        out.roots == ['x': 14L]
         out.filesSnapshot == snapshot
     }
 }
