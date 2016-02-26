@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.consumer.BlockingResultHandler;
@@ -38,7 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
-public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<Set<T>> {
+public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<Iterable<ModelResult<T>>> {
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
@@ -55,25 +56,25 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     @Override
-    public Set<T> get() throws GradleConnectionException, IllegalStateException {
-        BlockingResultHandler<Set> handler = new BlockingResultHandler<Set>(Set.class);
+    public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
+        BlockingResultHandler<Iterable> handler = new BlockingResultHandler<Iterable>(Iterable.class);
         get(handler);
         return handler.getResult();
     }
 
     @Override
-    public void get(final ResultHandler<? super Set<T>> handler) throws IllegalStateException {
+    public void get(final ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<Set<T>>() {
+        connection.run(new ConsumerAction<Iterable<ModelResult<T>>>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
-            public Set<T> run(ConsumerConnection connection) {
-                Set<T> model = connection.buildModels(modelType, operationParameters);
+            public Iterable<ModelResult<T>> run(ConsumerConnection connection) {
+                Iterable<ModelResult<T>> model = connection.buildModels(modelType, operationParameters);
                 return model;
             }
-        }, new ResultHandlerAdapter<Set<T>>(handler) {
+        }, new ResultHandlerAdapter<Iterable<ModelResult<T>>>(handler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());

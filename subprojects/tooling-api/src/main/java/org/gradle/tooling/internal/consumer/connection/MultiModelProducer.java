@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
-import java.util.Set;
-
 public interface MultiModelProducer extends ModelProducer {
-    <T> Set<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters);
+    <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters);
 }

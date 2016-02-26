@@ -17,6 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.composite.internal.DefaultBuildIdentity;
+import org.gradle.tooling.composite.internal.DefaultModelResult;
+import org.gradle.tooling.composite.internal.DefaultProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -26,8 +31,11 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -40,13 +48,36 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
     }
 
     @Override
-    public <T> Set<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
         Set<T> models = new LinkedHashSet<T>();
         if (result.getModel() instanceof Iterable) {
             adapter.convertCollection(models, elementType, Iterable.class.cast(result.getModel()), getCompatibilityMapperAction());
         }
-        return models;
+        return transform(models);
+    }
+
+    private <T> Iterable<ModelResult<T>> transform(Set<T> results) {
+        return CollectionUtils.collect(results, new Transformer<ModelResult<T>, T>() {
+            @Override
+            public ModelResult<T> transform(T t) {
+                return new DefaultModelResult<T>(t, extractProjectIdentityHack(t));
+            }
+        });
+    }
+
+    private <T> ProjectIdentity extractProjectIdentityHack(T result) {
+        if (result instanceof EclipseProject) {
+            EclipseProject eclipseProject = (EclipseProject)result;
+            EclipseProject rootProject = eclipseProject;
+            while (rootProject.getParent()!=null) {
+                rootProject = rootProject.getParent();
+            }
+            File rootDir = rootProject.getGradleProject().getProjectDirectory();
+            String projectPath = eclipseProject.getGradleProject().getPath();
+            return new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), rootDir, projectPath);
+        }
+        return null;
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {

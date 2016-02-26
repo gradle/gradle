@@ -22,6 +22,10 @@ import org.gradle.tooling.composite.ProjectIdentity
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+
+    def setup() {
+        embedCoordinatorAndParticipants = true
+    }
     private Iterable<ModelResult> modelResults
 
     def "can correlate models in a single project, single participant composite"() {

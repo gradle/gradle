@@ -17,12 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.internal.Exceptions;
-
-import java.util.Set;
 
 /**
  * A {@code ConsumerConnection} implementation for a Gradle version that does not support the tooling API.
@@ -56,7 +55,7 @@ public class NoToolingApiConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> Set<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.13");
     }
 }

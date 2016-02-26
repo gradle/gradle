@@ -45,7 +45,7 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
     @Override
     public <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
-        return new ModelResultCompositeModelBuilder<T>(new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters));
+        return new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
     }
 
     private <T> void checkSupportedModelType(Class<T> modelType) {

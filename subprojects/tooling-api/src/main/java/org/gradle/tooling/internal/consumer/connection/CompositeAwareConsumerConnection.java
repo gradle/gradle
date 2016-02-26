@@ -18,14 +18,13 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
-
-import java.util.Set;
 
 /**
  * An adapter for {@link org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection}.
@@ -47,7 +46,7 @@ public class CompositeAwareConsumerConnection extends TestExecutionConsumerConne
     }
 
     @Override
-    public <T> Set<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         return getMultiModelProducer().produceModels(elementType, operationParameters);
     }
 }

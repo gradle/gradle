@@ -18,12 +18,11 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Set;
 
 public class NonCancellableConsumerConnectionAdapter implements ConsumerConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonCancellableConsumerConnectionAdapter.class);
@@ -79,7 +78,7 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
     }
 
     @Override
-    public <T> Set<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         return delegate.buildModels(elementType, operationParameters);
     }
 }

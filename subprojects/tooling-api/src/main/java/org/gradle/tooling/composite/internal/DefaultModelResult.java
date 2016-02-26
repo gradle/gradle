@@ -23,7 +23,7 @@ public class DefaultModelResult<T> implements ModelResult<T> {
     private final T model;
     private final ProjectIdentity projectIdentity;
 
-    DefaultModelResult(T model, ProjectIdentity projectIdentity) {
+    public DefaultModelResult(T model, ProjectIdentity projectIdentity) {
         this.model = model;
         this.projectIdentity = projectIdentity;
     }
