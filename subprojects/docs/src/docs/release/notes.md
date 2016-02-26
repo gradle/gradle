@@ -1,12 +1,10 @@
-The Gradle team is pleased to bring you Gradle 2.12. This release brings support for compile only dependencies, improved build script compilation speed, better IDE support and still more improvements to the software model.
+The Gradle team is pleased to bring you Gradle 2.12. This release brings support for compile only dependencies, improved build script compilation speed and even better IDE support.
 
 Gradle 2.12 now finally includes support for modeling compile only dependencies when using the [Java plugin](userguide/java_plugin.html). This capability establishes a much clearer migration path for those coming from Maven and have build requirements for which leveraging 'provided' scope was typically the solution.
 
 We've introduced some improvements to test execution from the Gradle command line. Support has been added for executing specific test suites and parameterized tests making test-driven development using Gradle even easier.
 
 With each Gradle release we strive to not only make the command line Gradle experience better but also using Gradle in conjunction with your favorite IDE even more enjoyable. Using Gradle with IntelliJ IDEA and the [IDEA plugin](userguide/idea_plugin.html) now works better than ever. Manually managing Java target compatibility settings is no longer necessary as the [IDEA plugin](userguide/idea_plugin.html) will now ensure that Gradle and the IDE consistently use the same compiler settings.
-
-In addition, we've continued work on the software model to make it easier for developers and plugin authors to extend Gradle to support building next generation projects.
 
 ## New and noteworthy
 
@@ -53,7 +51,7 @@ Beginning with IntelliJ IDEA version 14, Scala projects are no longer configured
 
 This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
 
-### Software model improvements
+### Experimental software model improvements
 
 #### Model data report
 
