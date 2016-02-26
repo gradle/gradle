@@ -46,4 +46,25 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         "multi"           | millis(1000)
         "lotDependencies" | millis(1000)
     }
+
+    @Unroll("Up-to-date full build (daemon) - #testProject")
+    def "up-to-date full build Java build with daemon"() {
+        given:
+        runner.testId = "up-to-date full build Java build $testProject (daemon)"
+        runner.testProject = testProject
+        runner.tasksToRun = ['build']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.targetVersions = ['2.0', '2.4', '2.8', 'last']
+        runner.useDaemon
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+        where:
+        testProject       | maxExecutionTimeRegression
+        "bigOldJava"      | millis(1000)
+        "lotDependencies" | millis(1000)
+    }
 }
