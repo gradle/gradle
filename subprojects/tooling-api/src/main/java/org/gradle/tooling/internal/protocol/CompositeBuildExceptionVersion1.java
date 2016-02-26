@@ -20,7 +20,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 2.12
+ * @since 2.13
  */
 public class CompositeBuildExceptionVersion1 extends RuntimeException {
     public CompositeBuildExceptionVersion1(Throwable throwable) {

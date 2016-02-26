@@ -19,7 +19,7 @@ package org.gradle.tooling;
 /**
  * Thrown when a Gradle composite build fails or when a model cannot be built.
  *
- * @since 2.12
+ * @since 2.13
  */
 public class CompositeBuildException extends BuildException {
     public CompositeBuildException(String message, Throwable throwable) {
