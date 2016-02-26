@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -90,7 +91,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
 
             }
         });
-        return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
+        return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(new SimpleFileCollection(theFiles)));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
