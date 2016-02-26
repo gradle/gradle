@@ -25,9 +25,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
-    def setup() {
-        embedCoordinatorAndParticipants = true
-    }
 
     def "can correlate errors with build that caused it"() {
         given:
