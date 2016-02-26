@@ -386,7 +386,7 @@ The `wrapper` task uses the Gradle version definition to provide a default value
 
 - If no Gradle version is specified in the build platform definition, the `wrapper` task works as before.
 - If a build platform definition specifies a Gradle version, the `wrapper` task reflects the value in the Gradle distribution URL.
-- If the command line option specifies the Gradle version with `--gradleVersion` then validate if the provided version is compatible with the one
+- If the command line option specifies the Gradle version with `--gradle-version` then validate if the provided version is compatible with the one
 provided by the build platform.
     - If versions match, use the version in the Gradle distribution URL.
     - If versions don't match, fail the build with an error message.
