@@ -1,10 +1,10 @@
-The Gradle team is please to bring you Gradle 2.12. This release brings support for compile only dependencies, improved build script compilation speed, better IDE support and still more improvements to the software model.
+The Gradle team is pleased to bring you Gradle 2.12. This release brings support for compile only dependencies, improved build script compilation speed, better IDE support and still more improvements to the software model.
 
 Gradle 2.12 now finally includes support for modeling compile only dependencies when using the [Java plugin](userguide/java_plugin.html). This capability establishes a much clearer migration path for those coming from Maven and have build requirements for which leveraging 'provided' scope was typically the solution.
 
 We've introduced some improvements to test execution from the Gradle command line. Support has been added for executing specific test suites and parameterized tests making test-driven development using Gradle even easier.
 
-With each Gradle release we strive to not only make the command line Gradle experience better but also using Gradle in conjunction with your favorite IDE even more enjoyable. Using Gradle with InteliJ IDEA and the [IDEA plugin](userguide/idea_plugin.html) now works better than ever. Manually managing Java target compatibility settings is no longer necessary as the [IDEA plugin](userguide/idea_plugin.html) will now ensure that Gradle and the IDE consistently use the same compiler settings.
+With each Gradle release we strive to not only make the command line Gradle experience better but also using Gradle in conjunction with your favorite IDE even more enjoyable. Using Gradle with IntelliJ IDEA and the [IDEA plugin](userguide/idea_plugin.html) now works better than ever. Manually managing Java target compatibility settings is no longer necessary as the [IDEA plugin](userguide/idea_plugin.html) will now ensure that Gradle and the IDE consistently use the same compiler settings.
 
 In addition, we've continued work on the software model to make it easier for developers and plugin authors to extend Gradle to support building next generation projects.
 
@@ -43,9 +43,9 @@ This feature was contributed by [Alex Landau](https://github.com/AlexLandau).
 
 ### IDE integration improvements
 
-#### Idea Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
+#### IDEA Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
 
-The Gradle [IDEA plugin](userguide/idea_plugin.html) generates configuration files allowing a Gradle project to be developed using IntelliJ IDEA. Previous versions of Gradle did not consider `targetCompatibility` settings for Java projects when generating IDEA configuration. This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest targetCompatibility value of all imported subprojects. For multi-project Gradle builds that contain a mix of `targetCompatibility` values, the generated IDEA module for subprojects deviating from the project bytecode version will include an override for the appropriate 'module bytecode version'.
+The Gradle [IDEA plugin](userguide/idea_plugin.html) generates configuration files allowing a Gradle project to be developed using IntelliJ IDEA. Previous versions of Gradle did not consider `targetCompatibility` settings for Java projects when generating IDEA configuration. This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest `targetCompatibility` value of all imported subprojects. For multi-project Gradle builds that contain a mix of `targetCompatibility` values, the generated IDEA module for subprojects deviating from the project bytecode version will include an override for the appropriate 'module bytecode version'.
 
 #### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
 
@@ -57,7 +57,7 @@ This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbo
 
 #### Model data report
 
-The model report is quite verbose by default. For each node of the model, it displays the types all properties as well as any rules that created or mutated them. However, you might only want to see the state of data in the model in order to validate your build configuration. In this case, you can now request a more concise model report using `gradle model --format short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format full`.
+The model report is quite verbose by default. For each node of the model, it displays the types of all properties as well as any rules that created or mutated them. However, you might only want to see the state of data in the model in order to validate your build configuration. In this case, you can now request a more concise model report using `gradle model --format short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format full`.
 
 #### Fine grained application of rules
 
@@ -72,11 +72,11 @@ Two new annotations have been added:
 
 #### Apply rule to all descendant elements matching type in scope
 
-It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type. More information about this can be found in the [Sotfware model section](userguide/software_model.html#binding_all_elements_in_scope) of the user guide.
+It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type. More information about this can be found in the [Sotfware model](userguide/software_model.html#binding_all_elements_in_scope) section of the user guide.
 
 #### Declaration of local JVM installations
 
-It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and future versions of Gradle will leverage this to select the appropriate toolchain when compiling Java sources. More information about this can be found in the [Java software model section](userguide/java_software.html#declaring_java_toolchains) of the user guide
+It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and future versions of Gradle will leverage this to select the appropriate toolchain when compiling Java sources. More information about this can be found in the [Java software model](userguide/java_software.html#declaring_java_toolchains) section of the user guide.
 
 ## Fixed issues
 
@@ -138,7 +138,7 @@ You may have a `force = <something>` option in your build file. Previously, this
 
 ### Changes to the experimental software model
 
-One of the objectives of the software model is to describe _what_ you want to build instead of _how_. In particular, you might want to describe that you are building a web application. That application can be seen as an aggregate of libraries, but also sources, static resources, etc. A library can be seen as an aggregate of sources, producing different binaries depending on the target platform, the CPU architecture, ... A source set may also be viewed as a component that can itself be built (e.g. generated sources). To reflect this idea that "everything is a component" and "components are composed of other components", the `ComponentSpec` hierarchy has been reorganised. This will greatly simplify the creation of custom components, as well as reduce of the amount of component type specific code, by composing behavior, rather than inheriting it.
+One of the objectives of the software model is to describe _what_ you want to build instead of _how_. In particular, you might want to describe that you are building a web application. That application can be seen as an aggregate of libraries, but also sources, static resources, etc. A library can be seen as an aggregate of sources, producing different binaries depending on the target platform, the CPU architecture, ... A source set may also be viewed as a component that can itself be built (e.g. generated sources). To reflect this idea that "everything is a component" and "components are composed of other components", the `ComponentSpec` hierarchy has been reorganised. This will greatly simplify the creation of custom components, as well as reduce the amount of component type specific code, by composing behavior, rather than inheriting it.
 
 - The `sources` and `binaries` properties of `ComponentSpec` have been moved to dedicated subtypes (resp. `SourceComponentSpec` and `VariantComponentSpec`)
 - `GeneralComponentSpec` is the base interface for all components that are built from sources and can generate multiple variants (typically, depending on the target platform)
@@ -168,7 +168,7 @@ We would like to thank the following community members for making contributions 
 * [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
 * [Lewis Cowles](https://github.com/LewisCowles1986) - Installation documentation clarification about GRADLE_HOME
 * [Alex Landau](https://github.com/AlexLandau) - Fix for JUnit Test Filtering with the `--test` flag to work for Parametrized tests and TestSuites
-* [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between ant and zinc scala compiler implementations
+* [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between Ant and Zinc scala compiler implementations
 * [Pavel Fadeev](https://github.com/bearmug) - Makes `exclude('*')` semantically consistent with `include('*')` excluding only files in the baseDir
 * [Tony Abbott](https://github.com/tonyabbott) - Fix for native testing plugins when test binaries are not buildable
 
