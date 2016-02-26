@@ -644,6 +644,7 @@ task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
     projects = buildReceiptParams.projects
     sourceFiles = buildReceiptParams.sourceFiles
     subProjectTemplates = [buildReceiptParams.template]
+    templateArgs = [fullTestLogging: true]
 }
 
 task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) {
