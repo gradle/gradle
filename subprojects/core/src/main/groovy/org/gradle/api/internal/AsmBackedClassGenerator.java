@@ -574,18 +574,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getServices", Type.getMethodDescriptor(serviceRegistryType));
 
-            // this.getClass()
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getClass", Type.getMethodDescriptor(classType));
+            if (getter.getGenericReturnType() instanceof Class) {
+                // if the return type doesn't use generics, then it's faster to just rely on the type name directly
+                methodVisitor.visitLdcInsn(Type.getType((Class)getter.getGenericReturnType()));
+            } else {
+                // this.getClass()
+                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getClass", Type.getMethodDescriptor(classType));
 
-            // <class>.getDeclaredMethod(<getter-name>)
-            methodVisitor.visitLdcInsn(getterName);
-            methodVisitor.visitInsn(Opcodes.ICONST_0);
-            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, classType.getInternalName());
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, classType.getInternalName(), "getDeclaredMethod", Type.getMethodDescriptor(methodType, Type.getType(String.class), Type.getType(Class[].class)));
+                // <class>.getDeclaredMethod(<getter-name>)
+                methodVisitor.visitLdcInsn(getterName);
+                methodVisitor.visitInsn(Opcodes.ICONST_0);
+                methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, classType.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, classType.getInternalName(), "getDeclaredMethod", Type.getMethodDescriptor(methodType, Type.getType(String.class), Type.getType(Class[].class)));
 
-            // <method>.getGenericReturnType()
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodType.getInternalName(), "getGenericReturnType", Type.getMethodDescriptor(typeType));
+                // <method>.getGenericReturnType()
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodType.getInternalName(), "getGenericReturnType", Type.getMethodDescriptor(typeType));
+            }
 
             // get(<type>)
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, serviceRegistryType.getInternalName(), "get", Type.getMethodDescriptor(Type.getType(Object.class), typeType));
