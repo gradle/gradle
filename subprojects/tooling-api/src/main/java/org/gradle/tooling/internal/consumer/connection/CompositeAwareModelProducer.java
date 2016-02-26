@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.composite.internal.DefaultBuildIdentity;
@@ -31,13 +32,13 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.internal.Exceptions;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class CompositeAwareModelProducer extends CancellableModelBuilderBackedModelProducer implements MultiModelProducer {
     private final InternalCompositeAwareConnection connection;
@@ -50,34 +51,24 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
     @Override
     public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
-        Set<T> models = new LinkedHashSet<T>();
-        if (result.getModel() instanceof Iterable) {
-            adapter.convertCollection(models, elementType, Iterable.class.cast(result.getModel()), getCompatibilityMapperAction());
-        }
-        return transform(models);
-    }
-
-    private <T> Iterable<ModelResult<T>> transform(Set<T> results) {
-        return CollectionUtils.collect(results, new Transformer<ModelResult<T>, T>() {
-            @Override
-            public ModelResult<T> transform(T t) {
-                return new DefaultModelResult<T>(t, extractProjectIdentityHack(t));
+        final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
+        if (result.getModel() instanceof Map) {
+            // TODO: Convert to ModelResult
+            Map<Object, Object> targetMap = new HashMap<Object, Object>();
+            adapter.convertMap(targetMap, String.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
+            for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
+                String projectIdentityString = (String)e.getKey();
+                String[] splits = projectIdentityString.split("[$]");
+                File rootDir = new File(splits[0]);
+                String projectPath = splits[1];
+                BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+                ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, projectPath);
+                T model = (T)e.getValue();
+                models.add(new DefaultModelResult<T>(model, projectIdentity));
             }
-        });
-    }
-
-    private <T> ProjectIdentity extractProjectIdentityHack(T result) {
-        if (result instanceof EclipseProject) {
-            EclipseProject eclipseProject = (EclipseProject)result;
-            EclipseProject rootProject = eclipseProject;
-            while (rootProject.getParent()!=null) {
-                rootProject = rootProject.getParent();
-            }
-            File rootDir = rootProject.getGradleProject().getProjectDirectory();
-            String projectPath = eclipseProject.getGradleProject().getPath();
-            return new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), rootDir, projectPath);
         }
-        return null;
+        // TODO: Adapt other types?
+        return models;
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {
