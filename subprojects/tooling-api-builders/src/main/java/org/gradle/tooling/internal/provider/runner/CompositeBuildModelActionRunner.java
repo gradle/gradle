@@ -80,16 +80,17 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 break;
             }
             ProjectConnection projectConnection = connect(participant, compositeParameters);
+            File rootDir = participant.getProjectDir();
+            DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
             try {
                 if (modelType == BuildEnvironment.class) {
-                    File rootDir = participant.getProjectDir();
-                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), rootDir, ":");
+                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, ":");
                     results.putAll(fetchPerBuildModels(projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 } else {
                     results.putAll(fetchPerProjectModels(projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 }
             } catch (GradleConnectionException e) {
-                throw new CompositeBuildExceptionVersion1(e);
+                throw new CompositeBuildExceptionVersion1(e, buildIdentity);
             } finally {
                 projectConnection.close();
             }

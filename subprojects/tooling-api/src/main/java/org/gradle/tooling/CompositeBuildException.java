@@ -16,13 +16,21 @@
 
 package org.gradle.tooling;
 
+import org.gradle.tooling.composite.BuildIdentity;
+
 /**
  * Thrown when a Gradle composite build fails or when a model cannot be built.
  *
  * @since 2.13
  */
 public class CompositeBuildException extends BuildException {
-    public CompositeBuildException(String message, Throwable throwable) {
+    private final BuildIdentity buildIdentity;
+    public CompositeBuildException(String message, Throwable throwable, BuildIdentity buildIdentity) {
         super(message, throwable);
+        this.buildIdentity = buildIdentity;
+    }
+
+    public boolean causedBy(BuildIdentity buildIdentity) {
+        return this.buildIdentity.equals(buildIdentity);
     }
 }
