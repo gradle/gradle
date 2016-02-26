@@ -326,7 +326,7 @@
                 <sourcefile file="build.gradle" snippet="force-compilation"/>
             </sample>
             <emphasis>Note:</emphasis> This will only cause all classes to be recompiled if at least one input source file has changed. If there are
-            no changes to the source files, the <literal>compileScala</literal> task will still be considered <literal>UP-TO-Date</literal> as usual.
+            no changes to the source files, the <literal>compileScala</literal> task will still be considered <literal>UP-TO-DATE</literal> as usual.
         </para>
 
         <para>

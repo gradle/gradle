@@ -88,7 +88,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Ant-based Scala compiler deprecation
 
-The [Zinc Scala compiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of [`ScalaCompileOptions#isUseAnt`](javadoc/org/gradle/api/tasks/scala/ScalaCompileOptions.html#isUseAnt%28%29) to `false` and we are deprecating the option. Also, since the Zinc Scala Compiler only works in `fork` mode, we are also defaulting that option to `true` and deprecating it. Please update your build scripts to remove uses of that option. For more information, see the [Scala Plugin](userguide/scala_plugin.html) section of the User Guide.
+The [Zinc Scala compiler](https://github.com/typesafehub/zinc) is now sufficiently stable and considerably more efficient than the Ant-based Scala compiler. We have changed the default value of [`ScalaCompileOptions#isUseAnt`](javadoc/org/gradle/api/tasks/scala/ScalaCompileOptions.html#isUseAnt%28%29) to `false` and we are deprecating the option. Also, since the Zinc Scala Compiler only works in `fork` mode, we are also defaulting that option to `true` and deprecating it. Both the `useCompileDaemon` and `daemonServer` were only supported by the Ant-based Scala Compiler and are also deprecated. Please update your build scripts to remove uses of these options. For more information, see the [Scala Plugin](userguide/scala_plugin.html) section of the User Guide.
 
 ## Potential breaking changes
 
