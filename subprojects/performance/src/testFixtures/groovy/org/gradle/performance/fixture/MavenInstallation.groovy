@@ -37,7 +37,7 @@ class MavenInstallation {
         if(IS_WINDOWS) {
             // Maven moved from .bat to .cmd starting with 3.3.1 (3.3.0 was canceled)
             def bat = new File(bin, "mvn.bat")
-            return bat.isFile() ? bat : new File(home, "mvn.cmd")
+            return bat.isFile() ? bat : new File(bin, "mvn.cmd")
         }
         return new File(bin, "mvn")
     }

@@ -80,6 +80,8 @@ class MavenInstallationDownloader {
         FileUtils.moveDirectoryToDirectory(tmpHome, installsRoot, true)
         def home = new File(installsRoot, tmpHome.getName())
         if (!OperatingSystem.current().isWindows()) {
+            // We do this after the move because that "move" can fallback to a Java copy
+            // that does not preserve permissions when java.io.tmpdir sits in a different filesystem).
             new AntBuilder().chmod(file: MavenInstallation.findMvnExecutable(home), perm: "+x")
         }
         home
