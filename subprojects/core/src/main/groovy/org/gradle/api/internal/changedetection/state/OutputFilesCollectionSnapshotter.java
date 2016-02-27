@@ -21,7 +21,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
-import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.util.*;
@@ -76,6 +75,12 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
             OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             return new OutputFilesDiff(roots, filesSnapshot.changesSince(other.filesSnapshot));
+        }
+
+        @Override
+        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
+            OutputFilesSnapshot other = (OutputFilesSnapshot) newSnapshot;
+            return new OutputFilesSnapshot(roots, filesSnapshot.updateFrom(other.filesSnapshot));
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
@@ -162,15 +167,9 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             this.filesDiff = filesDiff;
         }
 
-        public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot,
-                                              ChangeListener<FileCollectionSnapshot.Merge> listener) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) snapshot;
-            return new OutputFilesSnapshot(newFileIds, filesDiff.applyTo(other.filesSnapshot, listener));
-        }
-
         public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-            return applyTo(snapshot, new NoOpChangeListener<FileCollectionSnapshot.Merge>());
+            OutputFilesSnapshot other = (OutputFilesSnapshot) snapshot;
+            return new OutputFilesSnapshot(newFileIds, filesDiff.applyTo(other.filesSnapshot));
         }
     }
-
 }

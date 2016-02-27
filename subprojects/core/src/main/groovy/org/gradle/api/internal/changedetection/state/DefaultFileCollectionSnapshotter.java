@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
-import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -68,7 +67,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
                 for (FileVisitDetails fileDetails : allFileVisitDetails) {
-                    final String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
+                    String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
                     if (!snapshots.containsKey(absolutePath)) {
                         if (fileDetails.isDirectory()) {
                             snapshots.put(absolutePath, DirSnapshot.getInstance());
@@ -78,7 +77,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     }
                 }
                 for (File missingFile : missingFiles) {
-                    final String absolutePath = stringInterner.intern(missingFile.getAbsolutePath());
+                    String absolutePath = stringInterner.intern(missingFile.getAbsolutePath());
                     if (!snapshots.containsKey(absolutePath)) {
                         snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
                     }
@@ -234,17 +233,26 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             };
         }
 
+        @Override
+        public FileCollectionSnapshot updateFrom(final FileCollectionSnapshot newSnapshot) {
+            FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) newSnapshot;
+            final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(snapshots);
+            diff(other.snapshots, snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots) {
+                @Override
+                public void added(Map.Entry<String, IncrementalFileSnapshot> element) {
+                    // Ignore
+                }
+            });
+            return new FileCollectionSnapshotImpl(newSnapshots);
+        }
+
         public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
             final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
             return new Diff() {
                 public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-                    return applyTo(snapshot, new NoOpChangeListener<Merge>());
-                }
-
-                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
                     FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
                     final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(target.snapshots);
-                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(listener, newSnapshots));
+                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
                     return new FileCollectionSnapshotImpl(newSnapshots);
                 }
             };
