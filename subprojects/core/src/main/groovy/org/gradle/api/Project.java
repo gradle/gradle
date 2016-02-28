@@ -1171,8 +1171,41 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param propertyName The name of the property.
      * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
+     *
+     * @see Project#findProperty(String)
      */
     Object property(String propertyName) throws MissingPropertyException;
+
+    /**
+     * <p>Returns the value of the given property or null if not found.
+     * This method locates a property as follows:</p>
+     *
+     * <ol>
+     *
+     * <li>If this project object has a property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
+     *
+     * <li>If this project's convention object has a property with the given name, return the value of the
+     * property.</li>
+     *
+     * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has a task with the given name, return the task.</li>
+     *
+     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
+     * given name.</li>
+     *
+     * <li>If not found, null value is returned.</li>
+     *
+     * </ol>
+     *
+     * @param propertyName The name of the property.
+     * @return The value of the property, possibly null or null if not found.
+     *
+     * @see Project#property(String)
+     */
+    Object findProperty(String propertyName);
 
     /**
      * <p>Returns the logger for this project. You can use this in your build file to write log messages.</p>
