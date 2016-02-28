@@ -62,6 +62,6 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
         }
         FileCollectionSnapshot newOutputFiles = lastExecutionOutputFiles.updateFrom(outputFilesBefore);
         FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
-        currentExecution.setOutputFilesSnapshot(outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles));
+        currentExecution.setOutputFilesSnapshot(outputFilesAfter.applyChangesSince(outputFilesBefore, newOutputFiles));
     }
 }

@@ -246,16 +246,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
-        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
-            final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            return new Diff() {
-                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-                    FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
-                    final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(target.snapshots);
-                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
-                    return new FileCollectionSnapshotImpl(newSnapshots);
-                }
-            };
+        @Override
+        public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
+            FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
+            FileCollectionSnapshotImpl targetImpl = (FileCollectionSnapshotImpl) target;
+            final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(targetImpl.snapshots);
+            diff(snapshots, oldSnapshotImpl.snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
+            return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
         private void diff(Map<String, IncrementalFileSnapshot> snapshots, Map<String, IncrementalFileSnapshot> oldSnapshots,

@@ -72,15 +72,17 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getSnapshot();
         }
 
-        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
-            return new OutputFilesDiff(roots, filesSnapshot.changesSince(other.filesSnapshot));
+        @Override
+        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
+            OutputFilesSnapshot newOutputsSnapshot = (OutputFilesSnapshot) newSnapshot;
+            return new OutputFilesSnapshot(roots, filesSnapshot.updateFrom(newOutputsSnapshot.filesSnapshot));
         }
 
         @Override
-        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) newSnapshot;
-            return new OutputFilesSnapshot(roots, filesSnapshot.updateFrom(other.filesSnapshot));
+        public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
+            OutputFilesSnapshot oldOutputsSnapshot = (OutputFilesSnapshot) oldSnapshot;
+            OutputFilesSnapshot targetOutputsSnapshot = (OutputFilesSnapshot) target;
+            return new OutputFilesSnapshot(roots, filesSnapshot.applyChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
@@ -155,21 +157,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         public void changed(String element) {
             delegate.changed(element);
             wasIgnored = false;
-        }
-    }
-
-    private static class OutputFilesDiff implements FileCollectionSnapshot.Diff {
-        private final Set<String> newFileIds;
-        private final FileCollectionSnapshot.Diff filesDiff;
-
-        public OutputFilesDiff(Set<String> newRoots, FileCollectionSnapshot.Diff filesDiff) {
-            this.newFileIds = newRoots;
-            this.filesDiff = filesDiff;
-        }
-
-        public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) snapshot;
-            return new OutputFilesSnapshot(newFileIds, filesDiff.applyTo(other.filesSnapshot));
         }
     }
 }
