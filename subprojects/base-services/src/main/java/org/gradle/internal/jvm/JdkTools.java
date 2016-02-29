@@ -54,7 +54,9 @@ public class JdkTools {
         if (!javaVersion.isJava9Compatible()) {
             File toolsJar = javaInfo.getToolsJar();
             if (toolsJar == null) {
-                throw new IllegalStateException("Could not find tools.jar");
+                String javaHome = javaInfo.getJavaHome().getAbsolutePath();
+                throw new IllegalStateException("Could not find tools.jar. Please check that "
+                                                + javaHome + " contains a valid JDK installation.");
             }
             DefaultClassPath defaultClassPath = new DefaultClassPath(toolsJar);
             isolatedToolsLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
