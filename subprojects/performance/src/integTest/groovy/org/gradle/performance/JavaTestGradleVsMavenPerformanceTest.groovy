@@ -28,18 +28,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testId = "$size $description with Java plugin"
-        runner.baseline {
-            projectName(template).displayName("Gradle $description for project $template").invocation {
-                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
-            }
-        }
-        runner.mavenBuildSpec {
-            projectName(template).displayName("Maven $description for project $template").invocation {
-                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
-                    .args('-q', '-Dsurefire.printSummary=false')
-            }
-        }
-
+        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
 
         when:
         def results = runner.run()
@@ -59,18 +48,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         given:
         runner.testGroup = "Gradle vs Maven build using Java plugin"
         runner.testId = "$size $description with Java plugin"
-        runner.baseline {
-            projectName(template).displayName("Gradle $description for project $template").invocation {
-                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
-            }
-        }
-        runner.mavenBuildSpec {
-            projectName(template).displayName("Maven $description for project $template").invocation {
-                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
-                    .args('-q', '-Dsurefire.printSummary=false')
-            }
-        }
-
+        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
 
         when:
         def results = runner.run()
@@ -83,5 +61,19 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         template          | size     | description        | gradleTasks            | equivalentMavenTasks | maxDiffMillis | maxDiffMB
         'mediumWithJUnit' | 'medium' | 'clean build'      | ['clean', 'build']     | ['clean', 'verify']  | 1000          | 100
         'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['cleanTest', 'build'] | ['verify']           | 5000          | 100
+    }
+
+    private void equivalentGradleAndMavenBuilds(String template, String description, List<String> gradleTasks, List<String> equivalentMavenTasks) {
+        runner.baseline {
+            projectName(template).displayName("Gradle $description for project $template").invocation {
+                tasksToRun(gradleTasks).useDaemon().gradleOpts('-Xms1G', '-Xmx1G')
+            }
+        }
+        runner.mavenBuildSpec {
+            projectName(template).displayName("Maven $description for project $template").invocation {
+                tasksToRun(equivalentMavenTasks).mavenOpts('-Xms1G', '-Xmx1G')
+                    .args('-q', '-Dsurefire.printSummary=false')
+            }
+        }
     }
 }
