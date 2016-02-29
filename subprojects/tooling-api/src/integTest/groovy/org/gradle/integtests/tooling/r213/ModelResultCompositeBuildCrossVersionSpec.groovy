@@ -16,13 +16,41 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.tooling.CompositeBuildException
 import org.gradle.tooling.composite.BuildIdentity
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.tooling.composite.ProjectIdentity
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
+
+    def "can correlate errors with build that caused it"() {
+        given:
+        def rootDirA = populate("A") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
+            buildFile << """
+                apply plugin: 'java'
+                group = 'org.A'
+                version = '1.0'
+                throw new GradleException("Fail")
+"""
+        }
+        when:
+        def builder = createCompositeBuilder()
+        def participantA = createGradleBuildParticipant(rootDirA)
+        builder.addBuild(participantA)
+        def connection = builder.build()
+        def buildIdentity = participantA.toBuildIdentity()
+        def otherBuildIdentity = createGradleBuildParticipant(file("B")).toBuildIdentity()
+        and:
+        modelResults = connection.getModels(EclipseProject)
+        then:
+        def e = thrown(CompositeBuildException)
+        e.causedBy(buildIdentity)
+        !e.causedBy(otherBuildIdentity)
+    }
 
     def "can correlate models in a single project, single participant composite"() {
         given:
@@ -52,8 +80,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        // TODO: Try this with a different model type
-        def otherModelResults = connection.getModels(EclipseProject)
+        def otherModelResults = connection.getModels(IdeaProject)
         then:
         containSameIdentifiers(otherModelResults)
 
@@ -101,8 +128,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        // TODO: Try this with a different model type
-        def otherModelResults = connection.getModels(EclipseProject)
+        def otherModelResults = connection.getModels(IdeaProject)
         then:
         containSameIdentifiers(otherModelResults)
 
@@ -168,8 +194,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        // TODO: Try this with a different model type
-        def otherModelResults = connection.getModels(EclipseProject)
+        def otherModelResults = connection.getModels(IdeaProject)
         then:
         containSameIdentifiers(otherModelResults)
 

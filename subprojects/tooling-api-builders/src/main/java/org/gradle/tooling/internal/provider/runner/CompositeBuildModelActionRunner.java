@@ -25,23 +25,24 @@ import org.gradle.internal.composite.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.*;
+import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
-import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
-import org.gradle.tooling.model.idea.BasicIdeaProject;
-import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
@@ -51,46 +52,45 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
         Class<?> modelType = resolveModelType((BuildModelAction) action);
         ProgressLoggerFactory progressLoggerFactory = buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
-        Set<Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
+        Map<Object, Object> results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
         PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
         buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results), null));
     }
 
-    private Class<? extends HierarchicalElement> resolveModelType(BuildModelAction action) {
+    private Class<?> resolveModelType(BuildModelAction action) {
         final String requestedModelName = action.getModelName();
-        Class<? extends HierarchicalElement> modelType;
         try {
-            modelType = Cast.uncheckedCast(HierarchicalElement.class.getClassLoader().loadClass(requestedModelName));
+            return Cast.uncheckedCast(getClass().getClassLoader().loadClass(requestedModelName));
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        return modelType;
     }
 
-    private Set<Object> aggregateModels(Class<?> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        Set<Object> results = new LinkedHashSet<Object>();
+    private Map<Object, Object> aggregateModels(Class<?> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+        final Map<Object, Object> results = new HashMap<Object, Object>();
         final CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        results.addAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters, progressLoggerFactory));
+        results.putAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters, progressLoggerFactory));
         return results;
     }
 
-    private Set<Object> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<?> modelType, final BuildCancellationToken cancellationToken, CompositeParameters compositeParameters, final ProgressLoggerFactory progressLoggerFactory) {
-        final Set<Object> results = new LinkedHashSet<Object>();
+    private Map<Object, Object> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<?> modelType, final BuildCancellationToken cancellationToken, CompositeParameters compositeParameters, final ProgressLoggerFactory progressLoggerFactory) {
+        final Map<Object, Object> results = new HashMap<Object, Object>();
         for (GradleParticipantBuild participant : participantBuilds) {
             if (cancellationToken.isCancellationRequested()) {
                 break;
             }
             ProjectConnection projectConnection = connect(participant, compositeParameters);
+            File rootDir = participant.getProjectDir();
+            DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
             try {
-                if (HierarchicalElement.class.isAssignableFrom(modelType) && modelType != IdeaProject.class && modelType != BasicIdeaProject.class) {
-                    fetchHierarchicalModels(results, projectConnection, Cast.<Class<? extends HierarchicalElement>>uncheckedCast(modelType), cancellationToken, progressLoggerFactory);
-                } else if (modelType == BuildEnvironment.class) {
-                    fetchPerBuildModels(results, projectConnection, modelType, cancellationToken, progressLoggerFactory);
+                if (modelType == BuildEnvironment.class) {
+                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, ":");
+                    results.putAll(fetchPerBuildModels(projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 } else {
-                    fetchPerProjectModels(results, projectConnection, modelType, cancellationToken, progressLoggerFactory);
+                    results.putAll(fetchPerProjectModels(projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 }
             } catch (GradleConnectionException e) {
-                throw new CompositeBuildExceptionVersion1(e);
+                throw new CompositeBuildExceptionVersion1(e, buildIdentity);
             } finally {
                 projectConnection.close();
             }
@@ -98,57 +98,69 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return results;
     }
 
-    private void fetchPerBuildModels(Set<Object> results, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+    private Map<Object, Object> fetchPerBuildModels(Object projectIdentity, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
         Object result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
         if(result != null) {
-            results.add(result);
+            return Collections.singletonMap(projectIdentity, result);
         }
+        return Collections.emptyMap();
     }
 
-    private void fetchPerProjectModels(Set<Object> results, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        BuildActionExecuter<List<Object>> buildActionExecuter = projectConnection.action(new FetchPerProjectModelAction(modelType.getName()));
+    private Map<Object, Object> fetchPerProjectModels(ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+        Map<Object, Object> results = new HashMap<Object, Object>();
+        BuildActionExecuter<Map<Object, Object>> buildActionExecuter = projectConnection.action(new FetchPerProjectModelAction(modelType.getName()));
         buildActionExecuter.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
         buildActionExecuter.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
-        if (cancellationToken.isCancellationRequested()) {
-            return;
+
+        if (!cancellationToken.isCancellationRequested()) {
+            for (Map.Entry<Object, Object> e : buildActionExecuter.run().entrySet()) {
+                InternalProjectIdentity internalProjectIdentity = (InternalProjectIdentity) e.getKey();
+                results.put(convertToProjectIdentity(internalProjectIdentity), e.getValue());
+            }
         }
-        results.addAll(buildActionExecuter.run());
+        return results;
     }
 
-    private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<List<Object>> {
-        private final String modelTypeName;
+    private DefaultProjectIdentity convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
+        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.rootDir, internalProjectIdentity.projectPath);
+    }
 
+    private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<Map<Object, Object>> {
+        private final String modelTypeName;
         private FetchPerProjectModelAction(String modelTypeName) {
             this.modelTypeName = modelTypeName;
         }
 
         @Override
-        public List<Object> execute(BuildController controller) {
+        public Map<Object, Object> execute(BuildController controller) {
             Class<?> modelType;
             try {
                 modelType = Class.forName(modelTypeName);
             } catch (ClassNotFoundException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            List<Object> results = new ArrayList<Object>();
-            fetchResults(modelType, results, controller, controller.getBuildModel().getRootProject());
+            final Map<Object, Object> results = new HashMap<Object, Object>();
+            fetchResults(modelType, results, controller, controller.getBuildModel().getRootProject(), controller.getBuildModel().getRootProject());
             return results;
         }
 
-        private void fetchResults(Class<?> modelType, List<Object> results, BuildController controller, BasicGradleProject project) {
-            results.add(controller.getModel(project, modelType));
+        private void fetchResults(Class<?> modelType, Map<Object, Object> results, BuildController controller, BasicGradleProject project, BasicGradleProject rootProject) {
+            File rootDir = rootProject.getProjectDirectory();
+            results.put(new InternalProjectIdentity(rootDir, project.getPath()), controller.getModel(project, modelType));
             for (BasicGradleProject child : project.getChildren()) {
-                fetchResults(modelType, results, controller, child);
+                fetchResults(modelType, results, controller, child, rootProject);
             }
         }
     }
 
-    private void fetchHierarchicalModels(Set<Object> results, ProjectConnection projectConnection, Class<? extends HierarchicalElement> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        HierarchicalElement result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
-        if (result == null) {
-            return;
+    private static final class InternalProjectIdentity implements Serializable {
+        private final File rootDir;
+        private final String projectPath;
+
+        private InternalProjectIdentity(File rootDir, String projectPath) {
+            this.rootDir = rootDir;
+            this.projectPath = projectPath;
         }
-        accumulateHierarchicalModels(results, result);
     }
 
     @Nullable
@@ -160,13 +172,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             return null;
         }
         return modelBuilder.get();
-    }
-
-    private void accumulateHierarchicalModels(Set<Object> allResults, HierarchicalElement element) {
-        allResults.add(element);
-        for (HierarchicalElement child : element.getChildren().getAll()) {
-            accumulateHierarchicalModels(allResults, child);
-        }
     }
 
     private ProjectConnection connect(GradleParticipantBuild build, CompositeParameters compositeParameters) {

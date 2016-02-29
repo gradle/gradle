@@ -17,6 +17,9 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.internal.composite.DefaultModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -28,8 +31,10 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class CompositeAwareModelProducer extends CancellableModelBuilderBackedModelProducer implements MultiModelProducer {
     private final InternalCompositeAwareConnection connection;
@@ -40,13 +45,21 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
     }
 
     @Override
-    public <T> Set<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
-        Set<T> models = new LinkedHashSet<T>();
-        if (result.getModel() instanceof Iterable) {
-            adapter.convertCollection(models, elementType, Iterable.class.cast(result.getModel()), getCompatibilityMapperAction());
+        if (result.getModel() instanceof Map) {
+            final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
+            Map<Object, Object> targetMap = new HashMap<Object, Object>();
+            adapter.convertMap(targetMap, ProjectIdentity.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
+            for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
+                ProjectIdentity projectIdentity = (ProjectIdentity)e.getKey();
+                T model = (T)e.getValue();
+                models.add(new DefaultModelResult<T>(model, projectIdentity));
+            }
+            return models;
         }
-        return models;
+        // TODO: Adapt other types?
+        throw new UnsupportedOperationException(String.format("Produced result of type %s for model %s", result.getModel().getClass().getCanonicalName(), elementType.getCanonicalName()));
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {

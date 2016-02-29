@@ -562,8 +562,6 @@ task prepareSamples {
     description = "Generates all sample projects for automated performance tests"
 }
 
-Pattern buildReceiptPattern = Pattern.compile(".*?build receipt.*?")
-
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
     inputs.files sourceSets.testFixtures.runtimeClasspath
@@ -623,14 +621,11 @@ task performanceAdhocTest(type: Test) {
     maxParallelForks = 1
 }
 
-
-def buildReceiptParams = [projects: 100, sourceFiles: 50, template: 'project-with-source']
-
-task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
+task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
     buildReceiptPluginVersionProvider = {
         def pluginInfo = file("$rootDir/incoming/plugin.json")
         assert pluginInfo.exists()
-        def json = new JsonSlurper().parse(pluginInfo)
+        def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
         assert json.versionNumber
         json.versionNumber
     }
@@ -641,22 +636,16 @@ task largeJavaSwModelProjectWithBuildReceipts(type: JvmProjectGeneratorTask) {
         useSnapshotVersions = true
     }
 
-    projects = buildReceiptParams.projects
-    sourceFiles = buildReceiptParams.sourceFiles
-    subProjectTemplates = [buildReceiptParams.template]
+    projects = 100
+    sourceFiles = 50
+    subProjectTemplates = ['project-with-source']
     templateArgs = [fullTestLogging: true]
 }
 
-task largeJavaSwModelProjectWithoutBuildReceipts(type: JvmProjectGeneratorTask) {
-    projects = buildReceiptParams.projects
-    sourceFiles = buildReceiptParams.sourceFiles
-    subProjectTemplates = [buildReceiptParams.template]
-}
-
 task buildReceiptPluginPerformanceTest(type: Test) {
-    dependsOn largeJavaSwModelProjectWithBuildReceipts, largeJavaSwModelProjectWithoutBuildReceipts
+    dependsOn largeJavaProjectWithBuildReceiptPlugin
     finalizedBy buildReceiptReport
-    systemProperties += ['incomingArtifactDir': "${rootDir}/incoming/"]
+    systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 
     options {
         includeCategories 'org.gradle.performance.categories.BuildReceiptPluginPerformanceTest'

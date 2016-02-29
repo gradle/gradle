@@ -47,19 +47,19 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate([]) >> true
+        1 * taskArtifactState.isUpToDate(_) >> true
         1 * taskState.upToDate()
         1 * taskArtifactState.finished()
         0 * _
     }
-    
+
     def executesTaskWhenOutputsAreNotUpToDate() {
         when:
         executer.execute(task, taskState, taskContext);
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate([]) >> false
+        1 * taskArtifactState.isUpToDate(_) >> false
 
         then:
         1 * taskArtifactState.beforeTask()
@@ -87,7 +87,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
 
         then:
         1 * repository.getStateFor(task) >> taskArtifactState
-        1 * taskArtifactState.isUpToDate([]) >> false
+        1 * taskArtifactState.isUpToDate(_) >> false
 
         then:
         1 * taskArtifactState.beforeTask()

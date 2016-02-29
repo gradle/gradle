@@ -15,15 +15,24 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.tooling.composite.BuildIdentity;
+
 /**
  * A wrapper around a composite build failure, to distinguish it from an infrastructure failure. The details of the failure are made available in the cause of this exception.
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 2.12
+ * @since 2.13
  */
 public class CompositeBuildExceptionVersion1 extends RuntimeException {
-    public CompositeBuildExceptionVersion1(Throwable throwable) {
+    private final BuildIdentity buildIdentity;
+
+    public CompositeBuildExceptionVersion1(Throwable throwable, DefaultBuildIdentity buildIdentity) {
         super(throwable);
+        this.buildIdentity = buildIdentity;
+    }
+
+    public BuildIdentity getBuildIdentity() {
+        return buildIdentity;
     }
 }

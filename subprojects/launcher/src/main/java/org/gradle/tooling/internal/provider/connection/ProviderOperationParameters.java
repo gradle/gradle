@@ -165,7 +165,7 @@ public interface ProviderOperationParameters {
     List<File> getInjectedPluginClasspath(List<File> defaultClasspath);
 
     /**
-     * @since 2.12-rc-1
+     * @since 2.13-rc-1
      *
      */
     @Nullable

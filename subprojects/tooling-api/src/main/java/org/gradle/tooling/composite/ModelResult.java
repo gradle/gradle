@@ -19,7 +19,7 @@ package org.gradle.tooling.composite;
 import org.gradle.api.Incubating;
 
 /**
- * TODO: Javadoc
+ * A model with the identity of the project it was produced from.
  *
  * @param <T> Type of model in the result
  * @since 2.13

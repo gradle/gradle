@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.internal.composite;
 
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
@@ -23,7 +23,7 @@ public class DefaultModelResult<T> implements ModelResult<T> {
     private final T model;
     private final ProjectIdentity projectIdentity;
 
-    DefaultModelResult(T model, ProjectIdentity projectIdentity) {
+    public DefaultModelResult(T model, ProjectIdentity projectIdentity) {
         this.model = model;
         this.projectIdentity = projectIdentity;
     }

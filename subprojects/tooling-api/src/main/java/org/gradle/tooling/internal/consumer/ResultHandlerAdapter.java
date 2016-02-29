@@ -56,7 +56,8 @@ public abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T
         } else if (failure instanceof InternalTestExecutionException) {
             handler.onFailure(new TestExecutionException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure.getClass().getName().equals(CompositeBuildExceptionVersion1.class.getName())) {
-            handler.onFailure(new CompositeBuildException(connectionFailureMessage(failure), failure.getCause()));
+            CompositeBuildExceptionVersion1 compositeBuildException = (CompositeBuildExceptionVersion1)failure;
+            handler.onFailure(new CompositeBuildException(connectionFailureMessage(failure), failure.getCause(), compositeBuildException.getBuildIdentity()));
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof ListenerNotificationException) {

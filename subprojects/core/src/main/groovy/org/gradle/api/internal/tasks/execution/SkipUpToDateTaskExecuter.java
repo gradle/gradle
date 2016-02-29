@@ -48,7 +48,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         Clock clock = new Clock();
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         try {
-            List<String> messages = new ArrayList<String>();
+            List<String> messages = LOGGER.isInfoEnabled() ? new ArrayList<String>() : null;
             if (taskArtifactState.isUpToDate(messages)) {
                 LOGGER.info("Skipping {} as it is up-to-date (took {}).", task, clock.getTime());
                 state.upToDate();
