@@ -13,4 +13,3 @@ tasks.withType(ScalaCompile) {
         force = true
     }
 }
-

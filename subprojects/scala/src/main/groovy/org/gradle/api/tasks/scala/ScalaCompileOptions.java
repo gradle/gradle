@@ -56,14 +56,14 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
 
     @Deprecated
-    @SuppressWarnings("deprecation")
     public void setUseAnt(boolean useAnt) {
         SingleMessageLogger.nagUserOfDeprecated("useAnt",
             "The Ant-Based Scala compiler is deprecated, please see "
             + "https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.useAnt = useAnt;
         if (useAnt == fork) {
-            setFork(!useAnt);
+            // Not using setFork so we don't get two deprecation nag messages.
+            fork = !useAnt;
         }
     }
 
@@ -77,7 +77,6 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     }
 
     @Deprecated
-    @SuppressWarnings("deprecation")
     public void setFork(boolean fork) {
         SingleMessageLogger.nagUserOfDeprecated("fork",
             "The fork option for the scala compiler is deprecated, please see "
@@ -92,7 +91,11 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return useCompileDaemon;
     }
 
+    @Deprecated
     public void setUseCompileDaemon(boolean useCompileDaemon) {
+        SingleMessageLogger.nagUserOfDeprecated("useCompileDaemon",
+            "The Ant-Based Scala compiler and it's support for a compile daemon is deprecated,"
+                + " please see https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.useCompileDaemon = useCompileDaemon;
     }
 
@@ -107,7 +110,11 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return daemonServer;
     }
 
+    @Deprecated
     public void setDaemonServer(String daemonServer) {
+        SingleMessageLogger.nagUserOfDeprecated("daemonServer",
+            "The Ant-Based Scala compiler and it's support for a compile daemon is deprecated,"
+            + " please see https://docs.gradle.org/current/userguide/scala_plugin.html");
         this.daemonServer = daemonServer;
     }
 
