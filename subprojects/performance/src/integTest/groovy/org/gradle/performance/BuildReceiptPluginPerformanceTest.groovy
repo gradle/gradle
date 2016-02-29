@@ -53,7 +53,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         def versionJsonFile = new File(incomingDir, "version.json")
         assert versionJsonFile.exists()
 
-        def versionJsonData = new JsonSlurper().parse(versionJsonFile)
+        def versionJsonData = new JsonSlurper().parse(versionJsonFile) as Map<String, ?>
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
@@ -62,22 +62,22 @@ class BuildReceiptPluginPerformanceTest extends Specification {
 
     def "build receipt plugin comparison"() {
         given:
-        runner.testGroup = "build receipt plugin"
-        runner.testId = "large java project with and without build receipt"
-        def opts = ["-Dreceipt", "-Dreceipt.dump"]
+        def sourceProject = "largeJavaProjectWithBuildReceiptPlugin"
         def tasks = ['clean', 'build']
 
+        runner.testGroup = "build receipt plugin"
+        runner.testId = "large java project with and without build receipt"
+
         runner.baseline {
-            projectName("largeJavaSwModelProjectWithBuildReceipts").displayName(WITH_PLUGIN_LABEL).invocation {
-                gradleOpts(*opts)
-                tasksToRun(*tasks).useDaemon()
+            projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
+                gradleOpts("-Dreceipt", "-Dreceipt.dump")
+                tasksToRun(*tasks)
             }
         }
 
         runner.buildSpec {
-            projectName("largeJavaSwModelProjectWithoutBuildReceipts").displayName(WITHOUT_PLUGIN_LABEL).invocation {
-                gradleOpts(*opts)
-                tasksToRun(*tasks).useDaemon()
+            projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
+                tasksToRun(*tasks)
             }
         }
 

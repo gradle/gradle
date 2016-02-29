@@ -37,11 +37,11 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         this.experimentRunner = experimentRunner
     }
 
-    public void baseline(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
+    public void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         buildSpec(configureAction)
     }
 
-    public void buildSpec(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
+    public void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         def builder = GradleBuildExperimentSpec.builder()
         configureAndAddSpec(builder, configureAction)
     }
