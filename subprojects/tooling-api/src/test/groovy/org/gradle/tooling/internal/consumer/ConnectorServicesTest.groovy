@@ -36,11 +36,6 @@ public class ConnectorServicesTest extends Specification {
         connectorOne.connectionFactory.toolingImplementationLoader == connectorTwo.connectionFactory.toolingImplementationLoader
     }
 
-    def "services can create GradleConnection.Builder"() {
-        expect:
-        ConnectorServices.createGradleConnectionBuilder()
-    }
-
     def "can close services"() {
         when:
         ConnectorServices.close()

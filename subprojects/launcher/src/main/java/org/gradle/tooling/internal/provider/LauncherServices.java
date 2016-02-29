@@ -19,8 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.composite.CompositeBuildActionParameters;
-import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -39,11 +37,10 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new ToolingBuildSessionScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
-
+        registration.addProvider(new ToolingBuildScopeServices());
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
@@ -56,15 +53,7 @@ public class LauncherServices implements PluginServiceRegistry {
         BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
             List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-
-            BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate;
-            List<CompositeBuildActionRunner> compositeBuildActionRunners = globalServices.getAll(CompositeBuildActionRunner.class);
-            if (compositeBuildActionRunners.size() > 0) {
-                compositeDelegate = new CompositeBuildActionExecuter(compositeBuildActionRunners.get(0));
-            } else {
-                compositeDelegate = null;
-            }
-            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory, compositeDelegate);
+            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
@@ -81,7 +70,7 @@ public class LauncherServices implements PluginServiceRegistry {
 
     }
 
-    static class ToolingBuildSessionScopeServices {
+    static class ToolingBuildScopeServices {
         PayloadClassLoaderFactory createClassLoaderFactory(ClassLoaderFactory classLoaderFactory, JarCache jarCache, CacheRepository cacheRepository) {
             return new DaemonSidePayloadClassLoaderFactory(
                 new ModelClassLoaderFactory(

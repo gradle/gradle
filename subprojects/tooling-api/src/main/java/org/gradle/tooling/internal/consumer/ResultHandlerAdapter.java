@@ -20,7 +20,6 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -55,8 +54,6 @@ public abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T
             handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof InternalTestExecutionException) {
             handler.onFailure(new TestExecutionException(connectionFailureMessage(failure), failure.getCause()));
-        } else if (failure.getClass().getName().equals(CompositeBuildExceptionVersion1.class.getName())) {
-            handler.onFailure(new CompositeBuildException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof ListenerNotificationException) {
