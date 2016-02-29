@@ -72,7 +72,7 @@ class TestFileHelper {
         unzip.execute()
     }
 
-    void untarTo(File target, boolean nativeTools) {
+    void untarTo(File target, boolean nativeTools, String encoding=null) {
         if (nativeTools && isUnix()) {
             target.mkdirs()
             def builder = new ProcessBuilder(['tar', '-xpf', file.absolutePath])
@@ -86,6 +86,9 @@ class TestFileHelper {
         def untar = new Untar()
         untar.setSrc(file)
         untar.setDest(target)
+        if (encoding != null) {
+            untar.setEncoding(encoding)
+        }
 
         if (file.name.endsWith(".tgz")) {
             def method = new Untar.UntarCompressionMethod()
