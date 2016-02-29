@@ -194,18 +194,18 @@ $lastOutput
             return
         }
         int startPos = 0
-        int endPos = findWaitingForChangesEndOfLine(out, startPos)
+        int endPos = findEndIndexOfCurrentBuild(out, startPos)
         while (startPos < out.length()) {
             if (endPos == -1) {
                 endPos = out.length()
             }
             results << createExecutionResult(out.substring(startPos, endPos), err)
             startPos = endPos
-            endPos = findWaitingForChangesEndOfLine(out, startPos)
+            endPos = findEndIndexOfCurrentBuild(out, startPos)
         }
     }
 
-    private int findWaitingForChangesEndOfLine(String out, int startIndex) {
+    private int findEndIndexOfCurrentBuild(String out, int startIndex) {
         int waitingForChangesIndex = out.indexOf(WAITING_FOR_CHANGES_OUTPUT, startIndex)
         if (waitingForChangesIndex == -1) {
             return -1
@@ -216,7 +216,14 @@ $lastOutput
         if (endOfLineIndex == -1) {
             return waitingForChangesEndIndex
         }
-        return endOfLineIndex + newLine.length()
+        endOfLineIndex = endOfLineIndex + newLine.length()
+        // if no new build was started, assume that this was the last build and include all output in it
+        int nextBuildStart = out.indexOf(CHANGE_DETECTED_OUTPUT, endOfLineIndex)
+        if (nextBuildStart == -1) {
+            return out.length()
+        } else {
+            return endOfLineIndex
+        }
     }
 
     private long monotonicClockMillis() {
