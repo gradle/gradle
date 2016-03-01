@@ -54,7 +54,7 @@ Note: this goal for this story is only to understand the behaviour, not to fix a
 
 The following directories are scanned in the up-to-date check for `test`:
 
-- `build/classes/test` is scanned 4 times
+- `build/classes/test` is scanned 4 times : one reason for this is that output snapshots resolve the same file collection twice, once when calling `getFiles` and then when creating the snapshot.
 - `build/classes/main` is scanned once
 - `src/test/java` is scanned once
 
@@ -120,3 +120,8 @@ A typical breakdown of the wall clock time spent by `test` with 1000 main and te
 - 384ms, generate HTML reports
 - 190ms, snapshot outputs
 - 9ms, write task history
+
+Miscellaneous profiling results:
+
+- when excluding test execution time, up to 10% of remaning time is spent calling `getGenericReturnType` in decorators (fixed already)
+- A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration.
