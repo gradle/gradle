@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
@@ -23,7 +22,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -75,30 +73,35 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     private void updateDelegates() {
-        List<DynamicObject> delegates = Lists.newLinkedList();
-        delegates.add(dynamicDelegate);
-        delegates.add(extraPropertiesDynamicObject);
+        DynamicObject[] delegates = new DynamicObject[6];
+        delegates[0] = dynamicDelegate;
+        delegates[1] = extraPropertiesDynamicObject;
+        int idx = 2;
         if (beforeConvention != null) {
-            delegates.add(beforeConvention);
+            delegates[idx++] = beforeConvention;
         }
         if (convention != null) {
-            delegates.add(convention.getExtensionsAsDynamicObject());
+            delegates[idx++] = convention.getExtensionsAsDynamicObject();
         }
         if (afterConvention != null) {
-            delegates.add(afterConvention);
+            delegates[idx++] = afterConvention;
         }
         boolean addedParent = false;
         if (parent != null) {
             addedParent = true;
-            delegates.add(parent);
+            delegates[idx++] = parent;
         }
-        setObjects(delegates.toArray(new DynamicObject[0]));
+        DynamicObject[] objects = new DynamicObject[idx];
+        System.arraycopy(delegates, 0, objects, 0, idx);
+        setObjects(objects);
 
         if (addedParent) {
-            delegates.remove(delegates.size() - 1);
+            idx--;
         }
-        delegates.add(extraPropertiesDynamicObject);
-        setObjectsForUpdate(delegates.toArray(new DynamicObject[0]));
+        delegates[idx++] = extraPropertiesDynamicObject;
+        objects = new DynamicObject[idx];
+        System.arraycopy(delegates, 0, objects, 0, idx);
+        setObjectsForUpdate(objects);
     }
 
     protected String getDisplayName() {
