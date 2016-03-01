@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.BadExitCodeException
 
 class MavenInstallation {
 
@@ -49,7 +50,11 @@ class MavenInstallation {
 
     static String probeVersion(File home) {
         def mvn = findMvnExecutable(home)
-        def banner = [mvn.absolutePath, "--version"].execute().text
-        (banner.readLines().get(0) =~ /Apache Maven ([^\s]+) \(/)[0][1]
+        def process = [mvn.absolutePath, "--version"].execute()
+        def exitValue = process.waitFor()
+        if (exitValue != 0) {
+            throw new BadExitCodeException("Unable to probe Maven version from ${mvn.absolutePath}, returned ${exitValue}.\n${process.err.text}")
+        }
+        (process.text.readLines().get(0) =~ /Apache Maven ([^\s]+) \(/)[0][1]
     }
 }
