@@ -16,6 +16,10 @@
 
 package org.gradle.testkit.runner.fixtures
 
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.GFileUtils
+import org.gradle.util.GUtil
+
 class AutomaticClasspathInjectionFixture {
 
     void createPluginProjectSourceFiles(File projectDir) {
@@ -64,10 +68,23 @@ class AutomaticClasspathInjectionFixture {
         [projectDir.file("build/classes/main"), projectDir.file('build/resources/main')]
     }
 
-    File createPluginClasspathManifestFile(File projectDir, List<File> classpath) {
-        String content = classpath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join('\n')
-        File pluginClasspathFile = projectDir.file("build/pluginClasspathManifest/plugin-classpath.txt")
-        pluginClasspathFile << content
+    File createPluginClasspathManifestFile(File projectDir, List<File> classpath, Map<String, String> extraProperties = [:]) {
+        File pluginClasspathFile = new File(projectDir, "build/pluginClasspathManifest/plugin-under-test-metadata.properties")
+        GFileUtils.touch(pluginClasspathFile)
+        Properties properties = new Properties()
+
+        if (!classpath.isEmpty()) {
+            String content = classpath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join(',')
+            properties.setProperty(ToolingApiGradleExecutor.IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
+        }
+
+        if (!extraProperties.isEmpty()) {
+            extraProperties.each { key, value ->
+                properties.setProperty(key, value)
+            }
+        }
+
+        GUtil.saveProperties(properties, pluginClasspathFile)
         pluginClasspathFile
     }
 

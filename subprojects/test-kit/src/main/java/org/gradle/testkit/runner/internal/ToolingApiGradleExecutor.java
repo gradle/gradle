@@ -16,13 +16,13 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.IncompletePluginMetadataException;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.dist.GradleDistribution;
@@ -40,16 +40,16 @@ import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -60,6 +60,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
 
     private static final String CLEANUP_THREAD_NAME = "gradle-runner-cleanup";
+
+    private static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
 
     private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
 
@@ -162,32 +164,33 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private List<File> readPluginClasspath() {
-        List<File> pluginClasspath = new ArrayList<File>();
         URL[] classLoaderURLs = ((URLClassLoader) (Thread.currentThread().getContextClassLoader())).getURLs();
         URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
             @Override
             public boolean isSatisfiedBy(URL url) {
-                return url.toString().endsWith("pluginClasspathManifest/plugin-classpath.txt");
+                return url.toString().endsWith("pluginClasspathManifest/plugin-under-test-metadata.properties");
             }
         });
 
         if (pluginClasspathUrl != null) {
-            BufferedReader br = null;
+            Properties properties = GUtil.loadProperties(pluginClasspathUrl);
 
-            try {
-                br = new BufferedReader(new InputStreamReader(pluginClasspathUrl.openStream()));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    pluginClasspath.add(new File(line));
+            if (!properties.isEmpty()) {
+                if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
+                    throw new IncompletePluginMetadataException(String.format("Plugin classpath manifest file does not contain expected property named '%s'", IMPLEMENTATION_CLASSPATH_PROP_KEY));
                 }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } finally {
-                IOUtils.closeQuietly(br);
+
+                String[] parsedImplementationClasspath = properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY).split(",");
+                return CollectionUtils.collect(parsedImplementationClasspath, new Transformer<File, String>() {
+                    @Override
+                    public File transform(String classpathEntry) {
+                        return new File(classpathEntry);
+                    }
+                });
             }
         }
 
-        return pluginClasspath;
+        return Collections.emptyList();
     }
 
     private static OutputStream teeOutput(OutputStream capture, OutputStream user) {

@@ -36,7 +36,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
         then:
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-classpath.txt")
+        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
         classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
@@ -87,7 +87,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
         then:
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-classpath.txt")
+        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
         classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))

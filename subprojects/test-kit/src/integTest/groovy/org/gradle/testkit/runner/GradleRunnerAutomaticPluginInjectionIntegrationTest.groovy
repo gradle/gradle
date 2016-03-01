@@ -22,6 +22,7 @@ import org.gradle.testkit.runner.fixtures.AutomaticClasspathInjectionFixture
 import org.gradle.testkit.runner.fixtures.annotations.InjectsPluginClasspath
 import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
 import org.gradle.util.GFileUtils
+import org.gradle.util.GUtil
 import org.gradle.util.UsesNativeServices
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -102,13 +103,28 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
         then:
         pluginClasspathFile.exists()
-        pluginClasspathFile.text == ''
+        Properties properties = GUtil.loadProperties(pluginClasspathFile)
+        !properties.containsKey('implementation-classpath')
         execFailure(result).assertHasDescription("""
             |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
+    }
+
+    def "throws exception if manifest does not contain classpath property"() {
+        given:
+        File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [], ['other': 'prop'])
+
+        when:
+        fixture.withClasspath([pluginClasspathFile]) {
+            runner('helloWorld').build()
+        }
+
+        then:
+        Throwable t = thrown(IncompletePluginMetadataException)
+        t.message == "Plugin classpath manifest file does not contain expected property named 'implementation-classpath'"
     }
 
     private void compilePluginProjectSources() {

@@ -26,10 +26,11 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Custom task for generating a plugin classpath manifest for the given classpath.
@@ -38,6 +39,7 @@ import java.util.List;
  */
 public class PluginClasspathManifest extends ConventionTask {
 
+    public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     private FileCollection pluginClasspath;
     private final File outputFile;
 
@@ -53,7 +55,7 @@ public class PluginClasspathManifest extends ConventionTask {
     }
 
     private File getDefaultOutputFile() {
-        String pluginClasspath = String.format("%s/%s/plugin-classpath.txt", getProject().getBuildDir(), getName());
+        String pluginClasspath = String.format("%s/%s/plugin-under-test-metadata.properties", getProject().getBuildDir(), getName());
         return getProject().file(pluginClasspath);
     }
 
@@ -70,7 +72,7 @@ public class PluginClasspathManifest extends ConventionTask {
     }
 
     /**
-     * The target output file used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name/plugin-classpath.txt"}.
+     * The target output file used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name/plugin-under-test-metadata.properties"}.
      * <p>
      * The target output file cannot be changed.
      */
@@ -81,14 +83,19 @@ public class PluginClasspathManifest extends ConventionTask {
 
     @TaskAction
     public void generate() {
-        List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath().replaceAll("\\\\", "/");
-            }
-        });
+        Properties properties = new Properties();
 
-        String joinedPaths = Joiner.on("\n").join(paths);
-        GFileUtils.writeFile(joinedPaths, getOutputFile());
+        if (!getPluginClasspath().isEmpty()) {
+            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
+                @Override
+                public String transform(File file) {
+                    return file.getAbsolutePath().replaceAll("\\\\", "/");
+                }
+            });
+
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, Joiner.on(",").join(paths));
+        }
+
+        GUtil.saveProperties(properties, getOutputFile());
     }
 }

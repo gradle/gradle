@@ -20,11 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.maven.MavenModule
 
+import static PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String TASK_NAME = 'generatePluginClasspathManifest'
+    private static final String TASK_NAME = 'pluginClasspathManifest'
     private static final String TASK_PATH = ":$TASK_NAME"
 
     def setup() {
@@ -46,12 +47,11 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.executedTasks.containsAll([':compileJava', ':processResources', TASK_PATH])
-        File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
+        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        classpathManifest.text == normaliseFileAndLineSeparators("""${file('build/classes/main').absolutePath}
-${file('build/resources/main').absolutePath}
-${module.artifactFile.absolutePath}""")
+        String implementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
+        readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY) == normaliseFileAndLineSeparators(implementationClasspath)
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -80,12 +80,32 @@ ${module.artifactFile.absolutePath}""")
 
         then:
         result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources', TASK_PATH])
-        File classpathManifest = file("build/$TASK_NAME/plugin-classpath.txt")
+        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         !classpathManifest.text.contains("\\")
-        classpathManifest.text == normaliseFileAndLineSeparators("""${file('build/classes/custom').absolutePath}
-${file('build/resources/custom').absolutePath}
-${module.artifactFile.absolutePath}""")
+        String implementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
+        readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY) == normaliseFileAndLineSeparators(implementationClasspath)
+    }
+
+    def "adds no implementation-classpath property for empty plugin classpath"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+                pluginClasspath = files()
+            }
+        """
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('compile', module)
+
+        when:
+        ExecutionResult result = succeeds TASK_NAME
+
+        then:
+        result.executedTasks.contains(TASK_PATH)
+        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
+        classpathManifest.exists() && classpathManifest.isFile()
+        !classpathManifest.text.contains("\\")
+        !readPropertiesFile(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
 
     def "fails the task for null plugin classpath"() {
@@ -128,5 +148,11 @@ ${module.artifactFile.absolutePath}""")
                 $configurationName '$module.groupId:$module.artifactId:$module.version'
             }
         """
+    }
+
+    private Properties readPropertiesFile(File file) {
+        Properties properties = new Properties()
+        properties.load(file.newDataInputStream())
+        properties
     }
 }
