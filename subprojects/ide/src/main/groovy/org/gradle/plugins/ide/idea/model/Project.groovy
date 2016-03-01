@@ -129,9 +129,7 @@ class Project extends XmlPersistableConfigurationObject {
     }
 
     private void configureBytecodeLevels() {
-        if (bytecodeVersion != JavaVersion.toVersion(jdk.projectJdkName)) {
-            findBytecodeLevelConfiguration().@'target' = bytecodeVersion.toString()
-        }
+        findBytecodeLevelConfiguration().@'target' = bytecodeVersion.toString()
         for (IdeaModule module : modules) {
             def moduleBytecodeVersionOverwrite = module.getTargetBytecodeVersion()
             if (moduleBytecodeVersionOverwrite != null) {

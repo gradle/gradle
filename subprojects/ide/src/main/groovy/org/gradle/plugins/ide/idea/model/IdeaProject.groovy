@@ -129,21 +129,6 @@ class IdeaProject {
     @Incubating
     JavaVersion targetBytecodeVersion
 
-    /**
-     * Marker for tracking explicit configured languageLevel: this is consumed by `IdeaModule`,
-     * and is not part of the IdeaProject API.
-     */
-    private boolean hasUserSpecifiedLanguageLevel
-
-
-    /**
-     * Packaged scoped getter method for {@code hasUserSpecifiedLanguageLevel} to be consumed by `IdeaModule`,
-     * and is not part of the IdeaProject API.
-     */
-    @Incubating
-    boolean getHasUserSpecifiedLanguageLevel() {
-        return hasUserSpecifiedLanguageLevel
-    }
 
     /**
      * Sets the java language level for the project.
@@ -156,7 +141,6 @@ class IdeaProject {
      */
     void setLanguageLevel(Object languageLevel) {
         this.languageLevel = new IdeaLanguageLevel(languageLevel)
-        this.hasUserSpecifiedLanguageLevel = true
     }
 
     /**

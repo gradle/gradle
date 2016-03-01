@@ -86,7 +86,7 @@ project(':child3') {
         iml("child3").languageLevel == null
     }
 
-    void "use project language level for source language level and target bytecode level when explicitly set"() {
+    void "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
 allprojects {
@@ -115,7 +115,7 @@ project(':child2') {
 }
 
 project(':child3') {
-    sourceCompatibility = 1.8
+    sourceCompatibility = 1.7
     targetCompatibility = 1.8
 }
 """
@@ -125,12 +125,16 @@ project(':child3') {
         then:
         ipr.languageLevel == "JDK_1_7"
         ipr.jdkName == "1.8"
-        iml('root').languageLevel == null
-        iml('child1').languageLevel == null
-        iml('child2').languageLevel == null
+        iml('root').languageLevel == "JDK_1_4"
+        iml('child1').languageLevel == "JDK_1_6"
+        iml('child2').languageLevel == "JDK_1_5"
         iml('child3').languageLevel == null
-        ipr.bytecodeTargetLevel.children().size() == 0
-        ipr.bytecodeTargetLevel.@target == '1.7'
+        ipr.bytecodeTargetLevel.@target == '1.8'
+        ipr.bytecodeTargetLevel.children().size() == 3
+        ipr.bytecodeTargetLevel.module.find { it.@name == "root" }.@target == "1.4"
+        ipr.bytecodeTargetLevel.module.find { it.@name == "child1" }.@target == "1.6"
+        ipr.bytecodeTargetLevel.module.find { it.@name == "child2" }.@target == "1.5"
+        !ipr.bytecodeTargetLevel.module.find { it.@name == "child3" }
     }
 
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
@@ -173,7 +177,7 @@ subprojects {
     }
 
 
-    def "no explicit bytecodeLevel for same java versions"() {
+    def "project bytecodeLevel set explicitly for same java versions"() {
         given:
         settingsFile << """
 rootProject.name = "root"
@@ -201,7 +205,8 @@ idea {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
 
         then:
-        ipr.bytecodeTargetLevel.size() == 0
+        ipr.bytecodeTargetLevel.size() == 1
+        ipr.bytecodeTargetLevel.@target == "1.6"
     }
 
     def "explicit project target level when module version differs from project java sdk"() {

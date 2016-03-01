@@ -111,13 +111,9 @@ class IdeaPlugin extends IdePlugin {
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
                 ideaProject.conventionMapping.targetBytecodeVersion = {
-                    if (ideaProject.hasUserSpecifiedLanguageLevel) {
-                        return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"))
+                    getMaxJavaModuleCompatibilityVersionFor { Project p ->
+                        p.convention.getPlugin(JavaPluginConvention).targetCompatibility
                     }
-                    List<JavaVersion> allTargetCompatibilities = project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(JavaBasePlugin) }.collect {
-                        it.convention.getPlugin(JavaPluginConvention).targetCompatibility
-                    }
-                    allTargetCompatibilities.max() ?: JavaVersion.VERSION_1_6
                 }
 
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
@@ -206,9 +202,6 @@ class IdeaPlugin extends IdePlugin {
             return true
         }
         IdeaProject ideaProject = rootProject.idea.project
-        if (ideaProject.hasUserSpecifiedLanguageLevel) {
-            return false
-        }
         return moduleTargetBytecodeLevel != ideaProject.getTargetBytecodeVersion()
     }
 
@@ -217,9 +210,6 @@ class IdeaPlugin extends IdePlugin {
             return true
         }
         IdeaProject ideaProject = rootProject.idea.project
-        if (ideaProject.hasUserSpecifiedLanguageLevel) {
-            return false
-        }
         return moduleLanguageLevel != ideaProject.languageLevel
     }
 

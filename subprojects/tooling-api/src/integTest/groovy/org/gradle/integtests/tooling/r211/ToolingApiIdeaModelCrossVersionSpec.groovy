@@ -156,6 +156,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null // inherited
     }
 
+    @TargetGradleVersion("<2.11")
     def "explicit idea project language level overrules sourceCompatiblity settings"() {
         given:
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
