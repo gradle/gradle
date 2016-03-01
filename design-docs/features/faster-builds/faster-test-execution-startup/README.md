@@ -125,3 +125,22 @@ Miscellaneous profiling results:
 
 - when excluding test execution time, up to 10% of remaning time is spent calling `getGenericReturnType` in decorators (fixed already)
 - A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration. Experimental fix: https://github.com/gradle/gradle/commit/9946a56f225aa9f4007eb65f0cfb3274a718e140
+
+Latest hotspots on an up-to-date test execution build (aka, does nothing)
+
+- **Dependency resolution** org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager.withIvy(Transformer) DefaultIvyContextManager.java 544ms	**9 %**
+- groovy.lang.Closure.getPropertyTryThese(String, Object, Object) Closure.java 248ms	4 %
+- **String interning** com.google.common.collect.Interners$WeakInterner.intern(Object) Interners.java 232ms	4 %
+- java.util.LinkedList.toArray(Object[]) LinkedList.java 192ms	3 %
+- org.gradle.api.internal.changedetection.state.CachingFileSnapshotter.snapshot(FileTreeElement) CachingFileSnapshotter.java 188ms	3 %
+- groovy.lang.MetaClassImpl.invokeMissingProperty(Object, String, Object, boolean) MetaClassImpl.java 180ms	3 %
+- java.lang.Class.getSimpleName() Class.java 160ms	3 %
+- com.google.common.cache.LocalCache$LocalManualCache.getIfPresent(Object) LocalCache.java 148ms	3 %
+- com.google.common.collect.Sets$SetFromMap.add(Object) Sets.java 124ms	2 %
+- java.io.File.isDirectory() File.java 112ms	2 %
+- java.lang.reflect.Method.getGenericReturnType() Method.java 104ms	2 % (already optimized, used to be 10%)
+- org.gradle.api.internal.CompositeDynamicObject.setProperty(String, Object) CompositeDynamicObject.java 104ms	2 %
+- org.gradle.initialization.ProjectPropertySettingBuildLoader.addPropertiesToProject(Project) ProjectPropertySettingBuildLoader.java 100ms	2 %
+- org.gradle.internal.service.DefaultServiceRegistry.getFactory(Class) DefaultServiceRegistry.java 84ms	1 %
+- org.gradle.internal.service.DefaultServiceRegistry$CompositeProvider.getService(DefaultServiceRegistry$LookupContext, DefaultServiceRegistry$TypeSpec) DefaultServiceRegistry.java 84ms	1 %
+- java.lang.Class.isArray() Class.java (native) 80ms	1 %
