@@ -126,6 +126,7 @@ Miscellaneous profiling results:
 - when excluding test execution time, up to 10% of remaning time is spent calling `getGenericReturnType` in decorators (fixed already)
 - A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration. Experimental fix: https://github.com/gradle/gradle/commit/9946a56f225aa9f4007eb65f0cfb3274a718e140
 - 20% of dependency resolution time in up-to-date build is spent in parsing the Ivy XML descriptor
+- IDE plugin application consumes most of the build script (project) setup. The Eclipse and IDEA plugins trigger a lot of dynamic variable resolution (`conventionMapping`, `projectModel`, ...) which are very expensive (and not optimized) in Groovy. This is called even if, in the end, we will never call the IDEA or Eclipse tasks...
 
 Latest hotspots on an up-to-date test execution build (aka, does nothing)
 
