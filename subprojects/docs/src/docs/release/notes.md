@@ -10,16 +10,17 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Automatic plugin classpath injection for TestKit
+### More convenient testing of Gradle plugins
 
-Previous versions of Gradle required significant amounts of boilerplate code for [injecting the plugin classpath](userguide/test_kit.html#sub:test-kit-classpath-injection).
-This version of Gradle provides a direct integration of TestKit with the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html). By applying the plugin,
-declaring the `gradleTestKit()` dependency and injecting code under test happens automatically under the covers. As result, you don't have to write boilerplate code anymore
-to functionally test your plugin code. To apply the Java Gradle Plugin Development Plugin to your project, add the following code to your build script.
+Gradle 2.6 introduced the “[Gradle TestKit](userguide/test_kit.html)” which made it easier to thoroughly test Gradle plugins.
+The TestKit has improved and matured with subsequent Gradle releases.
+Starting with Gradle 2.13, less manual build configuration is required in order to inject the implementation of your plugin into your tests.
 
-    apply plugin: 'java-gradle-plugin'
+When using the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html),
+the plugin being developed will now be implicitly made available to all builds under test,
+removing the need for any manual configuration.
 
-You can read more about this functionality in the [user guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection).
+See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection) for more about this new feature.
 
 ## Promoted features
 
