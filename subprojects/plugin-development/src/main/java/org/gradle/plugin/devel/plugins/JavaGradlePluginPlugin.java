@@ -53,7 +53,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
     static final String EXTENSION_NAME = "javaGradlePlugin";
-    static final String PLUGIN_CLASSPATH_TASK_NAME = "generatePluginClasspathManifest";
+    static final String PLUGIN_CLASSPATH_TASK_NAME = "pluginClasspathManifest";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);

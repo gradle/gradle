@@ -66,7 +66,7 @@ class AutomaticClasspathInjectionFixture {
 
     File createPluginClasspathManifestFile(File projectDir, List<File> classpath) {
         String content = classpath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join('\n')
-        File pluginClasspathFile = projectDir.file("build/generatePluginClasspathManifest/plugin-classpath.txt")
+        File pluginClasspathFile = projectDir.file("build/pluginClasspathManifest/plugin-classpath.txt")
         pluginClasspathFile << content
         pluginClasspathFile
     }

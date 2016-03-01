@@ -167,7 +167,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
             @Override
             public boolean isSatisfiedBy(URL url) {
-                return url.toString().endsWith("generatePluginClasspathManifest/plugin-classpath.txt");
+                return url.toString().endsWith("pluginClasspathManifest/plugin-classpath.txt");
             }
         });
 
