@@ -103,37 +103,6 @@ Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targe
 Setting `idea.project.languageLevel` explicitly in a build does not override modules language levels.
 They are calculated by from the `sourceCompatibility` level of the java projects.
 
-### Change in exclude file pattern matching
-
-Projects which use certain wildcards patterns to `exclude` files may notice that fewer files are excluded than in previous versions of Gradle.
-
-For example, given the following directory structure:
-
-    files
-    ├── valid
-    │   └── Some.java
-    ├── alsoValid
-    │   └── Some.class
-    └── ignoreMe.txt
-
-And a `FileTree` configured with a single-level wildcard `'*'`:
-
-    fileTree('files') {
-        exclude('*')
-    }
-
-In previous versions of Gradle, the `FileTree` would exclude all files (even those in subdirectories).
-
-Gradle 2.12 changes this behavior, such that the `FileTree` will now only exclude the files in the top-level directory (i.e. `ignoreMe.txt`), but will retain the files in the subdirectories. This behavior is now consistent with how `include` patterns work.
-
-Should you want to exclude all files, including those in subdirectories, a multi-level wildcard should be used.
-
-    fileTree('files') {
-        exclude('**')
-    }
-
-Note, this change affects all implementations of [`PatternFilterable`](javadoc/org/gradle/api/tasks/util/PatternFilterable.html), not just `FileTree`.
-
 ### System properties are read in different order
 
 System properties set on the command line with -D option will now override settings in gradle.properties file. If you have the same property specified in both places with different values, then Gradle will use a different value after the upgrade.
@@ -173,7 +142,6 @@ We would like to thank the following community members for making contributions 
 * [Lewis Cowles](https://github.com/LewisCowles1986) - Installation documentation clarification about GRADLE_HOME
 * [Alex Landau](https://github.com/AlexLandau) - Fix for JUnit Test Filtering with the `--test` flag to work for Parametrized tests and TestSuites
 * [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between Ant and Zinc scala compiler implementations
-* [Pavel Fadeev](https://github.com/bearmug) - Makes `exclude('*')` semantically consistent with `include('*')` excluding only files in the baseDir
 * [Tony Abbott](https://github.com/tonyabbott) - Fix for native testing plugins when test binaries are not buildable
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).

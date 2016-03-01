@@ -39,7 +39,7 @@ public class FixedStepsPathMatcher implements PathMatcher {
         return maxSegments;
     }
 
-    public boolean matches(String[] segments, int startIndex, boolean isFile) {
+    public boolean matches(String[] segments, int startIndex) {
         int remaining = segments.length - startIndex;
         if (remaining < minSegments || remaining > maxSegments) {
             return false;
@@ -47,24 +47,24 @@ public class FixedStepsPathMatcher implements PathMatcher {
         int pos = startIndex;
         for (int i = 0; i < steps.size(); i++, pos++) {
             PatternStep step = steps.get(i);
-            if (!step.matches(segments[pos], isFile)) {
+            if (!step.matches(segments[pos])) {
                 return false;
             }
         }
-        return next.matches(segments, pos, isFile);
+        return next.matches(segments, pos);
     }
 
-    public boolean isPrefix(String[] segments, int startIndex, boolean isFile) {
+    public boolean isPrefix(String[] segments, int startIndex) {
         int pos = startIndex;
         for (int i = 0; pos < segments.length && i < steps.size(); i++, pos++) {
             PatternStep step = steps.get(i);
-            if (!step.matches(segments[pos], isFile)) {
+            if (!step.matches(segments[pos])) {
                 return false;
             }
         }
         if (pos == segments.length) {
             return true;
         }
-        return next.isPrefix(segments, pos, isFile);
+        return next.isPrefix(segments, pos);
     }
 }
