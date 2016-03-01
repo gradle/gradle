@@ -28,7 +28,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = template
         runner.tasksToRun = gradleTasks
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.11', 'latest']
+        runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ['-Xms1G', '-Xmx1G']
 
@@ -39,8 +39,32 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        template          | size     | description                 | gradleTasks           | equivalentMavenTasks | maxExecutionTimeRegression
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['test']             | millis(1000)
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['clean', 'test']    | millis(1000)
+        template          | size     | description                 | gradleTasks           | maxExecutionTimeRegression
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | millis(1000)
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | millis(1000)
+    }
+
+    @Unroll("#description build for #template")
+    def "incremental test build performance non regression test"() {
+        given:
+        runner.testId = "$size $description with old Java plugin"
+        runner.testProject = template
+        runner.tasksToRun = gradleTasks
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['2.11', 'last']
+        runner.useDaemon = true
+        runner.gradleOpts = ['-Xms1G', '-Xmx1G']
+        runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        template          | size     | description              | gradleTasks | maxExecutionTimeRegression
+        'mediumWithJUnit' | 'medium' | 'incremental test build' | ['test']    | millis(1000)
+        'largeWithJUnit'  | 'large'  | 'incremental test build' | ['test']    | millis(1000)
     }
 }
