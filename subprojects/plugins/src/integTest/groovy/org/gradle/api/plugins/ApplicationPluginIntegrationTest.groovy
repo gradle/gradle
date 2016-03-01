@@ -193,6 +193,37 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
+    def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
+        given:
+        buildFile << """
+applicationDefaultJvmArgs = ["-javaagent:REPLACE_THIS_WITH_APP_HOME/lib/some.jar"]
+
+startScripts {
+    doLast {
+        unixScript.text = unixScript.text.replace("REPLACE_THIS_WITH_APP_HOME", "'\\\$APP_HOME'")
+        windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '"%APP_HOME%"')
+    }
+}
+"""
+        when:
+        succeeds('startScripts')
+
+        then:
+        File unixStartScript = assertGeneratedUnixStartScript()
+        String unixStartScriptContent = unixStartScript.text
+        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_HOME=')
+        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_NAME=')
+        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_BASE_NAME=')
+
+        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-javaagent:\'\$APP_HOME\'/lib/some.jar"\'')
+
+        then:
+        File windowsStartScript = assertGeneratedWindowsStartScript()
+        String windowsStartScriptContentText = windowsStartScript.text
+        assert windowsStartScriptContentText.indexOf('DEFAULT_JVM_OPTS=') > windowsStartScriptContentText.indexOf('APP_HOME=')
+        assert windowsStartScriptContentText.indexOf('DEFAULT_JVM_OPTS=') > windowsStartScriptContentText.indexOf('APP_BASE_NAME=')
+    }
+
     private void createSampleProjectSetup() {
         createMainClass()
         populateBuildFile()
