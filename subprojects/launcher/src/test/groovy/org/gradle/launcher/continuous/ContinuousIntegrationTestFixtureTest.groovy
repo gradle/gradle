@@ -113,7 +113,7 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
         sampleTest.succeeds("sometask")
         then:
         def results = sampleTest.results
-        results.size == 2
+        results.size() == 2
         results[1].output.startsWith("new file:")
     }
 
