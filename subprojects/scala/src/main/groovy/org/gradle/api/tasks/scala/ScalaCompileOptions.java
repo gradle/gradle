@@ -25,6 +25,13 @@ import org.gradle.util.SingleMessageLogger;
  * Options for Scala compilation, including the use of the Ant-backed compiler.
  */
 public class ScalaCompileOptions extends BaseScalaCompileOptions {
+    private static final String USE_ANT_MSG = "The Ant-Based Scala compiler is deprecated, please see "
+        + "https://docs.gradle.org/current/userguide/scala_plugin.html";
+    private static final String FORK_MSG = "The fork option for the scala compiler is deprecated, please see "
+        + "https://docs.gradle.org/current/userguide/scala_plugin.html";
+    private static final String USE_COMPILE_DAEMON_MSG = "The Ant-Based Scala compiler and it's support for a compile "
+        + "daemon is deprecated, please see https://docs.gradle.org/current/userguide/scala_plugin.html";
+
     private static final ImmutableMap<String, String> FIELD_NAMES_TO_ANT_PROPERTIES = new ImmutableMap.Builder<String, String>()
             .put("loggingLevel", "logging")
             .put("loggingPhases", "logphase")
@@ -50,16 +57,16 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
      * instead. The latter can be significantly faster, especially if there are few source code changes
      * between compiler runs. Defaults to {@code true}.
      */
+    @Deprecated
     public boolean isUseAnt() {
+        SingleMessageLogger.nagUserOfDeprecated("useAnt", USE_ANT_MSG);
         return useAnt;
     }
 
 
     @Deprecated
     public void setUseAnt(boolean useAnt) {
-        SingleMessageLogger.nagUserOfDeprecated("useAnt",
-            "The Ant-Based Scala compiler is deprecated, please see "
-            + "https://docs.gradle.org/current/userguide/scala_plugin.html");
+        SingleMessageLogger.nagUserOfDeprecated("useAnt", USE_ANT_MSG);
         this.useAnt = useAnt;
         if (useAnt == fork) {
             // Not using setFork so we don't get two deprecation nag messages.
@@ -72,30 +79,30 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
      * for the Ant based compiler ({@code useAnt = true}), and to {@code true} for the Zinc
      * based compiler ({@code useAnt = false}).
      */
+    @Deprecated
     public boolean isFork() {
+        SingleMessageLogger.nagUserOfDeprecated("fork", FORK_MSG);
         return fork;
     }
 
     @Deprecated
     public void setFork(boolean fork) {
-        SingleMessageLogger.nagUserOfDeprecated("fork",
-            "The fork option for the scala compiler is deprecated, please see "
-                + "https://docs.gradle.org/current/userguide/scala_plugin.html");
+        SingleMessageLogger.nagUserOfDeprecated("fork", FORK_MSG);
         this.fork = fork;
     }
 
     /**
      * Whether to use the fsc compile daemon.
      */
+    @Deprecated
     public boolean isUseCompileDaemon() {
+        SingleMessageLogger.nagUserOfDeprecated("useCompileDaemon", USE_COMPILE_DAEMON_MSG);
         return useCompileDaemon;
     }
 
     @Deprecated
     public void setUseCompileDaemon(boolean useCompileDaemon) {
-        SingleMessageLogger.nagUserOfDeprecated("useCompileDaemon",
-            "The Ant-Based Scala compiler and it's support for a compile daemon is deprecated,"
-                + " please see https://docs.gradle.org/current/userguide/scala_plugin.html");
+        SingleMessageLogger.nagUserOfDeprecated("useCompileDaemon", USE_COMPILE_DAEMON_MSG);
         this.useCompileDaemon = useCompileDaemon;
     }
 
@@ -106,15 +113,15 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
      * If not specified, launches the daemon on the localhost.
      * This parameter can only be specified if useCompileDaemon is true.
      */
+    @Deprecated
     public String getDaemonServer() {
+        SingleMessageLogger.nagUserOfDeprecated("daemonServer", USE_COMPILE_DAEMON_MSG);
         return daemonServer;
     }
 
     @Deprecated
     public void setDaemonServer(String daemonServer) {
-        SingleMessageLogger.nagUserOfDeprecated("daemonServer",
-            "The Ant-Based Scala compiler and it's support for a compile daemon is deprecated,"
-            + " please see https://docs.gradle.org/current/userguide/scala_plugin.html");
+        SingleMessageLogger.nagUserOfDeprecated("daemonServer", USE_COMPILE_DAEMON_MSG);
         this.daemonServer = daemonServer;
     }
 
