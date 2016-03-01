@@ -15,7 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -30,13 +33,14 @@ import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
+import org.gradle.plugins.ide.eclipse.model.EclipseProject
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
+@CompileStatic
 class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_TASK_NAME = "eclipse"
     static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject"
@@ -60,7 +64,7 @@ class EclipsePlugin extends IdePlugin {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
-        def model = project.extensions.create("eclipse", EclipseModel)
+        EclipseModel model = (EclipseModel) project.extensions.create("eclipse", EclipseModel)
 
         configureEclipseProject(project, model)
         configureEclipseJdt(project, model)
@@ -81,12 +85,15 @@ class EclipsePlugin extends IdePlugin {
         new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureEclipseProject(Project project, EclipseModel model) {
-        maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) {
+        maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) { GenerateEclipseProject task ->
+            EclipseProject projectModel = task.projectModel
+
             //task properties:
-            description = "Generates the Eclipse project file."
-            inputFile = project.file('.project')
-            outputFile = project.file('.project')
+            task.description = "Generates the Eclipse project file."
+            task.inputFile = project.file('.project')
+            task.outputFile = project.file('.project')
 
             //model:
             model.project = projectModel
@@ -116,34 +123,35 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureEclipseClasspath(Project project, EclipseModel model) {
         model.classpath = instantiator.newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
-            maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { task ->
+            maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { GenerateEclipseClasspath task ->
                 //task properties:
-                description = "Generates the Eclipse classpath file."
-                inputFile = project.file('.classpath')
-                outputFile = project.file('.classpath')
+                task.description = "Generates the Eclipse classpath file."
+                task.inputFile = project.file('.classpath')
+                task.outputFile = project.file('.classpath')
 
                 //model properties:
-                classpath = model.classpath
-                classpath.file = new XmlFileContentMerger(xmlTransformer)
+                task.classpath = model.classpath
+                task.classpath.file = new XmlFileContentMerger(task.xmlTransformer)
 
-                classpath.sourceSets = project.sourceSets
+                task.classpath.sourceSets = project.sourceSets
 
                 project.afterEvaluate {
                     // keep the ordering we had in earlier gradle versions
                     Set<String> containers = new LinkedHashSet<String>()
                     containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/")
-                    containers.addAll(classpath.containers)
-                    classpath.containers = containers
+                    containers.addAll(task.classpath.containers)
+                    task.classpath.containers = containers
                 }
 
                 project.plugins.withType(JavaPlugin) {
-                    classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
-                    classpath.conventionMapping.classFolders = {
+                    task.classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
+                    task.classpath.conventionMapping.classFolders = {
                         return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
                     }
                     task.dependsOn {
@@ -152,14 +160,14 @@ class EclipsePlugin extends IdePlugin {
                 }
 
                 project.plugins.withType(ScalaBasePlugin) {
-                    classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
+                    task.classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
 
                     // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
                     project.gradle.projectsEvaluated {
                         def provided = ["scala-library", "scala-swing", "scala-dbc"]
-                        def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
+                        def dependencies = task.classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
                         if (!dependencies.empty) {
-                            classpath.minusConfigurations << project.configurations.detachedConfiguration(dependencies as Dependency[])
+                            task.classpath.minusConfigurations << project.configurations.detachedConfiguration(dependencies as Dependency[])
                         }
                     }
                 }
@@ -167,14 +175,16 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureEclipseJdt(Project project, EclipseModel model) {
         project.plugins.withType(JavaBasePlugin) {
-            maybeAddTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) {
+            maybeAddTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) { GenerateEclipseJdt task ->
                 //task properties:
-                description = "Generates the Eclipse JDT settings file."
-                outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
-                inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                task.description = "Generates the Eclipse JDT settings file."
+                task.outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                task.inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
                 //model properties:
+                def jdt = task.jdt
                 model.jdt = jdt
                 jdt.conventionMapping.sourceCompatibility = { project.convention.getPlugin(JavaPluginConvention).sourceCompatibility }
                 jdt.conventionMapping.targetCompatibility = { project.convention.getPlugin(JavaPluginConvention).targetCompatibility }
@@ -183,11 +193,14 @@ class EclipsePlugin extends IdePlugin {
         }
     }
 
-    private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
-        if (project.tasks.findByName(taskName)) {
+    // This skip is because of a weird Groovy compiler bug
+    @CompileStatic(TypeCheckingMode.SKIP)
+    public static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType, @DelegatesTo(strategy=Closure.DELEGATE_FIRST, type="T") Closure action) {
+        def tasks = project.tasks
+        if (tasks.findByName(taskName)!=null) {
             return
         }
-        def task = project.tasks.create(taskName, taskType)
+        def task = tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
     }

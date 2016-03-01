@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.idea
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -40,6 +42,7 @@ import javax.inject.Inject
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
  */
+@CompileStatic
 class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator
     private IdeaModel ideaModel
@@ -61,7 +64,7 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        ideaModel = project.extensions.create("idea", IdeaModel)
+        ideaModel = (IdeaModel) project.extensions.create("idea", IdeaModel)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
@@ -83,23 +86,25 @@ class IdeaPlugin extends IdePlugin {
         new IdeaNameDeduper().configureRoot(project.rootProject)
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
-            def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) {
-                workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(xmlTransformer))
-                ideaModel.workspace = workspace
-                outputFile = new File(project.projectDir, project.name + ".iws")
+            def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) { GenerateIdeaWorkspace task ->
+                task.workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(task.xmlTransformer))
+                ideaModel.workspace = task.workspace
+                task.outputFile = new File(project.projectDir, "${project.name}.iws")
             }
             addWorker(task, false)
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
-            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
-                def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
-
+            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) { GenerateIdeaProject task ->
+                def ipr = new XmlFileContentMerger(task.xmlTransformer)
+                def ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
+                task.ideaProject = ideaProject
                 ideaModel.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
@@ -139,10 +144,12 @@ class IdeaPlugin extends IdePlugin {
         maxJavaVersion
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaModule(Project project) {
-        def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
-            def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
-            module = instantiator.newInstance(IdeaModule, project, iml)
+        def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) { GenerateIdeaModule task ->
+            def iml = new IdeaModuleIml(task.xmlTransformer, project.projectDir)
+            def module = instantiator.newInstance(IdeaModule, project, iml)
+            task.module = module
 
             ideaModel.module = module
 
@@ -171,6 +178,7 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaModuleForJava(Project project) {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
@@ -201,6 +209,7 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
         if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
             return true
@@ -212,6 +221,7 @@ class IdeaPlugin extends IdePlugin {
         return moduleTargetBytecodeLevel != ideaProject.getTargetBytecodeVersion()
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
         if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
             return true
@@ -223,6 +233,7 @@ class IdeaPlugin extends IdePlugin {
         return moduleLanguageLevel != ideaProject.languageLevel
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureForScalaPlugin() {
         project.plugins.withType(ScalaBasePlugin) {
             //see IdeaScalaConfigurer
@@ -233,7 +244,7 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private boolean isRoot(Project project) {
+    private static boolean isRoot(Project project) {
         return project.parent == null
     }
 }

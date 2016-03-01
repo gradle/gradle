@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.internal;
+package org.gradle.plugins.ide.internal
 
-
+import groovy.transform.CompileStatic
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 
+@CompileStatic
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
     private Task cleanTask;
@@ -61,7 +62,7 @@ public abstract class IdePlugin implements Plugin<Project> {
             cleanTask.dependsOn(cleanWorker)
         }
     }
-    
+
     protected void onApply(Project target) {
     }
 
