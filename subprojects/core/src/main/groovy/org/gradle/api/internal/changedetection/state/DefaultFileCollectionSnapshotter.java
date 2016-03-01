@@ -224,10 +224,12 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             };
         }
 
-        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot) {
+        @Override
+        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final Set<ChangeFilter> filters) {
             FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
             final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshotImpl.snapshots);
             final Iterator<String> currentFiles = snapshots.keySet().iterator();
+            final boolean includeAdded = !filters.contains(ChangeFilter.IgnoreAddedFiles);
 
             return new ChangeIterator<String>() {
                 private Iterator<String> removedFiles;
@@ -236,10 +238,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     while (currentFiles.hasNext()) {
                         String currentFile = currentFiles.next();
                         IncrementalFileSnapshot otherFile = otherSnapshots.remove(currentFile);
-
                         if (otherFile == null) {
-                            listener.added(currentFile);
-                            return true;
+                            if (includeAdded) {
+                                listener.added(currentFile);
+                                return true;
+                            }
                         } else if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
                             listener.changed(currentFile);
                             return true;

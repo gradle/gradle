@@ -21,6 +21,8 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import java.util.EnumSet;
+
 public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
@@ -50,6 +52,11 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
     @Override
     public FileCollectionSnapshot getCurrent() {
         return outputFilesBefore;
+    }
+
+    @Override
+    protected FileCollectionSnapshot.ChangeIterator<String> getChanges() {
+        return getCurrent().iterateContentChangesSince(getPrevious(), EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles));
     }
 
     @Override

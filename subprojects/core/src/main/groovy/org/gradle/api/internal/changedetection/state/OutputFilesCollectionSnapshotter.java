@@ -85,23 +85,19 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return new OutputFilesSnapshot(roots, filesSnapshot.applyAllChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
         }
 
-        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot) {
+        @Override
+        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             final ChangeIterator<String> rootFileIdIterator = iterateRootFileIdChanges(other);
-            final ChangeIterator<String> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot);
+            final ChangeIterator<String> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, filters);
 
-            final AddIgnoreChangeListenerAdapter listenerAdapter = new AddIgnoreChangeListenerAdapter();
             return new ChangeIterator<String>() {
                 public boolean next(final ChangeListener<String> listener) {
-                    listenerAdapter.withDelegate(listener);
                     if (rootFileIdIterator.next(listener)) {
                         return true;
                     }
-
-                    while (fileIterator.next(listenerAdapter)) {
-                        if (!listenerAdapter.wasIgnored) {
-                            return true;
-                        }
+                    if (fileIterator.next(listener)) {
+                        return true;
                     }
                     return false;
                 }
@@ -131,32 +127,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     return false;
                 }
             };
-        }
-    }
-
-    /**
-     * A flyweight wrapper that is used to ignore any added files called.
-     */
-    private static class AddIgnoreChangeListenerAdapter implements ChangeListener<String> {
-        private ChangeListener<String> delegate;
-        boolean wasIgnored;
-
-        private void withDelegate(ChangeListener<String> delegate) {
-            this.delegate = delegate;
-        }
-
-        public void added(String element) {
-            wasIgnored = true;
-        }
-
-        public void removed(String element) {
-            delegate.removed(element);
-            wasIgnored = false;
-        }
-
-        public void changed(String element) {
-            delegate.changed(element);
-            wasIgnored = false;
         }
     }
 }

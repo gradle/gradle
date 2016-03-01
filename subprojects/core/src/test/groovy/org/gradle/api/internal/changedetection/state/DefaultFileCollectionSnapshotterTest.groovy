@@ -65,50 +65,67 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         snapshot.files as List == [file]
     }
 
-    def notifiesListenerWhenFileAdded() {
+    def generatesEventWhenFileAdded() {
         given:
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
         def snapshot = snapshotter.snapshot(files(file1))
-        changes(snapshotter.snapshot(files(file1, file2)).iterateContentChangesSince(snapshot),listener)
+        changes(snapshotter.snapshot(files(file1, file2)), snapshot, listener)
 
         then:
         1 * listener.added(file2.path)
         0 * _
     }
 
-    def notifiesListenerWhenFileRemoved() {
+    def doesNotGenerateEventWhenFileAddedAndAddEventsAreFiltered() {
+        given:
+        TestFile file1 = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.file('file2')
+        TestFile file3 = tmpDir.createFile('file3')
+        TestFile file4 = tmpDir.createDir('file4')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file1, file2))
+        file2.createFile()
+        def target = snapshotter.snapshot(files(file1, file2, file3, file4))
+        changes(target.iterateContentChangesSince(snapshot, EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles)), listener)
+
+        then:
+        0 * _
+    }
+
+    def generatesEventWhenFileRemoved() {
         given:
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2))
-        changes(snapshotter.snapshot(files(file1)).iterateContentChangesSince(snapshot), listener)
+        changes(snapshotter.snapshot(files(file1)), snapshot, listener)
 
         then:
         1 * listener.removed(file2.path)
         0 * _
     }
 
-    def fileHasNotChangedWhenTypeAndMetaDataAndContentHaveNotChanged() {
+    def doesNotGenerateEventForFileWhoseTypeAndMetaDataAndContentHaveNotChanged() {
         given:
         TestFile file = tmpDir.createFile('file')
         file.setLastModified(1234L)
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-        changes(snapshotter.snapshot(files(file)).iterateContentChangesSince(snapshot),listener)
+        changes(snapshotter.snapshot(files(file)), snapshot,listener)
         file.setLastModified(45600L)
-        changes(snapshotter.snapshot(files(file)).iterateContentChangesSince(snapshot),listener)
+        changes(snapshotter.snapshot(files(file)), snapshot,listener)
 
         then:
         0 * listener._
     }
 
-    def fileHasChangedWhenTypeHasChanged() {
+    def generatesEventWhenFileBecomesADirectory() {
         given:
         TestFile root = tmpDir.createDir('root')
         TestFile file = root.createFile('file')
@@ -118,39 +135,39 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         file.delete()
         file.createDir()
-        changes(snapshotter.snapshot(fileCollection).iterateContentChangesSince(snapshot), listener)
+        changes(snapshotter.snapshot(fileCollection), snapshot, listener)
 
         then:
         1 * listener.changed(file.path)
         0 * _
     }
 
-    def fileHasChangedWhenHashHasChanged() {
+    def generatesEventWhenFileContentChanges() {
         TestFile file = tmpDir.createFile('file')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
         file.write('new content')
-        changes(snapshotter.snapshot(files(file)).iterateContentChangesSince(snapshot),listener)
+        changes(snapshotter.snapshot(files(file)), snapshot,listener)
 
         then:
         1 * listener.changed(file.path)
         0 * _
     }
 
-    def directoryHasNotChangedWhenTypeHasNotChanged() {
+    def doesNotGenerateEventForDirectoryThatHasNotChanged() {
         TestFile dir = tmpDir.createDir('dir')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
 
-        changes(snapshotter.snapshot(files(dir)).iterateContentChangesSince(snapshot), listener)
+        changes(snapshotter.snapshot(files(dir)), snapshot, listener)
 
         then:
         0 * _
     }
 
-    def directoryHasChangedWhenTypeHasChanged() {
+    def generatesEventForDirectoryThatBecomesAFile() {
         TestFile root = tmpDir.createDir('root')
         def fileCollection = files(root)
         TestFile dir = root.createDir('dir')
@@ -159,25 +176,25 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         dir.deleteDir()
         dir.createFile()
-        changes(snapshotter.snapshot(fileCollection).iterateContentChangesSince(snapshot), listener)
+        changes(snapshotter.snapshot(fileCollection), snapshot, listener)
 
         then:
         1 * listener.changed(dir.path)
         0 * listener._
     }
 
-    def nonExistentFileUnchangedWhenTypeHasNotChanged() {
+    def doesNotGenerateEventForMissingFileThatStillIsMissing() {
         TestFile file = tmpDir.file('unknown')
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-        changes(snapshotter.snapshot(files(file)).iterateContentChangesSince(snapshot), listener)
+        changes(snapshotter.snapshot(files(file)), snapshot, listener)
 
         then:
         0 * _
     }
 
-    def newFileIsAdded() {
+    def generatesEventWhenMissingFileIsCreated() {
         TestFile root = tmpDir.createDir('root')
         def fileCollection = files(root)
         TestFile file = root.file('newfile')
@@ -185,13 +202,13 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         file.createFile()
-        snapshotter.snapshot(fileCollection).iterateContentChangesSince(snapshot).next(listener)
+        changes(snapshotter.snapshot(fileCollection), snapshot, listener)
 
         then:
         1 * listener.added(file.path)
     }
 
-    def deletedFileIsRemoved() {
+    def generatesEventWhenFileIsDeleted() {
         TestFile root = tmpDir.createDir('root')
         def fileCollection = files(root)
         TestFile file = root.createFile('file')
@@ -199,7 +216,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection)
         file.delete()
-        snapshotter.snapshot(fileCollection).iterateContentChangesSince(snapshot).next(listener)
+        changes(snapshotter.snapshot(fileCollection), snapshot, listener)
 
         then:
         1 * listener.removed(file.path)
@@ -211,7 +228,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2))
-        snapshotter.snapshot(files(file1)).iterateContentChangesSince(snapshot).next(listener)
+        changes(snapshotter.snapshot(files(file1)), snapshot, listener)
 
         then:
         0 * _
@@ -223,7 +240,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         when:
         FileCollectionSnapshot snapshot = snapshotter.emptySnapshot()
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file))
-        changes(newSnapshot.iterateContentChangesSince(snapshot), listener)
+        changes(newSnapshot, snapshot, listener)
 
         then:
         snapshot.files.empty
@@ -240,7 +257,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = modified.applyAllChangesSince(original, snapshotter.emptySnapshot())
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files == [file]
@@ -257,7 +274,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = modified.applyAllChangesSince(original, snapshotter.emptySnapshot())
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files == [file]
@@ -287,7 +304,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot modified = snapshotter.emptySnapshot()
         FileCollectionSnapshot target = modified.applyAllChangesSince(original, snapshotter.snapshot(files(file)))
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files.empty
@@ -303,7 +320,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
         FileCollectionSnapshot target = modified.applyAllChangesSince(original, snapshotter.emptySnapshot())
 
-        changes(target.iterateContentChangesSince(snapshotter.emptySnapshot()), listener)
+        changes(target, snapshotter.emptySnapshot(), listener)
 
         then:
         target.files.empty
@@ -319,7 +336,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file1, file2))
         FileCollectionSnapshot target = modified.applyAllChangesSince(original, snapshotter.emptySnapshot())
 
-        changes(target.iterateContentChangesSince(snapshotter.emptySnapshot()), listener)
+        changes(target, snapshotter.emptySnapshot(), listener)
 
         then:
         target.files as Set == [file1, file2] as Set
@@ -337,7 +354,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = original.updateFrom(modified)
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files == [file]
@@ -358,7 +375,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = original.updateFrom(modified)
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files.empty
@@ -375,7 +392,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = original.updateFrom(modified)
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files.empty
@@ -395,7 +412,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = original.updateFrom(modified)
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files == [file1]
@@ -412,7 +429,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot target = original.updateFrom(modified)
-        changes(target.iterateContentChangesSince(original), listener)
+        changes(target, original, listener)
 
         then:
         target.files == [file1]
@@ -447,6 +464,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         then:
         target.is(original)
+    }
+
+    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+        changes(newSnapshot.iterateContentChangesSince(oldSnapshot, [] as Set), listener)
     }
 
     private void changes(FileCollectionSnapshot.ChangeIterator<String> changes, ChangeListener<String> listener) {

@@ -20,15 +20,22 @@ import org.gradle.util.ChangeListener;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * An immutable snapshot of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot {
+    enum ChangeFilter {
+        IgnoreAddedFiles
+    }
+
     /**
-     * Returns an iterator over the changes to file contents since the given snapshot. Note: Ignores changes to file meta-data, such as last modified time.
+     * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
+     *
+     * <p>Note: Ignores changes to file meta-data, such as last modified time. This should be made a {@link ChangeFilter} at some point.
      */
-    ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot);
+    ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters);
 
     /**
      * Returns a copy of this snapshot with file details updated from the given snapshot. Ignores files that are present in the given snapshot but not this snapshot.
@@ -37,7 +44,9 @@ public interface FileCollectionSnapshot {
     FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot);
 
     /**
-     * Applies any changes to file contents since the given old snapshot, to the given target snapshot. Note: <em>Includes changes to file meta-data, such as last modified time.</em>
+     * Applies any changes to file contents since the given old snapshot, to the given target snapshot.
+     *
+     * <p>Note: <em>Includes changes to file meta-data, such as last modified time.</em> This should be made a {@link ChangeFilter} at some point.
      */
     FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target);
 
