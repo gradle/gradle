@@ -20,7 +20,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.util.GradleVersion;
+import org.gradle.util.GradleVersion
 
 @CompileStatic
 class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
@@ -36,7 +36,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            ((GradleInvocationSpec.InvocationBuilder)builder.invocation).distribution(gradleDistribution)
+            ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
         }
     }
 
