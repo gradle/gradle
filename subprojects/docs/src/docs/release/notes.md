@@ -98,6 +98,10 @@ Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targe
         targetVersion = '13'
     }
 
+### Changes to 'idea' module language level configuration
+
+Setting `idea.project.languageLevel` explicitly in a build does not override modules language levels.
+They are calculated by from the `sourceCompatibility` level of the java projects.
 
 ### Change in exclude file pattern matching
 
