@@ -29,11 +29,13 @@ public class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectoryReport im
         super(name, task, null);
     }
 
+    @Override
     @Input
     public boolean isOutputPerTestCase() {
         return outputPerTestCase;
     }
 
+    @Override
     public void setOutputPerTestCase(boolean outputPerTestCase) {
         this.outputPerTestCase = outputPerTestCase;
     }

@@ -16,6 +16,5 @@
 
 package org.gradle.performance.fixture;
 
-public interface GradleInvocationCustomizer {
-    GradleInvocationSpec customize(GradleInvocationSpec invocationSpec);
+public interface GradleInvocationCustomizer extends InvocationCustomizer<GradleInvocationSpec> {
 }

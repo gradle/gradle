@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.Distribution;
@@ -71,5 +72,10 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
 
     private UnsupportedVersionException fail() {
         return new UnsupportedVersionException(String.format("Support for Gradle version %s was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later.", version));
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "2.13");
     }
 }

@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class WindowsConsoleDetector implements ConsoleDetector {
+    @Override
     public ConsoleMetaData getConsole() {
         // Use Jansi's detection mechanism
         try {

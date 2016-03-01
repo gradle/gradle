@@ -31,8 +31,8 @@ import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -146,12 +146,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkMainExecutable"
-            executedAndNotSkipped ":mainExecutable"
-        } else if(objectiveCWithAslr()){
-            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkMainExecutable"
@@ -204,11 +200,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
-        } else if(objectiveCWithAslr()){
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
@@ -232,17 +225,19 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp) {
-            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
-        } else if(objectiveCWithAslr()){
+        if (nonDeterministicCompilation()) {
+            // Relinking may (or may not) be required after recompiling
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    private boolean nonDeterministicCompilation() {
+        // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
+        AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp || objectiveCWithAslr()
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
@@ -444,7 +439,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
-    @RequiresInstalledToolChain(GccCompatible)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
         if(buildingCorCppWithGcc()) {
@@ -481,14 +476,14 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @RequiresInstalledToolChain(VisualCpp)
+    @RequiresInstalledToolChain(VISUALCPP)
     def "cleans up stale debug files when changing from debug to non-debug"() {
 
         given:
         buildFile << """
             model {
                 binaries {
-                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
+                    all { ${compilerTool}.args ${toolChain.meets(ToolChainRequirement.VISUALCPP_2013_OR_NEWER) ? "'/Zi', '/FS'" : "'/Zi'"}; linker.args '/DEBUG'; }
                 }
             }
         """
@@ -586,7 +581,7 @@ model {
     }
 
     def buildingCorCppWithGcc() {
-        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
+        return toolChain.meets(ToolChainRequirement.GCC) && (sourceType == "C" || sourceType == "Cpp")
     }
 
     private void maybeWait() {

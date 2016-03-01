@@ -16,16 +16,14 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.artifacts.Configuration;
-
 public class IdeDependency {
-    private final Configuration declaredConfiguration;
+    private final String declaredConfiguration;
 
-    public IdeDependency(Configuration declaredConfiguration) {
+    public IdeDependency(String declaredConfiguration) {
         this.declaredConfiguration = declaredConfiguration;
     }
 
-    public Configuration getDeclaredConfiguration() {
+    public String getDeclaredConfiguration() {
         return declaredConfiguration;
     }
 }

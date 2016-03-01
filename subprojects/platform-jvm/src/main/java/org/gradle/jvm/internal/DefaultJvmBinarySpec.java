@@ -18,13 +18,14 @@ package org.gradle.jvm.internal;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.util.List;
 import static org.gradle.util.CollectionUtils.findSingle;
 
 public class DefaultJvmBinarySpec extends BaseBinarySpec implements JvmBinarySpecInternal {
-    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly();
+    private final DefaultJvmAssembly assembly = new DefaultJvmAssembly(getIdentifier().child("assembly"));
 
     @Override
     public JavaToolChain getToolChain() {
@@ -80,7 +81,7 @@ public class DefaultJvmBinarySpec extends BaseBinarySpec implements JvmBinarySpe
         return assembly;
     }
 
-    public static List<DependencySpec> collectDependencies(final BinarySpec binary, final ComponentSpec owner, final Collection<DependencySpec>... specificDependencies) {
+    public static List<DependencySpec> collectDependencies(final BinarySpec binary, @Nullable final SourceComponentSpec owner, final Collection<DependencySpec>... specificDependencies) {
         List<DependencySpec> dependencies = Lists.newArrayList();
         if (specificDependencies!=null) {
             for (Collection<DependencySpec> deps : specificDependencies) {

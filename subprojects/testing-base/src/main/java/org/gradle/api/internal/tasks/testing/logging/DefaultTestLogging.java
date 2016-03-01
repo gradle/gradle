@@ -34,90 +34,112 @@ public class DefaultTestLogging implements TestLogging {
     private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
     private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.TRUNCATE);
 
+    @Override
     public Set<TestLogEvent> getEvents() {
         return events;
     }
 
+    @Override
     public void setEvents(Iterable<?> events) {
         this.events = toEnumSet(TestLogEvent.class, events);
     }
 
+    @Override
     public void events(Object... events) {
         this.events.addAll(toEnumSet(TestLogEvent.class, events));
     }
 
+    @Override
     public int getMinGranularity() {
         return minGranularity;
     }
 
+    @Override
     public void setMinGranularity(int granularity) {
         minGranularity = granularity;
     }
 
+    @Override
     public int getMaxGranularity() {
         return maxGranularity;
     }
 
+    @Override
     public void setMaxGranularity(int granularity) {
         maxGranularity = granularity;
     }
 
+    @Override
     public int getDisplayGranularity() {
         return displayGranularity;
     }
 
+    @Override
     public void setDisplayGranularity(int granularity) {
         displayGranularity = granularity;
     }
 
+    @Override
     public boolean getShowExceptions() {
         return showExceptions;
     }
 
+    @Override
     public void setShowExceptions(boolean flag) {
         showExceptions = flag;
     }
 
+    @Override
     public boolean getShowCauses() {
         return showCauses;
     }
 
+    @Override
     public void setShowCauses(boolean flag) {
         showCauses = flag;
     }
 
+    @Override
     public boolean getShowStackTraces() {
         return showStackTraces;
     }
 
+    @Override
     public void setShowStackTraces(boolean flag) {
         showStackTraces = flag;
     }
 
+    @Override
     public TestExceptionFormat getExceptionFormat() {
         return exceptionFormat;
     }
 
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         this.exceptionFormat = toEnum(TestExceptionFormat.class, exceptionFormat);
     }
 
+    @Override
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return stackTraceFilters;
     }
 
+    @Override
     public void setStackTraceFilters(Iterable<?> filters) {
         stackTraceFilters = toEnumSet(TestStackTraceFilter.class, filters);
     }
 
+    @Override
     public void stackTraceFilters(Object... filters) {
         stackTraceFilters.addAll(toEnumSet(TestStackTraceFilter.class, filters));
     }
 
+    @Override
     public boolean getShowStandardStreams() {
         return events.contains(TestLogEvent.STANDARD_OUT) && events.contains(TestLogEvent.STANDARD_ERROR);
     }
 
+    @Override
     public TestLogging setShowStandardStreams(boolean flag) {
         if (flag) {
             events.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));

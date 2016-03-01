@@ -27,5 +27,6 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     void setDependencyCacheDir(File dependencyCacheDir);
 
+    @Override
     File getDestinationDir();
 }

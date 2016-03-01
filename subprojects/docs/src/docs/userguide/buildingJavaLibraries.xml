@@ -19,7 +19,7 @@
 
     <note>
         <para>
-            Support for building Java libraries using the new software model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+            Support for building Java libraries using the software model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -475,5 +475,16 @@
             </sample>
             <para>Note that the syntax to choose the component under test is a reference (<literal>$.</literal>). You can select any <literal>JvmComponentSpec</literal> as the component under test. It's also worth noting that when you declare a component under test, a test suite is created for each binary of the component under test (for example, if the component under test has a Java 7 and Java 8 version, 2 different test suite binaries would be automatically created).</para>
         </section>
+    </section>
+
+    <section id="declaring_java_toolchains">
+        <title>Declaring Java toolchains</title>
+        <para>You can declare the list of local JVM installations using the <literal>javaInstallations</literal> model block. Gradle will use this information
+        to locate your JVMs and probe their versions. Please note that this information is not yet used by Gradle to select the appropriate JDK or JRE when
+        compiling your Java sources, or when executing Java applications. A local Java installation can be declared using the <literal>LocalJava</literal> type,
+        independently of the fact they are a JDK or a JRE:</para>
+        <sample id="javaLibraryPlugin/toolchains" dir="javaLibraryPlugin/toolchains" title="Declaring local Java installations">
+            <sourcefile file="build.gradle" snippet="java-installations"/>
+        </sample>
     </section>
 </chapter>

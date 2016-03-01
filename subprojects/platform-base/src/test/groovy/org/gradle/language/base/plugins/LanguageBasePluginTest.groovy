@@ -18,16 +18,19 @@ package org.gradle.language.base.plugins
 
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.platform.base.plugins.ComponentBasePlugin
 
 class LanguageBasePluginTest extends PlatformBaseSpecification {
-    def "applies lifecycle base plugin only"() {
+    def "applies component base plugin only"() {
         when:
         dsl {
             apply plugin: LanguageBasePlugin
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 2
+        project.pluginManager.pluginContainer.size() == 3
+        project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
     }
 
     def "registers LanguageSourceSet"() {

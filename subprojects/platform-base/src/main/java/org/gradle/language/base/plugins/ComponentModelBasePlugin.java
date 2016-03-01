@@ -26,22 +26,14 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
-import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 
@@ -52,7 +44,7 @@ import java.util.Set;
 import static com.google.common.base.Strings.emptyToNull;
 
 /**
- * Base plugin for language support.
+ * Base plugin for component support.
  *
  * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
  *
@@ -61,6 +53,7 @@ import static com.google.common.base.Strings.emptyToNull;
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);
@@ -68,29 +61,24 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class PluginRules extends RuleSource {
-        @Hidden @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier) {
-            return new ComponentSpecFactory("components", projectIdentifier);
-        }
-
         @ComponentType
-        void registerBaseComponentSpec(ComponentTypeBuilder<ComponentSpec> builder) {
+        void registerGeneralComponentSpec(TypeBuilder<GeneralComponentSpec> builder) {
             builder.defaultImplementation(BaseComponentSpec.class);
-            builder.internalView(ComponentSpecInternal.class);
         }
 
         @ComponentType
-        void registerPlatformAwareComponet(ComponentTypeBuilder<PlatformAwareComponentSpec> builder) {
+        void registerLibrarySpec(TypeBuilder<LibrarySpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+        }
+
+        @ComponentType
+        void registerApplicationSpec(TypeBuilder<ApplicationSpec> builder) {
+            builder.defaultImplementation(BaseComponentSpec.class);
+        }
+
+        @ComponentType
+        void registerPlatformAwareComponent(TypeBuilder<PlatformAwareComponentSpec> builder) {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
-        }
-
-        @Model
-        void components(ComponentSpecContainer componentSpecs) {
-        }
-
-        @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, bindingsStore));
         }
 
         @Hidden @Model
@@ -99,9 +87,9 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
-        // TODO:DAZ Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
+        // TODO: Convert this to `@BinaryTasks` when we model a `NativeAssembly` instead of wiring compile tasks directly to LinkTask
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+        void createSourceTransformTasks(final TaskContainer tasks, @Path("binaries") final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             BinarySourceTransformations transformations = new BinarySourceTransformations(tasks, languageTransforms, serviceRegistry);
             for (BinarySpecInternal binary : binaries) {
                 if (binary.isLegacyBinary()) {
@@ -113,8 +101,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        PlatformContainer platforms(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        PlatformContainer platforms(Instantiator instantiator) {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
@@ -130,23 +117,18 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Mutate
         void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs.values()) {
+            for (VariantComponentSpec componentSpec : componentSpecs.withType(VariantComponentSpec.class)) {
                 for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
                     binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }
 
-        @Validate
-        void validateComponentSpecRegistrations(ComponentSpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
-        }
-
         @Mutate
         void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ComponentSpecContainer components) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             boolean hasBuildableBinaries = false;
-            for (ComponentSpec component : components) {
+            for (VariantComponentSpec component : components.withType(VariantComponentSpec.class)) {
                 for (BinarySpecInternal binary : component.getBinaries().withType(BinarySpecInternal.class)) {
                     if (binary.isBuildable()) {
                         assemble.dependsOn(binary);
@@ -189,9 +171,12 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void initializeComponentSourceSets(@Each ComponentSpecInternal component, LanguageSourceSetFactory languageSourceSetFactory, LanguageTransformContainer languageTransforms) {
-            for (LanguageRegistration<?> languageRegistration : languageSourceSetFactory.getRegistrations()) {
-                registerLanguageTypes(component, languageRegistration, languageTransforms);
+        void initializeComponentSourceSets(@Each HasIntermediateOutputsComponentSpec component, LanguageTransformContainer languageTransforms) {
+            // If there is a transform for the language into one of the component inputs, add a default source set
+            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
+                if (component.getIntermediateTypes().contains(languageTransform.getOutputType())) {
+                    component.getSources().create(languageTransform.getLanguageName(), languageTransform.getSourceSetType());
+                }
             }
         }
 
@@ -207,7 +192,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Defaults
         // TODO:LPTR We should collect all source sets in the project source set, however this messes up ComponentReportRenderer
-        void addComponentSourcesSetsToProjectSourceSet(@Each ComponentSpec component, final ProjectSourceSet projectSourceSet) {
+        void addComponentSourcesSetsToProjectSourceSet(@Each SourceComponentSpec component, final ProjectSourceSet projectSourceSet) {
             component.getSources().afterEach(new Action<LanguageSourceSet>() {
                 @Override
                 public void execute(LanguageSourceSet languageSourceSet) {
@@ -216,19 +201,8 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
             });
         }
 
-        // If there is a transform for the language into one of the component inputs, add a default source set
-        private <U extends LanguageSourceSet> void registerLanguageTypes(ComponentSpecInternal component, LanguageRegistration<U> languageRegistration, LanguageTransformContainer languageTransforms) {
-            for (LanguageTransform<?, ?> languageTransform : languageTransforms) {
-                if (ModelType.of(languageTransform.getSourceSetType()).equals(languageRegistration.getSourceSetType())
-                    && component.getInputTypes().contains(languageTransform.getOutputType())) {
-                    component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType().getConcreteClass());
-                    return;
-                }
-            }
-        }
-
         @Rules
-        void inputRules(AttachInputs attachInputs, @Each ComponentSpec component) {
+        void inputRules(AttachInputs attachInputs, @Each GeneralComponentSpec component) {
             attachInputs.setBinaries(component.getBinaries());
             attachInputs.setSources(component.getSources());
         }

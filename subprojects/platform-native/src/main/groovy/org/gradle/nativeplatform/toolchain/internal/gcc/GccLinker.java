@@ -50,6 +50,7 @@ class GccLinker implements Compiler<LinkerSpec> {
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
     }
 
+    @Override
     public WorkResult execute(LinkerSpec spec) {
         BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
 
@@ -66,9 +67,10 @@ class GccLinker implements Compiler<LinkerSpec> {
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
-            
+
             args.addAll(spec.getSystemArgs());
 
             if (spec instanceof SharedLibraryLinkerSpec) {

@@ -48,6 +48,7 @@ public class CompilerMetaDataProviderFactory {
             this.delegate = delegate;
         }
 
+        @Override
         public GccVersionResult getGccMetaData(File gccBinary, List<String> additionalArgs) {
             Key key = new Key(gccBinary, additionalArgs);
             GccVersionResult result = resultMap.get(key);

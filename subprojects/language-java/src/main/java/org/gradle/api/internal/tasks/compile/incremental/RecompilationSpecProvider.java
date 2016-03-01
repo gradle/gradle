@@ -65,6 +65,7 @@ public class RecompilationSpecProvider {
             this.jarChangeProcessor = jarChangeProcessor;
         }
 
+        @Override
         public void execute(InputFileDetails input) {
             if (spec.getFullRebuildCause() != null) {
                 return;

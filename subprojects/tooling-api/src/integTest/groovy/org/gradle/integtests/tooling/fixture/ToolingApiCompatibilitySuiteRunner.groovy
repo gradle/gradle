@@ -29,6 +29,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.*
+import spock.lang.Unroll
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
@@ -83,6 +84,13 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+            // Trying to use @Unroll with a tooling api runner causes NPEs in the test fixtures
+            // Fail early with a message until we can fix this properly.
+            Unroll unroll = testDetails.getAnnotation(Unroll)
+            if (unroll!=null) {
+                throw new IllegalArgumentException("Cannot use @Unroll with " + ToolingApiCompatibilitySuiteRunner.name)
+            }
+
             if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
                 //Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
                 // This is a real problem on windows due to eager file locking and continuous CI failures.
@@ -164,7 +172,8 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected void before() {
-            testClassLoader.loadClass(ToolingApiSpecification.name).selectTargetDist(gradle)
+            def testClazz = testClassLoader.loadClass(ToolingApiSpecification.name)
+            testClazz.selectTargetDist(gradle)
         }
     }
 }

@@ -34,10 +34,6 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
                 compile "org.scala-lang:scala-library:2.10.4"
                 zinc "com.typesafe.zinc:zinc:${version}"
             }
-
-            tasks.withType(ScalaCompile) {
-                scalaCompileOptions.useAnt = false
-            }
         """
         args("--info")
     }

@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.java
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJvmResourceSetTest extends Specification {
     def "has useful String representation"() {
-        def resourceSet = new DefaultJvmResourceSet("resourcesX", "mainX", Stub(SourceDirectorySet))
+        def resourceSet = new DefaultJvmResourceSet(new DefaultComponentSpecIdentifier("project", "resourcesX"), Stub(SourceDirectorySet))
 
         expect:
-        resourceSet.displayName == "JVM resources 'mainX:resourcesX'"
-        resourceSet.toString() == "JVM resources 'mainX:resourcesX'"
+        resourceSet.displayName == "JVM resources 'resourcesX'"
+        resourceSet.toString() == "JVM resources 'resourcesX'"
     }
 }

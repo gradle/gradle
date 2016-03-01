@@ -24,14 +24,17 @@ import java.util.Map;
 public class DefaultPreprocessingTool extends DefaultTool implements PreprocessingTool {
     private final Map<String, String> definitions = new LinkedHashMap<String, String>();
 
+    @Override
     public Map<String, String> getMacros() {
         return definitions;
     }
 
+    @Override
     public void define(String name) {
         definitions.put(name, null);
     }
 
+    @Override
     public void define(String name, String definition) {
         definitions.put(name, definition);
     }

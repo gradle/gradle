@@ -23,6 +23,7 @@ import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isP
 
 public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 
+    @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (isPrimitiveType(type)) {

@@ -17,12 +17,11 @@
 package org.gradle.plugins.ide.internal.resolver.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 
 public class IdeProjectDependency extends IdeDependency {
     private final Project project;
 
-    public IdeProjectDependency(Configuration declaredConfiguration, Project project) {
+    public IdeProjectDependency(String declaredConfiguration, Project project) {
         super(declaredConfiguration);
         this.project = project;
     }

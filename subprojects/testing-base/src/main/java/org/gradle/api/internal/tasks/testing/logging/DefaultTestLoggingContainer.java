@@ -46,167 +46,208 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
         getDebug().setStackTraceFilters(EnumSet.noneOf(TestStackTraceFilter.class));
     }
 
+    @Override
     public TestLogging getDebug() {
         return perLevelTestLogging.get(LogLevel.DEBUG);
     }
 
+    @Override
     public void setDebug(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.DEBUG, logging);
     }
 
+    @Override
     public void debug(Action<TestLogging> action) {
         action.execute(getDebug());
     }
 
+    @Override
     public TestLogging getInfo() {
         return perLevelTestLogging.get(LogLevel.INFO);
     }
 
+    @Override
     public void setInfo(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.INFO, logging);
     }
 
+    @Override
     public void info(Action<TestLogging> action) {
         action.execute(getInfo());
     }
 
+    @Override
     public TestLogging getLifecycle() {
         return perLevelTestLogging.get(LogLevel.LIFECYCLE);
     }
 
+    @Override
     public void setLifecycle(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.LIFECYCLE, logging);
     }
 
+    @Override
     public void lifecycle(Action<TestLogging> action) {
         action.execute(getLifecycle());
     }
 
+    @Override
     public TestLogging getWarn() {
         return perLevelTestLogging.get(LogLevel.WARN);
     }
 
+    @Override
     public void setWarn(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.WARN, logging);
     }
 
+    @Override
     public void warn(Action<TestLogging> action) {
         action.execute(getWarn());
     }
 
+    @Override
     public TestLogging getQuiet() {
         return perLevelTestLogging.get(LogLevel.QUIET);
     }
 
+    @Override
     public void setQuiet(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.QUIET, logging);
     }
 
+    @Override
     public void quiet(Action<TestLogging> action) {
         action.execute(getQuiet());
     }
 
+    @Override
     public TestLogging getError() {
         return perLevelTestLogging.get(LogLevel.ERROR);
     }
 
+    @Override
     public void setError(TestLogging logging) {
         perLevelTestLogging.put(LogLevel.ERROR, logging);
     }
 
+    @Override
     public void error(Action<TestLogging> action) {
         action.execute(getError());
     }
 
+    @Override
     public Set<TestLogEvent> getEvents() {
         return getLifecycle().getEvents();
     }
 
+    @Override
     public void setEvents(Iterable<?> events) {
         getLifecycle().setEvents(events);
     }
 
+    @Override
     public void events(Object... events) {
         getLifecycle().events(events);
     }
 
+    @Override
     public int getMinGranularity() {
         return getLifecycle().getMinGranularity();
     }
 
+    @Override
     public void setMinGranularity(int granularity) {
         getLifecycle().setMinGranularity(granularity);
     }
 
+    @Override
     public int getMaxGranularity() {
         return getLifecycle().getMaxGranularity();
     }
 
+    @Override
     public void setMaxGranularity(int granularity) {
         getLifecycle().setMaxGranularity(granularity);
     }
 
+    @Override
     public int getDisplayGranularity() {
         return getLifecycle().getDisplayGranularity();
     }
 
+    @Override
     public void setDisplayGranularity(int granularity) {
         getLifecycle().setDisplayGranularity(granularity);
     }
 
+    @Override
     public boolean getShowExceptions() {
         return getLifecycle().getShowExceptions();
     }
 
+    @Override
     public void setShowExceptions(boolean flag) {
         getLifecycle().setShowExceptions(flag);
     }
 
+    @Override
     public boolean getShowCauses() {
         return getLifecycle().getShowCauses();
     }
 
+    @Override
     public void setShowCauses(boolean flag) {
         getLifecycle().setShowCauses(flag);
     }
 
+    @Override
     public boolean getShowStackTraces() {
         return getLifecycle().getShowStackTraces();
     }
 
+    @Override
     public void setShowStackTraces(boolean flag) {
         getLifecycle().setShowStackTraces(flag);
     }
 
+    @Override
     public TestExceptionFormat getExceptionFormat() {
         return getLifecycle().getExceptionFormat();
     }
 
+    @Override
     public void setExceptionFormat(Object exceptionFormat) {
         getLifecycle().setExceptionFormat(exceptionFormat);
     }
 
+    @Override
     public Set<TestStackTraceFilter> getStackTraceFilters() {
         return getLifecycle().getStackTraceFilters();
     }
 
+    @Override
     public void setStackTraceFilters(Iterable<?> stackTraces) {
         getLifecycle().setStackTraceFilters(stackTraces);
     }
 
+    @Override
     public void stackTraceFilters(Object... stackTraces) {
         getLifecycle().stackTraceFilters(stackTraces);
     }
 
+    @Override
     public boolean getShowStandardStreams() {
         return getLifecycle().getShowStandardStreams();
     }
 
+    @Override
     public TestLoggingContainer setShowStandardStreams(boolean flag) {
         getLifecycle().setShowStandardStreams(flag);
         return this;
     }
 
+    @Override
     public TestLogging get(LogLevel level) {
         return perLevelTestLogging.get(level);
     }

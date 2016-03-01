@@ -725,10 +725,10 @@ Many of these pieces are already present, and the implementation would formalize
 
 Currently:
 
-- `BuildableModelElement` represents a physical thing.
-- `BinarySpec.tasks` and properties on `BuildableModelElement` represent the tasks that build the thing.
+- `BuildableComponentSpec` represents a physical thing.
+- `BinarySpec.tasks` and properties on `BuildableComponentSpec` represent the tasks that build the thing.
 - `BinarySpec.sources` represents the inputs to a binary.
-- A `@BinaryTasks` rule defines the tasks that build the binary, as do various methods on `LanguageSourceSet` and `BuildableModelElement`.
+- A `@BinaryTasks` rule defines the tasks that build the binary, as do various methods on `LanguageSourceSet` and `BuildableComponentSpec`.
 - Various types, such as `JvmClasses` and `PublicAssets` represent intermediate outputs.
 
 The implementation would be responsible for invoking the rules when assembling the task graph, so that:

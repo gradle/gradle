@@ -37,6 +37,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
         cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", BaseSerializerFactory.BYTE_ARRAY_SERIALIZER, new JarSnapshotDataSerializer());
     }
 
+    @Override
     public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {
         return cache.getCacheAccess().useCache("loading jar snapshots", new Factory<Map<File, JarSnapshot>>() {
             public Map<File, JarSnapshot> create() {
@@ -50,6 +51,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
         });
     }
 
+    @Override
     public JarSnapshot get(byte[] key, final Factory<JarSnapshot> factory) {
         return new JarSnapshot(cache.get(key, new Factory<JarSnapshotData>() {
             public JarSnapshotData create() {
@@ -58,6 +60,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
         }));
     }
 
+    @Override
     public void stop() {
         cache.stop();
     }

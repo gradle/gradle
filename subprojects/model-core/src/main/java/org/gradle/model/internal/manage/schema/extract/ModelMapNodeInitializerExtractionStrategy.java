@@ -30,9 +30,6 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
     };
 
-    public ModelMapNodeInitializerExtractionStrategy() {
-    }
-
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(CollectionSchema<T, E> schema, NodeInitializerContext<T> context) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
@@ -64,7 +61,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
                     new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                         @Override
                         public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                            ChildNodeInitializerStrategy<E> childStrategy = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
+                            ChildNodeInitializerStrategy<E> childStrategy = NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
                             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childStrategy);
                         }
                     }

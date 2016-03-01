@@ -69,46 +69,6 @@ The provider loading must be changed to deal with this.
 Introduce some stress and stability tests for the tooling API and daemon to the performance test suite. Does not include
 fixing any leaks or stability problems exposed by these tests. Additional stories will be added to take care of such issues.
 
-## Feature - Daemon usability improvements
-
-### Story - Build script classpath can contain a changing jar
-
-Fix ClassLoader caching to detect when a build script classpath has changed.
-
-Fix the ClassLoading implementation to avoid locking these Jars on Windows.
-
-### Story - Can clean after compiling on Windows
-
-Fix GRADLE-2275.
-
-### Story - Prefer a single daemon instance
-
-Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
-selected as the survivor and the others expire quickly (say, as soon as they become idle).
-
-### Story - Daemon handles additional immutable system properties
-
-Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
-a new daemon instance must be started. Currently, only `file.encoding` is treated as an immutable system property.
-
-Add support for the following properties:
-
-- The jmxremote system properties (GRADLE-2629)
-- The SSL system properties (GRADLE-2367)
-- 'java.io.tmpdir' : this property is only read once at JVM startup
-
-### Story - Daemon process expires when a memory pool is exhausted
-
-Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
-
-### Story - Cross-version daemon management
-
-Daemon management, such as `gradle --stop` and the daemon expiration algorithm should consider daemons across all Gradle versions.
-
-### Story - Reduce the default daemon maximum heap and permgen sizes
-
-Should be done in a backwards compatible way.
-
 # Feature: Fetching models
 
 ## Story: Tooling API client builds a complex tooling model in a single batch operation (DONE)

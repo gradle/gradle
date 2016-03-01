@@ -16,13 +16,12 @@
 
 package org.gradle.platform.base.binary;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
@@ -38,29 +37,21 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.*;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Set;
 
 /**
- * Base class for custom binary implementations.
- * A custom implementation of {@link org.gradle.platform.base.BinarySpec} must extend this type.
- *
- * TODO at the moment leaking BinarySpecInternal here to generate lifecycleTask in
- * LanguageBasePlugin$createLifecycleTaskForBinary#createLifecycleTaskForBinary rule
- *
+ * Base class that may be used for custom {@link BinarySpec} implementations. However, it is generally better to use an
+ * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-// Needs to be here instead of the specific methods, because Java 6 and 7 will throw warnings otherwise
-@SuppressWarnings("deprecation")
-public class BaseBinarySpec extends AbstractBuildableModelElement implements BinarySpecInternal {
+public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
-    private final String name;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
     private final Class<? extends BinarySpec> publicType;
@@ -68,9 +59,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
-                                                      String name, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
+                                                      ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, modelNode, componentNode, taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -87,15 +78,12 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     private BaseBinarySpec(BinaryInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
-        }
-        this.name = info.name;
+        super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
-        MutableModelNode modelNode = info.modelNode;
         this.componentNode = info.componentNode;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
+        MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
         ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
             .action(ModelActionRole.Create, new Action<MutableModelNode>() {
@@ -109,18 +97,28 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
             .build();
         modelNode.addLink(itemRegistration);
 
-        namingScheme = DefaultBinaryNamingScheme.component(componentName()).withBinaryName(name).withBinaryType(getTypeName());
+        namingScheme = DefaultBinaryNamingScheme
+            .component(parentComponentName())
+            .withBinaryName(getName())
+            .withBinaryType(getTypeName());
+    }
+
+    private static BinaryInfo validate(BinaryInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead.");
+        }
+        return info;
     }
 
     @Nullable
-    private String componentName() {
+    private String parentComponentName() {
         ComponentSpec component = getComponent();
         return component != null ? component.getName() : null;
     }
 
     @Override
     public LibraryBinaryIdentifier getId() {
-        // TODO:DAZ This can throw a NPE: will need an identifier for a variant without an owning component
+        // TODO: This can throw a NPE: will need an identifier for a variant without an owning component
         ComponentSpec component = getComponent();
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
@@ -130,6 +128,7 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         return publicType;
     }
 
+    @Override
     @Nullable
     public ComponentSpec getComponent() {
         return getComponentAs(ComponentSpec.class);
@@ -146,27 +145,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
             : null;
     }
 
-    protected String getTypeName() {
-        return publicType.getSimpleName();
-    }
-
     @Override
     public String getProjectScopedName() {
-        ComponentSpec owner = getComponent();
-        return owner == null ? name : owner.getName() + StringUtils.capitalize(name);
-    }
-
-    public String getDisplayName() {
-        ComponentSpec owner = getComponent();
-        if (owner == null) {
-            return String.format("%s '%s'", getTypeName(), name);
-        } else {
-            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), name);
-        }
-    }
-
-    public String getName() {
-        return name;
+        return getIdentifier().getProjectScopedName();
     }
 
     @Override
@@ -174,14 +155,9 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         this.disabled = !buildable;
     }
 
+    @Override
     public final boolean isBuildable() {
         return getBuildAbility().isBuildable();
-    }
-
-    @Override
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        DeprecationLogger.nagUserOfReplacedProperty("source", "inputs");
-        return getInputs();
     }
 
     @Override
@@ -194,18 +170,22 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
         return ModelMaps.toView(sources, LanguageSourceSet.class);
     }
 
+    @Override
     public BinaryTasksCollection getTasks() {
         return tasks;
     }
 
+    @Override
     public boolean isLegacyBinary() {
         return false;
     }
 
+    @Override
     public BinaryNamingScheme getNamingScheme() {
         return namingScheme;
     }
 
+    @Override
     public void setNamingScheme(BinaryNamingScheme namingScheme) {
         this.namingScheme = namingScheme;
     }
@@ -216,26 +196,21 @@ public class BaseBinarySpec extends AbstractBuildableModelElement implements Bin
     }
 
     private static class BinaryInfo {
-        private final String name;
         private final Class<? extends BinarySpec> publicType;
         private final MutableModelNode modelNode;
         private final MutableModelNode componentNode;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
+        private final ComponentSpecIdentifier componentId;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
-            this.name = name;
+        private BinaryInfo(ComponentSpecIdentifier componentId, Class<? extends BinarySpec> publicType, MutableModelNode modelNode, MutableModelNode componentNode, ITaskFactory taskFactory, Instantiator instantiator) {
+            this.componentId = componentId;
             this.publicType = publicType;
             this.modelNode = modelNode;
             this.componentNode = componentNode;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;
         }
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
     }
 
     @Override

@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -78,92 +79,121 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return getComponentAs(NativeComponentSpec.class);
     }
 
+    @Override
     public Flavor getFlavor() {
         return flavor;
     }
 
+    @Override
     public void setFlavor(Flavor flavor) {
         this.flavor = flavor;
     }
 
+    @Override
     public NativeToolChain getToolChain() {
         return toolChain;
     }
 
+    @Override
     public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = toolChain;
     }
 
+    @Override
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
+    @Override
     public void setTargetPlatform(NativePlatform targetPlatform) {
         this.targetPlatform = targetPlatform;
     }
 
+    @Override
     public BuildType getBuildType() {
         return buildType;
     }
 
+    @Override
     public void setBuildType(BuildType buildType) {
         this.buildType = buildType;
     }
 
+    @Override
     public Tool getLinker() {
         return linker;
     }
 
+    @Override
     public Tool getStaticLibArchiver() {
         return staticLibArchiver;
     }
 
+    @Override
     public Tool getAssembler() {
         return assembler;
     }
 
+    @Override
     public PreprocessingTool getcCompiler() {
         return cCompiler;
     }
 
+    @Override
     public PreprocessingTool getCppCompiler() {
         return cppCompiler;
     }
 
+    @Override
     public PreprocessingTool getObjcCompiler() {
         return objcCompiler;
     }
 
+    @Override
     public PreprocessingTool getObjcppCompiler() {
         return objcppCompiler;
     }
 
+    @Override
     public PreprocessingTool getRcCompiler() {
         return rcCompiler;
     }
 
+    @Override
     public Tool getToolByName(String name) {
         return toolsByName.get(name);
     }
 
+    @Override
     public Collection<NativeDependencySet> getLibs() {
         return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
     }
 
+    @Override
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
         return resolve(Collections.singleton(sourceSet)).getAllResults();
     }
 
+    @Override
     public void lib(Object notation) {
         libs.add(notation);
     }
 
+    @Override
     public Collection<NativeLibraryBinary> getDependentBinaries() {
         return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
+    @Override
     public Map<File, PreCompiledHeader> getPrefixFileToPCH() {
         return prefixFileToPCH;
+    }
+
+    @Override
+    public void addPreCompiledHeaderFor(DependentSourceSet sourceSet) {
+        prefixFileToPCH.put(
+            ((DependentSourceSetInternal)sourceSet).getPrefixHeaderFile(),
+            new PreCompiledHeader(getIdentifier().child("pch")));
     }
 
     private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
@@ -176,14 +206,17 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return resolution;
     }
 
+    @Override
     public PlatformToolProvider getPlatformToolProvider() {
         return toolProvider;
     }
 
+    @Override
     public void setPlatformToolProvider(PlatformToolProvider toolProvider) {
         this.toolProvider = toolProvider;
     }
 
+    @Override
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
     }
@@ -204,6 +237,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return new ToolSearchBuildAbility(toolChainInternal.select(platformInternal));
     }
 
+    @Override
     public void binaryInputs(FileCollection files) {
         // TODO - should split this up, so that the inputs are attached to an object that represents the binary, which is then later used to configure the link/assemble tasks
         getCreateOrLink().source(files);

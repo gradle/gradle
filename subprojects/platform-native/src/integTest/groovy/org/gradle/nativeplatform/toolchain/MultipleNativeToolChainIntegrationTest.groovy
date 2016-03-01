@@ -40,12 +40,12 @@ plugins { id 'cpp' }
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @RequiresInstalledToolChain(ToolChainRequirement.Gcc)
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC)
     def "can build with multiple tool chains"() {
         AvailableToolChains.InstalledToolChain x86ToolChain = OperatingSystem.current().isWindows() ?
-                AvailableToolChains.getToolChain(ToolChainRequirement.VisualCpp) :
-                AvailableToolChains.getToolChain(ToolChainRequirement.Clang)
-        AvailableToolChains.InstalledToolChain sparcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.Gcc)
+                AvailableToolChains.getToolChain(ToolChainRequirement.VISUALCPP) :
+                AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
+        AvailableToolChains.InstalledToolChain sparcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
 
         when:
         buildFile << """

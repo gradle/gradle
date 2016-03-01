@@ -31,15 +31,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         imports = "org.junit.*"
     }
 
-    @Issue("GRADLE-3112")
-    def "can filter parameterized junit tests"() {
-        buildFile << """
-            test {
-              filter {
-                includeTestsMatching "*ParameterizedFoo.pass*"
-              }
-            }
-        """
+    void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """import $imports;
             import org.junit.runners.Parameterized;
             import org.junit.runners.Parameterized.Parameters;
@@ -68,22 +60,9 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 @Test public void fail() {}
             }
         """
-        when:
-        run("test")
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
     }
 
-    def "passing a suite argument to --tests runs all tests in the suite"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:${version}' }
-            test { useJUnit() }
-        """
+    void theSuiteFiles() {
         file("src/test/java/FooTest.java") << """
             import org.junit.Test;
             public class FooTest {
@@ -114,9 +93,79 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
             public class AllFooTests {
             }
         """
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter parameterized tests from the build file."() {
+        given:
+        // this addition to the build file ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*ParameterizedFoo.pass*"
+              }
+            }
+        """
+        // and ...
+        theParameterizedFiles()
+
+        when:
+        run("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ParameterizedFoo")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter parameterized tests from the command-line"() {
+        given:
+        theParameterizedFiles()
+
+        when:
+        run("test", "--tests", "*ParameterizedFoo.pass*")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ParameterizedFoo")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+    }
+
+    @Issue("GRADLE-3112")
+    def "passing a suite argument to --tests runs all tests in the suite"() {
+        given:
+        theSuiteFiles()
 
         when:
         run("test", "--tests", "*AllFooTests")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter test Suites from build file."() {
+        given:
+        // this addition to the build files ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*AllFooTests"
+              }
+            }
+        """
+        // and ...
+        theSuiteFiles()
+
+        when:
+        run("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

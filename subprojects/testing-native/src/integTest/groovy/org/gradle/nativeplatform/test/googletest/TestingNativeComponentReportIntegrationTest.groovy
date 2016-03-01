@@ -64,8 +64,8 @@ Binaries
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/exe/someExe/someExe
 
-GoogleTest test suite 'someExeTest'
------------------------------------
+Google test suite 'someExeTest'
+-------------------------------
 
 Source sets
     C++ source 'someExeTest:cpp'

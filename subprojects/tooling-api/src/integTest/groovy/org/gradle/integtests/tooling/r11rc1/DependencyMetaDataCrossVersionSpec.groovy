@@ -43,7 +43,7 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
         prepareBuild()
 
         when:
-        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject project = loadToolingModel(EclipseProject)
         def libs = project.classpath
 
         then:

@@ -26,24 +26,20 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;
-    private final SourceSetRenderer sourceSetRenderer;
-    private final TypeAwareBinaryRenderer binaryRenderer;
-    private final Set<LanguageSourceSet> componentSourceSets = new HashSet<LanguageSourceSet>();
-    private final Set<BinarySpec> componentBinaries = new HashSet<BinarySpec>();
+    private final TrackingReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
+    private final TrackingReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
 
     public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
         setFileResolver(fileResolver);
-        sourceSetRenderer = new SourceSetRenderer();
-        this.binaryRenderer = binaryRenderer;
-        componentRenderer = new ComponentRenderer(sourceSetRenderer, binaryRenderer);
+        this.sourceSetRenderer = new TrackingReportRenderer<LanguageSourceSet, TextReportBuilder>(new SourceSetRenderer());
+        this.binaryRenderer = new TrackingReportRenderer<BinarySpec, TextReportBuilder>(binaryRenderer);
+        this.componentRenderer = new ComponentRenderer(this.sourceSetRenderer, this.binaryRenderer);
     }
 
     @Override
@@ -66,8 +62,6 @@ public class ComponentReportRenderer extends TextReportRenderer {
                 seen = true;
             }
             getBuilder().item(component, componentRenderer);
-            componentSourceSets.addAll(component.getSources().values());
-            componentBinaries.addAll(component.getBinaries().values());
         }
     }
 
@@ -76,27 +70,23 @@ public class ComponentReportRenderer extends TextReportRenderer {
         outputCollection(additionalSourceSets, "Additional source sets", sourceSetRenderer, "source sets");
     }
 
-   public void renderBinaries(Iterable<BinarySpec> binaries) {
+   public void renderBinaries(Collection<BinarySpec> binaries) {
         Set<BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
         outputCollection(additionalBinaries, "Additional binaries", binaryRenderer, "binaries");
     }
 
     private Set<LanguageSourceSet> collectAdditionalSourceSets(Collection<LanguageSourceSet> sourceSets) {
-        return elementsNotIn(componentSourceSets, sourceSets, SourceSetRenderer.SORT_ORDER);
-    }
-
-   private Set<BinarySpec> collectAdditionalBinaries(Iterable<BinarySpec> binaries) {
-        return elementsNotIn(componentBinaries, binaries, TypeAwareBinaryRenderer.SORT_ORDER);
-    }
-
-    private static <T> Set<T> elementsNotIn(Set<T> set, Iterable<T> elements, Comparator<? super T> comparator) {
-        Set<T> result = Sets.newTreeSet(comparator);
-        for (T element : elements) {
-            if (!set.contains(element)) {
-                result.add(element);
-            }
-        }
+        Set<LanguageSourceSet> result = Sets.newTreeSet(SourceSetRenderer.SORT_ORDER);
+        result.addAll(sourceSets);
+        result.removeAll(sourceSetRenderer.getItems());
         return result;
+    }
+
+   private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
+       Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
+       result.addAll(binaries);
+       result.removeAll(binaryRenderer.getItems());
+       return result;
     }
 
     private <T> void outputCollection(Collection<? extends T> items, String title, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {

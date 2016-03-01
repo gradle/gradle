@@ -134,6 +134,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "can run and cancel test execution in continuous mode"() {
         given:
         collectDescriptorsFromBuild()
+        and: // Need to run the test task beforehand, since continuous build doesn't handle the new directories created after 'clean'
+        launchTests(testDescriptors("example.MyTest", null, ":secondTest"))
+
         when:
         withConnection { connection ->
             withCancellation { cancellationToken ->
@@ -153,6 +156,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
                 assert events.tests.size() == 6
                 events.clear()
+
+                // Change the tests sources and wait for the tests to run again
                 changeTestSource()
                 waitingForBuild()
             }

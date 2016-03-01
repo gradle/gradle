@@ -18,26 +18,17 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetFactory;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.Model;
-import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.Validate;
-import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.plugins.ComponentBasePlugin;
 
 /**
  * Base plugin for language support.
@@ -47,37 +38,22 @@ import org.gradle.platform.base.LanguageTypeBuilder;
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
+    @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+        project.getPluginManager().apply(ComponentBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Hidden
-        @Model
-        LanguageSourceSetFactory languageSourceSetFactory(ServiceRegistry serviceRegistry) {
-            return new LanguageSourceSetFactory("sourceSets", serviceRegistry.get(SourceDirectorySetFactory.class));
-        }
-
-        @LanguageType
-        void registerBaseLanguageSourceSet(LanguageTypeBuilder<LanguageSourceSet> builder) {
+        @ComponentType
+        void registerBaseLanguageSourceSet(TypeBuilder<LanguageSourceSet> builder) {
             builder.defaultImplementation(BaseLanguageSourceSet.class);
             builder.internalView(LanguageSourceSetInternal.class);
         }
 
-        @Mutate
-        void registerSourceSetNodeInitializer(NodeInitializerRegistry nodeInitializerRegistry, LanguageSourceSetFactory languageSourceSetFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<LanguageSourceSet>(languageSourceSetFactory, schemaStore, bindingsStore));
-        }
-
         @Model
-        ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
-        }
-
-        @Validate
-        void validateLanguageSourceSetRegistrations(LanguageSourceSetFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
+        ProjectSourceSet sources(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultProjectSourceSet.class);
         }
     }
 }

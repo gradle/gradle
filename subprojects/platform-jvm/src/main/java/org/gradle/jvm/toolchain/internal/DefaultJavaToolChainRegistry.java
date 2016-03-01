@@ -28,6 +28,7 @@ public class DefaultJavaToolChainRegistry implements JavaToolChainRegistry {
         this.toolChain = toolChain;
     }
 
+    @Override
     public JavaToolChain getForPlatform(JavaPlatform targetPlatform) {
         return toolChain;
     }

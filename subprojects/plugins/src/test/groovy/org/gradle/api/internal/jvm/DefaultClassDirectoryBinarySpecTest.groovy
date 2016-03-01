@@ -21,23 +21,18 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 public class DefaultClassDirectoryBinarySpecTest extends Specification {
     def "has a useful toString() representation"() {
         expect:
-        def binary = binary(name)
-        binary.toString() == displayName
-        binary.displayName == displayName
-
-        where:
-        name           | displayName
-        'mainClasses'  | 'classes \'main\''
-        'otherClasses' | 'classes \'other\''
-        'otherBinary'  | 'classes \'otherBinary\''
+        def binary = binary("main")
+        binary.toString() == "Classes 'main'"
+        binary.displayName == binary.toString()
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform), DirectInstantiator.INSTANCE, Mock(ITaskFactory))
+        new DefaultClassDirectoryBinarySpec(new DefaultComponentSpecIdentifier(":", name), Stub(SourceSet), Stub(JavaToolChain), Stub(JavaPlatform), DirectInstantiator.INSTANCE, Mock(ITaskFactory))
     }
 }

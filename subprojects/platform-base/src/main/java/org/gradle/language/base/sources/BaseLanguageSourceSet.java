@@ -16,89 +16,31 @@
 
 package org.gradle.language.base.sources;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 /**
- * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
+ * Base class that may be used for custom {@link LanguageSourceSet} implementations. However, it is generally better to use an
+ * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
 @Incubating
-public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
-    private String name;
-    private String fullName;
-    private String parentName;
-    private String typeName;
-    private SourceDirectorySet source;
-    private boolean generated;
-    private Task generatorTask;
-
+public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
-    protected SourceDirectorySetFactory sourceDirectorySetFactory;
-
-    public String getName() {
-        return name;
-    }
-    public String getParentName() {
-        return parentName;
-    }
-
-    public String getProjectScopedName() {
-        return fullName;
-    }
-
-    public String getDisplayName() {
-        return String.format("%s '%s:%s'", getTypeName(), parentName, getName());
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    protected String getTypeName() {
-        return typeName;
-    }
-
-    @Override
-    public void builtBy(Object... tasks) {
-        generated = true;
-        super.builtBy(tasks);
-    }
-
-    public void generatedBy(Task generatorTask) {
-        this.generatorTask = generatorTask;
-    }
-
-    public Task getGeneratorTask() {
-        return generatorTask;
-    }
-
-    public boolean getMayHaveSources() {
-        // TODO:DAZ This doesn't take into account build dependencies of the SourceDirectorySet.
-        // Should just ditch SourceDirectorySet from here since it's not really a great model, and drags in too much baggage.
-        return generated || !source.isEmpty();
-    }
-
-    public SourceDirectorySet getSource() {
-        return source;
-    }
+    protected final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
 
-    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> type, String name, String parentName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        nextSourceSetInfo.set(new SourceSetInfo(name, parentName, publicType.getSimpleName(), sourceDirectorySetFactory));
+    public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, SourceDirectorySetFactory sourceDirectorySetFactory) {
+        nextSourceSetInfo.set(new SourceSetInfo(componentId, publicType, sourceDirectorySetFactory));
         try {
             try {
-                return DirectInstantiator.INSTANCE.newInstance(type);
+                return DirectInstantiator.INSTANCE.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
                 throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }
@@ -107,34 +49,30 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
         }
     }
 
-
     public BaseLanguageSourceSet() {
         this(nextSourceSetInfo.get());
     }
 
     private BaseLanguageSourceSet(SourceSetInfo info) {
-        if (info == null) {
-            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a LanguageTypeBuilder instead.");
-        }
-        this.name = info.name;
-        this.parentName = info.parentName;
-        this.typeName = info.typeName;
-        this.fullName = info.parentName + StringUtils.capitalize(name);
+        super(validate(info).identifier, info.publicType, info.sourceDirectorySetFactory.create("source"));
         this.sourceDirectorySetFactory = info.sourceDirectorySetFactory;
-        this.source = sourceDirectorySetFactory.create("source");
-        super.builtBy(source.getBuildDependencies());
+    }
+
+    private static SourceSetInfo validate(SourceSetInfo info) {
+        if (info == null) {
+            throw new ModelInstantiationException("Direct instantiation of a BaseLanguageSourceSet is not permitted. Use a @ComponentType rule instead.");
+        }
+        return info;
     }
 
     private static class SourceSetInfo {
-        final String name;
-        final String parentName;
-        final String typeName;
+        private final ComponentSpecIdentifier identifier;
+        private final Class<? extends LanguageSourceSet> publicType;
         final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-        private SourceSetInfo(String name, String parentName, String typeName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-            this.name = name;
-            this.parentName = parentName;
-            this.typeName = typeName;
+        private SourceSetInfo(ComponentSpecIdentifier identifier, Class<? extends LanguageSourceSet> publicType, SourceDirectorySetFactory sourceDirectorySetFactory) {
+            this.identifier = identifier;
+            this.publicType = publicType;
             this.sourceDirectorySetFactory = sourceDirectorySetFactory;
         }
     }

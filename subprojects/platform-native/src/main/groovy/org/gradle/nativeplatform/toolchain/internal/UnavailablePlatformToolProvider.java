@@ -33,10 +33,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         this.failure = failure;
     }
 
+    @Override
     public boolean isAvailable() {
         return false;
     }
 
+    @Override
     public void explain(TreeVisitor<? super String> visitor) {
         failure.explain(visitor);
     }
@@ -52,18 +54,22 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         throw failure();
     }
 
+    @Override
     public String getExecutableName(String executablePath) {
         return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
     }
 
+    @Override
     public String getSharedLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
+    @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
+    @Override
     public String getStaticLibraryName(String libraryPath) {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }

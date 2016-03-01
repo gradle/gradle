@@ -101,10 +101,12 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
     }
 
+    @Override
     public void setTestClassesDirectory(File testClassesDirectory) {
         this.testClassesDirectory = testClassesDirectory;
     }
 
+    @Override
     public void setTestClasspath(FileCollection testClasspath) {
         this.testClasspath = testClasspath;
     }
@@ -126,6 +128,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         return classVisitor;
     }
 
+    @Override
     public boolean processTestClass(File testClassFile) {
         return processTestClass(testClassFile, false);
     }
@@ -159,6 +162,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
     }
 
+    @Override
     public void startDetection(TestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
     }

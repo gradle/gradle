@@ -25,10 +25,12 @@ public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineTo
         this.executable = defaultExecutable;
     }
 
+    @Override
     public String getExecutable() {
         return executable;
     }
 
+    @Override
     public void setExecutable(String file) {
         executable = file;
     }

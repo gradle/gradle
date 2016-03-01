@@ -17,8 +17,8 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerContext;
 import org.gradle.model.internal.inspect.FactoryBasedStructNodeInitializer;
@@ -26,20 +26,18 @@ import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.InstanceFactory;
 
 import java.util.Set;
 
 public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
-    protected final InstanceFactory<T> instanceFactory;
-    private final ModelSchemaStore schemaStore;
+    private final InstanceFactory<T> instanceFactory;
     private final StructBindingsStore bindingsStore;
 
-    public FactoryBasedStructNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
+    public FactoryBasedStructNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory, StructBindingsStore bindingsStore) {
         this.instanceFactory = instanceFactory;
-        this.schemaStore = schemaStore;
         this.bindingsStore = bindingsStore;
     }
 
@@ -48,22 +46,46 @@ public class FactoryBasedStructNodeInitializerExtractionStrategy<T> implements N
         if (!instanceFactory.getBaseInterface().isAssignableFrom(schema.getType())) {
             return null;
         }
-        return getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));
+        NodeInitializer nodeInitializer = getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));
+        if (nodeInitializer == null) {
+            throw new IllegalArgumentException(String.format("Cannot create an instance of type '%s' as this type is not known. Known types: %s.", schema.getType(), formatKnownTypes(context.getConstraints(), instanceFactory.getSupportedTypes())));
+        }
+        return nodeInitializer;
+    }
+
+    private String formatKnownTypes(Spec<ModelType<?>> constraints, Set<? extends ModelType<?>> supportedTypes) {
+        StringBuilder builder = new StringBuilder();
+        for (ModelType<?> supportedType : supportedTypes) {
+            if (constraints.isSatisfiedBy(supportedType)) {
+                if (builder.length() > 0) {
+                    builder.append(", ");
+                }
+                builder.append(supportedType);
+            }
+        }
+        if (builder.length() == 0) {
+            return "(none)";
+        }
+        return builder.toString();
     }
 
     private <S extends T> NodeInitializer getNodeInitializer(final ModelSchema<S> schema) {
         StructSchema<S> publicSchema = Cast.uncheckedCast(schema);
-        InstanceFactory.ImplementationInfo<T> implementationInfo;
-        ModelType<S> publicType = schema.getType();
-        if (publicSchema instanceof ManagedImplSchema) {
-            implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(publicType);
-        } else {
-            implementationInfo = instanceFactory.getImplementationInfo(publicType);
+        InstanceFactory.ImplementationInfo implementationInfo = getImplementationInfo(publicSchema);
+        if (implementationInfo == null) {
+            return null;
         }
-        Set<ModelType<?>> internalViews = instanceFactory.getInternalViews(publicType);
-        ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
+        Set<ModelType<?>> internalViews = implementationInfo.getInternalViews();
+        ModelType<?> delegateType = implementationInfo.getDelegateType();
         StructBindings<S> bindings = bindingsStore.getBindings(publicSchema.getType(), internalViews, delegateType);
         return new FactoryBasedStructNodeInitializer<T, S>(bindings, implementationInfo);
+    }
+
+    private <S extends T> InstanceFactory.ImplementationInfo getImplementationInfo(StructSchema<S> schema) {
+        ModelType<S> publicType = schema.getType();
+        return schema instanceof ManagedImplSchema
+            ? instanceFactory.getManagedSubtypeImplementationInfo(publicType)
+            : instanceFactory.getImplementationInfo(publicType);
     }
 
     @Override

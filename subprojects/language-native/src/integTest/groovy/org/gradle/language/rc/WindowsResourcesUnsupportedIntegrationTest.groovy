@@ -59,7 +59,7 @@ model {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @RequiresInstalledToolChain(ToolChainRequirement.GccCompatible)
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
         given:
         buildFile << """

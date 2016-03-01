@@ -57,6 +57,11 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     }
 
     @Override
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    @Override
     public DefaultModelRegistry register(ModelRegistration registration) {
         ModelPath path = registration.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {

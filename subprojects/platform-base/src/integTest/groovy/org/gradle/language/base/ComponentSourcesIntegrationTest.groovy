@@ -142,7 +142,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: CustomLanguageSourceSet 'main:someLang'"
+        output.contains "sources display name: Custom source 'main:someLang'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {

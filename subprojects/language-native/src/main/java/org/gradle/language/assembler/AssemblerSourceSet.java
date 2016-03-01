@@ -17,6 +17,7 @@ package org.gradle.language.assembler;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.Managed;
 
 /**
  * A set of assembly language sources.
@@ -40,6 +41,6 @@ import org.gradle.language.base.LanguageSourceSet;
  * }
  * </pre>
  */
-@Incubating
+@Incubating @Managed
 public interface AssemblerSourceSet extends LanguageSourceSet {
 }

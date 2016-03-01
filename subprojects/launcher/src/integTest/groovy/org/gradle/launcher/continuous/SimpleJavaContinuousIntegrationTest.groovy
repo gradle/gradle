@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
@@ -156,6 +159,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
     }
 
     // Just exercises the dependency management layers to shake out any weirdness
+    @Requires(TestPrecondition.ONLINE)
     def "can resolve dependencies from remote repository"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"

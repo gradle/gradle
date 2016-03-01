@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -192,8 +193,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
+        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        }
+
+        @Hidden @Model
         ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ITaskFactory.class);
+        }
+
+        @Hidden @Model
+        Instantiator instantiator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class);
         }
 
         @Hidden @Model

@@ -23,6 +23,7 @@ import static org.gradle.logging.StyledTextOutput.Style.Failure;
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 public class SimpleNodeRenderer implements NodeRenderer {
+    @Override
     public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
         output.text(node.getName());
         if (!node.isResolvable()) {

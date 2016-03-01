@@ -251,6 +251,39 @@ class Jdk7DirectoryWalkerTest extends Specification {
         walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
+    @Issue("GRADLE-3400")
+    @Requires(TestPrecondition.SYMLINKS)
+    @Unroll
+    def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.createDir("target")
+        def link = rootDir.file("source")
+        link.createLink(dir)
+        dir.deleteDir()
+        def file = rootDir.createFile("hello.txt")
+        file << "Hello world"
+
+        def patternSet = new PatternSet()
+        patternSet.include("*.txt")
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory)
+        def visited = []
+        def visitClosure = { visited << it.file.absolutePath }
+        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
+
+        when:
+        fileTree.visit(fileVisitor)
+
+        then:
+        visited.size() == 1
+        visited[0] == file.absolutePath
+
+        cleanup:
+        link.delete()
+
+        where:
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+    }
 
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:

@@ -63,6 +63,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         PlayMajorVersion.forPlatform(targetPlatform);
     }
 
+    @Override
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
@@ -91,10 +92,12 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         return converted;
     }
 
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
+    @Override
     public void explain(TreeVisitor<? super String> visitor) {
     }
 }

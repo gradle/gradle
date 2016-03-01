@@ -29,12 +29,14 @@ public class JarClasspathSnapshotDataSerializer implements Serializer<JarClasspa
     private final MapSerializer<File, byte[]> mapSerializer = new MapSerializer<File, byte[]>(FILE_SERIALIZER, BYTE_ARRAY_SERIALIZER);
     private final SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
+    @Override
     public JarClasspathSnapshotData read(Decoder decoder) throws Exception {
         Set<String> duplicates = setSerializer.read(decoder);
         Map<File, byte[]> hashes = mapSerializer.read(decoder);
         return new JarClasspathSnapshotData(hashes, duplicates);
     }
 
+    @Override
     public void write(Encoder encoder, JarClasspathSnapshotData value) throws Exception {
         setSerializer.write(encoder, value.getDuplicateClasses());
         mapSerializer.write(encoder, value.getJarHashes());

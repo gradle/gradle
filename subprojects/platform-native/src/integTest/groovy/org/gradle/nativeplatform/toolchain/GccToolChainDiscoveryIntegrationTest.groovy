@@ -25,9 +25,9 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
-@RequiresInstalledToolChain(GccCompatible)
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
 class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 

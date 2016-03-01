@@ -24,11 +24,10 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
-    private static final ModelType<Void> VOID = ModelType.of(Void.TYPE);
 
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
-        return super.isSatisfiedBy(element) && !element.getReturnType().equals(VOID);
+        return super.isSatisfiedBy(element) && !isVoidMethod(element);
     }
 
     @Override
@@ -36,6 +35,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         return new ExtractedUnmanagedCreationRule<R, S>(modelPath, ruleDefinition);
     }
 
+    @Override
     public String getDescription() {
         return String.format("%s and returning a model element", super.getDescription());
     }

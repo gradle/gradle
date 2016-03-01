@@ -140,7 +140,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -304,7 +304,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         then: 1 * processor.started({ it.id == 4 && it.className == ATestSuite.name }, { it.parentId == null })
@@ -323,9 +323,55 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(3, { it.resultType == null })
-        then: 1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 2 })
         then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 5 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(5, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "executes all tests within a custom runner suite class name matches"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*ACustomSuite"] as Set))
+
+        //Run tests in ATestSuite only
+        when: process(ATestClassWithSuiteMethod, ACustomSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == ACustomSuite.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 4 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 5 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 2 })
+        then: 1 * processor.completed(5, { it.resultType == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "attempting to filter methods on a suite does NOT work"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*ATestSuite.ok*"] as Set))
+
+        //Doesn't run any tests
+        when: process(ATestClassWithSuiteMethod, ATestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == ATestSuite.name }, { it.parentId == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        0 * processor._
+    }
+
+    @Issue("GRADLE-3112")
+    def "has no errors when dealing with an empty suite"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AnEmptyTestSuite"] as Set))
+
+        //Run tests in AnEmptyTestSuite (e.g. no tests)
+        when: process(AnEmptyTestSuite)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AnEmptyTestSuite.name }, { it.parentId == null})
+        then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
@@ -348,6 +394,8 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor._
     }
 
+
+    @Issue("GRADLE-3112")
     def "parameterized tests can be filtered by method name"() {
         classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.helpfulTest*"] as Set))
 
@@ -358,6 +406,48 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
         then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be filtered by iteration only."() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.*[1]"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be filtered by full method name"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AParameterizedTest.helpfulTest[1]"] as Set))
+
+        when: process(AParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+
+    @Issue("GRADLE-3112")
+    def "parameterized tests can be empty"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["*AnEmptyParameterizedTest"] as Set))
+
+        when: process(AnEmptyParameterizedTest)
+
+        then: 1 * processor.started({ it.id == 1 && it.className == AnEmptyParameterizedTest.name }, { it.parentId == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }

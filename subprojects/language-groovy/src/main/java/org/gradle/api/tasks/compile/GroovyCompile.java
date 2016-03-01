@@ -40,6 +40,7 @@ public class GroovyCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
 
+    @Override
     @TaskAction
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();

@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 // TODO add coverage for mixed sources
 @LeaksFileHandles
@@ -150,7 +150,7 @@ model {
         testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
     }
 
-    @RequiresInstalledToolChain(VisualCpp)
+    @RequiresInstalledToolChain(VISUALCPP)
     def "windows-resources can have sourcefiles with same base name but different directories"() {
         setup:
         def testApp = new DuplicateWindowsResourcesBaseNamesTestApp();

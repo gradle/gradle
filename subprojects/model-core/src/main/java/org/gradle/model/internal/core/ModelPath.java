@@ -67,6 +67,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         this.components = parts;
     }
 
+    @Override
     public int compareTo(ModelPath other) {
         return path.compareTo(other.path);
     }
@@ -98,6 +99,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return components;
     }
 
+    @Override
     public Iterator<String> iterator() {
         return components.iterator();
     }

@@ -35,6 +35,7 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this(String.format(descriptor, args));
     }
 
+    @Override
     public void describeTo(Appendable appendable) {
         try {
             appendable.append(descriptor);

@@ -279,7 +279,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @Issue("GRADLE-3182")
-    @Test void canUseSingleWildcardAsIncludes() {
+    @Test
+    void canUseSingleWildcardAsIncludes() {
         patternSet.include('*')
 
         included file("aaa")
@@ -292,7 +293,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @Issue("GRADLE-3182")
-    @Test void canUseSingleWildcardAsExcludes() {
+    @Test
+    void canUseSingleWildcardAsExcludes() {
         patternSet.exclude('*')
 
         excluded file('aaa')
@@ -305,7 +307,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @Issue("GRADLE-3182")
-    @Test void canUsePrefixWildcardAsIncludes() {
+    @Test
+    void canUsePrefixWildcardAsIncludes() {
         patternSet.include('*/include')
 
         included file('aaa' , 'include')
@@ -319,10 +322,11 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @Issue("GRADLE-3182")
-    @Test void canUsePrefixWildcardAsExcludes() {
+    @Test
+    void canUsePrefixWildcardAsExcludes() {
         patternSet.exclude('*/exclude')
 
-        excluded file('aaa' , 'exclude')
+        excluded file('aaa', 'exclude')
         excluded file('BBB', 'exclude')
         excluded dir('BBB', 'exclude')
 
@@ -330,6 +334,20 @@ class PatternSetTest extends AbstractTestForPatternSet {
         included file('BBB', 'dir', 'exclude')
         included dir('a', 'b', 'ddd')
         included file('a', 'b', 'c', 'ddd')
+    }
+
+    @Issue("GRADLE-3182")
+    @Test
+    void canUseDoubleWildcardForRecursiveExcludes() {
+        patternSet.exclude('**')
+
+        excluded file('aaa', 'exclude')
+        excluded file('BBB', 'exclude')
+        excluded dir('BBB', 'exclude')
+        excluded file('BBB', 'exclude', 'file')
+        excluded file('BBB', 'dir', 'exclude')
+        excluded dir('a', 'b', 'ddd')
+        excluded file('a', 'b', 'c', 'ddd')
     }
 
     void included(FileTreeElement file) {

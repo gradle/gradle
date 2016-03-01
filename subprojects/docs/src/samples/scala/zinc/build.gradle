@@ -13,12 +13,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET use-zinc
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
-// END SNIPPET use-zinc
-
 // START SNIPPET adjust-memory
 tasks.withType(ScalaCompile) {
     configure(scalaCompileOptions.forkOptions) {

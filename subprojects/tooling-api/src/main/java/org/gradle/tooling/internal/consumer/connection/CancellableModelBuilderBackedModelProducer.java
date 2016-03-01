@@ -29,11 +29,11 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class CancellableModelBuilderBackedModelProducer extends HasCompatibilityMapperAction implements ModelProducer {
-    private final ProtocolToModelAdapter adapter;
-    private final VersionDetails versionDetails;
-    private final ModelMapping modelMapping;
+    protected final ProtocolToModelAdapter adapter;
+    protected final VersionDetails versionDetails;
+    protected final ModelMapping modelMapping;
     private final InternalCancellableConnection builder;
-    private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
+    protected final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
     public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         super(versionDetails);

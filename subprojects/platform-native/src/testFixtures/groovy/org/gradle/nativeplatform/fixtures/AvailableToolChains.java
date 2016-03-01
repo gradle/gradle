@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.fixtures;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -39,6 +39,7 @@ import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -46,13 +47,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
+
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
-
-    // This enables us to install a version of VisualStudio without testing it if there are breaking changes
-    // This also deals with the issue that installing VS2013 also installs an unusable version of VS2012
-    private static final VersionNumber VISUALSTUDIO_2013 = VersionNumber.parse("12.0");
-    private static final List<VersionNumber> VISUALSTUDIO_TESTABLE_VERSIONS = ImmutableList.of(VISUALSTUDIO_2013);
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
@@ -110,8 +108,17 @@ public class AvailableToolChains {
         return new UnavailableToolChain("clang");
     }
 
-    static private boolean isTestableVisualStudioVersion(VersionNumber version) {
-        return VISUALSTUDIO_TESTABLE_VERSIONS.contains(version);
+    static private boolean isTestableVisualStudioVersion(final VersionNumber version) {
+        return getVisualStudioVersion(version) != null;
+    }
+
+    static private VisualStudioVersion getVisualStudioVersion(final VersionNumber version) {
+        return CollectionUtils.findFirst(VisualStudioVersion.values(), new Spec<VisualStudioVersion>() {
+            @Override
+            public boolean isSatisfiedBy(VisualStudioVersion candidate) {
+                return candidate.getVisualCppVersion().equals(version);
+            }
+        });
     }
 
     static private List<ToolChainCandidate> findVisualCpps() {
@@ -124,7 +131,7 @@ public class AvailableToolChains {
         for (VisualStudioLocator.SearchResult searchResult : searchResults) {
             VisualStudioInstall install = searchResult.getVisualStudio();
             if (isTestableVisualStudioVersion(install.getVersion()) && searchResult.isAvailable()) {
-                toolChains.add(new InstalledVisualCpp(install.getVersion()).withInstall(install));
+                toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
             }
         }
 
@@ -224,7 +231,7 @@ public class AvailableToolChains {
         }
 
         public String getTypeDisplayName() {
-            return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*$", "");
+            return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*(\\s+\\(\\d+(\\.\\d+)*\\))?$", "");
         }
 
         public abstract String getInstanceDisplayName();
@@ -295,6 +302,8 @@ public class AvailableToolChains {
         public String getId() {
             return displayName.replaceAll("\\W", "");
         }
+
+        public abstract String getUnitTestPlatform();
     }
 
     public static abstract class GccCompatibleToolChain extends InstalledToolChain {
@@ -318,6 +327,17 @@ public class AvailableToolChains {
         }
 
         public abstract String getCCompiler();
+
+        @Override
+        public String getUnitTestPlatform() {
+            if (OperatingSystem.current().isMacOsX()) {
+                return "osx";
+            }
+            if (OperatingSystem.current().isLinux()) {
+                return "linux";
+            }
+            return "UNKNOWN";
+        }
     }
 
     public static class InstalledGcc extends GccCompatibleToolChain {
@@ -327,7 +347,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.Gcc || requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override
@@ -374,14 +394,25 @@ public class AvailableToolChains {
             String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
             return Collections.singletonList(pathVarName + "=" + path);
         }
+
+        @Override
+        public String getUnitTestPlatform() {
+            if ("mingw".equals(getDisplayName())) {
+                return "mingw";
+            }
+            if ("gcc cygwin".equals(getDisplayName())) {
+                return "cygwin";
+            }
+            return "UNKNOWN";
+        }
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
         private VersionNumber version;
         private File installDir;
 
-        public InstalledVisualCpp(VersionNumber version) {
-            super("visual c++ " + version.toString());
+        public InstalledVisualCpp(VisualStudioVersion version) {
+            super("visual c++ " + version.getVersion() + " (" + version.getVisualCppVersion().toString() + ")");
         }
 
         @Override
@@ -400,11 +431,15 @@ public class AvailableToolChains {
         @Override
         public boolean meets(ToolChainRequirement requirement) {
             switch (requirement) {
-                case Available:
-                case VisualCpp:
+                case AVAILABLE:
+                case VISUALCPP:
                     return true;
-                case VisualCpp2013:
-                    return version.compareTo(VISUALSTUDIO_2013) >= 0;
+                case VISUALCPP_2012_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2012.getVisualCppVersion()) >= 0;
+                case VISUALCPP_2013:
+                    return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
+                case VISUALCPP_2013_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
                 default:
                     return false;
             }
@@ -444,6 +479,16 @@ public class AvailableToolChains {
         public TestFile objectFile(Object path) {
             return new TestFile(path.toString() + ".obj");
         }
+
+        @Override
+        public String getUnitTestPlatform() {
+            switch (version.getMajor()) {
+                case 12:
+                    return "vs2013";
+                default:
+                    return "UNKNOWN";
+            }
+        }
     }
 
     public static class InstalledClang extends GccCompatibleToolChain {
@@ -453,7 +498,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.Clang || requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
+            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override

@@ -32,6 +32,7 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
         this.schemaExtractor = schemaExtractor;
     }
 
+    @Override
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
         synchronized (lock) {
             ModelSchema<T> schema = cache.get(type);

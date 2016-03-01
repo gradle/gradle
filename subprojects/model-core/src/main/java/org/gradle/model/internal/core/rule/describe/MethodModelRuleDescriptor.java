@@ -44,6 +44,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this.method = method;
     }
 
+    @Override
     public void describeTo(Appendable appendable) {
         try {
             appendable.append(getDescription());

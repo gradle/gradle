@@ -44,6 +44,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         this.fileResolver = fileResolver;
     }
 
+    @Override
     public void item(String title, String value) {
         hasTitledItems = true;
         StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT, false);
@@ -51,10 +52,12 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         itemOutput.append(value).println();
     }
 
+    @Override
     public void item(String title, File value) {
         item(title, fileResolver.resolveAsRelativePath(value));
     }
 
+    @Override
     public void item(String value) {
         hasTitledItems = true;
         textOutput.append(value).println();
@@ -65,6 +68,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         item(title, Joiner.on(", ").join(values));
     }
 
+    @Override
     public void item(File value) {
         item(fileResolver.resolveAsRelativePath(value));
     }
@@ -83,6 +87,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         });
     }
 
+    @Override
     public void heading(String heading) {
         if (depth == 0) {
             textOutput.println().style(Header);
@@ -100,6 +105,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         depth++;
     }
 
+    @Override
     public void subheading(String heading) {
         writeSubheading(heading);
         if (depth == 0) {
@@ -115,6 +121,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.style(Normal).println();
     }
 
+    @Override
     public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
         if (depth <= 1 && !hasTitledItems) {
             writeSubheading(title);
@@ -146,6 +153,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         }
     }
 
+    @Override
     public StyledTextOutput getOutput() {
         return textOutput;
     }

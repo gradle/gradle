@@ -31,9 +31,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -72,21 +70,24 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            final List<String> reasons = getChangeMessages(getStates().getAllTaskChanges());
-            messages.addAll(reasons);
-            if (reasons.isEmpty()) {
+            if (collectChangedMessages(messages, getStates().getAllTaskChanges())) {
                 upToDate = true;
                 return true;
             }
             return false;
         }
 
-        private List<String> getChangeMessages(TaskStateChanges stateChanges) {
-            final List<String> messages = new ArrayList<String>();
+        private boolean collectChangedMessages(Collection<String> messages, TaskStateChanges stateChanges) {
+            boolean up2date = true;
             for (TaskStateChange stateChange : stateChanges) {
-                messages.add(stateChange.getMessage());
+                if (messages != null) {
+                    messages.add(stateChange.getMessage());
+                    up2date = false;
+                } else {
+                    return false;
+                }
             }
-            return messages;
+            return up2date;
         }
 
         public IncrementalTaskInputs getInputChanges() {
@@ -101,8 +102,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private boolean canPerformIncrementalBuild() {
-            final List<String> messages = getChangeMessages(getStates().getRebuildChanges());
-            return messages.isEmpty();
+            return collectChangedMessages(null, getStates().getRebuildChanges());
         }
 
         public FileCollection getOutputFiles() {
@@ -133,7 +133,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             history.update();
         }
 
-        public void finished() {}
+        public void finished() {
+        }
 
         private TaskUpToDateState getStates() {
             if (states == null) {

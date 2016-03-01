@@ -28,6 +28,7 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    @Override
     public List<String> transform(T spec) {
         List<String> args = Lists.newArrayList();
         addToolSpecificArgs(spec, args);

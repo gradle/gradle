@@ -18,42 +18,22 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.LongSerializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
-import org.gradle.util.DiffUtil;
-import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * Takes a snapshot of the output files of a task. 2 parts to the algorithm:
- *
- * <ul>
- * <li>Collect the unique id for each output file and directory. The unique id is generated when we notice that
- * a file/directory has been created. The id is regenerated when the file/directory is deleted.</li>
- *
- * <li>Collect the hash of each output file and each file in each output directory.</li>
- * </ul>
- *
+ * Takes a snapshot of the output files of a task.
  */
 public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileCollectionSnapshotter snapshotter;
-    private final IdGenerator<Long> idGenerator;
-    private final TaskArtifactStateCacheAccess cacheAccess;
-    private final PersistentIndexedCache<String, Long> dirIdentifierCache;
     private final StringInterner stringInterner;
 
-    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, IdGenerator<Long> idGenerator,
-                                            TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
+    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, StringInterner stringInterner) {
         this.snapshotter = snapshotter;
-        this.idGenerator = idGenerator;
-        this.cacheAccess = cacheAccess;
-        dirIdentifierCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
         this.stringInterner = stringInterner;
     }
 
@@ -64,41 +44,23 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new OutputFilesSnapshot(new HashMap<String, Long>(), snapshotter.emptySnapshot());
+        return new OutputFilesSnapshot(Collections.<String>emptySet(), snapshotter.emptySnapshot());
     }
 
-    public OutputFilesSnapshot snapshot(final FileCollection files) {
-        final Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
-        final Set<File> theFiles = files.getFiles();
-        cacheAccess.useCache("create dir snapshots", new Runnable() {
-            public void run() {
-                for (File file : theFiles) {
-                    Long dirId;
-                    final String absolutePath = stringInterner.intern(file.getAbsolutePath());
-                    if (file.exists()) {
-                        dirId = dirIdentifierCache.get(absolutePath);
-                        if (dirId == null) {
-                            dirId = idGenerator.generateId();
-                            dirIdentifierCache.put(absolutePath, dirId);
-                        }
-                    } else {
-                        dirIdentifierCache.remove(absolutePath);
-                        dirId = null;
-                    }
-                    snapshotDirIds.put(absolutePath, dirId);
-                }
-
-            }
-        });
-        return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
+    public OutputFilesSnapshot snapshot(FileCollection files) {
+        Set<String> roots = new LinkedHashSet<String>();
+        for (File file : files.getFiles()) {
+            roots.add(stringInterner.intern(file.getAbsolutePath()));
+        }
+        return new OutputFilesSnapshot(roots, snapshotter.snapshot(files));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
-        final Map<String, Long> rootFileIds;
+        final Set<String> roots;
         final FileCollectionSnapshot filesSnapshot;
 
-        public OutputFilesSnapshot(Map<String, Long> rootFileIds, FileCollectionSnapshot filesSnapshot) {
-            this.rootFileIds = rootFileIds;
+        public OutputFilesSnapshot(Set<String> roots, FileCollectionSnapshot filesSnapshot) {
+            this.roots = roots;
             this.filesSnapshot = filesSnapshot;
         }
 
@@ -110,9 +72,17 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getSnapshot();
         }
 
-        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
-            return new OutputFilesDiff(rootFileIds, other.rootFileIds, filesSnapshot.changesSince(other.filesSnapshot));
+        @Override
+        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
+            OutputFilesSnapshot newOutputsSnapshot = (OutputFilesSnapshot) newSnapshot;
+            return new OutputFilesSnapshot(roots, filesSnapshot.updateFrom(newOutputsSnapshot.filesSnapshot));
+        }
+
+        @Override
+        public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
+            OutputFilesSnapshot oldOutputsSnapshot = (OutputFilesSnapshot) oldSnapshot;
+            OutputFilesSnapshot targetOutputsSnapshot = (OutputFilesSnapshot) target;
+            return new OutputFilesSnapshot(roots, filesSnapshot.applyChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
@@ -139,24 +109,13 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         private ChangeIterator<String> iterateRootFileIdChanges(final OutputFilesSnapshot other) {
-            // Inlining DiffUtil.diff makes the inefficiencies here a bit more explicit
-            Map<String, Long> added = new HashMap<String, Long>(rootFileIds);
-            added.keySet().removeAll(other.rootFileIds.keySet());
-            final Iterator<String> addedIterator = added.keySet().iterator();
+            Set<String> added = new LinkedHashSet<String>(roots);
+            added.removeAll(other.roots);
+            final Iterator<String> addedIterator = added.iterator();
 
-            Map<String, Long> removed = new HashMap<String, Long>(other.rootFileIds);
-            removed.keySet().removeAll(rootFileIds.keySet());
-            final Iterator<String> removedIterator = removed.keySet().iterator();
-
-            Set<String> changed = new HashSet<String>();
-            for (Map.Entry<String, Long> current : rootFileIds.entrySet()) {
-                 // Only care about rootIds that used to exist, and have changed or been removed
-                Long otherValue = other.rootFileIds.get(current.getKey());
-                if (otherValue != null && !otherValue.equals(current.getValue())) {
-                    changed.add(current.getKey());
-                }
-            }
-            final Iterator<String> changedIterator = changed.iterator();
+            Set<String> removed = new LinkedHashSet<String>(other.roots);
+            removed.removeAll(roots);
+            final Iterator<String> removedIterator = removed.iterator();
 
             return new ChangeIterator<String>() {
                 public boolean next(ChangeListener<String> listener) {
@@ -166,10 +125,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     }
                     if (removedIterator.hasNext()) {
                         listener.removed(removedIterator.next());
-                        return true;
-                    }
-                    if (changedIterator.hasNext()) {
-                        listener.changed(changedIterator.next());
                         return true;
                     }
 
@@ -204,31 +159,4 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             wasIgnored = false;
         }
     }
-
-    private static class OutputFilesDiff implements FileCollectionSnapshot.Diff {
-        private final Map<String, Long> newFileIds;
-        private final Map<String, Long> oldFileIds;
-        private final FileCollectionSnapshot.Diff filesDiff;
-
-        public OutputFilesDiff(Map<String, Long> newFileIds, Map<String, Long> oldFileIds,
-                               FileCollectionSnapshot.Diff filesDiff) {
-            this.newFileIds = newFileIds;
-            this.oldFileIds = oldFileIds;
-            this.filesDiff = filesDiff;
-        }
-
-        public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot,
-                                              ChangeListener<FileCollectionSnapshot.Merge> listener) {
-            OutputFilesSnapshot other = (OutputFilesSnapshot) snapshot;
-            Map<String, Long> dirIds = new HashMap<String, Long>(other.rootFileIds);
-            DiffUtil.diff(newFileIds, oldFileIds, new MapMergeChangeListener<String, Long>(
-                    new NoOpChangeListener<FileCollectionSnapshot.Merge>(), dirIds));
-            return new OutputFilesSnapshot(newFileIds, filesDiff.applyTo(other.filesSnapshot, listener));
-        }
-
-        public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-            return applyTo(snapshot, new NoOpChangeListener<FileCollectionSnapshot.Merge>());
-        }
-    }
-
 }

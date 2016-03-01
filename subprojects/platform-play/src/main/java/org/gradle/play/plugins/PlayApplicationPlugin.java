@@ -36,7 +36,10 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.ComponentBinaries;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
@@ -91,13 +94,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @ComponentType
-        void registerPlayPlatformAwareComponentSpecType(ComponentTypeBuilder<PlayPlatformAwareComponentSpec> builder) {
+        void registerPlayPlatformAwareComponentSpecType(TypeBuilder<PlayPlatformAwareComponentSpec> builder) {
             builder.defaultImplementation(DefaultPlayPlatformAwareComponentSpec.class);
             builder.internalView(PlayPlatformAwareComponentSpecInternal.class);
         }
 
         @ComponentType
-        void registerPlayApplicationSpecType(ComponentTypeBuilder<PlayApplicationSpec> builder) {
+        void registerPlayApplicationSpecType(TypeBuilder<PlayApplicationSpec> builder) {
             builder.internalView(PlayApplicationSpecInternal.class);
         }
 
@@ -111,8 +114,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             builder.create("play");
         }
 
-        @BinaryType
-        void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
+        @ComponentType
+        void registerApplication(TypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
             builder.internalView(PlayApplicationBinarySpecInternal.class);
         }
@@ -181,7 +184,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @Mutate
         // TODO:LPTR This should be like @Finalize void generatedSourcesAreInputs(@Each PlayApplicationBinarySpecInternal binary)
-        void generatedSourcesAreInputs(ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
+        void generatedSourcesAreInputs(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry) {
             binaries.afterEach(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
@@ -265,7 +268,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
             for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
                 String runTaskName = binary.getTasks().taskName("run");

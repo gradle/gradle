@@ -57,6 +57,13 @@ class TestKitSamplesIntegrationTest extends GradleRunnerIntegrationTest {
         succeeds "check"
     }
 
+    @UsesSample("testKit/testKitSpockAutomaticClasspath")
+    def automaticClasspath() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
+
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     @UsesSample("testKit/testKitSpockGradleVersion")
     def version() {

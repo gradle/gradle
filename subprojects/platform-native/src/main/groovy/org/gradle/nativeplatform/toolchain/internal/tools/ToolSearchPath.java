@@ -135,14 +135,17 @@ public class ToolSearchPath {
             this.tool = tool;
         }
 
+        @Override
         public boolean isAvailable() {
             return true;
         }
 
+        @Override
         public File getTool() {
             return tool;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
     }
@@ -158,6 +161,7 @@ public class ToolSearchPath {
             this.path = path;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             if (path.isEmpty()) {
                 visitor.node(String.format("Could not find %s '%s' in system path.", type.getToolName(), exeName));
@@ -171,12 +175,14 @@ public class ToolSearchPath {
             }
         }
 
+        @Override
         public File getTool() {
             TreeFormatter formatter = new TreeFormatter();
             explain(formatter);
             throw new GradleException(formatter.toString());
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }

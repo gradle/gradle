@@ -19,21 +19,10 @@ import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.Hidden;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.binding.StructBindingsStore;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryType;
-import org.gradle.platform.base.BinaryTypeBuilder;
+import org.gradle.platform.base.*;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 /**
@@ -50,7 +39,7 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project target) {
-        target.getPluginManager().apply(LifecycleBasePlugin.class);
+        target.getPluginManager().apply(ComponentBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -59,24 +48,8 @@ public class BinaryBasePlugin implements Plugin<Project> {
         void binaries(BinaryContainer binaries) {
         }
 
-        @Hidden
-        @Model
-        BinarySpecFactory binarySpecFactory(ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
-            return new BinarySpecFactory("binaries", serviceRegistry.get(Instantiator.class), taskFactory);
-        }
-
-        @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, StructBindingsStore bindingsStore) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedStructNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, bindingsStore));
-        }
-
-        @Validate
-        void validateBinarySpecRegistrations(BinarySpecFactory instanceFactory) {
-            instanceFactory.validateRegistrations();
-        }
-
-        @BinaryType
-        void registerBaseBinarySpec(BinaryTypeBuilder<BinarySpec> builder) {
+        @ComponentType
+        void registerBaseBinarySpec(TypeBuilder<BinarySpec> builder) {
             builder.defaultImplementation(BaseBinarySpec.class);
             builder.internalView(BinarySpecInternal.class);
         }

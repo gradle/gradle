@@ -33,6 +33,7 @@ public class TaskReportTask extends AbstractReportTask {
 
     private boolean detail;
 
+    @Override
     public ReportRenderer getRenderer() {
         return renderer;
     }
@@ -50,6 +51,7 @@ public class TaskReportTask extends AbstractReportTask {
         return detail;
     }
 
+    @Override
     public void generate(Project project) throws IOException {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());

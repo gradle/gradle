@@ -54,7 +54,7 @@ model {
                 if (toolChain in VisualCpp) {
                     // Apply to all debug build types: 'debug' and 'integration'
                     if (buildType.debug) {
-                        cppCompiler.args ${toolChain.meets(ToolChainRequirement.VisualCpp2013) ? "'/Zi', '/FS'" : "'/Zi'"}
+                        cppCompiler.args ${toolChain.meets(ToolChainRequirement.VISUALCPP_2013_OR_NEWER) ? "'/Zi', '/FS'" : "'/Zi'"}
                         cppCompiler.define 'DEBUG'
                         linker.args '/DEBUG'
                     }

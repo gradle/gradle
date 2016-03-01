@@ -49,8 +49,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
             }
 
             class MySamplePlugin extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                @ComponentType
+                void register(TypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
                 }
             }
@@ -151,7 +151,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 components {
-                    lib(ComponentSpec) {
+                    lib(LibrarySpec) {
                     }
                 }
             }

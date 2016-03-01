@@ -41,10 +41,12 @@ public class NativePlatformBackedProcessEnvironment extends AbstractProcessEnvir
         process.setWorkingDirectory(processDir);
     }
 
+    @Override
     public File getProcessDir() {
         return process.getWorkingDirectory();
     }
 
+    @Override
     public Long getPid() {
         return Long.valueOf(process.getProcessId());
     }

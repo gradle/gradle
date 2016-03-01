@@ -124,7 +124,13 @@ public class Daemon implements Stoppable {
 
             stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
-            connectorAddress = connector.start(connectionHandler);
+            Runnable connectionErrorHandler = new Runnable() {
+                @Override
+                public void run() {
+                    stateCoordinator.stop();
+                }
+            };
+            connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {

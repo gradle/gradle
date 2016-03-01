@@ -21,6 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
+    @Override
     public <R> void extract(ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (ScalarTypes.isScalarType(type)) {

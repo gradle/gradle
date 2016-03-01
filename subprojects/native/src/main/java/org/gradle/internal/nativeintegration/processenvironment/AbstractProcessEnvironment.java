@@ -29,6 +29,7 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
+    @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
         // need to take copy to prevent ConcurrentModificationException
         List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
@@ -41,6 +42,7 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
         return true;
     }
 
+    @Override
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
         removeNativeEnvironmentVariable(name);
         reflectiveEnvironment.unsetenv(name);
@@ -48,11 +50,13 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     protected abstract void removeNativeEnvironmentVariable(String name);
 
+    @Override
     public boolean maybeRemoveEnvironmentVariable(String name) {
         removeEnvironmentVariable(name);
         return true;
     }
 
+    @Override
     public void setEnvironmentVariable(String name, String value) throws NativeIntegrationException {
         if (value == null) {
             removeEnvironmentVariable(name);
@@ -65,11 +69,13 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     protected abstract void setNativeEnvironmentVariable(String name, String value);
 
+    @Override
     public boolean maybeSetEnvironmentVariable(String name, String value) {
         setEnvironmentVariable(name, value);
         return true;
     }
 
+    @Override
     public void setProcessDir(File processDir) throws NativeIntegrationException {
         if (!processDir.exists()) {
             return;
@@ -81,11 +87,13 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     protected abstract void setNativeProcessDir(File processDir);
 
+    @Override
     public boolean maybeSetProcessDir(File processDir) {
         setProcessDir(processDir);
         return true;
     }
 
+    @Override
     public Long maybeGetPid() {
         return getPid();
     }

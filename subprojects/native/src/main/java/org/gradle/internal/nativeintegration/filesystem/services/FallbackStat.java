@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 class FallbackStat implements FileModeAccessor {
+    @Override
     public int getUnixMode(File f) throws IOException {
         if (f.isDirectory()) {
             return FileSystem.DEFAULT_DIR_MODE;

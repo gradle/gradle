@@ -29,7 +29,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 
@@ -91,9 +91,9 @@ public class ComponentReport extends DefaultTask {
         if (sourceSets != null) {
             renderer.renderSourceSets(sourceSets);
         }
-        ModelMap<BinarySpec> binaries = modelElement("binaries", modelMap(BinarySpec.class));
+        BinaryContainer binaries = modelElement("binaries", BinaryContainer.class);
         if (binaries != null) {
-            renderer.renderBinaries(binaries);
+            renderer.renderBinaries(binaries.values());
         }
 
         renderer.completeProject(project);

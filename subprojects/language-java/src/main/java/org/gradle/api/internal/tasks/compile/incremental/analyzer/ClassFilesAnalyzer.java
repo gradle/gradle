@@ -41,8 +41,10 @@ public class ClassFilesAnalyzer implements FileVisitor {
         this.accumulator = accumulator;
     }
 
+    @Override
     public void visitDir(FileVisitDetails dirDetails) {}
 
+    @Override
     public void visitFile(FileVisitDetails fileDetails) {
         File file = fileDetails.getFile();
         if (!hasExtension(file, ".class")) {

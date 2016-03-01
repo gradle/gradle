@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.ide.visualstudio.TextConfigFile
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.VisualStudioProject
@@ -27,23 +27,19 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
+import org.gradle.platform.base.internal.ComponentSpecIdentifier
 
-class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
+class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec implements VisualStudioSolution {
     final DefaultVisualStudioProject rootProject
-    private final String name
     private final SolutionFile solutionFile
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver,
+    DefaultVisualStudioSolution(ComponentSpecIdentifier componentIdentifier, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
+        super(componentIdentifier, VisualStudioSolution.class)
         this.rootProject = rootProject
-        this.name = rootProject.name
         this.vsProjectResolver = vsProjectResolver
         this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "${name}.sln" as String)
-    }
-
-    String getName() {
-        return name
     }
 
     SolutionFile getSolutionFile() {

@@ -20,5 +20,6 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 public interface JvmBinarySpecInternal extends JvmBinarySpec, BinarySpecInternal {
+    @Override
     BinaryNamingScheme getNamingScheme();
 }

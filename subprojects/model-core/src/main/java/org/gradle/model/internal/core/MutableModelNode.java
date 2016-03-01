@@ -45,7 +45,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
      */
-    <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor);
+    <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor);
 
     /**
      * Adds a node to the graph, linked from this node. The given registration is used to initialize the node when required.
@@ -121,6 +121,7 @@ public interface MutableModelNode extends ModelNode {
 
     Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate);
 
+    @Override
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
     Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate);
@@ -135,6 +136,9 @@ public interface MutableModelNode extends ModelNode {
 
     Object getPrivateData();
 
+    /**
+     * Change the target of this reference node. Works only on reference nodes that are in the {@link org.gradle.model.internal.core.ModelNode.State#Registered} state.
+     */
     void setTarget(ModelNode target);
 
     /**

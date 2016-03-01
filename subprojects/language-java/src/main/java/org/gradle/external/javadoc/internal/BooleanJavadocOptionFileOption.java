@@ -30,6 +30,7 @@ public class BooleanJavadocOptionFileOption extends AbstractJavadocOptionFileOpt
         super(option, value);
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && value) {
             writerContext.writeOption(option);

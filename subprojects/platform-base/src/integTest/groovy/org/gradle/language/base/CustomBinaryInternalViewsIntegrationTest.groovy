@@ -49,8 +49,8 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
     def setupRegistration() {
         buildFile << """
             class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void register(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                     builder.internalView(SampleBinarySpecInternal)
                     builder.internalView(BareInternal)
@@ -102,14 +102,14 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             @Finalize
-            void mutateInternal(ModelMap<SampleBinarySpecInternal> sampleBins) {
+            void mutateInternal(@Path("binaries") ModelMap<SampleBinarySpecInternal> sampleBins) {
                 sampleBins.each { sampleBin ->
                     sampleBin.internalData = "internal"
                 }
             }
 
             @Finalize
-            void mutatePublic(ModelMap<SampleBinarySpec> sampleBins) {
+            void mutatePublic(@Path("binaries") ModelMap<SampleBinarySpec> sampleBins) {
                 sampleBins.each { sampleBin ->
                     sampleBin.publicData = "public"
                 }
@@ -119,7 +119,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @Mutate
-            void createValidateTask(ModelMap<Task> tasks, ModelMap<SampleBinarySpecInternal> sampleLibs) {
+            void createValidateTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<SampleBinarySpecInternal> sampleLibs) {
                 tasks.create("validate") {
                     assert sampleLibs.size() == 1
                     sampleLibs.each { sampleLib ->
@@ -144,7 +144,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             @Mutate
-            void mutateInternal(ModelMap<ComponentSpec> libs) {
+            void mutateInternal(ComponentSpecContainer libs) {
                 libs.all { lib ->
                     lib.binaries.withType(SampleBinarySpecInternal) { sampleBin ->
                         sampleBin.internalData = "internal"
@@ -153,7 +153,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @Mutate
-            void mutatePublic(ModelMap<ComponentSpec> libs) {
+            void mutatePublic(ComponentSpecContainer libs) {
                 libs.all { lib ->
                     lib.binaries.withType(SampleBinarySpec) { sampleBin ->
                         sampleBin.publicData = "public"
@@ -162,7 +162,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             @Mutate
-            void createValidateTask(ModelMap<Task> tasks, ModelMap<SampleBinarySpecInternal> sampleLibs) {
+            void createValidateTask(ModelMap<Task> tasks, @Path("binaries") ModelMap<SampleBinarySpecInternal> sampleLibs) {
                 tasks.create("validate") {
                     assert sampleLibs.size() == 1
                     sampleLibs.each { sampleLib ->
@@ -190,13 +190,13 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
     def "can register internal view and default implementation separately"() {
         buildFile << """
             class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void register(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                 }
 
-                @BinaryType
-                void registerInternalView(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void registerInternalView(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(SampleBinarySpecInternal)
                     builder.internalView(BareInternal)
                 }
@@ -216,13 +216,13 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             interface NotImplementedInternalView extends BinarySpec {}
 
             class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void registerBinary(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void registerBinary(TypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                 }
 
-                @BinaryType
-                void registerInternalView(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void registerInternalView(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(NotImplementedInternalView)
                 }
             }
@@ -251,14 +251,14 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             class Rules extends RuleSource {
-                @BinaryType
-                void registerBinary(BinaryTypeBuilder<JarBinarySpec> builder) {
+                @ComponentType
+                void registerBinary(TypeBuilder<JarBinarySpec> builder) {
                     builder.internalView(ManagedInternalView)
                     builder.internalView(ManagedJarBinarySpecInternal)
                 }
 
                 @Mutate
-                void createValidateTask(ModelMap<Task> tasks, ModelMap<ComponentSpec> components) {
+                void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                     tasks.create("validate") {
                         doLast {
                             assert components.size() == 1

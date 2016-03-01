@@ -312,12 +312,12 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
     }
 
-    def "cannot change a reference after it has been self-closed"() {
+    def "cannot change a reference after it has been discovered"() {
         given:
         registry.registerInstance("target", "value")
         def target = registry.node("target")
         registry.root.addReference("ref", String, target)
-        def ref = registry.atState("ref", ModelNode.State.SelfClosed)
+        def ref = registry.atState("ref", ModelNode.State.Discovered)
 
         when:
         ref.setTarget(newTarget)

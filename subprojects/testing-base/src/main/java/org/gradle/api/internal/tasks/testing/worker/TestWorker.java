@@ -54,6 +54,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         this.factory = factory;
     }
 
+    @Override
     public void execute(final WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
@@ -95,11 +96,13 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         serverConnection.connect();
     }
 
+    @Override
     public void startProcessing() {
         Thread.currentThread().setName("Test worker");
         processor.startProcessing(resultProcessor);
     }
 
+    @Override
     public void processTestClass(final TestClassRunInfo testClass) {
         Thread.currentThread().setName("Test worker");
         try {
@@ -110,6 +113,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         }
     }
 
+    @Override
     public void stop() {
         Thread.currentThread().setName("Test worker");
         try {

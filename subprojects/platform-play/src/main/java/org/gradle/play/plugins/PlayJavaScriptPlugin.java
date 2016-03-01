@@ -30,8 +30,8 @@ import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
@@ -53,9 +53,8 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
-            builder.setLanguageName("javaScript");
+        @ComponentType
+        void registerJavascript(TypeBuilder<JavaScriptSourceSet> builder) {
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }
 
@@ -77,18 +76,27 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     private static class JavaScript implements LanguageTransform<JavaScriptSourceSet, JavaScriptSourceCode> {
+        @Override
+        public String getLanguageName() {
+            return "javaScript";
+        }
+
+        @Override
         public Class<JavaScriptSourceSet> getSourceSetType() {
             return JavaScriptSourceSet.class;
         }
 
+        @Override
         public Class<JavaScriptSourceCode> getOutputType() {
             return JavaScriptSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -120,6 +128,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

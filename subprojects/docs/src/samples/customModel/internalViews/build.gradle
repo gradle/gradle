@@ -30,17 +30,17 @@
 class MyPlugin extends RuleSource {
 // END SNIPPET internal-view-mutation
     @ComponentType
-    void registerMyComponent(ComponentTypeBuilder<MyComponent> builder) {
+    void registerMyComponent(TypeBuilder<MyComponent> builder) {
         builder.internalView(MyComponentInternal)
     }
 // END SNIPPET type-registration
 // START SNIPPET internal-view-mutation
     @Mutate
     void mutateMyComponents(ModelMap<MyComponentInternal> components) {
-        components.all({ component ->
+        components.all { component ->
             component.publicData = "Some PUBLIC data"
             component.internalData = "Some INTERNAL data"
-        })
+        }
     }
 // START SNIPPET type-registration
 }

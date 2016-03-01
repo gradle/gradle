@@ -33,10 +33,12 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
         this.restartEvery = restartEvery;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         this.resultProcessor = resultProcessor;
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (processor == null) {
             processor = factory.create();
@@ -49,6 +51,7 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
     public void stop() {
         if (processor != null) {
             endBatch();

@@ -18,38 +18,40 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.model.internal.manage.binding.ManagedProperty;
 import org.gradle.model.internal.type.ModelType;
 
 public class NodeInitializerContext<T> {
     private final ModelType<T> modelType;
-    private final ModelType<? super T> baseType;
+    private final Spec<ModelType<?>> constraints;
     private final Optional<PropertyContext> propertyContextOptional;
 
-    public NodeInitializerContext(ModelType<T> modelType, ModelType<? super T> baseType, Optional<PropertyContext> propertyContextOptional) {
+    private NodeInitializerContext(ModelType<T> modelType, Spec<ModelType<?>> constraints, Optional<PropertyContext> propertyContextOptional) {
         this.modelType = modelType;
-        this.baseType = baseType;
+        this.constraints = constraints;
         this.propertyContextOptional = propertyContextOptional;
     }
 
     public static <T> NodeInitializerContext<T> forType(ModelType<T> type) {
-        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.<PropertyContext>absent());
+        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.<PropertyContext>absent());
     }
 
-    public static <T> NodeInitializerContext<T> forExtensibleType(ModelType<T> type, ModelType<? super T> baseType) {
-        return new NodeInitializerContext<T>(type, baseType, Optional.<PropertyContext>absent());
+    public static <T> NodeInitializerContext<T> forExtensibleType(ModelType<T> type, Spec<ModelType<?>> constraints) {
+        return new NodeInitializerContext<T>(type, constraints, Optional.<PropertyContext>absent());
     }
 
     public static <T> NodeInitializerContext<T> forProperty(ModelType<T> type, ManagedProperty<?> property, ModelType<?> containingType) {
-        return new NodeInitializerContext<T>(type, ModelType.UNTYPED, Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
+        return new NodeInitializerContext<T>(type, Specs.<ModelType<?>>satisfyAll(), Optional.of(new PropertyContext(property.getName(), property.getType(), property.isWritable(), property.isDeclaredAsHavingUnmanagedType(), containingType)));
     }
 
     public ModelType<T> getModelType() {
         return modelType;
     }
 
-    public ModelType<? super T> getBaseType() {
-        return baseType;
+    public Spec<ModelType<?>> getConstraints() {
+        return constraints;
     }
 
     public Optional<PropertyContext> getPropertyContextOptional() {

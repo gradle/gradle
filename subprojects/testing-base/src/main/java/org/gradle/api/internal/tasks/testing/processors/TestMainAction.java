@@ -40,6 +40,7 @@ public class TestMainAction implements Runnable {
         this.displayName = displayName;
     }
 
+    @Override
     public void run() {
         RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName, testTaskOperationId);
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));

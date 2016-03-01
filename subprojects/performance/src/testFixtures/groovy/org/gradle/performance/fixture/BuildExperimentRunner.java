@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 
@@ -35,6 +36,14 @@ public class BuildExperimentRunner {
         MEASUREMENT
     }
 
+    protected DataCollector getDataCollector() {
+        return dataCollector;
+    }
+
+    protected OperationTimer getTimer() {
+        return timer;
+    }
+
     public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
         MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
@@ -49,112 +58,125 @@ public class BuildExperimentRunner {
         System.out.println(String.format("%s ...", experiment.getDisplayName()));
         System.out.println();
 
-        File workingDirectory = experiment.getInvocation().getWorkingDirectory();
-        final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
-        final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
-        additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
-        if (System.getProperty("org.gradle.performance.heapdump") != null) {
-            additionalArgs.add("-Pheapdump");
-        }
-
-        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-        File projectDir = buildSpec.getWorkingDirectory();
-        GradleSession session = executerProvider.session(buildSpec);
-
-        session.prepare();
-        try {
-            int warmUpCount = warmupsForExperiment(experiment);
-            for (int i = 0; i < warmUpCount; i++) {
-                System.out.println();
-                System.out.println(String.format("Warm-up #%s", i + 1));
-                runOnce(session, experiment, new MeasuredOperationList(), projectDir, Phase.WARMUP, i + 1, warmUpCount);
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        if (invocationSpec instanceof GradleInvocationSpec) {
+            GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
+            File workingDirectory = invocation.getWorkingDirectory();
+            final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
+            final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
+            additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
+            if (System.getProperty("org.gradle.performance.heapdump") != null) {
+                additionalArgs.add("-Pheapdump");
             }
-            waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
-            int invocationCount = invocationsForExperiment(experiment);
-            for (int i = 0; i < invocationCount; i++) {
-                if (i > 0) {
-                    waitForMillis(experiment, experiment.getSleepAfterTestRoundMillis());
-                }
-                System.out.println();
-                System.out.println(String.format("Test run #%s", i + 1));
-                runOnce(session, experiment, results, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
+
+            GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
+            File projectDir = buildSpec.getWorkingDirectory();
+            GradleSession session = executerProvider.session(buildSpec);
+
+            session.prepare();
+            try {
+                performMeasurements(session, experiment, results, projectDir);
+            } finally {
+                session.cleanup();
             }
-        } finally {
-            session.cleanup();
         }
     }
 
-    private Integer invocationsForExperiment(BuildExperimentSpec experiment) {
+    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void performMeasurements(final InvocationExecutorProvider<T> session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
+        doWarmup(experiment, projectDir, session);
+        waitForMillis(experiment, experiment.getSleepAfterWarmUpMillis());
+        doMeasure(experiment, results, projectDir, session);
+    }
+
+    private <S extends InvocationSpec, T extends InvocationCustomizer<S>> void doMeasure(BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir, InvocationExecutorProvider<T> session) {
+        int invocationCount = invocationsForExperiment(experiment);
+        for (int i = 0; i < invocationCount; i++) {
+            if (i > 0) {
+                waitForMillis(experiment, experiment.getSleepAfterTestRoundMillis());
+            }
+            System.out.println();
+            System.out.println(String.format("Test run #%s", i + 1));
+            BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
+            runOnce(session, results, info);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> T createInvocationCustomizer(final BuildExperimentInvocationInfo info) {
+        if (info.getBuildExperimentSpec() instanceof GradleBuildExperimentSpec) {
+            return Cast.uncheckedCast(new GradleInvocationCustomizer() {
+                @Override
+                public GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
+                    final List<String> iterationInfoArguments = createIterationInfoArguments(info.getPhase(), info.getIterationNumber(), info.getIterationMax());
+                    GradleInvocationSpec gradleInvocationSpec = invocationSpec.withAdditionalArgs(iterationInfoArguments);
+                    System.out.println("Run Gradle using JVM opts: " + gradleInvocationSpec.getJvmOpts());
+                    return gradleInvocationSpec;
+                }
+            });
+        }
+        return null;
+    }
+
+    private <S extends InvocationSpec, T extends InvocationCustomizer<S>> void doWarmup(BuildExperimentSpec experiment, File projectDir, InvocationExecutorProvider<T> session) {
+        int warmUpCount = warmupsForExperiment(experiment);
+        for (int i = 0; i < warmUpCount; i++) {
+            System.out.println();
+            System.out.println(String.format("Warm-up #%s", i + 1));
+            BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, Phase.WARMUP, i + 1, warmUpCount);
+            runOnce(session, new MeasuredOperationList(), info);
+        }
+    }
+
+    protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
         // Take more samples when using the daemon, as execution time tends to be spiky
-        if (experiment.getInvocation().getBuildWillRunInDaemon()) {
-            return 8;
+        InvocationSpec invocation = experiment.getInvocation();
+        if (invocation instanceof GradleInvocationSpec) {
+            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
+                return 8;
+            }
         }
         return 5;
     }
 
-    private int warmupsForExperiment(BuildExperimentSpec experiment) {
+    protected int warmupsForExperiment(BuildExperimentSpec experiment) {
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();
         }
         // Use more invocations to warmup when using the daemon, to allow the JVM to warm things up
-        if (experiment.getInvocation().getBuildWillRunInDaemon()) {
-            return 3;
+        InvocationSpec invocation = experiment.getInvocation();
+        if (invocation instanceof GradleInvocationSpec) {
+            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
+                return 3;
+            }
         }
         return 1;
     }
 
     // the JIT compiler seems to wait for idle period before compiling
-    private void waitForMillis(BuildExperimentSpec experiment, long sleepTimeMillis) {
-        if (experiment.getInvocation().getBuildWillRunInDaemon() && sleepTimeMillis > 0L) {
-            System.out.println();
-            System.out.println(String.format("Waiting %d ms", sleepTimeMillis));
-            try {
-                Thread.sleep(sleepTimeMillis);
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+    protected void waitForMillis(BuildExperimentSpec experiment, long sleepTimeMillis) {
+        InvocationSpec invocation = experiment.getInvocation();
+        if (invocation instanceof GradleInvocationSpec) {
+            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon() && sleepTimeMillis > 0L) {
+                System.out.println();
+                System.out.println(String.format("Waiting %d ms", sleepTimeMillis));
+                try {
+                    Thread.sleep(sleepTimeMillis);
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
         }
     }
 
-    private void runOnce(final GradleSession session, final BuildExperimentSpec experiment, MeasuredOperationList results, final File projectDir, final Phase phase, final int iterationNumber, final int iterationMax) {
-        final BuildExperimentInvocationInfo invocationInfo = new BuildExperimentInvocationInfo() {
-            @Override
-            public BuildExperimentSpec getBuildExperimentSpec() {
-                return experiment;
-            }
-
-            @Override
-            public File getProjectDir() {
-                return projectDir;
-            }
-
-            @Override
-            public Phase getPhase() {
-                return phase;
-            }
-
-            @Override
-            public int getIterationNumber() {
-                return iterationNumber;
-            }
-
-            @Override
-            public int getIterationMax() {
-                return iterationMax;
-            }
-        };
-
-        final Runnable runner = session.runner(new GradleInvocationCustomizer() {
-            @Override
-            public GradleInvocationSpec customize(GradleInvocationSpec invocationSpec) {
-                GradleInvocationSpec gradleInvocationSpec = invocationSpec.withAdditionalArgs(createIterationInfoArguments(phase, iterationNumber, iterationMax));
-                System.out.println("Run Gradle using JVM opts: " + gradleInvocationSpec.getJvmOpts());
-                return gradleInvocationSpec;
-            }
-        });
+    protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void runOnce(
+        final InvocationExecutorProvider<T> session,
+        final MeasuredOperationList results,
+        final BuildExperimentInvocationInfo invocationInfo) {
+        BuildExperimentSpec experiment = invocationInfo.getBuildExperimentSpec();
+        final Runnable runner = session.runner(Cast.<T>uncheckedCast(this.<S, T>createInvocationCustomizer(invocationInfo)));
 
         if (experiment.getListener() != null) {
             experiment.getListener().beforeInvocation(invocationInfo);
@@ -186,7 +208,7 @@ public class BuildExperimentRunner {
         }
     }
 
-    private List<String> createIterationInfoArguments(Phase phase, int iterationNumber, int iterationMax) {
+    protected List<String> createIterationInfoArguments(Phase phase, int iterationNumber, int iterationMax) {
         List<String> args = new ArrayList<String>(3);
         args.add("-PbuildExperimentPhase=" + phase.toString().toLowerCase());
         args.add("-PbuildExperimentIterationNumber=" + iterationNumber);

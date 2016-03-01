@@ -32,30 +32,37 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
         this.resultSerializer = new TestResultSerializer(resultsDir);
     }
 
+    @Override
     public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
         return outputReader.hasOutput(id, destination);
     }
 
+    @Override
     public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeAllOutput(id, destination, writer);
     }
-    
+
+    @Override
     public boolean isHasResults() {
         return resultSerializer.isHasResults();
     }
 
+    @Override
     public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeNonTestOutput(id, destination, writer);
     }
 
+    @Override
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
         outputReader.writeTestOutput(classId, testId, destination, writer);
     }
 
+    @Override
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         resultSerializer.read(visitor);
     }
 
+    @Override
     public void close() throws IOException {
         outputReader.close();
     }

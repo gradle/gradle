@@ -84,7 +84,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
                 lssElement()
             }
         }
-        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 16, column 13"
+        def functionalSourceSetCreator = "functionalSources(org.gradle.language.base.FunctionalSourceSet) { ... } @ build.gradle line 15, column 13"
         reportOutput.modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
         reportOutput.modelNode.functionalSources.@creator[0] == functionalSourceSetCreator
         reportOutput.modelNode.functionalSources.lssElement.@type[0] == "SomeJavaSourceSet"
@@ -234,7 +234,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: SomeJavaSourceSet 'functionalSources:myJavaSourceSet'"
+        output.contains "sources display name: SomeJava source 'myJavaSourceSet'"
     }
 
     def "can reference sourceSet elements using specialized type in a rule"() {
@@ -268,7 +268,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printSource"
 
         then:
-        output.contains "sources display name: SomeJavaSourceSet 'functionalSources:myJavaSourceSet'"
+        output.contains "sources display name: SomeJava source 'myJavaSourceSet'"
     }
 
     def "elements in FunctionalSourceSet are not created when defined"() {
@@ -340,9 +340,8 @@ after ss1
         return """
             @Managed interface SomeJavaSourceSet extends LanguageSourceSet {}
             class JavaLangRuleSource extends RuleSource {
-                @LanguageType
-                void registerLanguage(LanguageTypeBuilder<SomeJavaSourceSet> builder) {
-                    builder.setLanguageName("java");
+                @ComponentType
+                void registerLanguage(TypeBuilder<SomeJavaSourceSet> builder) {
                 }
             }
             apply plugin: JavaLangRuleSource

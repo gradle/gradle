@@ -28,6 +28,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         compilationStateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
     }
 
+    @Override
     public PersistentStateCache<CompilationState> create(final String taskPath) {
         return new PersistentCompilationStateCache(taskPath, compilationStateIndexedCache);
     }
@@ -41,14 +42,17 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
             this.compilationStateIndexedCache = compilationStateIndexedCache;
         }
 
+        @Override
         public CompilationState get() {
             return compilationStateIndexedCache.get(taskPath);
         }
 
+        @Override
         public void set(CompilationState newValue) {
             compilationStateIndexedCache.put(taskPath, newValue);
         }
 
+        @Override
         public void update(UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException();
         }

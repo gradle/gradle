@@ -24,7 +24,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
     @Managed interface OtherSampleBinary extends SampleBinary {}
     @Managed interface LibrarySourceSet extends LanguageSourceSet {}
@@ -34,7 +34,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
             @Mutate
             void createSampleComponentComponents(ModelMap<SampleLibrary> componentSpecs) {
@@ -45,15 +45,14 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
-            @BinaryType
-            void registerOther(BinaryTypeBuilder<OtherSampleBinary> builder) {}
+            @ComponentType
+            void registerOtherBinary(TypeBuilder<OtherSampleBinary> builder) {}
 
-            @LanguageType
-            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
-                builder.setLanguageName("librarySource")
+            @ComponentType
+            void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
     }
@@ -136,7 +135,7 @@ SampleLibrary 'sampleLib'
 -------------------------
 
 Source sets
-    LibrarySourceSet 'sampleLib:librarySource'
+    Library source 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
@@ -159,9 +158,9 @@ Binaries
                             def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
                             def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
                             assert sampleBinarySourceSet instanceof LibrarySourceSet
-                            assert sampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
+                            assert sampleBinarySourceSet.displayName == "Library source 'sampleLib:librarySource'"
                             assert othersSampleBinarySourceSet instanceof LibrarySourceSet
-                            assert othersSampleBinarySourceSet.displayName == "LibrarySourceSet 'sampleLib:librarySource'"
+                            assert othersSampleBinarySourceSet.displayName == "Library source 'sampleLib:librarySource'"
                         }
                     }
                 }
@@ -247,7 +246,7 @@ SampleLibrary 'sampleLib'
 -------------------------
 
 Source sets
-    LibrarySourceSet 'sampleLib:librarySource'
+    Library source 'sampleLib:librarySource'
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
@@ -268,7 +267,7 @@ trait BinaryWithValue implements BinarySpec {
     String valueFromComponent
 }
 @Managed
-trait ComponentWithValue implements ComponentSpec {
+trait ComponentWithValue implements GeneralComponentSpec {
     String valueForBinary
 }
 
@@ -277,11 +276,11 @@ class MyComponentBinariesPlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void register(ComponentTypeBuilder<ComponentWithValue> builder) {}
+        void registerComponent(TypeBuilder<ComponentWithValue> builder) {}
 
-        @BinaryType
-        void register(BinaryTypeBuilder<BinaryWithValue> builder) {}
-        
+        @ComponentType
+        void registerBinary(TypeBuilder<BinaryWithValue> builder) {}
+
         @ComponentBinaries
         void createBinaries(ModelMap<BinaryWithValue> binaries, ComponentWithValue component) {
             assert component.valueForBinary == "configured-value"

@@ -72,12 +72,12 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (attrs.isSymbolicLink()) {
-                        // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                        throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
-                    }
                     FileVisitDetails details = getFileVisitDetails(file, attrs, false);
                     if (isAllowed(details, spec)) {
+                        if (attrs.isSymbolicLink()) {
+                            // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
+                            throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                        }
                         visitor.visitFile(details);
                     }
                     return checkStopFlag();

@@ -36,7 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.performance.results.CrossVersionResultsStore.splitVcsCommits;
+import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
 
 public class BaseCrossBuildResultsStore implements ResultsStore, DataReporter<CrossBuildPerformanceResults>, Closeable {
 

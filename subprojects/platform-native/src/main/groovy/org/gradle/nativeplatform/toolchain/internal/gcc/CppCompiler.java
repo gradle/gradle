@@ -29,6 +29,7 @@ class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
+        @Override
         protected String getLanguage() {
             return "c++";
         }

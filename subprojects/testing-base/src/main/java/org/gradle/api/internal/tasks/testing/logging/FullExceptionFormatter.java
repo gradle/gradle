@@ -37,6 +37,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
         this.testLogging = testLogging;
     }
 
+    @Override
     public String format(TestDescriptor descriptor, List<Throwable> exceptions) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < exceptions.size(); i++) {

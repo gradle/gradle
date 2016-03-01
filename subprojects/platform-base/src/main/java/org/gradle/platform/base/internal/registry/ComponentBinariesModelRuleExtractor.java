@@ -24,7 +24,7 @@ import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentBinaries;
-import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
     private static final ModelType<BinarySpec> BINARY_SPEC = ModelType.of(BinarySpec.class);
-    private static final ModelType<ComponentSpec> COMPONENT_SPEC = ModelType.of(ComponentSpec.class);
+    private static final ModelType<VariantComponentSpec> COMPONENT_SPEC = ModelType.of(VariantComponentSpec.class);
 
     @Nullable
     @Override
@@ -40,7 +40,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return createRegistration(ruleDefinition, context);
     }
 
-    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+    private <R, S extends BinarySpec, C extends VariantComponentSpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
         visitAndVerifyMethodSignature(dataCollector, ruleDefinition, problems);
         if (problems.hasProblems()) {
@@ -55,10 +55,10 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         validateIsVoidMethod(ruleDefinition, problems);
         visitSubject(dataCollector, ruleDefinition, BINARY_SPEC, problems);
-        visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class), problems);
+        visitDependency(dataCollector, ruleDefinition, ModelType.of(VariantComponentSpec.class), problems);
     }
 
-    private static class ComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> extends ModelMapBasedRule<ComponentSpec, C> {
+    private static class ComponentBinariesRule<S extends BinarySpec, C extends VariantComponentSpec> extends ModelMapBasedRule<VariantComponentSpec, C> {
         private final ModelType<S> binaryType;
 
         public ComponentBinariesRule(ModelReference<C> subject, ModelType<C> componentType, ModelType<S> binaryType, MethodRuleDefinition<?, ?> ruleDefinition) {
@@ -72,7 +72,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
     }
 
-    private static class ExtractedComponentBinariesRule<S extends BinarySpec, C extends ComponentSpec> extends AbstractExtractedModelRule {
+    private static class ExtractedComponentBinariesRule<S extends BinarySpec, C extends VariantComponentSpec> extends AbstractExtractedModelRule {
         private final ModelType<C> componentType;
         private final ModelType<S> binaryType;
 

@@ -23,7 +23,8 @@ import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
-import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.VariantComponentSpec
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -79,20 +80,20 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName               | expectedMessage                                                                                                                                 | descr
-        "noParams"               | "A method annotated with @ComponentBinaries must have at least two parameters."                                                                 | "no ModelMap parameter"
-        "wrongSubject"           | "The first parameter of a method annotated with @ComponentBinaries must be of type ${ModelMap.name}."                                           | "wrong rule subject type"
-        "multipleComponentSpecs" | "A method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found multiple parameter extending ComponentSpec." | "additional component spec parameter"
-        "noComponentSpec"        | "A method annotated with @ComponentBinaries must have one parameter extending ComponentSpec. Found no parameter extending ComponentSpec."       | "no component spec parameter"
-        "returnValue"            | "A method annotated with @ComponentBinaries must have void return type."                                                                        | "non void method"
-        "rawModelMap"            | "Parameter of type ${ModelMap.simpleName} must declare a type parameter extending BinarySpec."                                                  | "non typed ModelMap parameter"
+        methodName               | expectedMessage                                                                                                                                               | descr
+        "noParams"               | "A method annotated with @ComponentBinaries must have at least two parameters."                                                                               | "no ModelMap parameter"
+        "wrongSubject"           | "The first parameter of a method annotated with @ComponentBinaries must be of type ${ModelMap.name}."                                                         | "wrong rule subject type"
+        "multipleComponentSpecs" | "A method annotated with @ComponentBinaries must have one parameter extending VariantComponentSpec. Found multiple parameter extending VariantComponentSpec." | "additional component spec parameter"
+        "noComponentSpec"        | "A method annotated with @ComponentBinaries must have one parameter extending VariantComponentSpec. Found no parameter extending VariantComponentSpec."       | "no component spec parameter"
+        "returnValue"            | "A method annotated with @ComponentBinaries must have void return type."                                                                                      | "non void method"
+        "rawModelMap"            | "Parameter of type ${ModelMap.simpleName} must declare a type parameter extending BinarySpec."                                                                | "non typed ModelMap parameter"
     }
 
     static interface SomeBinarySpec extends BinarySpec {}
 
-    static interface SomeLibrary extends ComponentSpec {}
+    static interface SomeLibrary extends GeneralComponentSpec {}
 
-    static interface RawLibrary extends ComponentSpec {}
+    static interface RawLibrary extends GeneralComponentSpec {}
 
     static interface SomeBinarySubType extends SomeBinarySpec {}
 
@@ -135,7 +136,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         }
 
         @ComponentBinaries
-        static String returnValue(ModelMap<SomeBinarySpec> builder, ComponentSpec componentSpec) {
+        static String returnValue(ModelMap<SomeBinarySpec> builder, VariantComponentSpec componentSpec) {
         }
     }
 }

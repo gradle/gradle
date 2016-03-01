@@ -298,27 +298,9 @@
     </section>
 
     <section>
-        <title>Fast Scala Compiler</title>
-        <para>The Scala plugin includes support for <ulink url="http://www.scala-lang.org/docu/files/tools/fsc.html">fsc</ulink>,
-            the Fast Scala Compiler. <literal>fsc</literal> runs in a separate daemon process and can speed up
-            compilation significantly.
-            <sample id="fsc" dir="scala/fsc" title="Enabling the Fast Scala Compiler">
-                <sourcefile file="build.gradle" snippet="use-fsc"/>
-            </sample>
-            Note that <literal>fsc</literal> expects to be restarted whenever the <emphasis>contents</emphasis> of its
-            compile class path change. (It does detect changes to the compile class path itself.) This makes it
-            less suitable for multi-project builds.
-        </para>
-    </section>
-
-    <section>
         <title>Compiling in external process</title>
         <para>
-            When <literal>scalaCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
-            in an external process. The Ant based compiler
-            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every invocation of the <literal>ScalaCompile</literal> task,
-            and does not fork by default. The Zinc based compiler (<literal>scalaCompileOptions.useAnt = false</literal>) will leverage
-            the Gradle compiler daemon, and does so by default.
+            Scala compilation takes place in an external process.
         </para>
         <para>Memory settings for the external process default to the defaults of the JVM. To adjust memory settings,
             configure the <literal>scalaCompileOptions.forkOptions</literal> property as needed:
@@ -337,19 +319,14 @@
         </para>
 
         <para>
-            The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
-            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
-            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, set
-            <literal>scalaCompileOptions.useAnt</literal> to <literal>false</literal>:
-            <sample id="zinc" dir="scala/zinc" title="Activating the Zinc based compiler">
-                <sourcefile file="build.gradle" snippet="use-zinc"/>
+            The Scala plugin defaults to incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
+            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. If you want to disable the
+            incremental compilation, set <literal>force = true</literal> in your build file:
+            <sample id="zinc" dir="scala/force" title="Forcing all code to be compiled">
+                <sourcefile file="build.gradle" snippet="force-compilation"/>
             </sample>
-        </para>
-
-        <para>
-            Except where noted in the <ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
-            the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
-            Java 6 or higher to run. This means that Gradle itself has to be run with Java 6 or higher.
+            <emphasis>Note:</emphasis> This will only cause all classes to be recompiled if at least one input source file has changed. If there are
+            no changes to the source files, the <literal>compileScala</literal> task will still be considered <literal>UP-TO-DATE</literal> as usual.
         </para>
 
         <para>
@@ -361,8 +338,8 @@
         </para>
 
         <para>
-            Just like Gradle's Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
-            under <literal>src/main/scala</literal> will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
+            The Zinc-based Scala Compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
+            under <literal>src/main/scala</literal> will participate in joint compilation. Even Java code will be compiled incrementally.
         </para>
 
         <para>
@@ -374,11 +351,6 @@
             to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
             Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes,
             leading to incorrect compilation results.
-        </para>
-
-        <para>
-            Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
-            For CI builds and release builds, we currently recommend to use the Ant based compiler.
         </para>
 
         <para>

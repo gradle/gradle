@@ -112,6 +112,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('setNameJar'))
         assertThat(sourceSet.compileConfigurationName, equalTo("setNameCompile"))
         assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
+        assertThat(sourceSet.compileOnlyConfigurationName, equalTo("setNameCompileOnly"))
     }
 
     @Test public void mainSourceSetUsesSpecialCaseNames() {
@@ -127,6 +128,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildJar'))
         assertThat(sourceSet.compileConfigurationName, equalTo("compile"))
         assertThat(sourceSet.runtimeConfigurationName, equalTo("runtime"))
+        assertThat(sourceSet.compileOnlyConfigurationName, equalTo("compileOnly"))
     }
 
     @Test public void canConfigureResources() {

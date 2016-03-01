@@ -38,6 +38,7 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
         this.execActionFactory = execActionFactory;
     }
 
+    @Override
     public WorkResult execute(JavadocSpec spec) {
         JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(execActionFactory);
         javadocExecHandleBuilder.setExecutable(spec.getExecutable());

@@ -44,9 +44,11 @@ public class TestCountLogger implements TestListener {
         this.logger = logger;
     }
 
+    @Override
     public void beforeTest(TestDescriptor testDescriptor) {
     }
 
+    @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
@@ -80,6 +82,7 @@ public class TestCountLogger implements TestListener {
         }
     }
 
+    @Override
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
             progressLogger = factory.newOperation(TestCountLogger.class);
@@ -88,6 +91,7 @@ public class TestCountLogger implements TestListener {
         }
     }
 
+    @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
             if (failedTests > 0) {

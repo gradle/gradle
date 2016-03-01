@@ -40,8 +40,8 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.io.File;
 import java.util.Collections;
@@ -57,6 +57,7 @@ import static org.gradle.util.CollectionUtils.single;
 @Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
@@ -70,9 +71,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             return serviceRegistry.get(ScalaToolChain.class);
         }
 
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
-            builder.setLanguageName("scala");
+        @ComponentType
+        void registerLanguage(TypeBuilder<ScalaLanguageSourceSet> builder) {
             builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
         }
 
@@ -84,18 +84,27 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
 
     private static class Scala implements LanguageTransform<ScalaLanguageSourceSet, JvmByteCode> {
+        @Override
+        public String getLanguageName() {
+            return "scala";
+        }
+
+        @Override
         public Class<ScalaLanguageSourceSet> getSourceSetType() {
             return ScalaLanguageSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public Class<JvmByteCode> getOutputType() {
             return JvmByteCode.class;
         }
 
+        @Override
         public JointCompileTaskConfig getTransformTask() {
             return new JointCompileTaskConfig() {
                 public String getTaskPrefix() {
@@ -140,7 +149,6 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     if (assembly instanceof ScalaJvmAssembly) {
                         compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
                     } else {
-                        // TODO:DAZ Put the default scala platform somewhere else, or enforce that we always have a `ScalaJvmAssembly`
                         compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
                     }
                 }
@@ -158,6 +166,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof WithJvmAssembly;
         }

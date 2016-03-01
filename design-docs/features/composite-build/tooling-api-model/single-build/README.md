@@ -17,9 +17,11 @@ To support Eclipse import, only a constrained composite connection API is requir
     // See code in 'composite-build/src'
 
     // Usage:
-    GradleConnection connection = GradleConnector.newGradleConnectionBuilder().
-        addBuild(new File("path/to/root")).
-        build()
+    GradleBuild build = GradleConnector.newParticipant(new File ("path/to/root"))
+        .useGradleDistribution("2.11").create(); //or URI or File or don't specify to use the wrapper
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
+        .addBuild(build)
+        .build()
 
     // Using blocking call
     Set<EclipseProject> projects = connection.getModels(EclipseProject.class)
@@ -27,8 +29,12 @@ To support Eclipse import, only a constrained composite connection API is requir
         // do something with EclipseProject model
     }
 
-    // Using ModelBuilder
-    ModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
+    // Using CompositeModelBuilder
+    CompositeModelBuilder<Set<EclipseProject>> modelBuilder = connection.models(EclipseProject.class)
+        //can set participant-specific arguments
+        .setJavaHome(build, new File(...));
+        .setJvmArguments(build, "-Xmx512m", ...)
+        .withArguments(build, "-PmySpecialFeature", ...)
     Set<EclipseProject> projects = modelBuilder.get()
 
     // using result handler
@@ -54,7 +60,8 @@ To support Eclipse import, only a constrained composite connection API is requir
     - Fail for any other model type
 - Gather all `EclipseProject`s into result Set
 - After closing a `GradleConnection`, `GradleConnection` methods throw IllegalStateException (like `ProjectConnection.getModel`)
-- All `ModelBuilder` methods are delegates to the underlying `ProjectConnection`
+- `CompositeModelBuilder` is an extension of `ModelBuilder`, allowing to set per-participant arguments on top of arguments for the coordinator.
+- All `CompositeModelBuilder` methods are delegates to the underlying `ProjectConnection`
 - Validate participant projects are a "valid" composite before retrieving model
     - >1 participants
     - All using >= Gradle 1.0
@@ -67,23 +74,23 @@ To support Eclipse import, only a constrained composite connection API is requir
 - Fail with `UnsupportedOperationException` if composite build is created with >1 participant when connecting.
 - Fail with `IllegalStateException` after connecting to a `GradleConnection`, closing the connection and trying to retrieve a model.
 - Errors from trying to retrieve models (getModels, et al) is propagated to caller.
-- Errors from closing underlying ProjectConnection propagate to caller.
 - When retrieving anything other than `EclipseProject`, an `UnsupportedOperationException` is thrown.
 - When retrieving `EclipseProject`:
     - a single ProjectConnection is used.
     - a single project returns a single `EclipseProject`
     - a multi-project build returns a `EclipseProject` for each Gradle project in a Set
-- Changing the participants Gradle distribution is reflected in the `ProjectConnection`
-- Participant project directory is used as the project directory for the `ProjectConnection`
-- Participant gradleUserHome is used as the gradle user home for the `ProjectConnection`
 - Fail if participant is not a Gradle build (what does this look like for existing integration tests?)
-- Cross-version tests:
-    - Fail if participants are <Gradle 1.0
-    - Test retrieving `EclipseProject` from all supported Gradle versions
 - After making a successful model request, on a subsequent model request:
     - Changing the set of sub-projects changes the number of `EclipseProject`s that are returned
     - Removing the project directory is causes a failure
     - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
+- Errors from closing underlying ProjectConnection propagate to caller.
+- The participants Gradle distribution is reflected in the `ProjectConnection`
+- Participant project directory is used as the project directory for the `ProjectConnection`
+- The java home, jvm arguments and build arguments for the participant are passed to the `ModelBuilder` of the participant
+- Cross-version tests:
+    - Fail if participants are <Gradle 1.0
+    - Test retrieving `EclipseProject` from all supported Gradle versions
 
 ### Documentation
 
@@ -93,3 +100,4 @@ To support Eclipse import, only a constrained composite connection API is requir
 ### Open issues
 
 - Provide way of detecting feature set of composite build?
+- Enable validation of composite build -- better way than querying model multiple times?

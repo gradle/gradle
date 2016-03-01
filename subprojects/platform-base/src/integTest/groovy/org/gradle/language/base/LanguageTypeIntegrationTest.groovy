@@ -25,9 +25,8 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
         @Managed interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
         class CustomLanguagePlugin extends RuleSource {
-            @LanguageType
-            void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                builder.setLanguageName("custom")
+            @ComponentType
+            void declareCustomLanguage(TypeBuilder<CustomLanguageSourceSet> builder) {
             }
         }
 
@@ -35,36 +34,15 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    def "registers language in languageSourceSetFactory"(){
-        given:
-        buildFile << '''
-model {
-    tasks {
-        create("printLanguages") {
-            it.doLast {
-                def languageSourceSetFactory = $.languageSourceSetFactory
-                def languages = languageSourceSetFactory.registrations*.name.sort().join(", ")
-                println "registered languages: $languages"
-            }
-        }
-    }
-}
-        '''
-        when:
-        succeeds "printLanguages"
-        then:
-        output.contains("registered languages: custom")
-    }
-
     def "can add custom language sourceSet to component"() {
         when:
         buildFile << """
-        @Managed interface SampleComponent extends ComponentSpec {}
+        @Managed interface SampleComponent extends SourceComponentSpec {}
 
 
         class CustomComponentPlugin extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleComponent> builder) {
+            void register(TypeBuilder<SampleComponent> builder) {
             }
 
             @Mutate
@@ -93,7 +71,7 @@ SampleComponent 'main'
 ----------------------
 
 Source sets
-    CustomLanguageSourceSet 'main:custom'
+    Custom source 'main:custom'
         srcDir: src${File.separator}main${File.separator}custom
 """
     }

@@ -25,6 +25,5 @@ import org.gradle.platform.base.BinarySpec;
 public interface SourceTransformTaskConfig {
     String getTaskPrefix();
     Class<? extends DefaultTask> getTaskType();
-    // TODO:DAZ This should create a RuleSource instance to configure the task, rather than being imperative
     void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry);
 }

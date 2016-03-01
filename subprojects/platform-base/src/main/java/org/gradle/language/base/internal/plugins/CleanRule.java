@@ -32,6 +32,7 @@ public class CleanRule implements Rule {
         this.tasks = tasks;
     }
 
+    @Override
     public String getDescription() {
         return String.format("Pattern: %s<TaskName>: Cleans the output files of a task.", CLEAN);
     }
@@ -41,6 +42,7 @@ public class CleanRule implements Rule {
         return String.format("Rule: %s", getDescription());
     }
 
+    @Override
     public void apply(String taskName) {
         if (!taskName.startsWith(CLEAN) || taskName.equals(CLEAN)) {
             return;

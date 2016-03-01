@@ -41,13 +41,12 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
             class TestSuiteTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+                void registerCustomTestSuiteType(TypeBuilder<CustomTestSuite> builder) {
                     builder.defaultImplementation(DefaultCustomTestSuite)
                 }
 
-                @LanguageType
-                void registerCustomLanguageType(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.setLanguageName("custom")
+                @ComponentType
+                void registerCustomLanguageType(TypeBuilder<CustomLanguageSourceSet> builder) {
                     builder.defaultImplementation(DefaultCustomLanguageSourceSet)
                 }
             }
@@ -90,8 +89,8 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             class TestBinaryTypeRules extends RuleSource {
-                @BinaryType
-                public void registerCustomTestBinaryFactory(BinaryTypeBuilder<CustomTestBinary> builder) {
+                @ComponentType
+                public void registerCustomTestBinaryFactory(TypeBuilder<CustomTestBinary> builder) {
                     builder.defaultImplementation(DefaultCustomTestBinary)
                 }
             }
@@ -212,7 +211,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: CustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: Custom source 'main:main'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {

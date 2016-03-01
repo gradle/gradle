@@ -66,6 +66,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     public DaemonStartupInfo startDaemon() {
+        // Ensure we have a unique UID any time we start a new daemon
+        daemonParameters.resetUid();
+
         ModuleRegistry registry = new DefaultModuleRegistry();
         ClassPath classpath;
         List<File> searchClassPath;

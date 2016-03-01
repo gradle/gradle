@@ -33,6 +33,7 @@ public class CachingClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         this.cache = cache;
     }
 
+    @Override
     public ClassAnalysis getClassAnalysis(final String className, final File classFile) {
         byte[] hash = hasher.hash(classFile);
         return cache.get(hash, new Factory<ClassAnalysis>() {

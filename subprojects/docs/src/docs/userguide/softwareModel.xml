@@ -82,7 +82,7 @@
         <para>
             Another <emphasis>key</emphasis> motivation is performance and scale.
             Aspects of the current approach that Gradle takes to modelling the build prevent pervasive parallelism and limit scalability.
-            The new model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
+            The software model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
         </para>
     </section>
     <section>
@@ -354,7 +354,7 @@
                                 <itemizedlist>
                                     <listitem>Any managed type</listitem>
                                     <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
-                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.ComponentType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
@@ -368,7 +368,7 @@
                                     <listitem>A Scalar Collection</listitem>
                                     <listitem>A Managed collection containing managed types</listitem>
                                     <listitem>A Managed collection containing <apilink class="org.gradle.language.base.FunctionalSourceSet"/>'s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
-                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.LanguageType"/></listitem>
+                                    <listitem>Subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> which have been registered via <apilink class="org.gradle.platform.base.ComponentType"/></listitem>
                                 </itemizedlist>
                             </td>
                         </tr>
@@ -380,7 +380,7 @@
             <title>Language source sets</title>
             <para>
                 <apilink class="org.gradle.language.base.FunctionalSourceSet"/>s and subtypes of <apilink class="org.gradle.language.base.LanguageSourceSet"/> (which have been
-                registered via <apilink class="org.gradle.platform.base.LanguageType"/>) can be added to the model space via rules or via the model DSL.
+                registered via <apilink class="org.gradle.platform.base.ComponentType"/>) can be added to the model space via rules or via the model DSL.
             </para>
             <sample id='model-language-support-all' dir='modelRules/language-support' includeLocation="true" title='strongly modelling sources sets'>
                 <sourcefile file='build.gradle' snippet="model-language-support"/>
@@ -439,6 +439,22 @@
                 <para>
                     For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
                 </para>
+            </section>
+            <section id="binding_all_elements_in_scope">
+                <title>Binding to all elements in a scope matching type</title>
+                <para>
+                    Mutating or validating all elements of a given type in some scope is a common use-case.
+                    To accommodate this rules can be applied via the <literal>@Each</literal> annotation.
+                </para>
+                <para>
+                    In the example below a <literal>@Defaults</literal> rule is applied to each <code>FileItem</code>
+                    in the model setting a default file size of "1024". Another rule applies a
+                    <apilink class="org.gradle.model.RuleSource" /> to every <code>DirectoryItem</code> that makes sure
+                    all file sizes are positive and divisible by "16".
+                </para>
+                <sample id='ruleSourcePluginEach' dir='modelRules/ruleSourcePluginEach' includeLocation="true" title="a DSL example applying a rule to every element in a scope">
+                    <sourcefile file='build.gradle'/>
+                </sample>
             </section>
         </section>
     </section>

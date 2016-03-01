@@ -18,9 +18,8 @@ package org.gradle.language.base.internal.registry
 
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.AbstractBuildableModelElement
+import org.gradle.api.internal.AbstractBuildableComponentSpec
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.LanguageSourceSetFactory
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -28,11 +27,11 @@ import org.gradle.model.internal.core.ModelAction
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.InvalidModelException
-import org.gradle.platform.base.LanguageType
-import org.gradle.platform.base.LanguageTypeBuilder
+import org.gradle.platform.base.ComponentType
+import org.gradle.platform.base.TypeBuilder
+import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
-import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
+import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -41,11 +40,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     Class<?> ruleClass = Rules
 
-    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(schemaStore)
+    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(schemaStore)
 
     @Override
     Class<? extends Annotation> getAnnotation() {
-        return LanguageType
+        return ComponentType
     }
 
     @Unroll
@@ -62,35 +61,13 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 - Method ${ruleDescription} is not a valid rule method: ${expectedMessage}"""
 
         where:
-        methodName                    | expectedMessage                                                                                           | descr
-        "returnValue"                 | "A method annotated with @LanguageType must have void return type."                                       | "non void method"
-        "noParams"                    | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "no LanguageTypeBuilder subject"
-        "wrongSubject"                | "A method annotated with @LanguageType must have a single parameter of type ${LanguageTypeBuilder.name}." | "wrong rule subject type"
-        "rawLanguageTypeBuilder"      | "Parameter of type org.gradle.platform.base.LanguageTypeBuilder must declare a type parameter."           | "non typed ModelMap parameter"
-        "wildcardLanguageTypeBuilder" | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                  | "wild card ModelMap parameter"
-        "wrongSubType"                | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."      | "public type not extending LanguageSourceSet"
-    }
-
-    @Unroll
-    def "decent error message for rule behaviour problem - #descr"() {
-        def ruleMethod = ruleDefinitionForMethod(methodName)
-        def ruleDescription = getStringDescription(ruleMethod)
-
-        when:
-        apply(ruleMethod)
-
-        then:
-        def ex = thrown(InvalidModelRuleDeclarationException)
-        ex.message == "${ruleDescription} is not a valid language model rule method."
-        ex.cause instanceof InvalidModelException
-        ex.cause.message == expectedMessage
-
-        where:
-        methodName                          | expectedMessage                                                                                                          | descr
-        "notImplementingLibraryType"        | "Language implementation ${NotImplementingCustomLanguageSourceSet.name} must implement ${CustomLanguageSourceSet.name}." | "implementation not implementing type class"
-        "notExtendingBaseLanguageSourceSet" | "Language implementation ${NotExtendingBaseLanguageSourceSet.name} must extend ${BaseLanguageSourceSet.name}."           | "implementation not extending ${BaseLanguageSourceSet.name}"
-        "noPublicCtorImplementation"        | "Language implementation ${ImplementationWithNoPublicConstructor.name} must have public default constructor."            | "implementation with not public default constructor"
-        "noLanguageName"                    | "Language type '${CustomLanguageSourceSet.name}' cannot be registered without a language name."                          | "no language name set"
+        methodName                    | expectedMessage                                                                                    | descr
+        "returnValue"                 | "A method annotated with @ComponentType must have void return type."                               | "non void method"
+        "noParams"                    | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}." | "no TypeBuilder subject"
+        "wrongSubject"                | "A method annotated with @ComponentType must have a single parameter of type ${TypeBuilder.name}." | "wrong rule subject type"
+        "rawLanguageTypeBuilder"      | "Parameter of type ${TypeBuilder.name} must declare a type parameter."                             | "non typed parameter"
+        "wildcardLanguageTypeBuilder" | "Type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                    | "wild card parameter"
+        "wrongSubType"                | "Type 'java.lang.String' is not a subtype of 'org.gradle.platform.base.ComponentSpec'."            | "public type not extending LanguageSourceSet"
     }
 
     def "applies LanguageBasePlugin and creates language type rule"() {
@@ -108,9 +85,14 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         then:
         1 * mockRegistry.configure(_, _) >> { ModelActionRole role, ModelAction action ->
             assert role == ModelActionRole.Mutate
-            assert action.subject == ModelReference.of(LanguageSourceSetFactory)
+            assert action.subject == ModelReference.of(ComponentSpecFactory)
         }
         0 * _
+
+        where:
+        methodName                 | _
+        "validTypeRule"            | _
+        "validTypeRuleSpecialized" | _
     }
 
     static interface CustomLanguageSourceSet extends LanguageSourceSet {}
@@ -124,7 +106,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     class NotImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet {}
 
-    class NotExtendingBaseLanguageSourceSet extends AbstractBuildableModelElement implements CustomLanguageSourceSet {
+    class NotExtendingBaseLanguageSourceSet extends AbstractBuildableComponentSpec implements CustomLanguageSourceSet {
         @Override
         String getDisplayName() {
             return null
@@ -153,59 +135,48 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     static class Rules {
 
-        @LanguageType
-        String returnValue(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        @ComponentType
+        String returnValue(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             return null
         }
 
-        @LanguageType
+        @ComponentType
         void noParams() {
         }
 
-        @LanguageType
+        @ComponentType
         void wrongSubject(LanguageSourceSet sourcet) {
         }
 
-        @LanguageType
-        void rawLanguageTypeBuilder(LanguageTypeBuilder builder) {
+        @ComponentType
+        void rawLanguageTypeBuilder(TypeBuilder builder) {
         }
 
-        @LanguageType
-        void wildcardLanguageTypeBuilder(LanguageTypeBuilder<?> builder) {
+        @ComponentType
+        void wildcardLanguageTypeBuilder(TypeBuilder<?> builder) {
         }
 
-        @LanguageType
-        void wrongSubType(LanguageTypeBuilder<String> languageBuilder) {
+        @ComponentType
+        void wrongSubType(TypeBuilder<String> languageBuilder) {
         }
 
-        @LanguageType
-        void notExtendingBaseLanguageSourceSet(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        @ComponentType
+        void notExtendingBaseLanguageSourceSet(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotExtendingBaseLanguageSourceSet)
         }
 
-        @LanguageType
-        void notImplementingLibraryType(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        @ComponentType
+        void notImplementingLibraryType(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(NotImplementingCustomLanguageSourceSet)
         }
 
-        @LanguageType
-        void noImplementationTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.setLanguageName("noImplementationTypeRule")
-        }
-
-        @LanguageType
-        void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+        @ComponentType
+        void noPublicCtorImplementation(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
         }
 
-        @LanguageType
-        void noLanguageName(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
-        }
-
-        @LanguageType
-        void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
-            languageBuilder.setLanguageName("validTypeRule")
+        @ComponentType
+        void validTypeRule(TypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementingCustomLanguageSourceSet)
         }
     }

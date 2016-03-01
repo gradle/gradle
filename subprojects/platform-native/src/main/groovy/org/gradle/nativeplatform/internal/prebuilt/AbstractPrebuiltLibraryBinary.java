@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.nativeplatform.BuildType;
@@ -30,7 +29,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements NativeLibraryBinary {
+public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
@@ -60,18 +59,22 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
         return library;
     }
 
+    @Override
     public BuildType getBuildType() {
         return buildType;
     }
 
+    @Override
     public Flavor getFlavor() {
         return flavor;
     }
 
+    @Override
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }
 
+    @Override
     public FileCollection getHeaderDirs() {
         return fileCollectionFactory.fixed("Headers for " + getDisplayName(), library.getHeaders().getSrcDirs());
     }
@@ -91,10 +94,12 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
             this.fileDescription = fileDescription;
         }
 
+        @Override
         public String getDisplayName() {
             return fileCollectionDisplayName + " for " + AbstractPrebuiltLibraryBinary.this.getDisplayName();
         }
 
+        @Override
         public Set<File> getFiles() {
             if (file == null) {
                 throw new PrebuiltLibraryResolveException(String.format("%s not set for %s.", fileDescription, AbstractPrebuiltLibraryBinary.this.getDisplayName()));

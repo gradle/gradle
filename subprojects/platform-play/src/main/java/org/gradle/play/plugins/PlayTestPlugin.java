@@ -47,7 +47,7 @@ import java.util.Arrays;
 @Incubating
 public class PlayTestPlugin extends RuleSource {
     @Mutate
-    void createTestTasks(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
+    void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
@@ -106,7 +106,7 @@ public class PlayTestPlugin extends RuleSource {
     }
 
     @Mutate
-    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, final ModelMap<PlayApplicationBinarySpec> playBinaries) {
+    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, @Path("binaries") final ModelMap<PlayApplicationBinarySpec> playBinaries) {
         // TODO - binaries aren't an input to this rule, they're an input to the action
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override

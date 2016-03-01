@@ -32,7 +32,7 @@ eclipse.project {
 }
 '''
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { it.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject.linkedResources.size() == 2

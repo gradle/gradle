@@ -17,11 +17,12 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public abstract class AbstractConsumerConnection extends HasCompatibilityMapperAction implements ConsumerConnection {
@@ -65,5 +66,10 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapperA
 
     public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters){
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "2.6");
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "2.13");
     }
 }

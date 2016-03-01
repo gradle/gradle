@@ -41,9 +41,6 @@ class DefaultNativeComponentTest extends Specification {
     }
 
     static class TestNativeComponentSpec extends AbstractTargetedNativeComponentSpec {
-        String getDisplayName() {
-            return "test component"
-        }
     }
 
     def flavor(String name) {

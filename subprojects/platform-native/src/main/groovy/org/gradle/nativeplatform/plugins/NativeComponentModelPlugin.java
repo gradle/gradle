@@ -52,8 +52,8 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
+import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
@@ -71,6 +71,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         this.instantiator = instantiator;
     }
 
+    @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
 
@@ -81,18 +82,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
+        void nativeExecutable(TypeBuilder<NativeExecutableSpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableSpec.class);
         }
 
         @ComponentType
-        void nativeLibrary(ComponentTypeBuilder<NativeLibrarySpec> builder) {
+        void nativeLibrary(TypeBuilder<NativeLibrarySpec> builder) {
             builder.defaultImplementation(DefaultNativeLibrarySpec.class);
         }
 
         @ComponentType
-        void registerTargetedNativeComponent(ComponentTypeBuilder<TargetedNativeComponent> builder) {
+        void registerTargetedNativeComponent(TypeBuilder<TargetedNativeComponent> builder) {
             builder.internalView(TargetedNativeComponentInternal.class);
+        }
+
+        @ComponentType
+        void registerNativeComponent(TypeBuilder<NativeComponentSpec> builder) {
+            builder.internalView(HasIntermediateOutputsComponentSpec.class);
         }
 
         @Model
@@ -126,8 +132,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, final Instantiator instantiator) {
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
                 public NativePlatform create(String name) {
                     return instantiator.newInstance(DefaultNativePlatform.class, name);
@@ -136,24 +141,23 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
 
-            // TODO:DAZ This is only here for backward compatibility: platforms should be typed on creation, I think.
             platforms.registerFactory(Platform.class, nativePlatformFactory);
         }
 
-        @BinaryType
-        void registerSharedLibraryBinaryType(BinaryTypeBuilder<SharedLibraryBinarySpec> builder) {
+        @ComponentType
+        void registerSharedLibraryBinaryType(TypeBuilder<SharedLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultSharedLibraryBinarySpec.class);
             builder.internalView(SharedLibraryBinarySpecInternal.class);
         }
 
-        @BinaryType
-        void registerStaticLibraryBinaryType(BinaryTypeBuilder<StaticLibraryBinarySpec> builder) {
+        @ComponentType
+        void registerStaticLibraryBinaryType(TypeBuilder<StaticLibraryBinarySpec> builder) {
             builder.defaultImplementation(DefaultStaticLibraryBinarySpec.class);
             builder.internalView(StaticLibraryBinarySpecInternal.class);
         }
 
-        @BinaryType
-        void registerNativeExecutableBinaryType(BinaryTypeBuilder<NativeExecutableBinarySpec> builder) {
+        @ComponentType
+        void registerNativeExecutableBinaryType(TypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
             builder.internalView(NativeExecutableBinarySpecInternal.class);
         }
@@ -192,7 +196,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void configurePrefixHeaderFiles(@Each final NativeComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
+        void configurePrefixHeaderFiles(@Each final SourceComponentSpec componentSpec, final @Path("buildDir") File buildDir) {
             componentSpec.getSources().withType(DependentSourceSetInternal.class).afterEach(new Action<DependentSourceSetInternal>() {
                 @Override
                 public void execute(DependentSourceSetInternal dependentSourceSet) {
@@ -207,8 +211,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ModelMap<NativeComponentSpec> nativeComponents) {
-            for (final NativeComponentSpec nativeComponentSpec : nativeComponents.values()) {
+        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ComponentSpecContainer components) {
+            for (final SourceComponentSpec nativeComponentSpec : components.withType(SourceComponentSpec.class).values()) {
                 for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
                     if (dependentSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeComponentSpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
@@ -225,15 +229,15 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, ModelMap<NativeBinarySpecInternal> binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
-            for (final NativeBinarySpecInternal nativeBinarySpec : binaries.values()) {
+        void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, BinaryContainer binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
+            for (final NativeBinarySpecInternal nativeBinarySpec : binaries.withType(NativeBinarySpecInternal.class)) {
                 for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
                     nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
                         @Override
                         public void execute(final LanguageSourceSet languageSourceSet) {
                             final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal) dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
+                                nativeBinarySpec.addPreCompiledHeaderFor(dependentSourceSet);
                                 final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
                                 String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()), StringUtils.capitalize(dependentSourceSet.getName()));
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
@@ -305,7 +309,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
          * creating.
          */
         @Defaults
-        void createInstallTasks(ModelMap<Task> tasks, ModelMap<NativeBinarySpecInternal> binaries) {
+        void createInstallTasks(ModelMap<Task> tasks, BinaryContainer binaries) {
             for (NativeExecutableBinarySpecInternal binary : binaries.withType(NativeExecutableBinarySpecInternal.class).values()) {
                 NativeComponents.createInstallTask(binary, binary.getInstallation(), binary.getExecutable(), binary.getNamingScheme());
             }
@@ -348,6 +352,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
+        @Override
         public String determineName(ArtifactRepository object) {
             return object.getName();
         }

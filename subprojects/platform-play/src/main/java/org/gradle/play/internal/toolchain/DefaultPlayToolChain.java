@@ -55,14 +55,17 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
+    @Override
     public String getName() {
         return String.format("PlayToolchain");
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Default Play Toolchain");
     }
 
+    @Override
     public PlayToolProvider select(PlayPlatform targetPlatform) {
         try {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();

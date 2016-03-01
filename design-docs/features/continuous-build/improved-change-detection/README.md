@@ -148,6 +148,8 @@ Special considerations:
 - check that directories aren't reported as modified
 - check that new files aren't reported as modified
 
+- should report changes that happen when the build is executing
+
 ### Story: Continuous build will trigger a rebuild when a build script changes
 - build.gradle / project.buildFileName of all projects in a build
 

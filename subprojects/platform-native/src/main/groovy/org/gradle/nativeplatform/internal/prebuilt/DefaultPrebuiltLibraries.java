@@ -35,10 +35,12 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
         this.libraryInitializer = libraryInitializer;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
@@ -48,6 +50,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
         return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, sourceDirectorySetFactory);
     }
 
+    @Override
     public PrebuiltLibrary resolveLibrary(String name) {
         PrebuiltLibrary library = findByName(name);
         if (library != null && library.getBinaries().isEmpty()) {

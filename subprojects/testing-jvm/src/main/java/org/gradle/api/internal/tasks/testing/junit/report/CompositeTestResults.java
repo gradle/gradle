@@ -87,6 +87,7 @@ public abstract class CompositeTestResults extends TestResultModel {
         return tests - getIgnoredCount();
     }
 
+    @Override
     public long getDuration() {
         return duration;
     }
@@ -104,6 +105,7 @@ public abstract class CompositeTestResults extends TestResultModel {
         return ignored;
     }
 
+    @Override
     public ResultType getResultType() {
         if (!failures.isEmpty()) {
             return ResultType.FAILURE;

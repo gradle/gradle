@@ -48,6 +48,7 @@ public class JUnitTestFramework implements TestFramework {
         classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
+    @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
         return new TestClassProcessorFactoryImpl(new JUnitSpec(options.getIncludeCategories(), options.getExcludeCategories(), filter.getIncludePatterns()));
@@ -67,6 +68,7 @@ public class JUnitTestFramework implements TestFramework {
         return classLoaderFactory.create();
     }
 
+    @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
@@ -77,6 +79,7 @@ public class JUnitTestFramework implements TestFramework {
         };
     }
 
+    @Override
     public JUnitOptions getOptions() {
         return options;
     }
@@ -85,6 +88,7 @@ public class JUnitTestFramework implements TestFramework {
         this.options = options;
     }
 
+    @Override
     public JUnitDetector getDetector() {
         return detector;
     }
@@ -96,6 +100,7 @@ public class JUnitTestFramework implements TestFramework {
             this.spec = spec;
         }
 
+        @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(TimeProvider.class));
         }

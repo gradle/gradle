@@ -26,11 +26,13 @@ public class ExecSpecBackedArgCollector implements ArgCollector {
         this.action = action;
     }
 
+    @Override
     public ArgCollector args(Object... args) {
         action.args(args);
         return this;
     }
 
+    @Override
     public ArgCollector args(Iterable<?> args) {
         action.args(args);
         return this;

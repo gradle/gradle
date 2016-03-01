@@ -22,6 +22,8 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 
 interface ModelRegistryInternal extends ModelRegistry {
+    String getProjectPath();
+
     ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules);
 
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions);

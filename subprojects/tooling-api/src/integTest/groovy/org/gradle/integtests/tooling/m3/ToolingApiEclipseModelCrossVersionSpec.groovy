@@ -31,7 +31,7 @@ description = 'this is a project'
         projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
 
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject.name == 'test project'
@@ -41,7 +41,7 @@ description = 'this is a project'
         minimalProject.children.empty
 
         when:
-        EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject.name == 'test project'
@@ -53,7 +53,7 @@ description = 'this is a project'
 
     def "can build the eclipse model for an empty project"() {
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject != null
@@ -65,7 +65,7 @@ description = 'this is a project'
         minimalProject.projectDependencies.empty
 
         when:
-        EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject != null
@@ -84,7 +84,7 @@ description = 'this is a project'
 apply plugin: 'java'
 gradle.taskGraph.beforeTask { throw new RuntimeException() }
 '''
-        HierarchicalEclipseProject project = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject project = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         project != null
@@ -108,7 +108,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
         }
 
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject != null
@@ -124,7 +124,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
         minimalProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
 
         when:
-        EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
         fullProject != null
@@ -157,7 +157,7 @@ dependencies {
 '''
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         eclipseProject != null
@@ -181,7 +181,7 @@ dependencies {
 '''
 
         when:
-        HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         minimalProject != null
@@ -206,7 +206,7 @@ project(':a') {
 '''
 
         when:
-        HierarchicalEclipseProject minimalModel = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject minimalModel = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         HierarchicalEclipseProject minimalProject = minimalModel.children[0]
@@ -217,7 +217,7 @@ project(':a') {
         minimalProject.projectDependencies.any { it.path == 'b' && it.targetProject == minimalProject.children[0] }
 
         when:
-        EclipseProject fullModel = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject fullModel = loadToolingModel(EclipseProject)
 
         then:
         EclipseProject fullProject = fullModel.children[0]
@@ -253,7 +253,7 @@ project(':c') {
 '''
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         def projectC = rootProject.children.find { it.name == 'c'}
@@ -276,7 +276,7 @@ project(':c') {
         projectDir.file('child1').mkdirs()
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject != null
@@ -306,7 +306,7 @@ project(':c') {
             connector.searchUpwards(true)
             connector.forProjectDirectory(projectDir.file('child1'))
         }
-        EclipseProject child = toolingApi.withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject child = loadToolingModel(EclipseProject)
 
         then:
         child.name == 'child1'
@@ -332,7 +332,7 @@ configure(project(':bar')) {
 }
 """
         when:
-        HierarchicalEclipseProject rootProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject rootProject = loadToolingModel(HierarchicalEclipseProject)
         then:
         rootProject.children.any { it.name == 'foo'}
         rootProject.children.any { it.name == 'customized-bar'}

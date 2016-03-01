@@ -20,6 +20,7 @@ import org.gradle.configuration.project.ProjectConfigureAction;
 
 //This one should go away once we complete the auto-apply plugins
 public class HelpTasksAutoApplyAction implements ProjectConfigureAction {
+    @Override
     public void execute(ProjectInternal project) {
         project.getPluginManager().apply("org.gradle.help-tasks");
     }

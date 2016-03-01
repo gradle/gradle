@@ -56,6 +56,7 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
         });
     }
 
+    @Override
     public SortedSet<String> getPropertyNames() {
         return properties.keySet();
     }
@@ -80,6 +81,7 @@ public abstract class AbstractStructSchema<T> extends AbstractModelSchema<T> imp
         return nonPropertyMethods;
     }
 
+    @Override
     public Set<WeaklyTypeReferencingMethod<?, ?>> getAllMethods() {
         ImmutableSet.Builder<WeaklyTypeReferencingMethod<?, ?>> builder = ImmutableSet.builder();
         for (ModelProperty<?> property : properties.values()) {

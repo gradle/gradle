@@ -252,6 +252,17 @@ class IdeaModelBuilderTest extends Specification {
         ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings == null
     }
 
+    def "non convention source and target compatibility properties are ignored"() {
+        when:
+        root.ext.sourceCompatibility = '1.2'
+        root.ext.targetCompatibility = '1.2'
+        root.plugins.apply(JavaPlugin)
+
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.languageLevel == defaultIdeaPluginLanguageLevelForJavaProjects
+    }
 
     private DefaultIdeaProject buildIdeaProjectModel() {
         def builder = createIdeaModelBuilder()

@@ -454,12 +454,12 @@ apply plugin: ClassHolder.InnerRules
 
             class RegisterComponentRules extends RuleSource {
                 @ComponentType
-                void register1(ComponentTypeBuilder<UnmanagedComponentSpec> builder) {
+                void register1(TypeBuilder<UnmanagedComponentSpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedComponentSpec)
                 }
 
                 @ComponentType
-                void register2(ComponentTypeBuilder<SampleComponentSpec> builder) {
+                void register2(TypeBuilder<SampleComponentSpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }
@@ -508,13 +508,13 @@ apply plugin: ClassHolder.InnerRules
             }
 
             class RegisterBinaryRules extends RuleSource {
-                @BinaryType
-                void register1(BinaryTypeBuilder<UnmanagedBinarySpec> builder) {
+                @ComponentType
+                void register1(TypeBuilder<UnmanagedBinarySpec> builder) {
                     builder.defaultImplementation(DefaultUnmanagedBinarySpec)
                 }
 
-                @BinaryType
-                void register2(BinaryTypeBuilder<SampleBinarySpec> builder) {
+                @ComponentType
+                void register2(TypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(InternalSampleSpec)
                 }
             }

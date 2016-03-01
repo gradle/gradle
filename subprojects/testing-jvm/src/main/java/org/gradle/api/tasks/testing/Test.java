@@ -230,6 +230,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public File getWorkingDir() {
         return forkOptions.getWorkingDir();
@@ -238,6 +239,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setWorkingDir(Object dir) {
         forkOptions.setWorkingDir(dir);
     }
@@ -245,6 +247,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test workingDir(Object dir) {
         forkOptions.workingDir(dir);
         return this;
@@ -253,6 +256,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public String getExecutable() {
         return forkOptions.getExecutable();
@@ -261,6 +265,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
@@ -269,6 +274,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setExecutable(Object executable) {
         forkOptions.setExecutable(executable);
     }
@@ -276,6 +282,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public Map<String, Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
@@ -284,6 +291,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setSystemProperties(Map<String, ?> properties) {
         forkOptions.setSystemProperties(properties);
     }
@@ -291,6 +299,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test systemProperties(Map<String, ?> properties) {
         forkOptions.systemProperties(properties);
         return this;
@@ -299,6 +308,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test systemProperty(String name, Object value) {
         forkOptions.systemProperty(name, value);
         return this;
@@ -307,6 +317,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public FileCollection getBootstrapClasspath() {
         return forkOptions.getBootstrapClasspath();
@@ -315,6 +326,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setBootstrapClasspath(FileCollection classpath) {
         forkOptions.setBootstrapClasspath(classpath);
     }
@@ -322,6 +334,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test bootstrapClasspath(Object... classpath) {
         forkOptions.bootstrapClasspath(classpath);
         return this;
@@ -330,6 +343,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getMinHeapSize() {
         return forkOptions.getMinHeapSize();
     }
@@ -337,6 +351,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -344,6 +359,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
         forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
@@ -351,6 +367,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setMinHeapSize(String heapSize) {
         forkOptions.setMinHeapSize(heapSize);
     }
@@ -358,6 +375,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
     }
@@ -365,6 +383,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setMaxHeapSize(String heapSize) {
         forkOptions.setMaxHeapSize(heapSize);
     }
@@ -372,6 +391,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public List<String> getJvmArgs() {
         return forkOptions.getJvmArgs();
@@ -380,6 +400,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -387,6 +408,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test jvmArgs(Iterable<?> arguments) {
         forkOptions.jvmArgs(arguments);
         return this;
@@ -395,6 +417,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test jvmArgs(Object... arguments) {
         forkOptions.jvmArgs(arguments);
         return this;
@@ -403,6 +426,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public boolean getEnableAssertions() {
         return forkOptions.getEnableAssertions();
@@ -411,6 +435,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setEnableAssertions(boolean enabled) {
         forkOptions.setEnableAssertions(enabled);
     }
@@ -418,6 +443,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean getDebug() {
         return forkOptions.getDebug();
     }
@@ -425,6 +451,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
@@ -433,6 +460,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<String> getAllJvmArgs() {
         return forkOptions.getAllJvmArgs();
     }
@@ -440,6 +468,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setAllJvmArgs(Iterable<?> arguments) {
         forkOptions.setAllJvmArgs(arguments);
     }
@@ -447,6 +476,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Map<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
     }
@@ -454,6 +484,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test environment(Map<String, ?> environmentVariables) {
         forkOptions.environment(environmentVariables);
         return this;
@@ -462,6 +493,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test environment(String name, Object value) {
         forkOptions.environment(name, value);
         return this;
@@ -470,6 +502,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
         forkOptions.setEnvironment(environmentVariables);
     }
@@ -477,6 +510,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test copyTo(ProcessForkOptions target) {
         forkOptions.copyTo(target);
         return this;
@@ -485,6 +519,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
         return this;
@@ -671,6 +706,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #setIncludes(Iterable)
      */
+    @Override
     public Test include(String... includes) {
         patternSet.include(includes);
         return this;
@@ -681,6 +717,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #setIncludes(Iterable)
      */
+    @Override
     public Test include(Iterable<String> includes) {
         patternSet.include(includes);
         return this;
@@ -689,6 +726,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test include(Spec<FileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
@@ -697,6 +735,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test include(Closure includeSpec) {
         patternSet.include(includeSpec);
         return this;
@@ -707,6 +746,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #setExcludes(Iterable)
      */
+    @Override
     public Test exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -717,6 +757,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #setExcludes(Iterable)
      */
+    @Override
     public Test exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -725,6 +766,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test exclude(Spec<FileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
@@ -733,6 +775,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
@@ -796,6 +839,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #include(String...)
      */
+    @Override
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
     }
@@ -806,6 +850,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param includes The patterns list
      * @see #include(String...)
      */
+    @Override
     public Test setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
@@ -816,6 +861,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @see #exclude(String...)
      */
+    @Override
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
     }
@@ -826,6 +872,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param excludes The patterns list
      * @see #exclude(String...)
      */
+    @Override
     public Test setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
@@ -834,6 +881,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
@@ -842,6 +890,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -1077,6 +1126,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports getReports() {
         return reports;
     }
@@ -1087,6 +1137,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
+    @Override
     public TestTaskReports reports(Closure closure) {
         reports.configure(closure);
         return reports;

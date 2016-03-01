@@ -27,14 +27,17 @@ public class DefaultNativeDependencySet implements NativeDependencySet {
         this.binary = binary;
     }
 
+    @Override
     public FileCollection getIncludeRoots() {
         return binary.getHeaderDirs();
     }
 
+    @Override
     public FileCollection getLinkFiles() {
         return binary.getLinkFiles();
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
         return binary.getRuntimeFiles();
     }

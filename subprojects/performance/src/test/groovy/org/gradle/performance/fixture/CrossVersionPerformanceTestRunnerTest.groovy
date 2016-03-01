@@ -17,26 +17,34 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
+    final buildContext = new IntegrationTestBuildContext();
     final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
-    final distributions = new ReleasedVersionDistributions()
-    final mostRecentRelease = distributions.mostRecentFinalRelease.version.version
-    final mostRecentSnapshot = distributions.mostRecentSnapshot.version.version
+    final releases = Stub(ReleasedVersionDistributions)
+    final mostRecentRelease = "2.10"
     final currentVersionBase = GradleVersion.current().baseVersion.version
 
-    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
-    def "runs test and builds results"() {
+    def setup() {
+        releases.all >> [
+                buildContext.distribution("1.0"),
+                buildContext.distribution("1.1"),
+                buildContext.distribution("2.11-rc-4"),
+                buildContext.distribution("2.11-rc-2"),
+                buildContext.distribution(mostRecentRelease)]
+        releases.mostRecentFinalRelease >> buildContext.distribution(mostRecentRelease)
+    }
+
+    def "runs tests against version under test plus requested baseline versions and most recent released version and builds results"() {
         given:
         def runner = runner()
         runner.testId = 'some-test'
@@ -87,7 +95,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         0 * reporter._
     }
 
-    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
     def "can use 'last' baseline version to refer to most recently released version"() {
         given:
         def runner = runner()
@@ -105,8 +112,12 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
-    def "can use 'nightly' baseline version to refer to most recently snapshot version"() {
+    def "can use 'nightly' baseline version to refer to most recently snapshot version and exclude most recent release"() {
         given:
+        def mostRecentSnapshot = "2.11-20160101120000+0000"
+        releases.mostRecentSnapshot >> buildContext.distribution(mostRecentSnapshot)
+
+        and:
         def runner = runner()
         runner.targetVersions = ['nightly']
 
@@ -122,7 +133,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
-    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
     def "ignores baseline version if it has the same base as the version under test"() {
         given:
         def runner = runner()
@@ -140,8 +150,25 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
+    def "uses RC when requested baseline version has not been released"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['2.11']
+
+        when:
+        def results = runner.run()
+
+        then:
+        results.baselineVersions*.version == ["2.11-rc-4", "2.10"]
+
+        and:
+        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+    }
+
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter)
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, false)
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.testProjectLocator = testProjectLocator

@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinaryRenderer;
 
 public class NativeTestingServices implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(NativeTestSuiteBinaryRenderer.class);
     }

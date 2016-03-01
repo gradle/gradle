@@ -34,10 +34,12 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
     private String preCompiledHeader;
     private File prefixHeaderFile;
 
+    @Override
     public Collection<?> getLibs() {
         return libs;
     }
 
+    @Override
     public void lib(Object library) {
         if (library instanceof Iterable<?>) {
             Iterable<?> iterable = (Iterable) library;

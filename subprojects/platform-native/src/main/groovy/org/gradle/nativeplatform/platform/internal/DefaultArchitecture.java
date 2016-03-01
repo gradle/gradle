@@ -22,6 +22,7 @@ public class DefaultArchitecture implements ArchitectureInternal {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -31,22 +32,27 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return getDisplayName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("architecture '%s'", name);
     }
 
+    @Override
     public boolean isI386() {
         return Architectures.X86.isAlias(name);
     }
 
+    @Override
     public boolean isAmd64() {
         return Architectures.X86_64.isAlias(name);
     }
 
+    @Override
     public boolean isIa64() {
         return Architectures.IA_64.isAlias(name);
     }
 
+    @Override
     public boolean isArm() {
         return Architectures.ARM_V7.isAlias(name);
     }

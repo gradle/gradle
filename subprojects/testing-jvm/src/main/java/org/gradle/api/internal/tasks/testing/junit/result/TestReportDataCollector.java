@@ -39,9 +39,11 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         this.outputWriter = outputWriter;
     }
 
+    @Override
     public void beforeSuite(TestDescriptor suite) {
     }
 
+    @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
             //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
@@ -57,11 +59,13 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
     }
 
+    @Override
     public void beforeTest(TestDescriptor testDescriptor) {
         TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, testDescriptor.getName());
         currentTestMethods.put(testDescriptor, methodResult);
     }
 
+    @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         String className = testDescriptor.getClassName();
         TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
@@ -109,6 +113,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
     }
 
+    @Override
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
         String className = testDescriptor.getClassName();
         if (className == null) {

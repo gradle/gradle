@@ -22,6 +22,7 @@ import org.gradle.util.TreeVisitor;
 public class ToolChainAvailability implements ToolSearchResult {
     private ToolSearchResult reason;
 
+    @Override
     public boolean isAvailable() {
         return reason == null;
     }
@@ -32,6 +33,7 @@ public class ToolChainAvailability implements ToolSearchResult {
         return formatter.toString();
     }
 
+    @Override
     public void explain(TreeVisitor<? super String> visitor) {
         reason.explain(visitor);
     }
@@ -57,10 +59,12 @@ public class ToolChainAvailability implements ToolSearchResult {
             this.message = message;
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(message);
         }

@@ -27,8 +27,8 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     private TwirlImports defaultImports = TwirlImports.SCALA;
 
     @Override
-    protected String getTypeName() {
-        return "Twirl template source";
+    protected String getLanguageName() {
+        return "Twirl template";
     }
 
     @Override

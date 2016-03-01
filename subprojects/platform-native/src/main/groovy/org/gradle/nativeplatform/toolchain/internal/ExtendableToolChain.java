@@ -39,12 +39,14 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     protected abstract String getTypeName();
 
+    @Override
     public String getDisplayName() {
         return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }
@@ -54,6 +56,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         return getDisplayName();
     }
 
+    @Override
     public String getOutputType() {
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }

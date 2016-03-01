@@ -34,14 +34,17 @@ public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement
         this.linkage = linkage;
     }
 
+    @Override
     public String getProjectPath() {
         return projectPath;
     }
 
+    @Override
     public String getLibraryName() {
         return libraryName;
     }
 
+    @Override
     public String getLinkage() {
         return linkage;
     }

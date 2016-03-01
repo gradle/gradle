@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
@@ -28,12 +29,14 @@ import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
 @Category(GradleCorePerformanceTest)
+@CompileStatic
 class AbstractCrossBuildPerformanceTest extends Specification {
+    private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = new CrossBuildResultsStore()
 
-    def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
@@ -58,7 +61,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            resultStore.close()
+            RESULT_STORE.close()
         }
     }
 }

@@ -1,0 +1,23 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org'
+version = '1.0'
+
+dependencies {
+    compile 'org:y:1.0'
+}
+
+repositories {
+    maven {
+        url("file://" + file("../repo"))
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://" + file("../repo"))
+        }
+    }
+}

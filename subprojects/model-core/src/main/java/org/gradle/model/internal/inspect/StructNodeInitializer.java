@@ -130,7 +130,7 @@ public class StructNodeInitializer<T> implements NodeInitializer {
                     ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
                     addLink(modelNode, builder, property.isInternal());
                 } else {
-                    modelNode.addReference(property.getName(), propertyType, modelNode.getDescriptor());
+                    modelNode.addReference(property.getName(), propertyType, null, modelNode.getDescriptor());
                 }
             }
         } else {

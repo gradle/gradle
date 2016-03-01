@@ -47,6 +47,7 @@ public class TestEventSerializer {
             this.serializer = serializer;
         }
 
+        @Override
         public T read(Decoder decoder) throws Exception {
             if (!decoder.readBoolean()) {
                 return null;
@@ -54,6 +55,7 @@ public class TestEventSerializer {
             return serializer.read(decoder);
         }
 
+        @Override
         public void write(Encoder encoder, T value) throws Exception {
             encoder.writeBoolean(value != null);
             if (value != null) {
@@ -63,10 +65,12 @@ public class TestEventSerializer {
     }
 
     private static class IdSerializer implements Serializer<CompositeIdGenerator.CompositeId> {
+        @Override
         public CompositeIdGenerator.CompositeId read(Decoder decoder) throws Exception {
             return new CompositeIdGenerator.CompositeId(decoder.readLong(), decoder.readLong());
         }
 
+        @Override
         public void write(Encoder encoder, CompositeIdGenerator.CompositeId value) throws Exception {
             encoder.writeLong((Long) value.getScope());
             encoder.writeLong((Long) value.getId());
@@ -74,10 +78,12 @@ public class TestEventSerializer {
     }
 
     private static class DefaultTestClassRunInfoSerializer implements Serializer<DefaultTestClassRunInfo> {
+        @Override
         public DefaultTestClassRunInfo read(Decoder decoder) throws Exception {
             return new DefaultTestClassRunInfo(decoder.readString());
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
         }
@@ -86,12 +92,14 @@ public class TestEventSerializer {
     private static class TestStartEventSerializer implements Serializer<TestStartEvent> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new NullableSerializer<CompositeIdGenerator.CompositeId>(new IdSerializer());
 
+        @Override
         public TestStartEvent read(Decoder decoder) throws Exception {
             long time = decoder.readLong();
             Object id = idSerializer.read(decoder);
             return new TestStartEvent(time, id);
         }
 
+        @Override
         public void write(Encoder encoder, TestStartEvent value) throws Exception {
             encoder.writeLong(value.getStartTime());
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getParentId());
@@ -101,12 +109,14 @@ public class TestEventSerializer {
     private static class TestCompleteEventSerializer implements Serializer<TestCompleteEvent> {
         private final Serializer<TestResult.ResultType> typeSerializer = new NullableSerializer<TestResult.ResultType>(new BaseSerializerFactory().getSerializerFor(TestResult.ResultType.class));
 
+        @Override
         public TestCompleteEvent read(Decoder decoder) throws Exception {
             long endTime = decoder.readLong();
             TestResult.ResultType result = typeSerializer.read(decoder);
             return new TestCompleteEvent(endTime, result);
         }
 
+        @Override
         public void write(Encoder encoder, TestCompleteEvent value) throws Exception {
             encoder.writeLong(value.getEndTime());
             typeSerializer.write(encoder, value.getResultType());
@@ -115,13 +125,15 @@ public class TestEventSerializer {
 
     private static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
         private final Serializer<TestOutputEvent.Destination> destinationSerializer = new BaseSerializerFactory().getSerializerFor(TestOutputEvent.Destination.class);
-        
+
+        @Override
         public DefaultTestOutputEvent read(Decoder decoder) throws Exception {
             TestOutputEvent.Destination destination = destinationSerializer.read(decoder);
             String message = decoder.readString();
             return new DefaultTestOutputEvent(destination, message);
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestOutputEvent value) throws Exception {
             destinationSerializer.write(encoder, value.getDestination());
             encoder.writeString(value.getMessage());
@@ -131,12 +143,14 @@ public class TestEventSerializer {
     private static class DefaultTestSuiteDescriptorSerializer implements Serializer<DefaultTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
+        @Override
         public DefaultTestSuiteDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
             return new DefaultTestSuiteDescriptor(id, name);
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
@@ -146,12 +160,14 @@ public class TestEventSerializer {
     private static class WorkerTestSuiteDescriptorSerializer implements Serializer<WorkerTestClassProcessor.WorkerTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
+        @Override
         public WorkerTestClassProcessor.WorkerTestSuiteDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
             return new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(id, name);
         }
 
+        @Override
         public void write(Encoder encoder, WorkerTestClassProcessor.WorkerTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
@@ -161,12 +177,14 @@ public class TestEventSerializer {
     private static class DefaultTestClassDescriptorSerializer implements Serializer<DefaultTestClassDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
+        @Override
         public DefaultTestClassDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
             return new DefaultTestClassDescriptor(id, name);
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestClassDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
@@ -176,6 +194,7 @@ public class TestEventSerializer {
     private static class DefaultTestDescriptorSerializer implements Serializer<DefaultTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
+        @Override
         public DefaultTestDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String className = decoder.readString();
@@ -183,6 +202,7 @@ public class TestEventSerializer {
             return new DefaultTestDescriptor(id, className, name);
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getClassName());
@@ -193,6 +213,7 @@ public class TestEventSerializer {
     private static class DefaultTestMethodDescriptorSerializer implements Serializer<DefaultTestMethodDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
+        @Override
         public DefaultTestMethodDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String className = decoder.readString();
@@ -200,6 +221,7 @@ public class TestEventSerializer {
             return new DefaultTestMethodDescriptor(id, className, name);
         }
 
+        @Override
         public void write(Encoder encoder, DefaultTestMethodDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getClassName());

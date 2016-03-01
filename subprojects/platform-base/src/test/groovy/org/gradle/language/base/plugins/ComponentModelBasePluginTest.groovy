@@ -16,33 +16,43 @@
 
 package org.gradle.language.base.plugins
 
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.ComponentSpec
-import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.platform.base.*
+import org.gradle.platform.base.plugins.BinaryBasePlugin
+import org.gradle.platform.base.plugins.ComponentBasePlugin
 
 class ComponentModelBasePluginTest extends PlatformBaseSpecification {
-    def "registers ComponentSpec"() {
+    def "applies language and binary base plugins"() {
+        when:
+        dsl {
+            apply plugin: ComponentModelBasePlugin
+        }
+
+        then:
+        project.pluginManager.pluginContainer.size() == 5
+        project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(BinaryBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(LanguageBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
+    }
+
+    def "registers base types"() {
         when:
         dsl {
             apply plugin: ComponentModelBasePlugin
             model {
-                baseComponent(ComponentSpec) {
+                baseComponent(type) {
                 }
             }
         }
 
         then:
-        realize("baseComponent") instanceof ComponentSpec
-    }
+        type.isInstance(realize("baseComponent"))
 
-    def "adds a 'components' container to the project model"() {
-        when:
-        dsl {
-            apply plugin: ComponentModelBasePlugin
-        }
-
-        then:
-        realizeComponents() != null
+        where:
+        type                 | _
+        GeneralComponentSpec | _
+        ApplicationSpec      | _
+        LibrarySpec          | _
     }
 
     def "links the binaries of each component in 'components' container into the 'binaries' container"() {
@@ -51,7 +61,7 @@ class ComponentModelBasePluginTest extends PlatformBaseSpecification {
             apply plugin: ComponentModelBasePlugin
             model {
                 components {
-                    comp1(ComponentSpec) {
+                    comp1(GeneralComponentSpec) {
                         binaries {
                             bin1(BinarySpec)
                             bin2(BinarySpec)
@@ -76,7 +86,7 @@ class ComponentModelBasePluginTest extends PlatformBaseSpecification {
             apply plugin: ComponentModelBasePlugin
             model {
                 components {
-                    comp1(ComponentSpec) {
+                    comp1(GeneralComponentSpec) {
                         binaries {
                             bin1(BinarySpec)
                             bin2(BinarySpec)

@@ -28,19 +28,24 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(PlayApplicationBinaryRenderer.class);
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }

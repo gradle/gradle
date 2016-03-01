@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
+import org.gradle.model.internal.registry.DefaultModelRegistry
 
 class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory, schemaStore, structBindingsStore)
@@ -101,4 +102,29 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 - Method invalid($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 
+    static class Bean {
+        String value
+    }
+
+    static class RuleSourceWithParameter extends RuleSource {
+        @Rules
+        void methodWithParameters(SomeRuleSource rules, Bean subject, Integer input) {
+            subject.value = "input: " + input
+        }
+    }
+
+    def "extracts input parameters"() {
+        given:
+        registry.registerInstance("input", 12)
+        registry.registerInstance("item", new Bean())
+        def node = ((DefaultModelRegistry) registry).node("item")
+
+        when:
+        def ruleSource = extractor.extract RuleSourceWithParameter
+        ruleSource.apply(registry, node)
+        def item = registry.realize("item", Bean)
+
+        then:
+        item.value == "input: 12"
+    }
 }

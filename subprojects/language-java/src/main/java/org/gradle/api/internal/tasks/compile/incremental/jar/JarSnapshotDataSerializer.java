@@ -37,6 +37,7 @@ public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
         analysisSerializer = new ClassSetAnalysisData.Serializer();
     }
 
+    @Override
     public JarSnapshotData read(Decoder decoder) throws Exception {
         byte[] hash = decoder.readBinary();
         Map<String, byte[]> hashes = mapSerializer.read(decoder);
@@ -44,6 +45,7 @@ public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
         return new JarSnapshotData(hash, hashes, data);
     }
 
+    @Override
     public void write(Encoder encoder, JarSnapshotData value) throws Exception {
         encoder.writeBinary(value.hash);
         mapSerializer.write(encoder, value.hashes);

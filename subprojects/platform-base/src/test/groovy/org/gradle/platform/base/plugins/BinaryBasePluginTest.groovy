@@ -18,18 +18,21 @@ package org.gradle.platform.base.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
 class BinaryBasePluginTest extends PlatformBaseSpecification {
-    def "applies lifecycle base plugin only"() {
+    def "applies component base plugin only"() {
         when:
         dsl {
             apply plugin: BinaryBasePlugin
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 2
+        project.pluginManager.pluginContainer.size() == 3
+        project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
     }
 
     def "registers BinarySpec"() {

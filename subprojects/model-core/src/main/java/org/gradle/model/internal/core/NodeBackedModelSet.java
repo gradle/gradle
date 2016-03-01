@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.specs.Specs;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -77,7 +78,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
         ModelPath childPath = modelNode.getPath().child(name);
         final ModelRuleDescriptor descriptor = this.descriptor.append("create()");
 
-        NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType);
+        NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType, Specs.<ModelType<?>>satisfyAll());
         ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
             .descriptor(descriptor)
             .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))

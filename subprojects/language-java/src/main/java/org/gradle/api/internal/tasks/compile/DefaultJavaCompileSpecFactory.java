@@ -23,14 +23,17 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
         super(compileOptions);
     }
 
+    @Override
     protected DefaultJavaCompileSpec getCommandLineSpec() {
         return new DefaultCommandLineJavaSpec();
     }
 
+    @Override
     protected DefaultJavaCompileSpec getForkingSpec() {
         return new DefaultForkingJavaCompileSpec();
     }
 
+    @Override
     protected DefaultJavaCompileSpec getDefaultSpec() {
         return new DefaultJavaCompileSpec();
     }

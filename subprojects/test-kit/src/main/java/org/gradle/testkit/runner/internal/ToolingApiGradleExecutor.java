@@ -16,8 +16,12 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -25,6 +29,7 @@ import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
+import org.gradle.testkit.runner.internal.feature.TestKitFeature;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.tooling.*;
@@ -38,9 +43,9 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +104,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
             launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
 
-            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
+            configureInjectedClasspath(launcher, parameters, targetGradleVersion);
 
             launcher.run();
         } catch (UnsupportedVersionException e) {
@@ -138,6 +143,51 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {
         BuildEnvironment buildEnvironment = connection.getModel(BuildEnvironment.class);
         return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
+    }
+
+    private boolean targetGradleVersionSupportsClasspathInjection(GradleVersion targetGradleVersion) {
+        return targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) >= 0;
+    }
+
+    private void configureInjectedClasspath(DefaultBuildLauncher launcher, GradleExecutionParameters parameters, GradleVersion targetGradleVersion) {
+        List<File> pluginClasspath = readPluginClasspath();
+
+        if (!pluginClasspath.isEmpty() && targetGradleVersionSupportsClasspathInjection(targetGradleVersion)) {
+            launcher.withInjectedClassPath(new DefaultClassPath(pluginClasspath));
+        }
+
+        if (!parameters.getInjectedClassPath().isEmpty()) {
+            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
+        }
+    }
+
+    private List<File> readPluginClasspath() {
+        List<File> pluginClasspath = new ArrayList<File>();
+        URL[] classLoaderURLs = ((URLClassLoader) (Thread.currentThread().getContextClassLoader())).getURLs();
+        URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
+            @Override
+            public boolean isSatisfiedBy(URL url) {
+                return url.toString().endsWith("generatePluginClasspathManifest/plugin-classpath.txt");
+            }
+        });
+
+        if (pluginClasspathUrl != null) {
+            BufferedReader br = null;
+
+            try {
+                br = new BufferedReader(new InputStreamReader(pluginClasspathUrl.openStream()));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    pluginClasspath.add(new File(line));
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } finally {
+                IOUtils.closeQuietly(br);
+            }
+        }
+
+        return pluginClasspath;
     }
 
     private static OutputStream teeOutput(OutputStream capture, OutputStream user) {

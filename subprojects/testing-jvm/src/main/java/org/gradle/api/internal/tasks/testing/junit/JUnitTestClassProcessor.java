@@ -43,6 +43,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
@@ -59,11 +60,13 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         executer = new JUnitTestClassExecuter(applicationClassLoader, spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         LOGGER.debug("Executing test class {}", testClass.getTestClassName());
         executer.execute(testClass.getTestClassName());
     }
 
+    @Override
     public void stop() {
         resultProcessorActor.stop();
     }

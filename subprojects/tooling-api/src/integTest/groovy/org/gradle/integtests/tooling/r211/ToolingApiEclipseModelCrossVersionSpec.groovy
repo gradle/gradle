@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r211
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,7 +36,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.targetBytecodeVersion== JavaVersion.current()
@@ -49,7 +50,7 @@ apply plugin: 'java'
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.jdk != null
@@ -64,7 +65,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         targetCompatibility = 1.5
 """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
@@ -85,7 +86,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         }
         """
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
@@ -94,7 +95,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target bytecode level"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         rootProject.javaSourceSettings.targetBytecodeVersion
 
         then:
@@ -104,7 +105,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     @TargetGradleVersion("=2.9")
     def "older Gradle versions throw exception when querying target runtime"() {
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         rootProject.javaSourceSettings.jdk
 
         then:
@@ -144,7 +145,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         """
 
         when:
-        EclipseProject rootProject = loadEclipseProjectModel()
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject subprojectA = rootProject.children.find { it.name == 'subproject-a' }
         EclipseProject subprojectB = rootProject.children.find { it.name == 'subproject-b' }
         EclipseProject subprojectC = rootProject.children.find { it.name == 'subproject-c' }
@@ -155,7 +156,4 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         subprojectC.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_3
     }
 
-    private EclipseProject loadEclipseProjectModel() {
-        withConnection { connection -> connection.getModel(EclipseProject) }
-    }
 }

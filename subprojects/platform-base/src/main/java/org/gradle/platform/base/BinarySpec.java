@@ -16,36 +16,23 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 
 /**
- * Represents a binary artifact that is the result of building a project component.
+ * Represents a binary that is the result of building a component.
  */
 @Incubating @HasInternalProtocol
-public interface BinarySpec extends BuildableModelElement, Named {
-    /**
-     * Returns a human-consumable display name for this binary.
-     */
-    String getDisplayName();
+public interface BinarySpec extends BuildableComponentSpec {
 
     /**
      * Can this binary be built in the current environment?
      */
     boolean isBuildable();
-
-    /**
-     * The source sets used to compile this binary.
-     *
-     * @deprecated This method is replaced with {@link #getInputs()}.
-     */
-    @Deprecated
-    DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
      * The sources owned by this binary.

@@ -16,8 +16,9 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -30,38 +31,36 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 
-@SuppressWarnings("deprecation")
-public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelElement implements ClassDirectoryBinarySpecInternal {
+public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {
     private final DefaultDomainObjectSet<LanguageSourceSet> sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final String name;
     private final SourceSet sourceSet;
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
-        this.name = name;
+    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
+        super(componentIdentifier, ClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
         this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
     }
 
-    private String removeClassesSuffix(String name) {
-        if (name.endsWith("Classes")) {
-            return name.substring(0, name.length() - 7);
-        }
-        return name;
-    }
-
     @Override
     public LibraryBinaryIdentifier getId() {
         throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public ComponentSpec getComponent() {
+        return null;
     }
 
     @Override
@@ -106,10 +105,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return true;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public File getClassesDir() {
         return sourceSet.getOutput().getClassesDir();
     }
@@ -124,11 +119,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     public void setResourcesDir(File resourcesDir) {
         sourceSet.getOutput().setResourcesDir(resourcesDir);
-    }
-
-    @Override
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        return getInputs();
     }
 
     @Override
@@ -161,12 +151,9 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         sourceSets.add(sourceSet);
     }
 
-    public String getDisplayName() {
-        return "classes '" + removeClassesSuffix(name) + "'";
-    }
-
-    public String toString() {
-        return getDisplayName();
+    @Override
+    protected String getTypeName() {
+        return "Classes";
     }
 
     @Override

@@ -24,11 +24,11 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
      */
     void withCustomComponentType() {
         buildFile << """
-            @Managed interface CustomComponent extends ComponentSpec {}
+            @Managed interface CustomComponent extends GeneralComponentSpec {}
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {}
+                void registerCustomComponentType(TypeBuilder<CustomComponent> builder) {}
             }
 
             apply type: ComponentTypeRules
@@ -49,8 +49,8 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
             }
 
             class BinaryRules extends RuleSource {
-                @BinaryType
-                void registerCustomBinary(BinaryTypeBuilder<CustomBinary> builder) {
+                @ComponentType
+                void registerCustomBinary(TypeBuilder<CustomBinary> builder) {
                     builder.defaultImplementation(DefaultCustomBinary)
                 }
             }
@@ -71,9 +71,8 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
             }
 
             class LanguageTypeRules extends RuleSource {
-                @LanguageType
-                void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.setLanguageName("custom")
+                @ComponentType
+                void registerCustomLanguage(TypeBuilder<CustomLanguageSourceSet> builder) {
                 }
             }
 
@@ -94,6 +93,10 @@ abstract class AbstractComponentModelIntegrationTest extends AbstractIntegration
 
 
             class CustomLanguageTransformation implements LanguageTransform {
+                String getLanguageName() {
+                    "customLang"
+                }
+
                 Class getSourceSetType() {
                     CustomLanguageSourceSet
                 }

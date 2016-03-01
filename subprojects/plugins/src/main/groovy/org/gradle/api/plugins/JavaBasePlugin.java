@@ -55,6 +55,7 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.WrapUtil;
 
@@ -127,11 +128,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 createBinaryLifecycleTask(sourceSet, project);
 
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, binaryId.child("resources"), sourceSet.getResources());
 
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
@@ -226,7 +228,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeConfiguration.extendsFrom(compileConfiguration);
         runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
 
-        sourceSet.setCompileClasspath(compileConfiguration);
+        Configuration compileOnlyConfiguration = configurations.findByName(sourceSet.getCompileOnlyConfigurationName());
+        if (compileOnlyConfiguration == null) {
+            compileOnlyConfiguration = configurations.create(sourceSet.getCompileOnlyConfigurationName());
+        }
+        compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.extendsFrom(compileConfiguration);
+        compileOnlyConfiguration.setDescription(String.format("Compile only classpath for %s.", sourceSet));
+
+        sourceSet.setCompileClasspath(compileOnlyConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 

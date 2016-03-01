@@ -37,31 +37,20 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
         println output
         output.contains """
             + components
-                  | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentModelBasePlugin.PluginRules#components
+                  | Type:   \torg.gradle.platform.base.ComponentSpecContainer
+                  | Creator: \tComponentBasePlugin.PluginRules#components
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 42, column 5
                      ⤷ MyPlugin#mutateMyComponents
                 + my
-                      | Type:   	MyComponent
-                      | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
+                      | Type:   \tMyComponent
+                      | Creator: \tcomponents { ... } @ build.gradle line 42, column 5 > create(my)
                       | Rules:
-                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
-                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
                          ⤷ MyPlugin#mutateMyComponents > all()
-                    + binaries
-                          | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
-                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-                          | Rules:
-                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
                     + publicData
-                          | Type:   	java.lang.String
-                          | Value:  	Some PUBLIC data
-                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-                    + sources
-                          | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-                          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
+                          | Type:   \tjava.lang.String
+                          | Value:  \tSome PUBLIC data
+                          | Creator: \tcomponents { ... } @ build.gradle line 42, column 5 > create(my)
         """.stripIndent().trim()
     }
 }

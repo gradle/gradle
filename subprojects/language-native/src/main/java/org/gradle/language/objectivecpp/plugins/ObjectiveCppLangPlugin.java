@@ -24,7 +24,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
@@ -34,9 +33,10 @@ import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppPreCompiledHeaderCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -45,15 +45,15 @@ import java.util.Map;
  */
 @Incubating
 public class ObjectiveCppLangPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<ObjectiveCppSourceSet> builder) {
-            builder.setLanguageName("objcpp");
+        @ComponentType
+        void registerLanguage(TypeBuilder<ObjectiveCppSourceSet> builder) {
             builder.defaultImplementation(DefaultObjectiveCppSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }
@@ -65,20 +65,29 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
     }
 
     private static class ObjectiveCpp extends NativeLanguageTransform<ObjectiveCppSourceSet> implements PchEnabledLanguageTransform<ObjectiveCppSourceSet> {
+        @Override
         public Class<ObjectiveCppSourceSet> getSourceSetType() {
             return ObjectiveCppSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("objcppCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "objcpp";
+        }
+
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, ObjectiveCppCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, ObjectiveCppPreCompiledHeaderCompile.class);
         }

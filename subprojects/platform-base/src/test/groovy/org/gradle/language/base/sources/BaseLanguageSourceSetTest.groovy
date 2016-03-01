@@ -18,19 +18,47 @@ package org.gradle.language.base.sources
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class BaseLanguageSourceSetTest extends Specification {
     def "has useful display names"() {
-        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, TestSourceSetImpl, "test", "parent", TestFiles.sourceDirectorySetFactory())
+        def identifier = new DefaultComponentSpecIdentifier("project", "parent").child("java5").child("test")
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, identifier, TestFiles.sourceDirectorySetFactory())
 
         expect:
         sourceSet.name == "test"
-        sourceSet.displayName == "TestSourceSet 'parent:test'"
+        sourceSet.displayName == "Test source 'parent:java5:test'"
         sourceSet.toString() == sourceSet.displayName
+    }
+
+    def "calculates display name from public type name"() {
+        expect:
+        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), TestFiles.sourceDirectorySetFactory())
+        sourceSet.displayName == displayName
+
+        where:
+        publicType                | displayName
+        SomeTypeLanguageSourceSet | "SomeType source 'test'"
+        SomeTypeSourceSet         | "SomeType source 'test'"
+        SomeTypeSource            | "SomeType source 'test'"
+        SomeTypeSet               | "SomeType source 'test'"
+        SomeType                  | "SomeType source 'test'"
+        SomeResourcesSet          | "SomeResources 'test'"
     }
 
     interface TestSourceSet extends LanguageSourceSet {}
 
-    static class TestSourceSetImpl extends BaseLanguageSourceSet implements TestSourceSet {}
+    interface SomeTypeLanguageSourceSet extends LanguageSourceSet {}
+
+    interface SomeTypeSourceSet extends LanguageSourceSet {}
+
+    interface SomeTypeSet extends LanguageSourceSet {}
+
+    interface SomeTypeSource extends LanguageSourceSet {}
+
+    interface SomeType extends LanguageSourceSet {}
+
+    interface SomeResourcesSet extends LanguageSourceSet {}
+
 }

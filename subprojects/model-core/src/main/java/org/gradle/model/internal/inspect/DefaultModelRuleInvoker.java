@@ -30,6 +30,7 @@ class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
         this.factory = factory;
     }
 
+    @Override
     public R invoke(Object... args) {
         I instance = Modifier.isStatic(method.getModifiers()) ? null : factory.create();
         return method.invoke(instance, args);

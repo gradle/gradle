@@ -30,6 +30,7 @@ import java.util.TreeMap;
 public class PropertyReportTask extends AbstractReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
+    @Override
     public ReportRenderer getRenderer() {
         return renderer;
     }
@@ -38,6 +39,7 @@ public class PropertyReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
+    @Override
     public void generate(Project project) throws IOException {
         for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
             if (entry.getKey().equals("properties")) {

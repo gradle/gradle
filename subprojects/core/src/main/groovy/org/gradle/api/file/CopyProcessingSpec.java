@@ -34,9 +34,9 @@ public interface CopyProcessingSpec extends ContentFilterable {
     CopyProcessingSpec into(Object destPath);
 
     /**
-     * Renames a source file to a different relative location under the target directory. The closure will be called
-     * with a single parameter, the name of the file.  The closure should return a String object with a new target name.
-     * The closure may return null, in which case the original name will be used.
+     * Renames a source file. The closure will be called with a single parameter, the name of the file.
+     * The closure should return a String object with a new target name. The closure may return null,
+     * in which case the original name will be used.
      *
      * @param closure rename closure
      * @return this

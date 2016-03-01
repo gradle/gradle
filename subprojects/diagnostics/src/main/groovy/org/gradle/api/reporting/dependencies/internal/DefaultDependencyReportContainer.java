@@ -29,6 +29,7 @@ public class DefaultDependencyReportContainer extends TaskReportContainer<Report
         add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
     }
 
+    @Override
     public DirectoryReport getHtml() {
         return (DirectoryReport) getByName("html");
     }

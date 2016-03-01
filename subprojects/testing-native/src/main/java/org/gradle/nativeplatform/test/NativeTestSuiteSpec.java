@@ -24,5 +24,6 @@ import org.gradle.testing.base.TestSuiteSpec;
  */
 @Incubating
 public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec {
+    @Override
     NativeComponentSpec getTestedComponent();
 }

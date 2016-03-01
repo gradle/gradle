@@ -24,6 +24,8 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -32,6 +34,8 @@ import java.util.Set;
  * A model node that is a reference to some other node.
  */
 public class ModelReferenceNode extends ModelNodeInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelReferenceNode.class);
+
     private final MutableModelNode parent;
     private ModelNodeInternal target;
 
@@ -42,8 +46,14 @@ public class ModelReferenceNode extends ModelNodeInternal {
 
     @Override
     public void setTarget(ModelNode target) {
-        if (!isMutable()) {
+        // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node as well
+        if (getState() != State.Registered) {
             throw new IllegalStateException(String.format("Cannot set target for model element '%s' as this element is not mutable.", getPath()));
+        }
+        if (LOGGER.isDebugEnabled()) {
+            String targetPath = target == null ? null : "'" + target.getPath() + "'";
+            LOGGER.debug("Project {} - Setting the target of model element '{}' to point at {}.",
+                modelRegistry.getProjectPath(), getPath(), targetPath);
         }
         this.target = (ModelNodeInternal) target;
     }
@@ -100,7 +110,7 @@ public class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
+    public <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
         throw new UnsupportedOperationException();
     }
 

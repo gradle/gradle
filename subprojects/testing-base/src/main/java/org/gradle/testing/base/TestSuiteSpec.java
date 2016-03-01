@@ -17,20 +17,26 @@ package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.GeneralComponentSpec;
 
 /**
- * A component representing a suite of tests that will be executed together.
+ * A component representing a suite of tests that will be built and executed together.
  */
 @Incubating
-public interface TestSuiteSpec extends ComponentSpec {
+public interface TestSuiteSpec extends GeneralComponentSpec {
     /**
      * The tested component.
      */
     ComponentSpec getTestedComponent();
 
     /**
-     * Sets the tested component. The name of this method is not a regular
-     * setter just because of DSL.
+     * Sets the tested component.
+     * @param testedComponent the component under test
+     */
+    void setTestedComponent(ComponentSpec testedComponent);
+
+    /**
+     * Sets the tested component.
      * @param testedComponent the component under test
      */
     void testing(ComponentSpec testedComponent);

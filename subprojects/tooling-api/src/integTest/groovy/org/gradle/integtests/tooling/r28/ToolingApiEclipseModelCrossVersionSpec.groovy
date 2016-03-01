@@ -47,7 +47,7 @@ project(':contrib:impl') {
         include 'api', 'impl', 'contrib:api', 'contrib:impl'"""
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject rootImplProject = rootProject.children.find { it.name == 'root-impl' }
         EclipseProject contribProject = rootProject.children.find { it.name == 'contrib' }
         EclipseProject contribImplProject = contribProject.children.find { it.name == 'contrib-impl' }
@@ -59,6 +59,4 @@ project(':contrib:impl') {
         rootImplProject.projectDependencies.any { it.path == 'root-api' && it.targetProject == rootApiProject }
 
     }
-
-
 }

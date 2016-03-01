@@ -33,22 +33,27 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
         this.value = value;
     }
 
+    @Override
     public String getSection() {
         return section;
     }
 
+    @Override
     public String getKey() {
         return key;
     }
 
+    @Override
     public String getBaseValue() {
         return baseValue;
     }
 
+    @Override
     public String getMergeValue() {
         return mergeValue;
     }
 
+    @Override
     public String getValue() {
         return value;
     }
@@ -57,10 +62,12 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
         return excluded;
     }
 
+    @Override
     public void setValue(String value) {
         this.value = value;
     }
 
+    @Override
     public void exclude() {
         excluded = true;
     }

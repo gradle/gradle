@@ -231,9 +231,18 @@ subproject already depends on tooling-api and it's easy to adapt the current cod
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current `ModuleNameDeduper` implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider
   rewriting the implementation.
-- Project names must remain stable, i.e. de-duping renames projects in the order of the composite's participants. As a result, Buildship will rename newly imported projects in favor of renaming already existing projects.
-- the renaming algorithm will prepend the root project name when a duplicate name is found. If prepending the root project name still does not yield a unique name, then it appends an increasing counter.
+- the renaming algorithm will prepend the parent project names when a duplicate name is found. If prepending the all parents up to the root project name still does not yield a unique name, then it appends an increasing counter.
 - the algorithm should be implemented completely in Java (the existing one is partially written in Groovy)
+- the algorithm will rename all projects that are part of a name conflict so they all end up with the same number of prefixes
+- if a subproject already has the correct prefix, it is not prefixed again
+- parent projects are de-duped first to avoid unnecessary counters in child project
+
+##### Examples
+
+foo:sub and bar:sub become foo-sub and bar-sub (prefixed with parent)
+foo and foo become foo1 and foo2 (suffixed with counter)
+foo:sub and bar:bar-sub become foo-sub and bar-sub (not prefixed twice)
+foo:sub and foo:sub become foo1-sub and foo2-sub (parent projects are de-duped first)
 
 ##### Test cases
 
@@ -243,7 +252,7 @@ subproject already depends on tooling-api and it's easy to adapt the current cod
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names.
-- Three projects with the path foo:bar = > the first project gets name "bar", the second project gets the name "foo-bar", the third project gets the name "foo-bar2"
+- see examples above
 
 ### Story - Model for a composite does not contain project names that conflict with non-Gradle projects
 
@@ -394,9 +403,6 @@ _Use cases:_
 - There should be no change to Buildship as the majority of the implementation previously used to the live in Tooling Commons.
 
 ### Story - Buildship can rename projects when importing/refreshing
-
-This story was initially thought to be an integral part of name deduplication. However, it is not needed as long as the de-duper uses
-a stable algorithm, i.e. renames newly added projects instead of renaming existing projects.
 
 Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the
 same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is

@@ -17,9 +17,10 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.internal.Exceptions;
 
 /**
@@ -51,5 +52,10 @@ public class NoToolingApiConnection implements ConsumerConnection {
 
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.6");
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.13");
     }
 }

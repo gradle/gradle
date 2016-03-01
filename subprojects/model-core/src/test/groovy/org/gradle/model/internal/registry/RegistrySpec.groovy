@@ -54,7 +54,7 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
+        def <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
 
         }
 

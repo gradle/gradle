@@ -43,11 +43,13 @@ public class ClassSetAnalysisData {
         private final MapSerializer<String, DependentsSet> serializer = new MapSerializer<String, DependentsSet>(
                 STRING_SERIALIZER, new DependentsSetSerializer());
 
+        @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
             //we only support one kind of data
             return new ClassSetAnalysisData(serializer.read(decoder));
         }
 
+        @Override
         public void write(Encoder encoder, ClassSetAnalysisData value) throws Exception {
             //we only support one kind of data
             serializer.write(encoder, value.dependents);
@@ -57,6 +59,7 @@ public class ClassSetAnalysisData {
 
             private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
+            @Override
             public DependentsSet read(Decoder decoder) throws Exception {
                 int control = decoder.readSmallInt();
                 if (control == 0) {
@@ -69,6 +72,7 @@ public class ClassSetAnalysisData {
                 return new DefaultDependentsSet(control == 1, classes);
             }
 
+            @Override
             public void write(Encoder encoder, DependentsSet value) throws Exception {
                 if (value instanceof DependencyToAll) {
                     encoder.writeSmallInt(0);

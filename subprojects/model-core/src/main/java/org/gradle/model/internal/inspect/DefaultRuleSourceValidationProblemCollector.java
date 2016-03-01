@@ -42,14 +42,17 @@ public class DefaultRuleSourceValidationProblemCollector implements RuleSourceVa
         collector.add(field, problem);
     }
 
+    @Override
     public void add(MethodRuleDefinition<?, ?> method, String problem) {
         add(method.getMethod().getMethod(), problem);
     }
 
+    @Override
     public void add(MethodRuleDefinition<?, ?> method, String problem, Throwable cause) {
         add(method.getMethod().getMethod(), problem + ": " + cause.getMessage());
     }
 
+    @Override
     public void add(Method method, String problem) {
         add(method, "rule", problem);
     }

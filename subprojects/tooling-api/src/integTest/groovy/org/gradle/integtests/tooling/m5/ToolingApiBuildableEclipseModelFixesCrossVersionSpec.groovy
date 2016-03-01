@@ -51,7 +51,7 @@ project(':api') {
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject eclipseProject = loadToolingModel(EclipseProject)
 
         then:
         def rootTasks = eclipseProject.gradleProject.tasks.collect { it.name }
