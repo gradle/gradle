@@ -25,11 +25,12 @@ Forwarding console output (`setStandardOutput`) is not implemented as part of th
 - test that a task can be executed in a build with multiple participants.
 - throws exception when task execution requested on a build with is not part of the composite
 - test that a task can be selected with a Launchable
+- test that progress listener events get forwarded to TAPI client
+  - compare events from task execution from a composite build and a regular build
 
 ### Documentation
 
 ### Open issues
 
 - forwarding standard input, output & error
-- forwarding progress events
 - setting JVM arguments for execution

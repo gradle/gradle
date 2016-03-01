@@ -65,6 +65,25 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
     }
 
+    def "compare events from task execution from a composite build and a regular build with 3 builds"() {
+        given:
+        def builds = createBuilds(3)
+
+        when:
+        def progressListenerForComposite = new CapturingProgressListener()
+        def progressListenerForRegularBuild = new CapturingProgressListener()
+        executeFirstBuild(builds, progressListenerForComposite, progressListenerForRegularBuild)
+
+        then:
+        progressListenerForComposite.eventDescriptions.size() > 0
+        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
+            if (!(eventDescription in IGNORED_EVENTS)) {
+                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
+                progressListenerForComposite.eventDescriptions.remove(eventDescription)
+            }
+        }
+    }
+
     private List<ProjectTestFile> createBuilds(int numberOfBuilds) {
         def builds = (1..numberOfBuilds).collect {
             populate("build-$it") {
@@ -89,6 +108,25 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
                 modelBuilder.addProgressListener(progressListenerForRegularBuild)
                 modelBuilder.get()
             }
+        }
+    }
+
+    private void executeFirstBuild(List<ProjectTestFile> builds, progressListenerForComposite, progressListenerForRegularBuild) {
+        def buildId = createGradleBuildParticipant(builds[0]).toBuildIdentity()
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild(buildId)
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForComposite)
+            buildLauncher.run()
+        }
+
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(builds[0])
+        toolingApi.withConnection(connector) { ProjectConnection connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForRegularBuild)
+            buildLauncher.run()
         }
     }
 
