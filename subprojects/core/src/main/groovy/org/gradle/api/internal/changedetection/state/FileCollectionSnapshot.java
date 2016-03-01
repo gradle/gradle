@@ -22,13 +22,13 @@ import java.io.File;
 import java.util.Collection;
 
 /**
- * An immutable snapshot of the contents of a collection of files.
+ * An immutable snapshot of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot {
     /**
      * Returns an iterator over the changes to file contents since the given snapshot. Note: Ignores changes to file meta-data, such as last modified time.
      */
-    ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
+    ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot);
 
     /**
      * Returns a copy of this snapshot with file details updated from the given snapshot. Ignores files that are present in the given snapshot but not this snapshot.
@@ -39,7 +39,7 @@ public interface FileCollectionSnapshot {
     /**
      * Applies any changes to file contents since the given old snapshot, to the given target snapshot. Note: <em>Includes changes to file meta-data, such as last modified time.</em>
      */
-    FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target);
+    FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target);
 
     Collection<File> getFiles();
 

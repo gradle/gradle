@@ -52,7 +52,7 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
         }
 
         return new AbstractIterator<TaskStateChange>() {
-            final FileCollectionSnapshot.ChangeIterator<String> changeIterator = getCurrent().iterateChangesSince(getPrevious());
+            final FileCollectionSnapshot.ChangeIterator<String> changeIterator = getCurrent().iterateContentChangesSince(getPrevious());
             final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter(getInputFileType());
 
             @Override

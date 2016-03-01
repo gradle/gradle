@@ -224,7 +224,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             };
         }
 
-        public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
+        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot) {
             FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
             final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshotImpl.snapshots);
             final Iterator<String> currentFiles = snapshots.keySet().iterator();
@@ -285,7 +285,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
+        public FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
             FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
             FileCollectionSnapshotImpl targetImpl = (FileCollectionSnapshotImpl) target;
             Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(targetImpl.snapshots);

@@ -42,7 +42,7 @@ public class FileSnapshotTaskStateChangesTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * inputSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
+        1 * inputSnapshot.iterateContentChangesSince(previousInputSnapshot) >> changeIterator
         4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
             listener.added("one")
             true

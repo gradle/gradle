@@ -79,16 +79,16 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
+        public FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
             OutputFilesSnapshot oldOutputsSnapshot = (OutputFilesSnapshot) oldSnapshot;
             OutputFilesSnapshot targetOutputsSnapshot = (OutputFilesSnapshot) target;
-            return new OutputFilesSnapshot(roots, filesSnapshot.applyChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
+            return new OutputFilesSnapshot(roots, filesSnapshot.applyAllChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
         }
 
-        public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
+        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             final ChangeIterator<String> rootFileIdIterator = iterateRootFileIdChanges(other);
-            final ChangeIterator<String> fileIterator = filesSnapshot.iterateChangesSince(other.filesSnapshot);
+            final ChangeIterator<String> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot);
 
             final AddIgnoreChangeListenerAdapter listenerAdapter = new AddIgnoreChangeListenerAdapter();
             return new ChangeIterator<String>() {
