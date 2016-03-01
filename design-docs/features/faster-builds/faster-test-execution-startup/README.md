@@ -124,4 +124,4 @@ A typical breakdown of the wall clock time spent by `test` with 1000 main and te
 Miscellaneous profiling results:
 
 - when excluding test execution time, up to 10% of remaning time is spent calling `getGenericReturnType` in decorators (fixed already)
-- A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration.
+- A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration. Experimental fix: https://github.com/gradle/gradle/commit/9946a56f225aa9f4007eb65f0cfb3274a718e140
