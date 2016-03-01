@@ -310,6 +310,24 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * _
     }
 
+    def applyChangesRelativeToEmptySnapshotAddsFiles() {
+        TestFile file1 = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.createFile('file2')
+
+        when:
+        FileCollectionSnapshot original = snapshotter.snapshot(files())
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file1, file2))
+        FileCollectionSnapshot target = modified.applyChangesSince(original, snapshotter.emptySnapshot())
+
+        changes(target.iterateChangesSince(snapshotter.emptySnapshot()), listener)
+
+        then:
+        target.files as Set == [file1, file2] as Set
+        1 * listener.added(file1.path)
+        1 * listener.added(file2.path)
+        0 * _
+    }
+
     def updateFromUpdatesFileThatHasChangedContentInSourceSnapshot() {
         TestFile file = tmpDir.createFile('file')
 
@@ -399,6 +417,36 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         then:
         target.files == [file1]
         0 * listener._
+    }
+
+    def updateFromEmptySourceSnapshotReturnsSourceSnapshot() {
+        TestFile file1 = tmpDir.createFile('1')
+        TestFile file2 = tmpDir.createDir('2')
+        TestFile file3 = tmpDir.file('3')
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file1, file2, file3))
+        FileCollectionSnapshot empty = snapshotter.snapshot(files())
+
+        when:
+        FileCollectionSnapshot target = original.updateFrom(empty)
+
+        then:
+        target.is(empty)
+    }
+
+    def updateEmptySnapshotReturnsSnapshot() {
+        TestFile file1 = tmpDir.createFile('1')
+        TestFile file2 = tmpDir.createDir('2')
+        TestFile file3 = tmpDir.file('3')
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files())
+        FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file1, file2, file3))
+
+        when:
+        FileCollectionSnapshot target = original.updateFrom(newSnapshot)
+
+        then:
+        target.is(original)
     }
 
     private void changes(FileCollectionSnapshot.ChangeIterator<String> changes, ChangeListener<String> listener) {

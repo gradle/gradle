@@ -32,21 +32,6 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private enum ChangeType {
-        // Ignore added, consider all other kinds of changes
-        UpdatesOnly() {
-            @Override
-            boolean includeAdded() {
-                return false;
-            }
-        },
-        // Include all kinds of changes
-        AllChanges;
-
-        boolean includeAdded() {
-            return true;
-        }
-    }
     private final FileSnapshotter snapshotter;
     private TaskArtifactStateCacheAccess cacheAccess;
     private final StringInterner stringInterner;
@@ -125,6 +110,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     interface IncrementalFileSnapshot {
         boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+
         boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
     }
 
@@ -239,8 +225,8 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
-            FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(other.snapshots);
+            FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
+            final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshotImpl.snapshots);
             final Iterator<String> currentFiles = snapshots.keySet().iterator();
 
             return new ChangeIterator<String>() {
@@ -276,10 +262,25 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public FileCollectionSnapshot updateFrom(final FileCollectionSnapshot newSnapshot) {
-            FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) newSnapshot;
-            final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(snapshots);
-            diff(other.snapshots, snapshots, ChangeType.UpdatesOnly, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
+        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
+            if (snapshots.isEmpty()) {
+                // Nothing to update
+                return this;
+            }
+            FileCollectionSnapshotImpl newSnapshotImpl = (FileCollectionSnapshotImpl) newSnapshot;
+            if (newSnapshotImpl.snapshots.isEmpty()) {
+                // Everything has been removed
+                return newSnapshotImpl;
+            }
+
+            // Update entries from new snapshot
+            Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(snapshots.size());
+            for (String path : snapshots.keySet()) {
+                IncrementalFileSnapshot newValue = newSnapshotImpl.snapshots.get(path);
+                if (newValue != null) {
+                    newSnapshots.put(path, newValue);
+                }
+            }
             return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
@@ -287,26 +288,29 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
             FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
             FileCollectionSnapshotImpl targetImpl = (FileCollectionSnapshotImpl) target;
-            final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(targetImpl.snapshots);
-            diff(snapshots, oldSnapshotImpl.snapshots, ChangeType.AllChanges, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
+            Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(targetImpl.snapshots);
+            diff(snapshots, oldSnapshotImpl.snapshots, newSnapshots);
             return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
-        private void diff(Map<String, IncrementalFileSnapshot> snapshots, Map<String, IncrementalFileSnapshot> oldSnapshots, ChangeType changes,
-                          ChangeListener<Map.Entry<String, IncrementalFileSnapshot>> listener) {
+        private void diff(Map<String, IncrementalFileSnapshot> snapshots, Map<String, IncrementalFileSnapshot> oldSnapshots, Map<String, IncrementalFileSnapshot> target) {
+            if (oldSnapshots.isEmpty()) {
+                // Everything is new
+                target.putAll(snapshots);
+                return;
+            }
+
             Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshots);
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 IncrementalFileSnapshot otherFile = otherSnapshots.remove(entry.getKey());
                 if (otherFile == null) {
-                    if (changes.includeAdded()) {
-                        listener.added(entry);
-                    }
+                    target.put(entry.getKey(), entry.getValue());
                 } else if (!entry.getValue().isContentAndMetadataUpToDate(otherFile)) {
-                    listener.changed(entry);
+                    target.put(entry.getKey(), entry.getValue());
                 }
             }
             for (Map.Entry<String, IncrementalFileSnapshot> entry : otherSnapshots.entrySet()) {
-                listener.removed(entry);
+                target.remove(entry.getKey());
             }
         }
 
