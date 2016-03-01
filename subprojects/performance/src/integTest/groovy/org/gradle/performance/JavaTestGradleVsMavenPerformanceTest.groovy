@@ -63,6 +63,27 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         'mediumWithJUnit' | 'medium' | 'up-to-date build' | ['cleanTest', 'build'] | ['verify']           | 5000          | 100
     }
 
+    @Unroll("Gradle vs Maven #description incremental build for #template")
+    def "incremental build performance test"() {
+        given:
+        runner.testGroup = "Gradle vs Maven incremental build using Java plugin"
+        runner.testId = "$size $description with Java plugin"
+        runner.buildExperimentListener = new JavaOldModelSourceFileUpdater(10)
+        equivalentGradleAndMavenBuilds(template, description, gradleTasks, equivalentMavenTasks)
+
+        when:
+        def results = runner.run()
+
+        then:
+        noExceptionThrown()
+        results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
+
+        where:
+        template          | size     | description         | gradleTasks | equivalentMavenTasks | maxDiffMillis | maxDiffMB
+        'mediumWithJUnit' | 'medium' | 'incremental build' | ['build']   | ['verify']           | 0             | 100
+        'largeWithJUnit'  | 'large'  | 'incremental build' | ['build']   | ['verify']           | 0             | 200
+    }
+
     private void equivalentGradleAndMavenBuilds(String template, String description, List<String> gradleTasks, List<String> equivalentMavenTasks) {
         runner.baseline {
             projectName(template).displayName("Gradle $description for project $template").invocation {

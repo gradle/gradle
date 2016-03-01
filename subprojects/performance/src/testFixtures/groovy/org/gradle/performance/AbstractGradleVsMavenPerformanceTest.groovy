@@ -56,7 +56,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-
+        builder.listener = runner.buildExperimentListener
     }
 
     static {

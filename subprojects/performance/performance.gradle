@@ -5,8 +5,6 @@ import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTa
 import org.gradle.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.performance.generator.tasks.ProjectGeneratorTask
 
-import java.util.regex.Pattern
-
 apply plugin: 'javascript-base'
 
 configurations {
@@ -72,6 +70,12 @@ task withJUnit(type: JvmProjectGeneratorTask) {
 task mediumWithJUnit(type: JvmProjectGeneratorTask) {
     projects = 25
     sourceFiles = 200
+    subProjectTemplates << 'with-junit'
+}
+
+task largeWithJUnit(type: JvmProjectGeneratorTask) {
+    projects = 50
+    sourceFiles = 300
     subProjectTemplates << 'with-junit'
 }
 
@@ -549,7 +553,7 @@ task all {
 }
 
 task prepareSamples {
-    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, largeWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
         smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
