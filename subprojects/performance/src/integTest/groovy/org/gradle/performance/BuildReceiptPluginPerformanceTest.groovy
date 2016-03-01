@@ -69,14 +69,14 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         runner.testId = "large java project with and without build receipt"
 
         runner.baseline {
-            projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
-                gradleOpts("-Dreceipt", "-Dreceipt.dump")
+            projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 tasksToRun(*tasks)
             }
         }
 
         runner.buildSpec {
-            projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
+            projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
+                args("-Dreceipt", "-Dreceipt.dump")
                 tasksToRun(*tasks)
             }
         }
