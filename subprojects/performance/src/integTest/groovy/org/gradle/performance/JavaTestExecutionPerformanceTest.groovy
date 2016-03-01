@@ -28,7 +28,7 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = template
         runner.tasksToRun = gradleTasks
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['nightly']
+        runner.targetVersions = ['2.11', 'latest']
         runner.useDaemon = true
         runner.gradleOpts = ['-Xms1G', '-Xmx1G']
 
