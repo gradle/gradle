@@ -617,6 +617,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared).publish()
+        mavenRepo.module('org.gradle.test', 'testCompileOnly', '1.0').dependsOn(shared).publish()
 
         // when
         runIdeaTask """
@@ -630,14 +631,16 @@ repositories {
 dependencies {
     compile 'org.gradle.test:compile:1.0'
     compileOnly 'org.gradle.test:compileOnly:1.0'
+    testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
 }
 """
 
         // then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 3
+        assert dependencies.libraries.size() == 4
         dependencies.assertHasLibrary('COMPILE', 'shared-1.0.jar')
         dependencies.assertHasLibrary('COMPILE', 'compile-1.0.jar')
         dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'testCompileOnly-1.0.jar')
     }
 }
