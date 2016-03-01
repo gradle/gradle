@@ -18,8 +18,6 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProgressEvent
-import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -55,12 +53,6 @@ task hello {
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild(build1Id)
             buildLauncher.forTasks("hello")
-            buildLauncher.addProgressListener(new ProgressListener() {
-                @Override
-                void statusChanged(ProgressEvent event) {
-                    println "--> ${event.description}"
-                }
-            })
             buildLauncher.run()
 
         }
@@ -127,12 +119,6 @@ task hello {
             assert task != null
             def buildLauncher = connection.newBuild(build1Id)
             buildLauncher.forTasks(task)
-            buildLauncher.addProgressListener(new ProgressListener() {
-                @Override
-                void statusChanged(ProgressEvent event) {
-                    println "--> ${event.description}"
-                }
-            })
             buildLauncher.run()
         }
         then:
