@@ -142,7 +142,7 @@ class EclipsePlugin extends IdePlugin {
                 }
 
                 project.plugins.withType(JavaPlugin) {
-                    classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
+                    classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath]
                     classpath.conventionMapping.classFolders = {
                         return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
                     }

@@ -56,7 +56,7 @@ class EclipsePluginTest extends Specification {
         project.apply(plugin: 'java')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
     }
 
     def applyToScalaProject_shouldHaveProjectAndClasspathTaskForScala() {
@@ -78,7 +78,7 @@ class EclipsePluginTest extends Specification {
         project.apply(plugin: 'scala')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly], scalaIdeContainer)
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath], scalaIdeContainer)
     }
 
     def applyToGroovyProject_shouldHaveProjectAndClasspathTaskForGroovy() {
@@ -98,7 +98,7 @@ class EclipsePluginTest extends Specification {
         project.apply(plugin: 'groovy')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
     }
 
     def "creates empty classpath model for non java projects"() {

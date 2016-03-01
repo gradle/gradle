@@ -163,7 +163,7 @@ class JavaBasePluginTest extends Specification {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Compile classpath for source set 'custom'."
+        compile.description == "Compile dependencies for source set 'custom'."
 
         and:
         def runtime = project.configurations.customRuntime
@@ -180,10 +180,17 @@ class JavaBasePluginTest extends Specification {
         compileOnly.description == "Compile only classpath for source set 'custom'."
 
         and:
-        def runtimeClasspath = sourceSet.runtimeClasspath
-        def compileClasspath = sourceSet.compileClasspath
-        compileClasspath == compileOnly
-        runtimeClasspath sameCollection(sourceSet.output + runtime)
+        def compileClasspath = project.configurations.customCompileClasspath
+        compileClasspath.transitive
+        !compileClasspath.visible
+        compileClasspath.extendsFrom ==  [compileOnly] as Set
+        compileClasspath.description == "Compile classpath for source set 'custom'."
+
+        and:
+        def sourceSetRuntimeClasspath = sourceSet.runtimeClasspath
+        def sourceSetCompileClasspath = sourceSet.compileClasspath
+        sourceSetCompileClasspath == compileClasspath
+        sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtime)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {

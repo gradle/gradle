@@ -383,8 +383,14 @@
             <tr>
                 <td>compileOnly</td>
                 <td>compile</td>
-                <td>compileJava</td>
+                <td>-</td>
                 <td>Compile time only dependencies, not used at runtime</td>
+            </tr>
+            <tr>
+                <td>compileClasspath</td>
+                <td>compileOnly</td>
+                <td>compileJava</td>
+                <td>Compile classpath, used when compiling source</td>
             </tr>
             <tr>
                 <td>runtime</td>
@@ -401,8 +407,14 @@
             <tr>
                 <td>testCompileOnly</td>
                 <td>testCompile</td>
-                <td>compileTestJava</td>
+                <td>-</td>
                 <td>Additional dependencies only for compiling tests, not used at runtime</td>
+            </tr>
+            <tr>
+                <td>testCompileClasspath</td>
+                <td>testCompileOnly</td>
+                <td>compileTestJava</td>
+                <td>Test compile classpath, used when compiling test sources</td>
             </tr>
             <tr>
                 <td>testRuntime</td>
@@ -451,8 +463,14 @@
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
                 <td><literal><replaceable>sourceSet</replaceable>Compile</literal></td>
-                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>-</td>
                 <td>Compile time only dependencies for the given source set, not used at runtime</td>
+            </tr>
+            <tr>
+                <td><literal><replaceable>sourceSet</replaceable>CompileClasspath</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>CompileOnly</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td>Compile classpath, used when compiling source</td>
             </tr>
             <tr>
                 <td><literal><replaceable>sourceSet</replaceable>Runtime</literal></td>

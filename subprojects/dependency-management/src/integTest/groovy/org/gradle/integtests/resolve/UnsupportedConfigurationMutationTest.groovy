@@ -201,7 +201,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("Changed dependencies of configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        output.contains("Changed dependencies of parent of configuration ':api:compileOnly' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        output.contains("Changed dependencies of parent of configuration ':api:compileClasspath' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing artifacts of a configuration that has been resolved for task dependencies"() {

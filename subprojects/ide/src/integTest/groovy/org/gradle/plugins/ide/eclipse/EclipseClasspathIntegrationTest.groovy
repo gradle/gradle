@@ -1061,6 +1061,7 @@ apply plugin: 'eclipse'
     void compileOnlyDependenciesAddedToClasspath() {
         // given
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'testCompileOnly', '1.0').publish()
 
         // when
         runEclipseTask """
@@ -1073,12 +1074,13 @@ repositories {
 
 dependencies {
     compileOnly 'org.gradle.test:compileOnly:1.0'
+    testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
 }
 """
 
         // then
-        assert classpath.libs.size() == 1
-        classpath.assertHasLibs('compileOnly-1.0.jar')
+        assert classpath.libs.size() == 2
+        classpath.assertHasLibs('compileOnly-1.0.jar', 'testCompileOnly-1.0.jar')
     }
 
     @Test

@@ -31,8 +31,8 @@ public enum GeneratedIdeaScope {
     RUNTIME_TEST("RUNTIME", "TEST"),
     RUNTIME("RUNTIME"),
     TEST("TEST"),
-    COMPILE_ONLY("PROVIDED"),
-    COMPILE_ONLY_TEST("PROVIDED", "TEST");
+    COMPILE_CLASSPATH("PROVIDED"),
+    COMPILE_CLASSPATH_TEST("PROVIDED", "TEST");
 
     public final Set<String> scopes;
 

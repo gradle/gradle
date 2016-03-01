@@ -155,9 +155,7 @@ One of the objectives of the software model is to describe _what_ you want to bu
 
 ### Java plugin 'compile' configuration no longer represents all compile time dependencies
 
-As a result of the addition of [compile only dependencies](#support-for-declaring-compile-time-only-dependencies-with-java-plugin), references to `configurations.compile` no longer
-accurately represent the compile classpath used to build a given source set, as this will not include 'compileOnly' dependencies. When needing a reference to a source set's compile
-classpath, [`SourceSet#getCompileClasspath()`](dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:compileClasspath) should be used instead.
+As a result of the addition of [compile only dependencies](#support-for-declaring-compile-time-only-dependencies-with-java-plugin), references to `configurations.compile` no longer accurately represent the compile classpath used to build a given source set, as this will not include 'compileOnly' dependencies. When needing a reference to a source set's compile classpath, `configurations.compileClasspath` or `configurations.testCompileClasspath` should instead be used to reference the production or test classpaths, respectively.
 
 ## External contributions
 

@@ -218,7 +218,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
         }
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
+        compileConfiguration.setDescription(String.format("Compile dependencies for %s.", sourceSet));
 
         Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
         if (runtimeConfiguration == null) {
@@ -236,7 +236,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileOnlyConfiguration.extendsFrom(compileConfiguration);
         compileOnlyConfiguration.setDescription(String.format("Compile only classpath for %s.", sourceSet));
 
-        sourceSet.setCompileClasspath(compileOnlyConfiguration);
+        Configuration compileClasspathConfiguration = configurations.findByName(sourceSet.getCompileClasspathConfigurationName());
+        if (compileClasspathConfiguration == null) {
+            compileClasspathConfiguration = configurations.create(sourceSet.getCompileClasspathConfigurationName());
+        }
+        compileClasspathConfiguration.setVisible(false);
+        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
+        compileClasspathConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
+
+        sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 
