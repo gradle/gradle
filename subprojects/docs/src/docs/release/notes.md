@@ -134,6 +134,10 @@ Should you want to exclude all files, including those in subdirectories, a multi
 
 Note, this change affects all implementations of [`PatternFilterable`](javadoc/org/gradle/api/tasks/util/PatternFilterable.html), not just `FileTree`.
 
+### System properties are read in different order
+
+System properties set on the command line with -D option will now override settings in gradle.properties file. If you have the same property specified in both places with different values, then Gradle will use a different value after the upgrade.
+
 ### Undocumented `force` option on [Scala Plugin](userguide/scala_plugin.html) changed to `boolean`
 
 You may have a `force = <something>` option in your build file. Previously, this option was ignored by Gradle's Zinc Scala Compiler, but now it will be read and interpreted as a `boolean` value. Read more at [Scala Plugin](userguide/scala_plugin.html)
