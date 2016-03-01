@@ -176,4 +176,6 @@ public interface ProviderOperationParameters {
      *
      */
     Boolean isEmbeddedParticipants();
+
+    File getCompositeTargetBuildRootDir(File defaultRootDir);
 }

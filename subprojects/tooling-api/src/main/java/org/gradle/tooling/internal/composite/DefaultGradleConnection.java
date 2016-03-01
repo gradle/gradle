@@ -16,10 +16,14 @@
 
 package org.gradle.tooling.internal.composite;
 
+import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.composite.internal.BuildIdentityInternal;
+import org.gradle.tooling.composite.internal.CompositeBuildLauncher;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
@@ -46,6 +50,11 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
     public <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
         return new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
+    }
+
+    @Override
+    public BuildLauncher newBuild(BuildIdentity buildIdentity) {
+        return new CompositeBuildLauncher(((BuildIdentityInternal) buildIdentity).getRootDirectory(), asyncConnection, parameters);
     }
 
     private <T> void checkSupportedModelType(Class<T> modelType) {

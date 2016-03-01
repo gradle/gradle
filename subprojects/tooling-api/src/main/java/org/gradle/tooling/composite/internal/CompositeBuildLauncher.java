@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,63 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.BuildLauncher;
+package org.gradle.tooling.composite.internal;
+
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.Launchable;
-import org.gradle.tooling.model.Task;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.File;
 
-public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
-    protected final AsyncConsumerActionExecutor connection;
-
-    public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
-        super(parameters);
-        operationParamsBuilder.setEntryPoint("BuildLauncher API");
-        operationParamsBuilder.setTasks(Collections.<String>emptyList());
-        this.connection = connection;
-    }
-
-    @Override
-    protected DefaultBuildLauncher getThis() {
-        return this;
-    }
-
-    public BuildLauncher forTasks(String... tasks) {
-        operationParamsBuilder.setTasks(Arrays.asList(tasks));
-        return this;
-    }
-
-    public BuildLauncher forTasks(Task... tasks) {
-        forTasks(Arrays.asList(tasks));
-        return this;
-    }
-
-    public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        forLaunchables(tasks);
-        return this;
-    }
-
-    public BuildLauncher forLaunchables(Launchable... launchables) {
-        return forLaunchables(Arrays.asList(launchables));
-    }
-
-    public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
-        operationParamsBuilder.setLaunchables(launchables);
-        return this;
-    }
-
-    public void run() {
-        BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
-        run(handler);
-        handler.getResult();
+public class CompositeBuildLauncher extends DefaultBuildLauncher {
+    public CompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+        super(connection, parameters);
+        operationParamsBuilder.setCompositeTargetBuildRootDir(targetBuildDir);
     }
 
     public void run(final ResultHandler<? super Void> handler) {
@@ -97,4 +57,5 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
             return String.format("Could not execute build using %s.", connection.getDisplayName());
         }
     }
+
 }
