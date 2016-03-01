@@ -26,7 +26,7 @@ import java.util.Collection;
  */
 public interface FileCollectionSnapshot {
     /**
-     * Returns an iterator over the changes to file contents since the given snapshot. Ignores changes to file meta-data, such as last modified time.
+     * Returns an iterator over the changes to file contents since the given snapshot. Note: Ignores changes to file meta-data, such as last modified time.
      */
     ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
 
@@ -37,7 +37,7 @@ public interface FileCollectionSnapshot {
     FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot);
 
     /**
-     * Applies any changes to file contents since the given old snapshot, to the given target snapshot. Ignore changes to file meta-data, such as last modified time.
+     * Applies any changes to file contents since the given old snapshot, to the given target snapshot. Note: <em>Includes changes to file meta-data, such as last modified time.</em>
      */
     FileCollectionSnapshot applyChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target);
 

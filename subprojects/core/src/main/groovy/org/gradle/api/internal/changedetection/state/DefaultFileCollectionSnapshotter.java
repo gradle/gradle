@@ -32,6 +32,21 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
+    private enum ChangeType {
+        // Ignore added, consider all other kinds of changes
+        UpdatesOnly() {
+            @Override
+            boolean includeAdded() {
+                return false;
+            }
+        },
+        // Include all kinds of changes
+        AllChanges;
+
+        boolean includeAdded() {
+            return true;
+        }
+    }
     private final FileSnapshotter snapshotter;
     private TaskArtifactStateCacheAccess cacheAccess;
     private final StringInterner stringInterner;
@@ -72,7 +87,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                         if (fileDetails.isDirectory()) {
                             snapshots.put(absolutePath, DirSnapshot.getInstance());
                         } else {
-                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash()));
+                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified()));
                         }
                     }
                 }
@@ -109,23 +124,39 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     interface IncrementalFileSnapshot {
-        boolean isUpToDate(IncrementalFileSnapshot snapshot);
+        boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+        boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
     }
 
     static class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
         final byte[] hash;
+        final transient long lastModified; // Currently not persisted
 
         public FileHashSnapshot(byte[] hash) {
             this.hash = hash;
+            this.lastModified = 0;
         }
 
-        public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
+        public FileHashSnapshot(byte[] hash, long lastModified) {
+            this.hash = hash;
+            this.lastModified = lastModified;
+        }
+
+        public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
             if (!(snapshot instanceof FileHashSnapshot)) {
                 return false;
             }
-
             FileHashSnapshot other = (FileHashSnapshot) snapshot;
             return Arrays.equals(hash, other.hash);
+        }
+
+        @Override
+        public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
+            if (!(snapshot instanceof FileHashSnapshot)) {
+                return false;
+            }
+            FileHashSnapshot other = (FileHashSnapshot) snapshot;
+            return lastModified == other.lastModified && Arrays.equals(hash, other.hash);
         }
 
         @Override
@@ -148,7 +179,12 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             return instance;
         }
 
-        public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
+        @Override
+        public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
+            return isContentUpToDate(snapshot);
+        }
+
+        public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof DirSnapshot;
         }
     }
@@ -162,7 +198,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         static MissingFileSnapshot getInstance() {
             return instance;
         }
-        public boolean isUpToDate(IncrementalFileSnapshot snapshot) {
+
+        @Override
+        public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
+            return isContentUpToDate(snapshot);
+        }
+
+        public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
             return snapshot instanceof MissingFileSnapshot;
         }
     }
@@ -212,7 +254,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                         if (otherFile == null) {
                             listener.added(currentFile);
                             return true;
-                        } else if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
+                        } else if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
                             listener.changed(currentFile);
                             return true;
                         }
@@ -237,12 +279,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public FileCollectionSnapshot updateFrom(final FileCollectionSnapshot newSnapshot) {
             FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) newSnapshot;
             final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(snapshots);
-            diff(other.snapshots, snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots) {
-                @Override
-                public void added(Map.Entry<String, IncrementalFileSnapshot> element) {
-                    // Ignore
-                }
-            });
+            diff(other.snapshots, snapshots, ChangeType.UpdatesOnly, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
             return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
@@ -251,18 +288,20 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             FileCollectionSnapshotImpl oldSnapshotImpl = (FileCollectionSnapshotImpl) oldSnapshot;
             FileCollectionSnapshotImpl targetImpl = (FileCollectionSnapshotImpl) target;
             final Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(targetImpl.snapshots);
-            diff(snapshots, oldSnapshotImpl.snapshots, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
+            diff(snapshots, oldSnapshotImpl.snapshots, ChangeType.AllChanges, new MapMergeChangeListener<String, IncrementalFileSnapshot>(newSnapshots));
             return new FileCollectionSnapshotImpl(newSnapshots);
         }
 
-        private void diff(Map<String, IncrementalFileSnapshot> snapshots, Map<String, IncrementalFileSnapshot> oldSnapshots,
+        private void diff(Map<String, IncrementalFileSnapshot> snapshots, Map<String, IncrementalFileSnapshot> oldSnapshots, ChangeType changes,
                           ChangeListener<Map.Entry<String, IncrementalFileSnapshot>> listener) {
             Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshots);
             for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
                 IncrementalFileSnapshot otherFile = otherSnapshots.remove(entry.getKey());
                 if (otherFile == null) {
-                    listener.added(entry);
-                } else if (!entry.getValue().isUpToDate(otherFile)) {
+                    if (changes.includeAdded()) {
+                        listener.added(entry);
+                    }
+                } else if (!entry.getValue().isContentAndMetadataUpToDate(otherFile)) {
                     listener.changed(entry);
                 }
             }

@@ -163,7 +163,7 @@ task b(type: TransformerTask, dependsOn: a) {
 
         // Update timestamp, no content changes
 
-        inputFile.setLastModified(inputFile.lastModified() - 10000);
+        inputFile.makeOlder()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
 
@@ -231,6 +231,8 @@ b.outputFile = file('new-output.txt')
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
         testFile('.gradle').assertIsDir().deleteDir()
+        outputFileA.makeOlder()
+        outputFileB.makeOlder()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
@@ -302,6 +304,8 @@ task b(type: DirTransformerTask, dependsOn: a) {
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
         testFile('.gradle').assertIsDir().deleteDir()
+        outputAFile.makeOlder()
+        outputBFile.makeOlder()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
@@ -361,9 +365,11 @@ task b(type: DirTransformerTask) {
 
         inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
 
-        // Change to new version of Gradle
+        // Output files already exist before using this version of Gradle
         // Simulate this by removing the .gradle dir
         testFile('.gradle').assertIsDir().deleteDir()
+        testFile('build/file1.txt').makeOlder()
+        testFile('build/file2.txt').makeOlder()
 
         inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 

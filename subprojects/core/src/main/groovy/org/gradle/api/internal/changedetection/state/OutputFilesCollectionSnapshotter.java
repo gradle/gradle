@@ -47,7 +47,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         return new OutputFilesSnapshot(Collections.<String>emptySet(), snapshotter.emptySnapshot());
     }
 
-    public OutputFilesSnapshot snapshot(final FileCollection files) {
+    public OutputFilesSnapshot snapshot(FileCollection files) {
         Set<String> roots = new LinkedHashSet<String>();
         for (File file : files.getFiles()) {
             roots.add(stringInterner.intern(file.getAbsolutePath()));
