@@ -66,10 +66,12 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
     private void executeTasks(StartParameter startParameter, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
+        boolean buildFound = false;
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
             if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
                 continue;
             }
+            buildFound = true;
             if (cancellationToken.isCancellationRequested()) {
                 break;
             }
@@ -103,6 +105,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             } finally {
                 projectConnection.close();
             }
+        }
+        if (!buildFound) {
+            throw new IllegalStateException("Build not part of composite");
         }
     }
 

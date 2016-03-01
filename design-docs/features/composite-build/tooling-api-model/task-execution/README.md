@@ -15,7 +15,7 @@ BuildLauncher newBuild(BuildIdentity buildIdentity)
 
 ### Implementation notes
 
-This story will only add support for executing a task. 
+This story will only add support for executing a task.
 Forwarding console output (`setStandardOutput`) is not implemented as part of this story.
 
 
@@ -23,6 +23,7 @@ Forwarding console output (`setStandardOutput`) is not implemented as part of th
 
 - test that a task can be executed in a build with a single participant.
 - test that a task can be executed in a build with multiple participants.
+- throws exception when task execution requested on a build with is not part of the composite
 
 ### Documentation
 

@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 
@@ -27,7 +28,6 @@ class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "executes task in a single project within a composite "() {
         given:
-        embedCoordinatorAndParticipants = true
         def build1 = populate("build1") {
             buildFile << """
 task hello {
@@ -66,5 +66,30 @@ task hello {
 
         where:
         numberOfOtherBuilds << [0, 3]
+    }
+
+    def "throws exception when task executed on build that doesn't exist in the composite"() {
+        given:
+        def build1 = populate("build1") {
+            buildFile << "apply plugin: 'java'"
+        }
+        def build2 = populate("build2") {
+            buildFile << "apply plugin: 'java'"
+        }
+        def build3 = populate("build3") {
+            buildFile << "apply plugin: 'java'"
+        }
+        def builds = [build1, build2]
+        when:
+        def buildId = createGradleBuildParticipant(build3).toBuildIdentity()
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild(buildId)
+            buildLauncher.forTasks("jar")
+            buildLauncher.run()
+
+        }
+        then:
+        def e = thrown(GradleConnectionException)
+        e.cause.message == "Build not part of composite"
     }
 }
