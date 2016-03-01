@@ -17,15 +17,20 @@ package org.gradle.plugins.ide.eclipse
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
@@ -85,7 +90,6 @@ class EclipsePlugin extends IdePlugin {
         new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureEclipseProject(Project project, EclipseModel model) {
         maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject) { GenerateEclipseProject task ->
             EclipseProject projectModel = task.projectModel
@@ -99,14 +103,16 @@ class EclipsePlugin extends IdePlugin {
             model.project = projectModel
 
             projectModel.name = project.name
-            projectModel.conventionMapping.comment = { project.description }
+
+            ConventionMapping convention = conventionMappingFor(projectModel)
+            convention.map('comment') { project.description }
 
             project.plugins.withType(JavaBasePlugin) {
                 if (!project.plugins.hasPlugin(EarPlugin)) {
                     projectModel.buildCommand "org.eclipse.jdt.core.javabuilder"
                 }
                 projectModel.natures "org.eclipse.jdt.core.javanature"
-                projectModel.conventionMapping.linkedResources = {
+                convention.map('linkedResources') {
                     new LinkedResourcesCreator().links(project)
                 }
             }
@@ -116,17 +122,16 @@ class EclipsePlugin extends IdePlugin {
             }
 
             project.plugins.withType(ScalaBasePlugin) {
-                projectModel.buildCommands.set(projectModel.buildCommands.findIndexOf { it.name == "org.eclipse.jdt.core.javabuilder" },
+                projectModel.buildCommands.set(projectModel.buildCommands.findIndexOf { ((BuildCommand) it).name == "org.eclipse.jdt.core.javabuilder" },
                     new BuildCommand("org.scala-ide.sdt.core.scalabuilder"))
                 projectModel.natures.add(projectModel.natures.indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature")
             }
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureEclipseClasspath(Project project, EclipseModel model) {
         model.classpath = instantiator.newInstance(EclipseClasspath, project)
-        model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
+        conventionMappingFor(model.classpath).map('defaultOutputDir') { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
             maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { GenerateEclipseClasspath task ->
@@ -137,45 +142,55 @@ class EclipsePlugin extends IdePlugin {
 
                 //model properties:
                 task.classpath = model.classpath
-                task.classpath.file = new XmlFileContentMerger(task.xmlTransformer)
+                task.classpath.file = new XmlFileContentMerger((XmlTransformer) task.getProperty('xmlTransformer'))
 
-                task.classpath.sourceSets = project.sourceSets
+                task.classpath.sourceSets = (Iterable<SourceSet>) InvokerHelper.getProperty(project, 'sourceSets')
 
                 project.afterEvaluate {
                     // keep the ordering we had in earlier gradle versions
                     Set<String> containers = new LinkedHashSet<String>()
-                    containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/")
+                    containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${model.jdt.getJavaRuntimeName()}/".toString())
                     containers.addAll(task.classpath.containers)
                     task.classpath.containers = containers
                 }
 
                 project.plugins.withType(JavaPlugin) {
-                    task.classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
-                    task.classpath.conventionMapping.classFolders = {
-                        return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
-                    }
-                    task.dependsOn {
-                        project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
-                    }
+                    configureJavaClasspath(task)
                 }
 
-                project.plugins.withType(ScalaBasePlugin) {
-                    task.classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
-
-                    // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
-                    project.gradle.projectsEvaluated {
-                        def provided = ["scala-library", "scala-swing", "scala-dbc"]
-                        def dependencies = task.classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
-                        if (!dependencies.empty) {
-                            task.classpath.minusConfigurations << project.configurations.detachedConfiguration(dependencies as Dependency[])
-                        }
-                    }
-                }
+                configureScalaDependencies(task)
             }
         }
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)
+    private void configureJavaClasspath(GenerateEclipseClasspath task) {
+        task.classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
+        task.classpath.conventionMapping.classFolders = {
+            return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
+        }
+        task.dependsOn {
+            project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
+        }
+    }
+
+
+    @CompileStatic(TypeCheckingMode.SKIP)
+    private void configureScalaDependencies(task) {
+        project.plugins.withType(ScalaBasePlugin) {
+            task.classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
+
+            // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
+            project.gradle.projectsEvaluated {
+                def provided = ["scala-library", "scala-swing", "scala-dbc"]
+                def dependencies = task.classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
+                if (!dependencies.empty) {
+                    task.classpath.minusConfigurations << project.configurations.detachedConfiguration(dependencies as Dependency[])
+                }
+            }
+        }
+    }
+
     private void configureEclipseJdt(Project project, EclipseModel model) {
         project.plugins.withType(JavaBasePlugin) {
             maybeAddTask(project, this, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt) { GenerateEclipseJdt task ->
@@ -186,18 +201,18 @@ class EclipsePlugin extends IdePlugin {
                 //model properties:
                 def jdt = task.jdt
                 model.jdt = jdt
-                jdt.conventionMapping.sourceCompatibility = { project.convention.getPlugin(JavaPluginConvention).sourceCompatibility }
-                jdt.conventionMapping.targetCompatibility = { project.convention.getPlugin(JavaPluginConvention).targetCompatibility }
-                jdt.conventionMapping.javaRuntimeName = { String.format("JavaSE-%s", project.convention.getPlugin(JavaPluginConvention).targetCompatibility) }
+                def conventionMapping = conventionMappingFor(jdt)
+                conventionMapping.map('sourceCompatibility') { project.convention.getPlugin(JavaPluginConvention).sourceCompatibility }
+                conventionMapping.map('targetCompatibility'){ project.convention.getPlugin(JavaPluginConvention).targetCompatibility }
+                conventionMapping.map('javaRuntimeName') { String.format("JavaSE-%s", project.convention.getPlugin(JavaPluginConvention).targetCompatibility) }
             }
         }
     }
 
-    // This skip is because of a weird Groovy compiler bug
-    @CompileStatic(TypeCheckingMode.SKIP)
-    public static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType, @DelegatesTo(strategy=Closure.DELEGATE_FIRST, type="T") Closure action) {
-        def tasks = project.tasks
-        if (tasks.findByName(taskName)!=null) {
+    private static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType,
+                                                     @DelegatesTo(strategy = Closure.DELEGATE_FIRST, type = "T") Closure action) {
+        TaskContainer tasks = project.tasks
+        if (tasks.findByName(taskName) != null) {
             return
         }
         def task = tasks.create(taskName, taskType)

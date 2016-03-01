@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -24,16 +25,11 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.gradle.plugins.ide.idea.model.IdeaModel
-import org.gradle.plugins.ide.idea.model.IdeaModule
-import org.gradle.plugins.ide.idea.model.IdeaModuleIml
-import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace
-import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.idea.model.*
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
@@ -56,11 +52,13 @@ class IdeaPlugin extends IdePlugin {
         ideaModel
     }
 
-    @Override protected String getLifecycleTaskName() {
+    @Override
+    protected String getLifecycleTaskName() {
         return 'idea'
     }
 
-    @Override protected void onApply(Project project) {
+    @Override
+    protected void onApply(Project project) {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
@@ -86,11 +84,10 @@ class IdeaPlugin extends IdePlugin {
         new IdeaNameDeduper().configureRoot(project.rootProject)
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: GenerateIdeaWorkspace) { GenerateIdeaWorkspace task ->
-                task.workspace = new IdeaWorkspace(iws: new XmlFileContentMerger(task.xmlTransformer))
+                task.workspace = new IdeaWorkspace(iws: new XmlFileContentMerger((XmlTransformer) task.getProperty('xmlTransformer')))
                 ideaModel.workspace = task.workspace
                 task.outputFile = new File(project.projectDir, "${project.name}.iws")
             }
@@ -98,24 +95,24 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaProject(Project project) {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) { GenerateIdeaProject task ->
-                def ipr = new XmlFileContentMerger(task.xmlTransformer)
+                def ipr = new XmlFileContentMerger((XmlTransformer) task.getProperty('xmlTransformer'))
                 def ideaProject = instantiator.newInstance(IdeaProject, project, ipr)
                 task.ideaProject = ideaProject
                 ideaModel.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
-                ideaProject.conventionMapping.languageLevel = {
+                def conventionMapping = conventionMappingFor(ideaProject)
+                conventionMapping.map('jdkName') { JavaVersion.current().toString() }
+                conventionMapping.map('languageLevel') {
                     JavaVersion maxSourceCompatibility = getMaxJavaModuleCompatibilityVersionFor { Project p ->
                         p.convention.getPlugin(JavaPluginConvention).sourceCompatibility
                     }
                     new IdeaLanguageLevel(maxSourceCompatibility)
                 }
-                ideaProject.conventionMapping.targetBytecodeVersion = {
+                conventionMapping.map('targetBytecodeVersion') {
                     if (ideaProject.hasUserSpecifiedLanguageLevel) {
                         return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"))
                     }
@@ -126,16 +123,22 @@ class IdeaPlugin extends IdePlugin {
                 }
 
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
-                ideaProject.conventionMapping.modules = {
-                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect { it.idea.module }
+                conventionMapping.map('modules') {
+                    project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect {
+                        ideaModelFor(it).module
+                    }
                 }
 
-                ideaProject.conventionMapping.pathFactory = {
-                    new PathFactory().addPathVariable('PROJECT_DIR', outputFile.parentFile)
+                conventionMapping.map('pathFactory') {
+                    new PathFactory().addPathVariable('PROJECT_DIR', task.outputFile.parentFile)
                 }
             }
             addWorker(task)
         }
+    }
+
+    private static IdeaModel ideaModelFor(Project project) {
+        (IdeaModel) InvokerHelper.getProperty(project, 'idea')
     }
 
     private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Closure collectClosure) {
@@ -144,24 +147,23 @@ class IdeaPlugin extends IdePlugin {
         maxJavaVersion
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) { GenerateIdeaModule task ->
-            def iml = new IdeaModuleIml(task.xmlTransformer, project.projectDir)
+            def iml = new IdeaModuleIml((XmlTransformer) task.getProperty('xmlTransformer'), project.projectDir)
             def module = instantiator.newInstance(IdeaModule, project, iml)
             task.module = module
 
             ideaModel.module = module
+            def conventionMapping = conventionMappingFor(module)
+            conventionMapping.map('sourceDirs') { [] as LinkedHashSet }
+            conventionMapping.map('name') { project.name }
+            conventionMapping.map('contentRoot') { project.projectDir }
+            conventionMapping.map('testSourceDirs') { [] as LinkedHashSet }
+            conventionMapping.map('excludeDirs') { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
 
-            module.conventionMapping.sourceDirs = { [] as LinkedHashSet }
-            module.conventionMapping.name = { project.name }
-            module.conventionMapping.contentRoot = { project.projectDir }
-            module.conventionMapping.testSourceDirs = { [] as LinkedHashSet }
-            module.conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
-
-            module.conventionMapping.pathFactory = {
+            conventionMapping.map('pathFactory') {
                 PathFactory factory = new PathFactory()
-                factory.addPathVariable('MODULE_DIR', outputFile.parentFile)
+                factory.addPathVariable('MODULE_DIR', task.outputFile.parentFile)
                 module.pathVariables.each { key, value ->
                     factory.addPathVariable(key, value)
                 }
@@ -184,10 +186,10 @@ class IdeaPlugin extends IdePlugin {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
             module.scopes = [
-                    PROVIDED: [plus: [], minus: []],
-                    COMPILE: [plus: [], minus: []],
-                    RUNTIME: [plus: [], minus: []],
-                    TEST: [plus: [], minus: []]
+                PROVIDED: [plus: [], minus: []],
+                COMPILE: [plus: [], minus: []],
+                RUNTIME: [plus: [], minus: []],
+                TEST: [plus: [], minus: []]
             ]
             module.conventionMapping.singleEntryLibraries = {
                 [
@@ -209,35 +211,32 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
         if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
             return true
         }
-        IdeaProject ideaProject = rootProject.idea.project
+        IdeaProject ideaProject = ideaModelFor(rootProject).project
         if (ideaProject.hasUserSpecifiedLanguageLevel) {
             return false
         }
         return moduleTargetBytecodeLevel != ideaProject.getTargetBytecodeVersion()
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
         if (!rootProject.plugins.hasPlugin(IdeaPlugin)) {
             return true
         }
-        IdeaProject ideaProject = rootProject.idea.project
+        IdeaProject ideaProject = ideaModelFor(rootProject).project
         if (ideaProject.hasUserSpecifiedLanguageLevel) {
             return false
         }
         return moduleLanguageLevel != ideaProject.languageLevel
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureForScalaPlugin() {
         project.plugins.withType(ScalaBasePlugin) {
             //see IdeaScalaConfigurer
-            project.tasks.ideaModule.dependsOn(project.rootProject.tasks.ideaProject)
+            project.tasks.findByName('ideaModule').dependsOn(project.rootProject.tasks.findByName('ideaProject'))
         }
         if (isRoot(project)) {
             new IdeaScalaConfigurer(project).configure()
