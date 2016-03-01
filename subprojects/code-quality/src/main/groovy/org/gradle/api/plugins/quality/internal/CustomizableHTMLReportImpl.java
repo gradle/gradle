@@ -19,22 +19,23 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.CustomizableHTMLReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
+import org.gradle.api.resources.TextResource;
 
 public class CustomizableHTMLReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHTMLReport {
 
-    private String stylesheet;
+    private TextResource stylesheet;
 
     public CustomizableHTMLReportImpl(String name, Task task) {
         super(name, task);
     }
 
     @Override
-    public String getStylesheet() {
+    public TextResource getStylesheet() {
         return stylesheet;
     }
 
     @Override
-    public void setStylesheet(String stylesheet) {
+    public void setStylesheet(TextResource stylesheet) {
         this.stylesheet = stylesheet;
     }
 

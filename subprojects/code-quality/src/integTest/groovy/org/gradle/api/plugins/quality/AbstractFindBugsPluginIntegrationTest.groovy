@@ -197,7 +197,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             findbugsMain.reports {
                 xml.enabled false
                 html.enabled true
-                html.stylesheet '${resources.getResource("/findbugs-custom-stylesheet.xsl")}'
+                html.stylesheet resources.text.fromFile('${sampleStylesheet()}')
             }
         """
 
@@ -476,6 +476,10 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file('src/main/java/org/gradle/BadClass.java') << 'package org.gradle; public class BadClass { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
         // Has ES_COMPARING_PARAMETER_STRING_WITH_EQ
         file('src/test/java/org/gradle/BadClassTest.java') << 'package org.gradle; public class BadClassTest { public boolean isFoo(Object arg) { return "true" == "false"; } }'
+    }
+
+    private sampleStylesheet() {
+        resources.getResource('/findbugs-custom-stylesheet.xsl')
     }
 
     private Matcher<String> containsClass(String className) {

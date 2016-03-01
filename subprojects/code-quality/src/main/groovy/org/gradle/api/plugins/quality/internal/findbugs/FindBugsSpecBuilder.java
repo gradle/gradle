@@ -171,8 +171,8 @@ public class FindBugsSpecBuilder {
                     }
                 } else if (reportsImpl.getFirstEnabled() instanceof CustomizableHTMLReportImpl) {
                     CustomizableHTMLReportImpl r = (CustomizableHTMLReportImpl) reportsImpl.getFirstEnabled();
-                    if (!Strings.isNullOrEmpty(r.getStylesheet())) {
-                        outputArg += ':' + r.getStylesheet();
+                    if (r.getStylesheet() != null) {
+                        outputArg += ':' + r.getStylesheet().asFile().getAbsolutePath();
                     }
                 }
                 args.add(outputArg);

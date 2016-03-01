@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
+import org.gradle.api.resources.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -162,12 +163,16 @@ class FindBugsSpecBuilderTest extends Specification {
         File destination = Mock()
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
+        File stylesheet = Mock()
+        TextResource stylesheetResource = Mock()
 
         report.enabled >> enabledReportSet
         report.firstEnabled >> singleReport
-        singleReport.stylesheet >> stylesheet
+        singleReport.stylesheet >> stylesheetResource
         singleReport.name >> "html"
         destination.absolutePath >> "/absolute/report/output"
+        stylesheet.absolutePath >> "/absolute/stylesheet.xsl"
+        stylesheetResource.asFile() >> stylesheet
         singleReport.destination >> destination
         enabledReportSet.empty >> false
         enabledReportSet.size() >> 1
@@ -177,13 +182,9 @@ class FindBugsSpecBuilderTest extends Specification {
         def args = builder.build().arguments
 
         then:
-        args.contains(arg.toString())
+        args.contains('-html:/absolute/stylesheet.xsl')
         args.contains("-outputFile")
         args.contains(destination.absolutePath)
-
-        where:
-        stylesheet << ["foo.xsl", "", null]
-        arg << ['-html:foo.xsl', '-html', '-html']
     }
 
     def "configure effort"() {

@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.resources.TextResource;
 
 /**
  * A HTML Report whose generation can be customized with a XSLT stylesheet.
@@ -30,13 +31,13 @@ public interface CustomizableHTMLReport extends SingleFileReport {
      *
      * @return the stylesheet to use to generate the HTML report
      */
-    String getStylesheet();
+    TextResource getStylesheet();
 
     /**
      * The stylesheet to use to generate the report.
      *
      * @param stylesheet the stylesheet to use to generate the HTML report
      */
-    void setStylesheet(String stylesheet);
+    void setStylesheet(TextResource stylesheet);
 
 }
