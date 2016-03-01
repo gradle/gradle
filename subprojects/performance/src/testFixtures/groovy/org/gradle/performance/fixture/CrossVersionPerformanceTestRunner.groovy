@@ -49,7 +49,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     BuildExperimentListener buildExperimentListener
     private boolean adhocRun
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, adhocRun) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, boolean adhocRun) {
         this.adhocRun = adhocRun
         this.reporter = reporter
         this.experimentRunner = experimentRunner
