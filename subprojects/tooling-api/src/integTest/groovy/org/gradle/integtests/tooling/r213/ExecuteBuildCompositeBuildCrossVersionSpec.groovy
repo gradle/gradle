@@ -21,13 +21,14 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.gradle.BuildInvocations
 
 /**
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def setup() {
-        embedCoordinatorAndParticipants = true
+        //embedCoordinatorAndParticipants = true
     }
 
     def "executes task in a single project within a composite "() {
@@ -118,7 +119,7 @@ task hello {
         def build1Id = createGradleBuildParticipant(build1).toBuildIdentity()
         withCompositeConnection(builds) { connection ->
             def task
-            connection.getModels(GradleProject).each { modelresult ->
+            connection.getModels(modelType).each { modelresult ->
                 if (modelresult.projectIdentity.build == build1Id) {
                     task = modelresult.model.getTasks().find { it.name == 'hello' }
                 }
@@ -138,6 +139,9 @@ task hello {
         def helloFile = build1.file("hello.txt")
         helloFile.exists()
         helloFile.text == 'Hello world'
-    }
 
+        where:
+        // BuildInvocations returns InternalLauncher instances with accesses a different code path
+        modelType << [GradleProject, BuildInvocations]
+    }
 }
