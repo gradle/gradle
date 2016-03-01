@@ -21,14 +21,13 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
-import spock.lang.Ignore
 
 /**
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def setup() {
-        //embedCoordinatorAndParticipants = true
+        embedCoordinatorAndParticipants = true
     }
 
     def "executes task in a single project within a composite "() {
@@ -98,7 +97,6 @@ task hello {
         e.cause.message == "Build not part of composite"
     }
 
-    @Ignore
     def "executes task in single project selected with Launchable"() {
         given:
         def build1 = populate("build1") {
@@ -126,7 +124,6 @@ task hello {
                 }
             }
             assert task != null
-            println "task: $task"
             def buildLauncher = connection.newBuild(build1Id)
             buildLauncher.forTasks(task)
             buildLauncher.addProgressListener(new ProgressListener() {
