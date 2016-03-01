@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrationSpec {
@@ -38,8 +39,9 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
+        String implementationClasspath = normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
+        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
+        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -87,7 +89,14 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
+        String implementationClasspath = normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
+        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
+        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
+    }
+
+    private Properties readPropertiesFile(File file) {
+        Properties properties = new Properties()
+        properties.load(file.newDataInputStream())
+        properties
     }
 }

@@ -49,9 +49,8 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.containsAll([':compileJava', ':processResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        !classpathManifest.text.contains("\\")
         String implementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
-        readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY) == normaliseFileAndLineSeparators(implementationClasspath)
+        normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -82,9 +81,8 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        !classpathManifest.text.contains("\\")
         String implementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
-        readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY) == normaliseFileAndLineSeparators(implementationClasspath)
+        normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
     }
 
     def "adds no implementation-classpath property for empty plugin classpath"() {
@@ -104,7 +102,6 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.contains(TASK_PATH)
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        !classpathManifest.text.contains("\\")
         !readPropertiesFile(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
 
