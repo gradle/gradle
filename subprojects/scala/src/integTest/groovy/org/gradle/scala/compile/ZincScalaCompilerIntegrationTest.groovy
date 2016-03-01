@@ -45,6 +45,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -67,6 +68,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.java").delete()
         file("src/main/scala/Person.java") << "public class Person {}"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -86,6 +88,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("prj1/src/main/scala/Person.scala").delete()
         file("prj1/src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -105,6 +108,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
