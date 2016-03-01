@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * <p>
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
- * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension#getFunctionalTestClasspath()}.
+ * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension}.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -52,7 +52,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
-    static final String EXTENSION_NAME = "javaGradlePlugin";
+    static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_CLASSPATH_TASK_NAME = "pluginClasspathManifest";
 
     public void apply(Project project) {
@@ -91,7 +91,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         pluginClasspathTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
-                return extension.getFunctionalTestClasspath().getPluginSourceSet().getRuntimeClasspath();
+                return extension.getPluginSourceSet().getRuntimeClasspath();
             }
         });
 
@@ -200,7 +200,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         @Override
         public void execute(Project project) {
             DependencyHandler dependencies = project.getDependencies();
-            Set<SourceSet> testSourceSets = extension.getFunctionalTestClasspath().getTestSourceSets();
+            Set<SourceSet> testSourceSets = extension.getTestSourceSets();
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();

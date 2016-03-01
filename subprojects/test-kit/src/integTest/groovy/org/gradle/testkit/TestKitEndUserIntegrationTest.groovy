@@ -629,10 +629,8 @@ class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
 
             check.dependsOn functionalTest
 
-            javaGradlePlugin {
-                functionalTestClasspath {
-                    testSourceSets sourceSets.functionalTest
-                }
+            gradlePlugin {
+                testSourceSets sourceSets.functionalTest
             }
 
             dependencies {

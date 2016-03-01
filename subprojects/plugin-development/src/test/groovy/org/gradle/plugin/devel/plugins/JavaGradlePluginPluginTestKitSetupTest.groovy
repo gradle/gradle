@@ -70,11 +70,9 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest.runtimeClasspath
         }
 
-        project.javaGradlePlugin {
-            functionalTestClasspath {
-                pluginSourceSet project.sourceSets.customMain
-                testSourceSets project.sourceSets.functionalTest
-            }
+        project.gradlePlugin {
+            pluginSourceSet project.sourceSets.customMain
+            testSourceSets project.sourceSets.functionalTest
         }
 
         project.evaluate()
@@ -119,10 +117,8 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest2.runtimeClasspath
         }
 
-        project.javaGradlePlugin {
-            functionalTestClasspath {
-                testSourceSets project.sourceSets.functionalTest1, project.sourceSets.functionalTest2
-            }
+        project.gradlePlugin {
+            testSourceSets project.sourceSets.functionalTest1, project.sourceSets.functionalTest2
         }
 
         project.evaluate()

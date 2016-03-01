@@ -74,11 +74,9 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
             check.dependsOn functionalTest
 
-            javaGradlePlugin {
-                functionalTestClasspath {
-                    pluginSourceSet sourceSets.customMain
-                    testSourceSets sourceSets.functionalTest
-                }
+            gradlePlugin {
+                pluginSourceSet sourceSets.customMain
+                testSourceSets sourceSets.functionalTest
             }
         """
 

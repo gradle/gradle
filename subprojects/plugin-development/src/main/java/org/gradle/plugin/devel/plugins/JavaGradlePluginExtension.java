@@ -16,10 +16,15 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.SourceSet;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Configuration options for the {@link JavaGradlePluginPlugin}.
@@ -30,11 +35,9 @@ import org.gradle.util.ConfigureUtil;
  * <pre autoTested=''>
  *     apply plugin: "java-gradle-plugin"
  *
- *     javaGradlePlugin {
- *         functionalTestClasspath {
- *              pluginSourceSet project.sourceSets.customMain
- *              testSourceSets project.sourceSets.functionalTest
- *         }
+ *     gradlePlugin {
+ *         pluginSourceSet project.sourceSets.customMain
+*          testSourceSets project.sourceSets.functionalTest
  *     }
  * </pre>
  *
@@ -44,28 +47,50 @@ import org.gradle.util.ConfigureUtil;
 @Incubating
 public class JavaGradlePluginExtension {
 
-    private FunctionalTestClasspath functionalTestClasspath;
+    private SourceSet pluginSourceSet;
+    private Set<SourceSet> testSourceSets = Collections.emptySet();
 
     public JavaGradlePluginExtension(Project project) {
-        functionalTestClasspath = new FunctionalTestClasspath(project);
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        testSourceSets(javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME));
     }
 
     /**
-     * Configures functional test classpath configuration options. The specified closure
-     * delegates to an instance of {@link FunctionalTestClasspath}.
+     * Provides the source set that compiles the code under test.
      *
-     * @param configureClosure functional test classpath configuration options
+     * @param pluginSourceSet the plugin source set
      */
-    public void functionalTestClasspath(Closure<?> configureClosure) {
-        ConfigureUtil.configure(configureClosure, functionalTestClasspath);
+    public void pluginSourceSet(SourceSet pluginSourceSet) {
+        this.pluginSourceSet = pluginSourceSet;
     }
 
     /**
-     * Returns the functional test classpath configuration options.
+     * Provides the source sets executing the functional tests with TestKit.
+     * <p>
+     * Calling this method multiple times with different source sets is not additive.
      *
-     * @return the functional test classpath configuration options.
+     * @param testSourceSets the test source sets
      */
-    public FunctionalTestClasspath getFunctionalTestClasspath() {
-        return functionalTestClasspath;
+    public void testSourceSets(SourceSet... testSourceSets) {
+        this.testSourceSets = Collections.unmodifiableSet(new HashSet<SourceSet>(Arrays.asList(testSourceSets)));
+    }
+
+    /**
+     * Returns the source set that compiles the code under test. Defaults to {@code project.sourceSets.main}.
+     *
+     * @return the plugin source set
+     */
+    public SourceSet getPluginSourceSet() {
+        return pluginSourceSet;
+    }
+
+    /**
+     * Returns the the source sets executing the functional tests with TestKit. Defaults to {@code project.sourceSets.test}.
+     *
+     * @return the test source sets
+     */
+    public Set<SourceSet> getTestSourceSets() {
+        return testSourceSets;
     }
 }
