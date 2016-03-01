@@ -103,7 +103,7 @@
             only contain Java source code.
             <footnote>
                 <para>We are using the same conventions as introduced by Russel Winder's Gant tool (<ulink
-                        url='http://gant.codehaus.org'/>).
+                        url='https://gant.github.io/'/>).
                 </para>
             </footnote>
             None of these directories need to exist or have anything in them; the Groovy plugin will simply compile
