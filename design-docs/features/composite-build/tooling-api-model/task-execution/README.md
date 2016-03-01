@@ -4,20 +4,30 @@
 
 ### Overview
 
-- TBD
+This story adds support for executing tasks in a single project within a composite.
 
 ### API
 
-- TBD
+The GradleConnection interface gets a new method for creating a `BuildLauncher` for a particular project.
+```
+BuildLauncher newBuild(BuildIdentity buildIdentity)
+```
 
 ### Implementation notes
 
-- TBD
+This story will only add support for executing a task. 
+Forwarding console output (`setStandardOutput`) is not implemented as part of this story.
+
 
 ### Test coverage
 
-- TBD
+- test that a task can be executed in a build with a single participant.
+- test that a task can be executed in a build with multiple participants.
 
 ### Documentation
 
 ### Open issues
+
+- forwarding standard input, output & error
+- forwarding progress events
+- setting JVM arguments for execution
