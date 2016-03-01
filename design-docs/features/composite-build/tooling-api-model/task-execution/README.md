@@ -24,6 +24,7 @@ Forwarding console output (`setStandardOutput`) is not implemented as part of th
 - test that a task can be executed in a build with a single participant.
 - test that a task can be executed in a build with multiple participants.
 - throws exception when task execution requested on a build with is not part of the composite
+- test that a task can be selected with a Launchable
 
 ### Documentation
 

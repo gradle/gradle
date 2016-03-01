@@ -20,11 +20,16 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
+import org.gradle.tooling.model.GradleProject
+import spock.lang.Ignore
 
 /**
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+    def setup() {
+        //embedCoordinatorAndParticipants = true
+    }
 
     def "executes task in a single project within a composite "() {
         given:
@@ -92,4 +97,50 @@ task hello {
         def e = thrown(GradleConnectionException)
         e.cause.message == "Build not part of composite"
     }
+
+    @Ignore
+    def "executes task in single project selected with Launchable"() {
+        given:
+        def build1 = populate("build1") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world"
+  }
+}
+"""
+        }
+        def builds = [build1]
+        builds.addAll([2..3].collect {
+            populate("build${it}") {
+                buildFile << "apply plugin: 'java'"
+            }
+        })
+        when:
+        def build1Id = createGradleBuildParticipant(build1).toBuildIdentity()
+        withCompositeConnection(builds) { connection ->
+            def task
+            connection.getModels(GradleProject).each { modelresult ->
+                if (modelresult.projectIdentity.build == build1Id) {
+                    task = modelresult.model.getTasks().find { it.name == 'hello' }
+                }
+            }
+            assert task != null
+            println "task: $task"
+            def buildLauncher = connection.newBuild(build1Id)
+            buildLauncher.forTasks(task)
+            buildLauncher.addProgressListener(new ProgressListener() {
+                @Override
+                void statusChanged(ProgressEvent event) {
+                    println "--> ${event.description}"
+                }
+            })
+            buildLauncher.run()
+        }
+        then:
+        def helloFile = build1.file("hello.txt")
+        helloFile.exists()
+        helloFile.text == 'Hello world'
+    }
+
 }
