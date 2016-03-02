@@ -53,26 +53,31 @@ This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbo
 
 ### Experimental software model improvements
 
-#### Model data report
+#### Concise formatting for model data report
 
 The model report is quite verbose by default. For each node of the model, it displays the types of all properties as well as any rules that created or mutated them. However, you might only want to see the state of data in the model in order to validate your build configuration. In this case, you can now request a more concise model report using `gradle model --format short`. By default, Gradle still outputs the most complete report, which is equivalent to calling `gradle model --format full`.
 
-#### Fine grained application of rules
+#### Applying additional rules to a given target with @Rules
 
-TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
+It is sometimes necessary to apply an additional set of rules to a given target. This is now possible by addinga `@Rules` annotation to a method within a `RuleSource` class. The first parameter to this method is another `RuleSource` class—the additional rules you wish to apply—and the second parameter is the target you wish to apply those rules to.
 
-This kind of method is annotated with `@Rules`. The first parameter defines a `RuleSource` type to apply, and the second parameter defines the target element to apply the rules to.
+See [this integration test](https://github.com/gradle/gradle/blob/88825c6/subprojects/model-core/src/integTest/groovy/org/gradle/model/RuleSourceAppliedByRuleMethodIntegrationTest.groovy#L23-L86) for an example.
 
-Two new annotations have been added:
+#### Keeping RuleSource classes DRY with @RuleTarget and @RuleInput
 
-- `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
-- `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
+When a given `RuleSource` class defines multiple rule methods having the same target and/or input parameters, it is now possible to eliminate repeating these declarations with the new `@RuleTarget` and `@RuleInput` annotations.
 
-#### Apply rule to all descendant elements matching type in scope
+ - Likewise, annotate an abstract getter method on a `RuleSource` with `@RuleTarget` to indicate that the property defines a target available to all rule methods within that `RuleSource`. Simply call the getter wherever interacting with that target is necessary.
+
+ - Annotate an abstract getter method on a `RuleSource` with `@RuleInput` to indicate that the property defines an input available to all rule methods within that `RuleSource`. Simply call the getter wherever interacting with that input is necessary.
+
+See these [integration](https://github.com/gradle/gradle/blob/88825c6/subprojects/model-core/src/integTest/groovy/org/gradle/model/RuleSourceAppliedByRuleMethodIntegrationTest.groovy#L327-L402) [tests](https://github.com/gradle/gradle/blob/88825c6/subprojects/model-core/src/integTest/groovy/org/gradle/model/RuleSourceAppliedByRuleMethodIntegrationTest.groovy#L249-L325) for examples.
+
+#### Applying a rule to descendant elements with @Each
 
 It is frequently a requirement to apply a rule to all elements in a scope that match a certain type. E.g. to set a default output directory for every binary produced, regardless of exactly where the binary is defined in the model. With the new `@Each` annotation this is now possible. All elements are matched regardless of their location in the model as long as a) they are a descendant of the scope element, and b) they match the given type. More information about this can be found in the [Sotfware model](userguide/software_model.html#binding_all_elements_in_scope) section of the user guide.
 
-#### Declaration of local JVM installations
+#### Declaring local JVM installations
 
 It is now possible to declare the local installations of JVMs (JDK or JRE) in your model. Gradle will probe the declared installations and automatically detect which version, vendor and type of JVM it is. This information can be used to customize your `JavaCompile` tasks, and future versions of Gradle will leverage this to select the appropriate toolchain when compiling Java sources. More information about this can be found in the [Java software model](userguide/java_software.html#declaring_java_toolchains) section of the user guide.
 
