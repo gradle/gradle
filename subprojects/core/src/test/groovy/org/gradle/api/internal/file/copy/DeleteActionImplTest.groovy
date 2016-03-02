@@ -18,13 +18,17 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.api.internal.file.TestFiles.fileSystem
 
 class DeleteActionImplTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DeleteActionImpl delete = new DeleteActionImpl(TestFiles.resolver(tmpDir.testDirectory))
+    DeleteActionImpl delete = new DeleteActionImpl(TestFiles.resolver(tmpDir.testDirectory), fileSystem())
 
     def deletesDirectory() {
         TestFile dir = tmpDir.getTestDirectory();
@@ -87,5 +91,48 @@ class DeleteActionImplTest extends Specification {
 
         then:
         !didWork
+    }
+
+    @Requires([TestPrecondition.UNIX_DERIVATIVE])
+    def doesNotDeleteFilesInsideSymlinkDir() {
+        def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
+        def originalDir = keepTxt.parentFile
+        def link = new File(tmpDir.getTestDirectory(), "link")
+
+        when:
+        fileSystem().createSymbolicLink(link, originalDir)
+
+        then:
+        link.exists()
+
+        when:
+        boolean didWork = delete.delete(link)
+
+        then:
+        !link.exists()
+        originalDir.assertExists()
+        keepTxt.assertExists()
+        didWork
+    }
+
+    @Requires([TestPrecondition.UNIX_DERIVATIVE])
+    def deletesFilesInsideSymlinkDirWhenNeeded() {
+        def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
+        def originalDir = keepTxt.parentFile
+        def link = new File(tmpDir.getTestDirectory(), "link")
+
+        when:
+        fileSystem().createSymbolicLink(link, originalDir)
+
+        then:
+        link.exists()
+
+        when:
+        boolean didWork = delete.doDelete(true, link)
+
+        then:
+        !link.exists()
+        keepTxt.assertDoesNotExist()
+        didWork
     }
 }

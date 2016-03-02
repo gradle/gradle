@@ -16,9 +16,14 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,15 +32,34 @@ import java.util.Set;
  * <pre autoTested=''>
  * task makePretty(type: Delete) {
  *   delete 'uglyFolder', 'uglyFile'
+ *   followSymlinks = true
  * }
  * </pre>
+ *
+ * Be default symlinks will not be followed when deleting files. To change this behavior set {@link Delete#followSymlinks} to true.
+ * On systems that do not support symlinks, this will have no effect.
  */
 public class Delete extends ConventionTask {
     private Set<Object> delete = new LinkedHashSet<Object>();
 
+    private boolean followSymlinks;
+
+    @Inject
+    public FileSystem getFileSystem() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public FileResolver getFileResolver() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void clean() {
-        setDidWork(getProject().delete(delete));
+        DeleteActionImpl deleteAction = new DeleteActionImpl(getFileResolver(), getFileSystem());
+        setDidWork(deleteAction.doDelete(followSymlinks, delete));
     }
 
     /**
@@ -64,6 +88,26 @@ public class Delete extends ConventionTask {
     public void setDelete(Object target) {
         delete.clear();
         this.delete.add(target);
+    }
+
+    /**
+     * Returns if symlinks should be followed when doing a delete.
+     *
+     * @return true if symlinks will be followed.
+     */
+    @Incubating
+    public boolean isFollowSymlinks() {
+        return followSymlinks;
+    }
+
+    /**
+     * Set if symlinks should be followed. If the platform doesn't support symlinks, then this will have no effect.
+     *
+     * @param followSymlinks if symlinks should be followed.
+     */
+    @Incubating
+    public void setFollowSymlinks(boolean followSymlinks) {
+        this.followSymlinks = followSymlinks;
     }
 
     /**

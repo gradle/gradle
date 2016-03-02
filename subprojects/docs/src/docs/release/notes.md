@@ -52,6 +52,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Deleting no longer follows symlinks.
+
+The Delete task will no longer follow symlinks by default and project.delete() will not follow symlinks at all. Previous versions of Gradle would follow-symlinks during deletions. If you need the Delete
+task to follow symlinks set `followSymlinks = true`. If you need `project.delete()` to follow symlinks, replace it with `ant.delete()`. This was done to prevent issues where Gradle would attempt to delete files
+outside of Gradle's build directory (e.g. NPM installed in a user-writeable location.).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
