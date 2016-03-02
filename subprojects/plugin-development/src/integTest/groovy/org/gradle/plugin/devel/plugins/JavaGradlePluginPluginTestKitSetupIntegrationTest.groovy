@@ -40,9 +40,9 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
-        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
-        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
+        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -90,8 +90,8 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
-        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
-        implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
+        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
     }
 }
