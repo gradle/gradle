@@ -26,8 +26,15 @@ import org.junit.Rule
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
+    // Explicitly set the options to their default values so that the
+    // test will be robust against future changes to these defaults.
     String compilerConfiguration() {
-        ""
+        """
+        compileScala.scalaCompileOptions.with {
+            useAnt = false
+            fork = true
+        }
+        """
     }
 
     String logStatement() {
