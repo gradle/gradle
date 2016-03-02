@@ -172,7 +172,7 @@
                     <sourcefile file="plugin/build.gradle" snippet="automatic-classpath"/>
                 </sample>
                 <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
-                    <sourcefile file="plugin/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
+                    <sourcefile file="plugin/src/functionalTest/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
                 </sample>
             </section>
         </section>
