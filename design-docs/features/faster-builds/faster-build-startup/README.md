@@ -13,8 +13,6 @@ Audience is developers that are using the Gradle daemon.
 - Fix hotspots identified by profiling
 - Send events to daemon client asynchronously
 - Faster rule execution for task configuration
-- Reuse build script cache instances across builds
-- Don't hash the build script contents on each build
 - Make creation of project instances cheaper
 - Faster startup by reducing fixed costs in daemon client and per build setup 
 - Start progress logging earlier in build lifecycle to give more insight into what's happening early in the build 
@@ -47,6 +45,19 @@ Daemon client should not need to be changed.
 
 Add some more test coverage for logging from multiple tasks and threads, and for progress logging from multiple projects and tasks, for parallel execution.
 These tests should run as part of the daemon and non-daemon test suites.
+
+### Don't hash the build script contents on each build
+
+Use the same strategy for detecting content changes for build scripts, as is used for other files.
+
+Should use `CachingFileSnapshotter` for the implementation, if possible. Could potentially be backed by an in-memory `PersistentStore`, reusing the instance
+created by `GlobalScopeServices.createClassPathSnapshotter()`. An additional refactoring could make this a persistent store. 
+
+### Reuse build script cache across builds
+
+Currently, the cache for a given build script is closed at the end of the build.
+
+Investigate options for reusing this across builds, when the build script has not changed.
 
 ### Understand where build startup is spending its time
 
