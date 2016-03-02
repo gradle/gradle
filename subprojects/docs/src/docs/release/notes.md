@@ -67,6 +67,7 @@ We would like to thank the following community members for making contributions 
 * [Randall Becker](https://github.com/rsbecker) - bypass ulimit in NONSTOP os
 * [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
 * [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
+* [Ethan Hall](https://github.com/ethankhall) - make Delete tasks not follow symlinks ([GRADLE-2892](https://issues.gradle.org/browse/GRADLE-2892))
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
