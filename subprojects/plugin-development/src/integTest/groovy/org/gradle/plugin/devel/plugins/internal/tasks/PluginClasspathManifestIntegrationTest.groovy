@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.plugins.internal.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.GUtil
 
 import static PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
@@ -50,7 +51,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         String implementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
-        normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
+        normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -82,7 +83,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         String implementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
-        normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
+        normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
     }
 
     def "adds no implementation-classpath property for empty plugin classpath"() {
@@ -102,7 +103,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.contains(TASK_PATH)
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        !readPropertiesFile(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
 
     def "fails the task for null plugin classpath"() {
@@ -145,11 +146,5 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
                 $configurationName '$module.groupId:$module.artifactId:$module.version'
             }
         """
-    }
-
-    private Properties readPropertiesFile(File file) {
-        Properties properties = new Properties()
-        properties.load(file.newDataInputStream())
-        properties
     }
 }

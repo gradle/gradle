@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GUtil
 
 import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
@@ -39,7 +40,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
+        String implementationClasspath = normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
         implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
         implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
     }
@@ -89,14 +90,8 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = normaliseFileAndLineSeparators(readPropertiesFile(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
+        String implementationClasspath = normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY))
         implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
         implementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
-    }
-
-    private Properties readPropertiesFile(File file) {
-        Properties properties = new Properties()
-        properties.load(file.newDataInputStream())
-        properties
     }
 }
