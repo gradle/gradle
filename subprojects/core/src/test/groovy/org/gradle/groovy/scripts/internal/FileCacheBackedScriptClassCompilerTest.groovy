@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -39,10 +40,11 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
+    final CachingFileSnapshotter snapshotter = Mock()
     final File cacheDir = new File("base-dir")
     final File classesDir = new File(cacheDir, "classes")
     final File metadataDir = new File(cacheDir, "metadata")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script

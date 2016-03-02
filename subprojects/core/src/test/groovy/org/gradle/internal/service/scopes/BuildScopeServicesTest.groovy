@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
@@ -82,6 +83,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
         sessionServices.get(ImportsReader) >> Mock(ImportsReader)
         sessionServices.get(StartParameter) >> startParameter
+        sessionServices.get(CachingFileSnapshotter) >> Mock(CachingFileSnapshotter)
         sessionServices.getAll(_) >> []
 
         registry = new BuildScopeServices(sessionServices, false)

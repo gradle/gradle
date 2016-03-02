@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
@@ -25,6 +26,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
@@ -42,21 +44,36 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
     private final CompositeStoppable caches = new CompositeStoppable();
+    private final CachingFileSnapshotter snapshotter;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory) {
+                                              ProgressLoggerFactory progressLoggerFactory, CachingFileSnapshotter snapshotter) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
+        this.snapshotter = snapshotter;
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, final Class<T> scriptBaseClass,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
+                                                              final ClassLoader classLoader,
+                                                              final ClassLoaderId classLoaderId,
+                                                              CompileOperation<M> operation,
+                                                              final Class<T> scriptBaseClass,
                                                               Action<? super ClassNode> verifier) {
+        File file = source.getResource().getFile();
+        String hash;
+        if (file != null) {
+            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
+            hash = new HashValue(snapshot.getHash()).asCompactString();
+        } else {
+            hash = HashUtil.createCompactMD5(source.getResource().getText());
+        }
+
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
+        properties.put("source.hash", hash);
 
         String dslId = operation.getId();
         String cacheName = String.format("scripts/%s/%s", source.getClassName(), dslId);
