@@ -107,10 +107,6 @@ They are calculated by from the `sourceCompatibility` level of the java projects
 
 System properties set on the command line with -D option will now override settings in gradle.properties file. If you have the same property specified in both places with different values, then Gradle will use a different value after the upgrade.
 
-### Undocumented force option on [Scala Plugin](userguide/scala_plugin.html) changed to boolean
-
-You may have a `force = <something>` option in your build file. Previously, this option was ignored by Gradle's Zinc Scala Compiler, but now it will be read and interpreted as a `boolean` value. Read more at [Scala Plugin](userguide/scala_plugin.html)
-
 ### Scala Zinc Compiler and Forked Compilation on by default
 
 As we are deprecating the in-process Ant Based Scala Compiler in favor of the more powerful Zinc Scala Compiler which always runs in a forked process, you may need to increase the heap space allocated for your Scala builds. If you notice your Scala builds running out of permgen space or generally suffering from OutOfMemory errors, increase the heap memory or permgen allocated for your forked processes like so:
@@ -123,6 +119,8 @@ As we are deprecating the in-process Ant Based Scala Compiler in favor of the mo
     }
 
 You may need to tweak the values to match your build's needs.
+
+Also, you may have a `force = <something>` option in your build file. Previously, this option was ignored by Gradle's Zinc Scala Compiler, but now it will be read and interpreted as a `boolean` value. Read more at [Scala Plugin](userguide/scala_plugin.html)
 
 ### Changes to the experimental software model
 
