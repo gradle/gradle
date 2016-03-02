@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
-import org.gradle.api.internal.file.copy.DeleteActionInternal;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -55,7 +54,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
-    private final DeleteActionInternal deleteAction;
+    private final DeleteAction deleteAction;
     private final DefaultResourceHandler resourceHandler;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
@@ -67,10 +66,10 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.deleteAction = new DeleteActionImpl(fileResolver);
         this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
-        this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
-        this.fileSystem = fileLookup.getFileSystem();
-        this.deleteAction = new DeleteActionImpl(fileResolver, fileSystem);
+        fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
+        fileSystem = fileLookup.getFileSystem();
     }
 
     public File file(Object path) {

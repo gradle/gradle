@@ -60,11 +60,6 @@ class GenericFileSystem implements FileSystem {
     }
 
     @Override
-    public boolean isSymlink(File suspect) {
-        return symlink.isSymlink(suspect);
-    }
-
-    @Override
     public int getUnixMode(File f) {
         try {
             return stat.getUnixMode(f);

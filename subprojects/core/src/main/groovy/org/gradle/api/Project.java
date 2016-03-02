@@ -838,8 +838,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Deletes files and directories.
      *
-     * This will not follow symlinks unlike ant. If you need to follow symlinks too use {@link #ant(Closure)}.delete()
-     *
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
