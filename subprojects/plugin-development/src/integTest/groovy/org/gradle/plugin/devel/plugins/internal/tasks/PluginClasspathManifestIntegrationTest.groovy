@@ -53,7 +53,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         String expectedImplementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
         String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
         !loadedImplementationClasspath.contains("\\")
-        normaliseFileAndLineSeparators(loadedImplementationClasspath) == normaliseFileAndLineSeparators(expectedImplementationClasspath)
+        loadedImplementationClasspath == normaliseFileAndLineSeparators(expectedImplementationClasspath)
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -87,7 +87,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         String expectedImplementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
         String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
         !loadedImplementationClasspath.contains("\\")
-        normaliseFileAndLineSeparators(loadedImplementationClasspath) == normaliseFileAndLineSeparators(expectedImplementationClasspath)
+        loadedImplementationClasspath == normaliseFileAndLineSeparators(expectedImplementationClasspath)
     }
 
     def "adds no implementation-classpath property for empty plugin classpath"() {
