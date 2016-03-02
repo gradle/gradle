@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal.launcher;
 
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.process.internal.child.EncodedStream;
 
 import java.io.DataInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -34,14 +34,6 @@ public class GradleWorkerMain {
     public void run() throws Exception {
         DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
 
-        // Read infrastructure classpath
-        int classPathLength = instr.readInt();
-        URL[] infrastructureClassPath = new URL[classPathLength];
-        for (int i = 0; i < classPathLength; i++) {
-            String url = instr.readUTF();
-            infrastructureClassPath[i] = new URL(url);
-        }
-
         // Read worker configuration
         int logLevel = instr.readInt();
         int sharedPackagesCount = instr.readInt();
@@ -51,11 +43,11 @@ public class GradleWorkerMain {
         }
 
         // Reader worker implementation classpath
-        classPathLength = instr.readInt();
-        List<URL> implementationClassPath = new ArrayList<URL>(classPathLength);
+        int classPathLength = instr.readInt();
+        URL[] implementationClassPath = new URL[classPathLength];
         for (int i = 0; i < classPathLength; i++) {
             String url = instr.readUTF();
-            implementationClassPath.add(new URL(url));
+            implementationClassPath[i] = new URL(url);
         }
 
         // Read serialized worker
@@ -63,9 +55,15 @@ public class GradleWorkerMain {
         byte[] serializedWorker = new byte[serializedWorkerLength];
         instr.readFully(serializedWorker);
 
-        URLClassLoader classLoader = new URLClassLoader(infrastructureClassPath, ClassLoader.getSystemClassLoader().getParent());
+        // Set up worker ClassLoader
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader());
+        for (String sharedPackage : sharedPackages) {
+            filteringClassLoader.allowPackage(sharedPackage);
+        }
+        URLClassLoader classLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
+
         Class<? extends Callable> workerClass = classLoader.loadClass("org.gradle.process.internal.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
-        Callable<Void> main = workerClass.getConstructor(Integer.TYPE, Collection.class, Collection.class, byte[].class).newInstance(logLevel, sharedPackages, implementationClassPath, serializedWorker);
+        Callable<Void> main = workerClass.getConstructor(Integer.TYPE, byte[].class).newInstance(logLevel, serializedWorker);
         main.call();
     }
 

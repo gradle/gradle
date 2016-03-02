@@ -18,34 +18,43 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.LoggingServiceRegistry;
 
-import java.net.URL;
-import java.util.Collection;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
 /**
  * <p>Stage 2 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
- * care of deserializing and then invoking the next stage of start-up.</p>
+ * care of deserializing and invoking the worker action.</p>
  *
- * <p> Instantiated in the infrastructure ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
+ * <p> Instantiated in the implementation ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final int logLevel;
-    private final Collection<String> sharedPackages;
-    private final Collection<URL> workerClassPath;
     private final byte[] serializedWorker;
 
-    public SystemApplicationClassLoaderWorker(int logLevel, Collection<String> sharedPackages, Collection<URL> workerClassPath, byte[] serializedWorker) {
+    public SystemApplicationClassLoaderWorker(int logLevel, byte[] serializedWorker) {
         this.logLevel = logLevel;
-        this.sharedPackages = sharedPackages;
-        this.workerClassPath = workerClassPath;
         this.serializedWorker = serializedWorker;
     }
 
     public Void call() throws Exception {
-        final Action<WorkerContext> action = new ImplementationClassLoaderWorker(LogLevel.values()[logLevel], sharedPackages, workerClassPath, serializedWorker);
+        LoggingManagerInternal loggingManager = createLoggingManager();
+        loggingManager.setLevel(LogLevel.values()[logLevel]).start();
 
+        // Deserialize the worker action
+        Action<WorkerContext> action;
+        try {
+            ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
+            action = (Action<WorkerContext>) instr.readObject();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
         action.execute(new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {
                 return ClassLoader.getSystemClassLoader();
@@ -53,5 +62,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         });
 
         return null;
+    }
+
+    LoggingManagerInternal createLoggingManager() {
+        return LoggingServiceRegistry.newCommandLineProcessLogging().newInstance(LoggingManagerInternal.class);
     }
 }

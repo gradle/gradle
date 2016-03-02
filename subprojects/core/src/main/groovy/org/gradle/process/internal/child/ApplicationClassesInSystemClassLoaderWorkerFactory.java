@@ -39,21 +39,20 @@ import java.util.*;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                            jvm bootstrap
- *                                 |
- *                +----------------+--------------+
- *                |                               |
- *            jvm system                     infrastructure
- *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
- *                |                   (ImplementationClassLoaderWorker)
- *                |                               |
- *             filter                          filter
- *        (shared packages)                  (logging)
- *                |                               |
- *                +---------------+---------------+
- *                                |
- *                          implementation
- *         (ActionExecutionWorker + worker action implementation)
+ *                       jvm bootstrap
+ *                             |
+ *                             |
+ *                        jvm system
+ *           (GradleWorkerMain, application classes)
+ *                             |
+ *                             |
+ *                          filter
+ *                    (shared packages)
+ *                             |
+ *                             |
+ *                       implementation
+ *          (SystemApplicationClassLoaderWorker, logging)
+ *     (ActionExecutionWorker + worker action implementation)
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
@@ -68,7 +67,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     @Override
     public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
-        Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
@@ -105,12 +103,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 }
                 // Serialize the actual security manager type, this is consumed by BootstrapSecurityManager
                 outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
-            }
-
-            // Serialize the infrastructure classpath, this is consumed by GradleWorkerMain
-            outstr.writeInt(workerClassPath.size());
-            for (URL entry : workerClassPath) {
-                outstr.writeUTF(entry.toString());
             }
 
             // Serialize the worker configuration, this is consumed by GradleWorkerMain

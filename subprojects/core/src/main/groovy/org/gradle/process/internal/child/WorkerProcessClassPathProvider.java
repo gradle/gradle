@@ -22,13 +22,23 @@ import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.URLResource;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderHierarchy;
+import org.gradle.internal.classloader.ClassLoaderSpec;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.reflect.*;
+import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.AntUtil;
 import org.slf4j.Logger;
@@ -112,10 +122,27 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             JarJarTask task = new JarJarTask();
             task.setDestFile(jarFile);
 
+            // TODO - calculate this list of classes dynamically
             final List<Resource> classResources = new ArrayList<Resource>();
-            List<Class<?>> renamedClasses = Arrays.asList(GradleWorkerMain.class,
+            List<Class<?>> renamedClasses = Arrays.asList(
+                    GradleWorkerMain.class,
                     BootstrapSecurityManager.class,
-                    EncodedStream.EncodedInput.class);
+                    EncodedStream.EncodedInput.class,
+                    FilteringClassLoader.class,
+                    FilteringClassLoader.Spec.class,
+                    ClassLoaderHierarchy.class,
+                    ClassLoaderVisitor.class,
+                    ClassLoaderSpec.class,
+                    JavaReflectionUtil.class,
+                    JavaMethod.class,
+                    GradleException.class,
+                    NoSuchPropertyException.class,
+                    NoSuchMethodException.class,
+                    UncheckedException.class,
+                    PropertyAccessor.class,
+                    PropertyMutator.class,
+                    Factory.class,
+                    Spec.class);
             List<Class<?>> classes = new ArrayList<Class<?>>();
             classes.addAll(renamedClasses);
             for (Class<?> aClass : classes) {
