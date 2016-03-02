@@ -38,7 +38,7 @@ public class CachingScriptSourceTest {
             will(returnValue(context.mock(Resource.class)));
         }});
 
-        CachingScriptSource source = new CachingScriptSource(delegate);
+        ScriptSource source = CachingScriptSource.of(delegate);
         assertThat(source.getResource(), instanceOf(CachingResource.class));
         assertThat(source.getResource(), sameInstance(source.getResource()));
     }

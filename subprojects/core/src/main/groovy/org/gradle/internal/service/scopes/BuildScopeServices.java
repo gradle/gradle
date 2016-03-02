@@ -187,15 +187,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler, ClassLoaderCache classLoaderCache) {
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
-            new CachingScriptClassCompiler(
-                new ShortCircuitEmptyScriptCompiler(
-                    scriptCompiler,
-                    classLoaderCache
-                )
-            ),
+            new CachingScriptClassCompiler(scriptCompiler),
             new DefaultScriptRunnerFactory(
                 scriptExecutionListener,
                 DirectInstantiator.INSTANCE
@@ -217,7 +212,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptCacheInvalidator,
             new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
             progressLoggerFactory,
-            snapshotter
+            snapshotter,
+            classLoaderCache
         );
     }
 

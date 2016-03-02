@@ -19,10 +19,12 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
+import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
@@ -45,14 +47,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final CompositeStoppable caches = new CompositeStoppable();
     private final CachingFileSnapshotter snapshotter;
+    private final ClassLoaderCache classLoaderCache;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, CachingFileSnapshotter snapshotter) {
+                                              ProgressLoggerFactory progressLoggerFactory, CachingFileSnapshotter snapshotter, ClassLoaderCache classLoaderCache) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
+        this.classLoaderCache = classLoaderCache;
     }
 
     @Override
@@ -62,27 +66,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
                                                               Action<? super ClassNode> verifier) {
-        File file = source.getResource().getFile();
-        String hash;
-        if (file != null) {
-            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
-            hash = new HashValue(snapshot.getHash()).asCompactString();
-        } else {
-            hash = HashUtil.createCompactMD5(source.getResource().getText());
+        if (source instanceof NonExistentFileScriptSource) {
+            return emptyCompiledScript(classLoaderId, operation);
         }
 
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", hash);
+        Map<String, Object> properties = createCacheProperties(source);
 
         String dslId = operation.getId();
         String cacheName = String.format("scripts/%s/%s", source.getClassName(), dslId);
         PersistentCache cache = cacheRepository.cache(cacheName)
-                .withProperties(properties)
-                .withValidator(validator)
-                .withDisplayName(String.format("%s class cache for %s", dslId, source.getDisplayName()))
-                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
-                .open();
+            .withProperties(properties)
+            .withValidator(validator)
+            .withDisplayName(String.format("%s class cache for %s", dslId, source.getDisplayName()))
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
+            .open();
 
         // This isn't quite right. The cache will be closed at the end of the build, releasing the shared lock on the classes. Instead, the cache for a script should be
         // closed once we no longer require the script classes. This may be earlier than the end of the current build, or it may used across multiple builds
@@ -92,6 +89,30 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         final File metadataDir = metadataDir(cache);
 
         return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
+    }
+
+    private Map<String, Object> createCacheProperties(ScriptSource source) {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put("source.filename", source.getFileName());
+        properties.put("source.hash", hashFor(source));
+        return properties;
+    }
+
+    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
+        classLoaderCache.remove(classLoaderId);
+        return new EmptyCompiledScript<T, M>(operation);
+    }
+
+    private String hashFor(ScriptSource source) {
+        File file = source.getResource().getFile();
+        String hash;
+        if (file != null && file.exists()) {
+            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
+            hash = new HashValue(snapshot.getHash()).asCompactString();
+        } else {
+            hash = HashUtil.createCompactMD5(source.getResource().getText());
+        }
+        return hash;
     }
 
     public void close() {
@@ -140,12 +161,39 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         public void execute(PersistentCache cache) {
             ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
-                    .start("Compile script into cache", "Compiling script into cache");
+                .start("Compile script into cache", "Compiling script into cache");
             try {
                 delegate.execute(cache);
             } finally {
                 op.completed();
             }
+        }
+    }
+
+    private static class EmptyCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
+        private final M data;
+
+        public EmptyCompiledScript(CompileOperation<M> operation) {
+            this.data = operation.getExtractedData();
+        }
+
+        @Override
+        public boolean getRunDoesSomething() {
+            return false;
+        }
+
+        @Override
+        public boolean getHasMethods() {
+            return false;
+        }
+
+        public Class<? extends T> loadClass() {
+            throw new UnsupportedOperationException("Cannot load a script that does nothing.");
+        }
+
+        @Override
+        public M getData() {
+            return data;
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.initialization.ClassLoaderIds
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -41,10 +42,11 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
     final CachingFileSnapshotter snapshotter = Mock()
+    final ClassLoaderCache classLoaderCache = Mock()
     final File cacheDir = new File("base-dir")
     final File classesDir = new File(cacheDir, "classes")
     final File metadataDir = new File(cacheDir, "metadata")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
@@ -115,6 +117,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
+        1 * source.getResource().getText() >> 'foo'
         1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, Script, verifier)
         1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
