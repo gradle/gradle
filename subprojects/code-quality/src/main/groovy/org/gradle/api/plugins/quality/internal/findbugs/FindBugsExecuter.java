@@ -26,10 +26,6 @@ import java.io.Serializable;
 import java.util.List;
 
 public class FindBugsExecuter implements Serializable {
-
-    public FindBugsExecuter() {
-    }
-
     FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
