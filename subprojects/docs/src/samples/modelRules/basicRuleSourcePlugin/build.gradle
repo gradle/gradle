@@ -70,12 +70,14 @@ class PersonRules extends RuleSource {
 // END SNIPPET create-rule
 
 // START SNIPPET plugin-mutate-rule
+  //Create a rule that modifies a Person and takes no other inputs
   @Mutate void setFirstName(Person p) {
     p.firstName = "John"
   }
 // END SNIPPET plugin-mutate-rule
 
 // START SNIPPET task-create-rule
+  //Create a rule that modifies a ModelMap<Task> and takes as input a Person
   @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
     tasks.create("hello") {
       doLast {
