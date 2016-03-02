@@ -50,8 +50,10 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.containsAll([':compileJava', ':processResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
-        normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
+        String expectedImplementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
+        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        !loadedImplementationClasspath.contains("\\")
+        normaliseFileAndLineSeparators(loadedImplementationClasspath) == normaliseFileAndLineSeparators(expectedImplementationClasspath)
     }
 
     def "can assign custom plugin classpath to generate classpath manifest"() {
@@ -82,8 +84,10 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources', TASK_PATH])
         File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
-        String implementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
-        normaliseFileAndLineSeparators(GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)) == normaliseFileAndLineSeparators(implementationClasspath)
+        String expectedImplementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
+        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        !loadedImplementationClasspath.contains("\\")
+        normaliseFileAndLineSeparators(loadedImplementationClasspath) == normaliseFileAndLineSeparators(expectedImplementationClasspath)
     }
 
     def "adds no implementation-classpath property for empty plugin classpath"() {
