@@ -288,9 +288,9 @@ public class WorkerProcessIntegrationTest {
             ClassLoader thisClassLoader = getClass().getClassLoader();
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
 
-            assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
+            assertThat(antClassLoader, sameInstance(systemClassLoader));
             assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
-            assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
+            assertThat(thisClassLoader.getParent().getParent(), equalTo(systemClassLoader));
             try {
                 assertThat(thisClassLoader.loadClass(Project.class.getName()), sameInstance((Object) Project.class));
             } catch (ClassNotFoundException e) {
