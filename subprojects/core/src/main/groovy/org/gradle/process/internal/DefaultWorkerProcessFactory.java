@@ -90,12 +90,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             Object id = idGenerator.generateId();
             String displayName = getBaseName() + " " + id;
 
-            WorkerFactory workerFactory;
-            if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = systemClassLoaderWorkerFactory;
-            } else {
-                workerFactory = isolatedClassLoaderWorkerFactory;
-            }
+            WorkerFactory workerFactory = systemClassLoaderWorkerFactory;
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
