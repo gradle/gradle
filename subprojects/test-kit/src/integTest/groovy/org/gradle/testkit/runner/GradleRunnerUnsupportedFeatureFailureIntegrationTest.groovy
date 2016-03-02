@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.fixtures.AutomaticClasspathInjectionFixture
 import org.gradle.testkit.runner.fixtures.annotations.Debug
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
 import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.tooling.UnsupportedVersionException
@@ -113,28 +112,29 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends GradleRunnerI
         e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
-    @NoDebug
     def "plugin classpath is not injected automatically if target Gradle version does not support feature"() {
         given:
+        String maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since)
+        String minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
+
         File projectDir = file('sampleProject')
         List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
-        String unsupportedGradleVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since)
         compilePluginProjectSources(projectDir)
         buildFile << pluginDeclaration()
 
         when:
-        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').withGradleVersion(unsupportedGradleVersion).buildAndFail()
+        fixture.withClasspath([pluginClasspathFile]) {
+            runner('helloWorld')
+                .withGradleVersion(maxUnsupportedVersion)
+                .withPluginClasspath()
+                .buildAndFail()
         }
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        def e = thrown InvalidRunnerConfigurationException
+        e.cause instanceof UnsupportedVersionException
+        e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     private String getMaxUnsupportedVersion(GradleVersion minSupportedVersion) {

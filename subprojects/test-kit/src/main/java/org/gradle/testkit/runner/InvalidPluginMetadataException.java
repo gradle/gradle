@@ -19,16 +19,16 @@ package org.gradle.testkit.runner;
 import org.gradle.api.Incubating;
 
 /**
- * Thrown when a plugin classpath metadata file is resolved but doesn't contain the expected information.
+ * Thrown when a plugin classpath metadata file cannot be resolved or doesn't contain the correct information.
  *
  * @since 2.13
  * @see GradleRunner#build()
  * @see GradleRunner#buildAndFail()
  */
 @Incubating
-public class IncompletePluginMetadataException extends IllegalStateException {
+public class InvalidPluginMetadataException extends IllegalStateException {
 
-    public IncompletePluginMetadataException(String s) {
+    public InvalidPluginMetadataException(String s) {
         super(s);
     }
 }

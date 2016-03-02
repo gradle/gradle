@@ -585,6 +585,7 @@ class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
+                        .withPluginClasspath()
                         .withDebug($debug)
                         .build()
 
@@ -717,6 +718,7 @@ class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
+                        .withPluginClasspath()
                         .withDebug($debug)
                         .build()
 

@@ -16,9 +16,10 @@
 
 package org.gradle.testkit.runner.fixtures
 
-import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GFileUtils
 import org.gradle.util.GUtil
+
+import static org.gradle.testkit.runner.internal.DefaultGradleRunner.IMPLEMENTATION_CLASSPATH_PROP_KEY
 
 class AutomaticClasspathInjectionFixture {
 
@@ -75,7 +76,7 @@ class AutomaticClasspathInjectionFixture {
 
         if (!classpath.isEmpty()) {
             String content = classpath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join(',')
-            properties.setProperty(ToolingApiGradleExecutor.IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
         }
 
         if (!extraProperties.isEmpty()) {

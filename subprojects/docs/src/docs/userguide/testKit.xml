@@ -112,7 +112,7 @@
                 <sourcefile file="plugin/build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
-                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>.
+                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/>.
                 This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <xref linkend="plugins"/>). Applying plugins with the plugins DSL requires the
                 definition of a plugin identifier.
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.
@@ -131,7 +131,7 @@
             <section>
                 <title>Working with Gradle versions prior to 2.8</title>
                 <para>
-                    The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> method will not work when
+                    The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/> method will not work when
                     executing the build with a Gradle version earlier than 2.8 (see: <xref linkend="sub:gradle-runner-gradle-version"/>),
                     as this feature is not supported on such Gradle versions.
                 </para>
@@ -150,8 +150,8 @@
                     Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit. When applied to a project, the plugin automatically adds
                     the <literal>gradleTestKit()</literal> dependency to the test compile configuration. Furthermore, it automatically generates the classpath for the code
                     under test and injects it via
-                    <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> for any <literal>GradleRunner</literal> instance created by the user.
-                    Successive invocations of the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/> for a <literal>GradleRunner</literal>
+                    <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath()"/> for any <literal>GradleRunner</literal> instance created by the user.
+                    Successive invocations of the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/> for a <literal>GradleRunner</literal>
                     instance override the automatically injected plugin classpath. If the <link linkend="sub:gradle-runner-gradle-version">target Gradle version</link> is prior
                     to 2.8, automatic plugin classpath injection is omitted.
                 </para>
@@ -168,8 +168,11 @@
                 <para>
                     The following sample demonstrates how to automatically inject the plugin classpath for a custom test source set named <literal>functionalTest</literal>.
                 </para>
-                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
+                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
                     <sourcefile file="plugin/build.gradle" snippet="automatic-classpath"/>
+                </sample>
+                <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
+                    <sourcefile file="plugin/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
                 </sample>
             </section>
         </section>
@@ -249,7 +252,7 @@
                             <link linkend="sub:test-kit-classpath-injection">Plugin classpath injection</link>
                         </td>
                         <td>2.8</td>
-                        <td>Injecting the code under test via <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>.</td>
+                        <td>Injecting the code under test via <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/>.</td>
                     </tr>
                     <tr>
                         <td>
@@ -267,7 +270,7 @@
                         <td>2.13</td>
                         <td>
                             Injecting the code under test automatically via
-                            <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>
+                            <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath()"/>
                             by applying the Java Gradle Plugin Development plugin.
                         </td>
                     </tr>

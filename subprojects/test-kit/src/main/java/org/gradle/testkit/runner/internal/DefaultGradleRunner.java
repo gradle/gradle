@@ -18,8 +18,10 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -30,20 +32,23 @@ import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
+    public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
+    public static final String PLUGIN_METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
 
     private final GradleExecutor gradleExecutor;
 
@@ -136,6 +141,12 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public List<? extends File> getPluginClasspath() {
         return classpath.getAsFiles();
+    }
+
+    @Override
+    public GradleRunner withPluginClasspath() {
+        this.classpath = new DefaultClassPath(readPluginClasspath());
+        return this;
     }
 
     @Override
@@ -314,4 +325,35 @@ public class DefaultGradleRunner extends GradleRunner {
         return new InstalledGradleDistribution(gradleHome);
     }
 
+    private List<File> readPluginClasspath() {
+        URL[] classLoaderURLs = ((URLClassLoader) (Thread.currentThread().getContextClassLoader())).getURLs();
+        URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
+            @Override
+            public boolean isSatisfiedBy(URL url) {
+                return url.toString().endsWith(String.format("pluginClasspathManifest/%s", PLUGIN_METADATA_FILE_NAME));
+            }
+        });
+
+        if (pluginClasspathUrl == null) {
+            throw new InvalidPluginMetadataException(String.format("Test runtime classpath does not contain plugin metadata file '%s'", PLUGIN_METADATA_FILE_NAME));
+        }
+
+        Properties properties = GUtil.loadProperties(pluginClasspathUrl);
+
+        if (!properties.isEmpty()) {
+            if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
+                throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' does not contain expected property named '%s'", PLUGIN_METADATA_FILE_NAME, IMPLEMENTATION_CLASSPATH_PROP_KEY));
+            }
+
+            String[] parsedImplementationClasspath = properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY).split(",");
+            return CollectionUtils.collect(parsedImplementationClasspath, new Transformer<File, String>() {
+                @Override
+                public File transform(String classpathEntry) {
+                    return new File(classpathEntry);
+                }
+            });
+        }
+
+        return Collections.emptyList();
+    }
 }

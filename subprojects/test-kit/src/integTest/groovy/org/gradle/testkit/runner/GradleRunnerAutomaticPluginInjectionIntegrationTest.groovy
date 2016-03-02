@@ -26,6 +26,8 @@ import org.gradle.util.GUtil
 import org.gradle.util.UsesNativeServices
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.internal.DefaultGradleRunner.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.testkit.runner.internal.DefaultGradleRunner.PLUGIN_METADATA_FILE_NAME
 
 @InjectsPluginClasspath
 @InspectsBuildOutput
@@ -44,21 +46,43 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         """
     }
 
-    def "automatically injects plugin classpath if manifest is found"() {
+    def "injects plugin metadata classpath if requested"() {
         given:
         List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
 
         when:
         BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').build()
+            runner('helloWorld')
+                .withPluginClasspath()
+                .build()
         }
 
         then:
         result.task(":helloWorld").outcome == SUCCESS
     }
 
-    def "automatically injected plugin classpath can be overridden"() {
+    def "does not automatically inject plugin metadata classpath if not requested and metadata file is located"() {
+        given:
+        List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
+        File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
+
+        when:
+        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
+            runner('helloWorld')
+                .buildAndFail()
+        }
+
+        then:
+        execFailure(result).assertHasDescription("""
+            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
+            |
+            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
+        """.stripMargin().trim())
+    }
+
+    def "injected plugin metadata classpath can be overridden"() {
         given:
         List<File> pluginClasspath = fixture.getPluginClasspath(projectDir)
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
@@ -66,7 +90,10 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
 
         when:
         BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').withPluginClasspath(userDefinedClasspath).buildAndFail()
+            runner('helloWorld')
+                .withPluginClasspath()
+                .withPluginClasspath(userDefinedClasspath)
+                .buildAndFail()
         }
 
         then:
@@ -79,26 +106,26 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         """.stripMargin().trim())
     }
 
-    def "does not inject plugin classpath if manifest is not found"() {
+    def "throws exception if plugin metadata classpath is requested to be injected but cannot locate metadata file"() {
         when:
-        BuildResult result = runner('helloWorld').buildAndFail()
+        runner('helloWorld')
+            .withPluginClasspath()
+            .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        Throwable t = thrown(InvalidPluginMetadataException)
+        t.message == "Test runtime classpath does not contain plugin metadata file '$PLUGIN_METADATA_FILE_NAME'"
     }
 
-    def "does not inject plugin classpath if manifest content is empty"() {
+    def "does not inject plugin metadata classpath if implementation-classpath property is empty"() {
         given:
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [])
 
         when:
         BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').buildAndFail()
+            runner('helloWorld')
+                .withPluginClasspath()
+                .buildAndFail()
         }
 
         then:
@@ -113,18 +140,20 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         """.stripMargin().trim())
     }
 
-    def "throws exception if manifest does not contain classpath property"() {
+    def "throws exception if plugin metadata does not contain implementation-classpath property"() {
         given:
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [], ['other': 'prop'])
 
         when:
         fixture.withClasspath([pluginClasspathFile]) {
-            runner('helloWorld').build()
+            runner('helloWorld')
+                .withPluginClasspath()
+                .build()
         }
 
         then:
-        Throwable t = thrown(IncompletePluginMetadataException)
-        t.message == "Plugin classpath manifest file does not contain expected property named 'implementation-classpath'"
+        Throwable t = thrown(InvalidPluginMetadataException)
+        t.message == "Plugin metadata file '$PLUGIN_METADATA_FILE_NAME' does not contain expected property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'"
     }
 
     private void compilePluginProjectSources() {
