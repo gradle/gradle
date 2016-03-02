@@ -15,27 +15,29 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.DeleteAction;
 import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class DeleteActionImpl implements DeleteAction {
+public class DeleteActionImpl implements DeleteActionInternal {
     private static Logger logger = LoggerFactory.getLogger(DeleteActionImpl.class);
-    
+
     private FileResolver fileResolver;
+    private FileSystem fileSystem;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
-    public DeleteActionImpl(FileResolver fileResolver) {
+    public DeleteActionImpl(FileResolver fileResolver, FileSystem fileSystem) {
         this.fileResolver = fileResolver;
+        this.fileSystem = fileSystem;
     }
 
-    public boolean delete(Object... deletes) {
+    public boolean doDelete(boolean followSymlinks, Object... deletes) {
         boolean didWork = false;
         for (File file : fileResolver.resolveFiles(deletes)) {
             if (!file.exists()) {
@@ -43,13 +45,17 @@ public class DeleteActionImpl implements DeleteAction {
             }
             logger.debug("Deleting {}", file);
             didWork = true;
-            doDelete(file);
+            doDeleteInternal(followSymlinks, file);
         }
         return didWork;
     }
 
-    private void doDelete(File file) {
-        if (file.isDirectory()) {
+    public boolean delete(Object... deletes) {
+        return doDelete(false, deletes);
+    }
+
+    private void doDeleteInternal(boolean followSymlinks, File file) {
+        if (file.isDirectory() && (followSymlinks || !fileSystem.isSymlink(file))) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -58,7 +64,7 @@ public class DeleteActionImpl implements DeleteAction {
             }
 
             for (File item : contents) {
-                doDelete(item);
+                doDeleteInternal(followSymlinks, item);
             }
         }
 
@@ -90,5 +96,4 @@ public class DeleteActionImpl implements DeleteAction {
             throw new UnableToDeleteFileException(file);
         }
     }
-
 }
