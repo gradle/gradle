@@ -32,7 +32,7 @@ import java.io.Serializable;
 /**
  * <p>The final stage of worker start-up. Takes care of executing the worker action.</p>
  *
- * <p>It is instantiated in the implementation ClassLoader and called from {@link ImplementationClassLoaderWorker}.<p>
+ * <p>It is instantiated in the implementation ClassLoader and called from {@link SystemApplicationClassLoaderWorker}.<p>
  */
 public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);

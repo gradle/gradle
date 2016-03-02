@@ -64,19 +64,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
     }
 
     public ClassPath findClassPath(String name) {
-        if (name.equals("WORKER_PROCESS")) {
-            // TODO - split out a logging project and use its classpath, instead of hardcoding logging dependencies here
-            ClassPath classpath = new DefaultClassPath();
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-native").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-messaging").getImplementationClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("guava-jdk5").getClasspath());
-            return classpath;
-        }
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
