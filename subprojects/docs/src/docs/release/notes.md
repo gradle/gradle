@@ -131,20 +131,20 @@ Also, you may have a `force = <something>` option in your build file. Previously
 
 One of the objectives of the software model is to describe _what_ you want to build instead of _how_. In particular, you might want to describe that you are building a web application. That application can be seen as an aggregate of libraries, but also sources, static resources, etc. A library can be seen as an aggregate of sources, producing different binaries depending on the target platform, the CPU architecture, ... A source set may also be viewed as a component that can itself be built (e.g. generated sources). To reflect this idea that "everything is a component" and "components are composed of other components", the `ComponentSpec` hierarchy has been reorganised. This will greatly simplify the creation of custom components, as well as reduce the amount of component type specific code, by composing behavior, rather than inheriting it.
 
-- The `sources` and `binaries` properties of `ComponentSpec` have been moved to dedicated subtypes (resp. `SourceComponentSpec` and `VariantComponentSpec`)
-- `GeneralComponentSpec` is the base interface for all components that are built from sources and can generate multiple variants (typically, depending on the target platform)
-- `LibrarySpec` and `ApplicationSpec` are two typical examples of components that extend `GeneralComponentSpec`, that can be leveraged to build your own component types.
-- `BuildableModelElement` has been renamed to `BuildableComponentSpec`, which in turn now extends `ComponentSpec`.
+ - The `sources` and `binaries` properties of `ComponentSpec` have been moved to dedicated subtypes (resp. `SourceComponentSpec` and `VariantComponentSpec`)
+ - `GeneralComponentSpec` is the base interface for all components that are built from sources and can generate multiple variants (typically, depending on the target platform)
+ - `LibrarySpec` and `ApplicationSpec` are two typical examples of components that extend `GeneralComponentSpec`, that can be leveraged to build your own component types.
+ - `BuildableModelElement` has been renamed to `BuildableComponentSpec`, which in turn now extends `ComponentSpec`.
 
 #### Type registration
 
-- `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` have been unified into a single `TypeBuilder`.
-- The `BinaryType` and `LanguageType` annotations are no longer supported. They have been replaced by a single `ComponentType` annotation.
-- The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
+ - `LanguageTypeBuilder`, `ComponentTypeBuilder`, `BinaryTypeBuilder` have been unified into a single `TypeBuilder`.
+ - The `BinaryType` and `LanguageType` annotations are no longer supported. They have been replaced by a single `ComponentType` annotation.
+ - The `languageName` property has been removed from `LanguageTypeBuilder`. This property was not used and does not make sense for `LanguageSourceSet` subtypes that don't represent an actual language.
 
 #### Other changes
 
-- Deprecated properties `ComponentSpec.source` and `BinarySpec.source` have been removed. These have been replaced by the `sources` property.
+ - Deprecated properties `ComponentSpec.source` and `BinarySpec.source` have been removed. These have been replaced by the `sources` property.
 
 ### Java plugin 'compile' configuration no longer represents all compile time dependencies
 
@@ -154,11 +154,11 @@ As a result of the addition of [compile only dependencies](#support-for-declarin
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
-* [Lewis Cowles](https://github.com/LewisCowles1986) - Installation documentation clarification about GRADLE_HOME
-* [Alex Landau](https://github.com/AlexLandau) - Fix for JUnit Test Filtering with the `--test` flag to work for Parametrized tests and TestSuites
-* [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between Ant and Zinc scala compiler implementations
-* [Tony Abbott](https://github.com/tonyabbott) - Fix for native testing plugins when test binaries are not buildable
+ - [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
+ - [Lewis Cowles](https://github.com/LewisCowles1986) - Installation documentation clarification about GRADLE_HOME
+ - [Alex Landau](https://github.com/AlexLandau) - Fix for JUnit Test Filtering with the `--test` flag to work for Parametrized tests and TestSuites
+ - [Stuart Armitage](https://github.com/maiflai) - Fix some inconsistencies between Ant and Zinc scala compiler implementations
+ - [Tony Abbott](https://github.com/tonyabbott) - Fix for native testing plugins when test binaries are not buildable
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
