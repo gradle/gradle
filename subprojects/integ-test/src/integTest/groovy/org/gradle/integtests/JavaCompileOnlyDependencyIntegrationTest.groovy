@@ -186,4 +186,71 @@ project(':projectB') {
         expect:
         succeeds('checkClasspath')
     }
+
+    def "correct configurations for compile only project dependency"() {
+        given:
+        settingsFile << "include 'projectA', 'projectB'"
+
+        and:
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+            }
+
+            project(':projectA') {}
+
+            project(':projectB') {
+                dependencies {
+                    compileOnly project(':projectA')
+                }
+
+                task checkClasspath << {
+                    assert configurations.compileOnly.files == [project(':projectA').jar.archivePath] as Set
+                    assert configurations.compile.files == [] as Set
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds('checkClasspath')
+    }
+
+    def "can compile against compile only dependencies for additional source sets"() {
+        given:
+        file('src/additional/java/Test.java') << """
+            import org.apache.commons.logging.Log;
+            import org.apache.commons.logging.LogFactory;
+
+            public class Test {
+                private static final Log logger = LogFactory.getLog(Test.class);
+            }
+        """.stripIndent()
+
+        and:
+        buildFile << """
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            sourceSets {
+                additional
+            }
+
+            dependencies {
+                additionalCompileOnly 'commons-logging:commons-logging:1.2'
+            }
+        """
+
+        when:
+        run('compileAdditionalJava')
+
+        then:
+        file('build/classes/additional/Test.class').exists()
+    }
+
 }
