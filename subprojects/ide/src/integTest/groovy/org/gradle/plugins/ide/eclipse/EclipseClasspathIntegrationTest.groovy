@@ -1121,4 +1121,167 @@ project(':b') {
         assert classpathB.projects == ['/a']
         classpathB.assertHasLibs('compile-1.0.jar')
     }
+
+    @Test
+    void "test compile only dependencies mapped to classpath and not exported"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':a') {
+                dependencies {
+                    testCompileOnly 'org.gradle.test:compileOnly:1.0'
+                }
+            }
+
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                    compile 'org.gradle.test:compile:1.0'
+                }
+            }
+        """.stripIndent()
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 1
+        classpathA.assertHasLibs('compileOnly-1.0.jar')
+        assert classpathB.libs.size() == 1
+        assert classpathB.projects == ['/a']
+        classpathB.assertHasLibs('compile-1.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':a') {
+                dependencies {
+                    compile 'org.gradle.test:conflictingDependency:1.0'
+                    compileOnly 'org.gradle.test:conflictingDependency:2.0'
+                }
+            }
+
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """.stripIndent()
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 2
+        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        assert classpathB.libs.size() == 1
+        assert classpathB.projects == ['/a']
+        classpathB.assertHasLibs('conflictingDependency-1.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':a') {
+                dependencies {
+                    runtime 'org.gradle.test:conflictingDependency:1.0'
+                    compileOnly 'org.gradle.test:conflictingDependency:2.0'
+                }
+            }
+
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """.stripIndent()
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 2
+        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        assert classpathB.libs.size() == 1
+        assert classpathB.projects == ['/a']
+        classpathB.assertHasLibs('conflictingDependency-1.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
+
+        // when
+        runEclipseTask "include 'a', 'b'", """
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':a') {
+                dependencies {
+                    testCompile 'org.gradle.test:conflictingDependency:1.0'
+                    testCompileOnly 'org.gradle.test:conflictingDependency:2.0'
+                }
+            }
+
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+        """.stripIndent()
+
+        // then
+        def classpathA = classpath('a')
+        def classpathB = classpath('b')
+        assert classpathA.libs.size() == 2
+        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        assert classpathB.libs.size() == 0
+        assert classpathB.projects == ['/a']
+    }
 }
