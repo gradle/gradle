@@ -17,7 +17,9 @@
 package org.gradle.plugin.devel.plugins.internal.tasks;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -26,11 +28,11 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Custom task for generating a plugin classpath manifest for the given classpath.
@@ -83,19 +85,27 @@ public class PluginClasspathManifest extends ConventionTask {
 
     @TaskAction
     public void generate() {
-        Properties properties = new Properties();
+        FileWriter writer = null;
 
-        if (!getPluginClasspath().isEmpty()) {
-            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getAbsolutePath().replaceAll("\\\\", "/");
-                }
-            });
+        try {
+            writer = new FileWriter(getOutputFile());
 
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, Joiner.on(",").join(paths));
+            if (!getPluginClasspath().isEmpty()) {
+                List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
+                    @Override
+                    public String transform(File file) {
+                        return file.getAbsolutePath().replaceAll("\\\\", "/");
+                    }
+                });
+
+                writer.write(IMPLEMENTATION_CLASSPATH_PROP_KEY);
+                writer.write("=");
+                Joiner.on(",").appendTo(writer, paths);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            IOUtils.closeQuietly(writer);
         }
-
-        GUtil.saveProperties(properties, getOutputFile());
     }
 }
