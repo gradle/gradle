@@ -22,7 +22,7 @@ import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.ast.*;
+import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
@@ -53,7 +53,8 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
@@ -80,18 +81,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier);
+            compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
             GFileUtils.deleteDirectory(metadataDir);
             throw e;
         }
 
-        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(),
-                clock.getTime());
+        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getTime());
     }
 
-    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File classesDir, File metadataDir,
+    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
                                final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
@@ -129,7 +129,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         if (packageDetector.hasPackageStatement) {
             throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                    StringUtils.capitalize(source.getDisplayName())));
+                StringUtils.capitalize(source.getDisplayName())));
         }
         serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
     }
@@ -174,8 +174,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
-                lineNumber);
+        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source, lineNumber);
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

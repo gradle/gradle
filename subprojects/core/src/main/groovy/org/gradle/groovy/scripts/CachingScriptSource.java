@@ -19,7 +19,8 @@ import org.gradle.internal.resource.CachingResource;
 import org.gradle.internal.resource.Resource;
 
 public class CachingScriptSource extends DelegatingScriptSource {
-    private Resource resource;
+    private final Resource resource;
+    private final String displayName;
 
     public static ScriptSource of(ScriptSource source) {
         if (source instanceof NonExistentFileScriptSource || source instanceof CachingScriptSource) {
@@ -31,6 +32,12 @@ public class CachingScriptSource extends DelegatingScriptSource {
     private CachingScriptSource(ScriptSource source) {
         super(source);
         resource = new CachingResource(source.getResource());
+        displayName = source.getDisplayName();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override
