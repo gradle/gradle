@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.GUtil
 
 import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
@@ -33,16 +34,22 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
     }
 
     def "configures functional testing by conventions"() {
+        given:
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('compile', module)
+
         when:
         succeeds 'build'
 
         then:
-        result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
+        result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        !loadedImplementationClasspath.contains("\\")
         loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
         loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(module.artifactFile.absolutePath))
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -51,7 +58,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             sourceSets.remove(sourceSets.main)
 
             sourceSets {
-                customMain {
+                custom {
                     java {
                         srcDir 'src'
                     }
@@ -78,20 +85,56 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             check.dependsOn functionalTest
 
             gradlePlugin {
-                pluginSourceSet sourceSets.customMain
+                pluginSourceSet sourceSets.custom
                 testSourceSets sourceSets.functionalTest
             }
         """
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('customCompile', module)
 
         when:
         succeeds 'build'
 
         then:
-        result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
+        result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
         File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
         classpathManifest.exists() && classpathManifest.isFile()
         String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
+        !loadedImplementationClasspath.contains("\\")
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/custom').absolutePath))
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/custom').absolutePath))
+        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(module.artifactFile.absolutePath))
+    }
+
+    def "adds no implementation-classpath property for empty plugin classpath"() {
+        given:
+        buildFile << """
+            $JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME {
+                pluginClasspath = files()
+            }
+        """
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('compile', module)
+
+        when:
+        succeeds 'build'
+
+        then:
+        result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
+        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
+        classpathManifest.exists() && classpathManifest.isFile()
+        !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+    }
+
+    private String compileDependency(String configurationName, MavenModule module) {
+        """
+            repositories {
+                maven { url "$mavenRepo.uri" }
+            }
+
+            dependencies {
+                $configurationName '$module.groupId:$module.artifactId:$module.version'
+            }
+        """
     }
 }

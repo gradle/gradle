@@ -17,97 +17,15 @@
 package org.gradle.plugin.devel.plugins.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.GUtil
-
-import static PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String TASK_NAME = 'pluginClasspathManifest'
-    private static final String TASK_PATH = ":$TASK_NAME"
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
         """
-    }
-
-    def "can use default conventions to generate classpath manifest"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()})
-        """
-        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency('compile', module)
-
-        when:
-        ExecutionResult result = succeeds TASK_NAME
-
-        then:
-        result.executedTasks.containsAll([':compileJava', ':processResources', TASK_PATH])
-        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
-        classpathManifest.exists() && classpathManifest.isFile()
-        String expectedImplementationClasspath = [file('build/classes/main').absolutePath, file('build/resources/main').absolutePath, module.artifactFile.absolutePath].join(',')
-        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        !loadedImplementationClasspath.contains("\\")
-        loadedImplementationClasspath == normaliseFileAndLineSeparators(expectedImplementationClasspath)
-    }
-
-    def "can assign custom plugin classpath to generate classpath manifest"() {
-        given:
-        buildFile << """
-            sourceSets {
-                custom {
-                    java {
-                        srcDir 'src'
-                    }
-                    resources {
-                        srcDir 'resources'
-                    }
-                }
-            }
-
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
-                pluginClasspath = sourceSets.custom.runtimeClasspath
-            }
-        """
-        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency('customCompile', module)
-
-        when:
-        ExecutionResult result = succeeds TASK_NAME
-
-        then:
-        result.executedTasks.containsAll([':compileCustomJava', ':processCustomResources', TASK_PATH])
-        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
-        classpathManifest.exists() && classpathManifest.isFile()
-        String expectedImplementationClasspath = [file('build/classes/custom').absolutePath, file('build/resources/custom').absolutePath, module.artifactFile.absolutePath].join(',')
-        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        !loadedImplementationClasspath.contains("\\")
-        loadedImplementationClasspath == normaliseFileAndLineSeparators(expectedImplementationClasspath)
-    }
-
-    def "adds no implementation-classpath property for empty plugin classpath"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
-                pluginClasspath = files()
-            }
-        """
-        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
-        buildFile << compileDependency('compile', module)
-
-        when:
-        ExecutionResult result = succeeds TASK_NAME
-
-        then:
-        result.executedTasks.contains(TASK_PATH)
-        File classpathManifest = file("build/$TASK_NAME/plugin-under-test-metadata.properties")
-        classpathManifest.exists() && classpathManifest.isFile()
-        !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
 
     def "fails the task for null plugin classpath"() {
@@ -138,17 +56,5 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
-    }
-
-    private String compileDependency(String configurationName, MavenModule module) {
-        """
-            repositories {
-                maven { url "$mavenRepo.uri" }
-            }
-
-            dependencies {
-                $configurationName '$module.groupId:$module.artifactId:$module.version'
-            }
-        """
     }
 }
