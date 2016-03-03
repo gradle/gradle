@@ -40,8 +40,7 @@ public class FileSystemServices {
     public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
-            Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", WindowsSymlink.class);
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink);
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new WindowsSymlink());
         }
 
         if (posixFiles instanceof UnavailablePosixFiles) {
@@ -53,8 +52,8 @@ public class FileSystemServices {
             return new GenericFileSystem(chmod, stat, symlink);
         }
 
-        Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", UnsupportedSymlink.class);
-        LOGGER.debug("Using {} implementation as symlink.", symlink.getClass().getSimpleName());
+        LOGGER.debug("Using UnsupportedSymlink implementation.");
+        Symlink symlink = new UnsupportedSymlink();
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
         Object handler = newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", UnsupportedFilePermissions.class);

@@ -57,12 +57,10 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
-    private final DeleteAction deleteAction;
+    private final DeleteAction deleteAction = new DeleteActionImpl(new IdentityFileResolver());
 
     public PathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
-        IdentityFileResolver fileResolver = new IdentityFileResolver();
-        deleteAction = new DeleteActionImpl(fileResolver, fileResolver.getFileSystem());
     }
 
     protected File getBaseDir() {
