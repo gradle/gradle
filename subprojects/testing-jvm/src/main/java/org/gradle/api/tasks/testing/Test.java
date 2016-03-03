@@ -20,11 +20,11 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.*;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeElementComparator;
-import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
@@ -70,7 +70,6 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -160,8 +159,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
-
-        addCandidateClassFilesHashProperty();
     }
 
     @Inject
@@ -1067,32 +1064,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @InputFiles
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
-    }
-
-    private void addCandidateClassFilesHashProperty() {
-        // force tests to run when the set of candidate class files changes
-        getInputs().property("candidateClassFilesHash", new Callable<Integer>() {
-            Integer candidateClassFilesHash;
-
-            @Override
-            public Integer call() throws Exception {
-                if (candidateClassFilesHash == null) {
-                    candidateClassFilesHash = calculateCandidateClassFilesHash();
-                }
-                return candidateClassFilesHash;
-            }
-        });
-    }
-
-    private Integer calculateCandidateClassFilesHash() {
-        final SortedSet<FileTreeElement> sortedFiles = new TreeSet<FileTreeElement>(FileTreeElementComparator.INSTANCE);
-        getCandidateClassFiles().visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                sortedFiles.add(fileDetails);
-            }
-        });
-        return FileTreeElementHasher.calculateHashForFilePaths(sortedFiles);
     }
 
     /**
