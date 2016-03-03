@@ -22,12 +22,13 @@ class TestKitEndUserAutomaticClasspathIntegrationTest extends AbstractTestKitEnd
         buildFile << """
             apply plugin: 'java-gradle-plugin'
         """
-    }
 
-    def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
         file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << helloWorldPluginJavaClass()
         file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << helloWorldJavaClass()
         file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << pluginProperties()
+    }
+
+    def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
         writeTest functionalTestGroovyClass()
 
         when:
@@ -64,9 +65,6 @@ class TestKitEndUserAutomaticClasspathIntegrationTest extends AbstractTestKitEnd
             }
         """
 
-        file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << helloWorldPluginJavaClass()
-        file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << helloWorldJavaClass()
-        file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << pluginProperties()
         file("src/functionalTest/groovy/org/gradle/test/BuildLogicFunctionalTest.groovy") << functionalTestGroovyClass()
 
         when:
