@@ -19,33 +19,14 @@ package org.gradle.testkit
 import com.google.common.math.IntMath
 import groovy.io.FileType
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.GradleRunnerIntegrationTest
 import org.gradle.testkit.runner.GradleRunner
-
 import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
-import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
-@NonCrossVersion
-@UsesNativeServices
-class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
-
-    def setup() {
-        executer.requireGradleHome().withStackTraceChecksDisabled()
-        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
-        buildFile << buildFileForGroovyProject()
-    }
-
-    private TestFile writeTest(String content, String className = 'BuildLogicFunctionalTest') {
-        file("src/test/groovy/org/gradle/test/${className}.groovy") << content
-    }
+class TestKitEndUserIntegrationTest extends AbstractTestKitEndUserIntegrationTest {
 
     @NoDebug
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
@@ -796,125 +777,4 @@ class TestKitEndUserIntegrationTest extends GradleRunnerIntegrationTest {
         cleanup:
         killDaemons()
     }
-
-    private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
-        File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
-        DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
-    }
-
-    private void assertDaemonsAreStopping() {
-        createDaemonLogAnalyzer().visible*.stops()
-    }
-
-    private void killDaemons() {
-        createDaemonLogAnalyzer().killAll()
-    }
-
-    private static String buildFileForGroovyProject() {
-        """
-            apply plugin: 'groovy'
-
-            dependencies {
-                compile localGroovy()
-                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
-                    exclude module: 'groovy-all'
-                }
-            }
-
-            repositories {
-                mavenCentral()
-            }
-
-            test.testLogging.exceptionFormat = 'full'
-        """
-    }
-
-    private static String gradleTestKitDependency() {
-        """
-            dependencies {
-                testCompile gradleTestKit()
-            }
-        """
-    }
-
-    private static String gradleApiDependency() {
-        """
-            dependencies {
-                compile gradleApi()
-            }
-        """
-    }
-
-
-    private static String parallelTests() {
-        """
-            test {
-                maxParallelForks = 3
-
-                testLogging {
-                    events 'started'
-                }
-            }
-        """
-    }
-
-    private static String buildLogicFunctionalTestCreatingGradleRunner() {
-        """
-            package org.gradle.test
-
-            import org.gradle.testkit.runner.GradleRunner
-            import spock.lang.Specification
-
-            class BuildLogicFunctionalTest extends Specification {
-                def "create GradleRunner"() {
-                    expect:
-                    GradleRunner.create().withProjectDir(new File("foo")).build()
-                }
-            }
-        """
-    }
-
-    private static String successfulSpockTest(String className) {
-        """
-            package org.gradle.test
-
-            import org.gradle.testkit.runner.GradleRunner
-            import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
-            import spock.lang.Specification
-
-            class $className extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-                File buildFile
-
-                def setup() {
-                    buildFile = testProjectDir.newFile('build.gradle')
-                }
-
-                def "execute helloWorld task"() {
-                    given:
-                    buildFile << '''
-                        task helloWorld {
-                            doLast {
-                                println 'Hello world!'
-                            }
-                        }
-                    '''
-
-                    when:
-                    def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
-                        .withArguments('helloWorld')
-
-                        .withDebug($debug)
-                        .build()
-
-                    then:
-                    noExceptionThrown()
-                }
-            }
-        """
-    }
-
 }
