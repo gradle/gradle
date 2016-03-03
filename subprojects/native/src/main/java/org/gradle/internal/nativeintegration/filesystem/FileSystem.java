@@ -54,4 +54,12 @@ public interface FileSystem extends Chmod, Stat {
      * @exception FileException if the operation fails
      */
     void createSymbolicLink(File link, File target) throws FileException;
+
+    /**
+     * Tells if the file is a symlink
+     *
+     * @param suspect the file to check
+     * @return true if symlink, false otherwise
+     */
+    boolean isSymlink(File suspect);
 }

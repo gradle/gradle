@@ -52,6 +52,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Deleting no longer follows symlinks.
+
+The Delete task will no longer follow symlinks by default and project.delete() will not follow symlinks at all. Previous versions of Gradle would follow-symlinks during deletions. If you need the Delete
+task to follow symlinks set `followSymlinks = true`. If you need `project.delete()` to follow symlinks, replace it with `ant.delete()`. This was done to prevent issues where Gradle would attempt to delete files
+outside of Gradle's build directory (e.g. NPM installed in a user-writeable location.).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -61,6 +67,7 @@ We would like to thank the following community members for making contributions 
 * [Randall Becker](https://github.com/rsbecker) - bypass ulimit in NONSTOP os
 * [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
 * [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
+* [Ethan Hall](https://github.com/ethankhall) - make Delete tasks not follow symlinks ([GRADLE-2892](https://issues.gradle.org/browse/GRADLE-2892))
 * [Alpha Hinex](https://github.com/alphahinex) - upgrade to Ant 1.9.6
 
 <!--
