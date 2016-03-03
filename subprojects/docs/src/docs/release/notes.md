@@ -68,6 +68,7 @@ We would like to thank the following community members for making contributions 
 * [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
 * [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
 * [Ethan Hall](https://github.com/ethankhall) - make Delete tasks not follow symlinks ([GRADLE-2892](https://issues.gradle.org/browse/GRADLE-2892))
+* [Alpha Hinex](https://github.com/alphahinex) - upgrade to Ant 1.9.6
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
