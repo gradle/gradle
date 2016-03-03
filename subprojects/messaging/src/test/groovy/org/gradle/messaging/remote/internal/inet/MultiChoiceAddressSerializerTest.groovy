@@ -20,7 +20,7 @@ import org.gradle.internal.serialize.SerializerSpec
 
 class MultiChoiceAddressSerializerTest extends SerializerSpec {
     def "serializes an address"() {
-        def address = new MultiChoiceAddress(UUID.randomUUID(), 1234, [InetAddress.getLocalHost(), InetAddress.getLoopbackAddress()])
+        def address = new MultiChoiceAddress(UUID.randomUUID(), 1234, [InetAddress.getLocalHost(), InetAddress.getByName(null)])
 
         expect:
         serialize(address, new MultiChoiceAddressSerializer()) == address
