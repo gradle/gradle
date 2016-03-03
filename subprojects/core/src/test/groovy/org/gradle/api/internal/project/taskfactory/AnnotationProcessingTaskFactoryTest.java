@@ -595,7 +595,7 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
-    @Issue("https://issues.gradle.org/browse/GRADLE-2815")
+    @Issue("https://issues.gradle.org/Browse/GRADLE-2815")
     public void registersSpecifiedBooleanInputValue() {
         TaskWithBooleanInput task = expectTaskCreated(TaskWithBooleanInput.class, true);
         assertThat(task.getInputs().getProperties().get("inputValue"), equalTo((Object) true));
@@ -705,6 +705,13 @@ public class AnnotationProcessingTaskFactoryTest {
     public void fileCreationActionsAreNotConsideredCustom() {
         TaskInternal task = expectTaskCreated(TaskWithOutputFile.class, new Object[]{null});
         assertThat(task.isHasCustomActions(), equalTo(false));
+    }
+
+    @Test
+    public void ignoresBridgeMethods() {
+        TaskWithBridgeMethod task = expectTaskCreated(TaskWithBridgeMethod.class);
+        task.getOutputs().getFiles().getFiles();
+        assertThat(task.traversedOutputsCount, is(1));
     }
 
     private void assertValidationFails(TaskInternal task, String... expectedErrorMessages) {
@@ -944,6 +951,29 @@ public class AnnotationProcessingTaskFactoryTest {
         @OutputFiles
         public List<File> getOutputFiles() {
             return outputFiles;
+        }
+    }
+
+    public static class TaskWithBridgeMethod extends DefaultTask implements WithProperty<SpecificProperty> {
+        @org.gradle.api.tasks.Nested
+        private SpecificProperty nestedProperty = new SpecificProperty();
+        public int traversedOutputsCount = 0;
+
+        public SpecificProperty getNestedProperty() {
+            traversedOutputsCount++;
+            return nestedProperty;
+        }
+    }
+
+    public interface WithProperty<T extends PropertyContainer> {T getNestedProperty();}
+    public interface PropertyContainer<T extends SomeProperty> {}
+    public static class SpecificProperty extends SomePropertyContainer<SomeProperty> {}
+    public static class SomeProperty {}
+
+    public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer {
+        @OutputDirectories
+        public Set<File> getSomeOutputFiles() {
+            return Collections.emptySet();
         }
     }
 

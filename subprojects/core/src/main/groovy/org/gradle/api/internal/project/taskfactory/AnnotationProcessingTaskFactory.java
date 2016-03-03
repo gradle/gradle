@@ -297,7 +297,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
             Map<String, Field> fields = getFields(type);
             for (Method method : type.getDeclaredMethods()) {
-                if (!isGetter(method)) {
+                if (!isGetter(method) || method.isBridge()) {
                     continue;
                 }
 
