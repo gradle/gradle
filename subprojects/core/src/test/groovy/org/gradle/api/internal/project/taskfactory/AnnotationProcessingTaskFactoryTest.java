@@ -957,7 +957,7 @@ public class AnnotationProcessingTaskFactoryTest {
     public static class TaskWithBridgeMethod extends DefaultTask implements WithProperty<SpecificProperty> {
         @org.gradle.api.tasks.Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
-        public int traversedOutputsCount = 0;
+        public int traversedOutputsCount;
 
         public SpecificProperty getNestedProperty() {
             traversedOutputsCount++;
@@ -965,7 +965,9 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
-    public interface WithProperty<T extends PropertyContainer> {T getNestedProperty();}
+    public interface WithProperty<T extends PropertyContainer> {
+        T getNestedProperty();
+    }
     public interface PropertyContainer<T extends SomeProperty> {}
     public static class SpecificProperty extends SomePropertyContainer<SomeProperty> {}
     public static class SomeProperty {}
