@@ -127,7 +127,7 @@ ${result.error}
         gradle = executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
-            .withArgument("--stacktrace")
+            .withArgument("--full-stacktrace")
             .withArgument("--continuous")
             .start()
     }
