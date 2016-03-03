@@ -6,6 +6,8 @@ We've introduced some improvements to test execution from the Gradle command lin
 
 With each Gradle release we strive to not only make the command line Gradle experience better but also using Gradle in conjunction with your favorite IDE even more enjoyable. Using Gradle with IntelliJ IDEA and the [IDEA plugin](userguide/idea_plugin.html) now works better than ever. Manually managing Java target compatibility settings is no longer necessary as the [IDEA plugin](userguide/idea_plugin.html) will now ensure that Gradle and the IDE consistently use the same compiler settings.
 
+Additionally, our commitment to improving performance with each release continues. Gradle 2.12 has the fastest build script compilation speeds of any Gradle version to date.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
