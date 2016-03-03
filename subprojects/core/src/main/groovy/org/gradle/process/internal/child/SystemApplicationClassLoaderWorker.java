@@ -53,6 +53,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         if (System.getProperty("org.gradle.worker.test.stuck") != null) {
             // Simulate a stuck worker. There's probably a way to inject this failure...
             Thread.sleep(30000);
+            return null;
         }
 
         Decoder decoder = new InputStreamBackedDecoder(configInputStream);
