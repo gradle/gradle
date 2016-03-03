@@ -109,7 +109,7 @@
                 The following example demonstrates having the build generate a file denoting the implementation classpath of the code under test, and making it available at test runtime.
             </para>
             <sample id="testKitFunctionalTestSpockClassesBuildConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Making the code under test classpath available to the tests">
-                <sourcefile file="plugin/build.gradle" snippet="test-logic-classpath"/>
+                <sourcefile file="build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
                 The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/>.
@@ -118,7 +118,7 @@
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.
             </para>
             <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">
-                <sourcefile file="plugin/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
+                <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
             </sample>
             <para>
                 This approach works well when executing the functional tests as part of the Gradle build.
@@ -169,10 +169,10 @@
                     The following sample demonstrates how to automatically inject the plugin classpath for a custom test source set named <literal>functionalTest</literal>.
                 </para>
                 <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
-                    <sourcefile file="plugin/build.gradle" snippet="automatic-classpath"/>
+                    <sourcefile file="build.gradle" snippet="automatic-classpath"/>
                 </sample>
                 <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
-                    <sourcefile file="plugin/src/functionalTest/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
+                    <sourcefile file="src/functionalTest/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
                 </sample>
             </section>
         </section>
