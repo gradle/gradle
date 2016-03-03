@@ -21,14 +21,7 @@ import org.gradle.internal.resource.Resource;
 public class CachingScriptSource extends DelegatingScriptSource {
     private Resource resource;
 
-    public static ScriptSource of(ScriptSource source) {
-        if (source instanceof NonExistentFileScriptSource || source instanceof CachingScriptSource) {
-            return source;
-        }
-        return new CachingScriptSource(source);
-    }
-
-    private CachingScriptSource(ScriptSource source) {
+    public CachingScriptSource(ScriptSource source) {
         super(source);
         resource = new CachingResource(source.getResource());
     }

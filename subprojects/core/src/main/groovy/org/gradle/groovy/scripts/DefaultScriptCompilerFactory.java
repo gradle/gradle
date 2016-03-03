@@ -41,7 +41,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private final ScriptSource source;
 
         public ScriptCompilerImpl(ScriptSource source) {
-            this.source = CachingScriptSource.of(source);
+            this.source = new CachingScriptSource(source);
         }
 
         @Override

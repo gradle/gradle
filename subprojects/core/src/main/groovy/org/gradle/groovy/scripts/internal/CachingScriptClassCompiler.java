@@ -67,8 +67,8 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
             Key key = (Key) o;
 
             return classLoader.equals(key.classLoader)
-                && className.equals(key.className)
-                && dslId.equals(key.dslId);
+                    && className.equals(key.className)
+                    && dslId.equals(key.dslId);
         }
 
         @Override
