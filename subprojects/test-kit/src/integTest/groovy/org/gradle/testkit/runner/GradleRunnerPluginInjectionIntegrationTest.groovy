@@ -432,6 +432,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends GradleRunnerIntegration
         """
         plugins {
             id 'com.company.helloworld$counter'
+            ${' '*counter}
         }
         """
     }
