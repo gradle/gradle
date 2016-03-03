@@ -34,7 +34,6 @@ import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.util.Clock;
@@ -146,10 +145,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             handle.start();
             LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
-            ExecResult result = handle.waitForFinish();
+            handle.waitForFinish();
             LOGGER.debug("Gradle daemon process is now detached.");
 
-            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), result);
+            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput());
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

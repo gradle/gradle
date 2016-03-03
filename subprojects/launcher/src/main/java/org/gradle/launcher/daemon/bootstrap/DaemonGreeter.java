@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.process.ExecResult;
 
 public class DaemonGreeter {
     private final DocumentationRegistry documentationRegistry;
@@ -29,10 +28,10 @@ public class DaemonGreeter {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public DaemonStartupInfo parseDaemonOutput(String output, ExecResult result) {
+    public DaemonStartupInfo parseDaemonOutput(String output) {
         DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
         if (!startupCommunication.containsGreeting(output)) {
-            throw new GradleException(prepareMessage(output, result));
+            throw new GradleException(prepareMessage(output));
         }
         String[] lines = output.split("\n");
         //Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing fine.
@@ -40,7 +39,7 @@ public class DaemonGreeter {
         return startupCommunication.readDiagnostics(lastLine);
     }
 
-    private String prepareMessage(String output, ExecResult result) {
+    private String prepareMessage(String output) {
         StringBuilder sb = new StringBuilder();
         sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
         sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");

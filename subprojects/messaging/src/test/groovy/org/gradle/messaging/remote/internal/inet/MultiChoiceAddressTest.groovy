@@ -21,29 +21,32 @@ import spock.lang.Specification
 class MultiChoiceAddressTest extends Specification {
     def "has useful display name"() {
         InetAddress candidate = Mock()
-        def address = new MultiChoiceAddress('<canonical>', 1234, [candidate])
+        UUID uuid = UUID.randomUUID()
+        def address = new MultiChoiceAddress(uuid, 1234, [candidate])
 
         given:
         candidate.toString() >> '<address>'
 
         expect:
-        address.displayName == '[<canonical> port:1234, addresses:[<address>]]'
-        address.toString() == '[<canonical> port:1234, addresses:[<address>]]'
+        address.displayName == "[${uuid} port:1234, addresses:[<address>]]"
+        address.toString() == address.displayName
     }
 
-    def "addresses are equal when their canonical addresses are equal"() {
+    def "addresses are equal when their canonical id and port and candidate addresses are equal"() {
         InetAddress address1 = Mock()
         InetAddress address2 = Mock()
-        def address = new MultiChoiceAddress('canonical', 1234, [address1])
-        def same = new MultiChoiceAddress('canonical', 1234, [address1])
-        def differentPort = new MultiChoiceAddress('canonical', 1567, [address1])
-        def differentCandidates = new MultiChoiceAddress('canonical', 1234, [address2])
-        def differentCanonical = new MultiChoiceAddress('other', 1234, [address1])
+        UUID id = UUID.randomUUID()
+        UUID otherId = UUID.randomUUID()
+        def address = new MultiChoiceAddress(id, 1234, [address1])
+        def same = new MultiChoiceAddress(id, 1234, [address1])
+        def differentPort = new MultiChoiceAddress(id, 1567, [address1])
+        def differentCandidates = new MultiChoiceAddress(id, 1234, [address2])
+        def differentCanonical = new MultiChoiceAddress(otherId, 1234, [address1])
 
         expect:
         address Matchers.strictlyEqual(same)
-        address Matchers.strictlyEqual(differentCandidates)
-        address Matchers.strictlyEqual(differentPort)
+        address != differentCandidates
+        address != differentPort
         address != differentCanonical
     }
 }
