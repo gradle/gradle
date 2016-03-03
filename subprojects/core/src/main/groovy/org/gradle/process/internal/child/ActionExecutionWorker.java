@@ -18,10 +18,7 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,64 +36,47 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     private final Action<? super WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
-    private final Address serverAddress;
     private final File gradleUserHomeDir;
 
     public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName,
-                                 Address serverAddress, File gradleUserHomeDir) {
+                                 File gradleUserHomeDir) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
-        this.serverAddress = serverAddress;
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public void execute(final WorkerContext workerContext) {
-        MessagingServices messagingServices = createClient();
-        try {
-            final MessagingClient client = messagingServices.get(MessagingClient.class);
-            final ObjectConnection clientConnection = client.getConnection(serverAddress);
-            try {
-                LOGGER.debug("Starting {}.", displayName);
-                WorkerProcessContext context = new WorkerProcessContext() {
-                    public ObjectConnection getServerConnection() {
-                        return clientConnection;
-                    }
-
-                    public ClassLoader getApplicationClassLoader() {
-                        return workerContext.getApplicationClassLoader();
-                    }
-
-                    public Object getWorkerId() {
-                        return workerId;
-                    }
-
-                    public String getDisplayName() {
-                        return displayName;
-                    }
-                };
-
-                ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
-
-                NativeServices.initialize(gradleUserHomeDir, false);
-
-                try {
-                    action.execute(context);
-                } finally {
-                    Thread.currentThread().setContextClassLoader(contextClassLoader);
-                }
-                LOGGER.debug("Completed {}.", displayName);
-            } finally {
-                clientConnection.stop();
+        final ObjectConnection clientConnection = workerContext.getServerConnection();
+        LOGGER.debug("Starting {}.", displayName);
+        WorkerProcessContext context = new WorkerProcessContext() {
+            public ObjectConnection getServerConnection() {
+                return clientConnection;
             }
-        } finally {
-            LOGGER.debug("Stopping client connection.");
-            messagingServices.stop();
-        }
-    }
 
-    MessagingServices createClient() {
-        return new MessagingServices(getClass().getClassLoader());
+            public ClassLoader getApplicationClassLoader() {
+                return workerContext.getApplicationClassLoader();
+            }
+
+            public Object getWorkerId() {
+                return workerId;
+            }
+
+            public String getDisplayName() {
+                return displayName;
+            }
+        };
+
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+
+        NativeServices.initialize(gradleUserHomeDir, false);
+
+        try {
+            action.execute(context);
+        } finally {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
+        LOGGER.debug("Completed {}.", displayName);
     }
 }

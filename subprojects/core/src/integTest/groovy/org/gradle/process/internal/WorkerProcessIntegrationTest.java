@@ -30,9 +30,9 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
 import org.gradle.internal.Actions;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnectionBuilder;
 import org.gradle.messaging.remote.internal.MessagingServices;
@@ -50,6 +50,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -161,7 +162,13 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhichNeverConnects() throws Throwable {
-        execute(worker(new NoConnectRemoteProcess()).expectStartFailure());
+        workerFactory.setConnectTimeoutSeconds(3);
+        execute(worker(Actions.doNothing()).jvmArgs("-Dorg.gradle.worker.test.stuck").expectStartFailure());
+    }
+
+    @Test
+    public void handlesWorkerActionThatCannotBeDeserialized() throws Throwable {
+        execute(worker(new NotDeserializable()).expectStopFailure());
     }
 
     @Test
@@ -383,8 +390,18 @@ public class WorkerProcessIntegrationTest {
         }
     }
 
+    public static class NotDeserializable implements Action<WorkerProcessContext>, Serializable {
+        private void readObject(ObjectInputStream instr) throws IOException {
+            throw new IOException("Broken");
+        }
+
+        public void execute(WorkerProcessContext workerProcessContext) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     public interface TestListenerInterface {
-        public void send(String message, int count);
+        void send(String message, int count);
     }
 }
 

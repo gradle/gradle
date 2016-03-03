@@ -20,10 +20,18 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.remote.MessagingClient;
+import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
@@ -35,33 +43,66 @@ import java.util.concurrent.Callable;
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
-    private final int logLevel;
-    private final byte[] serializedWorker;
+    private final DataInputStream configInputStream;
 
-    public SystemApplicationClassLoaderWorker(int logLevel, byte[] serializedWorker) {
-        this.logLevel = logLevel;
-        this.serializedWorker = serializedWorker;
+    public SystemApplicationClassLoaderWorker(DataInputStream configInputStream) {
+        this.configInputStream = configInputStream;
     }
 
     public Void call() throws Exception {
+        if (System.getProperty("org.gradle.worker.test.stuck") != null) {
+            // Simulate a stuck worker. There's probably a way to inject this failure...
+            Thread.sleep(30000);
+        }
+
+        Decoder decoder = new InputStreamBackedDecoder(configInputStream);
+
+        // Read logging config and setup logging
+        int logLevel = decoder.readSmallInt();
         LoggingManagerInternal loggingManager = createLoggingManager();
         loggingManager.setLevel(LogLevel.values()[logLevel]).start();
 
-        // Deserialize the worker action
-        Action<WorkerContext> action;
+        // Read server address and start connecting
+        MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        MessagingServices messagingServices = createClient();
+
         try {
-            ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-            action = (Action<WorkerContext>) instr.readObject();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        action.execute(new WorkerContext() {
-            public ClassLoader getApplicationClassLoader() {
-                return ClassLoader.getSystemClassLoader();
+            final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+
+            try {
+                // Read serialized worker
+                byte[] serializedWorker = decoder.readBinary();
+
+                // Deserialize the worker action
+                Action<WorkerContext> action;
+                try {
+                    ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
+                    action = (Action<WorkerContext>) instr.readObject();
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                action.execute(new WorkerContext() {
+                    public ClassLoader getApplicationClassLoader() {
+                        return ClassLoader.getSystemClassLoader();
+                    }
+
+                    @Override
+                    public ObjectConnection getServerConnection() {
+                        return connection;
+                    }
+                });
+            } finally {
+                connection.stop();
             }
-        });
+        } finally {
+            messagingServices.close();
+        }
 
         return null;
+    }
+
+    MessagingServices createClient() {
+        return new MessagingServices(getClass().getClassLoader());
     }
 
     LoggingManagerInternal createLoggingManager() {

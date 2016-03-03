@@ -44,6 +44,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final File gradleUserHomeDir;
     private final ExecHandleFactory execHandleFactory;
     private final ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory;
+    private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
                                        File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
@@ -53,6 +54,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
         workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
+    }
+
+    public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
+        this.connectTimeoutSeconds = connectTimeoutSeconds;
     }
 
     public WorkerProcessBuilder create() {
@@ -72,7 +77,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
             ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
                 public void execute(ObjectConnection connection) {
                     workerProcess.onConnect(connection);

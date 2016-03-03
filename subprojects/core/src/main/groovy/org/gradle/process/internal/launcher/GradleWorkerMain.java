@@ -34,26 +34,20 @@ public class GradleWorkerMain {
     public void run() throws Exception {
         DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
 
-        // Read worker configuration
-        int logLevel = instr.readInt();
+        // Read shared packages
         int sharedPackagesCount = instr.readInt();
         List<String> sharedPackages = new ArrayList<String>(sharedPackagesCount);
         for (int i = 0; i < sharedPackagesCount; i++) {
             sharedPackages.add(instr.readUTF());
         }
 
-        // Reader worker implementation classpath
+        // Read worker implementation classpath
         int classPathLength = instr.readInt();
         URL[] implementationClassPath = new URL[classPathLength];
         for (int i = 0; i < classPathLength; i++) {
             String url = instr.readUTF();
             implementationClassPath[i] = new URL(url);
         }
-
-        // Read serialized worker
-        int serializedWorkerLength = instr.readInt();
-        byte[] serializedWorker = new byte[serializedWorkerLength];
-        instr.readFully(serializedWorker);
 
         // Set up worker ClassLoader
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader());
@@ -63,7 +57,7 @@ public class GradleWorkerMain {
         URLClassLoader classLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
 
         Class<? extends Callable> workerClass = classLoader.loadClass("org.gradle.process.internal.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
-        Callable<Void> main = workerClass.getConstructor(Integer.TYPE, byte[].class).newInstance(logLevel, serializedWorker);
+        Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
     }
 
