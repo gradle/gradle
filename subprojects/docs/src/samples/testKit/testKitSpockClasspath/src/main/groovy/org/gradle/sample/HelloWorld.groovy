@@ -18,11 +18,10 @@ package org.gradle.sample
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.sample.lib.Messages
 
 class HelloWorld extends DefaultTask {
     @TaskAction
     void printMessage() {
-        println Messages.HELLO_WORLD
+        println 'Hello world!'
     }
 }

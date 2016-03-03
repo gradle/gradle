@@ -13,10 +13,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    compile project(":lib")
-}
-
 // START SNIPPET test-logic-classpath
 // Write the plugin's classpath to a file to share with the tests
 task createClasspathManifest {
