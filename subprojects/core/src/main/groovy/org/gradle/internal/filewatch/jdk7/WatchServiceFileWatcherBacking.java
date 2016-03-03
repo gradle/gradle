@@ -69,8 +69,12 @@ public class WatchServiceFileWatcherBacking {
     };
 
     WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+        this(onError, listener, watchService, new WatchServiceRegistrar(watchService, listener));
+    }
+
+    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService, WatchServiceRegistrar watchServiceRegistrar) throws IOException {
         this.onError = onError;
-        this.watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener);
+        this.watchServiceRegistrar = watchServiceRegistrar;
         this.watchService = watchService;
         this.poller = new WatchServicePoller(watchService);
     }
