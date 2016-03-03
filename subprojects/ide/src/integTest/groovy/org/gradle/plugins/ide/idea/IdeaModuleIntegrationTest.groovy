@@ -640,4 +640,120 @@ dependencies {
         dependencies.assertHasLibrary('COMPILE', 'compile-1.0.jar')
         dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
     }
+
+    @Test
+    void "test compile only dependencies mapped to IDEA scopes"() {
+        // given
+        def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared).publish()
+
+        // when
+        runIdeaTask """
+            apply plugin: 'java'
+            apply plugin: 'idea'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                testCompile 'org.gradle.test:compile:1.0'
+                testCompileOnly 'org.gradle.test:compileOnly:1.0'
+            }
+        """.stripIndent()
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 4
+        dependencies.assertHasLibrary('TEST', 'shared-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'compile-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'compileOnly-1.0.jar')
+        dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library requested for compile and compile-only mapped to IDEA scopes"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
+
+        // when
+        runIdeaTask """
+            apply plugin: 'java'
+            apply plugin: 'idea'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                compile 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+                compileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
+            }
+        """.stripIndent()
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('COMPILE', 'bothCompileAndCompileOnly-1.0.jar')
+        dependencies.assertHasLibrary('PROVIDED', 'bothCompileAndCompileOnly-2.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library requested for runtime and compile-only mapped to IDEA scopes"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
+
+        // when
+        runIdeaTask """
+            apply plugin: 'java'
+            apply plugin: 'idea'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                compileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
+                runtime 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+            }
+        """.stripIndent()
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('PROVIDED', 'bothCompileAndCompileOnly-2.0.jar')
+        dependencies.assertHasLibrary('RUNTIME', 'bothCompileAndCompileOnly-1.0.jar')
+    }
+
+    @Test
+    void "conflicting versions of the same library requested for test-compile and test-compile-only mapped to IDEA scopes"() {
+        // given
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
+
+        // when
+        runIdeaTask """
+            apply plugin: 'java'
+            apply plugin: 'idea'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                testCompile 'org.gradle.test:bothCompileAndCompileOnly:1.0'
+                testCompileOnly 'org.gradle.test:bothCompileAndCompileOnly:2.0'
+            }
+        """.stripIndent()
+
+        // then
+        def dependencies = parseIml("root.iml").dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('TEST', 'bothCompileAndCompileOnly-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'bothCompileAndCompileOnly-2.0.jar')
+        dependencies.assertHasLibrary('PROVIDED', 'bothCompileAndCompileOnly-2.0.jar')
+    }
 }
