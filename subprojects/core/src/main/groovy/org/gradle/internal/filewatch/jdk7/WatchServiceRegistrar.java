@@ -106,6 +106,11 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 LOG.debug("Exception in registering for watching of " + dir, e);
                 lastException = e;
 
+                if (e instanceof NoSuchFileException) {
+                    LOG.debug("Return silently since directory doesn't exist.");
+                    return;
+                }
+
                 if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
                     // retry after getting "Bad file descriptor" exception
                     LOG.debug("Retrying after 'Bad file descriptor'");
