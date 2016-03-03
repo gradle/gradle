@@ -45,12 +45,12 @@ import java.util.Set;
  * @since 2.13
  */
 @Incubating
-public class JavaGradlePluginExtension {
+public class GradlePluginDevelopmentExtension {
 
     private SourceSet pluginSourceSet;
     private Set<SourceSet> testSourceSets = Collections.emptySet();
 
-    public JavaGradlePluginExtension(Project project) {
+    public GradlePluginDevelopmentExtension(Project project) {
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         testSourceSets(javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME));

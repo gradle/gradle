@@ -163,7 +163,7 @@
                     <listitem>Source set used for injecting the plugin classpath: <literal>sourceSets.test</literal></listitem>
                 </itemizedlist>
                 <para>
-                    Any of these conventions can be reconfigured with the help of the class <apilink class="org.gradle.plugin.devel.plugins.JavaGradlePluginExtension"/>.
+                    Any of these conventions can be reconfigured with the help of the class <apilink class="org.gradle.plugin.devel.plugins.GradlePluginDevelopmentExtension"/>.
                 </para>
                 <para>
                     The following sample demonstrates how to automatically inject the plugin classpath for a custom test source set named <literal>functionalTest</literal>.

@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * <p>
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
- * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension}.
+ * configuration. Default conventions can be customized with the help of {@link GradlePluginDevelopmentExtension}.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -59,7 +59,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
-        JavaGradlePluginExtension extension = project.getExtensions().create(EXTENSION_NAME, JavaGradlePluginExtension.class, project);
+        GradlePluginDevelopmentExtension extension = project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project);
         configureTestKit(project, extension);
     }
 
@@ -81,12 +81,12 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         jarTask.appendParallelSafeAction(pluginValidationAction);
     }
 
-    private void configureTestKit(Project project, JavaGradlePluginExtension extension) {
+    private void configureTestKit(Project project, GradlePluginDevelopmentExtension extension) {
         PluginClasspathManifest pluginClasspathTask = createAndConfigurePluginClasspathManifestTask(project, extension);
         establishTestKitAndPluginClasspathDependencies(project, extension, pluginClasspathTask);
     }
 
-    private PluginClasspathManifest createAndConfigurePluginClasspathManifestTask(Project project, final JavaGradlePluginExtension extension) {
+    private PluginClasspathManifest createAndConfigurePluginClasspathManifestTask(Project project, final GradlePluginDevelopmentExtension extension) {
         PluginClasspathManifest pluginClasspathTask = project.getTasks().create(PLUGIN_CLASSPATH_TASK_NAME, PluginClasspathManifest.class);
 
         pluginClasspathTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
@@ -98,7 +98,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         return pluginClasspathTask;
     }
 
-    private void establishTestKitAndPluginClasspathDependencies(Project project, JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+    private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, PluginClasspathManifest pluginClasspathTask) {
         project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
@@ -189,10 +189,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * on the plugin classpath manifest generation task for the test runtime configuration.
      */
     private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
-        private final JavaGradlePluginExtension extension;
+        private final GradlePluginDevelopmentExtension extension;
         private final PluginClasspathManifest pluginClasspathTask;
 
-        private TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        private TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, PluginClasspathManifest pluginClasspathTask) {
             this.extension = extension;
             this.pluginClasspathTask = pluginClasspathTask;
         }
