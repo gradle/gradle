@@ -166,13 +166,14 @@
                     Any of these conventions can be reconfigured with the help of the class <apilink class="org.gradle.plugin.devel.plugins.GradlePluginDevelopmentExtension"/>.
                 </para>
                 <para>
-                    The following sample demonstrates how to automatically inject the plugin classpath for a custom test source set named <literal>functionalTest</literal>.
+                    The following Groovy-based sample demonstrates how to automatically inject the plugin classpath by using the standard conventions applied by the
+                    Java Gradle Plugin Development plugin.
                 </para>
                 <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
                     <sourcefile file="build.gradle" snippet="automatic-classpath"/>
                 </sample>
                 <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/testKitSpockAutomaticClasspath" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
-                    <sourcefile file="src/functionalTest/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
+                    <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
                 </sample>
             </section>
         </section>
