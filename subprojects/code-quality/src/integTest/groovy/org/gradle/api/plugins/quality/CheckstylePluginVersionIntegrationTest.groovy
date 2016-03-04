@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
+import org.gradle.util.Resources
 import org.hamcrest.Matcher
+import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsLine
@@ -28,6 +30,9 @@ import static org.hamcrest.Matchers.*
 
 @TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+
+    @Rule
+    public final Resources resources = new Resources()
 
     def setup() {
         writeBuildFile()
@@ -140,6 +145,24 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("bar.html").exists()
     }
 
+    def "can configure the html report with a custom stylesheet"() {
+        given:
+        goodCode()
+
+        when:
+        buildFile << """
+            checkstyleMain.reports {
+                html.enabled true
+                html.stylesheet resources.text.fromFile('${sampleStylesheet()}')
+            }
+        """
+
+        then:
+        succeeds "checkstyleMain"
+        file("build/reports/checkstyle/main.html").exists()
+        file("build/reports/checkstyle/main.html").assertContents(containsString("A custom Checkstyle stylesheet"))
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
@@ -152,6 +175,10 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
         file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
         file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
+    }
+
+    private sampleStylesheet() {
+        resources.getResource('/checkstyle-custom-stylesheet.xsl')
     }
 
     private Matcher<String> containsClass(String className) {

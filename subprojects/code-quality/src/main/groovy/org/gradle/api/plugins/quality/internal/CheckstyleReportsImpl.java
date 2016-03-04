@@ -26,7 +26,7 @@ public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport>
     public CheckstyleReportsImpl(Task task) {
         super(SingleFileReport.class, task);
 
-        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(CustomizableHTMLReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
