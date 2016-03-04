@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
