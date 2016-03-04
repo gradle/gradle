@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -188,14 +189,9 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
     }
 
-
-
-    def "ability to select multiple tests for execution"() {
-        buildFile << """
-            test {
-              filter.setIncludePatterns 'Foo*.pass*'
-            }
-        """
+    @Unroll
+    def "can select multiple tests from commandline #scenario"() {
+        given:
         file("src/test/java/Foo1Test.java") << """import $imports;
             public class Foo1Test {
                 @Test public void pass1() {}
@@ -221,22 +217,33 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
 
         when:
-        run(command)
+        run(stringArrayOf(command))
 
         then:
 
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted(classesExecuted)
-        result.testClass("Foo1Test").assertTestsExecuted(foo1TestsExecuted)
-        result.testClass("Foo1Test").assertTestsExecuted(foo2TestsExecuted)
-        result.testClass("BarTest").assertTestsExecuted(barTestsExecuted)
-        result.testClass("OtherTest").assertTestsExecuted(otherTestsExecuted)
+        result.assertTestClassesExecuted(stringArrayOf(classesExecuted))
+        if (!foo1TestsExecuted.isEmpty()) {
+            result.testClass("Foo1Test").assertTestsExecuted(stringArrayOf(foo1TestsExecuted))
+        }
+        if (!foo2TestsExecuted.isEmpty()) {
+            result.testClass("Foo2Test").assertTestsExecuted(stringArrayOf(foo2TestsExecuted))
+        }
+        if (!barTestsExecuted.isEmpty()) {
+            result.testClass("BarTest").assertTestsExecuted(stringArrayOf(barTestsExecuted))
+        }
+        if (!otherTestsExecuted.isEmpty()) {
+            result.testClass("OtherTest").assertTestsExecuted(stringArrayOf(otherTestsExecuted))
+        }
 
         where:
-        command                                                | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
-        ["test"]                                               | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["pass1", "bar"]  | ["pass2", "bar"]  | ["bar"]          | ["pass3", "bar"]
-        ["test", "--tests", "*.pass1", "--tests", "OtherTest"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["pass3", "bar"]
-        ["test", "--tests", "*.pass1", "--tests", "*arTest"]   | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["pass3", "bar"]
+        scenario         | command                                                  | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
+        "no options"     | ["test"]                                                 | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["bar", "pass1"]  | ["bar", "pass2"]  | ["bar"]          | ["bar", "pass3"]
+        "pass and Ohter" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
+        "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
+    }
 
+    def String[] stringArrayOf(List<String> strings) {
+        return strings.toArray()
     }
 }
