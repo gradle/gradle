@@ -165,7 +165,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include timestamp within hidden comment in generated HTML.
+     * Returns whether to include timestamp within hidden comment in generated HTML (Groovy >= 2.4.6).
      */
     @Input
     public boolean isNoTimestamp() {
@@ -173,14 +173,14 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Sets whether to include timestamp within hidden comment in generated HTML.
+     * Sets whether to include timestamp within hidden comment in generated HTML (Groovy >= 2.4.6).
      */
     public void setNoTimestamp(boolean noTimestamp) {
         this.noTimestamp = noTimestamp;
     }
 
     /**
-     * Returns whether to include version stamp within hidden comment in generated HTML.
+     * Returns whether to include version stamp within hidden comment in generated HTML (Groovy >= 2.4.6).
      */
     @Input
     public boolean isNoVersionStamp() {
@@ -188,7 +188,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Sets whether to include version stamp within hidden comment in generated HTML.
+     * Sets whether to include version stamp within hidden comment in generated HTML (Groovy >= 2.4.6).
      */
     public void setNoVersionStamp(boolean noVersionStamp) {
         this.noVersionStamp = noVersionStamp;
