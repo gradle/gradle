@@ -30,7 +30,7 @@ import java.util.*;
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
-    private final OptionNotationParserFactory optionNotationParserFactory = new OptionNotationParserFactory();
+    private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
@@ -100,7 +100,7 @@ public class OptionReader {
                             field.getName(), field.getDeclaringClass().getName()));
                 }
 
-                fieldOptionElements.add(FieldOptionElement.create(option, field, optionNotationParserFactory));
+                fieldOptionElements.add(FieldOptionElement.create(option, field, optionValueNotationParserFactory));
             }
         }
         return fieldOptionElements;
@@ -115,7 +115,8 @@ public class OptionReader {
                     throw new OptionValidationException(String.format("@Option on static method '%s' not supported in class '%s'.",
                             method.getName(), method.getDeclaringClass().getName()));
                 }
-                final OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method, optionNotationParserFactory);
+                final OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
+                    optionValueNotationParserFactory);
                 methodOptionElements.add(methodOptionDescriptor);
             }
         }

@@ -25,10 +25,10 @@ import java.util.List;
 
 public class FieldOptionElement extends AbstractOptionElement {
 
-    public static FieldOptionElement create(Option option, Field field, OptionNotationParserFactory optionNotationParserFactory){
+    public static FieldOptionElement create(Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory){
         String optionName = calOptionName(option, field);
         Class<?> optionType = calculateOptionType(field.getType());
-        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionNotationParserFactory, optionName, optionType, field.getDeclaringClass());
+        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, optionName, optionType, field.getDeclaringClass());
         return new FieldOptionElement(field, optionName, option, optionType, notationParser);
     }
 
@@ -69,8 +69,8 @@ public class FieldOptionElement extends AbstractOptionElement {
     public void apply(Object object, List<String> parameterValues) {
         if (getOptionType() == Void.TYPE && parameterValues.size() == 0) {
             setFieldValue(object, true);
-        } else if (parameterValues.size() > 1) {
-            throw new IllegalArgumentException(String.format("Lists not supported for option"));
+        } else if (parameterValues.size() > 1  || List.class.equals(getOptionType())) {
+            setFieldValue(object, parameterValues);
         } else {
             Object arg = getNotationParser().parseNotation(parameterValues.get(0));
             setFieldValue(object, arg);

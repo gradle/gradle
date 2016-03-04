@@ -49,16 +49,16 @@ public class MethodOptionElement extends AbstractOptionElement {
     public void apply(Object object, List<String> parameterValues) {
         if (parameterValues.size() == 0) {
             invokeMethod(object, method, true);
-        } else if (parameterValues.size() > 1) {
-            throw new IllegalArgumentException(String.format("Lists not supported for option."));
+        } else if (parameterValues.size() > 1  || List.class.equals(getOptionType())) {
+            invokeMethod(object, method, parameterValues);
         } else {
             invokeMethod(object, method, getNotationParser().parseNotation(parameterValues.get(0)));
         }
     }
 
-    public static MethodOptionElement create(Option option, Method method, OptionNotationParserFactory optionNotationParserFactory){
+    public static MethodOptionElement create(Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory){
         Class<?> optionType = calculateOptionType(method);
-        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
+        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
         return new MethodOptionElement(option, method, optionType, notationParser);
     }
 
