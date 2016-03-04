@@ -148,9 +148,9 @@ class WatchServiceRegistrar implements FileWatcherListener {
             File file = event.getFile();
             maybeFire(watcher, event);
 
-            if (!Thread.currentThread().isInterrupted() && watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
+            if (event.getType().equals(FileWatcherEvent.Type.CREATE) && file.isDirectory()) {
                 try {
-                    newDirectory(watcher, file);
+                    maybeWatchNewDirectory(watcher, file);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -185,11 +185,16 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    private void newDirectory(FileWatcher watcher, File dir) throws IOException {
-        if (!watcher.isRunning()) {
+    private void maybeWatchNewDirectory(FileWatcher watcher, File dir) throws IOException {
+        LOG.debug("Begin - maybeWatchNewDirectory {}", dir);
+        if (isStopRequested(watcher)) {
+            LOG.debug("Stop requested, returning.");
             return;
         }
-        LOG.debug("Begin - newDirectory {}", dir);
+        if (!watchPointsRegistry.shouldWatch(dir)) {
+            LOG.debug("Ignoring watching {}", dir);
+            return;
+        }
         if (dir.exists()) {
             if (!FILE_TREE_WATCHING_SUPPORTED) {
                 watchDir(dir.toPath());
@@ -197,18 +202,22 @@ class WatchServiceRegistrar implements FileWatcherListener {
             File[] contents = dir.listFiles();
             if (contents != null) {
                 for (File file : contents) {
-                    maybeFire(watcher, FileWatcherEvent.create(file));
-                    if (!watcher.isRunning()) {
+                    if (isStopRequested(watcher)) {
+                        LOG.debug("Stop requested, returning.");
                         return;
                     }
-
+                    maybeFire(watcher, FileWatcherEvent.create(file));
                     if (file.isDirectory()) {
-                        newDirectory(watcher, file);
+                        maybeWatchNewDirectory(watcher, file);
                     }
                 }
             }
         }
-        LOG.debug("End - newDirectory {}", dir);
+        LOG.debug("End - maybeWatchNewDirectory {}", dir);
+    }
+
+    private boolean isStopRequested(FileWatcher watcher) {
+        return Thread.currentThread().isInterrupted() || !watcher.isRunning();
     }
 
 }
