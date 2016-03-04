@@ -301,15 +301,15 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
             }
         }
         components {
-            main.targetPlatform "platform_x86"
-            hello.targetPlatform "platform_x86"
+            main.targetPlatform 'platform_x86'
+            hello.targetPlatform 'platform_x86'
         }
     }
 """
         run "mainExecutable"
 
         when:
-        buildFile.text = buildFile.text.replace("platform_x86", "platform_x64")
+        buildFile.text = buildFile.text.replace("'platform_x86'", " 'platform_x64'")
         run "mainExecutable"
 
         then:
