@@ -310,7 +310,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         when:
         buildFile.text = buildFile.text.replace("'platform_x86'", " 'platform_x64'")
-        sleep(200)
+        sleep(500)
         run "mainExecutable"
 
         then:
