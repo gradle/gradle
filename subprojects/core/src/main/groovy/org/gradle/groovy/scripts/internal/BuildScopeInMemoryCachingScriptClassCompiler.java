@@ -25,11 +25,14 @@ import org.gradle.internal.Cast;
 
 import java.util.Map;
 
-public class CachingScriptClassCompiler implements ScriptClassCompiler {
+/**
+ * This in-memory cache is responsible for caching compiled build scripts during a build session. The cache key is a composition of the script path, the classpath and the operation id.
+ */
+public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final Map<Key, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
     private final ScriptClassCompiler scriptClassCompiler;
 
-    public CachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
+    public BuildScopeInMemoryCachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
         this.scriptClassCompiler = scriptClassCompiler;
     }
 

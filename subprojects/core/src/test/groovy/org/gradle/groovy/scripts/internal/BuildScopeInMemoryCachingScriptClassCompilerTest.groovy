@@ -23,9 +23,9 @@ import org.gradle.groovy.scripts.TestScript
 import org.gradle.groovy.scripts.Transformer
 import spock.lang.Specification
 
-class CachingScriptClassCompilerTest extends Specification {
+class BuildScopeInMemoryCachingScriptClassCompilerTest extends Specification {
     private final ScriptClassCompiler target = Mock()
-    private final CachingScriptClassCompiler compiler = new CachingScriptClassCompiler(target)
+    private final BuildScopeInMemoryCachingScriptClassCompiler compiler = new BuildScopeInMemoryCachingScriptClassCompiler(target)
     private final CompiledScript<?, ?> compiledScript = Mock(CompiledScript)
     private final String classpathClosureName = "buildscript"
     final verifier = Mock(Action)
