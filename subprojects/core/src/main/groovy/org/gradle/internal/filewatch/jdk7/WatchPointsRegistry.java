@@ -32,19 +32,15 @@ import java.io.File;
 
 class WatchPointsRegistry {
     private final static Logger LOG = Logging.getLogger(WatchPointsRegistry.class);
-    private FileSystemSubset combinedFileSystemSubset;
+    private final CombinedRootSubset rootSubset = new CombinedRootSubset();
     private ImmutableSet<? extends File> allRequestedRoots;
     private ImmutableCollection<? extends File> currentWatchPoints;
     private final boolean createNewStartingPointsUnderExistingRoots;
-    private Iterable<? extends File> roots;
-    private FileSystemSubset unfiltered;
 
     public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
         this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
-        combinedFileSystemSubset = FileSystemSubset.builder().build();
         currentWatchPoints = ImmutableSet.of();
         allRequestedRoots = ImmutableSet.of();
-        updateRoots();
     }
 
     public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset) {
@@ -52,16 +48,11 @@ class WatchPointsRegistry {
     }
 
     public boolean shouldFire(File file) {
-        return combinedFileSystemSubset.contains(file);
+        return rootSubset.contains(file);
     }
 
     public boolean shouldWatch(File directory) {
-        return (inCombinedRootsOrAncestorOfAnyRoot(directory, roots, unfiltered) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !isAncestorOfAnyRoot(directory, currentWatchPoints, true);
-    }
-
-    private void updateRoots() {
-        roots = combinedFileSystemSubset.getRoots();
-        unfiltered = new FileSystemSubset(ImmutableList.copyOf(roots), ImmutableList.<ImmutableDirectoryTree>of());
+        return (rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !isAncestorOfAnyRoot(directory, currentWatchPoints, true);
     }
 
     class Delta {
@@ -89,13 +80,12 @@ class WatchPointsRegistry {
                     startingWatchPoints = filterCurrentWatchPoints(combinedRoots);
                     currentWatchPoints = ImmutableSet.copyOf(combinedRoots);
                 }
-                combinedFileSystemSubset = FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
+                rootSubset.append(fileSystemSubset);
             } else {
                 startingWatchPoints = startingWatchPointCandidates;
-                combinedFileSystemSubset = fileSystemSubset;
+                rootSubset.append(fileSystemSubset);
                 currentWatchPoints = ImmutableSet.copyOf(startingWatchPoints);
             }
-            updateRoots();
             return this;
         }
 
@@ -166,4 +156,32 @@ class WatchPointsRegistry {
         return false;
     }
 
+    private static class CombinedRootSubset {
+        private FileSystemSubset combinedFileSystemSubset;
+        private Iterable<? extends File> roots;
+        private FileSystemSubset unfiltered;
+
+        public CombinedRootSubset() {
+            combinedFileSystemSubset = FileSystemSubset.builder().build();
+            updateRoots();
+        }
+
+        public void append(FileSystemSubset fileSystemSubset) {
+            combinedFileSystemSubset = FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
+            updateRoots();
+        }
+
+        private void updateRoots() {
+            roots = combinedFileSystemSubset.getRoots();
+            unfiltered = new FileSystemSubset(ImmutableList.copyOf(roots), ImmutableList.<ImmutableDirectoryTree>of());
+        }
+
+        public boolean isInRootsOrAncestorOrAnyRoot(File directory) {
+            return inCombinedRootsOrAncestorOfAnyRoot(directory, roots, unfiltered);
+        }
+
+        public boolean contains(File file) {
+            return combinedFileSystemSubset.contains(file);
+        }
+    }
 }
