@@ -32,7 +32,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.util.Version;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,13 +69,13 @@ public class AntGroovydoc {
             .addAll(groovyClasspath)
             .build();
 
-        Version version = new Version(getGroovyVersion(combinedClasspath));
+        VersionNumber version = VersionNumber.parse(getGroovyVersion(combinedClasspath));
 
         final Map<String, Object> args = Maps.newLinkedHashMap();
         args.put("sourcepath", tmpDir.toString());
         args.put("destdir", destDir);
         args.put("use", use);
-        if (version.compareTo(new Version("2.4.6")) >= 0) {
+        if (isAtLeast(version, "2.4.6")) {
             args.put("noTimestamp", noTimestamp);
             args.put("noVersionStamp", noVersionStamp);
         }
@@ -87,6 +87,10 @@ public class AntGroovydoc {
         putIfNotNull(args, "overview", overview);
 
         invokeGroovydoc(links, combinedClasspath, args);
+    }
+
+    private boolean isAtLeast(VersionNumber version, String versionString) {
+        return version.compareTo(VersionNumber.parse(versionString)) >= 0;
     }
 
     private String getGroovyVersion(List<File> combinedClasspath) {
