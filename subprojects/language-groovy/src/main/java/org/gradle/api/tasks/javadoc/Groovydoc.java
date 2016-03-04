@@ -35,10 +35,9 @@ import org.gradle.api.tasks.Optional;
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
  *
- * <p>This task uses Groovy's Groovydoc tool to generate the API documentation. Please note that the Groovydoc tool has
- * some severe limitations at the moment (for example no doc for properties comments). The version of the Groovydoc that
- * is used, is the one from the Groovy defined in the build script. Please note also, that the Groovydoc tool prints to
- * System.out for many of its statements and does circumvents our logging currently.
+ * <p>This task uses Groovy's Groovydoc tool to generate the API documentation. Please note
+ * that the Groovydoc tool has some limitations at the moment. The version of the Groovydoc
+ * that is used, is the one from the Groovy dependency defined in the build script.
  */
 public class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
@@ -50,6 +49,10 @@ public class Groovydoc extends SourceTask {
     private AntGroovydoc antGroovydoc;
 
     private boolean use;
+
+    private boolean noTimestamp;
+
+    private boolean noVersionStamp;
 
     private String windowTitle;
 
@@ -72,7 +75,7 @@ public class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
+        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(), getDocTitle(), getHeader(),
                 getFooter(), getOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(), getClasspath(), getProject());
     }
 
@@ -159,6 +162,36 @@ public class Groovydoc extends SourceTask {
      */
     public void setUse(boolean use) {
         this.use = use;
+    }
+
+    /**
+     * Returns whether to include timestamp within hidden comment in generated HTML.
+     */
+    @Input
+    public boolean isNoTimestamp() {
+        return noTimestamp;
+    }
+
+    /**
+     * Sets whether to include timestamp within hidden comment in generated HTML.
+     */
+    public void setNoTimestamp(boolean noTimestamp) {
+        this.noTimestamp = noTimestamp;
+    }
+
+    /**
+     * Returns whether to include version stamp within hidden comment in generated HTML.
+     */
+    @Input
+    public boolean isNoVersionStamp() {
+        return noVersionStamp;
+    }
+
+    /**
+     * Sets whether to include version stamp within hidden comment in generated HTML.
+     */
+    public void setNoVersionStamp(boolean noVersionStamp) {
+        this.noVersionStamp = noVersionStamp;
     }
 
     /**
