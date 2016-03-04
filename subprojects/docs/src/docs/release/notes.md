@@ -80,6 +80,7 @@ We would like to thank the following community members for making contributions 
 * [Alpha Hinex](https://github.com/alphahinex) - upgrade to Ant 1.9.6
 * [Denis Krapenko](https://github.com/dkrapenko) - support multiple values for some command-line options
 * [P. P.](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
+* [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
