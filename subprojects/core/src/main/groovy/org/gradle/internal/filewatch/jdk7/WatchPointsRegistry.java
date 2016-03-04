@@ -52,7 +52,7 @@ class WatchPointsRegistry {
     }
 
     public boolean shouldWatch(File directory) {
-        final boolean result = (rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !isAncestorOfAnyRoot(directory, currentWatchPoints, true);
+        final boolean result = (rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !currentWatchPoints.contains(directory);
         if (!result && LOG.isDebugEnabled()) {
             LOG.debug("not watching directory: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", directory, currentWatchPoints, allRequestedRoots, rootSubset.roots, rootSubset.combinedFileSystemSubset);
         }

@@ -230,6 +230,27 @@ class WatchPointsRegistryTest extends Specification {
         !delta.shouldWatch(rootDir)
     }
 
+    def "non-existing directories get watched when events arrive later"() {
+        given:
+        rootDir.createDir("src")
+        def dirs = [rootDir.file("src/main/java"), rootDir.file("src/main/groovy")]
+
+        when:
+        def delta = appendDir(dirs[0])
+
+        then:
+        checkWatchPoints delta, [rootDir.file("src")]
+
+        when:
+        dirs[1].mkdirs()
+        delta = appendDir(dirs[1])
+
+        then:
+        checkWatchPoints delta, [dirs[1]]
+        registry.shouldWatch(rootDir.file("src/main"))
+    }
+
+
     def parentsUpTo(File subDir, File parentDir) {
         def parents = []
         File current = subDir.parentFile
