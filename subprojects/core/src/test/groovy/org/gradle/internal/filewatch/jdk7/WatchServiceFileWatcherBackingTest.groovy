@@ -132,6 +132,9 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
         then: 'New file should be seen'
         filesSeen == [subjectDirFile.absolutePath] as Set
 
+        cleanup:
+        fileWatcher.stop()
+
         where:
         testScenario << [SIBLING_EXISTS_INITIALLY, SIBLINGS_PARENT_EXISTS_INITIALLY, SIBLING_NOT_EXISTING_INITIALLY]
     }
