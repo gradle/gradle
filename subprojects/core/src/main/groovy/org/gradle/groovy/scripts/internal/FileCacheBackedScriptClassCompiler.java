@@ -24,6 +24,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
+import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -74,19 +75,23 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         Map<String, Object> properties = createCacheProperties(source, hash);
 
         String dslId = operation.getId();
-        String cacheName = String.format("scripts/%s/%s", hash, operation.getCacheKey());
+        String cacheKey = operation.getCacheKey();
+        // Scripts are indexed by content hash + cache key, where cache key is a classpath hash
+        String cacheName = String.format("scripts/%s/%s", hash, cacheKey);
+
+        RemappingScriptSource remapped = new RemappingScriptSource(source);
         PersistentCache cache = cacheRepository.cache(cacheName)
             .withProperties(properties)
             .withValidator(validator)
             .withDisplayName(String.format("%s class cache for %s", dslId, source.getDisplayName()))
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(remapped, classLoader, operation, verifier, scriptBaseClass)))
             .open();
 
         try {
             final File classesDir = classesDir(cache);
             final File metadataDir = metadataDir(cache);
 
-            return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(remapped, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
         } finally {
             cache.close();
         }
@@ -195,6 +200,24 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         @Override
         public M getData() {
             return data;
+        }
+    }
+
+    /**
+     * When stored into the persistent store, we want the script to be created with a predictable class name: we don't want the path of the script
+     * to be used in the generated class name because the same contents can be used for scripts found in different paths. Since we are storing
+     * each build file in a separate directory based on the hash of the script contents, we can use the same file name
+     * for each class. When the script is going to be loaded from the cache, we will get this class and set the path to the script using {@link
+     * org.gradle.groovy.scripts.Script#setScriptSource(org.gradle.groovy.scripts.ScriptSource)}
+     */
+    private static class RemappingScriptSource extends DelegatingScriptSource {
+        public RemappingScriptSource(ScriptSource source) {
+            super(source);
+        }
+
+        @Override
+        public String getClassName() {
+            return "BuildScript";
         }
     }
 }

@@ -17,8 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -68,10 +66,9 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        ScriptSource source = new UriScriptSource("build file", buildFile)
         def hash =  HashUtil.createCompactMD5(buildFile.text)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$hash/proj/cache.properties")
-        classFile = userHomeDir.file("caches/$version/scripts/$hash/proj/classes/${source.className}.class")
+        classFile = userHomeDir.file("caches/$version/scripts/$hash/proj/classes/BuildScript.class")
     }
 
     @Test

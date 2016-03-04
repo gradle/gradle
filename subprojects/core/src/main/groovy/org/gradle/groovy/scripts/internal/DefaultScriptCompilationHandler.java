@@ -288,7 +288,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 public byte[] toByteArray() {
                     // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
                     // insert the full path if our script source has a source file
-                    visitSource(source.getFileName(), null);
+                    //visitSource(source.getFileName(), null);
                     return super.toByteArray();
                 }
             };
