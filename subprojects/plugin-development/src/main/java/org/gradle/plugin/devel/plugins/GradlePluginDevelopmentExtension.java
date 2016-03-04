@@ -17,8 +17,6 @@
 package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 
 import java.util.Arrays;
@@ -50,10 +48,9 @@ public class GradlePluginDevelopmentExtension {
     private SourceSet pluginSourceSet;
     private Set<SourceSet> testSourceSets = Collections.emptySet();
 
-    public GradlePluginDevelopmentExtension(Project project) {
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        testSourceSets(javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME));
+    public GradlePluginDevelopmentExtension(SourceSet pluginSourceSet, SourceSet testSourceSet) {
+        this.pluginSourceSet = pluginSourceSet;
+        testSourceSets(testSourceSet);
     }
 
     /**

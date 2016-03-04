@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest;
@@ -59,7 +60,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
-        GradlePluginDevelopmentExtension extension = project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project);
+        GradlePluginDevelopmentExtension extension = createExtension(project);
         configureTestKit(project, extension);
     }
 
@@ -79,6 +80,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
         jarTask.appendParallelSafeAction(pluginValidationAction);
+    }
+
+    private GradlePluginDevelopmentExtension createExtension(Project project) {
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        SourceSet defaultPluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet defaultTestSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
     private void configureTestKit(Project project, GradlePluginDevelopmentExtension extension) {
