@@ -16,65 +16,32 @@
 
 package org.gradle.internal.filewatch
 
-import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.internal.LogEvent
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import org.spockframework.lang.ConditionBlock
-import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-class DefaultFileWatcherFactoryTest extends Specification {
-    @Rule
-    ConfigureLogging logging = new ConfigureLogging({
-        if (it instanceof LogEvent) {
-            println "[${it.timestamp}] ${it}"
-            it.throwable?.printStackTrace()
-        }
-    })
-
-    @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    FileWatcherFactory fileWatcherFactory
-    long waitForEventsMillis = 3500L
-
-    @AutoCleanup("stop")
+class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     FileWatcher fileWatcher
-
-    Throwable thrownInWatchExecution
-    Action<? super Throwable> onError = {
-        thrownInWatchExecution = it
-    }
-
-    FileSystemSubset fileSystemSubset
+    FileWatcherFactory fileWatcherFactory
 
     void setup() {
-        NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
         fileSystemSubset = FileSystemSubset.builder().add(testDir.testDirectory).build()
     }
 
     void cleanup() {
         fileWatcher?.stop()
-        fileWatcherFactory?.stop()
-        if (thrownInWatchExecution) {
-            throw new ExecutionException("Exception was catched in executing watch", thrownInWatchExecution)
+        if (fileWatcherFactory instanceof Stoppable) {
+            fileWatcherFactory.stop()
         }
     }
 
@@ -419,23 +386,5 @@ class DefaultFileWatcherFactoryTest extends Specification {
         then: 'File should have been noticed'
         filesSeen.size() == 1
         filesSeen[0] == subdirFile.absolutePath
-    }
-
-    private void waitOn(CountDownLatch latch, boolean checkLatch = true) {
-        //println "waiting..."
-        latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
-        sleep(100)
-        if (checkLatch) {
-            assert latch.count == 0 : "CountDownLatch didn't count down to zero within $waitForEventsMillis ms"
-        }
-    }
-
-    @ConditionBlock
-    private void await(Closure<?> closure) {
-        ConcurrentTestUtil.poll(waitForEventsMillis / 1000 as int, closure)
-    }
-
-    private <T> BlockingVariable<T> blockingVar() {
-        new BlockingVariable<T>(waitForEventsMillis / 1000)
     }
 }
