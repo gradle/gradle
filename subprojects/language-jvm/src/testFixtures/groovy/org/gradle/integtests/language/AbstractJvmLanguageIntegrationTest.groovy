@@ -28,6 +28,13 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
 
     def setup() {
         buildFile << """
+        buildscript {
+            dependencies {
+                classpath 'org.apache.commons:commons-lang3:3.4'
+                classpath files('foo')
+            }
+            repositories { jcenter() }
+        }
         plugins {
             id 'jvm-component'
             id '${app.languageName}-lang'

@@ -54,7 +54,7 @@ class BuildScriptTransformerSpec extends Specification {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
-        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
+        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", cacheKey, transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
         return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }

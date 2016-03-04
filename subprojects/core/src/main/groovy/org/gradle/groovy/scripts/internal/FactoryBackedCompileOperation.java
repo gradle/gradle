@@ -23,12 +23,14 @@ import org.gradle.internal.serialize.Serializer;
 public class FactoryBackedCompileOperation<T> implements CompileOperation<T> {
 
     private final String id;
+    private final String cacheKey;
     private final Transformer transformer;
     private final Factory<T> dataFactory;
     private final Serializer<T> serializer;
 
-    public FactoryBackedCompileOperation(String id, Transformer transformer, Factory<T> dataFactory, Serializer<T> serializer) {
+    public FactoryBackedCompileOperation(String id, String cacheKey, Transformer transformer, Factory<T> dataFactory, Serializer<T> serializer) {
         this.id = id;
+        this.cacheKey = cacheKey;
         this.transformer = transformer;
         this.dataFactory = dataFactory;
         this.serializer = serializer;
@@ -37,6 +39,11 @@ public class FactoryBackedCompileOperation<T> implements CompileOperation<T> {
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public String getCacheKey() {
+        return cacheKey;
     }
 
     @Override

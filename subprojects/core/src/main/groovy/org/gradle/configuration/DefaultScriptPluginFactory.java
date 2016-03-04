@@ -16,6 +16,9 @@
 
 package org.gradle.configuration;
 
+import com.google.common.base.Function;
+import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
@@ -25,6 +28,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
@@ -33,11 +37,13 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginRequestsSerializer;
@@ -53,6 +59,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private final ClassPathSnapshotter classpathSnapshotter;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
 
@@ -64,7 +71,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       FileLookup fileLookup,
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
-                                      ModelRuleSourceDetector modelRuleSourceDetector) {
+                                      ModelRuleSourceDetector modelRuleSourceDetector,
+                                      ClassPathSnapshotter classpathSnapshotter) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -74,6 +82,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.classpathSnapshotter = classpathSnapshotter;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -127,7 +136,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String classpathClosureName = scriptTarget.getClasspathBlockName();
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
-            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>("cp_" + scriptTarget.getId(), initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
+            String id = "cp_" + scriptTarget.getId();
+            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(id, id, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
@@ -140,7 +150,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(classpathClosureName, scriptSource);
             String operationId = scriptTarget.getId();
-            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+            String cacheKey = cacheKey(scriptHandler, scriptTarget, pluginRequests);
+            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, cacheKey, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
@@ -176,5 +187,29 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 return new DefaultScriptTarget(target);
             }
         }
+
+    }
+
+    /**
+     * This method tries to build a reasonable operation id for a compilation, based on the script target id, but more
+     * importantly the script classpath. It's an approximation, because we will use a hash for the requested plugins
+     * as the key, plus the snapshot hash of the build script classpath. If for some reason a plugin changes, we would
+     * only be able to realize that the build script classpath part changed: if it's a plugin found in plugin requests,
+     * we wouldn't find it. This is however reasonable, because the case were a plugin would change for the same version
+     * is likely to be the development of the plugin itself, in which case it's better to use the buildscript { ... }
+     * block.
+     */
+    private String cacheKey(ScriptHandlerInternal handler, ScriptTarget target, PluginRequests plugins) {
+        ClassPath scriptClasspath = handler.getScriptClassPath();
+        String buildscriptClasspathHash = scriptClasspath.isEmpty() ? "" : String.valueOf(classpathSnapshotter.snapshot(scriptClasspath).hashCode());
+        return target.getId() + hashFor(plugins) + buildscriptClasspathHash;
+    }
+
+    private static String hashFor(PluginRequests plugins) {
+        return plugins.isEmpty()?"":String.valueOf(Objects.hashCode(Iterables.transform(plugins, new Function<PluginRequest, String>() {
+            public String apply(PluginRequest input) {
+                return input.getDisplayName();
+            }
+        })));
     }
 }

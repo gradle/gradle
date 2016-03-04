@@ -70,10 +70,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        Map<String, Object> properties = createCacheProperties(source);
+        String hash = hashFor(source);
+        Map<String, Object> properties = createCacheProperties(source, hash);
 
         String dslId = operation.getId();
-        String cacheName = String.format("scripts/%s/%s", source.getClassName(), dslId);
+        String cacheName = String.format("scripts/%s/%s", hash, operation.getCacheKey());
         PersistentCache cache = cacheRepository.cache(cacheName)
             .withProperties(properties)
             .withValidator(validator)
@@ -81,20 +82,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, operation, verifier, scriptBaseClass)))
             .open();
 
-        // This isn't quite right. The cache will be closed at the end of the build, releasing the shared lock on the classes. Instead, the cache for a script should be
-        // closed once we no longer require the script classes. This may be earlier than the end of the current build, or it may used across multiple builds
-        caches.add(cache);
+        try {
+            final File classesDir = classesDir(cache);
+            final File metadataDir = metadataDir(cache);
 
-        final File classesDir = classesDir(cache);
-        final File metadataDir = metadataDir(cache);
-
-        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
+        } finally {
+            cache.close();
+        }
     }
 
-    private Map<String, Object> createCacheProperties(ScriptSource source) {
+    private Map<String, Object> createCacheProperties(ScriptSource source, String hash) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", hashFor(source));
+        properties.put("source.hash", hash);
         return properties;
     }
 
