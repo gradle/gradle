@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.internal.LogEvent
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -44,7 +45,7 @@ abstract class AbstractFileWatcherTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    long waitForEventsMillis = 3500L
+    long waitForEventsMillis = OperatingSystem.current().isMacOsX() ? 6000L : 3500L
 
     FileSystemSubset fileSystemSubset
 
