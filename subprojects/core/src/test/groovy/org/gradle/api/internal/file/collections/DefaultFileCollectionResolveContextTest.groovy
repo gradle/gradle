@@ -365,6 +365,19 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * resolver.resolve('a') >> file
     }
 
+    def resolveAsFileTreeHandlesDuplicateDirectoryFileTrees() {
+        File dir = directory('a')
+        when:
+        context.add([dir, dir])
+        def result = context.resolveAsFileTrees()
+
+        then:
+        result.size() == 1
+        result[0] instanceof FileTreeAdapter
+        result[0].tree instanceof DirectoryFileTree
+        2 * resolver.resolve(dir) >> dir
+    }
+
     def resolveAsMinimalFileCollectionUsesFileResolverToResolveOtherTypes() {
         File file = file('a')
 

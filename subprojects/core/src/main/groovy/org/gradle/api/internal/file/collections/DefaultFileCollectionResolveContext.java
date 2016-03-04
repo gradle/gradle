@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -71,7 +72,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
     public List<FileTreeInternal> resolveAsFileTrees() {
-        return doResolve(fileTreeConverter);
+        return ImmutableSet.copyOf(doResolve(fileTreeConverter)).asList();
     }
 
     /**

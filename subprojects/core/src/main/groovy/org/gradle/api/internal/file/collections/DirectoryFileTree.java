@@ -164,4 +164,39 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         return patternSet;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DirectoryFileTree that = (DirectoryFileTree) o;
+
+        if (postfix != that.postfix) {
+            return false;
+        }
+        if (dir != null ? !dir.equals(that.dir) : that.dir != null) {
+            return false;
+        }
+        if (patternSet != null ? !patternSet.equals(that.patternSet) : that.patternSet != null) {
+            return false;
+        }
+        if (fileSystem != null ? !fileSystem.equals(that.fileSystem) : that.fileSystem != null) {
+            return false;
+        }
+        return !(directoryWalkerFactory != null ? !directoryWalkerFactory.equals(that.directoryWalkerFactory) : that.directoryWalkerFactory != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = dir != null ? dir.hashCode() : 0;
+        result = 31 * result + (patternSet != null ? patternSet.hashCode() : 0);
+        result = 31 * result + (postfix ? 1 : 0);
+        result = 31 * result + (fileSystem != null ? fileSystem.hashCode() : 0);
+        result = 31 * result + (directoryWalkerFactory != null ? directoryWalkerFactory.hashCode() : 0);
+        return result;
+    }
 }
