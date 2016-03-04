@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -134,14 +134,8 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         file('build/install/sample').exists()
 
         when:
-        TestFile startScriptDir = file('build/install/sample/bin')
-        buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$startScriptDir.canonicalPath'
-    commandLine './sample'
-}
-"""
-        ExecutionResult result = succeeds('execStartScript')
+
+        ExecutionResult result = runViaUnixStartScript()
 
         then:
         result.output.contains('Hello World!')
@@ -156,6 +150,24 @@ task execStartScript(type: Exec) {
         file('build/install/sample').exists()
 
         when:
+        ExecutionResult result = runViaWindowsStartScript()
+
+        then:
+        result.output.contains('Hello World!')
+    }
+
+    ExecutionResult runViaUnixStartScript() {
+        TestFile startScriptDir = file('build/install/sample/bin')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$startScriptDir.canonicalPath'
+    commandLine './sample'
+}
+"""
+        return succeeds('execStartScript')
+    }
+
+    ExecutionResult runViaWindowsStartScript() {
         TestFile startScriptDir = file('build/install/sample/bin')
         String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
         buildFile << """
@@ -164,10 +176,7 @@ task execStartScript(type: Exec) {
     commandLine 'cmd', '/c', 'sample.bat'
 }
 """
-        ExecutionResult result = succeeds('execStartScript')
-
-        then:
-        result.output.contains('Hello World!')
+        return succeeds('execStartScript')
     }
 
     def "compile only dependencies are not included in distribution"() {
@@ -196,7 +205,7 @@ dependencies {
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
-applicationDefaultJvmArgs = ["-javaagent:REPLACE_THIS_WITH_APP_HOME/lib/some.jar"]
+applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
 
 startScripts {
     doLast {
@@ -206,22 +215,16 @@ startScripts {
 }
 """
         when:
-        succeeds('startScripts')
+        succeeds('installDist')
+        and:
+        ExecutionResult result = runViaStartScript()
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript()
-        String unixStartScriptContent = unixStartScript.text
-        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_HOME=')
-        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_NAME=')
-        assert unixStartScriptContent.indexOf('DEFAULT_JVM_OPTS=') > unixStartScriptContent.indexOf('APP_BASE_NAME=')
+        result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
+    }
 
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-javaagent:\'\$APP_HOME\'/lib/some.jar"\'')
-
-        then:
-        File windowsStartScript = assertGeneratedWindowsStartScript()
-        String windowsStartScriptContentText = windowsStartScript.text
-        assert windowsStartScriptContentText.indexOf('DEFAULT_JVM_OPTS=') > windowsStartScriptContentText.indexOf('APP_HOME=')
-        assert windowsStartScriptContentText.indexOf('DEFAULT_JVM_OPTS=') > windowsStartScriptContentText.indexOf('APP_BASE_NAME=')
+    ExecutionResult runViaStartScript() {
+        OperatingSystem.current().isWindows() ? runViaWindowsStartScript() : runViaUnixStartScript()
     }
 
     private void createSampleProjectSetup() {
@@ -236,6 +239,7 @@ package org.gradle.test;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
         System.out.println("Hello World!");
     }
 }
