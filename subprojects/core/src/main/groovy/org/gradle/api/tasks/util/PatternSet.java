@@ -66,7 +66,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PatternSet)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
@@ -75,10 +75,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (caseSensitive != that.caseSensitive) {
             return false;
         }
-        if (patternSpecFactory != null ? !patternSpecFactory.equals(that.patternSpecFactory) : that.patternSpecFactory != null) {
-            return false;
-        }
-        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
+        if (excludeSpecs != null ? !excludeSpecs.equals(that.excludeSpecs) : that.excludeSpecs != null) {
             return false;
         }
         if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
@@ -87,14 +84,16 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (includeSpecs != null ? !includeSpecs.equals(that.includeSpecs) : that.includeSpecs != null) {
             return false;
         }
-        return !(excludeSpecs != null ? !excludeSpecs.equals(that.excludeSpecs) : that.excludeSpecs != null);
+        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
+            return false;
+        }
 
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = patternSpecFactory != null ? patternSpecFactory.hashCode() : 0;
-        result = 31 * result + (includes != null ? includes.hashCode() : 0);
+        int result = includes != null ? includes.hashCode() : 0;
         result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
         result = 31 * result + (includeSpecs != null ? includeSpecs.hashCode() : 0);
         result = 31 * result + (excludeSpecs != null ? excludeSpecs.hashCode() : 0);

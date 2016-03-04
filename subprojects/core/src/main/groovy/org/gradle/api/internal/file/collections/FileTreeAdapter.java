@@ -113,24 +113,4 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public void visitTreeOrBackingFile(FileVisitor visitor) {
         getTree().visitTreeOrBackingFile(visitor);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        FileTreeAdapter files = (FileTreeAdapter) o;
-
-        return !(tree != null ? !tree.equals(files.tree) : files.tree != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return tree != null ? tree.hashCode() : 0;
-    }
 }
