@@ -203,7 +203,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
 
         fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventReceivedLatch.countDown()
-            filesAddedLatch.await()
+            waitOn(filesAddedLatch)
             if (event.type == FileWatcherEvent.Type.CREATE) {
                 totalLatch.countDown()
             }
@@ -211,13 +211,13 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         fileWatcher.watch(fileSystemSubset)
 
         testDir.file("1").createDir()
-        eventReceivedLatch.await()
+        waitOn(eventReceivedLatch)
 
         testDir.file("1/2/3/4/5/6/7/8/9/10").createDir()
         filesAddedLatch.countDown()
 
         then:
-        totalLatch.await()
+        waitOn(totalLatch)
     }
 
     def "watcher doesn't add directories that have been deleted after change detection"() {
@@ -230,7 +230,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         fileWatcher.watch(fileSystemSubset)
 
         testDir.file("testdir").createDir()
-        eventReceivedLatch.await()
+        waitOn(eventReceivedLatch)
         sleep(500)
 
         then:
