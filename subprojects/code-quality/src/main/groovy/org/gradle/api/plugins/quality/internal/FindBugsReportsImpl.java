@@ -32,7 +32,7 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         super(SingleFileReport.class, task);
 
         add(FindBugsXmlReportImpl.class, "xml", task);
-        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(CustomizableHTMLReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
         add(TaskGeneratedSingleFileReport.class, "emacs", task);
     }
