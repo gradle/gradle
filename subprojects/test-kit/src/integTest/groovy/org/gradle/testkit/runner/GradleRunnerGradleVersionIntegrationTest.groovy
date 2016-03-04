@@ -17,8 +17,8 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -28,7 +28,7 @@ import spock.lang.Shared
 @NonCrossVersion
 @NoDebug
 @Requires(TestPrecondition.ONLINE)
-class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTest {
+class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     public static final String VERSION = "2.10"
 
@@ -87,6 +87,9 @@ class GradleRunnerGradleVersionIntegrationTest extends GradleRunnerIntegrationTe
         testKitDir.eachFileRecurse {
             assert !it.name.contains("gradle-$VERSION-bin.zip")
         }
+
+        cleanup:
+        testKitDaemons(GradleVersion.version(VERSION)).killAll()
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.fixtures.annotations;
+package org.gradle.testkit.runner.fixtures;
 
 import java.lang.annotation.*;
 
+/**
+ * Indicates that the feature under test only works with debug on, or is testing something that doesn't make sense to test without debug on.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
-public @interface InspectsBuildOutput {
+public @interface Debug {
 }

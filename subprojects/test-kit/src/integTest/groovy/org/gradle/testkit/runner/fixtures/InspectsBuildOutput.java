@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.fixtures.annotations;
+package org.gradle.testkit.runner.fixtures;
 
 import java.lang.annotation.*;
 
-/**
- * Indicates that the test controls the Gradle version used.
- */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
-public @interface NonCrossVersion {
+public @interface InspectsBuildOutput {
 }

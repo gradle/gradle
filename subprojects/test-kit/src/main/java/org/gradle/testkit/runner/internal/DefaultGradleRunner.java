@@ -44,6 +44,7 @@ import java.util.*;
 
 public class DefaultGradleRunner extends GradleRunner {
 
+    public static final String TEST_KIT_DIR_SYS_PROP = "org.gradle.testkit.dir";
     public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String PLUGIN_METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
@@ -62,13 +63,22 @@ public class DefaultGradleRunner extends GradleRunner {
     private boolean forwardingSystemStreams;
 
     public DefaultGradleRunner() {
-        this(new ToolingApiGradleExecutor(), new TempTestKitDirProvider());
+        this(new ToolingApiGradleExecutor(), calculateTestKitDirProvider(SystemProperties.getInstance()));
     }
 
     DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
         this.debug = Boolean.getBoolean(DEBUG_SYS_PROP);
+    }
+
+    private static TestKitDirProvider calculateTestKitDirProvider(SystemProperties systemProperties) {
+        Map<String, String> systemPropertiesMap = systemProperties.asMap();
+        if (systemPropertiesMap.containsKey(TEST_KIT_DIR_SYS_PROP)) {
+            return new ConstantTestKitDirProvider(new File(systemPropertiesMap.get(TEST_KIT_DIR_SYS_PROP)));
+        } else {
+            return new TempTestKitDirProvider(systemProperties);
+        }
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
@@ -143,7 +153,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public GradleRunner withPluginClasspath() {
-        this.classpath = new DefaultClassPath(readPluginClasspath());
+        this.classpath = DefaultClassPath.of(readPluginClasspath());
         return this;
     }
 
@@ -331,21 +341,26 @@ public class DefaultGradleRunner extends GradleRunner {
         }
 
         Properties properties = GUtil.loadProperties(pluginClasspathUrl);
-
-        if (!properties.isEmpty()) {
-            if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
-                throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' does not contain expected property named '%s'", PLUGIN_METADATA_FILE_NAME, IMPLEMENTATION_CLASSPATH_PROP_KEY));
-            }
-
-            String[] parsedImplementationClasspath = properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY).split(",");
-            return CollectionUtils.collect(parsedImplementationClasspath, new Transformer<File, String>() {
-                @Override
-                public File transform(String classpathEntry) {
-                    return new File(classpathEntry);
-                }
-            });
+        if (!properties.containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)) {
+            throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' does not contain expected property named '%s'", PLUGIN_METADATA_FILE_NAME, IMPLEMENTATION_CLASSPATH_PROP_KEY));
         }
 
-        return Collections.emptyList();
+        String value = properties.getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY);
+        if (value != null) {
+            value = value.trim();
+        }
+
+        if (value == null || value.isEmpty()) {
+            throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' has empty value for property named '%s'", PLUGIN_METADATA_FILE_NAME, IMPLEMENTATION_CLASSPATH_PROP_KEY));
+        }
+
+        String[] parsedImplementationClasspath = value.trim().split(",");
+        return CollectionUtils.collect(parsedImplementationClasspath, new Transformer<File, String>() {
+            @Override
+            public File transform(String classpathEntry) {
+                return new File(classpathEntry);
+            }
+        });
     }
+
 }

@@ -28,7 +28,12 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.annotations.*
+import org.gradle.testkit.runner.fixtures.Debug
+import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
@@ -44,7 +49,7 @@ import java.lang.annotation.Annotation
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
 
 @RunWith(Runner)
-abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
+abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
 
@@ -105,21 +110,21 @@ abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    DaemonsFixture daemons(String version = gradleVersion.version) {
-        daemons(testKitDir, TEST_KIT_DAEMON_DIR_NAME, version)
+    DaemonsFixture testKitDaemons() {
+        testKitDaemons(gradleVersion)
     }
 
-    DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir, String version) {
-        DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, daemonDir), version)
+    DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
+        daemons(testKitDir.file(TEST_KIT_DAEMON_DIR_NAME), gradleVersion)
+    }
+
+    DaemonsFixture daemons(File daemonDir, GradleVersion version) {
+        DaemonLogsAnalyzer.newAnalyzer(daemonDir, version.version)
     }
 
     def cleanup() {
         if (requireIsolatedTestKitDir) {
-            def daemonDir = new File(testKitDir, TEST_KIT_DAEMON_DIR_NAME)
-            def versions = daemonDir.listFiles({ it.name ==~ /\d.+/ } as FileFilter)*.name
-            versions.each {
-                versions.each { daemons(it).killAll() }
-            }
+            testKitDaemons().killAll()
         }
     }
 
@@ -172,7 +177,7 @@ abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                         TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
                         TestedGradleDistribution.mostRecentFinalRelease(),
                         TestedGradleDistribution.UNDER_DEVELOPMENT
-                ] as SortedSet
+                    ] as SortedSet
                 case 'current': return [
                     TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as Set
@@ -269,9 +274,9 @@ abstract class GradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             @Override
             protected void before() {
                 super.before()
-                GradleRunnerIntegrationTest.debug = debug
-                GradleRunnerIntegrationTest.gradleVersion = testedGradleDistribution.gradleVersion
-                GradleRunnerIntegrationTest.testKitRuntime = testedGradleDistribution.gradleDistribution
+                BaseGradleRunnerIntegrationTest.debug = debug
+                BaseGradleRunnerIntegrationTest.gradleVersion = testedGradleDistribution.gradleVersion
+                BaseGradleRunnerIntegrationTest.testKitRuntime = testedGradleDistribution.gradleDistribution
             }
 
             @Override

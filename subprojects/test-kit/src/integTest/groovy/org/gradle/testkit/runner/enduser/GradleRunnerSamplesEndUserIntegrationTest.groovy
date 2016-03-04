@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testkit
+
+
+package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.testkit.runner.GradleRunnerIntegrationTest
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
-import org.gradle.testkit.runner.fixtures.annotations.NonCrossVersion
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @NonCrossVersion
 @NoDebug
-class TestKitSamplesIntegrationTest extends GradleRunnerIntegrationTest {
+class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
-
-    def setup() {
-        executer.requireGradleHome()
-        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
-    }
 
     @UsesSample("testKit/testKitJunit")
     def junit() {

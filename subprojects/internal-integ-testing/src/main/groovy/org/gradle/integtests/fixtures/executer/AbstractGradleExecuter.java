@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -161,7 +162,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         beforeExecute.add(action);
     }
 
-    public void beforeExecute(Closure action) {
+    public void beforeExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
         beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
@@ -169,7 +170,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         afterExecute.add(action);
     }
 
-    public void afterExecute(Closure action) {
+    public void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
         afterExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
