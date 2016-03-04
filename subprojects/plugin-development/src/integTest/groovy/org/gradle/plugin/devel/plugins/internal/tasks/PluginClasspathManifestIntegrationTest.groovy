@@ -43,6 +43,21 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
     }
 
+    def "fails the task for null output directory"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+                outputDirectory = null
+            }
+        """
+
+        when:
+        fails TASK_NAME
+
+        then:
+        failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
+    }
+
     def "fails the task if main source set does not exist"() {
         given:
         buildFile << """

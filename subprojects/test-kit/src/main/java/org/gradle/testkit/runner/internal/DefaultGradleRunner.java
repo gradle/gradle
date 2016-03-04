@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -40,7 +39,6 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -326,13 +324,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private List<File> readPluginClasspath() {
-        URL[] classLoaderURLs = ((URLClassLoader) (Thread.currentThread().getContextClassLoader())).getURLs();
-        URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
-            @Override
-            public boolean isSatisfiedBy(URL url) {
-                return url.toString().endsWith(String.format("pluginClasspathManifest/%s", PLUGIN_METADATA_FILE_NAME));
-            }
-        });
+        URL pluginClasspathUrl = Thread.currentThread().getContextClassLoader().getResource(PLUGIN_METADATA_FILE_NAME);
 
         if (pluginClasspathUrl == null) {
             throw new InvalidPluginMetadataException(String.format("Test runtime classpath does not contain plugin metadata file '%s'", PLUGIN_METADATA_FILE_NAME));

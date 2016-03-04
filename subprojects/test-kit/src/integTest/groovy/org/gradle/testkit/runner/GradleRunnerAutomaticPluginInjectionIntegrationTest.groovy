@@ -52,7 +52,7 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
 
         when:
-        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .withPluginClasspath()
                 .build()
@@ -68,7 +68,7 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, pluginClasspath)
 
         when:
-        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .buildAndFail()
         }
@@ -89,7 +89,7 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         List<File> userDefinedClasspath = [projectDir.file('does/not/exist')]
 
         when:
-        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .withPluginClasspath()
                 .withPluginClasspath(userDefinedClasspath)
@@ -122,7 +122,7 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [])
 
         when:
-        BuildResult result = fixture.withClasspath([pluginClasspathFile]) {
+        BuildResult result = fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .withPluginClasspath()
                 .buildAndFail()
@@ -145,7 +145,7 @@ class GradleRunnerAutomaticPluginInjectionIntegrationTest extends GradleRunnerIn
         File pluginClasspathFile = fixture.createPluginClasspathManifestFile(projectDir, [], ['other': 'prop'])
 
         when:
-        fixture.withClasspath([pluginClasspathFile]) {
+        fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .withPluginClasspath()
                 .build()

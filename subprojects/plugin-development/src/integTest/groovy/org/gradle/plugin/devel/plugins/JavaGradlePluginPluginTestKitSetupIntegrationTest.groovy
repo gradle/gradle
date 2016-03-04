@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.GUtil
 
+import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME
 import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.METADATA_FILE_NAME
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PLUGIN_CLASSPATH_TASK_PATH = ":$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME"
+    private static final String PLUGIN_CLASSPATH_TASK_PATH = ":$PLUGIN_CLASSPATH_TASK_NAME"
 
     def setup() {
         buildFile << """
@@ -43,13 +45,29 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
         then:
         result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
-        classpathManifest.exists() && classpathManifest.isFile()
-        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        !loadedImplementationClasspath.contains("\\")
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(module.artifactFile.absolutePath))
+        File classpathManifest = file("build/$PLUGIN_CLASSPATH_TASK_NAME/$METADATA_FILE_NAME")
+        List<File> expectedClasspath = [file('build/classes/main'), file('build/resources/main'), module.artifactFile]
+        assertImplementationClasspath(classpathManifest, expectedClasspath)
+    }
+
+    def "can reconfigure output directory for metadata file"() {
+        given:
+        MavenModule module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('compile', module)
+        buildFile << """
+            $PLUGIN_CLASSPATH_TASK_NAME {
+                outputDirectory = file('build/some/other')
+            }
+        """
+
+        when:
+        succeeds 'build'
+
+        then:
+        result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
+        File classpathManifest = file("build/some/other/$METADATA_FILE_NAME")
+        List<File> expectedClasspath = [file('build/classes/main'), file('build/resources/main'), module.artifactFile]
+        assertImplementationClasspath(classpathManifest, expectedClasspath)
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -97,13 +115,9 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
         then:
         result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
-        classpathManifest.exists() && classpathManifest.isFile()
-        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        !loadedImplementationClasspath.contains("\\")
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/classes/custom').absolutePath))
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file('build/resources/custom').absolutePath))
-        loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(module.artifactFile.absolutePath))
+        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/$METADATA_FILE_NAME")
+        List<File> expectedClasspath = [file('build/classes/custom'), file('build/resources/custom'), module.artifactFile]
+        assertImplementationClasspath(classpathManifest, expectedClasspath)
     }
 
     def "adds no implementation-classpath property for empty plugin classpath"() {
@@ -121,7 +135,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
         then:
         result.executedTasks.containsAll([':compileJava', ':processResources', PLUGIN_CLASSPATH_TASK_PATH])
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-under-test-metadata.properties")
+        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/$METADATA_FILE_NAME")
         classpathManifest.exists() && classpathManifest.isFile()
         !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
@@ -136,5 +150,15 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                 $configurationName '$module.groupId:$module.artifactId:$module.version'
             }
         """
+    }
+
+    private void assertImplementationClasspath(File classpathManifest, List<File> implementationClasspath) {
+        assert classpathManifest.exists() && classpathManifest.isFile()
+        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        assert !loadedImplementationClasspath.contains("\\")
+
+        implementationClasspath.each { file ->
+            assert loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file.absolutePath))
+        }
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.CollectionUtils;
@@ -42,12 +42,13 @@ import java.util.List;
 public class PluginClasspathManifest extends ConventionTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
+    public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private FileCollection pluginClasspath;
-    private final File outputFile;
+    private File outputDirectory;
 
     public PluginClasspathManifest() {
         pluginClasspath = getDefaultPluginClasspath();
-        outputFile = getDefaultOutputFile();
+        outputDirectory = getDefaultOutputDirectory();
     }
 
     private FileCollection getDefaultPluginClasspath() {
@@ -56,9 +57,8 @@ public class PluginClasspathManifest extends ConventionTask {
         return mainSourceSet != null ? mainSourceSet.getRuntimeClasspath() : null;
     }
 
-    private File getDefaultOutputFile() {
-        String pluginClasspath = String.format("%s/%s/plugin-under-test-metadata.properties", getProject().getBuildDir(), getName());
-        return getProject().file(pluginClasspath);
+    private File getDefaultOutputDirectory() {
+        return new File(getProject().getBuildDir(), getName());
     }
 
     /**
@@ -74,13 +74,15 @@ public class PluginClasspathManifest extends ConventionTask {
     }
 
     /**
-     * The target output file used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name/plugin-under-test-metadata.properties"}.
-     * <p>
-     * The target output file cannot be changed.
+     * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
      */
-    @OutputFile
-    public File getOutputFile() {
-        return outputFile;
+    @OutputDirectory
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
     }
 
     @TaskAction
@@ -88,7 +90,7 @@ public class PluginClasspathManifest extends ConventionTask {
         FileWriter writer = null;
 
         try {
-            writer = new FileWriter(getOutputFile());
+            writer = new FileWriter(new File(getOutputDirectory(), METADATA_FILE_NAME));
 
             if (!getPluginClasspath().isEmpty()) {
                 List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {

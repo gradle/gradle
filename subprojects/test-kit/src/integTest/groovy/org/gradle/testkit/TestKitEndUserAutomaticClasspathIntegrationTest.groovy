@@ -28,6 +28,10 @@ class TestKitEndUserAutomaticClasspathIntegrationTest extends AbstractTestKitEnd
         file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << pluginProperties()
     }
 
+    def cleanup() {
+        killDaemons()
+    }
+
     def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
         writeTest functionalTestGroovyClass()
 
@@ -37,9 +41,22 @@ class TestKitEndUserAutomaticClasspathIntegrationTest extends AbstractTestKitEnd
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
+    }
 
-        cleanup:
-        killDaemons()
+    def "can reconfigure output directory for plugin metadata file provided by Java Gradle plugin development plugin"() {
+        buildFile << """
+            pluginClasspathManifest {
+                outputDirectory = file('build/testkit/manifest')
+            }
+        """
+        writeTest functionalTestGroovyClass()
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
     }
 
     def "can test plugin and custom task as external files by configuring custom test source set with Java Gradle plugin development plugin"() {
@@ -73,11 +90,7 @@ class TestKitEndUserAutomaticClasspathIntegrationTest extends AbstractTestKitEnd
         then:
         executedAndNotSkipped(':functionalTest')
         assertDaemonsAreStopping()
-
-        cleanup:
-        killDaemons()
     }
-
 
     private String helloWorldPluginJavaClass() {
         """

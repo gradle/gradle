@@ -124,7 +124,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends GradleRunnerI
         buildFile << pluginDeclaration()
 
         when:
-        fixture.withClasspath([pluginClasspathFile]) {
+        fixture.withClasspath([pluginClasspathFile.parentFile]) {
             runner('helloWorld')
                 .withGradleVersion(maxUnsupportedVersion)
                 .withPluginClasspath()
