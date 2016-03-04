@@ -25,6 +25,7 @@ import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherEvent
 import org.gradle.internal.filewatch.FileWatcherListener
 import spock.lang.AutoCleanup
+import spock.lang.Unroll
 
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -34,32 +35,49 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.*
+
 class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
     @AutoCleanup("shutdown")
     def executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())
 
-    def "checks for scenario when the first directory to watch doesn't exist"() {
+    enum DirNotExistsTestScenario {
+        SIBLING_EXISTS_INITIALLY,
+        SIBLINGS_PARENT_EXISTS_INITIALLY,
+        SIBLING_NOT_EXISTING_INITIALLY
+    }
+
+    @Unroll
+    def "checks for scenario when the first directory to watch doesn't exist - #testScenario"() {
         // corner case scenario where the directory to watch doesn't exist
         // internally it's parent will be watched for changes
         //
-        // src/main/java is the missing directory here, src/main/groovy exists.
+        // src/main/java is the missing directory here
         given:
         def listener = Mock(FileWatcherListener)
         def fileEventMatchedLatchReference = new AtomicReference(new CountDownLatch(1))
-        def subdir1 = testDir.file('src/main/java')
-        def subdir1File = subdir1.file("SomeFile.java")
-        def subdir2 = testDir.file('src/main/groovy')
-        def subdir2File = subdir2.file("SomeFile.groovy")
-        def subdir2File2 = subdir2.file("SomeFile2.groovy")
+
+        // this is the directory to watch, it's not existing when the listening starts
+        def subjectDir = testDir.file('src/main/java')
+        def subjectDirFile = subjectDir.file("SomeFile.java")
+
+        // this is a sibling directory which shouldn't be watch
+        def siblingDir = testDir.file('src/main/groovy')
+        def siblingDirFile1 = siblingDir.file("SomeFile.groovy")
+        def siblingDirFile2 = siblingDir.file("SomeFile2.groovy")
+
+        // holds files seen by the file watcher
         def filesSeen = ([] as Set).asSynchronized()
-        def registeredWatches = [].asSynchronized()
         listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
             if (event.file.isFile()) {
                 filesSeen.add(event.file.absolutePath)
                 fileEventMatchedLatchReference.get().countDown()
             }
         }
+
         def watchService = FileSystems.getDefault().newWatchService()
+        // holds all registered watches so that we can check that sibling wasn't watched at all
+        def registeredWatches = [].asSynchronized()
         def watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener) {
             @Override
             protected void watchDir(Path dir) throws IOException {
@@ -67,42 +85,55 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
                 super.watchDir(dir)
             }
         }
+
         def fileWatcher = new WatchServiceFileWatcherBacking(onError, listener, watchService, watchServiceRegistrar).start(executorService)
+
+        if (testScenario == SIBLING_EXISTS_INITIALLY) {
+            siblingDir.mkdirs()
+        } else if (testScenario == SIBLINGS_PARENT_EXISTS_INITIALLY) {
+            // just create the parent
+            siblingDir.getParentFile().mkdirs()
+        }
 
         // check that filtering works in this case and change events for
         // non-watched siblings don't get delivered
         when: 'Adds watch for non-existing directory'
-        fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
-        subdir2.mkdirs()
+        fileWatcher.watch(FileSystemSubset.builder().add(subjectDir).build())
 
         and: 'Content in non-watched sibling directory changes'
-        subdir2File.text = 'Some content'
+        if (!siblingDir.exists()) {
+            siblingDir.mkdirs()
+        }
+        siblingDirFile1.text = 'Some content'
         fileEventMatchedLatchReference.get().await(2000L, TimeUnit.MILLISECONDS)
 
         then: 'No changes should have been seen'
         filesSeen.isEmpty()
         and: 'Should have not registered to watching sibling directory'
-        !registeredWatches.contains(subdir2.absolutePath)
+        !registeredWatches.contains(siblingDir.absolutePath)
 
         // check that adding watch for sibling (src/main/groovy) later on is supported
         when: 'Adds watch for sibling directory and creates file'
-        fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
-        subdir2File2.text = 'Some content'
+        fileWatcher.watch(FileSystemSubset.builder().add(siblingDir).build())
+        siblingDirFile2.text = 'Some content'
         waitOn(fileEventMatchedLatchReference.get())
 
         then: 'New file should be seen'
-        filesSeen == [subdir2File2.absolutePath] as Set
+        filesSeen == [siblingDirFile2.absolutePath] as Set
 
         // check that watching changes to src/main/java works after it gets created
         when: 'New file is created in first originally non-existing directory'
         filesSeen.clear()
         fileEventMatchedLatchReference.set(new CountDownLatch(1))
-        subdir1.createDir()
-        subdir1File.text = 'Some content'
+        subjectDir.createDir()
+        subjectDirFile.text = 'Some content'
         waitOn(fileEventMatchedLatchReference.get())
 
         then: 'New file should be seen'
-        filesSeen == [subdir1File.absolutePath] as Set
+        filesSeen == [subjectDirFile.absolutePath] as Set
+
+        where:
+        testScenario << [SIBLING_EXISTS_INITIALLY, SIBLINGS_PARENT_EXISTS_INITIALLY, SIBLING_NOT_EXISTING_INITIALLY]
     }
 
     def "a stopped filewatcher shouldn't get started"() {
