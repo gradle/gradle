@@ -20,7 +20,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
-import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -103,7 +102,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, source, this);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -262,11 +261,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private class CustomCompilationUnit extends CompilationUnit {
 
-        private final ScriptSource source;
-
-        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, ScriptSource source, GroovyClassLoader groovyClassLoader) {
+        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
-            this.source = source;
             this.verifier = new Verifier() {
                 public void visitClass(ClassNode node) {
                     customVerifier.execute(node);
@@ -275,23 +271,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
             };
             this.resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
-        }
-
-        // This creepy bit of code is here to put the full source path of the script into the debug info for
-        // the class.  This makes it possible for a debugger to find the source file for the class.  By default
-        // Groovy will only put the filename into the class, but that does not help a debugger for Gradle
-        // because it does not know where Gradle scripts might live.
-        @Override
-        protected groovyjarjarasm.asm.ClassVisitor createClassVisitor() {
-            return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
-                @Override
-                public byte[] toByteArray() {
-                    // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
-                    // insert the full path if our script source has a source file
-                    //visitSource(source.getFileName(), null);
-                    return super.toByteArray();
-                }
-            };
         }
     }
 
@@ -351,6 +330,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             return scriptClass;
         }
+
     }
 
 }

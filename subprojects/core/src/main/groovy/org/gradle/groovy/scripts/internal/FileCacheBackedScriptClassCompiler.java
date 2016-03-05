@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
@@ -24,18 +25,20 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
-import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.objectweb.asm.*;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -64,44 +67,107 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
                                                               final ClassLoader classLoader,
                                                               final ClassLoaderId classLoaderId,
-                                                              CompileOperation<M> operation,
+                                                              final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
-                                                              Action<? super ClassNode> verifier) {
+                                                              final Action<? super ClassNode> verifier) {
         if (source instanceof NonExistentFileScriptSource) {
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        String hash = hashFor(source);
-        Map<String, Object> properties = createCacheProperties(source, hash);
+        final String hash = hashFor(source);
+        final String cacheKey = operation.getCacheKey();
+        final Map<String, Object> cacheProperties = createCacheProperties(cacheKey);
 
-        String dslId = operation.getId();
-        String cacheKey = operation.getCacheKey();
-        // Scripts are indexed by content hash + cache key, where cache key is a classpath hash
-        String cacheName = String.format("scripts/%s/%s", hash, cacheKey);
+        final String dslId = operation.getId();
+        final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
-        RemappingScriptSource remapped = new RemappingScriptSource(source);
-        PersistentCache cache = cacheRepository.cache(cacheName)
-            .withProperties(properties)
+        // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
+        // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes
+        // 2. Then we look into the 2d cache for a "generic script" with the same hash, that will be remapped to the script class name
+        // Both caches can be closed directly after use because:
+        // For 1, if the script changes or its compile classpath changes, a different directory will be used
+        // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
+        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), hash, cacheKey))
+            .withDisplayName(String.format("%s remapped class cache for %s", dslId, source.getDisplayName()))
             .withValidator(validator)
-            .withDisplayName(String.format("%s class cache for %s", dslId, source.getDisplayName()))
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(remapped, classLoader, operation, verifier, scriptBaseClass)))
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new Action<PersistentCache>() {
+                public void execute(PersistentCache remappedClassesCache) {
+                    PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s", hash, dslId))
+                        .withProperties(cacheProperties)
+                        .withValidator(validator)
+                        .withDisplayName(String.format("%s generic class cache for %s", dslId, source.getDisplayName()))
+                        .withInitializer(new ProgressReportingInitializer(
+                            progressLoggerFactory,
+                            new CacheInitializer(remapped, classLoader, operation, verifier, scriptBaseClass),
+                            "Compiling script into cache",
+                            "Compiling " + source.getDisplayName() + " to cross build script cache"))
+                        .open();
+
+                    final File genericClassesDir = classesDir(cache);
+                    final File metadataDir = metadataDir(cache);
+                    try {
+                        remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
+                        copyMetadata(metadataDir, metadataDir(remappedClassesCache));
+                    } finally {
+                        cache.close();
+                    }
+                }
+
+                private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) {
+                    ScriptSource origin = source.getSource();
+                    String className = origin.getClassName();
+                    if (!relocalizedDir.exists()) {
+                        relocalizedDir.mkdir();
+                    }
+                    File[] files = scriptCacheDir.listFiles();
+                    if (files != null) {
+                        for (File file : files) {
+                            String renamed = file.getName();
+                            if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
+                                renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
+                            }
+                            org.objectweb.asm.ClassWriter cv = new org.objectweb.asm.ClassWriter(0);
+                            BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin);
+                            try {
+                                ClassReader cr = new ClassReader(Files.toByteArray(file));
+                                cr.accept(remapper, 0);
+                                Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
+                            } catch (IOException ex) {
+                                throw UncheckedException.throwAsUncheckedException(ex);
+                            } catch (Throwable t) {
+                                t.printStackTrace();
+                            }
+                        }
+                    }
+                }
+
+                private void copyMetadata(File source, File dest) {
+                    if (dest.mkdir()) {
+                        for (File src : source.listFiles()) {
+                            try {
+                                Files.copy(src, new File(dest, src.getName()));
+                            } catch (IOException ex) {
+                                throw UncheckedException.throwAsUncheckedException(ex);
+                            }
+                        }
+                    }
+                }
+            },
+                "Compiling script into cache",
+                "Compiling " + source.getFileName() + " into local build cache"))
             .open();
-
         try {
-            final File classesDir = classesDir(cache);
-            final File metadataDir = metadataDir(cache);
+            File remappedClassesDir = classesDir(remappedClassesCache);
+            File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-            return scriptCompilationHandler.loadFromDir(remapped, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
         } finally {
-            cache.close();
+            remappedClassesCache.close();
         }
     }
 
-    private Map<String, Object> createCacheProperties(ScriptSource source, String hash) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", hash);
-        return properties;
+    private Map<String, Object> createCacheProperties(String hash) {
+        return Collections.<String, Object>singletonMap("classpath.hash", hash);
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
@@ -159,15 +225,22 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     static class ProgressReportingInitializer implements Action<PersistentCache> {
         private ProgressLoggerFactory progressLoggerFactory;
         private Action<? super PersistentCache> delegate;
+        private final String shortDescription;
+        private final String longDescription;
 
-        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory, Action<PersistentCache> delegate) {
+        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
+                                            Action<PersistentCache> delegate,
+                                            String shortDescription,
+                                            String longDescription) {
             this.progressLoggerFactory = progressLoggerFactory;
             this.delegate = delegate;
+            this.shortDescription = shortDescription;
+            this.longDescription = longDescription;
         }
 
         public void execute(PersistentCache cache) {
             ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
-                .start("Compile script into cache", "Compiling script into cache");
+                .start(shortDescription, longDescription);
             try {
                 delegate.execute(cache);
             } finally {
@@ -203,21 +276,112 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
     }
 
-    /**
-     * When stored into the persistent store, we want the script to be created with a predictable class name: we don't want the path of the script
-     * to be used in the generated class name because the same contents can be used for scripts found in different paths. Since we are storing
-     * each build file in a separate directory based on the hash of the script contents, we can use the same file name
-     * for each class. When the script is going to be loaded from the cache, we will get this class and set the path to the script using {@link
-     * org.gradle.groovy.scripts.Script#setScriptSource(org.gradle.groovy.scripts.ScriptSource)}
-     */
-    private static class RemappingScriptSource extends DelegatingScriptSource {
-        public RemappingScriptSource(ScriptSource source) {
-            super(source);
+    private static class BuildScriptRemapper extends ClassVisitor implements Opcodes {
+        private final ScriptSource scriptSource;
+
+        public BuildScriptRemapper(ClassVisitor cv, ScriptSource source) {
+            super(ASM5, cv);
+            this.scriptSource = source;
+        }
+
+        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            cv.visit(version, access, remap(name), remap(signature), remap(superName), remap(interfaces));
         }
 
         @Override
-        public String getClassName() {
-            return "BuildScript";
+        public void visitSource(String source, String debug) {
+            cv.visitSource(scriptSource.getFileName(), debug);
         }
+
+        private String[] remap(String[] names) {
+            if (names == null) {
+                return null;
+            }
+            String[] remapped = new String[names.length];
+            for (int i = 0; i < names.length; i++) {
+                remapped[i] = remap(names[i]);
+            }
+            return remapped;
+        }
+
+        private String remap(String name) {
+            if (name == null) {
+                return null;
+            }
+            return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
+        }
+
+        private Object remap(Object o) {
+            if (o instanceof Type) {
+                return Type.getType(remap(((Type) o).getDescriptor()));
+            }
+            return o;
+        }
+
+        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            MethodVisitor mv = cv.visitMethod(access, name, remap(desc), remap(signature), remap(exceptions));
+            if (mv != null && (access & ACC_ABSTRACT) == 0) {
+                mv = new MethodRenamer(mv);
+            }
+            return mv;
+        }
+
+        @Override
+        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+            return super.visitField(access, name, remap(desc), remap(signature), remap(value));
+        }
+
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            super.visitInnerClass(remap(name), remap(outerName), remap(innerName), access);
+        }
+
+        @Override
+        public void visitOuterClass(String owner, String name, String desc) {
+            super.visitOuterClass(remap(owner), remap(name), remap(desc));
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            return super.visitAnnotation(remap(desc), visible);
+        }
+
+        class MethodRenamer extends MethodVisitor {
+
+            public MethodRenamer(final MethodVisitor mv) {
+                super(ASM5, mv);
+            }
+
+            public void visitTypeInsn(int i, String name) {
+                mv.visitTypeInsn(i, remap(name));
+            }
+
+            public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+                mv.visitFieldInsn(opcode, remap(owner), name, remap(desc));
+            }
+
+            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean intf) {
+                mv.visitMethodInsn(opcode, remap(owner), name, remap(desc), intf);
+            }
+
+            @Override
+            public void visitLdcInsn(Object cst) {
+                super.visitLdcInsn(remap(cst));
+            }
+
+            @Override
+            public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+                super.visitLocalVariable(name, remap(desc), remap(signature), start, end, index);
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                return super.visitAnnotation(remap(desc), visible);
+            }
+
+        }
+
     }
+
+
 }

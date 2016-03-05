@@ -68,7 +68,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         String version = GradleVersion.current().version
         def hash =  HashUtil.createCompactMD5(buildFile.text)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$hash/proj/cache.properties")
-        classFile = userHomeDir.file("caches/$version/scripts/$hash/proj/classes/BuildScript.class")
+        classFile = userHomeDir.file("caches/$version/scripts/$hash/proj/classes/_BuildScript_.class")
     }
 
     @Test

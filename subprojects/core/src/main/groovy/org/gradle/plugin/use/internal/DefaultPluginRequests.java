@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.base.Objects;
-
 import java.util.Iterator;
 import java.util.List;
 
