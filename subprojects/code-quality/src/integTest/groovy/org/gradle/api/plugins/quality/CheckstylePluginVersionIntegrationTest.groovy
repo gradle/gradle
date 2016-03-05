@@ -26,6 +26,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.*
 
 @TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
@@ -178,7 +179,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     private sampleStylesheet() {
-        resources.getResource('/checkstyle-custom-stylesheet.xsl')
+        normaliseFileSeparators(resources.getResource('/checkstyle-custom-stylesheet.xsl').getAbsolutePath())
     }
 
     private Matcher<String> containsClass(String className) {

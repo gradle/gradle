@@ -24,6 +24,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
 
@@ -479,7 +480,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
     }
 
     private sampleStylesheet() {
-        resources.getResource('/findbugs-custom-stylesheet.xsl')
+        normaliseFileSeparators(resources.getResource('/findbugs-custom-stylesheet.xsl').absolutePath)
     }
 
     private Matcher<String> containsClass(String className) {
