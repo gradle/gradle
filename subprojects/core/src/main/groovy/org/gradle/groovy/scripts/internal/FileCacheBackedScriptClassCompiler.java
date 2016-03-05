@@ -33,11 +33,13 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.*;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
@@ -126,7 +128,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                             if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                                 renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                             }
-                            org.objectweb.asm.ClassWriter cv = new org.objectweb.asm.ClassWriter(0);
+                            ClassWriter cv = new ClassWriter(0);
                             BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin);
                             try {
                                 ClassReader cr = new ClassReader(Files.toByteArray(file));
@@ -134,8 +136,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                 Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
                             } catch (IOException ex) {
                                 throw UncheckedException.throwAsUncheckedException(ex);
-                            } catch (Throwable t) {
-                                t.printStackTrace();
                             }
                         }
                     }
@@ -314,6 +314,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private Object remap(Object o) {
             if (o instanceof Type) {
                 return Type.getType(remap(((Type) o).getDescriptor()));
+            }
+            if (RuleVisitor.SOURCE_URI_TOKEN.equals(o)) {
+                URI uri = scriptSource.getResource().getURI();
+                return uri == null ? null : uri.toString();
+            }
+            if (RuleVisitor.SOURCE_DESC_TOKEN.equals(o)) {
+                return scriptSource.getDisplayName();
             }
             return o;
         }
