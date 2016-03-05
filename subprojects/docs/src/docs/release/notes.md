@@ -96,6 +96,7 @@ We would like to thank the following community members for making contributions 
 * [Denis Krapenko](https://github.com/dkrapenko) - support multiple values for some command-line options
 * [P. P.](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
 * [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
+* [Paul King](https://github.com/paulk-asert) - support groovydoc's `noTimestamp` and `noVersionStamp` properties
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
