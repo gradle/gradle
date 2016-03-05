@@ -210,7 +210,7 @@ applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
 startScripts {
     doLast {
         unixScript.text = unixScript.text.replace("REPLACE_THIS_WITH_APP_HOME", "'\\\$APP_HOME'")
-        windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '"%APP_HOME%"')
+        windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '%APP_HOME%')
     }
 }
 """
