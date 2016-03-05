@@ -31,6 +31,21 @@ plugins for more details. Note that sample stylesheets for both plugins are avai
 - Checkstyle: [https://github.com/checkstyle/contribution/tree/master/xsl](https://github.com/checkstyle/contribution/tree/master/xsl)
 - Findbugs: [https://github.com/findbugsproject/findbugs/tree/master/findbugs/src/xsl](https://github.com/findbugsproject/findbugs/tree/master/findbugs/src/xsl)
 
+### Support for Groovydoc's noTimestamp and noVersionStamp flags
+
+Groovy 2.4.6 adds two new flags to its Groovydoc command.
+Using these flags produce Groovydoc HTML pages without timestamp or Groovy version stamp information embedded within them.
+This means that it is harder to determine when or which version of Groovy produced the pages but means the pages remain totally unchanged across builds unless the actual content changes.
+
+Two properties are added and can be used as follows.
+
+    groovydoc {
+        noTimestamp = true
+        noVersionStamp = true
+    }
+
+The flags are ignored for versions of Groovy prior to 2.4.6.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
