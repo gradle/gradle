@@ -25,7 +25,13 @@ import spock.lang.Specification
 
 class BuildScopeInMemoryCachingScriptClassCompilerTest extends Specification {
     private final ScriptClassCompiler target = Mock()
-    private final BuildScopeInMemoryCachingScriptClassCompiler compiler = new BuildScopeInMemoryCachingScriptClassCompiler(target)
+    private final CrossBuildInMemoryCachingScriptClassCache cache = Mock() {
+        getOrCompile(_, _, _, _, _, _, _) >> { args ->
+            def (source, classLoader, classLoaderId, operation, scriptBaseClass, verifier, d) = args
+            d.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier)
+        }
+    }
+    private final BuildScopeInMemoryCachingScriptClassCompiler compiler = new BuildScopeInMemoryCachingScriptClassCompiler(cache, target)
     private final CompiledScript<?, ?> compiledScript = Mock(CompiledScript)
     private final String classpathClosureName = "buildscript"
     final verifier = Mock(Action)

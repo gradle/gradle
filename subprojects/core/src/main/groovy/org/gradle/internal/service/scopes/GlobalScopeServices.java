@@ -38,6 +38,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -285,5 +286,9 @@ public class GlobalScopeServices {
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
+    }
+
+    protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CachingFileSnapshotter snapshotter) {
+        return new CrossBuildInMemoryCachingScriptClassCache(snapshotter);
     }
 }

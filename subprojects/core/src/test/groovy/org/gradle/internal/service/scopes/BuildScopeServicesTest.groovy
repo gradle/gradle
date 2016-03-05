@@ -35,6 +35,7 @@ import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.*
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
+import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
@@ -86,6 +87,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(StartParameter) >> startParameter
         sessionServices.get(CachingFileSnapshotter) >> Mock(CachingFileSnapshotter)
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
+        sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
         sessionServices.getAll(_) >> []
 
         registry = new BuildScopeServices(sessionServices, false)

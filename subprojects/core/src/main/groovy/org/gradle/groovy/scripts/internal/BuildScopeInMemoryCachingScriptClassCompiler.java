@@ -26,13 +26,17 @@ import org.gradle.internal.Cast;
 import java.util.Map;
 
 /**
- * This in-memory cache is responsible for caching compiled build scripts during a build session. The cache key is a composition of the script path, the classpath and the operation id.
+ * This in-memory cache is responsible for caching compiled build scripts during a build session.
+ * If the compiled script is not found in this cache, it will try to find it in the global cache,
+ * which will use the delegate script class compiler in case of a miss.
  */
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
-    private final Map<Key, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
+    private final CrossBuildInMemoryCachingScriptClassCache cache;
     private final ScriptClassCompiler scriptClassCompiler;
+    private final Map<Key, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
 
-    public BuildScopeInMemoryCachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
+    public BuildScopeInMemoryCachingScriptClassCompiler(CrossBuildInMemoryCachingScriptClassCache cache, ScriptClassCompiler scriptClassCompiler) {
+        this.cache = cache;
         this.scriptClassCompiler = scriptClassCompiler;
     }
 
@@ -41,7 +45,7 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
         Key key = new Key(source.getClassName(), classLoader, operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = scriptClassCompiler.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
+            compiledScript = cache.getOrCompile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;
@@ -82,5 +86,4 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
             return result;
         }
     }
-
 }
