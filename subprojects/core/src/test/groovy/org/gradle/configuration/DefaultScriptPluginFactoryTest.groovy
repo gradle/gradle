@@ -71,7 +71,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         def configurations = Mock(ConfigurationContainer)
         scriptHandler.configurations >> configurations
         scriptHandler.scriptClassPath >> Mock(ClassPath)
-        classPathScriptRunner.data >> Mock(PluginRequests)
+        classPathScriptRunner.data >> Mock(PluginRequests) {
+            isEmpty() >> true
+        }
         def configuration = Mock(Configuration)
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
