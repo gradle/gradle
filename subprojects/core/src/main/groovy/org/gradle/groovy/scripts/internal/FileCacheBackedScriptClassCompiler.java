@@ -94,14 +94,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local build cache"))
             .open();
-        try {
-            File remappedClassesDir = classesDir(remappedClassesCache);
-            File remappedMetadataDir = metadataDir(remappedClassesCache);
+        remappedClassesCache.close();
 
-            return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
-        } finally {
-            remappedClassesCache.close();
-        }
+        File remappedClassesDir = classesDir(remappedClassesCache);
+        File remappedMetadataDir = metadataDir(remappedClassesCache);
+
+        return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
     private Map<String, Object> createCacheProperties(String hash) {
@@ -361,15 +359,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                     "Compiling script into cache",
                     "Compiling " + source.getDisplayName() + " to cross build script cache"))
                 .open();
-
+            cache.close();
             final File genericClassesDir = classesDir(cache);
             final File metadataDir = metadataDir(cache);
-            try {
-                remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
-                copyMetadata(metadataDir, metadataDir(remappedClassesCache));
-            } finally {
-                cache.close();
-            }
+            remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
+            copyMetadata(metadataDir, metadataDir(remappedClassesCache));
         }
 
         private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) {
