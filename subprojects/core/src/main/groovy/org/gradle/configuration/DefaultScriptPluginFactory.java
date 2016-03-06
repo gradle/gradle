@@ -16,9 +16,6 @@
 
 package org.gradle.configuration;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.collect.Iterables;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
@@ -205,11 +202,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         return target.getId() + hashFor(plugins) + buildscriptClasspathHash;
     }
 
+    // TODO:Cedric instead of using the hash code of plugin request strings, we should really use a ClassPath
     private static String hashFor(PluginRequests plugins) {
-        return plugins.isEmpty()?"":String.valueOf(Objects.hashCode(Iterables.transform(plugins, new Function<PluginRequest, String>() {
-            public String apply(PluginRequest input) {
-                return input.getDisplayName();
-            }
-        })));
+        if (plugins.isEmpty()) {
+            return "";
+        }
+        int hash = 0;
+        for (PluginRequest plugin : plugins) {
+            hash = 31 * hash + plugin.getScriptDisplayName().hashCode();
+        }
+        return String.valueOf(hash);
     }
 }
