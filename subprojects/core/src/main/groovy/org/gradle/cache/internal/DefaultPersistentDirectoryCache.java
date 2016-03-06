@@ -63,13 +63,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         public boolean requiresInitialization(FileLock lock) {
             if (!didRebuild) {
                 if (validator!=null && !validator.isValid()) {
-                    LOGGER.debug("Invalidating {} as cache validator return false.", this);
+                    LOGGER.debug("Invalidating {} as cache validator return false.", DefaultPersistentDirectoryCache.this);
                     return true;
                 }
             }
 
             if (!lock.getUnlockedCleanly()) {
-                LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
+                LOGGER.debug("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
                 return true;
             }
 
@@ -78,7 +78,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 String previousValue = cachedProperties.getProperty(entry.getKey().toString());
                 String currentValue = entry.getValue().toString();
                 if (!previousValue.equals(currentValue)) {
-                    LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", this, entry.getKey(), previousValue, currentValue);
+                    LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", DefaultPersistentDirectoryCache.this, entry.getKey(), previousValue, currentValue);
                     return true;
                 }
             }
