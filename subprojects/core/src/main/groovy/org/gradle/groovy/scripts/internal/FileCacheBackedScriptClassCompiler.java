@@ -28,7 +28,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLogger;
@@ -51,7 +50,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
-    private final CompositeStoppable caches = new CompositeStoppable();
     private final CachingFileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
 
@@ -92,7 +90,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), hash, cacheKey))
             .withDisplayName(String.format("%s remapped class cache for %s", dslId, hash))
             .withValidator(validator)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M,T>(remapped, hash, dslId, cacheProperties, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, hash, dslId, cacheProperties, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local build cache"))
             .open();
@@ -128,7 +126,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     public void close() {
-        caches.stop();
     }
 
     private File classesDir(PersistentCache cache) {
