@@ -178,7 +178,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         // remains the same as the content in the existing file
         private void updateFileOnlyWhenGeneratedContentChanges() {
             byte[] generatedContent = generateContent();
-            if (hasGeneratedContentChanged(generatedContent)) {
+            if (!hasContent(generatedContent, file)) {
                 try {
                     Files.write(generatedContent, file);
                 } catch (IOException e) {
@@ -193,22 +193,20 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             return buffer.toByteArray();
         }
 
-        private boolean hasGeneratedContentChanged(byte[] generatedContent) {
-            boolean hasChanged = false;
-            if (generatedContent.length == file.length()) {
-                try {
-                    byte[] existingContent = Files.toByteArray(file);
-                    if (!Arrays.equals(generatedContent, existingContent)) {
-                        hasChanged = true;
-                    }
-                } catch (IOException e) {
-                    // attempt to write new file if reading old file fails
-                    hasChanged = true;
-                }
-            } else {
-                hasChanged = true;
+        private boolean hasContent(byte[] generatedContent, File file) {
+            if (generatedContent.length != file.length()) {
+                return false;
             }
-            return hasChanged;
+
+            byte[] existingContent;
+            try {
+                existingContent = Files.toByteArray(this.file);
+            } catch (IOException e) {
+                // Assume changed if reading old file fails
+                return false;
+            }
+
+            return Arrays.equals(generatedContent, existingContent);
         }
 
         public boolean isDirectory() {
