@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 
 @NonCrossVersion
@@ -33,8 +34,8 @@ abstract class BaseTestKitEndUserIntegrationTest extends BaseGradleRunnerIntegra
             usingInitScript(file("testKitDirInit.gradle") << """
                 allprojects {
                     tasks.withType(Test) {
-                        systemProperty "$DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP", "${getTestKitDir()}"
-                        systemProperty "java.io.tmpdir", "${file("tmp")}"
+                        systemProperty "$DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP", "${TextUtil.normaliseFileSeparators(testKitDir.absolutePath)}"
+                        systemProperty "java.io.tmpdir", "${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}"
                     }
                 }
             """)
