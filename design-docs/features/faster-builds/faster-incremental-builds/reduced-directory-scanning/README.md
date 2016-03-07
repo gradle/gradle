@@ -89,11 +89,28 @@ not be invalidated.
 - Don't scan input directory multiple times when executing a task
 - Use a hash to short circuit loading task input or output snapshots into heap, and to share snapshots between tasks
 - Parallel scanning of directory trees (in the worker pool)
-- Write cache updates to the backing persistent store asynchronously.
 
 ### Stories
 
-### Handle duplicate task input or output directories in simple cases
+### Incremental build reuses file snapshots in simple cases
+
+Improve performance when a task takes as input files that are produced by another task or tasks, by reusing the file snapshots produced when scanning the outputs of 
+the tasks.
+
+Initially start with reuse in simple, but common, cases, such as when everything in a directory tree is to be scanned.
+
+Add integration test coverage.
+
+##### Implementation notes
+
+- Implementation should change `DefaultFileCollectionSnapshotter` to unpack the file collection to a backing set of file trees, then use an in-memory cache to locate
+a snapshot for each of the file trees, merging the entries from the results together to form the final snapshot.
+- `OutputFilesCollectionSnapshotter` should not need to change, though later might be inlined into `DefaultFileCollectionSnapshotter`.
+- For this story, consider only reuse when calculating file snapshots.
+- Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
+- Invalidate cache at the end of the build. 
+
+### Incremental build avoids snapshotting duplicate task input or output directories in simple cases
 
 Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
 
@@ -101,3 +118,5 @@ Currently, such directories will be scanned multiple times. Instead, each direct
    
 The implementation of this is made more complex when different patterns or specs are used. For this story, simply merge those file trees with the same base directory
 and where one of the file trees has an 'accept everything' spec.
+
+Add integration test coverage.
