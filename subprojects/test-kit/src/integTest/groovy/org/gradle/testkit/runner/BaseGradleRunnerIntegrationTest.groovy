@@ -101,7 +101,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
-        daemons(testKitDir.file(TEST_KIT_DAEMON_DIR_NAME), gradleVersion)
+        def daemonDirName = gradleVersion < GradleVersion.version("2.2") ? "daemon" : TEST_KIT_DAEMON_DIR_NAME
+        daemons(testKitDir.file(daemonDirName), gradleVersion)
     }
 
     DaemonsFixture daemons(File daemonDir, GradleVersion version) {

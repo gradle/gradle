@@ -17,11 +17,12 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 @NoDebug
 class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -67,9 +68,13 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
         testKitDaemons().daemon.context.pid == pid
     }
 
+    // Ability to set the daemon dir was added in 2.2
+    // For earlier versions, the test kit daemons may collide with “regular” daemons if the test kit dir is shared
+    @IgnoreIf({ BaseGradleRunnerIntegrationTest.gradleVersion < GradleVersion.version("2.2") })
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
-        def nonTestKitDaemons = daemons(testKitDir.file("daemon"), buildContext.version)
+        def defaultDaemonDir = testKitDir.file("daemon")
+        def nonTestKitDaemons = daemons(defaultDaemonDir, gradleVersion)
 
         when:
         runner().build()
@@ -80,10 +85,10 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
         nonTestKitDaemons.visible.empty
 
         when:
-        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
+        new DaemonGradleExecuter(buildContext.distribution(gradleVersion.version), testDirectoryProvider)
             .usingProjectDirectory(testDirectory)
             .withGradleUserHomeDir(testKitDir)
-            .withDaemonBaseDir(testKitDir.file("daemon")) // simulate default, our fixtures deviate from the default
+            .withDaemonBaseDir(defaultDaemonDir) // simulate default, our fixtures deviate from the default
             .run()
 
         then:
