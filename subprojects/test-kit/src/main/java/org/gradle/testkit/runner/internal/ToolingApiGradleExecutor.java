@@ -21,10 +21,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
-import org.gradle.testkit.runner.internal.dist.GradleDistribution;
-import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
-import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
-import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.tooling.*;
@@ -80,7 +76,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             parameters.getGradleUserHome(),
             parameters.getProjectDir(),
             parameters.isEmbedded(),
-            parameters.getGradleDistribution()
+            parameters.getGradleProvider()
         );
 
         ProjectConnection connection = null;
@@ -148,9 +144,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
     }
 
-    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleDistribution gradleDistribution) {
+    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleProvider gradleProvider) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
-        useGradleDistribution(gradleConnector, gradleDistribution);
+        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
+        gradleProvider.applyTo(gradleConnector);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
@@ -158,18 +155,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.embedded(embedded);
         return gradleConnector;
-    }
-
-    private void useGradleDistribution(DefaultGradleConnector gradleConnector, GradleDistribution gradleDistribution) {
-        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
-
-        if (gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
-        } else if (gradleDistribution instanceof URILocatedGradleDistribution) {
-            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getLocation());
-        } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getGradleVersion());
-        }
     }
 
     private class TaskExecutionProgressListener implements ProgressListener {

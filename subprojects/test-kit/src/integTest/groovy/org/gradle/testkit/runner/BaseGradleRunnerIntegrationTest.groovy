@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
-import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -28,14 +27,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.Debug
-import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
-import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution
-import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution
+import org.gradle.testkit.runner.fixtures.*
+import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -55,7 +48,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
-    public static org.gradle.testkit.runner.internal.dist.GradleDistribution testKitRuntime
+    public static GradleProvider gradleProvider
     public static boolean debug
     public static boolean crossVersion
 
@@ -89,15 +82,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             .withArguments(arguments)
             .withDebug(debug)
 
-        def gradleDistribution = testKitRuntime
-
-        if (gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleRunner.withGradleInstallation(((InstalledGradleDistribution) gradleDistribution).gradleHome)
-        } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleRunner.withGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).gradleVersion)
-        } else {
-            throw unsupportedGradleDistributionException()
-        }
+        gradleProvider.applyTo(gradleRunner)
+        gradleRunner
     }
 
     static String helloWorldTask() {
@@ -134,10 +120,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     ExecutionFailure execFailure(BuildResult buildResult) {
         new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
-    }
-
-    private static RuntimeException unsupportedGradleDistributionException() {
-        new IllegalArgumentException('Unsupported Gradle distribution. Please pick from an installed or version-based Gradle distribution!')
     }
 
     static class Runner extends AbstractMultiTestRunner {
@@ -214,23 +196,27 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             !testedFeatures.empty ? testedFeatures.min() : MIN_TESTED_VERSION
         }
 
-        @TupleConstructor
         @Sortable(includes = ['gradleVersion'])
         private static class TestedGradleDistribution {
 
             private static
-            final TestedGradleDistribution UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, new InstalledGradleDistribution(BUILD_CONTEXT.gradleHomeDir))
+            final TestedGradleDistribution UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, GradleProvider.installation(BUILD_CONTEXT.gradleHomeDir))
 
             final GradleVersion gradleVersion
-            final org.gradle.testkit.runner.internal.dist.GradleDistribution gradleDistribution
+            final GradleProvider gradleProvider
+
+            TestedGradleDistribution(GradleVersion gradleVersion, GradleProvider gradleProvider) {
+                this.gradleVersion = gradleVersion
+                this.gradleProvider = gradleProvider
+            }
 
             static TestedGradleDistribution forVersion(GradleVersion gradleVersion) {
-                new TestedGradleDistribution(gradleVersion, new VersionBasedGradleDistribution(gradleVersion.version))
+                new TestedGradleDistribution(gradleVersion, GradleProvider.version(gradleVersion.version))
             }
 
             static TestedGradleDistribution mostRecentFinalRelease() {
                 new TestedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version,
-                    new VersionBasedGradleDistribution(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
+                    GradleProvider.version(RELEASED_VERSION_DISTRIBUTIONS.mostRecentFinalRelease.version.version))
             }
 
         }
@@ -276,7 +262,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 super.before()
                 BaseGradleRunnerIntegrationTest.debug = debug
                 BaseGradleRunnerIntegrationTest.gradleVersion = testedGradleDistribution.gradleVersion
-                BaseGradleRunnerIntegrationTest.testKitRuntime = testedGradleDistribution.gradleDistribution
+                BaseGradleRunnerIntegrationTest.gradleProvider = testedGradleDistribution.gradleProvider
             }
 
             @Override
