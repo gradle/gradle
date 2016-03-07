@@ -98,6 +98,7 @@ We would like to thank the following community members for making contributions 
 * [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
 * [Paul King](https://github.com/paulk-asert) - support groovydoc's `noTimestamp` and `noVersionStamp` properties
 * [Schalk Cronjé](https://github.com/ysb33r) - update docs about `getFile()` and filters
+* [Oliver Reissig](https://github.com/oreissig) - improve error message when `tools.jar` is not found
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
