@@ -93,7 +93,7 @@ class DeleteActionImplTest extends Specification {
         !didWork
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def doesNotDeleteFilesInsideSymlinkDir() {
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
@@ -115,7 +115,7 @@ class DeleteActionImplTest extends Specification {
         didWork
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def deletesFilesInsideSymlinkDirWhenNeeded() {
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
