@@ -110,25 +110,27 @@ class IdeaProject {
     String jdkName
 
     /**
-     * The Java language Level to use for this project. For backwards compatibility, this can be explicitly set
-     * as part of the build script in which case it provides a global override (also overriding the target bytecode version).
-     * This isn't recommended. Instead, you are encouraged to set {@code sourceCompatibility} and {@code targetCompatibility}
-     * for your project/subprojects which allows you to have full control over language levels in your projects/modules.
+     * The default Java language Level to use for this project.
      * <p>
-     * When not explicitly set, this is calculated as the maximum {@code sourceCompatibility} value for all Java projects that form the
-     * Idea modules of this Idea project, defaulting to JDK_1_6.
+     * Generally, it isn't recommended to change this value. Instead, you are encouraged to set {@code sourceCompatibility} and {@code targetCompatibility}
+     * for your Gradle projects which allows you to have full control over language levels in Gradle projects, and means that Gradle and IDEA will use the same
+     * settings when compiling.
+     * <p>
+     * When not explicitly set, this is calculated as the maximum language level for the Idea modules of this Idea project.
      */
     IdeaLanguageLevel languageLevel
 
     /**
      * The target bytecode version to use for this project.
      * <p>
-     * When {@code languageLevel} is not explicitly set, this is calculated as the maximum {@code targetCompatibility}
-     * value for all Java projects that form the Idea modules of this Idea project.
+     * Generally, it isn't recommended to change this value. Instead, you are encouraged to set {@code sourceCompatibility} and {@code targetCompatibility}
+     * for your Gradle projects which allows you to have full control over language levels in Gradle projects, and means that Gradle and IDEA will use the same
+     * settings when compiling.
+     * <p>
+     * When {@code languageLevel} is not explicitly set, this is calculated as the maximum target bytecode version for the Idea modules of this Idea project.
      */
     @Incubating
     JavaVersion targetBytecodeVersion
-
 
     /**
      * Sets the java language level for the project.
