@@ -48,6 +48,7 @@ import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.profile.ProfileEventAdapter
 import spock.lang.Specification
@@ -88,6 +89,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(CachingFileSnapshotter) >> Mock(CachingFileSnapshotter)
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
+        sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
         sessionServices.getAll(_) >> []
 
         registry = new BuildScopeServices(sessionServices, false)

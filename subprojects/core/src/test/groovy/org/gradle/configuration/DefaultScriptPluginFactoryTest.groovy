@@ -33,10 +33,12 @@ import org.gradle.groovy.scripts.internal.BuildScriptData
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequests
 import spock.lang.Specification
@@ -63,9 +65,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classPathSnapshotter = Mock(ClassPathSnapshotter)
+    def injectedPluginClasspath = Mock(InjectedPluginClasspath) {
+        getClasspath() >> new DefaultClassPath()
+    }
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-            directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), classPathSnapshotter)
+            directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), classPathSnapshotter, injectedPluginClasspath)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

@@ -40,10 +40,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.use.internal.PluginRequests;
-import org.gradle.plugin.use.internal.PluginRequestsSerializer;
+import org.gradle.plugin.use.internal.*;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
@@ -59,6 +56,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ClassPathSnapshotter classpathSnapshotter;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
+    private final InjectedPluginClasspath injectedPluginClassPath;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -69,7 +67,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
-                                      ClassPathSnapshotter classpathSnapshotter) {
+                                      ClassPathSnapshotter classpathSnapshotter,
+                                      InjectedPluginClasspath injectedPluginClasspath) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -80,6 +79,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.classpathSnapshotter = classpathSnapshotter;
+        this.injectedPluginClassPath = injectedPluginClasspath;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -144,7 +144,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
             // Pass 2, compile everything except buildscript {} and plugin requests, then run
-
             BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(classpathClosureName, scriptSource);
             String operationId = scriptTarget.getId();
             String cacheKey = cacheKey(scriptHandler, scriptTarget, pluginRequests);
@@ -197,9 +196,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
      * block.
      */
     private String cacheKey(ScriptHandlerInternal handler, ScriptTarget target, PluginRequests plugins) {
-        ClassPath scriptClasspath = handler.getScriptClassPath();
-        String buildscriptClasspathHash = scriptClasspath.isEmpty() ? "" : String.valueOf(classpathSnapshotter.snapshot(scriptClasspath).hashCode());
+        String buildscriptClasspathHash = classPathHash(handler.getScriptClassPath()) + classPathHash(injectedPluginClassPath.getClasspath());
         return target.getId() + hashFor(plugins) + buildscriptClasspathHash;
+    }
+
+    private String classPathHash(ClassPath scriptClasspath) {
+        return scriptClasspath.isEmpty() ? "" : String.valueOf(classpathSnapshotter.snapshot(scriptClasspath).hashCode());
     }
 
     // TODO:Cedric instead of using the hash code of plugin request strings, we should really use a ClassPath
