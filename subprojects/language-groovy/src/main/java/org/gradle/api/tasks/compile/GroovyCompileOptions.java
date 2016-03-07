@@ -159,7 +159,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * </pre>
      * </p>
      * <p>
-     * Please see <a href="http://groovy.codehaus.org/Advanced+compiler+configuration#Advancedcompilerconfiguration-Thecustomizationbuilder">the Groovy compiler customization builder documentation</a>
+     * Please see <a href="http://docs.groovy-lang.org/latest/html/documentation/#compilation-customizers">the Groovy compiler customization builder documentation</a>
      * for more information about the compiler configuration DSL.
      * </p>
      * <p>
