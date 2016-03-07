@@ -19,10 +19,10 @@ package org.gradle.plugin.devel.plugins.internal.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GUtil
 
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.METADATA_FILE_NAME
+import static PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static PluginUnderTestMetadata.METADATA_FILE_NAME
 
-class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
+class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String TASK_NAME = 'pluginClasspathManifest'
 
@@ -35,7 +35,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
     def "fails the task for null plugin classpath"() {
         given:
         buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
                 pluginClasspath = null
             }
         """
@@ -50,7 +50,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
     def "fails the task for null output directory"() {
         given:
         buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
                 outputDirectory = null
             }
         """
@@ -67,7 +67,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             sourceSets.remove(sourceSets.main)
 
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()})
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()})
         """
 
         when:
@@ -80,7 +80,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
     def "implementation-classpath entry in metadata is empty if there is no classpath"() {
         given:
         buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
                 pluginClasspath = files()
             }
         """
@@ -97,7 +97,7 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
     def "can reconfigure output directory for metadata file"() {
         given:
         buildFile << """
-            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
                 outputDirectory = file('build/some/other')
             }
         """

@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.GUtil
 
-import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.METADATA_FILE_NAME
+import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PLUGIN_CLASSPATH_TASK_PATH = ":$PLUGIN_CLASSPATH_TASK_NAME"
+    private static final String PLUGIN_UNDER_TEST_METADATA_TASK_PATH = ":$PLUGIN_UNDER_TEST_METADATA_TASK_NAME"
 
     def setup() {
         buildFile << """
@@ -44,8 +44,8 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         succeeds 'build'
 
         then:
-        executedAndNotSkipped PLUGIN_CLASSPATH_TASK_PATH
-        def pluginMetadata = file("build/$PLUGIN_CLASSPATH_TASK_NAME/$METADATA_FILE_NAME")
+        executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
+        def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
         def expectedClasspath = [file('build/classes/main'), file('build/resources/main'), module.artifactFile]
         assertImplementationClasspath(pluginMetadata, expectedClasspath)
     }
@@ -94,8 +94,8 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         succeeds 'build'
 
         then:
-        executedAndNotSkipped PLUGIN_CLASSPATH_TASK_PATH
-        def pluginMetadata = file("build/$PLUGIN_CLASSPATH_TASK_NAME/$METADATA_FILE_NAME")
+        executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
+        def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
         def expectedClasspath = [file('build/classes/custom'), file('build/resources/custom'), module.artifactFile]
         assertImplementationClasspath(pluginMetadata, expectedClasspath)
     }

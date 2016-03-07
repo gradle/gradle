@@ -79,7 +79,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
     def "can override plugin metadata location"() {
         when:
         buildFile << """
-            pluginClasspathManifest {
+            pluginUnderTestMetadata {
                 outputDirectory = file('build/testkit/manifest')
             }
         """

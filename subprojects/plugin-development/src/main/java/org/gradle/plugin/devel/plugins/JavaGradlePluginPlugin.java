@@ -26,7 +26,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest;
+import org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -54,7 +54,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
     static final String EXTENSION_NAME = "gradlePlugin";
-    static final String PLUGIN_CLASSPATH_TASK_NAME = "pluginClasspathManifest";
+    static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
@@ -90,23 +90,23 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private void configureTestKit(Project project, GradlePluginDevelopmentExtension extension) {
-        PluginClasspathManifest pluginClasspathTask = createAndConfigurePluginClasspathManifestTask(project, extension);
-        establishTestKitAndPluginClasspathDependencies(project, extension, pluginClasspathTask);
+        PluginUnderTestMetadata pluginUnderTestMetadataTask = createAndConfigurePluginUnderTestMetadataTask(project, extension);
+        establishTestKitAndPluginClasspathDependencies(project, extension, pluginUnderTestMetadataTask);
     }
 
-    private PluginClasspathManifest createAndConfigurePluginClasspathManifestTask(Project project, final GradlePluginDevelopmentExtension extension) {
-        PluginClasspathManifest pluginClasspathTask = project.getTasks().create(PLUGIN_CLASSPATH_TASK_NAME, PluginClasspathManifest.class);
+    private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(Project project, final GradlePluginDevelopmentExtension extension) {
+        PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
 
-        pluginClasspathTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
+        pluginUnderTestMetadataTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
                 return extension.getPluginSourceSet().getRuntimeClasspath();
             }
         });
 
-        return pluginClasspathTask;
+        return pluginUnderTestMetadataTask;
     }
 
-    private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, PluginClasspathManifest pluginClasspathTask) {
+    private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, PluginUnderTestMetadata pluginClasspathTask) {
         project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
@@ -198,9 +198,9 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      */
     private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
         private final GradlePluginDevelopmentExtension extension;
-        private final PluginClasspathManifest pluginClasspathTask;
+        private final PluginUnderTestMetadata pluginClasspathTask;
 
-        private TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        private TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, PluginUnderTestMetadata pluginClasspathTask) {
             this.extension = extension;
             this.pluginClasspathTask = pluginClasspathTask;
         }

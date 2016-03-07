@@ -35,18 +35,18 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Custom task for generating a plugin classpath manifest for the given classpath.
+ * Custom task for generating the metadata for a plugin user test.
  *
  * @since 2.13
  */
-public class PluginClasspathManifest extends ConventionTask {
+public class PluginUnderTestMetadata extends ConventionTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private FileCollection pluginClasspath;
     private File outputDirectory;
 
-    public PluginClasspathManifest() {
+    public PluginUnderTestMetadata() {
         pluginClasspath = getDefaultPluginClasspath();
         outputDirectory = getDefaultOutputDirectory();
     }
