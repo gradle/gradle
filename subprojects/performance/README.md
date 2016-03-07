@@ -32,6 +32,14 @@ or test files to generate for a performance test build.
 
 There is a task defined in [`performance.gradle`](performance.gradle) for each performance test build, that specifies which templates to use and the build parameters.
 
+### Metrics collected
+
+- Total build execution time.
+- Build configuration time.
+- Task execution time.
+- Heap consumption at the end of the build.
+- Total heap usage during the build
+
 ### Report
 
 There is a `performance:report` task that generates a static HTML report from the contents of the database in `~/.gradle-performance-test-data`. This report allows the results over
