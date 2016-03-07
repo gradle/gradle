@@ -18,10 +18,10 @@ package org.gradle.plugin.devel.plugins.internal.tasks;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
@@ -39,7 +39,7 @@ import java.util.List;
  *
  * @since 2.13
  */
-public class PluginUnderTestMetadata extends ConventionTask {
+public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";

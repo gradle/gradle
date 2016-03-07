@@ -19,6 +19,8 @@ package org.gradle.plugin.devel.plugins;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -97,7 +99,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(Project project, final GradlePluginDevelopmentExtension extension) {
         PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
 
-        pluginUnderTestMetadataTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
+        ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
+        conventionMapping.map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
                 return extension.getPluginSourceSet().getRuntimeClasspath();
             }
