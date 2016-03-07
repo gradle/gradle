@@ -25,6 +25,10 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * <p>Using this interface, you can change the destination path of the file, filter the content of the file, or exclude
  * the file from the result entirely.</p>
+ *
+ * <p>Access to the source file itself after any filters have been added is not a supported operation.
+ * </p>
+ *
  */
 @HasInternalProtocol
 @NonExtensible
