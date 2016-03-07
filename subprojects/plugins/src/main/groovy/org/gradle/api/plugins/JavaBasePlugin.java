@@ -213,33 +213,21 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-        if (compileConfiguration == null) {
-            compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
-        }
+        Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription(String.format("Compile dependencies for %s.", sourceSet));
+        compileConfiguration.setDescription(String.format("Dependencies for %s.", sourceSet));
 
-        Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
-        if (runtimeConfiguration == null) {
-            runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
-        }
+        Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
+        runtimeConfiguration.setDescription(String.format("Runtime dependencies for %s.", sourceSet));
 
-        Configuration compileOnlyConfiguration = configurations.findByName(sourceSet.getCompileOnlyConfigurationName());
-        if (compileOnlyConfiguration == null) {
-            compileOnlyConfiguration = configurations.create(sourceSet.getCompileOnlyConfigurationName());
-        }
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.extendsFrom(compileConfiguration);
-        compileOnlyConfiguration.setDescription(String.format("Compile only classpath for %s.", sourceSet));
+        compileOnlyConfiguration.setDescription(String.format("Compile dependencies for %s.", sourceSet));
 
-        Configuration compileClasspathConfiguration = configurations.findByName(sourceSet.getCompileClasspathConfigurationName());
-        if (compileClasspathConfiguration == null) {
-            compileClasspathConfiguration = configurations.create(sourceSet.getCompileClasspathConfigurationName());
-        }
+        Configuration compileClasspathConfiguration = configurations.maybeCreate(sourceSet.getCompileClasspathConfigurationName());
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
         compileClasspathConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));

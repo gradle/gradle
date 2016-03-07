@@ -163,21 +163,21 @@ class JavaBasePluginTest extends Specification {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Compile dependencies for source set 'custom'."
+        compile.description == "Dependencies for source set 'custom'."
 
         and:
         def runtime = project.configurations.customRuntime
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime classpath for source set 'custom'."
+        runtime.description == "Runtime dependencies for source set 'custom'."
 
         and:
         def compileOnly = project.configurations.customCompileOnly
         compileOnly.transitive
         !compileOnly.visible
         compileOnly.extendsFrom ==  [compile] as Set
-        compileOnly.description == "Compile only classpath for source set 'custom'."
+        compileOnly.description == "Compile dependencies for source set 'custom'."
 
         and:
         def compileClasspath = project.configurations.customCompileClasspath
