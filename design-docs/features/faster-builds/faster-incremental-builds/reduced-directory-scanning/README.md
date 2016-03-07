@@ -83,10 +83,21 @@ A second in-memory cache could be added:
 This would be used to share snapshots across task history entries and avoid loading snapshots when a copy is already loaded into memory. The entries of this cache would
 not be invalidated.
 
-### Candidate stories
+### Candidate changes
 
 - Reuse the result of directory scanning
 - Don't scan input directory multiple times when executing a task
 - Use a hash to short circuit loading task input or output snapshots into heap, and to share snapshots between tasks
 - Parallel scanning of directory trees (in the worker pool)
 - Write cache updates to the backing persistent store asynchronously.
+
+### Stories
+
+### Handle duplicate task input or output directories in simple cases
+
+Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
+
+Currently, such directories will be scanned multiple times. Instead, each directory should be scanned once when calculating the input or output snapshots for a task.
+   
+The implementation of this is made more complex when different patterns or specs are used. For this story, simply merge those file trees with the same base directory
+and where one of the file trees has an 'accept everything' spec.
