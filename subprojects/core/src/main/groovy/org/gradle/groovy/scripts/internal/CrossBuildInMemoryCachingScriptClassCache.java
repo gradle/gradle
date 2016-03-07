@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.Arrays;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
-    private final Cache<Key, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).build();
+    private final Cache<Key, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
     private final CachingFileSnapshotter snapshotter;
 
     public CrossBuildInMemoryCachingScriptClassCache(CachingFileSnapshotter snapshotter) {

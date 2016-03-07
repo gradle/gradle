@@ -147,6 +147,96 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
     }
 
+    def "script is cached in build scope in-memory cache"() {
+        given:
+        root {
+            gradle {
+                'collectStats.gradle'('''
+                    def buildScopeCache = project.services.get(org.gradle.groovy.scripts.ScriptCompilerFactory).scriptClassCompiler
+                    def crossBuildScopeCache = gradle.services.get(org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache)
+
+                    def toSimpleNames(keys) {
+                        keys.collect { key ->
+                            String className = key.className
+                            String dslId = key.dslId
+                            "${className.substring(0, className.indexOf('_'))}:$dslId"
+                        }
+                    }
+
+                    gradle.buildFinished {
+                        println "Build scope cache size: ${buildScopeCache.cachedCompiledScripts.size()}"
+                        println "Cross-build scope cache size: ${crossBuildScopeCache.cachedCompiledScripts.size()}"
+                        println "Build scope cache contents: ${toSimpleNames(buildScopeCache.cachedCompiledScripts.keySet())}"
+                        println "Cross-build scope cache contents: ${toSimpleNames(crossBuildScopeCache.cachedCompiledScripts.asMap().keySet())}"
+                        println "Cross-build scope cache stats: ${crossBuildScopeCache.cachedCompiledScripts.stats()}"
+                    }
+                    ''')
+            }
+            'build.gradle'('apply from: "gradle/collectStats.gradle"')
+        }
+        Set scripts = ['settings:cp_settings', 'build:cp_proj', 'settings:settings', 'build:proj', 'collectStats:cp_dsl', 'collectStats:dsl']
+
+        when:
+        run 'help'
+        def stats = crossBuildCacheStats()
+
+        then:
+        buildScopeCacheSize() == scripts.size()
+        crossBuildScopeCacheSize() == scripts.size()
+
+        buildScopeCacheContents() == scripts
+        crossBuildScopeCacheContents() == scripts
+        stats.hitCount == 0
+        stats.missCount == scripts.size()
+
+        when:
+        run 'help'
+        stats = crossBuildCacheStats()
+
+        then:
+        buildScopeCacheSize() == scripts.size()
+        crossBuildScopeCacheSize() == scripts.size()
+        buildScopeCacheContents() == scripts
+        crossBuildScopeCacheContents() == scripts
+        stats.hitCount == scripts.size()
+        stats.missCount == scripts.size()
+    }
+
+    int buildScopeCacheSize() {
+        def m = output =~ /(?s).*Build scope cache size: (\d+).*/
+        m.matches()
+        m.group(1).toInteger()
+    }
+
+    int crossBuildScopeCacheSize() {
+        def m = output =~ /(?s).*Cross-build scope cache size: (\d+).*/
+        m.matches()
+        m.group(1).toInteger()
+    }
+
+    Set<String> buildScopeCacheContents() {
+        def m = output =~ /(?s).*Build scope cache contents: \[(.+?)\].*/
+        m.matches()
+        m.group(1).split(", ") as Set
+    }
+
+    Set<String> crossBuildScopeCacheContents() {
+        def m = output =~ /(?s).*Cross-build scope cache contents: \[(.+?)\].*/
+        m.matches()
+        m.group(1).split(", ") as Set
+    }
+
+    Map<String, Integer> crossBuildCacheStats() {
+        def m = output =~ /(?s).*Cross-build scope cache stats: CacheStats\{((?:(?:\p{Alnum}+=\d+)(?:, )?)+)}.*/
+        m.matches()
+        def stats = [:]
+        m = m.group(1) =~ /(\p{Alnum}+)=(\d+)/
+        while (m.find()) {
+            stats[m.group(1)] = m.group(2).toInteger()
+        }
+        stats
+    }
+
     List<String> hasRemapped(String buildFile) {
         def remapped = remappedCachesDir.listFiles().findAll { it.name.startsWith(buildFile) }
         if (remapped) {
