@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel.plugins;
+package org.gradle.plugin.devel;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Configuration options for the {@link JavaGradlePluginPlugin}.
+ * Configuration options for the {@link org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin}.
  *
  * <p>Below is a full configuration example. Since all properties have sensible defaults,
  * typically only selected properties will be configured.
@@ -39,7 +39,7 @@ import java.util.Set;
  *     }
  * </pre>
  *
- * @see JavaGradlePluginPlugin
+ * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.13
  */
 @Incubating

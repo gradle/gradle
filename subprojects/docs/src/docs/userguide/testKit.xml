@@ -163,7 +163,7 @@
                     <listitem>Source set used for injecting the plugin classpath: <literal>sourceSets.test</literal></listitem>
                 </itemizedlist>
                 <para>
-                    Any of these conventions can be reconfigured with the help of the class <apilink class="org.gradle.plugin.devel.plugins.GradlePluginDevelopmentExtension"/>.
+                    Any of these conventions can be reconfigured with the help of the class <apilink class="org.gradle.plugin.devel.GradlePluginDevelopmentExtension"/>.
                 </para>
                 <para>
                     The following Groovy-based sample demonstrates how to automatically inject the plugin classpath by using the standard conventions applied by the
