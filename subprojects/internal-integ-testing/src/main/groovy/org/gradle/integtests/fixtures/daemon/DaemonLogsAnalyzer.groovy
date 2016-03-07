@@ -36,12 +36,12 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         this.daemonBaseDir = daemonBaseDir
         daemonLogsDir = new File(daemonBaseDir, version)
         def services = ServiceRegistryBuilder.builder()
-                .parent(LoggingServiceRegistry.newEmbeddableLogging())
-                .parent(NativeServicesTestFixture.getInstance())
-                .provider(new GlobalScopeServices(false))
-                .provider(new DaemonClientGlobalServices())
-                .provider(new DaemonRegistryServices(daemonBaseDir))
-                .build()
+            .parent(LoggingServiceRegistry.newEmbeddableLogging())
+            .parent(NativeServicesTestFixture.getInstance())
+            .provider(new GlobalScopeServices(false))
+            .provider(new DaemonClientGlobalServices())
+            .provider(new DaemonRegistryServices(daemonBaseDir))
+            .build()
         registry = services.get(DaemonRegistry)
     }
 
@@ -58,8 +58,12 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     List<DaemonFixture> getDaemons() {
-        assert daemonLogsDir.isDirectory()
-        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
+        if (daemonLogsDir.exists()) {
+            assert daemonLogsDir.isDirectory()
+            return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
+        } else {
+            Collections.emptyList()
+        }
     }
 
     List<DaemonFixture> getVisible() {

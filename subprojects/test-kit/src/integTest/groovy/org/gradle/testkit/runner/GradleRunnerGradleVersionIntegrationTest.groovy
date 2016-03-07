@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
-import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -26,7 +25,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 
 @NonCrossVersion
-@NoDebug
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
