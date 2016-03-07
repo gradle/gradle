@@ -97,6 +97,7 @@ We would like to thank the following community members for making contributions 
 * [P. P.](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
 * [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
 * [Paul King](https://github.com/paulk-asert) - support groovydoc's `noTimestamp` and `noVersionStamp` properties
+* [Schalk Cronjé](https://github.com/ysb33r) - update docs about `getFile()` and filters
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
