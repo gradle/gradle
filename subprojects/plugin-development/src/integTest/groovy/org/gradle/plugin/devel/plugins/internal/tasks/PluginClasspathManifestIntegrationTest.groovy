@@ -17,6 +17,10 @@
 package org.gradle.plugin.devel.plugins.internal.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GUtil
+
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest.METADATA_FILE_NAME
 
 class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
 
@@ -72,4 +76,37 @@ class PluginClasspathManifestIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
     }
+
+    def "implementation-classpath entry in metadata is empty if there is no classpath"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+                pluginClasspath = files()
+            }
+        """
+
+        when:
+        succeeds TASK_NAME
+
+        then:
+        def classpathManifest = file("build/$TASK_NAME/$METADATA_FILE_NAME")
+        classpathManifest.exists() && classpathManifest.isFile()
+        !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+    }
+
+    def "can reconfigure output directory for metadata file"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginClasspathManifest.class.getName()}) {
+                outputDirectory = file('build/some/other')
+            }
+        """
+
+        when:
+        succeeds TASK_NAME
+
+        then:
+        file("build/some/other/$METADATA_FILE_NAME").exists()
+    }
+
 }

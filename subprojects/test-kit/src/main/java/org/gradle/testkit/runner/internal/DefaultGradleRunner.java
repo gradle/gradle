@@ -329,7 +329,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return GradleProvider.installation(gradleHome);
     }
 
-    private List<File> readPluginClasspath() {
+    private static List<File> readPluginClasspath() {
         URL pluginClasspathUrl = Thread.currentThread().getContextClassLoader().getResource(PLUGIN_METADATA_FILE_NAME);
 
         if (pluginClasspathUrl == null) {
