@@ -54,7 +54,7 @@ Note: this goal for this story is only to understand the behaviour, not to fix a
 
 The following directories are scanned in the up-to-date check for `test`:
 
-- `build/classes/test` is scanned 4 times : one reason for this is that output snapshots resolve the same file collection twice, once when calling `getFiles` and then when creating the snapshot.
+- `build/classes/test` is scanned 4 times
 - `build/classes/main` is scanned once
 - `src/test/java` is scanned once
 

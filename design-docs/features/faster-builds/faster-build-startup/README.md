@@ -11,7 +11,7 @@ Audience is developers that are using the Gradle daemon.
 ### Potential improvements 
 
 - Fix hotspots identified by profiling
-- Send events to daemon client asynchronously
+- Replace usage of exceptions in decorated objects
 - Faster rule execution for task configuration
 - Make creation of project instances cheaper
 - Faster startup by reducing fixed costs in daemon client and per build setup 
