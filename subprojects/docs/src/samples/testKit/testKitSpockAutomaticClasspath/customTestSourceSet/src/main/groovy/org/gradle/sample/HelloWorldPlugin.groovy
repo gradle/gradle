@@ -16,12 +16,15 @@
 
 package org.gradle.sample
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 
-class HelloWorld extends DefaultTask {
-    @TaskAction
-    void printMessage() {
-        println 'Hello world!'
+class HelloWorldPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('helloWorld') {
+            doLast {
+                println 'Hello world!'
+            }
+        }
     }
 }

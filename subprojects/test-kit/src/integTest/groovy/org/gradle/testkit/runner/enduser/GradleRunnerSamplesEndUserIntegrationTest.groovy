@@ -53,8 +53,15 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpockAutomaticClasspath")
+    @UsesSample("testKit/testKitSpockAutomaticClasspath/quickstart")
     def automaticClasspath() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
+
+    @UsesSample("testKit/testKitSpockAutomaticClasspath/customTestSourceSet")
+    def customTestSourceSet() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"

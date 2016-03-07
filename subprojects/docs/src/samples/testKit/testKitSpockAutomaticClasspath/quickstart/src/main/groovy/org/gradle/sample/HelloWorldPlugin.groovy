@@ -21,6 +21,10 @@ import org.gradle.api.Project
 
 class HelloWorldPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.task('helloWorld', type: HelloWorld)
+        project.task('helloWorld') {
+            doLast {
+                println 'Hello world!'
+            }
+        }
     }
 }
