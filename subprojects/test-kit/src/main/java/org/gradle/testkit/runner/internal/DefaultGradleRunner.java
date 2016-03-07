@@ -350,7 +350,7 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidPluginMetadataException(String.format("Plugin metadata file '%s' has empty value for property named '%s'", PLUGIN_METADATA_FILE_NAME, IMPLEMENTATION_CLASSPATH_PROP_KEY));
         }
 
-        String[] parsedImplementationClasspath = value.trim().split(",");
+        String[] parsedImplementationClasspath = value.trim().split(File.pathSeparator);
         return CollectionUtils.collect(parsedImplementationClasspath, new Transformer<File, String>() {
             @Override
             public File transform(String classpathEntry) {

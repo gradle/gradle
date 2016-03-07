@@ -17,20 +17,18 @@
 package org.gradle.plugin.devel.plugins.internal.tasks;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Custom task for generating the metadata for a plugin user test.
@@ -70,27 +68,20 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        FileWriter writer = null;
+        Properties properties = new Properties();
 
-        try {
-            writer = new FileWriter(new File(getOutputDirectory(), METADATA_FILE_NAME));
-
-            if (!getPluginClasspath().isEmpty()) {
-                List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-                    @Override
-                    public String transform(File file) {
-                        return file.getAbsolutePath().replaceAll("\\\\", "/");
-                    }
-                });
-
-                writer.write(IMPLEMENTATION_CLASSPATH_PROP_KEY);
-                writer.write("=");
-                Joiner.on(",").appendTo(writer, paths);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IOUtils.closeQuietly(writer);
+        if (!getPluginClasspath().isEmpty()) {
+            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
+                @Override
+                public String transform(File file) {
+                    return file.getAbsolutePath().replaceAll("\\\\", "/");
+                }
+            });
+            StringBuilder implementationClasspath = new StringBuilder();
+            Joiner.on(File.pathSeparator).appendTo(implementationClasspath, paths);
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
         }
+
+        GUtil.saveProperties(properties, new File(getOutputDirectory(), METADATA_FILE_NAME));
     }
 }

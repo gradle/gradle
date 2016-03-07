@@ -147,7 +147,7 @@ class PluginUnderTest {
         def properties = new Properties()
 
         if (implClasspath != null) {
-            def content = implClasspath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join(',')
+            def content = implClasspath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join(File.pathSeparator)
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
         }
 
