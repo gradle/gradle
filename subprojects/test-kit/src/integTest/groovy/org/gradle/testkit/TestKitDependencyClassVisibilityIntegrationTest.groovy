@@ -35,7 +35,7 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
 
         then:
         fails 'build'
-        result.error.contains "error: package ${GradleRunner.package.name} does not exist"
+        result.error.contains "package ${GradleRunner.package.name} does not exist"
     }
 
     def "gradle implementation dependencies are not visible to gradleTestKit() users"() {
@@ -52,7 +52,7 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
 
         then:
         fails 'testClasses'
-        result.error.contains "error: package ${IntMath.package.name} does not exist"
+        result.error.contains "package ${IntMath.package.name} does not exist"
     }
 
     def "gradle implementation dependencies do not conflict with user classes"() {
