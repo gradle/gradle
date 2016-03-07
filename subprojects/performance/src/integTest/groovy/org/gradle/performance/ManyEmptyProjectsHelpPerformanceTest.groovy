@@ -24,7 +24,7 @@ import static org.gradle.performance.measure.Duration.millis
 @Category(BasicPerformanceTest)
 class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def run() {
+    def "many empty projects help"() {
         given:
         runner.testId = "many empty projects help"
         runner.testProject = "bigEmpty"
@@ -34,6 +34,23 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         // TODO: Tighten this threshold, once we reduce the base memory used per project
         runner.maxMemoryRegression = mbytes(300)
         runner.targetVersions = ['1.0', '2.0', '2.7', 'last']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    def "many empty projects help (daemon)"() {
+        given:
+        runner.testId = "many empty projects help (daemon)"
+        runner.testProject = "bigEmpty"
+        runner.tasksToRun = ['help']
+        runner.maxExecutionTimeRegression = millis(500)
+        runner.maxMemoryRegression = mbytes(100)
+        runner.targetVersions = ['2.7', 'last']
+        runner.useDaemon = true
 
         when:
         def result = runner.run()
