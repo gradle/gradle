@@ -36,6 +36,7 @@ class JdkToolsTest extends Specification {
         when:
         new JdkTools(Mock(JavaInfo) {
             getToolsJar() >> null
+            getJavaHome() >> new File('.')
         })
 
         then:
