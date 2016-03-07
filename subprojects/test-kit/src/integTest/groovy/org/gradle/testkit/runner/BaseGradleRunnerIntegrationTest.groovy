@@ -45,6 +45,7 @@ import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_K
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
+    public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
 
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
@@ -101,7 +102,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
-        def daemonDirName = gradleVersion < GradleVersion.version("2.2") ? "daemon" : TEST_KIT_DAEMON_DIR_NAME
+        def daemonDirName = gradleVersion < CUSTOM_DAEMON_DIR_SUPPORT_VERSION ? "daemon" : TEST_KIT_DAEMON_DIR_NAME
         daemons(testKitDir.file(daemonDirName), gradleVersion)
     }
 
