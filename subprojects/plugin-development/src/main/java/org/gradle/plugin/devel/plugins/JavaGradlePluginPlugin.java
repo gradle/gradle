@@ -18,7 +18,9 @@ package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginDescriptor;
@@ -30,12 +32,15 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 
 /**
  * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
@@ -47,6 +52,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+    private final ClassPathRegistry classPathRegistry;
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -57,6 +63,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
+
+    @Inject
+    public JavaGradlePluginPlugin(ClassPathRegistry classPathRegistry) {
+        this.classPathRegistry = classPathRegistry;
+    }
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
@@ -102,7 +113,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
         conventionMapping.map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
-                return extension.getPluginSourceSet().getRuntimeClasspath();
+                FileCollection gradleApi = project.files(classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles());
+                return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
             }
         });
         conventionMapping.map("outputDirectory", new Callable<Object>() {

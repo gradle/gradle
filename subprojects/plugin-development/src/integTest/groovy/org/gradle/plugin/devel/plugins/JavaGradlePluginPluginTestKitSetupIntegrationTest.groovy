@@ -112,13 +112,10 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    static assertImplementationClasspath(File classpathManifest, List<File> implementationClasspath) {
+    private void assertImplementationClasspath(File classpathManifest, List<File> implementationClasspath) {
         assert classpathManifest.exists() && classpathManifest.isFile()
         String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
         assert !loadedImplementationClasspath.contains("\\")
-
-        implementationClasspath.each { file ->
-            assert loadedImplementationClasspath.contains(normaliseFileAndLineSeparators(file.absolutePath))
-        }
+        assert loadedImplementationClasspath == normaliseFileAndLineSeparators(implementationClasspath.collect { it.absolutePath }.join(','))
     }
 }

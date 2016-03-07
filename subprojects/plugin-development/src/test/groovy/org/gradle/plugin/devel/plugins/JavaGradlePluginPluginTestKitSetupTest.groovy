@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
 import org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata
@@ -25,10 +26,12 @@ import spock.lang.Specification
 
 class JavaGradlePluginPluginTestKitSetupTest extends Specification {
 
-    Project project = TestUtil.builder().withName('plugin').build()
+    Project project = TestUtil.builder().build()
 
     def setup() {
         project.pluginManager.apply(JavaGradlePluginPlugin)
+        Configuration configuration = project.configurations.create('gradleApi')
+        project.dependencies.add(configuration.name, project.dependencies.gradleApi())
     }
 
     def "can configure functional testing by conventions"() {
@@ -135,7 +138,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
     }
 
     private void assertTaskPluginClasspath(PluginUnderTestMetadata pluginClasspathManifestTask, SourceSet mainSourceSet) {
-        assert pluginClasspathManifestTask.pluginClasspath == mainSourceSet.runtimeClasspath
+        assert pluginClasspathManifestTask.pluginClasspath.files == (mainSourceSet.runtimeClasspath - project.configurations.gradleApi.incoming.files).files
     }
 
     private void assertTestKitDependency(Project project, SourceSet testSourceSet) {
