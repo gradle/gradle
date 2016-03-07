@@ -75,7 +75,7 @@ class GradleRunnerUseEndUserIntegrationTest extends BaseTestKitEndUserIntegratio
 
         then:
         fails 'build'
-        failure.output.contains "Could not find a Gradle runtime to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar."
+        failure.output.contains "Could not find a Gradle installation to use based on the location of the GradleRunner class: $testKitJar.canonicalPath. Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar."
     }
 
     def "can use GradleRunner to test"() {
