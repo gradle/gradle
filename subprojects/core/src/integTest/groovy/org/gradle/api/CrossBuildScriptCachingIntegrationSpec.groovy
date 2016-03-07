@@ -148,6 +148,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "script is cached in build scope in-memory cache"() {
+        executer.requireDaemon()
+
         given:
         root {
             gradle {
@@ -200,6 +202,35 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         crossBuildScopeCacheContents() == scripts
         stats.hitCount == scripts.size()
         stats.missCount == scripts.size()
+    }
+
+    def "remapping scripts doesn't mix up classes with same name"() {
+        given:
+        root {
+            'build.gradle'('''
+                    task greet()
+                    apply from: "gradle/one.gradle"
+                    apply from: "gradle/two.gradle"
+                ''')
+            gradle {
+                'one.gradle'('''
+                    class Greeter { String toString() { 'Greetings from One!' } }
+                    greet.doLast() { println new Greeter() }
+                ''')
+
+                'two.gradle'('''
+                    class Greeter { String toString() { 'Greetings from Two!' } }
+                    greet.doLast() { println new Greeter() }
+                ''')
+            }
+        }
+
+        when:
+        run 'greet'
+
+        then:
+        outputContains 'Greetings from One!'
+        outputContains 'Greetings from Two!'
     }
 
     int buildScopeCacheSize() {
