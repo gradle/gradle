@@ -99,6 +99,7 @@ We would like to thank the following community members for making contributions 
 * [Paul King](https://github.com/paulk-asert) - support groovydoc's `noTimestamp` and `noVersionStamp` properties
 * [Schalk Cronjé](https://github.com/ysb33r) - update docs about `getFile()` and filters
 * [Oliver Reissig](https://github.com/oreissig) - improve error message when `tools.jar` is not found
+* [Andrew Reitz](https://github.com/pieces029) - fix a broken link to the groovy documentation
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
