@@ -21,6 +21,8 @@ Up-to-date checks
 
 Dependency resolution
 
+- Don't parse ivy.xml/pom.xml on each resolve for modules in local repositories.
+- Store cached module meta-data in a more efficient format than ivy.xml. 
 - Fix hotspots identified by profiling
 - Reuse resolution result for configuration that has same inputs as another.
 - Reuse resolution result across builds.
