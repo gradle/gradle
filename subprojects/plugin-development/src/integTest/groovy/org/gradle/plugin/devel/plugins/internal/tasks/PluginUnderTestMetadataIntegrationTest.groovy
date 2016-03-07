@@ -32,41 +32,9 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "fails the task for null plugin classpath"() {
+    def "fails the task for null plugin classpath and output directory"() {
         given:
         buildFile << """
-            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = null
-            }
-        """
-
-        when:
-        fails TASK_NAME
-
-        then:
-        failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
-    }
-
-    def "fails the task for null output directory"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                outputDirectory = null
-            }
-        """
-
-        when:
-        fails TASK_NAME
-
-        then:
-        failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
-    }
-
-    def "fails the task if main source set does not exist"() {
-        given:
-        buildFile << """
-            sourceSets.remove(sourceSets.main)
-
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()})
         """
 
@@ -75,6 +43,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
+        failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
     }
 
     def "implementation-classpath entry in metadata is empty if there is no classpath"() {
@@ -82,6 +51,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
                 pluginClasspath = files()
+                outputDirectory = file('build/$TASK_NAME')
             }
         """
 
@@ -98,6 +68,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
+                pluginClasspath = sourceSets.main.runtimeClasspath
                 outputDirectory = file('build/some/other')
             }
         """

@@ -22,10 +22,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.CollectionUtils;
 
@@ -45,21 +43,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private FileCollection pluginClasspath;
     private File outputDirectory;
-
-    public PluginUnderTestMetadata() {
-        pluginClasspath = getDefaultPluginClasspath();
-        outputDirectory = getDefaultOutputDirectory();
-    }
-
-    private FileCollection getDefaultPluginClasspath() {
-        JavaPluginConvention javaConvention = getProject().getConvention().getPlugin(JavaPluginConvention.class);
-        SourceSet mainSourceSet = javaConvention.getSourceSets().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        return mainSourceSet != null ? mainSourceSet.getRuntimeClasspath() : null;
-    }
-
-    private File getDefaultOutputDirectory() {
-        return new File(getProject().getBuildDir(), getName());
-    }
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.

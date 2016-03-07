@@ -96,13 +96,18 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         establishTestKitAndPluginClasspathDependencies(project, extension, pluginUnderTestMetadataTask);
     }
 
-    private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(Project project, final GradlePluginDevelopmentExtension extension) {
-        PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
+    private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(final Project project, final GradlePluginDevelopmentExtension extension) {
+        final PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
 
         ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
         conventionMapping.map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
                 return extension.getPluginSourceSet().getRuntimeClasspath();
+            }
+        });
+        conventionMapping.map("outputDirectory", new Callable<Object>() {
+            public Object call() throws Exception {
+                return new File(project.getBuildDir(), pluginUnderTestMetadataTask.getName());
             }
         });
 
