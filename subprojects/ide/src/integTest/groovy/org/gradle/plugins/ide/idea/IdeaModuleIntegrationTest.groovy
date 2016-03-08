@@ -668,11 +668,10 @@ dependencies {
 
         // then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 4
+        assert dependencies.libraries.size() == 3
         dependencies.assertHasLibrary('TEST', 'shared-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'compile-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'compileOnly-1.0.jar')
-        dependencies.assertHasLibrary('PROVIDED', 'compileOnly-1.0.jar')
     }
 
     @Test
@@ -754,9 +753,8 @@ dependencies {
 
         // then
         def dependencies = parseIml("root.iml").dependencies
-        assert dependencies.libraries.size() == 3
+        assert dependencies.libraries.size() == 2
         dependencies.assertHasLibrary('TEST', 'bothCompileAndCompileOnly-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'bothCompileAndCompileOnly-2.0.jar')
-        dependencies.assertHasLibrary('PROVIDED', 'bothCompileAndCompileOnly-2.0.jar')
     }
 }
