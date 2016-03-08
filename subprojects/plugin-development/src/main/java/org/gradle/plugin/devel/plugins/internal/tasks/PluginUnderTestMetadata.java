@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins.internal.tasks;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
@@ -35,6 +36,7 @@ import java.util.Properties;
  *
  * @since 2.13
  */
+@Incubating
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
