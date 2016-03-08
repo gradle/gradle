@@ -103,13 +103,13 @@ class JULRedirectorTest extends Specification {
         redirector.stop()
 
         then:
-        3 * stdErrListener.onOutput('SEVERE: Test' + EOL)
-        3 * stdErrListener.onOutput('WARNING: Test' + EOL)
-        3 * stdErrListener.onOutput('INFO: Test' + EOL)
-        0 * stdErrListener.onOutput('CONFIG: Test' + EOL)
-        0 * stdErrListener.onOutput('FINE: Test' + EOL)
-        0 * stdErrListener.onOutput('FINER: Test' + EOL)
-        0 * stdErrListener.onOutput('FINEST: Test' + EOL)
+        3 * stdErrListener.onOutput("${Level.SEVERE.getLocalizedName()}: Test$EOL")
+        3 * stdErrListener.onOutput("${Level.WARNING.getLocalizedName()}: Test$EOL")
+        3 * stdErrListener.onOutput("${Level.INFO.getLocalizedName()}: Test$EOL")
+        0 * stdErrListener.onOutput("${Level.CONFIG.getLocalizedName()}: Test$EOL")
+        0 * stdErrListener.onOutput("${Level.FINE.getLocalizedName()}: Test$EOL")
+        0 * stdErrListener.onOutput("${Level.FINER.getLocalizedName()}: Test$EOL")
+        0 * stdErrListener.onOutput("${Level.FINEST.getLocalizedName()}: Test$EOL")
 
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
