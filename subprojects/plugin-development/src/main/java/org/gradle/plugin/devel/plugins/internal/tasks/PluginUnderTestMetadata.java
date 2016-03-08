@@ -20,14 +20,17 @@ import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Properties;
 
@@ -84,6 +87,28 @@ public class PluginUnderTestMetadata extends DefaultTask {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
         }
 
-        GUtil.saveProperties(properties, new File(getOutputDirectory(), METADATA_FILE_NAME));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        GUtil.saveProperties(properties, outputStream);
+
+        try {
+            OutputStream fos = null;
+
+            try {
+                fos = new FileOutputStream(new File(getOutputDirectory(), METADATA_FILE_NAME));
+                fos.write(stripTimestamp(outputStream));
+            } finally {
+                fos.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private byte[] stripTimestamp(ByteArrayOutputStream outputStream) {
+        Charset propertiesCharSet = Charset.forName("8859_1");
+        String originalProperties = new String(outputStream.toByteArray(), propertiesCharSet);
+        String lineSeparator = SystemProperties.getInstance().getLineSeparator();
+        String modifiedProperties = originalProperties.substring(originalProperties.indexOf(lineSeparator) + lineSeparator.length());
+        return modifiedProperties.getBytes(propertiesCharSet);
     }
 }

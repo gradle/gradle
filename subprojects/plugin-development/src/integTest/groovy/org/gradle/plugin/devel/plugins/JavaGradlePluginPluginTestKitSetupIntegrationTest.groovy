@@ -114,6 +114,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
     static void assertHasImplementationClasspath(File pluginMetadata, List<File> expected) {
         assert pluginMetadata.exists() && pluginMetadata.isFile()
+        assert !pluginMetadata.text.contains("#")
         def implementationClasspath = GUtil.loadProperties(pluginMetadata).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
         assert !implementationClasspath.contains("\\")
         def expectedEntries = normaliseFileAndLineSeparators(expected.collect { it.absolutePath }.join(File.pathSeparator))

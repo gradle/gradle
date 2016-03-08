@@ -218,6 +218,18 @@ public class GUtil {
         }
     }
 
+    public static void saveProperties(Properties properties, OutputStream outputStream) {
+        try {
+            try {
+                properties.store(outputStream, null);
+            } finally {
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static Map map(Object... objects) {
         Map map = new HashMap();
         assert objects.length % 2 == 0;
