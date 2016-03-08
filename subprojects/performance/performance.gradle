@@ -1,4 +1,5 @@
 import groovy.json.JsonSlurper
+import org.gradle.internal.hash.HashUtil
 import org.gradle.performance.generator.DependencyGenerator
 import org.gradle.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -653,6 +654,23 @@ task buildReceiptPluginPerformanceTest(type: Test) {
 
     options {
         includeCategories 'org.gradle.performance.categories.BuildReceiptPluginPerformanceTest'
+    }
+}
+
+task checkNoIdenticalBuildFiles {
+    doLast {
+        def files = [:].withDefault { [] }
+        buildDir.eachFileRecurse {
+            if (it.name.endsWith('.gradle')) {
+                def hash = HashUtil.createHash(it, 'sha1').asHexString()
+                files[hash] << it
+            }
+        }
+        files.each { hash, candidates ->
+            if (candidates.size()>1) {
+                println "Duplicate build files found for hash '$hash' : $candidates"
+            }
+        }
     }
 }
 

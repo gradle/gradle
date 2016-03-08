@@ -212,6 +212,9 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
         destFile.parentFile.mkdirs()
         destFile.withWriter { Writer writer ->
+            if (templateName.endsWith('.gradle')) {
+                writer << "// Generated ${UUID.randomUUID()}\n"
+            }
             getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
         }
     }
