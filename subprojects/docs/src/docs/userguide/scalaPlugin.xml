@@ -121,6 +121,7 @@
             <thead>
                 <tr>
                     <td>Directory</td>
+                    <td></td>
                     <td>Meaning</td>
                 </tr>
             </thead>
@@ -129,6 +130,7 @@
                 <td>
                     <filename>src/main/scala</filename>
                 </td>
+                <td></td>
                 <td>Production Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
@@ -136,6 +138,7 @@
                 <td>
                     <filename>src/test/scala</filename>
                 </td>
+                <td></td>
                 <td>Test Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
@@ -143,6 +146,7 @@
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/scala</filename>
                 </td>
+                <td></td>
                 <td>Scala sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>

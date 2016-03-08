@@ -115,6 +115,7 @@
             <thead>
                 <tr>
                     <td>Directory</td>
+                    <td></td>
                     <td>Meaning</td>
                 </tr>
             </thead>
@@ -123,6 +124,7 @@
                 <td>
                     <filename>src/main/groovy</filename>
                 </td>
+                <td></td>
                 <td>Production Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
@@ -130,6 +132,7 @@
                 <td>
                     <filename>src/test/groovy</filename>
                 </td>
+                <td></td>
                 <td>Test Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
@@ -137,6 +140,7 @@
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/groovy</filename>
                 </td>
+                <td></td>
                 <td>Groovy sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>
