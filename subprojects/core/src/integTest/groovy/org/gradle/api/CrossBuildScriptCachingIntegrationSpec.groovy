@@ -233,6 +233,42 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         outputContains 'Greetings from Two!'
     }
 
+    def "reports errors at the correct location when 2 scripts are identical"() {
+        given:
+        root {
+            module1 {
+                'module1.gradle'(this.taskThrowingError())
+            }
+            module2 {
+                'module2.gradle'(this.taskThrowingError())
+            }
+            'settings.gradle'(settings('module1', 'module2'))
+        }
+
+        when:
+        fails 'module1:someTask'
+
+        then:
+        def settingsHash = uniqueRemapped('settings')
+        def module1Hash = uniqueRemapped('module1')
+        def module2Hash = uniqueRemapped('module2')
+
+        and:
+        remappedCacheSize() == 3 // one for each build script
+        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
+        module1Hash == module2Hash
+        hasCachedScripts(settingsHash, module1Hash)
+
+        and:
+        errorOutput.contains "module1/module1.gradle' line: 4"
+
+        when:
+        fails 'module2:someTask'
+
+        then:
+        errorOutput.contains "module2/module2.gradle' line: 4"
+    }
+
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
         m.matches()
@@ -313,5 +349,15 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
                 project.buildFileName = "\${project.name}.gradle"
             }
         """
+    }
+
+    String taskThrowingError() {
+        '''
+            task someTask() {
+                doLast {
+                    thisMethodDoesNotExist()
+                }
+            }
+        '''
     }
 }
