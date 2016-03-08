@@ -45,8 +45,8 @@ version = '1.0'
 repositories { mavenCentral() }
 configurations { custom }
 dependencies {
-    custom 'commons-collections:commons-collections:3.2'
-    runtime 'commons-collections:commons-collections:3.2'
+    custom 'commons-collections:commons-collections:3.2.2'
+    runtime 'commons-collections:commons-collections:3.2.2'
 }
 uploadArchives {
     repositories {

@@ -44,7 +44,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             mavenCentral()
         }
         dependencies {
-            compile 'commons-collections:commons-collections:3.1'
+            compile 'commons-collections:commons-collections:3.2.2'
             runtime 'commons-lang:commons-lang:2.6'
         }
         """
@@ -56,7 +56,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         def expandDir = file('expanded')
         file('build/distributions/DefaultJavaDistribution.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'DefaultJavaDistribution/lib/commons-collections-3.1.jar',
+                'DefaultJavaDistribution/lib/commons-collections-3.2.2.jar',
                 'DefaultJavaDistribution/lib/commons-lang-2.6.jar',
                 'DefaultJavaDistribution/DefaultJavaDistribution.jar')
         expandDir.file('DefaultJavaDistribution/DefaultJavaDistribution.jar').assertIsCopyOf(file('build/libs/DefaultJavaDistribution.jar'))

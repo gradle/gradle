@@ -22,7 +22,7 @@
 			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.12/@SHA1@/junit-4.12-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2/@SHA1@/commons-collections-3.2.jar">
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
 		</attributes>

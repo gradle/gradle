@@ -28,7 +28,7 @@ project(":project2") {
     description = "The second project"
 
     dependencies {
-       compile 'commons-collections:commons-collections:3.1'
+       compile 'commons-collections:commons-collections:3.2.2'
     }
 }
 

@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.1"
+    compile "commons-collections:commons-collections:3.2.2"
     compileOnly "javax.servlet:servlet-api:2.5"
     runtime "commons-io:commons-io:1.4"
 }
@@ -57,7 +57,7 @@ uploadArchives {
 
         with (ivyModule.parsedIvy) {
             dependencies.size() == 3
-            dependencies["commons-collections:commons-collections:3.2.1"].hasConf("compile->default")
+            dependencies["commons-collections:commons-collections:3.2.2"].hasConf("compile->default")
             dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
             dependencies["javax.servlet:servlet-api:2.5"].hasConf("compileOnly->default")
         }
