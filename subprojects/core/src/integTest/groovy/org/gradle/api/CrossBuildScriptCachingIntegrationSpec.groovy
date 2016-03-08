@@ -17,7 +17,15 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
+import org.mortbay.jetty.Request
+import org.mortbay.jetty.handler.AbstractHandler
+import spock.lang.Issue
+
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -269,6 +277,135 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         errorOutput.contains "module2/module2.gradle' line: 4"
     }
 
+    def "caches scripts applied from remote locations"() {
+        def http = new HttpServer()
+        get(http, '/shared.gradle') {
+            '''println "Echo"'''
+        }
+        http.start()
+
+        given:
+        root {
+            'build.gradle'(this.applyFromRemote(http))
+        }
+
+        when:
+        run 'tasks'
+
+        then:
+        outputContains 'Echo'
+        def buildHash = uniqueRemapped('build')
+        def sharedHash = uniqueRemapped('shared')
+
+        and:
+        remappedCacheSize() == 2 // one for each build script
+        scriptCacheSize() == 2 // one for each build script
+        hasCachedScripts(buildHash, sharedHash)
+
+        cleanup:
+        http.stop()
+    }
+
+    def "caches scripts applied from remote locations when remote script changes"() {
+        def http = new HttpServer()
+        int call = 0
+        get(http, '/shared.gradle') {
+            """ println "Echo ${call++}" """
+        }
+        http.start()
+
+        given:
+        root {
+            'build.gradle'(this.applyFromRemote(http))
+        }
+        def buildHash
+        def sharedHash
+
+        when:
+        run 'tasks'
+        buildHash = uniqueRemapped('build')
+        sharedHash = uniqueRemapped('shared')
+
+        then:
+        outputContains 'Echo 0'
+
+        and:
+        remappedCacheSize() == 2 // one for each build script
+        scriptCacheSize() == 2 // one for each build script
+        hasCachedScripts(buildHash, sharedHash)
+
+        when:
+        run 'tasks'
+        buildHash = uniqueRemapped('build')
+        def sharedHashs = hasRemapped('shared')
+
+        then:
+        outputContains 'Echo 1'
+
+        and:
+        remappedCacheSize() == 2 // one for each build script
+        scriptCacheSize() == 3 // one for each build script of this invocation + 1 from the previous invocation
+        hasCachedScripts(buildHash, *sharedHashs)
+
+        cleanup:
+        http.stop()
+    }
+
+    @Issue("GRADLE-2795")
+    def "can run scripts applied from remote locations concurrently without timeout on file lock"() {
+        def http = new HttpServer()
+        int call = 0
+        get(http, '/shared.gradle') {
+            """
+                task someLongRunningTask() {
+                   println "Simulate long running task, run ${call}"
+                   sleep(10000)
+                }
+            """
+        }
+        http.start()
+        executer.beforeExecute {
+            requireDaemon()
+            usingInitScript(file('init.gradle'))
+        }
+
+        given:
+        root {
+            'init.gradle'('''
+                def lockManager = gradle.services.get(org.gradle.cache.internal.FileLockManager)
+                def timeoutField = lockManager.class.getDeclaredField('lockTimeoutMs')
+                timeoutField.accessible = true
+                timeoutField.set(lockManager, 2000)
+            ''')
+            'build.gradle'(this.applyFromRemote(http))
+        }
+
+        when:
+        (0..1).collect {
+            call++
+            def t = Thread.start {
+                run 'someLongRunningTask'
+            }
+            sleep(5000)
+            t
+        }*.join()
+
+        then:
+        noExceptionThrown()
+        def initHash = uniqueRemapped('init')
+        def buildHash = uniqueRemapped('build')
+        def sharedHashs = hasRemapped('shared')
+
+        and:
+        remappedCacheSize() == 3 // one for each build script
+        scriptCacheSize() == 4 // init.gradle + build.gradle + (shared.gradle version 1) + (shared.gradle version 2)
+        hasCachedScripts(buildHash, initHash, *sharedHashs)
+
+        cleanup:
+        http.stop()
+    }
+
+
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
         m.matches()
@@ -359,5 +496,24 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         '''
+    }
+
+    String applyFromRemote(HttpServer server) {
+        """
+            apply from: '${server.uri}/shared.gradle'
+        """
+    }
+
+    void get(HttpServer server, String path, Closure<?> buildFile) {
+        server.addHandler(new AbstractHandler() {
+            @Override
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
+                if (target == path) {
+                    response.contentType = 'text/plain'
+                    response.outputStream << buildFile().toString()
+                    ((Request) request).handled = true
+                }
+            }
+        })
     }
 }
