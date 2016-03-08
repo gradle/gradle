@@ -497,7 +497,7 @@ for functional testing with TestKit.
     * The source set for the project containing the code under test. Default value: `sourceSets.main`.
     * The test source sets that require the code under test to be visible to test builds. Default value: `sourceSets.test`.
 * Automatically assign the task `pluginClasspathManifest` to the test source sets runtime configuration via `dependencies.<runtime-configuration> files(pluginClasspathManifest)`.
-* Introduce a new method `GradleRunner.withPluginClasspath()`. If called the `plugin-under-test-metadata.properties` is read, the classpath constructed and 
+* Introduce a new method `GradleRunner.withPluginClasspath()`. If called the `plugin-under-test-metadata.properties` is read, the classpath constructed and
 provided to the call `AbstractLongRunningOperation.withInjectedClassPath(ClassPath classpath)`.
     * The method call is only made if the constructed classpath is not empty and the target Gradle version supports the API (>= 2.8).
     * If the user provided a custom classpath then classpath provided by `plugin-under-test-metadata.properties` is overridden.
@@ -516,7 +516,7 @@ The extension is defined with the following properties:
 
         // getters/setters
         ...
-        
+
         public void testSourceSets(SourceSet... testSourceSets) {
             ...
         }
@@ -547,58 +547,17 @@ The usage of the extension looks as follows:
 * The end user is provided with automatic plugin classpath injection with just the default conventions.
     * Automatic injection of the classpath only works if the target Gradle version is >= 2.8.
     * The plugin classpath can be provided for multiple test source sets.
-    * If the user calls the method `GradleRunner.withPluginClasspath(Iterable<? extends File> classpath)` for the same `GradleRunner` instance, the classpath set by the last method 
+    * If the user calls the method `GradleRunner.withPluginClasspath(Iterable<? extends File> classpath)` for the same `GradleRunner` instance, the classpath set by the last method
 invocation wins.
 * Manually verify that executing tests in the IDE (say IDEA) works reasonably well. Document any unforeseen caveats.
 
 ## Story: Isolate external dependencies used by Gradle runtime from user classpath
 
-This story continues the work that was done in milestone 2: "Test kit does not require any of the Gradle runtime". It solves the problem in a broader scope by providing fat JARs
-for TestKit, the Tooling API and Gradle API. External dependencies (required by Gradle) bundled within the fat JAR are relocated to avoid version conflicts with libraries used
-by plugins. The solution will basically provide a fix for [GRADLE-1715](https://issues.gradle.org/browse/GRADLE-1715) by isolating the external libraries required by the Gradle
-API from the classpath defined by a user when building a custom plugin.
-
 ### Estimate
 
 6-20 days
 
-### Implementation
-
-* Create a fat jar for Gradle API, the Tooling API and TestKit.
-* The fat JAR will relocate all external dependencies to `org.gradle.jarjar`. All Gradle runtime classes (`org.gradle.**` will keep the package).
-* Do not relocate those classes that form part of the API, either provided by or required by Gradle.
-    * For the Tooling API, this means SLF4J and `@Inject`
-    * For Gradle core, this means Ant, Groovy, SLF4J and `@Inject`.
-* The fat Gradle API JAR will created in a new directory of the Gradle distribution e.g. `jarjar`. If the size of the Gradle distribution increases significantly, this JAR might
-have to be published instead. An acceptable, increased distribution size is 5MB. **Having to publish the JARs will change the scope of work drastically. If we identify during
- development that the distribution size exceeds the threshold, a different story will have to be specified and implemented resulting in additional effort.**
-* The fat Tooling API JAR will not become part of the Gradle distribution. It will only be published.
-* The fat TestKit JAR will be part of the Gradle distribution under `lib/plugins`.
-* At runtime `gradleApi()` will reference the fat Gradle API JAR in the distribution.
-* At runtime `gradleTestKit()` will reference the fat Tooling API JAR as module dependency from the distribution.
-* JARs of Gradle API, the Tooling API and TestKit will need to have the same version.
-
-### Test Coverage
-
-* Allow a user to declare the following set of dependencies by hiding the implementations of the dependencies we expose.
-
-<!-- -->
-
-    dependencies {
-        compile gradleApi()
-        compile gradleTestKit()
-        compile <fat TAPI jar for the same Gradle version>
-    }
-
-* The Gradle runtime always uses the relocated external dependencies bundled with their corresponding JARs.
-* A plugin can use an external library with a different version than the one bundled in `gradleApi()`. Only the external library defined by the plugin is referenced at build and
- runtime. No classpath issue occurs.
-* `gradleApi()` and `gradleTestKit()` can be declared for the same configuration. Independent of classpath ordering no classpath issue occurs.
-
-### Open Issues
-
-* Increased size of Gradle distribution
-* Publishing of fat JARs might be required
+See [features/plugin-development-gradle-dependency-isolation/README.md](plugin-development-gradle-dependency-isolation).
 
 # Milestone 4
 
