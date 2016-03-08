@@ -47,7 +47,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
         def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
         def expectedClasspath = [file('build/classes/main'), file('build/resources/main'), module.artifactFile]
-        assertImplementationClasspath(pluginMetadata, expectedClasspath)
+        assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -97,7 +97,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
         def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
         def expectedClasspath = [file('build/classes/custom'), file('build/resources/custom'), module.artifactFile]
-        assertImplementationClasspath(pluginMetadata, expectedClasspath)
+        assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
     private String compileDependency(String configurationName, MavenModule module) {
@@ -112,10 +112,11 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    private void assertImplementationClasspath(File classpathManifest, List<File> implementationClasspath) {
-        assert classpathManifest.exists() && classpathManifest.isFile()
-        String loadedImplementationClasspath = GUtil.loadProperties(classpathManifest).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
-        assert !loadedImplementationClasspath.contains("\\")
-        assert loadedImplementationClasspath == normaliseFileAndLineSeparators(implementationClasspath.collect { it.absolutePath }.join(File.pathSeparator))
+    static void assertHasImplementationClasspath(File pluginMetadata, List<File> expected) {
+        assert pluginMetadata.exists() && pluginMetadata.isFile()
+        def implementationClasspath = GUtil.loadProperties(pluginMetadata).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        assert !implementationClasspath.contains("\\")
+        def expectedEntries = normaliseFileAndLineSeparators(expected.collect { it.absolutePath }.join(File.pathSeparator))
+        assert implementationClasspath == expectedEntries
     }
 }
