@@ -121,7 +121,7 @@ class IdeaModelBuilderTest extends Specification {
         ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
     }
 
-    def "explicit project language level results in inherited module language level"() {
+    def "explicit project language level does not affect module language level"() {
         given:
         root.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
@@ -136,9 +136,29 @@ class IdeaModelBuilderTest extends Specification {
 
         then:
         ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
-        ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.languageLevel == null
-        ideaProject.modules.find { it.name == 'child1'}.javaLanguageSettings.languageLevel == null
-        ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings.languageLevel == null
+        ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_3
+        ideaProject.modules.find { it.name == 'child1'}.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_4
+        ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_5
+    }
+
+    def "explicit project language level doesn't affect module bytecode level"() {
+        given:
+        root.plugins.apply(JavaPlugin)
+        child1.plugins.apply(JavaPlugin)
+        child2.plugins.apply(JavaPlugin)
+        root.idea.project.languageLevel = '1.2'
+        root.targetCompatibility = '1.3'
+        child1.targetCompatibility = '1.4'
+        child2.targetCompatibility = '1.5'
+
+        when:
+        def ideaProject = buildIdeaProjectModel()
+
+        then:
+        ideaProject.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
+        ideaProject.modules.find { it.name == 'root'}.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_3
+        ideaProject.modules.find { it.name == 'child1'}.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_4
+        ideaProject.modules.find { it.name == 'child2'}.javaLanguageSettings.targetBytecodeVersion == null
     }
 
     def "can handle multi project builds where no projects are Java projects"() {

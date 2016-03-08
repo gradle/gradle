@@ -165,7 +165,7 @@ class EclipsePlugin extends IdePlugin {
 
     @CompileStatic(TypeCheckingMode.SKIP)
     private void configureJavaClasspath(GenerateEclipseClasspath task) {
-        task.classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly]
+        task.classpath.plusConfigurations = [project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath]
         task.classpath.conventionMapping.classFolders = {
             return (project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs) as List
         }

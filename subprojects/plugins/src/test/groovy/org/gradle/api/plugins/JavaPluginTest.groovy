@@ -77,6 +77,11 @@ class JavaPluginTest {
         assertFalse(compileOnly.visible)
         assertTrue(compileOnly.transitive)
 
+        def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        assertThat(compileClasspath.extendsFrom, equalTo(toSet(compileOnly)))
+        assertFalse(compileClasspath.visible)
+        assertTrue(compileClasspath.transitive)
+
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
         assertThat(testCompile.extendsFrom, equalTo(toSet(compile)))
         assertFalse(testCompile.visible)
@@ -91,6 +96,11 @@ class JavaPluginTest {
         assertThat(testCompileOnly.extendsFrom, equalTo(toSet(testCompile)))
         assertFalse(testCompileOnly.visible)
         assertTrue(testCompileOnly.transitive)
+
+        def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        assertThat(testCompileClasspath.extendsFrom, equalTo(toSet(testCompileOnly)))
+        assertFalse(testCompileClasspath.visible)
+        assertTrue(testCompileClasspath.transitive)
 
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
         assertThat(defaultConfig.extendsFrom, equalTo(toSet(runtime)))
@@ -122,7 +132,7 @@ class JavaPluginTest {
         def set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/main/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.compileOnly))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.compileClasspath))
         assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/main')))
         assertThat(set.output.resourcesDir, equalTo(new File(project.buildDir, 'resources/main')))
         assertThat(set.output, TaskDependencyMatchers.builtBy(JavaPlugin.CLASSES_TASK_NAME))
@@ -132,7 +142,7 @@ class JavaPluginTest {
         set = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/test/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/test/resources'))))
-        assertThat(set.compileClasspath.sourceCollections, hasItem(project.configurations.testCompileOnly))
+        assertThat(set.compileClasspath.sourceCollections, hasItem(project.configurations.testCompileClasspath))
         assertThat(set.compileClasspath, hasItem(new File(project.buildDir, 'classes/main')))
         assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/test')))
         assertThat(set.output.resourcesDir, equalTo(new File(project.buildDir, 'resources/test')))
@@ -148,7 +158,7 @@ class JavaPluginTest {
         def set = project.sourceSets.create('custom')
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.customCompileOnly))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.customCompileClasspath))
         assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
         assertThat(set.output, TaskDependencyMatchers.builtBy('customClasses'))
         assertThat(set.runtimeClasspath, FileCollectionMatchers.sameCollection(set.output + project.configurations.customRuntime))

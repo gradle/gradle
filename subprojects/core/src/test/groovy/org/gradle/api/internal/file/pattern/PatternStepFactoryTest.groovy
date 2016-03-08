@@ -21,170 +21,160 @@ import spock.lang.Specification
 class PatternStepFactoryTest extends Specification {
     def "creates step for ** wildcard"() {
         expect:
-        def step = PatternStepFactory.getStep("**", true, true);
+        def step = PatternStepFactory.getStep("**", true);
         step instanceof AnyWildcardPatternStep
-        step.matches("anything", true)
-        step.matches("anything", false)
-        step.matches("", true)
-        step.matches("", false)
+        step.matches("anything")
+        step.matches("")
     }
 
     def "creates step for * wildcard"() {
         expect:
-        def step = PatternStepFactory.getStep("*", true, true);
+        def step = PatternStepFactory.getStep("*", true);
         step instanceof AnyWildcardPatternStep
-        step.matches("anything", true)
-        !step.matches("anything", false)
-        step.matches("", true)
-        !step.matches("", false)
+        step.matches("anything")
+        step.matches("")
     }
 
     def "creates step for * prefix wildcard"() {
         expect:
-        def step1 = PatternStepFactory.getStep("*abc", true, true);
+        def step1 = PatternStepFactory.getStep("*abc", true);
         step1 instanceof HasSuffixPatternStep
         step1.suffix == "abc"
 
-        step1.matches("abc", true)
-        step1.matches("abc", false)
-        step1.matches("thing.abc", true)
-        step1.matches("thing.abc", false)
-        !step1.matches("thing.java", true)
-        !step1.matches("thing.java", false)
+        step1.matches("abc")
+        step1.matches("thing.abc")
+        !step1.matches("thing.java")
 
         and:
-        def step2 = PatternStepFactory.getStep("**abc", true, true);
+        def step2 = PatternStepFactory.getStep("**abc", true);
         step2 instanceof HasSuffixPatternStep
         step2.suffix == "abc"
 
-        step2.matches("abc", true)
-        step2.matches("abc", false)
-        step2.matches("thing.abc", true)
-        step2.matches("thing.abc", false)
-        !step2.matches("thing.java", true)
-        !step2.matches("thing.java", false)
+        step2.matches("abc")
+        step2.matches("thing.abc")
+        !step2.matches("thing.java")
     }
 
     def "creates step for * suffix wildcard"() {
         expect:
-        def step1 = PatternStepFactory.getStep("abc*", true, true);
+        def step1 = PatternStepFactory.getStep("abc*", true);
         step1 instanceof HasPrefixPatternStep
         step1.prefix == "abc"
 
-        step1.matches("abc", true)
-        step1.matches("abc.java", true)
-        !step1.matches("ab", true)
+        step1.matches("abc")
+        step1.matches("abc.java")
+        !step1.matches("ab")
 
         and:
-        def step2 = PatternStepFactory.getStep("abc**", true, true);
+        def step2 = PatternStepFactory.getStep("abc**", true);
         step2 instanceof HasPrefixPatternStep
         step2.prefix == "abc"
 
-        step2.matches("abc", true)
-        step2.matches("abc.java", true)
-        !step2.matches("ab", true)
+        step2.matches("abc")
+        step2.matches("abc.java")
+        !step2.matches("ab")
     }
 
     def "creates step for * suffix and prefix wildcard"() {
         expect:
-        def step1 = PatternStepFactory.getStep("a*c", true, true);
+        def step1 = PatternStepFactory.getStep("a*c", true);
         step1 instanceof HasPrefixAndSuffixPatternStep
 
-        step1.matches("ac", true)
-        step1.matches("abac", true)
-        !step1.matches("bc", true)
-        !step1.matches("ab", true)
+        step1.matches("ac")
+        step1.matches("abac")
+        !step1.matches("bc")
+        !step1.matches("ab")
 
         and:
-        def step2 = PatternStepFactory.getStep("a**c", true, true);
+        def step2 = PatternStepFactory.getStep("a**c", true);
         step2 instanceof HasPrefixAndSuffixPatternStep
 
-        step1.matches("ac", true)
-        step1.matches("abac", true)
-        !step1.matches("bc", true)
-        !step1.matches("ab", true)
+        step1.matches("ac")
+        step1.matches("abac")
+        !step1.matches("bc")
+        !step1.matches("ab")
     }
 
     def "creates step for wildcard segment"() {
         expect:
-        def step1 = PatternStepFactory.getStep("a?c", true, true);
+        def step1 = PatternStepFactory.getStep("a?c", true);
         step1 instanceof RegExpPatternStep
-        step1.matches("abc", true)
-        !step1.matches("ABC", true)
-        !step1.matches("other", true)
+        step1.matches("abc")
+        !step1.matches("ABC")
+        !step1.matches("other")
 
         and:
-        def step2 = PatternStepFactory.getStep("a*?c", true, true);
+        def step2 = PatternStepFactory.getStep("a*?c", true);
         step2 instanceof RegExpPatternStep
-        step2.matches("abc", true)
-        step2.matches("abac", true)
-        !step2.matches("ac", true)
-        !step2.matches("ABC", true)
-        !step2.matches("other", true)
+        step2.matches("abc")
+        step2.matches("abac")
+        !step2.matches("ac")
+        !step2.matches("ABC")
+        !step2.matches("other")
 
         and:
-        def step3 = PatternStepFactory.getStep("?bc", true, true);
+        def step3 = PatternStepFactory.getStep("?bc", true);
         step3 instanceof RegExpPatternStep
-        step3.matches("abc", true)
-        step3.matches("Abc", true)
-        !step3.matches("bc", true)
-        !step3.matches("ABC",true)
-        !step3.matches("other", true)
+        step3.matches("abc")
+        step3.matches("Abc")
+        !step3.matches("bc")
+        !step3.matches("ABC")
+        !step3.matches("other")
 
         and:
-        def step4 = PatternStepFactory.getStep("*?bc", true, true);
+        def step4 = PatternStepFactory.getStep("*?bc", true);
         step4 instanceof RegExpPatternStep
-        step4.matches("abc", true)
-        step4.matches("123abc", true)
-        !step4.matches("bc",  true)
-        !step4.matches("ABC", true)
-        !step4.matches("other",  true)
+        step4.matches("abc")
+        step4.matches("123abc")
+        !step4.matches("bc")
+        !step4.matches("ABC")
+        !step4.matches("other")
 
         and:
-        def step5 = PatternStepFactory.getStep("?*bc", true, true);
+        def step5 = PatternStepFactory.getStep("?*bc", true);
         step5 instanceof RegExpPatternStep
-        step5.matches("abc", true)
-        step5.matches("123abc", true)
-        !step5.matches("bc", true)
-        !step5.matches("ABC", true)
-        !step5.matches("other", true)
+        step5.matches("abc")
+        step5.matches("123abc")
+        !step5.matches("bc")
+        !step5.matches("ABC")
+        !step5.matches("other")
 
         and:
-        def step6 = PatternStepFactory.getStep("*bc*?", true, true);
+        def step6 = PatternStepFactory.getStep("*bc*?", true);
         step6 instanceof RegExpPatternStep
-        step6.matches("bcd", true)
-        step6.matches("abcd", true)
-        step6.matches("123abc1", true)
-        !step6.matches("bc", true)
-        !step6.matches("BC", true)
-        !step6.matches("ABC", true)
-        !step6.matches("other", true)
+        step6.matches("bcd")
+        step6.matches("abcd")
+        step6.matches("123abc1")
+        !step6.matches("bc")
+        !step6.matches("BC")
+        !step6.matches("ABC")
+        !step6.matches("other")
 
         and:
-        def step7 = PatternStepFactory.getStep("?", true, true);
+        def step7 = PatternStepFactory.getStep("?", true);
         step7 instanceof RegExpPatternStep
-        step7.matches("a", true)
-        !step7.matches("", true)
-        !step7.matches("abc", true)
+        step7.matches("a")
+        !step7.matches("")
+        !step7.matches("abc")
 
         and:
-        def step8 = PatternStepFactory.getStep("*a*b*c*", true, true);
+        def step8 = PatternStepFactory.getStep("*a*b*c*", true);
         step8 instanceof RegExpPatternStep
-        step8.matches("abc", true)
-        step8.matches("1a2b3c4", true)
-        !step8.matches("", true)
-        !step8.matches("ab", true)
-        !step8.matches("1a2b", true)
+        step8.matches("abc")
+        step8.matches("1a2b3c4")
+        !step8.matches("")
+        !step8.matches("ab")
+        !step8.matches("1a2b")
     }
 
     def "creates step for non-wildcard segment"() {
         expect:
-        def step = PatternStepFactory.getStep("abc", true, true);
+        def step = PatternStepFactory.getStep("abc", true);
         step instanceof FixedPatternStep
         step.value == "abc"
 
-        step.matches("abc", true)
-        !step.matches("ABC", true)
-        !step.matches("other", true)
+        step.matches("abc")
+        !step.matches("ABC")
+        !step.matches("other")
     }
 }

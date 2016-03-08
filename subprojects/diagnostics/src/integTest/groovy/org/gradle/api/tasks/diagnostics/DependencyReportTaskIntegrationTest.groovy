@@ -277,9 +277,8 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains "compile - Compile classpath for source set 'main'."
-
         output.contains """
+compile - Dependencies for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
@@ -659,10 +658,8 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains "compile - Compile classpath for source set 'main'."
-
         output.contains """
-compile - Compile classpath for source set 'main'.
+compile - Dependencies for source set 'main'.
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
 +--- project :b

@@ -30,7 +30,7 @@ public class HasSuffixPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
-    public boolean matches(String candidate, boolean isFile) {
+    public boolean matches(String candidate) {
         return candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
     }
 }

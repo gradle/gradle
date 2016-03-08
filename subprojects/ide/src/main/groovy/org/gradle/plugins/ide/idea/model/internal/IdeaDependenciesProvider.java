@@ -68,11 +68,9 @@ public class IdeaDependenciesProvider {
         scopeMappings.put(GeneratedIdeaScope.RUNTIME,
                 Collections.singletonList(new IdeaScopeMappingRule("runtime")));
         scopeMappings.put(GeneratedIdeaScope.TEST,
-                Lists.newArrayList(new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
-        scopeMappings.put(GeneratedIdeaScope.COMPILE_ONLY,
-                Collections.singletonList(new IdeaScopeMappingRule("compileOnly")));
-        scopeMappings.put(GeneratedIdeaScope.COMPILE_ONLY_TEST,
-            Collections.singletonList(new IdeaScopeMappingRule("testCompileOnly")));
+                Lists.newArrayList(new IdeaScopeMappingRule("testCompileClasspath"), new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
+        scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
