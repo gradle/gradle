@@ -24,29 +24,29 @@ import org.gradle.internal.serialize.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl> {
+class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshotImpl> {
     private final StringInterner stringInterner;
 
     public DefaultFileSnapshotterSerializer(StringInterner stringInterner) {
         this.stringInterner = stringInterner;
     }
 
-    public DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
-        Map<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot> snapshots = new HashMap<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot>();
-        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(snapshots);
+    public FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
+        Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
+        FileCollectionSnapshotImpl snapshot = new FileCollectionSnapshotImpl(snapshots);
         int snapshotsCount = decoder.readSmallInt();
         for (int i = 0; i < snapshotsCount; i++) {
             String key = stringInterner.intern(decoder.readString());
             byte fileSnapshotKind = decoder.readByte();
             if (fileSnapshotKind == 1) {
-                snapshots.put(key, DefaultFileCollectionSnapshotter.DirSnapshot.getInstance());
+                snapshots.put(key, DirSnapshot.getInstance());
             } else if (fileSnapshotKind == 2) {
-                snapshots.put(key, DefaultFileCollectionSnapshotter.MissingFileSnapshot.getInstance());
+                snapshots.put(key, MissingFileSnapshot.getInstance());
             } else if (fileSnapshotKind == 3) {
                 byte hashSize = decoder.readByte();
                 byte[] hash = new byte[hashSize];
                 decoder.readBytes(hash);
-                snapshots.put(key, new DefaultFileCollectionSnapshotter.FileHashSnapshot(hash));
+                snapshots.put(key, new FileHashSnapshot(hash));
             } else {
                 throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
             }
@@ -54,18 +54,18 @@ class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollecti
         return snapshot;
     }
 
-    public void write(Encoder encoder, DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl value) throws Exception {
+    public void write(Encoder encoder, FileCollectionSnapshotImpl value) throws Exception {
         encoder.writeSmallInt(value.snapshots.size());
         for (String key : value.snapshots.keySet()) {
             encoder.writeString(key);
-            DefaultFileCollectionSnapshotter.IncrementalFileSnapshot incrementalFileSnapshot = value.snapshots.get(key);
-            if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.DirSnapshot) {
+            IncrementalFileSnapshot incrementalFileSnapshot = value.snapshots.get(key);
+            if (incrementalFileSnapshot instanceof DirSnapshot) {
                 encoder.writeByte((byte) 1);
-            } else if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot) {
+            } else if (incrementalFileSnapshot instanceof MissingFileSnapshot) {
                 encoder.writeByte((byte) 2);
-            } else if (incrementalFileSnapshot instanceof DefaultFileCollectionSnapshotter.FileHashSnapshot) {
+            } else if (incrementalFileSnapshot instanceof FileHashSnapshot) {
                 encoder.writeByte((byte) 3);
-                byte[] hash = ((DefaultFileCollectionSnapshotter.FileHashSnapshot) incrementalFileSnapshot).hash;
+                byte[] hash = ((FileHashSnapshot) incrementalFileSnapshot).hash;
                 encoder.writeByte((byte) hash.length);
                 encoder.writeBytes(hash);
             }

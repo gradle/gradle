@@ -58,9 +58,9 @@ class MinimalFileSetSnapshotterTest extends Specification {
         snapshot = minimalFileSnapshotter.snapshot(collection)
 
         then:
-        findSnapshot(included) instanceof AbstractFileCollectionSnapshotter.FileHashSnapshot
-        findSnapshot(missing) instanceof AbstractFileCollectionSnapshotter.MissingFileSnapshot
-        findSnapshot(includedDirectory) instanceof AbstractFileCollectionSnapshotter.DirSnapshot
+        findSnapshot(included) instanceof FileHashSnapshot
+        findSnapshot(missing) instanceof MissingFileSnapshot
+        findSnapshot(includedDirectory) instanceof DirSnapshot
         !findSnapshot(fileInDirectory)
         !findSnapshot(notIncluded)
 
@@ -69,7 +69,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         snapshot.files.sort() == [ included, missing ]
     }
 
-    AbstractFileCollectionSnapshotter.IncrementalFileSnapshot findSnapshot(File file) {
+    IncrementalFileSnapshot findSnapshot(File file) {
         snapshot.snapshots.get(file.absolutePath)
     }
 }
