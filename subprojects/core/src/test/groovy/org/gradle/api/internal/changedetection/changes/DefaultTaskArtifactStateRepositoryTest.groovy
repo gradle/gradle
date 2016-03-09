@@ -68,13 +68,15 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         }
     }
     DefaultTaskArtifactStateRepository repository
+    TreeSnapshotter treeSnapshotter
 
     def setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), new TreeSnapshotter())
+        treeSnapshotter = new TreeSnapshotter()
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), treeSnapshotter)
         FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), TestFiles.fileSystem())
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, stringInterner)
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
@@ -246,6 +248,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         def file = inputDir.file("other-file").createFile()
+        treeSnapshotter.clearCache()
 
         then:
         inputsOutOfDate(task).withAddedFile(file)
@@ -257,6 +260,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         inputDirFile.delete()
+        treeSnapshotter.clearCache()
 
         then:
         inputsOutOfDate(task).withRemovedFile(inputDirFile)
@@ -268,6 +272,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         inputDirFile.writelns("new content")
+        treeSnapshotter.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
@@ -280,6 +285,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         when:
         inputDirFile.delete()
         inputDirFile.mkdir()
+        treeSnapshotter.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)

@@ -30,8 +30,8 @@ import spock.lang.Specification
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver(), new TreeSnapshotter())
-
+    def treeSnapshotter = new TreeSnapshotter()
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver(), treeSnapshotter)
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -133,6 +133,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
+        treeSnapshotter.clearCache()
         file.delete()
         file.createDir()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
@@ -174,6 +175,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
+        treeSnapshotter.clearCache()
         dir.deleteDir()
         dir.createFile()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
@@ -201,6 +203,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
+        treeSnapshotter.clearCache()
         file.createFile()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
 
@@ -215,6 +218,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
+        treeSnapshotter.clearCache()
         file.delete()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
 
