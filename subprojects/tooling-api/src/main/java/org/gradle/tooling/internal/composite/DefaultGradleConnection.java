@@ -21,7 +21,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.composite.ModelResults;
 import org.gradle.tooling.composite.internal.BuildIdentityInternal;
 import org.gradle.tooling.composite.internal.CompositeBuildLauncher;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
@@ -37,17 +37,17 @@ public class DefaultGradleConnection implements GradleConnectionInternal {
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
+    public <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException {
         return models(modelType).get();
     }
 
     @Override
-    public <T> void getModels(Class<T> modelType, ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException {
+    public <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException {
         models(modelType).get(handler);
     }
 
     @Override
-    public <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType) {
+    public <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
         return new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
     }
