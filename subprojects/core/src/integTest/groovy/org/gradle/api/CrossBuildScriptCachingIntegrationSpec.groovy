@@ -27,7 +27,7 @@ import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -270,13 +270,13 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, module1Hash)
 
         and:
-        errorOutput.contains toPlatformLineSeparators("module1/module1.gradle' line: 4")
+        normaliseFileAndLineSeparators(errorOutput).contains "module1/module1.gradle' line: 4"
 
         when:
         fails 'module2:someTask'
 
         then:
-        errorOutput.contains toPlatformLineSeparators("module2/module2.gradle' line: 4")
+        normaliseFileAndLineSeparators(errorOutput).contains "module2/module2.gradle' line: 4"
     }
 
     def "caches scripts applied from remote locations"() {
