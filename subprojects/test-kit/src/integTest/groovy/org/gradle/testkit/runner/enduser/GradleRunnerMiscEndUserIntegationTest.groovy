@@ -166,7 +166,6 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-
                         .withDebug($debug)
                         .build()
 
