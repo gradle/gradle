@@ -57,7 +57,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         visitFiles(input, allFileVisitDetails, missingFiles);
 
         if (allFileVisitDetails.isEmpty() && missingFiles.isEmpty()) {
-            return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
+            return emptySnapshot();
         }
 
         final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
@@ -65,7 +65,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
                 for (FileVisitDetails fileDetails : allFileVisitDetails) {
-                    String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
+                    String absolutePath = getInternedAbsolutePath(fileDetails.getFile());
                     if (!snapshots.containsKey(absolutePath)) {
                         if (fileDetails.isDirectory()) {
                             snapshots.put(absolutePath, DirSnapshot.getInstance());
@@ -75,7 +75,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                     }
                 }
                 for (File missingFile : missingFiles) {
-                    String absolutePath = stringInterner.intern(missingFile.getAbsolutePath());
+                    String absolutePath = getInternedAbsolutePath(missingFile);
                     if (!snapshots.containsKey(absolutePath)) {
                         snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
                     }
@@ -84,6 +84,10 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         });
 
         return new FileCollectionSnapshotImpl(snapshots);
+    }
+
+    private String getInternedAbsolutePath(File file) {
+        return stringInterner.intern(file.getAbsolutePath());
     }
 
     abstract protected void visitFiles(FileCollection input, List<FileVisitDetails> allFileVisitDetails, List<File> missingFiles);
