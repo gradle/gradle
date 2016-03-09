@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
@@ -40,10 +40,10 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles, boolean allowReuse) {
+    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<File> missingFiles, boolean allowReuse) {
         for (File file : input.getFiles()) {
             if (file.exists()) {
-                allFileVisitDetails.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+                fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
                 missingFiles.add(file);
             }

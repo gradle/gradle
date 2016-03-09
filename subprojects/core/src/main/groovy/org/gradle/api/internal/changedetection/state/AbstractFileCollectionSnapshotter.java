@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -51,12 +51,12 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     }
 
     public FileCollectionSnapshot snapshot(final FileCollection input, boolean allowReuse) {
-        final List<FileVisitDetails> allFileVisitDetails = Lists.newLinkedList();
+        final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
         final List<File> missingFiles = Lists.newArrayList();
 
-        visitFiles(input, allFileVisitDetails, missingFiles, allowReuse);
+        visitFiles(input, fileTreeElements, missingFiles, allowReuse);
 
-        if (allFileVisitDetails.isEmpty() && missingFiles.isEmpty()) {
+        if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
             return emptySnapshot();
         }
 
@@ -64,7 +64,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
-                for (FileVisitDetails fileDetails : allFileVisitDetails) {
+                for (FileTreeElement fileDetails : fileTreeElements) {
                     String absolutePath = getInternedAbsolutePath(fileDetails.getFile());
                     if (!snapshots.containsKey(absolutePath)) {
                         if (fileDetails.isDirectory()) {
@@ -90,6 +90,6 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    abstract protected void visitFiles(FileCollection input, List<FileVisitDetails> allFileVisitDetails, List<File> missingFiles, boolean allowReuse);
+    abstract protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<File> missingFiles, boolean allowReuse);
 
 }

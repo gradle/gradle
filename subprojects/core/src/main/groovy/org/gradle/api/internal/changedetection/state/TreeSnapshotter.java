@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapMaker;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -30,14 +31,14 @@ import java.util.concurrent.ConcurrentMap;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class TreeSnapshotter {
-    private ConcurrentMap<String, Collection<? extends FileVisitDetails>> cachedTrees = new MapMaker().weakValues().makeMap();
+    private ConcurrentMap<String, Collection<FileTreeElement>> cachedTrees = new MapMaker().weakValues().makeMap();
 
-    public Collection<? extends FileVisitDetails> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
+    public Collection<FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
             if (isEligibleForCaching(directoryFileTree)) {
                 final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
-                Collection<? extends FileVisitDetails> cachedTree = allowReuse ? cachedTrees.get(absolutePath) : null;
+                Collection<FileTreeElement> cachedTree = allowReuse ? cachedTrees.get(absolutePath) : null;
                 if (cachedTree != null) {
                     return cachedTree;
                 } else {
@@ -62,20 +63,20 @@ public class TreeSnapshotter {
         return fileTree instanceof FileTreeAdapter && ((FileTreeAdapter) fileTree).getTree() instanceof DirectoryFileTree;
     }
 
-    private Collection<? extends FileVisitDetails> doVisitTree(FileTreeInternal fileTree) {
-        final ImmutableList.Builder<FileVisitDetails> fileVisitDetails = ImmutableList.builder();
+    private Collection<FileTreeElement> doVisitTree(FileTreeInternal fileTree) {
+        final ImmutableList.Builder<FileTreeElement> fileTreeElements = ImmutableList.builder();
         fileTree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                fileVisitDetails.add(dirDetails);
+                fileTreeElements.add(dirDetails);
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                fileVisitDetails.add(fileDetails);
+                fileTreeElements.add(fileDetails);
             }
         });
-        return fileVisitDetails.build();
+        return fileTreeElements.build();
     }
 
     public void clearCache() {
