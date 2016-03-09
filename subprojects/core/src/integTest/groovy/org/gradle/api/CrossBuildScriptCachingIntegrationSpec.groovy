@@ -356,6 +356,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         def http = new HttpServer()
         int call = 0
         get(http, '/shared.gradle') {
+            call++
             """
                 task someLongRunningTask() {
                    println "Simulate long running task, run ${call}"
@@ -382,7 +383,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         (0..1).collect {
-            call++
             def t = Thread.start {
                 run 'someLongRunningTask'
             }
