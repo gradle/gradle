@@ -40,7 +40,7 @@ class TreeSnapshotterTest extends Specification {
         List<FileTreeInternal> fileTrees = resolveAsFileTrees()
 
         when:
-        def fileDetails = treeSnapshotter.visitTree(fileTrees[0], true)
+        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails.size() == 6
@@ -49,7 +49,7 @@ class TreeSnapshotterTest extends Specification {
         treeSnapshotter.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeSnapshotter.visitTree(fileTrees[0], true)
+        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails2 == fileDetails
@@ -67,7 +67,7 @@ class TreeSnapshotterTest extends Specification {
         List<FileTreeInternal> fileTrees = resolveAsFileTrees("**/*.txt")
 
         when:
-        def fileDetails = treeSnapshotter.visitTree(fileTrees[0], true)
+        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails.size() == 6
@@ -76,7 +76,7 @@ class TreeSnapshotterTest extends Specification {
         treeSnapshotter.cachedTrees.size() == 0
 
         when:
-        def fileDetails2 = treeSnapshotter.visitTree(fileTrees[0], true)
+        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         !fileDetails2.is(fileDetails)

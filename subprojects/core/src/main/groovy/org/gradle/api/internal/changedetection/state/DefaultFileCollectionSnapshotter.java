@@ -41,7 +41,7 @@ public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnap
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
 
         for (FileTreeInternal fileTree : fileTrees) {
-            allFileVisitDetails.addAll(treeSnapshotter.visitTree(fileTree, allowReuse));
+            allFileVisitDetails.addAll(treeSnapshotter.visitTreeForSnapshotting(fileTree, allowReuse));
         }
     }
 }

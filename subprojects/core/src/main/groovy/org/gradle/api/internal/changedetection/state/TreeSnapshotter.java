@@ -28,10 +28,11 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+// Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class TreeSnapshotter {
     private ConcurrentMap<String, Collection<? extends FileVisitDetails>> cachedTrees = new ConcurrentHashMap<String, Collection<? extends FileVisitDetails>>();
 
-    public Collection<? extends FileVisitDetails> visitTree(FileTreeInternal fileTree, boolean allowReuse) {
+    public Collection<? extends FileVisitDetails> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
             if (isEmptyPattern(directoryFileTree.getPatterns())) {
