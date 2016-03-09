@@ -37,13 +37,13 @@ public class TreeSnapshotter {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
             if (isEmptyPattern(directoryFileTree.getPatterns())) {
                 final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
-                Collection<? extends FileVisitDetails> cachedTree = cachedTrees.get(absolutePath);
+                Collection<? extends FileVisitDetails> cachedTree = allowReuse ? cachedTrees.get(absolutePath) : null;
                 if (cachedTree != null) {
                     return cachedTree;
                 } else {
                     cachedTree = doVisitTree(fileTree);
-                    Collection<? extends FileVisitDetails> previous = cachedTrees.putIfAbsent(absolutePath, cachedTree);
-                    return previous != null ? previous : cachedTree;
+                    cachedTrees.put(absolutePath, cachedTree);
+                    return cachedTree;
                 }
             }
         }

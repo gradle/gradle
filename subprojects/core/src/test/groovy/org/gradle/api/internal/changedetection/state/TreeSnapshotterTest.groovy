@@ -79,6 +79,34 @@ class TreeSnapshotterTest extends Specification {
         treeSnapshotter.cachedTrees.size() == 0
     }
 
+    def "should not use cached when allowReuse == false but should still add it to cache"() {
+        given:
+        createSampleFiles()
+        def fileTrees = resolveAsFileTrees()
+
+        when:
+        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], false)
+
+        then:
+        fileDetails.size() == 8
+        treeSnapshotter.cachedTrees.size() == 1
+
+        when:
+        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], false)
+
+        then:
+        !fileDetails2.is(fileDetails)
+        fileDetails2.collect { it.file } as Set == fileDetails.collect { it.file } as Set
+        treeSnapshotter.cachedTrees.size() == 1
+
+        when:
+        def fileDetails3 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+
+        then:
+        fileDetails3.is(fileDetails2)
+        treeSnapshotter.cachedTrees.size() == 1
+    }
+
     private def createSampleFiles() {
         [testDir.createFile("a/file1.txt"),
          testDir.createFile("a/b/file2.txt"),
