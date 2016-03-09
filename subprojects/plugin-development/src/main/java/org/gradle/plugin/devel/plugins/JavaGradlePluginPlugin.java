@@ -31,7 +31,7 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
-import org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata;
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 
 import javax.inject.Inject;
 import java.io.File;

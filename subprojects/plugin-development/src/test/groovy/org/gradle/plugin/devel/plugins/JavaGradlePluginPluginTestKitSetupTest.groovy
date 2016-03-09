@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
-import org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

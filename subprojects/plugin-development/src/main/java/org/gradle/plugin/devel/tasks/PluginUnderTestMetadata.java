@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel.plugins.internal.tasks;
+package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;

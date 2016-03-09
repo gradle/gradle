@@ -21,8 +21,8 @@ import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.GUtil
 
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.plugin.devel.plugins.internal.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrationSpec {

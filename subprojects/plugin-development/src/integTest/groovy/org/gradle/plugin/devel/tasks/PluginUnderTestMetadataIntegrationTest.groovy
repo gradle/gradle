@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.devel.plugins.internal.tasks
+package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GUtil
 
-import static PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static PluginUnderTestMetadata.METADATA_FILE_NAME
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
 
 class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
 
