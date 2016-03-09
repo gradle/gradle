@@ -89,3 +89,17 @@ Here are some profiling results from running `ManyEmptyProjectsHelpPerformanceTe
         - 45% of time is spent in evaluating the projects, and almost all time is spent in logging.
 
 
+Here are results from profiling a `MediumWithJUnit` build consisting of 25 subprojects, each having 200 source files and an equivalent number of tests. We're running `gradle help` to measure the minimal configuration time.
+
+- Memory
+   - the various `NotationParser` implementation create display names even if they are never used. Seeing 480 copies of `java.lang.String "an object of type ComponentSelector` for example
+
+- CPU
+   - 630 ms is spent in running build stages
+      - 156ms (25% of time) spent in applying the settings
+        - 80ms in setting project properties. most of the time spent in dynamic property resolving (`Class#getInterfaces` seem to dominate time)
+        - 76ms in creating the project and services. 3% of the whole build time seems to be spent just on checking `File#exists()` when creating the `ScriptSource` in `ProjectFactory#createProject`
+      - 475ms (75% of time) spent in configuring the build
+        - 414ms spent in applying scripts
+        - of applying scripts, 393ms is spent in running the build scripts. Each build script execution consumes around 3% of build time, except the first one (9%, because of plugin resolution). There doesn't seem to be anything obvious from those numbers to make things faster here, but we're definitely seeing dynamic method resolution in action here.
+
