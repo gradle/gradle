@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.MapMaker;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -25,12 +26,11 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class TreeSnapshotter {
-    private ConcurrentMap<String, Collection<? extends FileVisitDetails>> cachedTrees = new ConcurrentHashMap<String, Collection<? extends FileVisitDetails>>();
+    private ConcurrentMap<String, Collection<? extends FileVisitDetails>> cachedTrees = new MapMaker().weakValues().makeMap();
 
     public Collection<? extends FileVisitDetails> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         if (isDirectoryFileTree(fileTree)) {
