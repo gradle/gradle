@@ -17,10 +17,11 @@
 package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.GroovydocCoverage
 import spock.lang.Issue
 
-@TargetVersions(['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', '2.4.6'])
+@TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org//browse/GRADLE-3116")
