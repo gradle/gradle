@@ -20,11 +20,44 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class TreeSnapshotter {
+    private ConcurrentMap<String, Collection<? extends FileVisitDetails>> cachedTrees = new ConcurrentHashMap<String, Collection<? extends FileVisitDetails>>();
+
     public Collection<? extends FileVisitDetails> visitTree(FileTreeInternal fileTree, boolean allowReuse) {
+        if (isDirectoryFileTree(fileTree)) {
+            DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
+            if (isEmptyPattern(directoryFileTree.getPatterns())) {
+                final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
+                Collection<? extends FileVisitDetails> cachedTree = cachedTrees.get(absolutePath);
+                if (cachedTree != null) {
+                    return cachedTree;
+                } else {
+                    cachedTree = doVisitTree(fileTree);
+                    Collection<? extends FileVisitDetails> previous = cachedTrees.putIfAbsent(absolutePath, cachedTree);
+                    return previous != null ? previous : cachedTree;
+                }
+            }
+        }
+        return doVisitTree(fileTree);
+    }
+
+    private boolean isEmptyPattern(PatternSet patterns) {
+        return patterns.getExcludes().isEmpty() && patterns.getIncludes().isEmpty() && patterns.getExcludeSpecs().isEmpty() && patterns.getIncludeSpecs().isEmpty();
+    }
+
+    private boolean isDirectoryFileTree(FileTreeInternal fileTree) {
+        return fileTree instanceof FileTreeAdapter && ((FileTreeAdapter) fileTree).getTree() instanceof DirectoryFileTree;
+    }
+
+    private Collection<? extends FileVisitDetails> doVisitTree(FileTreeInternal fileTree) {
         final ImmutableList.Builder<FileVisitDetails> fileVisitDetails = ImmutableList.builder();
         fileTree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
