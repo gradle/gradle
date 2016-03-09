@@ -103,3 +103,22 @@ Here are results from profiling a `MediumWithJUnit` build consisting of 25 subpr
         - 414ms spent in applying scripts
         - of applying scripts, 393ms is spent in running the build scripts. Each build script execution consumes around 3% of build time, except the first one (9%, because of plugin resolution). There doesn't seem to be anything obvious from those numbers to make things faster here, but we're definitely seeing dynamic method resolution in action here.
 
+Here are the results of profiling the Gradle build itself.
+
+1. running `gradle tasks`
+
+- Memory
+    - The build is dominated by `Test` tasks. There are 3000 instances, eating 65MB of memory
+- CPU
+    - 36s (!), or 80% of the time is spent in generating the task report itself
+        - 98% of this time is spent in `CachingDirectedGraphWalker#doSearch()`, and more specifically 39% of time spent in creating `NodeDetails`. What is more interesting it that most of this time and time spent in `doSearch` is directly related to adding and searching `NodeDetails` in sets (computing hash codes mostly). There must be something wrong in the algorithm here.
+
+Given this result, a second profiling result, using `--dry-run` this time:
+
+2. running `gradle tasks --dry-run`
+
+- CPU
+    - 7.265s spent in doing build stages
+        - 1.536s in applying settings
+        - 5.7s in configuring the build
+    - The results are very consistent with what we have seen in the `MediumWithJUnit` case. There are lots of tasks configured and created even though they are not used, which speaks for the software model. Most of the time is spent in creating and configuring tasks. Which is interesting here since we're running with `--dry-run`, so while we could need the _specs_ of the tasks, we certainly don't need the tasks themselves.
