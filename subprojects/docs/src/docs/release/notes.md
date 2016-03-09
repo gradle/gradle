@@ -14,11 +14,9 @@ Add-->
 
 Gradle 2.6 introduced the “[Gradle TestKit](userguide/test_kit.html)” which made it easier to thoroughly test Gradle plugins.
 The TestKit has improved and matured with subsequent Gradle releases.
-Starting with Gradle 2.13, less manual build configuration is required in order to inject the implementation of your plugin into your tests.
 
-When using the [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html),
-the plugin being developed will now be implicitly made available to all builds under test,
-removing the need for any manual configuration.
+Starting with Gradle 2.13, less manual build configuration is required in order to make your plugin implementation available to test builds.
+The [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html) now integrates with the TestKit by making the plugin under test's implementation classpath discoverable at test time.
 
 See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection) for more about this new feature.
 
