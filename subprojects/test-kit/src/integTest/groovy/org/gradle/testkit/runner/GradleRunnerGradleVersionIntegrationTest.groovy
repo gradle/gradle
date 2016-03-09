@@ -33,10 +33,6 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    def cleanup() {
-        testKitDaemons(GradleVersion.version(VERSION)).killAll()
-    }
-
     def "execute build with different distribution types"(String version, Action<GradleRunner> configurer) {
         given:
         requireIsolatedTestKitDir = true
@@ -56,6 +52,9 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
 
         then:
         file("version.txt").text == version
+
+        cleanup:
+        killDaemons(version)
 
         where:
         version                      | configurer
@@ -89,6 +88,14 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         testKitDir.eachFileRecurse {
             assert !it.name.contains("gradle-$VERSION-bin.zip")
         }
+
+        cleanup:
+        killDaemons(VERSION)
     }
 
+    private void killDaemons(String version) {
+        if (!debug) {
+            testKitDaemons(GradleVersion.version(version)).killAll()
+        }
+    }
 }
