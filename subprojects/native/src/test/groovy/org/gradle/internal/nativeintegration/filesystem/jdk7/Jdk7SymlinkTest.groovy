@@ -36,7 +36,7 @@ class Jdk7SymlinkTest extends Specification {
      @Requires(TestPrecondition.NO_SYMLINKS)
     def 'on non symlink supporting system, it will return false for supported symlink'() {
         expect:
-        !new Jdk7Symlink().isSymlinkSupported()
+        !new WindowsJdk7Symlink().isSymlinkSupported()
     }
 
     @Requires(TestPrecondition.SYMLINKS)

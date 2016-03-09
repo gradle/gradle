@@ -40,7 +40,7 @@ public class FileSystemServices {
     public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
-            Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", WindowsSymlink.class);
+            Symlink symlink = (Symlink) newInstance("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", WindowsSymlink.class);
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink);
         }
 
