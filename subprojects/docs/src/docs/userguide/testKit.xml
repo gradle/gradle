@@ -34,7 +34,7 @@
     <section>
         <title>Usage</title>
         <para>To use the TestKit, include the following in your plugin's build:</para>
-        <sample id="testKitDependency" dir="testKit/testKitJunit" title="Declaring the TestKit dependency">
+        <sample id="testKitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the TestKit dependency">
             <sourcefile file="build.gradle" snippet="declare-gradle-testkit-dependency"/>
         </sample>
         <para>
@@ -44,7 +44,7 @@
             It does not include a version of <ulink url="http://junit.org">JUnit</ulink>, <ulink url="http://testng.org">TestNG</ulink>, or any other test execution framework.
             Such a dependency must be explicitly declared.
         </para>
-        <sample id="junitDependency" dir="testKit/testKitJunit" title="Declaring the JUnit dependency">
+        <sample id="junitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the JUnit dependency">
             <sourcefile file="build.gradle" snippet="declare-junit-dependency"/>
         </sample>
     </section>
@@ -72,7 +72,7 @@
         <para>
             The following demonstrates the usage of Gradle runner in a Java JUnit test:
         </para>
-        <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJunit/src/test/java/org/gradle/sample" title="Using GradleRunner with JUnit">
+        <sample id="testKitFunctionalTestJunit" dir="testKit/gradleRunner/junitQuickstart/src/test/java/org/gradle/sample" title="Using GradleRunner with JUnit">
             <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit"/>
         </sample>
         <para>
@@ -87,7 +87,7 @@
         <para>
             The following demonstrates the usage of Gradle runner in a Groovy Spock test:
         </para>
-        <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/groovy/org/gradle/sample" title="Using GradleRunner with Spock">
+        <sample id="testKitFunctionalTestSpock" dir="testKit/gradleRunner/spockQuickstart/src/test/groovy/org/gradle/sample" title="Using GradleRunner with Spock">
             <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
         </sample>
         <para>
@@ -108,7 +108,7 @@
                 For earlier versions of Gradle, it is possible to manually make the code under test available via some extra configuration.
                 The following example demonstrates having the build generate a file denoting the implementation classpath of the code under test, and making it available at test runtime.
             </para>
-            <sample id="testKitFunctionalTestSpockClassesBuildConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Making the code under test classpath available to the tests">
+            <sample id="testKitFunctionalTestSpockClassesBuildConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Making the code under test classpath available to the tests">
                 <sourcefile file="build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
@@ -117,7 +117,7 @@
                 definition of a plugin identifier.
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.
             </para>
-            <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">
+            <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds">
                 <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
             </sample>
             <para>
@@ -139,7 +139,7 @@
                     Instead, the code must be injected via the build script itself.
                     The following sample demonstrates how this can be done.
                 </para>
-                <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">
+                <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds">
                     <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
                 </sample>
             </section>
@@ -167,17 +167,17 @@
                     The following Groovy-based sample demonstrates how to automatically inject the plugin classpath by using the standard conventions applied by the
                     Java Gradle Plugin Development plugin.
                 </para>
-                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath/quickstart" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
+                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/gradleRunner/automaticClasspathInjectionQuickstart" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
                     <sourcefile file="build.gradle" snippet="automatic-classpath"/>
                 </sample>
-                <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/testKitSpockAutomaticClasspath/quickstart" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
+                <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/gradleRunner/automaticClasspathInjectionQuickstart" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
                     <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
                 </sample>
                 <para>
                     The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that
                     uses a custom <literal>Test</literal> source set.
                 </para>
-                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/testKitSpockAutomaticClasspath/customTestSourceSet" includeLocation="true" title="Reconfiguring the classpath generation conventions of the Java Gradle Development plugin">
+                <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet" includeLocation="true" title="Reconfiguring the classpath generation conventions of the Java Gradle Development plugin">
                     <sourcefile file="build.gradle" snippet="custom-test-source-set"/>
                 </sample>
             </section>
@@ -222,7 +222,7 @@
                 This can potentially be used to test build logic across Gradle versions.
                 The following demonstrates a cross-version compatibility test written as Groovy Spock test:
             </para>
-            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
+            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/gradleRunner/gradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
                 <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
             </sample>
             <section id="sub:test-kit-compatibility">
