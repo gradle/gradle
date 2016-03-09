@@ -72,4 +72,8 @@ public class TreeSnapshotter {
         });
         return fileVisitDetails.build();
     }
+
+    public void clearCache() {
+        cachedTrees.clear();
+    }
 }
