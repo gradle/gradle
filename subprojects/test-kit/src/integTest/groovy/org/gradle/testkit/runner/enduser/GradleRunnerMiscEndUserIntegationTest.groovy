@@ -24,7 +24,7 @@ import org.gradle.util.GFileUtils
 /**
  * Miscellaneous usage scenarios that don't have more specific homes.
  */
-class GradleRunnerUseEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
+class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegrationTest {
 
     def setup() {
         buildFile << """
