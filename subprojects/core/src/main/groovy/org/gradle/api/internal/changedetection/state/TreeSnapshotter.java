@@ -35,7 +35,7 @@ public class TreeSnapshotter {
     public Collection<? extends FileVisitDetails> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
-            if (isEmptyPattern(directoryFileTree.getPatterns())) {
+            if (isEligibleForCaching(directoryFileTree)) {
                 final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
                 Collection<? extends FileVisitDetails> cachedTree = allowReuse ? cachedTrees.get(absolutePath) : null;
                 if (cachedTree != null) {
@@ -48,6 +48,10 @@ public class TreeSnapshotter {
             }
         }
         return doVisitTree(fileTree);
+    }
+
+    private boolean isEligibleForCaching(DirectoryFileTree directoryFileTree) {
+        return isEmptyPattern(directoryFileTree.getPatterns());
     }
 
     private boolean isEmptyPattern(PatternSet patterns) {
