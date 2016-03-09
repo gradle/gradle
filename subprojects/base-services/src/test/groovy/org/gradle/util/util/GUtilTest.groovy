@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.util
 
+import com.google.common.base.Charsets
 
 import static org.gradle.util.GUtil.*
 
 public class GUtilTest extends spock.lang.Specification {
     static sep = File.pathSeparator
-    
+
     def convertStringToCamelCase() {
         expect:
         toCamelCase(null) == null
@@ -64,7 +65,7 @@ public class GUtilTest extends spock.lang.Specification {
         toLowerCamelCase(".") == ""
         toLowerCamelCase("-") == ""
     }
-    
+
     def convertStringToConstantName() {
         expect:
         toConstant(null) == null
@@ -138,7 +139,7 @@ public class GUtilTest extends spock.lang.Specification {
         out = []
         array = [1]
         then:
-        flatten([array, [foo: 'bar']], out, false) == [[1], [foo:'bar']]
+        flatten([array, [foo: 'bar']], out, false) == [[1], [foo: 'bar']]
     }
 
     def "normalizes to collection"() {
@@ -160,7 +161,7 @@ public class GUtilTest extends spock.lang.Specification {
 
     def "flattens"() {
         expect:
-        flattenElements(1, [2,3]) == [1,2,3]
+        flattenElements(1, [2, 3]) == [1, 2, 3]
     }
 
     def "convert to path notation"() {
@@ -170,8 +171,10 @@ public class GUtilTest extends spock.lang.Specification {
 
     def "adds to collection"() {
         def list = [0]
-        when: addToCollection(list, [1, 2], [2, 3])
-        then: list == [0, 1, 2, 2, 3]
+        when:
+        addToCollection(list, [1, 2], [2, 3])
+        then:
+        list == [0, 1, 2, 2, 3]
     }
 
     def "adds empty list to collection"() {
@@ -181,9 +184,59 @@ public class GUtilTest extends spock.lang.Specification {
     }
 
     def "adds to collection preventing nulls"() {
-        when: addToCollection([], true, [1, 2], [null, 3])
+        when:
+        addToCollection([], true, [1, 2], [null, 3])
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message.contains([null, 3].toString())
     }
+
+    def "write properties file without date comment"() {
+        def out = new ByteArrayOutputStream()
+        def props = new Properties()
+        props.setProperty("foo", "bar")
+
+        when:
+        saveProperties(props, out)
+
+        then:
+        out.toString(Charsets.ISO_8859_1.name()).startsWith("#")
+
+        when:
+        out.reset()
+        savePropertiesNoDateComment(props, out)
+
+        then:
+        out.toString(Charsets.ISO_8859_1.name()).trim() == "foo=bar"
+    }
+
+    def "properties file without comment is encoding correctly and is round trippable"() {
+        def out = new ByteArrayOutputStream()
+        def props = new Properties()
+        props.setProperty("foo\u03A9=FOO", "bar\u2202")
+
+        when:
+        savePropertiesNoDateComment(props, out)
+
+        then:
+        out.toString(Charsets.ISO_8859_1.name()).trim() == "foo\\u03A9\\=FOO=bar\\u2202"
+
+        when:
+        def properties = loadProperties(new ByteArrayInputStream(out.toByteArray()))
+
+        then:
+        properties.getProperty("fooΩ=FOO") == "bar∂"
+    }
+
+    def "can write empty properties with no date comment"() {
+        def out = new ByteArrayOutputStream()
+        def props = new Properties()
+
+        when:
+        savePropertiesNoDateComment(props, out)
+
+        then:
+        out.size() == 0
+    }
+
 }

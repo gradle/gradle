@@ -16,8 +16,12 @@
 
 package org.gradle.util;
 
+import com.google.common.base.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.io.LineBufferingOutputStream;
+import org.gradle.internal.io.SkipFirstTextStream;
+import org.gradle.internal.io.WriterTextStream;
 
 import java.io.*;
 import java.net.URL;
@@ -73,8 +77,8 @@ public class GUtil {
     }
 
     /**
-     * Flattens input collections (including arrays *but* not maps).
-     * If input is not a collection wraps it in a collection and returns it.
+     * Flattens input collections (including arrays *but* not maps). If input is not a collection wraps it in a collection and returns it.
+     *
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
      */
@@ -228,6 +232,18 @@ public class GUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
+        saveProperties(properties,
+            new LineBufferingOutputStream(
+                new SkipFirstTextStream(
+                    new WriterTextStream(
+                        new OutputStreamWriter(outputStream, Charsets.ISO_8859_1)
+                    )
+                )
+            )
+        );
     }
 
     public static Map map(Object... objects) {
