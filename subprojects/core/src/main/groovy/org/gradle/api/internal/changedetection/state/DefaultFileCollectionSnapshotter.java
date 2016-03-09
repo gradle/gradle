@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -28,9 +27,11 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
+    private final TreeSnapshotter treeSnapshotter;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, TreeSnapshotter treeSnapshotter) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
+        this.treeSnapshotter = treeSnapshotter;
     }
 
     @Override
@@ -40,18 +41,7 @@ public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnap
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
 
         for (FileTreeInternal fileTree : fileTrees) {
-            fileTree.visitTreeOrBackingFile(new FileVisitor() {
-                @Override
-                public void visitDir(FileVisitDetails dirDetails) {
-                    allFileVisitDetails.add(dirDetails);
-                }
-
-                @Override
-                public void visitFile(FileVisitDetails fileDetails) {
-                    allFileVisitDetails.add(fileDetails);
-                }
-            });
+            allFileVisitDetails.addAll(treeSnapshotter.visitTree(fileTree));
         }
     }
-
 }
