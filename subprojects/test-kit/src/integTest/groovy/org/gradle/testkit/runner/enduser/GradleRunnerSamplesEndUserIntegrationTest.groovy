@@ -32,44 +32,44 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("testKit/testKitJunit")
-    def junit() {
+    @UsesSample("testKit/gradleRunner/junitQuickstart")
+    def junitQuickstart() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpock")
-    def spock() {
+    @UsesSample("testKit/gradleRunner/spockQuickstart")
+    def spockQuickstart() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpockClasspath")
-    def buildscriptClasspath() {
+    @UsesSample("testKit/gradleRunner/manualClasspathInjection")
+    def manualClasspathInjection() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpockAutomaticClasspath/quickstart")
-    def automaticClasspath() {
+    @UsesSample("testKit/gradleRunner/automaticClasspathInjectionQuickstart")
+    def automaticClasspathInjectionQuickstart() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpockAutomaticClasspath/customTestSourceSet")
-    def customTestSourceSet() {
+    @UsesSample("testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet")
+    def automaticClasspathInjectionCustomTestSourceSet() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
 
     @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
-    @UsesSample("testKit/testKitSpockGradleVersion")
-    def version() {
+    @UsesSample("testKit/gradleRunner/gradleVersion")
+    def gradleVersion() {
         expect:
         executer.inDirectory(sample.dir)
         succeeds "check"
