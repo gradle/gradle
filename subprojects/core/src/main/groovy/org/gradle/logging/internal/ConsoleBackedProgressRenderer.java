@@ -59,7 +59,7 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
 
             if (newEvent instanceof FlushToOutputsEvent) {
                 // Flush now
-                drain(timeProvider.getCurrentTime());
+                renderNow(timeProvider.getCurrentTime());
                 return;
             }
 
@@ -71,7 +71,7 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
             long now = timeProvider.getCurrentTime();
             if (now - lastUpdate >= throttleMs) {
                 // Has been long enough since last update - flush now
-                drain(now);
+                renderNow(now);
                 return;
             }
 
@@ -80,14 +80,19 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
                 @Override
                 public void run() {
                     synchronized (lock) {
-                        drain(timeProvider.getCurrentTime());
+                        renderNow(timeProvider.getCurrentTime());
                     }
                 }
             }, throttleMs, TimeUnit.MILLISECONDS);
         }
     }
 
-    private void drain(long now) {
+    private void renderNow(long now) {
+        if (queue.isEmpty()) {
+            // Already rendered - don't update anything
+            return;
+        }
+
         ProgressOperation lastOp = mostRecentOperation;
         for (OutputEvent event : queue) {
             try {
@@ -107,19 +112,20 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
             }
         }
         if (lastOp != null) {
-            updateText(lastOp);
+            getStatusBar().setText(statusBarFormatter.format(lastOp));
         } else if (mostRecentOperation != null) {
-            statusBar.setText("");
+            getStatusBar().setText("");
         }
+        console.flush();
         mostRecentOperation = lastOp;
         queue.clear();
         lastUpdate = now;
     }
 
-    private void updateText(ProgressOperation op) {
+    private Label getStatusBar() {
         if (statusBar == null) {
             statusBar = console.getStatusBar();
         }
-        statusBar.setText(statusBarFormatter.format(op));
+        return statusBar;
     }
 }

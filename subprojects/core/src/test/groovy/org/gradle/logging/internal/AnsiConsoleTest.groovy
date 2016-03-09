@@ -19,348 +19,370 @@ import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color
 import org.gradle.internal.SystemProperties
 import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutput.Style
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-class AnsiConsoleTest {
+class AnsiConsoleTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
 
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Ansi ansi = context.mock(Ansi.class)
-    private final Appendable target = {} as Appendable
-    private final Flushable flushable = {} as Flushable
-    private final TestColorMap colorMap = new TestColorMap()
-    private final AnsiConsole console = new AnsiConsole(target, flushable, colorMap) {
+    def ansi = Mock(Ansi)
+    def target = Stub(Appendable)
+    def flushable = Stub(Flushable)
+    def colorMap = new TestColorMap()
+    def console = new AnsiConsole(target, flushable, colorMap) {
         def Ansi createAnsi() {
             return ansi
         }
     }
 
-    @Test
-    public void appendsTextToMainArea() {
-        context.checking {
-            one(ansi).a('message')
-        }
-
+    def appendsTextToMainArea() {
+        when:
         console.mainArea.append('message')
 
-        context.checking {
-            one(ansi).a('message2' + EOL)
-            one(ansi).a('message3')
-        }
+        then:
+        1 * ansi.a('message')
+        0 * ansi._
 
+        when:
         console.mainArea.append("message2${EOL}message3")
+
+        then:
+        1 * ansi.a('message2' + EOL)
+        1 * ansi.a('message3')
+        0 * ansi._
     }
 
-    @Test
-    public void appendsStyledTextToMainArea() {
-        context.checking {
-            one(ansi).fg(Color.YELLOW)
-            one(ansi).a('message')
-            one(ansi).fg(Color.DEFAULT)
-        }
+    def appendsStyledTextToMainArea() {
+        when:
+        console.mainArea.withStyle(StyledTextOutput.Style.Header).append('message')
+        console.mainArea.append("message2")
 
-        console.mainArea.style(StyledTextOutput.Style.Header).append('message')
+        then:
+        1 * ansi.fg(Color.YELLOW)
+        1 * ansi.a('message')
+        1 * ansi.fg(Color.DEFAULT)
+        1 * ansi.a('message2')
+        0 * ansi._
     }
 
-    @Test
-    public void displaysStatusBarWithNonEmptyText() {
-        def statusBar = console.getStatusBar()
+    def flushDisplaysStatusBarWithNonEmptyText() {
+        when:
+        console.statusBar.text = 'text'
+        console.flush()
 
-        context.checking {
-            one(ansi).a('text')
-        }
-
-        statusBar.text = 'text'
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('text')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void displaysStatusBarWhenTextInMainArea() {
-        context.checking {
-            one(ansi).a('message' + EOL)
-        }
-
+    def flushDisplaysStatusBarWhenTextInMainArea() {
+        when:
         console.mainArea.append("message${EOL}")
+        console.statusBar.text = 'text'
+        console.flush()
 
-        def statusBar = console.getStatusBar()
-
-        context.checking {
-            one(ansi).a('text')
-        }
-
-        statusBar.text = 'text'
+        then:
+        1 * ansi.a('message' + EOL)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('text')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void redrawsStatusBarWhenTextChangesValue() {
-        def statusBar = console.getStatusBar()
+    def flushDoesNothingWhenStatusBarAndTextAreEmpty() {
+        when:
+        console.statusBar.text = ''
+        console.flush()
 
-        context.checking {
-            one(ansi).a('123')
-        }
+        then:
+        0 * ansi._
+    }
 
+    def flushDoesNotShowStatusBarWhenStatusBarIsEmpty() {
+        when:
+        console.statusBar.text = ''
+        console.mainArea.append("message${EOL}")
+        console.flush()
+
+        then:
+        1 * ansi.a('message' + EOL)
+        0 * ansi._
+    }
+
+    def flushRedrawsStatusBarWhenTextChangesValue() {
+        def statusBar = console.statusBar
+
+        when:
         statusBar.text = '123'
-
-        context.checking {
-            one(ansi).cursorLeft(3)
-            one(ansi).a('abc')
-        }
-
+        console.flush()
         statusBar.text = 'abc'
+        console.flush()
+
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.cursorLeft(3)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('abc')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void redrawsStatusBarWhenTextChangesSuffix() {
-        def statusBar = console.getStatusBar()
+    def flushRedrawsStatusBarWhenTextAdded() {
+        def statusBar = console.statusBar
 
-        context.checking {
-            one(ansi).a('text 1')
-        }
+        when:
+        statusBar.text = '123'
+        console.flush()
+        statusBar.text = '123456'
+        console.flush()
 
-        statusBar.text = 'text 1'
-
-        context.checking {
-            one(ansi).cursorLeft(1)
-            one(ansi).a('2')
-        }
-
-        statusBar.text = 'text 2'
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.cursorLeft(3)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123456')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void redrawsStatusBarWhenTextAdded() {
-        def statusBar = console.getStatusBar()
+    def flushRedrawsStatusBarWhenTextRemoved() {
+        def statusBar = console.statusBar
 
-        context.checking {
-            one(ansi).a('text')
-        }
+        when:
+        statusBar.text = '123456'
+        console.flush()
+        statusBar.text = '123'
+        console.flush()
 
-        statusBar.text = 'text'
-
-        context.checking {
-            one(ansi).a(' 2')
-        }
-
-        statusBar.text = 'text 2'
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123456')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.cursorLeft(6)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        0 * ansi._
     }
 
-    @Test
-    public void redrawsStatusBarWhenTextRemoved() {
-        def statusBar = console.getStatusBar()
+    def flushRedrawsStatusBarWhenTextSetToEmpty() {
+        def statusBar = console.statusBar
 
-        context.checking {
-            one(ansi).a('text 1')
-        }
-
-        statusBar.text = 'text 1'
-
-        context.checking {
-            one(ansi).cursorLeft(3)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-        }
-
-        statusBar.text = 'tex'
-    }
-
-    @Test
-    public void redrawsStatusBarWhenTextSetToEmpty() {
-        def statusBar = console.getStatusBar()
-
-        context.checking {
-            one(ansi).a('text')
-        }
-
-        statusBar.text = 'text'
-
-        context.checking {
-            one(ansi).cursorLeft(4)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-        }
-
+        when:
+        statusBar.text = '123456'
+        console.flush()
         statusBar.text = ''
+        console.flush()
+
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('123456')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        0 * ansi._
     }
 
-    @Test
-    public void drawsStatusBarWhenTextHasSomeAttribute() {
-        colorMap.statusBarOn = Ansi.Attribute.INTENSITY_BOLD
-        colorMap.statusBarOff = Ansi.Attribute.INTENSITY_BOLD_OFF
-        def statusBar = console.getStatusBar()
+    def appendsTextWhenStatusBarIsPresent() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
 
-        context.checking {
-            one(ansi).a(Ansi.Attribute.INTENSITY_BOLD)
-            one(ansi).a('text')
-            one(ansi).a(Ansi.Attribute.INTENSITY_BOLD_OFF)
-        }
+        when:
+        console.mainArea.append("message1$EOL");
+        console.mainArea.append("message2$EOL");
 
-        statusBar.text = 'text'
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.a('message1' + EOL)
+        1 * ansi.a('message2' + EOL)
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void removesStatusBarWhenClosed() {
-        def statusBar = console.getStatusBar()
+    def appendsTextWithNoEOLWhenStatusBarIsPresent() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
 
-        context.checking {
-            one(ansi).a('text')
-        }
+        when:
+        console.mainArea.append("message1");
 
-        statusBar.text = 'text'
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.a('message1')
+        0 * ansi._
 
-        context.checking {
-            one(ansi).cursorLeft(4)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-        }
+        when:
+        console.flush()
 
-        statusBar.close();
+        then:
+        1 * ansi.newline()
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
+
+        when:
+        console.mainArea.append("message2");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.cursorUp(1)
+        1 * ansi.cursorRight(8)
+        1 * ansi.a('message2')
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        0 * ansi._ // no update required
     }
 
-    @Test
-    public void removesStatusBarWhenClosedAndThereIsTextInMainArea() {
-        def statusBar = console.getStatusBar()
+    def appendsTextAfterEmptyLineWhenStatusBarIsPresent() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
 
-        context.checking {
-            one(ansi).a('some message')
-            one(ansi).newline()
-            one(ansi).a('text')
-        }
+        when:
+        console.mainArea.append(EOL);
+        console.flush()
 
-        console.mainArea.append('some message')
-        statusBar.text = 'text'
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.a(EOL)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
 
-        context.checking {
-            one(ansi).cursorLeft(4)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).cursorUp(1)
-            one(ansi).cursorRight(12)
-        }
+        when:
+        console.mainArea.append("message");
+        console.flush()
 
-        statusBar.close();
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.a("message")
+        1 * ansi.newline()
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-    @Test
-    public void canRedisplayStatusBarAfterItIsClosed() {
-        context.checking {
-            one(ansi).a('first')
-        }
+    def updatesStatusBarValueWhenNoTrailingEOLInMainText() {
+        given:
+        console.statusBar.text = 'status'
+        console.mainArea.append("message1");
+        console.flush()
+        console.mainArea.append("message2");
+        console.flush()
 
-        console.getStatusBar().text = 'first'
+        when:
+        console.statusBar.text = 'new'
+        console.flush()
 
-        context.checking {
-            one(ansi).cursorLeft(5)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-        }
-
-        console.getStatusBar().close()
-
-        Label second = console.getStatusBar()
-
-        context.checking {
-            one(ansi).a('second')
-        }
-
-        second.text = 'second'
+        then:
+        1 * ansi.cursorLeft(16)
+        1 * ansi.cursorDown(1)
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('new')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        0 * ansi._
     }
 
-    @Test
-    public void appendsTextWhenStatusBarIsPresent() {
-        context.checking {
-            one(ansi).a('status')
-        }
-
-        console.getStatusBar().text = 'status'
-
-        context.checking {
-            one(ansi).cursorLeft(6)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).a('message' + EOL)
-            one(ansi).a('status')
-        }
-
-        console.mainArea.append("message$EOL");
-    }
-
-    @Test
-    public void appendsTextWithNoEOLWhenStatusBarIsPresent() {
-        context.checking {
-            one(ansi).a('status')
-        }
-
-        console.getStatusBar().text = 'status'
-
-        context.checking {
-            one(ansi).cursorLeft(6)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).a('message')
-            one(ansi).newline()
-            one(ansi).a('status')
-        }
-
-        console.mainArea.append('message');
-
-        context.checking {
-            one(ansi).cursorLeft(6)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).cursorUp(1)
-            one(ansi).cursorRight(7)
-            one(ansi).a('message2')
-            one(ansi).newline()
-            one(ansi).a('status')
-        }
-
-        console.mainArea.append('message2');
-    }
-
-    @Test
-    public void addsStatusBarWhenNoTrailingEOLInMainArea() {
-        context.checking {
-            one(ansi).a('message')
-        }
-
+    def addsStatusBarWhenNoTrailingEOLInMainArea() {
+        given:
         console.mainArea.append('message')
+        console.flush()
 
-        context.checking {
-            one(ansi).newline()
-            one(ansi).a('status')
-        }
+        when:
+        console.statusBar.text = 'status'
+        console.flush()
 
-        console.getStatusBar().text = 'status'
-
-        context.checking {
-            one(ansi).cursorLeft(6)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).cursorUp(1)
-            one(ansi).cursorRight(7)
-            one(ansi).a('message2' + EOL)
-            one(ansi).a('status')
-        }
-
-        console.mainArea.append("message2${EOL}")
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 
-}
+    def removesStatusBarWhenNoTrailingEOLInMainArea() {
+        given:
+        console.mainArea.append('message1')
+        console.statusBar.text = 'status'
+        console.flush()
 
-class TestColorMap implements ColorMap {
-    def Ansi.Attribute statusBarOn = Ansi.Attribute.RESET
-    def Ansi.Attribute statusBarOff = Ansi.Attribute.RESET
+        when:
+        console.statusBar.text = ''
+        console.flush()
 
-    ColorMap.Color getStatusBarColor() {
-        if (statusBarOn == Ansi.Attribute.RESET) {
-            return {} as ColorMap.Color
-        }
-        return [on: {ansi -> ansi.a(statusBarOn) },
-                off: {ansi -> ansi.a(statusBarOff) }
-        ] as ColorMap.Color
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        0 * ansi._
+
+        when:
+        console.mainArea.append('message2')
+        console.flush()
+
+        then:
+        1 * ansi.cursorUp(1)
+        1 * ansi.cursorRight(8)
+        1 * ansi.a('message2')
+        0 * ansi._
     }
 
-    ColorMap.Color getColourFor(Style style) {
-        if (style != StyledTextOutput.Style.Header) {
-            return {} as ColorMap.Color
-        }
-        return [on: {ansi -> ansi.fg(Ansi.Color.YELLOW) },
-                off: {ansi -> ansi.fg(Ansi.Color.DEFAULT) }
-        ] as ColorMap.Color
+    def coalescesMultipleUpdates() {
+        given:
+        console.mainArea.append('message1')
+        console.statusBar.text = 'status'
+        console.flush()
+
+        when:
+        console.statusBar.text = ''
+        console.mainArea.append('message2')
+        console.statusBar.text = '1'
+        console.statusBar.text = '2'
+        console.mainArea.append('message3')
+        console.mainArea.append(EOL)
+        console.mainArea.append('message4')
+        console.statusBar.text = '3'
+        console.flush()
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.cursorUp(1)
+        1 * ansi.cursorRight(8)
+        1 * ansi.a('message2')
+        1 * ansi.a('message3')
+        1 * ansi.a(EOL)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.a('message4')
+        1 * ansi.newline()
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('3')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
     }
 }

@@ -42,8 +42,8 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput(event)
-        0 * listener._
-        0 * statusBar._
+        1 * console.flush()
+        0 * _
     }
 
     def queuesEventsReceivedSoonAfterFirstAndForwardsThemLater() {
@@ -59,6 +59,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput(event1)
+        1 * console.flush()
         0 * _
 
         when:
@@ -67,6 +68,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         then:
         1 * listener.onOutput(event2)
         1 * listener.onOutput(event3)
+        1 * console.flush()
         0 * _
 
         when:
@@ -90,6 +92,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput(event2)
+        1 * console.flush()
         0 * _
 
         when:
@@ -113,16 +116,47 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput(event1)
+        1 * console.flush()
         0 * _
 
         when:
         renderer.onOutput(flush)
-        renderer.onOutput(event4)
 
         then:
         1 * listener.onOutput(event2)
         1 * listener.onOutput(event3)
         1 * listener.onOutput(flush)
+        1 * console.flush()
+        0 * _
+
+        when:
+        renderer.onOutput(event4)
+
+        then:
+        0 * _
+    }
+
+    def backgroundFlushDoesNothingWhenEventsAlreadyFlushed() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def event3 = event('3')
+        def flush = new FlushToOutputsEvent()
+
+        given:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(flush)
+
+        when:
+        executor.runNow()
+
+        then:
+        0 * _
+
+        when:
+        renderer.onOutput(event3)
+
+        then:
         0 * _
     }
 

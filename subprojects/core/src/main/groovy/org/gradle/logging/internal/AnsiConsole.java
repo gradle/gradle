@@ -16,9 +16,7 @@
 
 package org.gradle.logging.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.Flushable;
@@ -27,11 +25,13 @@ import java.io.IOException;
 public class AnsiConsole implements Console {
     private final Appendable target;
     private final Flushable flushable;
-    private LabelImpl statusBar;
+    private final LabelImpl statusBar;
     private final TextAreaImpl textArea;
-    private final Screen container;
     private final ColorMap colorMap;
     private final boolean forceAnsi;
+    private final Cursor writeCursor = new Cursor();
+    private final Cursor textCursor = new Cursor();
+    private final Cursor statusBarCursor = new Cursor();
 
     public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap) {
         this(target, flushable, colorMap, false);
@@ -41,33 +41,15 @@ public class AnsiConsole implements Console {
         this.target = target;
         this.flushable = flushable;
         this.colorMap = colorMap;
-        container = new Screen();
-        textArea = new TextAreaImpl(container);
+        textArea = new TextAreaImpl(textCursor);
+        statusBar = new LabelImpl(statusBarCursor);
         this.forceAnsi = forceAnsi;
     }
 
-    public Label getStatusBar() {
-        if (statusBar == null) {
-            statusBar = new LabelImpl(container);
-            render(new Action<Ansi>() {
-                public void execute(Ansi ansi) {
-                    textArea.onDeactivate(ansi);
-                    statusBar.onActivate(ansi);
-                }
-            });
-        }
-        return statusBar;
-    }
-
-    public TextArea getMainArea() {
-        return textArea;
-    }
-
-    private void render(Action<Ansi> action) {
-        Ansi ansi = createAnsi();
-        action.execute(ansi);
+    @Override
+    public void flush() {
+        statusBar.redraw();
         try {
-            target.append(ansi.toString());
             flushable.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -75,82 +57,94 @@ public class AnsiConsole implements Console {
     }
 
     Ansi createAnsi() {
-        if(forceAnsi) {
+        if (forceAnsi) {
             return new Ansi();
         } else {
             return Ansi.ansi();
         }
     }
 
-    private interface Container {
-        void redraw(Widget widget, Action<Ansi> drawOperation);
-
-        void close(Widget widget);
-    }
-
-    private interface Widget {
-        /**
-         * Called when this widget becomes the active widget. The active widget is the widget at the bottom of the
-         * screen. When called, the cursor will be positioned at the left edge of bottom-most line of the screen.
-         */
-        void onActivate(Ansi ansi);
-
-        /**
-         * Called when this widget is no longer the active widget. Should Remove content of this widget from the last
-         * line of the screen and leave the cursor at left edge of bottom-most line.
-         */
-        void onDeactivate(Ansi ansi);
-    }
-
-    private class Screen implements Container {
-        public void redraw(Widget widget, final Action<Ansi> drawOperation) {
-            if (widget == textArea) {
-                render(new Action<Ansi>() {
-                    public void execute(Ansi ansi) {
-                        if (statusBar != null) {
-                            statusBar.onDeactivate(ansi);
-                            textArea.onActivate(ansi);
-                        }
-                        drawOperation.execute(ansi);
-                        if (statusBar != null) {
-                            textArea.onDeactivate(ansi);
-                            statusBar.onActivate(ansi);
-                        }
-                    }
-                });
+    private void positionCursorAt(Cursor position, Ansi ansi) {
+        if (writeCursor.row == position.row) {
+            if (writeCursor.col == position.col) {
+                return;
+            }
+            if (writeCursor.col < position.col) {
+                ansi.cursorRight(position.col - writeCursor.col);
             } else {
-                assert widget == statusBar;
-                render(new Action<Ansi>() {
-                    public void execute(Ansi ansi) {
-                        drawOperation.execute(ansi);
-                    }
-                });
+                ansi.cursorLeft(writeCursor.col - position.col);
+            }
+        } else {
+            if (writeCursor.col > 0) {
+                ansi.cursorLeft(writeCursor.col);
+            }
+            if (writeCursor.row < position.row) {
+                ansi.cursorUp(position.row - writeCursor.row);
+            } else {
+                ansi.cursorDown(writeCursor.row - position.row);
+            }
+            if (position.col > 0) {
+                ansi.cursorRight(position.col);
             }
         }
+        writeCursor.copyFrom(position);
+    }
 
-        public void close(Widget widget) {
-            if (widget == textArea) {
-                throw new UnsupportedOperationException();
-            }
-            if (widget == statusBar) {
-                render(new Action<Ansi>() {
-                    public void execute(Ansi ansi) {
-                        statusBar.onDeactivate(ansi);
-                        textArea.onActivate(ansi);
-                        statusBar = null;
-                    }
-                });
-            }
+    private void charactersWritten(Cursor cursor, int count) {
+        writeCursor.col += count;
+        cursor.copyFrom(writeCursor);
+    }
+
+    private void newLineWritten(Cursor cursor) {
+        writeCursor.col = 0;
+        if (writeCursor.row > 0) {
+            writeCursor.row--;
+        } else {
+            writeCursor.row = 0;
+            textCursor.row++;
+            statusBarCursor.row++;
+        }
+        cursor.copyFrom(writeCursor);
+    }
+
+    private void write(Ansi ansi) {
+        try {
+            target.append(ansi.toString());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    private class LabelImpl implements Label, Widget {
-        private final Container container;
-        private String text = "";
-        private String displayedText = "";
+    public Label getStatusBar() {
+        return statusBar;
+    }
 
-        public LabelImpl(Container container) {
-            this.container = container;
+    public TextArea getMainArea() {
+        return textArea;
+    }
+
+    private class Cursor {
+        int col; // count from left of screen, 0 = left most
+        int row; // count from bottom of screen, 0 = bottom most, 1 == 2nd from bottom
+
+        public void copyFrom(Cursor position) {
+            this.col = position.col;
+            this.row = position.row;
+        }
+
+        public void bottomLeft() {
+            col = 0;
+            row = 0;
+        }
+    }
+
+    private class LabelImpl implements Label {
+        private final Cursor writePos;
+        private String writtenText = "";
+        private String text = "";
+
+        public LabelImpl(Cursor writePos) {
+            this.writePos = writePos;
         }
 
         public void setText(String text) {
@@ -158,69 +152,46 @@ public class AnsiConsole implements Console {
                 return;
             }
             this.text = text;
-            container.redraw(this, new Action<Ansi>() {
-                public void execute(Ansi ansi) {
-                    draw(ansi);
-                }
-            });
         }
 
-        public void close() {
-            container.close(this);
-        }
-
-        public void onDeactivate(Ansi ansi) {
-            if (displayedText.length() > 0) {
-                ansi.cursorLeft(displayedText.length());
-                ansi.eraseLine(Ansi.Erase.FORWARD);
-                displayedText = "";
+        public void redraw() {
+            boolean hasTextOnBottomLine = textCursor.row == 0 && textCursor.col > 0;
+            if (writePos.row == 0 && writtenText.equals(text) && !hasTextOnBottomLine) {
+                // Does not need to be redrawn
+                return;
             }
-        }
-
-        public void onActivate(Ansi ansi) {
-            draw(ansi);
-        }
-
-        public void draw(Ansi ansi) {
-            String prefix = StringUtils.getCommonPrefix(new String[]{text, displayedText});
-            if (prefix.length() < displayedText.length()) {
-                ansi.cursorLeft(displayedText.length() - prefix.length());
+            Ansi ansi = createAnsi();
+            if (hasTextOnBottomLine) {
+                writePos.copyFrom(textCursor);
+                positionCursorAt(writePos, ansi);
+                // TODO - remove old status text
+                ansi.newline();
+                newLineWritten(writePos);
+                writtenText = "";
+            } else {
+                writePos.bottomLeft();
+                positionCursorAt(writePos, ansi);
             }
-            if (prefix.length() < text.length()) {
+            if (text.length() > 0) {
                 ColorMap.Color color = colorMap.getStatusBarColor();
                 color.on(ansi);
-                ansi.a(text.substring(prefix.length()));
+                ansi.a(text);
                 color.off(ansi);
             }
-            if (displayedText.length() > text.length()) {
+            if (text.length() < writtenText.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);
             }
-            displayedText = text;
+            write(ansi);
+            charactersWritten(writePos, text.length());
+            writtenText = text;
         }
     }
 
-    private class TextAreaImpl extends AbstractLineChoppingStyledTextOutput implements TextArea, Widget {
-        private final Container container;
-        private int width;
-        boolean extraEol;
+    private class TextAreaImpl extends AbstractLineChoppingStyledTextOutput implements TextArea {
+        private final Cursor writePos;
 
-        private TextAreaImpl(Container container) {
-            this.container = container;
-        }
-
-        public void onDeactivate(Ansi ansi) {
-            if (width > 0) {
-                ansi.newline();
-                extraEol = true;
-            }
-        }
-
-        public void onActivate(Ansi ansi) {
-            if (extraEol) {
-                ansi.cursorUp(1);
-                ansi.cursorRight(width);
-                extraEol = false;
-            }
+        public TextAreaImpl(Cursor writePos) {
+            this.writePos = writePos;
         }
 
         @Override
@@ -228,20 +199,22 @@ public class AnsiConsole implements Console {
             if (text.length() == 0) {
                 return;
             }
-            container.redraw(this, new Action<Ansi>() {
-                public void execute(Ansi ansi) {
-                    ColorMap.Color color = colorMap.getColourFor(getStyle());
-                    color.on(ansi);
-                    if (terminatesLine) {
-                        width = 0;
-                        extraEol = false;
-                    } else {
-                        width += text.length();
-                    }
-                    ansi.a(text.toString());
-                    color.off(ansi);
-                }
-            });
+            Ansi ansi = createAnsi();
+            positionCursorAt(writePos, ansi);
+            if (writePos.row == statusBarCursor.row && statusBarCursor.col > writePos.col) {
+                // TODO - clear only remaining status line content, if any
+                ansi.eraseLine(Ansi.Erase.FORWARD);
+            }
+            ColorMap.Color color = colorMap.getColourFor(getStyle());
+            color.on(ansi);
+            ansi.a(text.toString());
+            color.off(ansi);
+            write(ansi);
+            if (terminatesLine) {
+                newLineWritten(writePos);
+            } else {
+                charactersWritten(writePos, text.length());
+            }
         }
     }
 }
