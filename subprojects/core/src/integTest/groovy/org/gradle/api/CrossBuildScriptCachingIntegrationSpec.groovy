@@ -17,6 +17,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.mortbay.jetty.Request
@@ -212,6 +214,9 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         crossBuildScopeCacheContents() == scripts
         stats.hitCount == scripts.size()
         stats.missCount == scripts.size()
+
+        cleanup:
+        daemons.killAll()
     }
 
     def "remapping scripts doesn't mix up classes with same name"() {
@@ -405,8 +410,12 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         http.stop()
+        daemons.killAll()
     }
 
+    DaemonsFixture getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
+    }
 
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
