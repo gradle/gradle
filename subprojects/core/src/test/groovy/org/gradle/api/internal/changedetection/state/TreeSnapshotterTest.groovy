@@ -25,27 +25,27 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 @UsesNativeServices
 class TreeSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    @Subject
+    TreeSnapshotter treeSnapshotter = new TreeSnapshotter()
 
     def "should return list of file details and cache it once"() {
         given:
-        TreeSnapshotter treeSnapshotter = new TreeSnapshotter()
-        def files = [testDir.createFile("a/file1.txt"),
-                     testDir.createFile("a/b/file2.txt"),
-                     testDir.createFile("a/b/c/file3.txt")]
-        List<FileTreeInternal> fileTrees = resolveAsFileTrees()
+        createSampleFiles()
+        def fileTrees = resolveAsFileTrees()
 
         when:
         def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
-        fileDetails.size() == 6
+        fileDetails.size() == 8
         fileDetails.count { it.isDirectory() } == 3
-        fileDetails.count { !it.isDirectory() } == 3
+        fileDetails.count { !it.isDirectory() } == 5
         treeSnapshotter.cachedTrees.size() == 1
 
         when:
@@ -58,13 +58,8 @@ class TreeSnapshotterTest extends Specification {
 
     def "should not cache list of file details when there is a pattern"() {
         given:
-        TreeSnapshotter treeSnapshotter = new TreeSnapshotter()
-        def files = [testDir.createFile("a/file1.txt"),
-                     testDir.createFile("a/b/file2.txt"),
-                     testDir.createFile("a/b/c/file3.txt"),
-                     testDir.createFile("a/b/c/file4.md"),
-                     testDir.createFile("a/file5.md"),]
-        List<FileTreeInternal> fileTrees = resolveAsFileTrees("**/*.txt")
+        createSampleFiles()
+        def fileTrees = resolveAsFileTrees("**/*.txt")
 
         when:
         def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
@@ -84,6 +79,13 @@ class TreeSnapshotterTest extends Specification {
         treeSnapshotter.cachedTrees.size() == 0
     }
 
+    private def createSampleFiles() {
+        [testDir.createFile("a/file1.txt"),
+         testDir.createFile("a/b/file2.txt"),
+         testDir.createFile("a/b/c/file3.txt"),
+         testDir.createFile("a/b/c/file4.md"),
+         testDir.createFile("a/file5.md"),]
+    }
 
     private List<FileTreeInternal> resolveAsFileTrees(includePattern = null) {
         def fileResolver = TestFiles.resolver()
