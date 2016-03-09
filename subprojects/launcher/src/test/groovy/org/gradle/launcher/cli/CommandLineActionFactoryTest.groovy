@@ -24,10 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.logging.LoggingManagerInternal
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.logging.*
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.logging.internal.StreamingStyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -45,13 +42,13 @@ class CommandLineActionFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final ExecutionListener executionListener = Mock()
-    final ServiceRegistry loggingServices = Mock()
+    final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
     final CommandLineAction actionFactory1 = Mock()
     final CommandLineAction actionFactory2 = Mock()
     final CommandLineActionFactory factory = new CommandLineActionFactory() {
         @Override
-        ServiceRegistry createLoggingServices() {
+        LoggingServiceRegistry createLoggingServices() {
             return loggingServices
         }
 

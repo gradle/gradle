@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.logging.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Notifies output consumers that the log level has changed. Consumers will not receive any further events at a lesser log level.
+ * Requests that output consumers flush any buffered output to the actual destination.
  */
-public class LogLevelChangeEvent extends OutputEvent {
-    private final LogLevel newLogLevel;
-
-    public LogLevelChangeEvent(LogLevel newLogLevel) {
-        this.newLogLevel = newLogLevel;
-    }
-
-    public LogLevel getNewLogLevel() {
-        return newLogLevel;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s %s", LogLevelChangeEvent.class.getSimpleName(), newLogLevel);
-    }
-
+public class FlushToOutputsEvent extends OutputEvent {
+    @Nullable
     @Override
     public LogLevel getLogLevel() {
         return null;

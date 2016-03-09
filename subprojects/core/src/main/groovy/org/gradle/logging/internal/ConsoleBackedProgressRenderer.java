@@ -15,41 +15,105 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.internal.TimeProvider;
 import org.gradle.logging.internal.progress.ProgressOperation;
 import org.gradle.logging.internal.progress.ProgressOperations;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final Console console;
     private final ProgressOperations operations = new ProgressOperations();
     private final DefaultStatusBarFormatter statusBarFormatter;
+    private final ScheduledExecutorService executor;
+    private final TimeProvider timeProvider;
+    private final int throttleMs;
+    // Protected by lock
+    private final Object lock = new Object();
+    private long lastUpdate;
+    private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
+    private ProgressOperation mostRecentOperation;
     private Label statusBar;
 
-    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter) {
+    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter, TimeProvider timeProvider) {
+        this(listener, console, statusBarFormatter, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+    }
+
+    ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+        this.throttleMs = throttleMs;
         this.listener = listener;
         this.console = console;
         this.statusBarFormatter = statusBarFormatter;
+        this.executor = executor;
+        this.timeProvider = timeProvider;
     }
 
-    public void onOutput(OutputEvent event) {
-        try {
-            if (event instanceof ProgressStartEvent) {
-                ProgressStartEvent startEvent = (ProgressStartEvent) event;
-                ProgressOperation op = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getOperationId(), startEvent.getParentId());
-                updateText(op);
-            } else if (event instanceof ProgressCompleteEvent) {
-                ProgressOperation op = operations.complete(((ProgressCompleteEvent) event).getOperationId());
-                updateText(op.getParent());
-            } else if (event instanceof ProgressEvent) {
-                ProgressEvent progressEvent = (ProgressEvent) event;
-                ProgressOperation op = operations.progress(progressEvent.getStatus(), progressEvent.getOperationId());
-                updateText(op);
+    public void onOutput(OutputEvent newEvent) {
+        synchronized (lock) {
+            queue.add(newEvent);
+
+            if (newEvent instanceof FlushToOutputsEvent) {
+                // Flush now
+                drain(timeProvider.getCurrentTime());
+                return;
             }
-            listener.onOutput(event);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to process incoming event '" + event
-                    + "' (" + event.getClass().getSimpleName() + ")", e);
+
+            if (queue.size() > 1) {
+                // Currently queuing events, a thread is scheduled to flush the queue later
+                return;
+            }
+
+            long now = timeProvider.getCurrentTime();
+            if (now - lastUpdate >= throttleMs) {
+                // Has been long enough since last update - flush now
+                drain(now);
+                return;
+            }
+
+            // This is the first queued event - schedule a thread to flush later
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (lock) {
+                        drain(timeProvider.getCurrentTime());
+                    }
+                }
+            }, throttleMs, TimeUnit.MILLISECONDS);
         }
+    }
+
+    private void drain(long now) {
+        ProgressOperation lastOp = mostRecentOperation;
+        for (OutputEvent event : queue) {
+            try {
+                if (event instanceof ProgressStartEvent) {
+                    ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                    lastOp = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getOperationId(), startEvent.getParentId());
+                } else if (event instanceof ProgressCompleteEvent) {
+                    ProgressOperation op = operations.complete(((ProgressCompleteEvent) event).getOperationId());
+                    lastOp = op.getParent();
+                } else if (event instanceof ProgressEvent) {
+                    ProgressEvent progressEvent = (ProgressEvent) event;
+                    lastOp = operations.progress(progressEvent.getStatus(), progressEvent.getOperationId());
+                }
+                listener.onOutput(event);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to process incoming event '" + event + "' (" + event.getClass().getSimpleName() + ")", e);
+            }
+        }
+        if (lastOp != null) {
+            updateText(lastOp);
+        } else if (mostRecentOperation != null) {
+            statusBar.setText("");
+        }
+        mostRecentOperation = lastOp;
+        queue.clear();
+        lastUpdate = now;
     }
 
     private void updateText(ProgressOperation op) {
