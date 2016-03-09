@@ -8,18 +8,18 @@ Audience is developers that are using the Gradle daemon.
 - Profile test builds and use results to select improvements to implement.
 - Profile daemon client
 
-### Potential improvements 
+### Potential improvements
 
 - Fix hotspots identified by profiling
 - Replace usage of exceptions in decorated objects
 - Faster rule execution for task configuration
 - Make creation of project instances cheaper
-- Faster startup by reducing fixed costs in daemon client and per build setup 
-- Start progress logging earlier in build lifecycle to give more insight into what's happening early in the build 
+- Faster startup by reducing fixed costs in daemon client and per build setup
+- Start progress logging earlier in build lifecycle to give more insight into what's happening early in the build
 
 ## Stories
 
-### Performance tests establish build startup baseline 
+### Performance tests establish build startup baseline
 
 Ensure there is a performance test build that:
 
@@ -33,7 +33,7 @@ Use this build in a performance test that:
 
 Tune the number of projects in the test build based on this. We're aiming for a build that takes around 10-20 seconds.
 
-Note: review the existing test builds and _reuse_ an existing build and existing templates if possible. Should also reuse existing test execution performance test class if possible. 
+Note: review the existing test builds and _reuse_ an existing build and existing templates if possible. Should also reuse existing test execution performance test class if possible.
 
 ### Write events to the daemon client asynchronously
 
@@ -51,7 +51,7 @@ These tests should run as part of the daemon and non-daemon test suites.
 Use the same strategy for detecting content changes for build scripts, as is used for other files.
 
 Should use `CachingFileSnapshotter` for the implementation, if possible. Could potentially be backed by an in-memory `PersistentStore`, reusing the instance
-created by `GlobalScopeServices.createClassPathSnapshotter()`. An additional refactoring could make this a persistent store. 
+created by `GlobalScopeServices.createClassPathSnapshotter()`. An additional refactoring could make this a persistent store.
 
 ### Reuse build script cache across builds
 
@@ -64,3 +64,28 @@ Investigate options for reusing this across builds, when the build script has no
 Profile the daemon and Gradle client using the above test build to identify hotspots and potential improvements. Generate further stories based on this.
 
 Note: this goal for this story is only to understand the behaviour, not to fix anything.
+
+#### Some results
+
+Here are some profiling results from running `ManyEmptyProjectsHelpPerformanceTest`, which is a performance test that involves a lot of empty projects, revealing the fixed cost of creating projects.
+
+- Client (`GradleMain`)
+   - a lot of duplicate `char[]` are found in the snapshot for `org.gradle.internal.progress.BuildProgressLogger`. Those strings are not strongly reachable, meaning that we're creating and throwing them away a lot of times, wasting memory and involving GC.
+   - an equivalent amount of time is spent in reading/decoding the messages and outputting them
+        - 44% of time spent in `DefaultSerializerRegistry.java:80 org.gradle.internal.serialize.kryo.KryoBackedDecoder.readSmallInt()`
+        - 44% of time spent in `org.gradle.logging.internal.ConsoleBackedProgressRenderer.onOutput(OutputEvent)`
+
+- Worker
+   - Memory
+       - a lot of duplicate strings are found in rule descriptors. Typically, `Project.<init>.extensionContainer()` found 10000 times. We could reduce memory usage by interning the descriptors.
+       - a huge amount of memory is wasted in empty hashmaps, array lists and treemaps. A lot of those hash maps seem to come from the extensions/conventions (probably to store the dynamic properties). Could be worth investigating lazy initialization of those.
+       - tens of thousands of duplicate `org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor` and `org.gradle.model.internal.core.ModelReference`
+        - Another huge amount of wasted memory due to an empty inputs list in `AbstractModelAction` (because a lot of empty `ArrayList`s are used, each of them is a different instance). It's the main source of empty arrays in the memory dump.
+        - A large amount of `org.gradle.model.internal.registry.RuleBindings.PredicateMatches` instances are found in memory (representing 17% of total memory usage). `ModelNodes` represent `15%` of total memory. It seems to be a lot for a project that doesn't use the software model.
+    - CPU
+        - 45% of time is spent in `org.gradle.initialization.SettingsLoader.findAndLoadSettings`, out of which:
+            - 47% of time is spent in setting the project properties. A large amount of this time is spent in filling exception stack traces for missing properties, that are always caught. In short, total dead time.
+            - 53% of time is spent in initializing the project. Most of this time is spent in populating the model registry (41%) and initializing services (38%)
+        - 45% of time is spent in evaluating the projects, and almost all time is spent in logging.
+
+
