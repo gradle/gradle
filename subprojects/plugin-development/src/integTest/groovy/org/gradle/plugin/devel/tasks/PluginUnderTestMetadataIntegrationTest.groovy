@@ -19,8 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GUtil
 
-import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.*
 
 class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,9 +58,9 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         succeeds TASK_NAME
 
         then:
-        def classpathManifest = file("build/$TASK_NAME/$METADATA_FILE_NAME")
-        classpathManifest.exists() && classpathManifest.isFile()
-        !GUtil.loadProperties(classpathManifest).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        def metadataFile = file("build/$TASK_NAME/$METADATA_FILE_NAME")
+        metadataFile.exists() && metadataFile.isFile()
+        !GUtil.loadProperties(metadataFile).containsKey(IMPLEMENTATION_CLASSPATH_PROP_KEY)
     }
 
     def "can reconfigure output directory for metadata file"() {
@@ -80,4 +79,44 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         file("build/some/other/$METADATA_FILE_NAME").exists()
     }
 
+    def "hash changes when plugin classpath changes"() {
+        given:
+        buildFile << """
+            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
+                pluginClasspath = sourceSets.main.runtimeClasspath
+                outputDirectory = file('build/$TASK_NAME')
+            }
+        """
+        def sourceFile = file("src/main/java/Thing.java") << "class Thing { int foo; }"
+        def metadataFile = file("build/$TASK_NAME/$METADATA_FILE_NAME")
+
+        when:
+        succeeds TASK_NAME
+        def hash1 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
+
+        sourceFile.text = "class Thing { int foofoo; }"
+        succeeds TASK_NAME
+
+        then:
+        executedAndNotSkipped(":$TASK_NAME")
+        def hash2 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
+        hash2 != hash1
+
+        when:
+        sourceFile.text = "class Thing { int foofoo;                 }" // change source, but not class file
+        succeeds TASK_NAME
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        skipped(":$TASK_NAME")
+
+        when:
+        metadataFile.delete()
+        succeeds TASK_NAME
+
+        then:
+        executedAndNotSkipped(":$TASK_NAME")
+        def hash3 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
+        hash3 == hash2
+    }
 }

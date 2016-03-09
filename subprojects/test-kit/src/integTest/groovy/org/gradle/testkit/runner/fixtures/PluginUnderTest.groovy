@@ -95,7 +95,7 @@ class PluginUnderTest {
     }
 
     PluginUnderTest writeSourceFiles() {
-        projectDir.file("src/main/groovy/org/gradle/test/HelloWorldPlugin${suffix}.groovy") << """
+        pluginClassSourceFile() << """
             package org.gradle.test
 
             import org.gradle.api.Plugin
@@ -128,6 +128,10 @@ class PluginUnderTest {
         """
 
         this
+    }
+
+    TestFile pluginClassSourceFile() {
+        projectDir.file("src/main/groovy/org/gradle/test/HelloWorldPlugin${suffix}.groovy")
     }
 
     PluginUnderTest writeBuildScript() {

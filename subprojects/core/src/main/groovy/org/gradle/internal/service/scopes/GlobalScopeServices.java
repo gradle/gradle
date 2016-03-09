@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -73,6 +74,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -223,9 +225,13 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, CachingFileSnapshotter fileSnapshotter, MapBackedInMemoryStore inMemoryStore) {
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CachingFileSnapshotter fileSnapshotter) {
         if (environment.isLongLivingProcess()) {
-            return new HashClassPathSnapshotter(fileSnapshotter, inMemoryStore);
+            return new HashClassPathSnapshotter(new Hasher() {
+                public byte[] hash(File file) {
+                    return fileSnapshotter.snapshot(file).getHash();
+                }
+            });
         } else {
             return new FileClassPathSnapshotter();
         }

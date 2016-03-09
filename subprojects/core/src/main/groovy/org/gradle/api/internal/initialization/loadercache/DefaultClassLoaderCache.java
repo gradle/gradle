@@ -119,8 +119,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         public boolean equals(Object o) {
             ClassLoaderSpec that = (ClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
-                    && this.classPathSnapshot.equals(that.classPathSnapshot)
-                    && Objects.equal(this.filterSpec, that.filterSpec);
+                && this.classPathSnapshot.equals(that.classPathSnapshot)
+                && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override

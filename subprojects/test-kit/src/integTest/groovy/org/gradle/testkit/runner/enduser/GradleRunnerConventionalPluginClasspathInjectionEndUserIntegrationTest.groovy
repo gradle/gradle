@@ -89,7 +89,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         executedAndNotSkipped ':test'
     }
 
-    def "can configure for custom source set"() {
+    def "can use custom source set"() {
         when:
         file("src/test/groovy/Test.groovy").moveToDirectory(file("src/functionalTest/groovy"))
         buildFile << """
@@ -115,6 +115,23 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         then:
         succeeds 'functionalTest'
         executedAndNotSkipped ':functionalTest'
+
+        when:
+        // Changes source but not class file
+        plugin.pluginClassSourceFile() << "                       "
+
+        then:
+        succeeds 'functionalTest'
+        executedAndNotSkipped ":compileGroovy"
+        skipped ':functionalTest'
+
+        when:
+        // Changes line numbers, so changes class file
+        plugin.pluginClassSourceFile().text = "\n\n\n" + plugin.pluginClassSourceFile().text
+
+        then:
+        succeeds 'functionalTest'
+        executedAndNotSkipped ":functionalTest"
     }
 
 }
