@@ -48,7 +48,7 @@ public abstract class PluginUnderTestMetadataReading {
     }
 
     public static List<File> readImplementationClasspath(URL pluginClasspathUrl) {
-        return readImplementationClasspath(pluginClasspathUrl.getFile(), GUtil.loadProperties(pluginClasspathUrl));
+        return readImplementationClasspath(pluginClasspathUrl.toString(), GUtil.loadProperties(pluginClasspathUrl));
     }
 
     public static List<File> readImplementationClasspath(String description, Properties properties) {

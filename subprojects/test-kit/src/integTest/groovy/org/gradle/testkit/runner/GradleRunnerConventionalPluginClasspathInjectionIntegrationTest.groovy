@@ -21,8 +21,8 @@ import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.util.UsesNativeServices
 
-import static org.gradle.testkit.runner.internal.DefaultGradleRunner.IMPLEMENTATION_CLASSPATH_PROP_KEY
-import static org.gradle.testkit.runner.internal.DefaultGradleRunner.PLUGIN_METADATA_FILE_NAME
+import static org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading.PLUGIN_METADATA_FILE_NAME
 
 @InjectsPluginClasspath
 @InspectsBuildOutput
@@ -103,7 +103,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
 
         then:
         def t = thrown(InvalidPluginMetadataException)
-        t.message == "Plugin metadata file '$PLUGIN_METADATA_FILE_NAME' has empty value for property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'".toString()
+        t.message == "Plugin metadata file '${pluginUnderTest.metadataFile.toURI().toURL()}' has empty value for property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'".toString()
     }
 
     def "throws if metadata has no implementation classpath"() {
@@ -116,7 +116,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
 
         then:
         def t = thrown(InvalidPluginMetadataException)
-        t.message == "Plugin metadata file '$PLUGIN_METADATA_FILE_NAME' does not contain expected property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'".toString()
+        t.message == "Plugin metadata file '${pluginUnderTest.metadataFile.toURI().toURL()}' does not contain expected property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'".toString()
     }
 
 }

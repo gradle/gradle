@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
-
-import static org.gradle.testkit.runner.internal.DefaultGradleRunner.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
 
 class PluginUnderTest {
 
@@ -86,7 +84,7 @@ class PluginUnderTest {
 
     public <T> T exposeMetadata(Closure<T> closure) {
         def originalClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = new URLClassLoader(new DefaultClassPath(metadataFile().parentFile).asURLArray, originalClassLoader)
+        Thread.currentThread().contextClassLoader = new URLClassLoader(new DefaultClassPath(generateMetadataFile().parentFile).asURLArray, originalClassLoader)
         try {
             closure.call()
         } finally {
@@ -146,17 +144,21 @@ class PluginUnderTest {
         this
     }
 
-    private File metadataFile() {
-        def file = projectDir.file("build/pluginClasspathManifest/${DefaultGradleRunner.PLUGIN_METADATA_FILE_NAME}").touch()
+    private File generateMetadataFile() {
+        def file = metadataFile.touch()
         def properties = new Properties()
 
         if (implClasspath != null) {
             def content = implClasspath.collect { it.absolutePath.replaceAll('\\\\', '/') }.join(File.pathSeparator)
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
+            properties.setProperty(PluginUnderTestMetadataReading.IMPLEMENTATION_CLASSPATH_PROP_KEY, content)
         }
 
         file.withOutputStream { properties.store(it, null) }
         file
+    }
+
+    TestFile getMetadataFile() {
+        projectDir.file("build/pluginUnderTestMetadata/${PluginUnderTestMetadataReading.PLUGIN_METADATA_FILE_NAME}")
     }
 
     String getSuffix() {
