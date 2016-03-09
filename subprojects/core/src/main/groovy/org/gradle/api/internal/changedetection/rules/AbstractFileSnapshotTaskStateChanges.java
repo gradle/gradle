@@ -44,10 +44,14 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
 
     protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection);
+            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse());
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
         }
+    }
+
+    protected boolean isAllowSnapshotReuse() {
+        return true;
     }
 
     public Iterator<TaskStateChange> iterator() {

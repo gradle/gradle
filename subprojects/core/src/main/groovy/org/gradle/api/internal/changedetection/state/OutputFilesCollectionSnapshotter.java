@@ -47,12 +47,12 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         return new OutputFilesSnapshot(Collections.<String>emptySet(), snapshotter.emptySnapshot());
     }
 
-    public OutputFilesSnapshot snapshot(FileCollection files) {
+    public OutputFilesSnapshot snapshot(FileCollection files, boolean allowReuse) {
         Set<String> roots = new LinkedHashSet<String>();
         for (File file : files.getFiles()) {
             roots.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return new OutputFilesSnapshot(roots, snapshotter.snapshot(files));
+        return new OutputFilesSnapshot(roots, snapshotter.snapshot(files, allowReuse));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {

@@ -40,7 +40,7 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles) {
+    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles, boolean allowReuse) {
         for (File file : input.getFiles()) {
             if (file.exists()) {
                 allFileVisitDetails.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));

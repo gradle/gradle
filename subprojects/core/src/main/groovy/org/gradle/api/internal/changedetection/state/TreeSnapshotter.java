@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import java.util.Collection;
 
 public class TreeSnapshotter {
-    public Collection<? extends FileVisitDetails> visitTree(FileTreeInternal fileTree) {
+    public Collection<? extends FileVisitDetails> visitTree(FileTreeInternal fileTree, boolean allowReuse) {
         final ImmutableList.Builder<FileVisitDetails> fileVisitDetails = ImmutableList.builder();
         fileTree.visitTreeOrBackingFile(new FileVisitor() {
             @Override

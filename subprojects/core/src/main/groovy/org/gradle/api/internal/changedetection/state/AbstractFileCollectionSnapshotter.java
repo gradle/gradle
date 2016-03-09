@@ -50,11 +50,11 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
     }
 
-    public FileCollectionSnapshot snapshot(final FileCollection input) {
+    public FileCollectionSnapshot snapshot(final FileCollection input, boolean allowReuse) {
         final List<FileVisitDetails> allFileVisitDetails = Lists.newLinkedList();
         final List<File> missingFiles = Lists.newArrayList();
 
-        visitFiles(input, allFileVisitDetails, missingFiles);
+        visitFiles(input, allFileVisitDetails, missingFiles, allowReuse);
 
         if (allFileVisitDetails.isEmpty() && missingFiles.isEmpty()) {
             return emptySnapshot();
@@ -90,6 +90,6 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    abstract protected void visitFiles(FileCollection input, List<FileVisitDetails> allFileVisitDetails, List<File> missingFiles);
+    abstract protected void visitFiles(FileCollection input, List<FileVisitDetails> allFileVisitDetails, List<File> missingFiles, boolean allowReuse);
 
 }
