@@ -31,7 +31,7 @@ import java.util.List;
  * in the input FileCollection without visiting the files on disk.  This allows files that do not exist yet to be considered part of the
  * FileCollectionSnapshot without that information being lost.
  */
-public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
+public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileSystem fileSystem;
 
     public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
