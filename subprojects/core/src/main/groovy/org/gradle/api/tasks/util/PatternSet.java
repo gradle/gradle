@@ -132,7 +132,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet intersect() {
-        return new IntersectionPatternSet(this);
+        if(isEmpty()) {
+            return new PatternSet();
+        } else {
+            return new IntersectionPatternSet(this);
+        }
     }
 
     /**
