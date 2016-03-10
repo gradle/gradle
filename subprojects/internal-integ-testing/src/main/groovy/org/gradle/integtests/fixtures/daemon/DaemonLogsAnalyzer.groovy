@@ -58,12 +58,10 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     List<DaemonFixture> getDaemons() {
-        if (daemonLogsDir.exists()) {
-            assert daemonLogsDir.isDirectory()
-            return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
-        } else {
-            Collections.emptyList()
+        if (!daemonLogsDir.exists() || !daemonLogsDir.isDirectory()) {
+            throw new IllegalStateException("Daemon logs directory $daemonLogsDir does not exist or is not a directory")
         }
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
     }
 
     List<DaemonFixture> getVisible() {

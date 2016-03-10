@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.junit.Rule
 
@@ -66,11 +67,8 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
         testKitDaemons().daemon.context.pid == pid
     }
 
+    @CustomDaemonDirectory
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
-        if (gradleVersion < CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
-            // For earlier versions, the test kit daemons may collide with “regular” daemons if the test kit dir is shared
-            return
-        }
         given:
         def defaultDaemonDir = testKitDir.file("daemon")
         def nonTestKitDaemons = daemons(defaultDaemonDir, gradleVersion)

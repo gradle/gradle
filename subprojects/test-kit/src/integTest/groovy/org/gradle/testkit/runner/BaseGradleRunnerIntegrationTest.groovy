@@ -297,6 +297,12 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
 
+                if (testDetails.getAnnotation(CustomDaemonDirectory)) {
+                    if (gradleVersion < BaseGradleRunnerIntegrationTest.CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
+                        return false
+                    }
+                }
+
                 true
             }
 
