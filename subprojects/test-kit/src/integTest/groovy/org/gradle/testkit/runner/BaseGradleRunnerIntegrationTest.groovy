@@ -51,6 +51,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     public static GradleVersion gradleVersion
     public static GradleProvider gradleProvider
     public static boolean debug
+    public static boolean crossVersion
 
     @Shared
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -154,11 +155,13 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
             switch (version) {
-                case 'all': return [
-                    TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-                    TestedGradleDistribution.mostRecentFinalRelease(),
-                    TestedGradleDistribution.UNDER_DEVELOPMENT
-                ] as SortedSet
+                case 'all':
+                    crossVersion = true
+                    return [
+                            TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+                            TestedGradleDistribution.mostRecentFinalRelease(),
+                            TestedGradleDistribution.UNDER_DEVELOPMENT
+                    ] as SortedSet
                 case 'current': return [
                     TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as Set
