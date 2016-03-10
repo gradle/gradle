@@ -100,6 +100,7 @@ We would like to thank the following community members for making contributions 
 * [Andrew Reitz](https://github.com/pieces029) - fix a broken link to the groovy documentation
 * [Bryan Bess](https://github.com/squarejaw) - fix documentation layout for scala and groovy plugins
 * [Jeffrey Crowell](https://github.com/crowell) - upgrade Apache Commons Collections to v3.2.2
+* [Sebastian Schuberth](https://github.com/sschuberth) - rich console output for Cygwin's mintty
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
