@@ -45,6 +45,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class DefaultDaemonStarter implements DaemonStarter {
 
@@ -65,8 +66,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     public DaemonStartupInfo startDaemon() {
-        // Ensure we have a unique UID any time we start a new daemon
-        daemonParameters.resetUid();
+        String daemonUid = UUID.randomUUID().toString();
 
         ModuleRegistry registry = new DefaultModuleRegistry();
         ClassPath classpath;
@@ -114,7 +114,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
-            encoder.writeString(daemonParameters.getUid());
+            encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);

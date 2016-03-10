@@ -35,7 +35,6 @@ public class DaemonParameters {
     public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
-    private String uid;
     private final File gradleUserHomeDir;
 
     private File baseDir;
@@ -65,17 +64,6 @@ public class DaemonParameters {
     public DaemonParameters setEnabled(boolean enabled) {
         daemonUsage = enabled ? DaemonUsage.EXPLICITLY_ENABLED : DaemonUsage.EXPLICITLY_DISABLED;
         return this;
-    }
-
-    public String getUid() {
-        if (uid == null) {
-            resetUid();
-        }
-        return uid;
-    }
-
-    public void resetUid() {
-        this.uid = UUID.randomUUID().toString();
     }
 
     public File getBaseDir() {

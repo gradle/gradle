@@ -38,6 +38,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 
 import java.lang.management.ManagementFactory;
+import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineAction {
     private final CommandLineConverter<Parameters> parametersConverter;
@@ -61,9 +62,8 @@ class BuildActionsFactory implements CommandLineAction {
         }
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
-            daemonParameters.resetUid();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                    daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
+                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
             return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (parameters.getDaemonParameters().getDaemonUsage().isEnabled()) {
