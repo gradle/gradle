@@ -13,6 +13,9 @@ Investigate and improve test execution startup time.
 
 - Fix hotspots identified by profiling
 - Investigate file scanning done by the `Test` task. Initial observations have this task scanning its inputs many times. Investigate and fix.
+- Don't attach source directories to `Test` task, when not required.
+- Fix `Test` task inputs so that candidate class files hash is not required.
+- Fix file snapshot calculation to handle directories that are declared as multiple inputs or outputs for a task. 
 
 ## Stories
 
@@ -79,6 +82,16 @@ This doesn't make test execution faster, makes for a fairer subjective compariso
 
 Add some basic test coverage for test progress logging. Use the progress logging test fixture.
 
+### Spike generating the HTML and XML reports in parallel
+
+Spike generating the HTML reports at the same time as the XML reports.
+
+The idea is to try running `Binary2JUnitXmlReportGenerator.generate()` in one thread and `TestReporter.generateReport()` in another. It is not to attempt to generate each
+HTML or XML report output file in parallel (though this could be another spike).
+
+If the results look ok, refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML reports in parallel, subject to
+max parallel workers constraints.
+
 ### Understand where test task is spending its time
 
 Instrument Gradle to get a breakdown of how long each of the main activities in test start up take:
@@ -123,7 +136,7 @@ A typical breakdown of the wall clock time spent by `test` with 1000 main and te
 
 Miscellaneous profiling results:
 
-- when excluding test execution time, up to 10% of remaning time is spent calling `getGenericReturnType` in decorators (fixed already)
+- When excluding test execution time, up to 10% of remaining time is spent calling `getGenericReturnType` in decorators (fixed already)
 - A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration. Experimental fix: https://github.com/gradle/gradle/commit/9946a56f225aa9f4007eb65f0cfb3274a718e140
 - 20% of dependency resolution time in up-to-date build is spent in parsing the Ivy XML descriptor
 - IDE plugin application consumes most of the build script (project) setup. The Eclipse and IDEA plugins trigger a lot of dynamic variable resolution (`conventionMapping`, `projectModel`, ...) which are very expensive (and not optimized) in Groovy. This is called even if, in the end, we will never call the IDEA or Eclipse tasks...
