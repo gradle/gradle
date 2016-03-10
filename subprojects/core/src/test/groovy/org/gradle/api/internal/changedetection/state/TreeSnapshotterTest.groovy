@@ -24,9 +24,11 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Ignore
 @UsesNativeServices
 class TreeSnapshotterTest extends Specification {
     @Rule

@@ -34,6 +34,7 @@ public class TreeSnapshotter {
     private ConcurrentMap<String, Collection<FileTreeElement>> cachedTrees = new MapMaker().weakValues().makeMap();
 
     public Collection<FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
+        /* TODO LH
         if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
             if (isEligibleForCaching(directoryFileTree)) {
@@ -48,6 +49,7 @@ public class TreeSnapshotter {
                 }
             }
         }
+        */
         return doVisitTree(fileTree);
     }
 
