@@ -119,6 +119,9 @@
         <sample id="customizeCheckstyleReport" dir="codeQuality" title="Customizing the HTML report">
             <sourcefile file="build.gradle" snippet="customize-checkstyle-report"/>
         </sample>
+        <para>
+            <ulink url="https://github.com/checkstyle/contribution/tree/master/xsl">View a sample Checkstyle stylesheet.</ulink>
+        </para>
     </section>
 
 </chapter>

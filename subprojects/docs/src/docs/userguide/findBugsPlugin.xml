@@ -102,6 +102,9 @@
         <sample id="customizeFindbugsReport" dir="codeQuality" title="Customizing the HTML report">
             <sourcefile file="build.gradle" snippet="customize-findbugs-report"/>
         </sample>
+        <para>
+            <ulink url="https://github.com/findbugsproject/findbugs/tree/master/findbugs/src/xsl">View a sample FindBugs stylesheet.</ulink>
+        </para>
     </section>
 
 </chapter>
