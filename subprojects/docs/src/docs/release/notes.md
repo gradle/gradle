@@ -99,6 +99,7 @@ We would like to thank the following community members for making contributions 
 * [Oliver Reissig](https://github.com/oreissig) - improve error message when `tools.jar` is not found
 * [Andrew Reitz](https://github.com/pieces029) - fix a broken link to the groovy documentation
 * [Bryan Bess](https://github.com/squarejaw) - fix documentation layout for scala and groovy plugins
+* [Jeffrey Crowell](https://github.com/crowell) - upgrade Apache Commons Collections to v3.2.2
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
