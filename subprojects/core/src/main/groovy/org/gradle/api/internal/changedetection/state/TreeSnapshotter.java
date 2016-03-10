@@ -24,7 +24,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
@@ -52,11 +51,7 @@ public class TreeSnapshotter {
     }
 
     private boolean isEligibleForCaching(DirectoryFileTree directoryFileTree) {
-        return isEmptyPattern(directoryFileTree.getPatterns());
-    }
-
-    private boolean isEmptyPattern(PatternSet patterns) {
-        return patterns.getExcludes().isEmpty() && patterns.getIncludes().isEmpty() && patterns.getExcludeSpecs().isEmpty() && patterns.getIncludeSpecs().isEmpty();
+        return directoryFileTree.getPatterns().isEmpty();
     }
 
     private boolean isDirectoryFileTree(FileTreeInternal fileTree) {

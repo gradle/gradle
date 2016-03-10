@@ -56,10 +56,10 @@ class TreeSnapshotterTest extends Specification {
         treeSnapshotter.cachedTrees.size() == 1
     }
 
-    def "should not cache list of file details when there is a pattern"() {
+    def "should not cache list of file details when there is a pattern or filter"() {
         given:
         createSampleFiles()
-        def fileTrees = resolveAsFileTrees("**/*.txt")
+        def fileTrees = resolveAsFileTrees(includePattern, includeFilter)
 
         when:
         def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
@@ -77,6 +77,12 @@ class TreeSnapshotterTest extends Specification {
         !fileDetails2.is(fileDetails)
         fileDetails2.collect { it.file } as Set == fileDetails.collect { it.file } as Set
         treeSnapshotter.cachedTrees.size() == 0
+
+        where:
+        includePattern | includeFilter
+        "**/*.txt"     | null
+        null           | "**/*.txt"
+        "**/*.txt"     | "**/*.txt"
     }
 
     def "should not use cached when allowReuse == false but should still add it to cache"() {
@@ -115,13 +121,16 @@ class TreeSnapshotterTest extends Specification {
          testDir.createFile("a/file5.md"),]
     }
 
-    private List<FileTreeInternal> resolveAsFileTrees(includePattern = null) {
+    private List<FileTreeInternal> resolveAsFileTrees(includePattern = null, includeFilter = null) {
         def fileResolver = TestFiles.resolver()
 
         def directorySet = new DefaultSourceDirectorySet("files", fileResolver, new DefaultDirectoryFileTreeFactory())
         directorySet.srcDir(testDir.getTestDirectory())
         if (includePattern) {
-            directorySet.filter.include(includePattern)
+            directorySet.include(includePattern)
+        }
+        if (includeFilter) {
+            directorySet.filter.include(includeFilter)
         }
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(fileResolver);
         context.add(directorySet);
