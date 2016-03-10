@@ -281,22 +281,27 @@ class PatternSetTest extends AbstractTestForPatternSet {
     @Test
     void supportIsEmptyMethod() {
         assert patternSet.isEmpty()
+        assert patternSet.intersect().isEmpty()
 
         patternSet = new PatternSet()
         patternSet.include { false }
         assert !patternSet.isEmpty()
+        assert !patternSet.intersect().isEmpty()
 
         patternSet = new PatternSet()
         patternSet.include("*.txt")
         assert !patternSet.isEmpty()
+        assert !patternSet.intersect().isEmpty()
 
         patternSet = new PatternSet()
         patternSet.exclude { false }
         assert !patternSet.isEmpty()
+        assert !patternSet.intersect().isEmpty()
 
         patternSet = new PatternSet()
         patternSet.exclude("*.txt")
         assert !patternSet.isEmpty()
+        assert !patternSet.intersect().isEmpty()
     }
 
     void included(FileTreeElement file) {
