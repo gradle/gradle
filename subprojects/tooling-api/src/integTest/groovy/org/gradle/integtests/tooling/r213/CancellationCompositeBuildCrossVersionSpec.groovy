@@ -23,10 +23,12 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
+import spock.lang.Ignore
 
 /**
  * Tests cancellation of model requests in a composite build.
  */
+@Ignore("Cancellation not yet supported for ToolingClient connection")
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 

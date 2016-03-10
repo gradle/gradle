@@ -18,9 +18,12 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Ignore
+
 /**
  * Tooling models for composite are produced by a single daemon instance.
  */
+@Ignore("Temporarily disabling the daemon-based coordinator")
 class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def setup() {
         toolingApi.requireIsolatedDaemons()

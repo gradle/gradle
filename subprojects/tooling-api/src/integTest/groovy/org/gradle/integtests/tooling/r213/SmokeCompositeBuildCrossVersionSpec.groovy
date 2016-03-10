@@ -78,14 +78,13 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         when:
         withCompositeConnection(project) { connection ->
-            def models = connection.getModels(EclipseProject)
-            connection.close()
+            connection.getModels(EclipseProject)
         }
         then:
         def e = thrown(BuildException)
         def causes = getCausalChain(e)
         causes.any {
-            it.message.contains("Could not fetch models of type 'EclipseProject'")
+            it.message.contains("Could not fetch model of type 'EclipseProject'")
         }
     }
 
@@ -98,7 +97,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         def e = thrown(BuildException)
         def causes = getCausalChain(e)
         causes.any {
-            it.message.contains("Could not fetch models of type 'EclipseProject'")
+            it.message.contains("Could not fetch model of type 'EclipseProject'")
         }
         causes.any {
             it.message.contains("project-does-not-exist' does not exist")

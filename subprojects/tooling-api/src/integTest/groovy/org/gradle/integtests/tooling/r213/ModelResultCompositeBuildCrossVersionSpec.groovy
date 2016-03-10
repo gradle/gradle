@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.CompositeBuildException
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.composite.BuildIdentity
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.tooling.composite.ProjectIdentity
@@ -26,8 +26,13 @@ import org.gradle.tooling.model.idea.IdeaProject
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
 
-    def "can correlate errors with build that caused it"() {
+    def "rethrows exception from model request"() {
         given:
+        def rootDirB = populate("B") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
         def rootDirA = populate("A") {
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << """
@@ -39,17 +44,17 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         when:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(rootDirA)
-        builder.addBuild(participantA)
+        builder.addBuild(createGradleBuildParticipant(rootDirB))
+        builder.addBuild(createGradleBuildParticipant(rootDirA))
         def connection = builder.build()
-        def buildIdentity = participantA.toBuildIdentity()
-        def otherBuildIdentity = createGradleBuildParticipant(file("B")).toBuildIdentity()
+
         and:
         modelResults = connection.getModels(EclipseProject)
+
         then:
-        def e = thrown(CompositeBuildException)
-        e.causedBy(buildIdentity)
-        !e.causedBy(otherBuildIdentity)
+        def e = thrown(BuildException)
+        e.message.startsWith "Could not fetch model of type 'EclipseProject' using Gradle installation"
+        e.cause.message.contains "A problem occurred evaluating root project 'A'."
     }
 
     def "can correlate models in a single project, single participant composite"() {
