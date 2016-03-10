@@ -135,6 +135,18 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return new IntersectionPatternSet(this);
     }
 
+    /**
+     * The PatternSet is considered empty when no includes or excludes have been added.
+     *
+     * The Spec returned by getAsSpec method only contains the default excludes patterns
+     * in this case.
+     *
+     * @return true when no includes or excludes have been added to this instance
+     */
+    public boolean isEmpty() {
+        return getExcludes().isEmpty() && getIncludes().isEmpty() && getExcludeSpecs().isEmpty() && getIncludeSpecs().isEmpty();
+    }
+
     private static class IntersectionPatternSet extends PatternSet {
 
         private final PatternSet other;
@@ -155,6 +167,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
                     other.addToAntBuilder(andNode, null);
                 }
             });
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return other.isEmpty() && super.isEmpty();
         }
     }
 

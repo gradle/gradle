@@ -278,6 +278,27 @@ class PatternSetTest extends AbstractTestForPatternSet {
         included file("ccc")
     }
 
+    @Test
+    void supportIsEmptyMethod() {
+        assert patternSet.isEmpty()
+
+        patternSet = new PatternSet()
+        patternSet.include { false }
+        assert !patternSet.isEmpty()
+
+        patternSet = new PatternSet()
+        patternSet.include("*.txt")
+        assert !patternSet.isEmpty()
+
+        patternSet = new PatternSet()
+        patternSet.exclude { false }
+        assert !patternSet.isEmpty()
+
+        patternSet = new PatternSet()
+        patternSet.exclude("*.txt")
+        assert !patternSet.isEmpty()
+    }
+
     void included(FileTreeElement file) {
         assertTrue(patternSet.asSpec.isSatisfiedBy(file))
     }
