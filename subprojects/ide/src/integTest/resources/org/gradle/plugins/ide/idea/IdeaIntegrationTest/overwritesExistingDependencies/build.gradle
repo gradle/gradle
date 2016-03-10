@@ -6,7 +6,7 @@ repositories {
 }
 
 dependencies {
-    runtime 'commons-collections:commons-collections:3.2@jar'
+    runtime 'commons-collections:commons-collections:3.2.2@jar'
     runtime 'junit:junit:4.7@jar'
 }
 

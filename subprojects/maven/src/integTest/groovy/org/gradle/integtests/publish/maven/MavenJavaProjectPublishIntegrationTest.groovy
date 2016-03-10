@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.1"
+    compile "commons-collections:commons-collections:3.2.2"
     runtime "commons-io:commons-io:1.4"
 }
 
@@ -57,7 +57,7 @@ uploadArchives {
         then:
         def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
-        mavenModule.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.1")
+        mavenModule.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:1.4")
     }
 

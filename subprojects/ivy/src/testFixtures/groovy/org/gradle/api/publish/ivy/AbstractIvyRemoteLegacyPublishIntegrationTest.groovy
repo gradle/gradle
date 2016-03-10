@@ -49,7 +49,7 @@ version = '2'
 group = 'org.gradle'
 
 dependencies {
-    compile "commons-collections:commons-collections:3.2.1"
+    compile "commons-collections:commons-collections:3.2.2"
     runtime "commons-io:commons-io:1.4"
 }
 
@@ -83,7 +83,7 @@ uploadArchives {
 
         with (module.parsedIvy) {
             dependencies.size() == 2
-            dependencies["commons-collections:commons-collections:3.2.1"].hasConf("compile->default")
+            dependencies["commons-collections:commons-collections:3.2.2"].hasConf("compile->default")
             dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
         }
 

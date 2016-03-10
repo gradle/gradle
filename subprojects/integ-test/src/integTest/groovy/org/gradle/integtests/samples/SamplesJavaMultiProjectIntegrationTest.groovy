@@ -123,7 +123,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
                 "WEB-INF/lib/$SHARED_NAME-1.0.jar".toString(),
                 "WEB-INF/lib/$API_NAME-1.0.jar".toString(),
                 "WEB-INF/lib/$API_NAME-spi-1.0.jar".toString(),
-                'WEB-INF/lib/commons-collections-3.2.jar',
+                'WEB-INF/lib/commons-collections-3.2.2.jar',
                 'WEB-INF/lib/commons-io-1.2.jar',
                 'WEB-INF/lib/commons-lang-2.4.jar'
         )
