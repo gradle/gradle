@@ -16,13 +16,12 @@
 
 package org.gradle.initialization;
 
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,23 +61,17 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         if (projectPropertiesFile.isFile()) {
             projectProperties = GUtil.loadProperties(projectPropertiesFile);
             LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",
-                    projectProperties.keySet());
+                projectProperties.keySet());
         } else {
             LOGGER.debug("project property file does not exists. We continue!");
         }
-        
+
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
-        ExtraPropertiesExtension extraProperties = new DslObject(project).getExtensions().getExtraProperties();
-        for (Map.Entry<String, String> entry: mergedProperties.entrySet()) {
-            try {
-                project.setProperty(entry.getKey(), entry.getValue());
-            } catch (MissingPropertyException e) {
-                if (!entry.getKey().equals(e.getProperty())) {
-                    throw e;
-                }
-                // Ignore and define as an extra property
-                extraProperties.set(entry.getKey(), entry.getValue());
-            }
+        ExtraPropertiesExtensionInternal extraProperties = (ExtraPropertiesExtensionInternal) new DslObject(project).getExtensions().getExtraProperties();
+        extraProperties.setGreedy(true);
+        for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
+            project.setProperty(entry.getKey(), entry.getValue());
         }
+        extraProperties.setGreedy(false);
     }
 }

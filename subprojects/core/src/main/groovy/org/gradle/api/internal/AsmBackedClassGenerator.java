@@ -44,6 +44,7 @@ import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
+
     private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
 
     @Override
@@ -69,6 +70,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
         private final Type conventionType = Type.getType(Convention.class);
+        private final Type decoratorType = Type.getType(Decorator.class);
         private final Type extensibleDynamicObjectHelperType = Type.getType(MixInExtensibleDynamicObject.class);
         private final Type nonExtensibleDynamicObjectHelperType = Type.getType(BeanDynamicObject.class);
 
@@ -90,6 +92,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         public void startClass() {
             List<String> interfaceTypes = new ArrayList<String>();
+            interfaceTypes.add(decoratorType.getInternalName());
             if (conventionAware && extensible) {
                 interfaceTypes.add(conventionAwareType.getInternalName());
             }

@@ -20,4 +20,10 @@ public interface ClassGenerator {
      * Generates a proxy class for the given class. May decorate the given class or may generate a subclass.
      */
     <T> Class<? extends T> generate(Class<T> type);
+
+    /**
+     * Marker interface that may be implemented by generated classes, that can be used to recognize if
+     * an object is a decorated proxy.
+     */
+    interface Decorator {}
 }

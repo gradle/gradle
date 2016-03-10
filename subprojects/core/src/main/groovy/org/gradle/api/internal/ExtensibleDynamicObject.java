@@ -57,7 +57,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
-        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention(instantiator));
+        this(delegate, createDynamicObject(delegate), new DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
@@ -70,6 +70,15 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
 
         updateDelegates();
+    }
+
+    private static BeanDynamicObject createDynamicObject(Object delegate) {
+        BeanDynamicObject beanDynamicObject = new BeanDynamicObject(delegate);
+        if (delegate instanceof ClassGenerator.Decorator) {
+            // to avoid too unnecessary `MissingPropertyException`, we're saying that a decorated class doesn't implement property/method missing.
+            beanDynamicObject = beanDynamicObject.withNotImplementsMissing();
+        }
+        return beanDynamicObject;
     }
 
     private void updateDelegates() {

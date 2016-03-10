@@ -43,6 +43,14 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
         if (!hasProperty(name)) {
+            if (extension instanceof ExtraPropertiesExtensionInternal && ((ExtraPropertiesExtensionInternal) extension).isGreedy()) {
+                // if the extension is in greedy mode, it means that we can directly put the variable into the extension, instead
+                // of throwing an exception that will be kept later. This is an important performance improvement because it allows
+                // us not to generate a stack trace for something that will eventually be silently ignored (because the exception is
+                // used for control).
+                extension.set(name, value);
+                return;
+            }
             throw new MissingPropertyException(name, delegateType);
         }
 
