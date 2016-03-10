@@ -59,6 +59,12 @@ Currently, the cache for a given build script is closed at the end of the build.
 
 Investigate options for reusing this across builds, when the build script has not changed.
 
+### Lazy project creation and initialisation 
+
+Rework the early `Project` lifecycle to defer work until as late as possible, and create and initialise more services lazily.
+
+TBD exactly what this means.
+
 ### Understand where build startup is spending its time
 
 Profile the daemon and Gradle client using the above test build to identify hotspots and potential improvements. Generate further stories based on this.
