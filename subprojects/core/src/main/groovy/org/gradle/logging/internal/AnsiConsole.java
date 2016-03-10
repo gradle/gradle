@@ -162,9 +162,12 @@ public class AnsiConsole implements Console {
             }
             Ansi ansi = createAnsi();
             if (hasTextOnBottomLine) {
+                int staleStatusChars = writePos.row > 0 ? 0 : writtenText.length();
                 writePos.copyFrom(textCursor);
                 positionCursorAt(writePos, ansi);
-                // TODO - remove old status text
+                if (staleStatusChars > textCursor.col) {
+                    ansi.eraseLine(Ansi.Erase.FORWARD);
+                }
                 ansi.newline();
                 newLineWritten(writePos);
                 writtenText = "";
@@ -195,26 +198,30 @@ public class AnsiConsole implements Console {
         }
 
         @Override
-        protected void doLineText(final CharSequence text, final boolean terminatesLine) {
+        protected void doLineText(CharSequence text) {
             if (text.length() == 0) {
                 return;
             }
             Ansi ansi = createAnsi();
             positionCursorAt(writePos, ansi);
-            if (writePos.row == statusBarCursor.row && statusBarCursor.col > writePos.col) {
-                // TODO - clear only remaining status line content, if any
-                ansi.eraseLine(Ansi.Erase.FORWARD);
-            }
             ColorMap.Color color = colorMap.getColourFor(getStyle());
             color.on(ansi);
             ansi.a(text.toString());
             color.off(ansi);
             write(ansi);
-            if (terminatesLine) {
-                newLineWritten(writePos);
-            } else {
-                charactersWritten(writePos, text.length());
+            charactersWritten(writePos, text.length());
+        }
+
+        @Override
+        protected void doEndLine(CharSequence endOfLine) {
+            Ansi ansi = createAnsi();
+            positionCursorAt(writePos, ansi);
+            if (writePos.row == statusBarCursor.row && statusBarCursor.col > writePos.col) {
+                ansi.eraseLine(Ansi.Erase.FORWARD);
             }
+            ansi.newline();
+            write(ansi);
+            newLineWritten(writePos);
         }
     }
 }

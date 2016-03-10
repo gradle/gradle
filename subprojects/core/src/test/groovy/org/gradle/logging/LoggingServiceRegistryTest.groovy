@@ -19,6 +19,7 @@ package org.gradle.logging
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.cli.CommandLineConverter
+import org.gradle.internal.SystemProperties
 import org.gradle.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.logging.internal.DefaultProgressLoggerFactory
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory
@@ -187,8 +188,12 @@ class LoggingServiceRegistryTest extends Specification {
         System.err.println("error")
 
         then:
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+
+        then:
+        1 * listener.onOutput("error")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         when:
@@ -197,6 +202,47 @@ class LoggingServiceRegistryTest extends Specification {
         then:
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
+    }
+
+    def buffersLinesWrittenToSystemOutAndErr() {
+        StandardOutputListener listener = Mock()
+
+        given:
+        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
+        loggingManager.start()
+
+        when:
+        System.out.print("in")
+        System.err.print("err")
+
+        then:
+        0 * listener._
+
+        when:
+        System.out.println("fo")
+        System.err.print("or")
+        System.err.println()
+
+        then:
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+
+        then:
+        1 * listener.onOutput("error")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+        0 * listener._
+
+        when:
+        System.out.print("buffered")
+        System.err.print("error")
+        System.err.flush()
+
+        then:
+        1 * listener.onOutput("error")
+        0 * listener._
     }
 
     def routesStyledTextToListenersWhenStarted() {
@@ -219,7 +265,36 @@ class LoggingServiceRegistryTest extends Specification {
         textOutput.println("info")
 
         then:
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+        0 * listener._
+    }
+
+    def buffersTextWrittenToStyledText() {
+        StandardOutputListener listener = Mock()
+
+        given:
+        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
+        loggingManager.start()
+
+        when:
+        def textOutput = registry.get(StyledTextOutputFactory).create("category")
+        textOutput.text("in")
+
+        then:
+        0 * listener._
+
+        when:
+        textOutput.println("fo")
+        textOutput.text("buffered")
+
+        then:
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
     }
 
@@ -385,8 +460,12 @@ class LoggingServiceRegistryTest extends Specification {
         System.err.println("error")
 
         then:
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
+
+        then:
+        1 * listener.onOutput("error")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         when:
@@ -458,7 +537,8 @@ class LoggingServiceRegistryTest extends Specification {
         textOutput.println("info")
 
         then:
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        1 * listener.onOutput("info")
+        1 * listener.onOutput(SystemProperties.instance.lineSeparator)
         0 * listener._
 
         and:

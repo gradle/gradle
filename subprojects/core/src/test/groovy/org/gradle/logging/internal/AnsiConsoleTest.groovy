@@ -46,7 +46,8 @@ class AnsiConsoleTest extends Specification {
         console.mainArea.append("message2${EOL}message3")
 
         then:
-        1 * ansi.a('message2' + EOL)
+        1 * ansi.a('message2')
+        1 * ansi.newline()
         1 * ansi.a('message3')
         0 * ansi._
     }
@@ -83,7 +84,8 @@ class AnsiConsoleTest extends Specification {
         console.flush()
 
         then:
-        1 * ansi.a('message' + EOL)
+        1 * ansi.a('message')
+        1 * ansi.newline()
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
         1 * ansi.a('text')
         1 * ansi.a(Ansi.Attribute.RESET)
@@ -106,7 +108,8 @@ class AnsiConsoleTest extends Specification {
         console.flush()
 
         then:
-        1 * ansi.a('message' + EOL)
+        1 * ansi.a('message')
+        1 * ansi.newline()
         0 * ansi._
     }
 
@@ -200,9 +203,40 @@ class AnsiConsoleTest extends Specification {
 
         then:
         1 * ansi.cursorLeft(6)
+        1 * ansi.a('message1')
+        1 * ansi.newline()
+        1 * ansi.a('message2')
+        1 * ansi.newline()
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
+    }
+
+    def appendsTextWhenStatusBarIsPresentAndLongerThanNewLine() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
+
+        when:
+        console.mainArea.append("12");
+        console.mainArea.append("34$EOL");
+        console.mainArea.append("$EOL$EOL");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.a('12')
+        1 * ansi.a('34')
         1 * ansi.eraseLine(Ansi.Erase.FORWARD)
-        1 * ansi.a('message1' + EOL)
-        1 * ansi.a('message2' + EOL)
+        1 * ansi.newline()
+        1 * ansi.newline()
+        1 * ansi.newline()
         0 * ansi._
 
         when:
@@ -225,7 +259,6 @@ class AnsiConsoleTest extends Specification {
 
         then:
         1 * ansi.cursorLeft(6)
-        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
         1 * ansi.a('message1')
         0 * ansi._
 
@@ -256,6 +289,49 @@ class AnsiConsoleTest extends Specification {
         0 * ansi._ // no update required
     }
 
+    def appendsTextWithNoEOLWhenStatusBarIsPresentAndLongerThanNewTextLines() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
+
+        when:
+        console.mainArea.append("a");
+        console.mainArea.append("b");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.a('a')
+        1 * ansi.a('b')
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.newline()
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
+
+        when:
+        console.mainArea.append("c");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.cursorUp(1)
+        1 * ansi.cursorRight(2)
+        1 * ansi.a('c')
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        0 * ansi._ // no update required
+    }
+
     def appendsTextAfterEmptyLineWhenStatusBarIsPresent() {
         given:
         console.statusBar.text = 'status'
@@ -268,7 +344,7 @@ class AnsiConsoleTest extends Specification {
         then:
         1 * ansi.cursorLeft(6)
         1 * ansi.eraseLine(Ansi.Erase.FORWARD)
-        1 * ansi.a(EOL)
+        1 * ansi.newline()
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
         1 * ansi.a('status')
         1 * ansi.a(Ansi.Attribute.RESET)
@@ -280,7 +356,6 @@ class AnsiConsoleTest extends Specification {
 
         then:
         1 * ansi.cursorLeft(6)
-        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
         1 * ansi.a("message")
         1 * ansi.newline()
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
@@ -376,8 +451,7 @@ class AnsiConsoleTest extends Specification {
         1 * ansi.cursorRight(8)
         1 * ansi.a('message2')
         1 * ansi.a('message3')
-        1 * ansi.a(EOL)
-        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        1 * ansi.newline()
         1 * ansi.a('message4')
         1 * ansi.newline()
         1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)

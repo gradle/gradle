@@ -36,14 +36,27 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "[some text]"
     }
 
-    def "appends eol to current line"() {
+    def "append empty lines"() {
         def output = output()
 
         when:
         output.text(eol)
+        output.text(eol)
+        output.text("$eol$eol")
 
         then:
-        result.toString() == "[${eol}]{eol}{finish}"
+        result.toString() == "{eol}{start}{eol}{start}{eol}{start}{eol}"
+    }
+
+    def "appends eol to current line"() {
+        def output = output()
+
+        when:
+        output.text("some text")
+        output.text(eol)
+
+        then:
+        result.toString() == "[some text]{eol}"
     }
 
     def "append text that contains multiple lines"() {
@@ -53,7 +66,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         output.text("a${eol}b")
 
         then:
-        result.toString() == "[a${eol}]{eol}{finish}{start}[b]"
+        result.toString() == "[a]{eol}{start}[b]"
     }
 
     def "append text that ends with eol"() {
@@ -63,7 +76,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         output.text("a${eol}")
 
         then:
-        result.toString() == "[a${eol}]{eol}{finish}"
+        result.toString() == "[a]{eol}"
 
         when:
         output.text("b${eol}")
@@ -71,7 +84,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         output.text("c")
 
         then:
-        result.toString() == "[a${eol}]{eol}{finish}{start}[b${eol}]{eol}{finish}{start}[${eol}]{eol}{finish}{start}[c]"
+        result.toString() == "[a]{eol}{start}[b]{eol}{start}{eol}{start}[c]"
     }
 
     def "can append eol in chunks"() {
@@ -82,13 +95,13 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         output.text("a--")
         
         then:
-        result.toString() == "[a--]"
+        result.toString() == "[a]"
         
         when:
         output.text("--b")
         
         then:
-        result.toString() == "[a--][--]{eol}{finish}{start}[b]"
+        result.toString() == "[a]{eol}{start}[b]"
     }
 
     def "can append eol prefix"() {
@@ -96,16 +109,18 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         def output = output()
 
         when:
-        output.text("--")
+        output.text("a--")
         
         then:
-        result.toString() == "[--]"
+        result.toString() == "[a]"
 
         when:
-        output.text("a")
+        output.text("-a-")
+        output.text("-")
+        output.text("-a")
 
         then:
-        result.toString() == "[--][a]"
+        result.toString() == "[a][---][a][---][a]"
     }
 
     def "can split eol across style changes"() {
@@ -118,7 +133,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         output.text("--")
 
         then:
-        result.toString() == "[--]{style}[--]{eol}{finish}"
+        result.toString() == "{style}{eol}"
     }
 
     def output() {
@@ -129,23 +144,21 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
             }
 
             @Override
-            protected void doFinishLine() {
-                result.append("{finish}")
-            }
-
-            @Override
             protected void doStartLine() {
                 result.append("{start}")
             }
 
             @Override
-            protected void doLineText(CharSequence text, boolean terminatesLine) {
+            protected void doLineText(CharSequence text) {
                 result.append("[")
                 result.append(text)
                 result.append("]")
-                if (terminatesLine) {
-                    result.append("{eol}")
-                }
+            }
+
+            @Override
+            protected void doEndLine(CharSequence endOfLine) {
+                assert endOfLine == System.getProperty("line.separator")
+                result.append("{eol}")
             }
         }
         return output
