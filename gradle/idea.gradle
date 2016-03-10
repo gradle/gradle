@@ -5,6 +5,10 @@ allprojects {
 
     idea {
         module {
+            // Inherit this from the idea project's language level.
+            languageLevel = null
+            // Inherit from the root idea project's target bytecode version.
+            targetBytecodeVersion = null
             iml {
                 whenMerged { module ->
                     module.dependencies.removeAll {
@@ -55,7 +59,8 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        languageLevel = '1.6'
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
 
         vcs = 'Git'
         ipr {
