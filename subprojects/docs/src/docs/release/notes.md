@@ -47,6 +47,8 @@ This feature was contributed by [Alex Landau](https://github.com/AlexLandau).
 
 The Gradle [IDEA plugin](userguide/idea_plugin.html) generates configuration files allowing a Gradle project to be developed using IntelliJ IDEA. Previous versions of Gradle did not consider `targetCompatibility` settings for Java projects when generating IDEA configuration. This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest `targetCompatibility` value of all imported subprojects. For multi-project Gradle builds that contain a mix of `targetCompatibility` values, the generated IDEA module for subprojects deviating from the project bytecode version will include an override for the appropriate 'module bytecode version'.
 
+To explicit deviate from these calculated bytecode level settings, the incubating `targetBytecodeVersion` property can be set on [IDEA project](dsl/org.gradle.plugins.ide.idea.model.IdeaProject.html#org.gradle.plugins.ide.idea.model.IdeaProject:targetBytecodeVersion) and on [IDEA module](dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:targetBytecodeVersion) level.
+
 #### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
 
 Beginning with IntelliJ IDEA version 14, Scala projects are no longer configured using a project facet but instead use a [Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be generated. Using the 'idea' plugin in conjunction with Scala projects for newer IDEA version would cause errors due to the Scala facet being unrecognized. The 'idea' plugin now by default creates an IDEA 14+ compatible Scala SDK project library as well as adds this library to all Scala modules. More information, including how to configure your project to continue to support older IDEA versions, can be found in the [user guide](userguide/scala_plugin.html#sec:intellij_idea_integration).
@@ -108,7 +110,7 @@ Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targe
 ### Changes to 'idea' module language level configuration
 
 Setting `idea.project.languageLevel` explicitly in a build does not override modules language levels.
-They are calculated by from the `sourceCompatibility` level of the java projects.
+They are calculated by from the `sourceCompatibility` level of the java projects and set explicitly per module. To explicitly set the IDEA specific language level, the incubating `targetBytecodeVersion` property of [IDEA module](dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:languageLevel) can be used.
 
 ### System properties are read in different order
 
