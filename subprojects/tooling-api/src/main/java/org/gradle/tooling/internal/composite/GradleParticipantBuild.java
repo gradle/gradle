@@ -18,20 +18,35 @@ package org.gradle.tooling.internal.composite;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.composite.ProjectIdentity;
 
 import java.io.File;
 
 class GradleParticipantBuild {
     private final GradleBuildInternal build;
+    private final File gradleUserHome;
     private final File projectDirectory;
 
     public GradleParticipantBuild(GradleBuildInternal build) {
-        this(build, build.getProjectDir());
+        this(build, null);
     }
 
-    public GradleParticipantBuild(GradleBuildInternal build, File projectDirectory) {
+    public GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome) {
+        this(build, gradleUserHome, build.getProjectDir());
+    }
+
+    private GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome, File projectDirectory) {
         this.build = build;
+        this.gradleUserHome = gradleUserHome;
         this.projectDirectory = projectDirectory;
+    }
+
+    public GradleParticipantBuild withProjectDirectory(File projectDirectory) {
+        return new GradleParticipantBuild(build, gradleUserHome, projectDirectory);
+    }
+
+    public ProjectIdentity toProjectIdentity(String projectPath) {
+        return build.toProjectIdentity(projectPath);
     }
 
     public ProjectConnection connect() {
@@ -53,7 +68,7 @@ class GradleParticipantBuild {
         } else {
             connector.useDistribution(build.getGradleDistribution());
         }
-
+        connector.useGradleUserHomeDir(gradleUserHome);
         return connector;
     }
 

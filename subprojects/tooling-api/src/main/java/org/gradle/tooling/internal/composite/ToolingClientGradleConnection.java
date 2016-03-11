@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.composite;
 
+import org.gradle.api.Transformer;
 import org.gradle.tooling.*;
 import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.composite.ModelResults;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Set;
@@ -49,7 +51,12 @@ public class ToolingClientGradleConnection implements GradleConnection {
     public <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType) {
         checkOpen();
         checkSupportedModelType(modelType);
-        return new ToolingClientCompositeModelBuilder<T>(modelType, participants);
+        return new ToolingClientCompositeModelBuilder<T>(modelType, CollectionUtils.collect(participants, new Transformer<GradleParticipantBuild, GradleBuildInternal>() {
+            @Override
+            public GradleParticipantBuild transform(GradleBuildInternal gradleBuildInternal) {
+                return new GradleParticipantBuild(gradleBuildInternal, gradleUserHomeDir);
+            }
+        }));
     }
 
     @Override
@@ -65,7 +72,7 @@ public class ToolingClientGradleConnection implements GradleConnection {
     }
 
     private ProjectConnection connect(GradleBuildInternal build) {
-        return new GradleParticipantBuild(build).connect();
+        return new GradleParticipantBuild(build, gradleUserHomeDir).connect();
     }
 
     private void checkOpen() {

@@ -51,7 +51,7 @@ public class ToolingClientGradleConnectionBuilder implements GradleConnection.Bu
         if (!(gradleBuild instanceof GradleBuildInternal)) {
             throw new IllegalArgumentException("GradleBuild has an internal API that must be implemented.");
         }
-        participants.add((GradleBuildInternal)gradleBuild);
+        participants.add((GradleBuildInternal) gradleBuild);
         return this;
     }
 
