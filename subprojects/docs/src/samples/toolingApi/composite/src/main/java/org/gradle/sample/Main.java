@@ -33,7 +33,6 @@ public class Main {
         GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder();
         File gradleHome = new File(args[0]);
         builder.useGradleUserHomeDir(new File(args[1]));
-        builder.useInstallation(gradleHome);
 
         for (int i=2; i<args.length; i++) {
             File projectDir = new File(args[i]);
