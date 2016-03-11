@@ -59,7 +59,7 @@ Currently, the cache for a given build script is closed at the end of the build.
 
 Investigate options for reusing this across builds, when the build script has not changed.
 
-### Lazy project creation and initialisation 
+### Lazy project creation and initialisation
 
 Rework the early `Project` lifecycle to defer work until as late as possible, and create and initialise more services lazily.
 
@@ -90,7 +90,7 @@ Here are some profiling results from running `ManyEmptyProjectsHelpPerformanceTe
         - A large amount of `org.gradle.model.internal.registry.RuleBindings.PredicateMatches` instances are found in memory (representing 17% of total memory usage). `ModelNodes` represent `15%` of total memory. It seems to be a lot for a project that doesn't use the software model.
     - CPU
         - 45% of time is spent in `org.gradle.initialization.SettingsLoader.findAndLoadSettings`, out of which:
-            - 47% of time is spent in setting the project properties. A large amount of this time is spent in filling exception stack traces for missing properties, that are always caught. In short, total dead time. Profiler reports 90k `MissingPropertyException` sent from Gradle code, and 90k `MissingPropertyExceptionNoStack` sent from Groovy. Given that there are 10k projects, that is 9 exceptions per project, that contribute most of the settings initialization!
+            - ~~~47% of time is spent in setting the project properties. A large amount of this time is spent in filling exception stack traces for missing properties, that are always caught. In short, total dead time. Profiler reports 90k `MissingPropertyException` sent from Gradle code, and 90k `MissingPropertyExceptionNoStack` sent from Groovy. Given that there are 10k projects, that is 9 exceptions per project, that contribute most of the settings initialization!~~~ (fixed)
             - 53% of time is spent in initializing the project. Most of this time is spent in populating the model registry (41%) and initializing services (38%)
         - 45% of time is spent in evaluating the projects, and almost all time is spent in logging.
 
