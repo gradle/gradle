@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.initialization
+
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
@@ -59,7 +60,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     def "delegates to build loader"() {
         given:
         _ * propertiesLoader.mergeProperties(!null) >> [:]
-        
+
         when:
         loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
@@ -76,8 +77,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
-        1 * rootProject.setProperty('prop', 'value')
-        1 * childProject.setProperty('prop', 'value')
+        1 * rootProperties.set('prop', 'value')
+        1 * childProperties.set('prop', 'value')
     }
 
     def "defines extra property for unknown property"() {
@@ -88,7 +89,6 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
 
         then:
-        1 * rootProject.setProperty('prop', 'value') >> { throw new MissingPropertyException('prop', rootProject.class) }
         1 * rootProperties.set('prop', 'value')
     }
 
@@ -103,7 +103,22 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         then:
         1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
         1 * propertiesLoader.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
-        1 * rootProject.setProperty('prop', 'rootValue')
-        1 * childProject.setProperty('prop', 'childValue')
+        1 * rootProperties.set('prop', 'rootValue')
+        1 * childProperties.set('prop', 'childValue')
+    }
+
+    def "defines project properties from Project class"() {
+        given:
+        2 * propertiesLoader.mergeProperties([:]) >> [version: '1.0']
+
+        when:
+        loader.load(rootProjectDescriptor, defaultProjectDescriptor, gradle, classLoaderScope)
+
+        then:
+        1 * rootProject.setVersion('1.0')
+        1 * childProject.setVersion('1.0')
+        0 * rootProperties.set(_, _)
+        0 * childProperties.set(_, _)
+
     }
 }

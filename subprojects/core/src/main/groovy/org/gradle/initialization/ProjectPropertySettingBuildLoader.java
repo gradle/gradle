@@ -16,12 +16,14 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +46,17 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
         buildLoader.load(rootProjectDescriptor, defaultProject, gradle, classLoaderScope);
-        setProjectProperties(gradle.getRootProject());
+        setProjectProperties(gradle.getRootProject(), new Applicator());
     }
 
-    private void setProjectProperties(Project project) {
-        addPropertiesToProject(project);
+    private void setProjectProperties(Project project, Applicator applicator) {
+        addPropertiesToProject(project, applicator);
         for (Project childProject : project.getChildProjects().values()) {
-            setProjectProperties(childProject);
+            setProjectProperties(childProject, applicator);
         }
     }
 
-    private void addPropertiesToProject(Project project) {
+    private void addPropertiesToProject(Project project, Applicator applicator) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
@@ -67,11 +69,40 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         }
 
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
-        ExtraPropertiesExtensionInternal extraProperties = (ExtraPropertiesExtensionInternal) new DslObject(project).getExtensions().getExtraProperties();
-        extraProperties.setGreedy(true);
         for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
-            project.setProperty(entry.getKey(), entry.getValue());
+            applicator.configureProperty(project, entry.getKey(), entry.getValue());
         }
-        extraProperties.setGreedy(false);
+    }
+
+    /**
+     * Applies the given properties to the project and its subprojects, caching property mutators whenever possible
+     * to avoid too many searches.
+     */
+    private static class Applicator {
+        private final Map<String, PropertyMutator> mutators = Maps.newHashMap();
+        private Class<? extends Project> projectClazz;
+
+        void configureProperty(Project project, String name, String value) {
+            Class<? extends Project> clazz = project.getClass();
+            if (clazz != projectClazz) {
+                mutators.clear();
+                projectClazz = clazz;
+            }
+            PropertyMutator propertyMutator = mutators.get(name);
+            if (propertyMutator != null) {
+                propertyMutator.setValue(project, value);
+            } else {
+                if (!mutators.containsKey(name)) {
+                    propertyMutator = JavaReflectionUtil.writeablePropertyIfExists(clazz, name);
+                    mutators.put(name, propertyMutator);
+                    if (propertyMutator != null) {
+                        propertyMutator.setValue(project, value);
+                        return;
+                    }
+                }
+                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
+                extraProperties.set(name, value);
+            }
+        }
     }
 }

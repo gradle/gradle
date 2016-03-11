@@ -25,18 +25,9 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
+public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
 
     private final Map<String, Object> storage = new HashMap<String, Object>();
-    private boolean greedy;
-
-    public boolean isGreedy() {
-        return greedy;
-    }
-
-    public void setGreedy(boolean greedy) {
-        this.greedy = greedy;
-    }
 
     public boolean has(String name) {
         return storage.containsKey(name);
