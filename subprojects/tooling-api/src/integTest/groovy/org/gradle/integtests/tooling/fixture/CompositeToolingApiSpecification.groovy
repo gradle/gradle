@@ -23,7 +23,7 @@ import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
-@TargetGradleVersion(">=2.8") // TODO:DAZ This needs to support versions right back to 1.0
+@TargetGradleVersion(">=2.11") // TODO:DAZ This needs to support versions right back to 1.0
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
 //    boolean embedCoordinatorAndParticipants = false
