@@ -16,12 +16,10 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTest {
-
-    @LeaksFileHandles
+    
     def "configuration in gradle user home is not used by gradle runner builds"() {
         when:
         def userHome = file("user-home")
