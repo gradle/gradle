@@ -25,9 +25,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    def setup() {
-        //embedCoordinatorAndParticipants = true
-    }
 
     def "executes task in a single project within a composite "() {
         given:

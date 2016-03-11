@@ -17,18 +17,16 @@
 package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
-@TargetGradleVersion(GradleVersions.SUPPORTS_COMPOSITE_BUILD)
+@TargetGradleVersion(">=2.8") // TODO:DAZ This needs to support versions right back to 1.0
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
-    boolean embedCoordinatorAndParticipants = false
+//    boolean embedCoordinatorAndParticipants = false
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)
@@ -46,13 +44,17 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
     GradleConnection.Builder createCompositeBuilder() {
         def builder = toolingApi.createCompositeBuilder()
-        if (embedCoordinatorAndParticipants) {
+//        if (embedCoordinatorAndParticipants) {
             // Embed everything if requested
-            builder.embeddedParticipants(true)
-            builder.embeddedCoordinator(true)
-            builder.useClasspathDistribution()
-        }
+//            builder.embeddedParticipants(true)
+//            builder.embeddedCoordinator(true)
+//            builder.useClasspathDistribution()
+//        }
         return builder
+    }
+
+    GradleBuild createGradleBuildParticipant(File rootDir) {
+        return toolingApi.createCompositeParticipant(rootDir)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
@@ -108,12 +110,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     // Transforms Iterable<ModelResult<T>> into Iterable<T>
     def unwrap(Iterable<ModelResult> modelResults) {
         modelResults.collect { it.model }
-    }
-
-    GradleBuild createGradleBuildParticipant(File rootDir) {
-        // TODO: this isn't the right way to configure the gradle distribution of the participant if
-        // we want to support varying it
-        GradleConnector.newGradleBuildBuilder().forProjectDirectory(rootDir).useInstallation(dist.gradleHomeDir).create()
     }
 
     List<Throwable> getCausalChain(Throwable throwable) {
