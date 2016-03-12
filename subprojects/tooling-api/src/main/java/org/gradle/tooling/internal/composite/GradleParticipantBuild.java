@@ -45,6 +45,10 @@ class GradleParticipantBuild {
         return new GradleParticipantBuild(build, gradleUserHome, projectDirectory);
     }
 
+    public boolean isRoot() {
+        return build.getProjectDir().equals(projectDirectory);
+    }
+
     public ProjectIdentity toProjectIdentity(String projectPath) {
         return build.toProjectIdentity(projectPath);
     }

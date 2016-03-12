@@ -90,7 +90,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
                 // Brute force: load the EclipseProject model and open a connection to each sub-project
                 // TODO:DAZ Could do something more efficient to get BuildEnvironment in newer versions
                 // (it's the same in every subproject: just need to know the paths for all subprojects
-                EclipseProject rootProject = getModel(participant, EclipseProject.class);
+                EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
                 buildResultsWithSeparateProjectConnections(participant, rootProject, participantResults);
             }
         }
@@ -98,7 +98,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
     }
 
     private boolean supportsCustomModelAction(GradleParticipantBuild participant) {
-        BuildEnvironment buildEnvironment = getModel(participant, BuildEnvironment.class);
+        BuildEnvironment buildEnvironment = getProjectModel(participant, BuildEnvironment.class);
         GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
         return gradleVersion.compareTo(CUSTOM_TOOLING_ACTION_VERSION) >= 0;
     }
@@ -114,7 +114,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
     private void buildResultsFromHierarchicalModel(GradleParticipantBuild participant, Set<ModelResult<T>> results) {
         try {
-            T model = getModel(participant, modelType);
+            T model = getProjectModel(participant, modelType);
             addHierarchicalModel(model, participant, results);
         } catch (GradleConnectionException e) {
             DefaultModelResult<T> failureResult = new DefaultModelResult<T>(participant.toProjectIdentity(":"), e);
@@ -147,6 +147,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
         try {
             BuildActionExecuter<Map<String, T>> actionExecuter = projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
+            actionExecuter.withArguments("--no-search-upward");
             configureRequest(actionExecuter);
             Map<String, T> actionResults = actionExecuter.run();
             for (String projectPath : actionResults.keySet()) {
@@ -160,7 +161,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
     private void buildResultsWithSeparateProjectConnections(GradleParticipantBuild participant, EclipseProject project, Set<ModelResult<T>> results) {
         GradleParticipantBuild childBuild = participant.withProjectDirectory(project.getProjectDirectory());
-        T model = getModel(childBuild, modelType);
+        T model = getProjectModel(childBuild, modelType);
         ModelResult<T> result = createModelResult(participant, project.getGradleProject().getPath(), model);
         results.add(result);
 
@@ -169,10 +170,13 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         }
     }
 
-    private <V> V getModel(GradleParticipantBuild build, Class<V> modelType) throws GradleConnectionException {
+    private <V> V getProjectModel(GradleParticipantBuild build, Class<V> modelType) throws GradleConnectionException {
         ProjectConnection connection = build.connect();
         try {
             ModelBuilder<V> modelBuilder = connection.model(modelType);
+            if (build.isRoot()) {
+                modelBuilder.withArguments("--no-search-upward");
+            }
             configureRequest(modelBuilder);
             return modelBuilder.get();
         } finally {
