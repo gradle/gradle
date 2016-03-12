@@ -25,7 +25,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
-@TargetGradleVersion(">=2.11") // TODO:DAZ This needs to support versions right back to 1.0
+@TargetGradleVersion(">=1.0")
 @Requires([TestPrecondition.MAC_OS_X]) // TODO:DAZ Re-enable these tests on CI
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
