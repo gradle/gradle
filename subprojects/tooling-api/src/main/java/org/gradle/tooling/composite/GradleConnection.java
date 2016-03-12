@@ -140,6 +140,23 @@ public interface GradleConnection {
      * <p>The set of projects is "live", so that models from projects added to the overall composite after the builder
      * was been created will appear in the results without recreating the builder.</p>
      *
+     * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
+     * build:
+     *
+     * <ul>
+     *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
+     *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.BasicIdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
+     * </ul>
+     *
+     * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
+     *
      * @param modelType
      * @param <T>
      */
