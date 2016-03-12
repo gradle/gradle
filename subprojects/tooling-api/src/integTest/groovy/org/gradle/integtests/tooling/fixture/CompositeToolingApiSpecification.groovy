@@ -21,9 +21,12 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=2.11") // TODO:DAZ This needs to support versions right back to 1.0
+@Requires(TestPrecondition.NOT_WINDOWS)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
 //    boolean embedCoordinatorAndParticipants = false
