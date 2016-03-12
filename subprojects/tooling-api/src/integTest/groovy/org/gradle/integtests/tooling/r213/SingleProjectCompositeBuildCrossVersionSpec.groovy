@@ -132,13 +132,8 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         then:
         def e = thrown(BuildException)
-        def causes = getCausalChain(e)
-        causes.any {
-            it.message.contains("Could not fetch model of type 'EclipseProject'")
-        }
-        causes.any {
-            it.message.contains("single-build' does not exist")
-        }
+        assertHasCause(e, "Could not fetch model of type 'EclipseProject'")
+        assertHasCause(e, "single-build' does not exist")
 
         cleanup:
         composite?.close()
