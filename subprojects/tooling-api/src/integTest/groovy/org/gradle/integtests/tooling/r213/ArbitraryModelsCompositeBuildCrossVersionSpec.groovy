@@ -37,7 +37,7 @@ import java.lang.reflect.Proxy
 // TODO:DAZ Need to test multi-project where subproject directory does not exist
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
-    private static final List<Class<?>> HIERARCHICAL_SPECIAL_MODELS = [IdeaProject, BasicIdeaProject]
+    private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
     private static final List<Class<?>> PROJECT_MODELS = [BuildInvocations, ProjectPublications]
 
@@ -75,10 +75,14 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     }
 
     private static List<TestScenario> createTestScenarios() {
-        List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + HIERARCHICAL_SPECIAL_MODELS + BUILD_MODELS
+        List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + BUILD_MODELS
         // Need to create a copy of the dist GradleVersion, due to classloader issues
         def targetVersion = GradleVersion.version(targetDist.version.version)
-        if (targetVersion.compareTo(GradleVersion.version("1.12")) > 0) {
+        if (targetVersion.compareTo(GradleVersion.version("1.1")) >= 0) {
+            // Idea models fail to apply with 1.0 on because JavaVersion.current() fails
+            supportedModels += HIERARCHICAL_IDEA_MODELS
+        }
+        if (targetVersion.compareTo(GradleVersion.version("1.12")) >= 0) {
             // TODO: We should support `BuildInvocations` back further
             // TODO: Test the failure cases for unsupported types
             supportedModels += PROJECT_MODELS
