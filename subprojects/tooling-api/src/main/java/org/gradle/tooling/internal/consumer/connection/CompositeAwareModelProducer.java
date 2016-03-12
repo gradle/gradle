@@ -54,7 +54,7 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
             for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
                 ProjectIdentity projectIdentity = (ProjectIdentity)e.getKey();
                 T model = (T)e.getValue();
-                models.add(new DefaultModelResult<T>(model, projectIdentity));
+                models.add(new DefaultModelResult<T>(projectIdentity, model));
             }
             return models;
         }

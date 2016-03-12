@@ -78,22 +78,27 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         when:
         withCompositeConnection(project) { connection ->
-            connection.getModels(EclipseProject)
+            connection.getModels(EclipseProject).each {
+                it.model
+            }
         }
         then:
         def e = thrown(BuildException)
-        assertHasCause(e, "Could not fetch model of type 'EclipseProject'")
+        assertFailure(e, "Could not fetch model of type 'EclipseProject'")
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
         when:
         withCompositeConnection(projectDir("project-does-not-exist")) { connection ->
-            connection.getModels(EclipseProject)
+            connection.getModels(EclipseProject).each {
+                it.model
+            }
         }
         then:
         def e = thrown(BuildException)
-        assertHasCause(e, "Could not fetch model of type 'EclipseProject'")
-        assertHasCause(e, "project-does-not-exist' does not exist")
+        assertFailure(e,
+            "Could not fetch model of type 'EclipseProject'",
+            "project-does-not-exist' does not exist")
     }
 
     def "does not search upwards for projects"() {

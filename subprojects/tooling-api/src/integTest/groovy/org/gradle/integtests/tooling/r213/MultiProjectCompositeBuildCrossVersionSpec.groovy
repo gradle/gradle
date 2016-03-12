@@ -271,8 +271,9 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         then:
         def e = thrown(BuildException)
-        assertHasCause(e, "Could not fetch model of type 'EclipseProject'")
-        assertHasCause(e, "single-build' does not exist")
+        assertFailure(e,
+            "Could not fetch model of type 'EclipseProject'",
+            "single-build' does not exist")
 
         cleanup:
         composite?.close()

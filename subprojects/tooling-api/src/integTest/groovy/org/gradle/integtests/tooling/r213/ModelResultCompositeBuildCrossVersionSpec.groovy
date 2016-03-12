@@ -16,45 +16,67 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.BuildException
 import org.gradle.tooling.composite.BuildIdentity
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.tooling.composite.ProjectIdentity
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.CollectionUtils
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
 
-    def "rethrows exception from model request"() {
+    def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
-        def rootDirB = populate("B") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
         def rootDirA = populate("A") {
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << """
                 apply plugin: 'java'
                 group = 'org.A'
                 version = '1.0'
-                throw new GradleException("Fail")
+                throw new GradleException("Failure in A")
+"""
+        }
+        def rootDirB = populate("B") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        def rootDirC = populate("C") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
+            buildFile << """
+                apply plugin: 'java'
+                throw new GradleException("Different failure in C")
 """
         }
         when:
         def builder = createCompositeBuilder()
-        builder.addBuild(createGradleBuildParticipant(rootDirB))
-        builder.addBuild(createGradleBuildParticipant(rootDirA))
+        def participantA = createGradleBuildParticipant(rootDirA)
+        def participantB = createGradleBuildParticipant(rootDirB)
+        def participantC = createGradleBuildParticipant(rootDirC)
+        builder.addBuild(participantA)
+        builder.addBuild(participantB)
+        builder.addBuild(participantC)
         def connection = builder.build()
 
         and:
         modelResults = connection.getModels(EclipseProject)
 
         then:
-        def e = thrown(BuildException)
-        e.message.startsWith "Could not fetch model of type 'EclipseProject' using Gradle installation"
-        e.cause.message.contains "A problem occurred evaluating root project 'A'."
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        assertFailure(resultA.failure,
+            "Could not fetch model of type 'EclipseProject' using Gradle installation",
+            "A problem occurred evaluating root project 'A'.",
+            "Failure in A")
+
+        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':'))
+        assertSingleEclipseProject(resultB, 'B', ':')
+
+        def resultC = CollectionUtils.single(findByProjectIdentity(participantC.toProjectIdentity(':')))
+        assertFailure(resultC.failure,
+            "Could not fetch model of type 'EclipseProject' using Gradle installation",
+            "A problem occurred evaluating root project 'C'.",
+            "Different failure in C")
     }
 
     def "can correlate models in a single project, single participant composite"() {

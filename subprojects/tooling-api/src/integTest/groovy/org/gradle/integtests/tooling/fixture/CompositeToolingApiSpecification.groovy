@@ -120,7 +120,18 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         modelResults.collect { it.model }
     }
 
-    List<Throwable> getCausalChain(Throwable throwable) {
+    boolean assertFailure(Throwable failure, String... messages) {
+        assert failure != null
+        def causes = getCausalChain(failure)
+        messages.each { message ->
+            assert causes.any {
+                it.message.contains(message)
+            }
+        }
+    }
+
+
+    private static List<Throwable> getCausalChain(Throwable throwable) {
         def causes = [];
         while (throwable != null) {
             causes.add(throwable)
