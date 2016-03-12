@@ -64,7 +64,9 @@ public class ToolingClientGradleConnection implements GradleConnection {
         // TODO:DAZ These connections are not being closed
         for (GradleBuildInternal participant : participants) {
             if (participant.toBuildIdentity().equals(buildIdentity)) {
-                return connect(participant).newBuild();
+                BuildLauncher buildLauncher = connect(participant).newBuild();
+                buildLauncher.withArguments("--no-search-upward");
+                return buildLauncher;
             }
         }
 
