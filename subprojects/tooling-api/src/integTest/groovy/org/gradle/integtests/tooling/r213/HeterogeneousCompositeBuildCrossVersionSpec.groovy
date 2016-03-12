@@ -21,17 +21,14 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 /**
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
  */
-@Ignore
 class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
-    private final static GradleDistribution GRADLE_2_8 = new ReleasedVersionDistributions().getDistribution(GradleVersion.version("2.8"))
+    private final static GradleDistribution GRADLE_2_8 = new ReleasedVersionDistributions().getDistribution("2.8")
 
     def "retrieve models for composite with heterogeneous Gradle versions"() {
         given:
