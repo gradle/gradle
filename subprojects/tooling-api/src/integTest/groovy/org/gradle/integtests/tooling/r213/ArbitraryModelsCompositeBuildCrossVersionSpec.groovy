@@ -27,6 +27,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 
 import java.lang.reflect.Proxy
 
@@ -39,7 +40,6 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> HIERARCHICAL_SPECIAL_MODELS = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
     private static final List<Class<?>> PROJECT_MODELS = [BuildInvocations, ProjectPublications]
-    private static final List<Class<?>> ALL_MODELS = [] + HIERARCHICAL_MODELS + HIERARCHICAL_SPECIAL_MODELS + BUILD_MODELS + PROJECT_MODELS
 
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
@@ -71,11 +71,19 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios(ALL_MODELS)
+        testScenario << createTestScenarios()
     }
 
-    private static List<TestScenario> createTestScenarios(List<Class<?>> modelTypes) {
-        modelTypes.collect { modelType ->
+    private static List<TestScenario> createTestScenarios() {
+        List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + HIERARCHICAL_SPECIAL_MODELS + BUILD_MODELS
+        // Need to create a copy of the dist GradleVersion, due to classloader issues
+        def targetVersion = GradleVersion.version(targetDist.version.version)
+        if (targetVersion.compareTo(GradleVersion.version("1.12")) > 0) {
+            // TODO: We should support `BuildInvocations` back further
+            // TODO: Test the failure cases for unsupported types
+            supportedModels += PROJECT_MODELS
+        }
+        supportedModels.collect { modelType ->
             [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfMultiProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1),

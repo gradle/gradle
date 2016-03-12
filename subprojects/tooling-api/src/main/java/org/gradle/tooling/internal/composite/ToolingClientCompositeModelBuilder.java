@@ -37,6 +37,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
+// TODO:DAZ Special handling of per-build model types: `BuildEnvironment`, `GradleBuild`, etc
+// TODO:DAZ `BuildInvocations` seems like it's per-build, not per-project
+// TODO:DAZ `BuildInvocations` should be supported for < 1.12 (type can be accessed via ProjectConnection in Gradle < 1.12, but _not_ via custom model action)
+// TODO:DAZ Work out what to do with `IdeaProject` and `BasicIdeaProject` (maybe provide access to `IdeaModule` instead?)
 public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<ModelResults<T>> {
     public static final GradleVersion CUSTOM_TOOLING_ACTION_VERSION = GradleVersion.version("1.8");
 

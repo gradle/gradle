@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 
 /**
  * Tooling client can define a composite and execute tasks
@@ -124,7 +125,17 @@ task hello {
         helloFile.text == 'Hello world'
 
         where:
-        // BuildInvocations returns InternalLauncher instances with accesses a different code path
-        modelType << [GradleProject, BuildInvocations]
+        modelType << launchableSources()
     }
+
+    private static List<Class<?>> launchableSources() {
+        List<Class<?>> launchableSources = [GradleProject]
+        if (targetDist.version.compareTo(GradleVersion.version("1.12")) > 0) {
+            // BuildInvocations returns InternalLauncher instances with accesses a different code path
+            // TODO: We should support `BuildInvocations` back further than 1.12
+            launchableSources += BuildInvocations
+        }
+        return launchableSources
+    }
+
 }
