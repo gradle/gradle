@@ -84,7 +84,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
                 include 'a', 'b', 'c'
 """
         }
-        def goodChildProject = file(badParentDir, "c").createDir()
+        def goodChildProject = badParentDir.file("c").createDir()
         goodChildProject.file("build.gradle") <<"""
             apply plugin: 'java'
 """
