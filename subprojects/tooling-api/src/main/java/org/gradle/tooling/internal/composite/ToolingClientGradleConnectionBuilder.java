@@ -28,10 +28,16 @@ import java.util.Set;
 public class ToolingClientGradleConnectionBuilder implements GradleConnection.Builder {
     private final Set<GradleBuildInternal> participants = Sets.newLinkedHashSet();
     private File gradleUserHomeDir;
+    private File daemonBaseDir;
 
     @Override
     public GradleConnection.Builder useGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
+        return this;
+    }
+
+    public GradleConnection.Builder daemonBaseDir(File daemonBaseDir) {
+        this.daemonBaseDir = daemonBaseDir;
         return this;
     }
 
@@ -61,7 +67,7 @@ public class ToolingClientGradleConnectionBuilder implements GradleConnection.Bu
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
 
-        return new ToolingClientGradleConnection(participants, gradleUserHomeDir);
+        return new ToolingClientGradleConnection(participants, gradleUserHomeDir, daemonBaseDir);
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.composite;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.File;
 
@@ -26,23 +27,29 @@ class GradleParticipantBuild {
     private final GradleBuildInternal build;
     private final File gradleUserHome;
     private final File projectDirectory;
+    private final File daemonBaseDir;
 
     public GradleParticipantBuild(GradleBuildInternal build) {
         this(build, null);
     }
 
     public GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome) {
-        this(build, gradleUserHome, build.getProjectDir());
+        this(build, gradleUserHome, build.getProjectDir(), null);
     }
 
-    private GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome, File projectDirectory) {
+    private GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome, File projectDirectory, File daemonBaseDir) {
         this.build = build;
         this.gradleUserHome = gradleUserHome;
         this.projectDirectory = projectDirectory;
+        this.daemonBaseDir = daemonBaseDir;
+    }
+
+    public GradleParticipantBuild withDaemonBaseDir(File daemonBaseDir) {
+        return new GradleParticipantBuild(build, gradleUserHome, projectDirectory, daemonBaseDir);
     }
 
     public GradleParticipantBuild withProjectDirectory(File projectDirectory) {
-        return new GradleParticipantBuild(build, gradleUserHome, projectDirectory);
+        return new GradleParticipantBuild(build, gradleUserHome, projectDirectory, daemonBaseDir);
     }
 
     public boolean isRoot() {
@@ -58,7 +65,16 @@ class GradleParticipantBuild {
     }
 
     private GradleConnector connector() {
-        GradleConnector connector = GradleConnector.newConnector();
+        DefaultGradleConnector connector = (DefaultGradleConnector) GradleConnector.newConnector();
+        connector.useGradleUserHomeDir(gradleUserHome);
+        if (daemonBaseDir != null) {
+            connector.daemonBaseDir(daemonBaseDir);
+        }
+        configureDistribution(connector);
+        return connector;
+    }
+
+    private void configureDistribution(GradleConnector connector) {
         if (build.getGradleDistribution() == null) {
             if (build.getGradleHome() == null) {
                 if (build.getGradleVersion() == null) {
@@ -72,8 +88,6 @@ class GradleParticipantBuild {
         } else {
             connector.useDistribution(build.getGradleDistribution());
         }
-        connector.useGradleUserHomeDir(gradleUserHome);
-        return connector;
     }
 
 }

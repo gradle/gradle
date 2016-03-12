@@ -30,11 +30,13 @@ public class ToolingClientGradleConnection implements GradleConnection {
 
     private final Set<GradleBuildInternal> participants;
     private final File gradleUserHomeDir;
+    private final File daemonBaseDir;
     private boolean closed;
 
-    public ToolingClientGradleConnection(Set<GradleBuildInternal> participants, File gradleUserHomeDir) {
+    public ToolingClientGradleConnection(Set<GradleBuildInternal> participants, File gradleUserHomeDir, File daemonBaseDir) {
         this.participants = participants;
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.daemonBaseDir = daemonBaseDir;
     }
 
     @Override
@@ -54,7 +56,7 @@ public class ToolingClientGradleConnection implements GradleConnection {
         return new ToolingClientCompositeModelBuilder<T>(modelType, CollectionUtils.collect(participants, new Transformer<GradleParticipantBuild, GradleBuildInternal>() {
             @Override
             public GradleParticipantBuild transform(GradleBuildInternal gradleBuildInternal) {
-                return new GradleParticipantBuild(gradleBuildInternal, gradleUserHomeDir);
+                return new GradleParticipantBuild(gradleBuildInternal, gradleUserHomeDir).withDaemonBaseDir(daemonBaseDir);
             }
         }));
     }
