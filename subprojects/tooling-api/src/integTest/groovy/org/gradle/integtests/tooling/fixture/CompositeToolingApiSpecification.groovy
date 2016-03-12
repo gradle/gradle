@@ -82,7 +82,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         rootDir.file(path)
     }
 
-    ProjectTestFile populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
+    TestFile populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
         def project = new ProjectTestFile(rootDir, projectName)
         project.with(cl)
         project

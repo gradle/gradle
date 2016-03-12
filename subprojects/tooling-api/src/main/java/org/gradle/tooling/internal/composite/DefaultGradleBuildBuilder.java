@@ -29,7 +29,8 @@ public class DefaultGradleBuildBuilder implements GradleBuild.Builder {
 
     @Override
     public GradleBuild.Builder forProjectDirectory(File projectDir) {
-        this.projectDir = projectDir;
+        // New file instance, to ensure it can be serialized
+        this.projectDir = projectDir.getAbsoluteFile();
         return this;
     }
 

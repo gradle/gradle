@@ -84,16 +84,16 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
     }
 
-    private List<ProjectTestFile> createBuilds(int numberOfBuilds) {
+    private List<File> createBuilds(int numberOfBuilds) {
         def builds = (1..numberOfBuilds).collect {
             populate("build-$it") {
                 buildFile << "apply plugin: 'java'"
             }
         }
-        builds
+        return builds
     }
 
-    private void requestModels(List<ProjectTestFile> builds, progressListenerForComposite, progressListenerForRegularBuild) {
+    private void requestModels(List<File> builds, progressListenerForComposite, progressListenerForRegularBuild) {
         withCompositeConnection(builds) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.addProgressListener(progressListenerForComposite)
@@ -102,7 +102,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
         builds.each { buildDir ->
             GradleConnector connector = toolingApi.connector()
-            connector.forProjectDirectory(buildDir)
+            connector.forProjectDirectory(buildDir.absoluteFile)
             toolingApi.withConnection(connector) { ProjectConnection connection ->
                 def modelBuilder = connection.model(EclipseProject)
                 modelBuilder.addProgressListener(progressListenerForRegularBuild)
@@ -111,7 +111,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
     }
 
-    private void executeFirstBuild(List<ProjectTestFile> builds, progressListenerForComposite, progressListenerForRegularBuild) {
+    private void executeFirstBuild(List<File> builds, progressListenerForComposite, progressListenerForRegularBuild) {
         def buildId = createGradleBuildParticipant(builds[0]).toBuildIdentity()
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild(buildId)
@@ -121,7 +121,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
 
         GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(builds[0])
+        connector.forProjectDirectory(builds[0].absoluteFile)
         toolingApi.withConnection(connector) { ProjectConnection connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks("jar")
