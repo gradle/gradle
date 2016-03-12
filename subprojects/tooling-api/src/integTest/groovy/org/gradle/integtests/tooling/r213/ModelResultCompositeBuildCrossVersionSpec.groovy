@@ -19,6 +19,8 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.composite.BuildIdentity
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.tooling.composite.ProjectIdentity
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
@@ -26,6 +28,7 @@ import org.gradle.util.CollectionUtils
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
 
+    // TODO:DAZ Test (and fix) correlated exceptions for multi-project participants
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
         def rootDirA = populate("A") {
@@ -155,9 +158,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
+        def otherHierarchicalModelResults = connection.getModels(GradleProject)
+        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
         then:
-        containSameIdentifiers(otherModelResults)
+        containSameIdentifiers(otherHierarchicalModelResults)
+        containSameIdentifiers(otherPerBuildModelResults)
 
         cleanup:
         connection?.close()
@@ -221,9 +226,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
+        def otherHierarchicalModelResults = connection.getModels(GradleProject)
+        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
         then:
-        containSameIdentifiers(otherModelResults)
+        containSameIdentifiers(otherHierarchicalModelResults)
+        containSameIdentifiers(otherPerBuildModelResults)
 
         cleanup:
         connection?.close()
