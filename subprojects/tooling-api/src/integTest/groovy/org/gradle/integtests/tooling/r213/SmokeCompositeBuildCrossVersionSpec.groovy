@@ -115,6 +115,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         then:
         // should only find 'project', not the other projects defined in root.
         models.size() == 1
-        models[0].model.gradleProject.projectDirectory == project
+        models[0].model.projectDirectory == project
     }
 }
