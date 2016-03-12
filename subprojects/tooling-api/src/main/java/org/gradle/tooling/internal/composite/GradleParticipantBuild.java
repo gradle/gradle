@@ -52,10 +52,6 @@ class GradleParticipantBuild {
         return new GradleParticipantBuild(build, gradleUserHome, projectDirectory, daemonBaseDir);
     }
 
-    public boolean isRoot() {
-        return build.getProjectDir().equals(projectDirectory);
-    }
-
     public ProjectIdentity toProjectIdentity(String projectPath) {
         return build.toProjectIdentity(projectPath);
     }
@@ -70,8 +66,15 @@ class GradleParticipantBuild {
         if (daemonBaseDir != null) {
             connector.daemonBaseDir(daemonBaseDir);
         }
+        if (isRoot()) {
+            connector.searchUpwards(false);
+        }
         configureDistribution(connector);
         return connector;
+    }
+
+    private boolean isRoot() {
+        return build.getProjectDir().equals(projectDirectory);
     }
 
     private void configureDistribution(GradleConnector connector) {

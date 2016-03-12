@@ -147,7 +147,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
         try {
             BuildActionExecuter<Map<String, T>> actionExecuter = projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
-            actionExecuter.withArguments("--no-search-upward");
             configureRequest(actionExecuter);
             Map<String, T> actionResults = actionExecuter.run();
             for (String projectPath : actionResults.keySet()) {
@@ -174,9 +173,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         ProjectConnection connection = build.connect();
         try {
             ModelBuilder<V> modelBuilder = connection.model(modelType);
-            if (build.isRoot()) {
-                modelBuilder.withArguments("--no-search-upward");
-            }
             configureRequest(modelBuilder);
             return modelBuilder.get();
         } finally {
