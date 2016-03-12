@@ -33,6 +33,7 @@ import java.lang.reflect.Proxy
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
+// TODO:DAZ Need to test multi-project where subproject directory does not exist
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> HIERARCHICAL_SPECIAL_MODELS = [IdeaProject, BasicIdeaProject]
@@ -119,7 +120,10 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 """
                 if (numberOfSubProjects > 0) {
                     def subProjects = (1..numberOfSubProjects).collect { "${rootProjectName}-${new String([('a' as char) + (it - 1)] as char[])}".toString() }
-                    settingsFile << "include '${subProjects.join("', '")}'\n"
+                    subProjects.each { subProject ->
+                        settingsFile << "include '${subProject}'\n"
+                        addChildDir(subProject)
+                    }
                 }
             }
         }

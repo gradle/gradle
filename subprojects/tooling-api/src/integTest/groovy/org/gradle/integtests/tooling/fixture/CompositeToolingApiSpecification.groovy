@@ -116,6 +116,9 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         TestFile getSettingsFile() {
             file("settings.gradle")
         }
+        void addChildDir(String name) {
+            file(name).file("build.gradle") << "// Dummy child build"
+        }
     }
 
     // Transforms Iterable<ModelResult<T>> into Iterable<T>
