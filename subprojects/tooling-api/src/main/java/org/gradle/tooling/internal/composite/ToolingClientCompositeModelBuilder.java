@@ -31,6 +31,7 @@ import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -55,6 +56,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
         builders.add(new GradleBuildModelResultsBuilder());
         builders.add(new BuildEnvironmentModelResultsBuilder());
+        builders.add(new IdeaProjectModelResultsBuilder());
         builders.add(new HierarchicalModelResultsBuilder());
         builders.add(new CustomActionModelResultsBuilder());
         builders.add(new BruteForceModelResultsBuilder());
@@ -268,6 +270,24 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
     }
 
     /**
+     * Adds the same `IdeaProject` result for every subproject.
+     *
+     * TODO: This could be more efficient, since the IdeaProject inherently contains the project structure.
+     * However, we might be better off simply supporting `IdeaModule` as a model type.
+     */
+    private class IdeaProjectModelResultsBuilder extends PerBuildModelResultsBuilder {
+        @Override
+        public boolean canBuild(GradleParticipantBuild participant) {
+            return IdeaProject.class.isAssignableFrom(modelType);
+        }
+
+        @Override
+        protected Object getModel(GradleParticipantBuild participant, GradleBuild gradleBuild) {
+            return getProjectModel(participant, modelType);
+        }
+    }
+
+    /**
      * Builds results for a 'hierarchical' model, that provides both the Gradle project structure and the model for each subproject.
      */
     private class HierarchicalModelResultsBuilder extends GradleBuildModelResultsBuilder {
@@ -359,7 +379,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
      * Adds results using 'brute force': uses `EclipseProject` to determine the project structure, and opens a `ProjectConnection`
      * for every subproject to get the associated model instance.
      *
-     * Currently used for: IdeaProject; BasicIdeaProject; BuildInvocations/ProjectPublications with Gradle < 1.12
+     * Currently used for: BuildInvocations/ProjectPublications with Gradle < 1.12
      *
      * TODO: Currently fails badly when subproject directory does not exist.
      */
