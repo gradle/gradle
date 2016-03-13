@@ -114,8 +114,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
         toolingApiJar.assertIsFile()
-        // TODO:DAZ See if we can bring this back down
-        assert toolingApiJar.length() < 350 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        // TODO:DAZ See if we can bring this back down (likely by moving composite coordinator to Tooling Consumer and out of client)
+        assert toolingApiJar.length() < 360 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${version}.jar"))
