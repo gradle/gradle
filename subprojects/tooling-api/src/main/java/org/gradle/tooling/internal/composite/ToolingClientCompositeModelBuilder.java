@@ -39,10 +39,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-// TODO:DAZ `BuildInvocations` should be supported for < 1.12 (type can be accessed via ProjectConnection in Gradle < 1.12, but _not_ via custom model action)
-// TODO:DAZ Work out what to do with `IdeaProject` and `BasicIdeaProject` (maybe provide access to `IdeaModule` instead?)
 public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<ModelResults<T>> {
-    public static final GradleVersion CUSTOM_TOOLING_ACTION_VERSION = GradleVersion.version("1.8");
+    private static final GradleVersion USE_CUSTOM_MODEL_ACTION_VERSION = GradleVersion.version("1.12");
 
     private final Class<T> modelType;
     private final Set<GradleParticipantBuild> participants;
@@ -343,14 +341,14 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
     private class CustomActionModelResultsBuilder extends GradleBuildModelResultsBuilder {
         @Override
         public boolean canBuild(GradleParticipantBuild participant) {
-            // TODO:DAZ Only use this for Gradle >= 1.12, since `BuildInvocations` is adapted in the Tooling API for earlier versions
+            // Only use custom model action for Gradle >= 1.12, since `BuildInvocations` is adapted in the Tooling API for earlier versions.
             return canUseCustomModelAction(participant);
         }
 
         private boolean canUseCustomModelAction(GradleParticipantBuild participant) {
             BuildEnvironment buildEnvironment = getProjectModel(participant, BuildEnvironment.class);
             GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
-            return gradleVersion.compareTo(CUSTOM_TOOLING_ACTION_VERSION) >= 0;
+            return gradleVersion.compareTo(USE_CUSTOM_MODEL_ACTION_VERSION) >= 0;
         }
 
         @Override
@@ -382,6 +380,8 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
      * Currently used for: BuildInvocations/ProjectPublications with Gradle < 1.12
      *
      * TODO: Currently fails badly when subproject directory does not exist.
+     * TODO: Could use {@link org.gradle.tooling.internal.consumer.connection.BuildInvocationsAdapterProducer} to create BuildInvocations for Gradle < 1.12.
+     * TODO: Could directly construct failures for `ProjectPublications` in Gradle < 1.12, rather than connecting to each project.
      */
     private class BruteForceModelResultsBuilder extends GradleBuildModelResultsBuilder {
         @Override

@@ -39,7 +39,6 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
-    private static final List<Class<?>> PROJECT_MODELS = [BuildInvocations, ProjectPublications]
 
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
@@ -82,10 +81,10 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             // Idea models fail to apply with 1.0 on because JavaVersion.current() fails
             supportedModels += HIERARCHICAL_IDEA_MODELS
         }
+        supportedModels << BuildInvocations
         if (targetVersion.compareTo(GradleVersion.version("1.12")) >= 0) {
-            // TODO: We should support `BuildInvocations` back further
-            // TODO: Test the failure cases for unsupported types
-            supportedModels += PROJECT_MODELS
+            // TODO: Test the failures when requesting ProjectPublications an earlier versions
+            supportedModels << ProjectPublications
         }
         supportedModels.collect { modelType ->
             [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
