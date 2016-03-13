@@ -82,7 +82,7 @@ public class LogToClient extends BuildCommandOnly {
 
     private class AsynchronousLogDispatcher extends Thread {
         private final DaemonConnection connection;
-        private boolean shouldStop = false;
+        private boolean shouldStop;
 
         private AsynchronousLogDispatcher(DaemonConnection conn) {
             this.connection = conn;
