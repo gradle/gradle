@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
-@Requires([TestPrecondition.MAC_OS_X]) // TODO:DAZ Re-enable these tests on CI
+@Requires([TestPrecondition.NOT_WINDOWS]) // TODO:DAZ Re-enable these tests on Windows
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
 //    boolean embedCoordinatorAndParticipants = false
