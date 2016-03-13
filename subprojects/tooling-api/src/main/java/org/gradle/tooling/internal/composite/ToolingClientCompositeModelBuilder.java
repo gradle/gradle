@@ -37,8 +37,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-// TODO:DAZ Special handling of per-build model types: `BuildEnvironment`, `GradleBuild`, etc
-// TODO:DAZ `BuildInvocations` seems like it's per-build, not per-project
 // TODO:DAZ `BuildInvocations` should be supported for < 1.12 (type can be accessed via ProjectConnection in Gradle < 1.12, but _not_ via custom model action)
 // TODO:DAZ Work out what to do with `IdeaProject` and `BasicIdeaProject` (maybe provide access to `IdeaModule` instead?)
 public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<ModelResults<T>> {
@@ -84,21 +82,33 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
     private Set<ModelResult<T>> buildResultsForParticipant(GradleParticipantBuild participant) throws GradleConnectionException {
         final Set<ModelResult<T>> participantResults = Sets.newConcurrentHashSet();
-        if (hasProjectHierarchy(modelType)) {
-            buildResultsFromHierarchicalModel(participant, participantResults);
+        if (isBuildEnvironment(modelType)) {
+            GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
+            BuildEnvironment buildEnvironment = getProjectModel(participant, BuildEnvironment.class);
+            addPerBuildModelResult(participant, gradleBuild.getRootProject(), buildEnvironment, participantResults);
+        } else if (isGradleBuild(modelType)) {
+            GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
+            addPerBuildModelResult(participant, gradleBuild.getRootProject(), gradleBuild, participantResults);
+        } else if (hasProjectHierarchy(modelType)) {
+            addResultsFromHierarchicalModel(participant, participantResults);
+        } else if (supportsCustomModelAction(participant)) {
+            // For Gradle 1.8+ : use a custom build action to retrieve the models
+            addResultsUsingModelAction(participant, participantResults);
         } else {
-            if (!isBuildEnvironment(modelType) && supportsCustomModelAction(participant)) {
-                // For Gradle 1.8+ : use a custom build action to retrieve the models
-                buildResultsUsingModelAction(participant, participantResults);
-            } else {
-                // Brute force: load the GradleBuild model and open a connection to each sub-project
-                // TODO:DAZ Could do something more efficient to get BuildEnvironment in newer versions
-                // (it's the same in every subproject: just need to know the paths for all subprojects
-                GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
-                buildResultsWithSeparateProjectConnections(participant, gradleBuild.getRootProject(), participantResults);
-            }
+            // Brute force: load the GradleBuild model and open a connection to each sub-project
+            // Handles: IdeaProject, BasicIdeaProject and (in theory) BuildInvocations for < 1.8
+            GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
+            buildResultsWithSeparateProjectConnections(participant, gradleBuild.getRootProject(), participantResults);
         }
         return participantResults;
+    }
+
+    private void addPerBuildModelResult(GradleParticipantBuild participant, BasicGradleProject project, Object value, Set<ModelResult<T>> results) {
+        results.add(createModelResult(participant, project.getPath(), (T) value));
+
+        for (BasicGradleProject childProject : project.getChildren()) {
+            addPerBuildModelResult(participant, childProject, value, results);
+        }
     }
 
     private boolean supportsCustomModelAction(GradleParticipantBuild participant) {
@@ -111,12 +121,16 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         return BuildEnvironment.class.isAssignableFrom(modelType);
     }
 
+    private boolean isGradleBuild(Class<T> modelType) {
+        return GradleBuild.class.isAssignableFrom(modelType);
+    }
+
     private boolean hasProjectHierarchy(Class<T> modelType) {
         return HierarchicalElement.class.isAssignableFrom(modelType)
             && (GradleProject.class.isAssignableFrom(modelType) || HasGradleProject.class.isAssignableFrom(modelType));
     }
 
-    private void buildResultsFromHierarchicalModel(GradleParticipantBuild participant, Set<ModelResult<T>> results) {
+    private void addResultsFromHierarchicalModel(GradleParticipantBuild participant, Set<ModelResult<T>> results) {
         try {
             T model = getProjectModel(participant, modelType);
             addHierarchicalModel(model, participant, results);
@@ -146,7 +160,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         return ((HasGradleProject) model).getGradleProject();
     }
 
-    private void buildResultsUsingModelAction(GradleParticipantBuild participant, Set<ModelResult<T>> results) {
+    private void addResultsUsingModelAction(GradleParticipantBuild participant, Set<ModelResult<T>> results) {
         ProjectConnection projectConnection = participant.connect();
 
         try {
