@@ -22,13 +22,9 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 
 public class LogToClient extends BuildCommandOnly {
 
@@ -50,11 +46,15 @@ public class LogToClient extends BuildCommandOnly {
         }
 
         final LogLevel buildLogLevel = build.getParameters().getLogLevel();
-        final AsynchronousLogDispatcher dispatcher = new AsynchronousLogDispatcher(execution.getConnection());
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
-                    dispatcher.submit(event);
+                try {
+                    if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+                        execution.getConnection().logEvent(event);
+                    }
+                } catch (Exception e) {
+                    //Ignore. It means the client has disconnected so no point sending him any log output.
+                    //we should be checking if client still listens elsewhere anyway.
                 }
             }
         };
@@ -63,59 +63,10 @@ public class LogToClient extends BuildCommandOnly {
         loggingOutput.addOutputEventListener(listener);
         try {
             LOGGER.info("{}{}). The daemon log file: {}", DaemonMessages.STARTED_RELAYING_LOGS, diagnostics.getPid(), diagnostics.getDaemonLog());
-            dispatcher.start();
             execution.proceed();
         } finally {
-            dispatcher.waitForCompletion();
             loggingOutput.removeOutputEventListener(listener);
         }
     }
-
-    private class AsynchronousLogDispatcher extends Thread {
-        private final BlockingQueue<OutputEvent> eventQueue = new LinkedBlockingDeque<OutputEvent>();
-        private final DaemonConnection connection;
-        private boolean shouldStop;
-
-        private AsynchronousLogDispatcher(DaemonConnection conn) {
-            this.connection = conn;
-        }
-
-        public void submit(OutputEvent event) {
-            eventQueue.add(event);
-        }
-
-        @Override
-        public void run() {
-            while (!shouldStop) {
-                try {
-                    OutputEvent event = eventQueue.take();
-                    dispatchAsync(event);
-                } catch (InterruptedException ex) {
-                    shouldStop = true;
-                }
-            }
-        }
-
-        private void sendRemainingEvents() {
-            while (!eventQueue.isEmpty()) {
-                OutputEvent event = eventQueue.remove();
-                dispatchAsync(event);
-            }
-        }
-
-        private void dispatchAsync(OutputEvent event) {
-            try {
-                connection.logEvent(event);
-            } catch (Exception ex) {
-                shouldStop = true;
-                //Ignore. It means the client has disconnected so no point sending him any log output.
-                //we should be checking if client still listens elsewhere anyway.
-            }
-        }
-
-        public void waitForCompletion() {
-            interrupt();
-            sendRemainingEvents();
-        }
-    }
 }
+
