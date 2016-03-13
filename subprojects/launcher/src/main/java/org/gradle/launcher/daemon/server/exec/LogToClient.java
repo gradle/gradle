@@ -35,8 +35,6 @@ public class LogToClient extends BuildCommandOnly {
     public static final String DISABLE_OUTPUT = "org.gradle.daemon.disable-output";
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
-    private final BlockingQueue<OutputEvent> eventQueue = new LinkedBlockingDeque<OutputEvent>();
-
     private final LoggingOutputInternal loggingOutput;
     private final DaemonDiagnostics diagnostics;
 
@@ -51,15 +49,13 @@ public class LogToClient extends BuildCommandOnly {
             return;
         }
 
-        AsynchronousLogDispatcher dispatcher = new AsynchronousLogDispatcher(execution.getConnection());
         final LogLevel buildLogLevel = build.getParameters().getLogLevel();
+        final AsynchronousLogDispatcher dispatcher = new AsynchronousLogDispatcher(execution.getConnection());
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-
                 if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
-                    eventQueue.add(event);
+                    dispatcher.submit(event);
                 }
-
             }
         };
 
@@ -70,17 +66,13 @@ public class LogToClient extends BuildCommandOnly {
             dispatcher.start();
             execution.proceed();
         } finally {
-            try {
-                dispatcher.interrupt();
-                dispatcher.join();
-            } catch (InterruptedException e) {
-                dispatcher.interrupt();
-            }
+            dispatcher.waitForCompletion();
             loggingOutput.removeOutputEventListener(listener);
         }
     }
 
     private class AsynchronousLogDispatcher extends Thread {
+        private final BlockingQueue<OutputEvent> eventQueue = new LinkedBlockingDeque<OutputEvent>();
         private final DaemonConnection connection;
         private boolean shouldStop;
 
@@ -88,20 +80,42 @@ public class LogToClient extends BuildCommandOnly {
             this.connection = conn;
         }
 
+        public void submit(OutputEvent event) {
+            eventQueue.add(event);
+        }
+
         @Override
         public void run() {
-            while (!shouldStop || !eventQueue.isEmpty()) {
+            while (!shouldStop) {
                 try {
                     OutputEvent event = eventQueue.take();
-                    connection.logEvent(event);
+                    dispatchAsync(event);
                 } catch (InterruptedException ex) {
                     shouldStop = true;
-                } catch (Exception e) {
-                    //Ignore. It means the client has disconnected so no point sending him any log output.
-                    //we should be checking if client still listens elsewhere anyway.
-                    break;
                 }
             }
+        }
+
+        private void sendRemainingEvents() {
+            while (!eventQueue.isEmpty()) {
+                OutputEvent event = eventQueue.remove();
+                dispatchAsync(event);
+            }
+        }
+
+        private void dispatchAsync(OutputEvent event) {
+            try {
+                connection.logEvent(event);
+            } catch (Exception ex) {
+                shouldStop = true;
+                //Ignore. It means the client has disconnected so no point sending him any log output.
+                //we should be checking if client still listens elsewhere anyway.
+            }
+        }
+
+        public void waitForCompletion() {
+            interrupt();
+            sendRemainingEvents();
         }
     }
 }
