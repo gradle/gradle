@@ -28,8 +28,8 @@ import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -91,11 +91,11 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
                 // For Gradle 1.8+ : use a custom build action to retrieve the models
                 buildResultsUsingModelAction(participant, participantResults);
             } else {
-                // Brute force: load the EclipseProject model and open a connection to each sub-project
+                // Brute force: load the GradleBuild model and open a connection to each sub-project
                 // TODO:DAZ Could do something more efficient to get BuildEnvironment in newer versions
                 // (it's the same in every subproject: just need to know the paths for all subprojects
-                EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
-                buildResultsWithSeparateProjectConnections(participant, rootProject, participantResults);
+                GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
+                buildResultsWithSeparateProjectConnections(participant, gradleBuild.getRootProject(), participantResults);
             }
         }
         return participantResults;
@@ -162,13 +162,13 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         }
     }
 
-    private void buildResultsWithSeparateProjectConnections(GradleParticipantBuild participant, EclipseProject project, Set<ModelResult<T>> results) {
+    private void buildResultsWithSeparateProjectConnections(GradleParticipantBuild participant, BasicGradleProject project, Set<ModelResult<T>> results) {
         GradleParticipantBuild childBuild = participant.withProjectDirectory(project.getProjectDirectory());
         T model = getProjectModel(childBuild, modelType);
-        ModelResult<T> result = createModelResult(participant, project.getGradleProject().getPath(), model);
+        ModelResult<T> result = createModelResult(participant, project.getPath(), model);
         results.add(result);
 
-        for (EclipseProject gradleProject : project.getChildren()) {
+        for (BasicGradleProject gradleProject : project.getChildren()) {
             buildResultsWithSeparateProjectConnections(participant, gradleProject, results);
         }
     }
