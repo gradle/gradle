@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -29,7 +30,10 @@ import org.gradle.util.TestPrecondition
 @Requires([TestPrecondition.NOT_WINDOWS]) // TODO:DAZ Re-enable these tests on Windows
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
-//    boolean embedCoordinatorAndParticipants = false
+    static GradleVersion getTargetDistVersion() {
+        // Create a copy to work around classloader issues
+        GradleVersion.version(targetDist.version.baseVersion.version)
+    }
 
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories as List<File>)

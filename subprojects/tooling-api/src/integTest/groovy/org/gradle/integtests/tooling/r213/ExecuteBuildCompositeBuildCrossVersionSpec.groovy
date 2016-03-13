@@ -130,7 +130,7 @@ task hello {
 
     private static List<Class<?>> launchableSources() {
         List<Class<?>> launchableSources = [GradleProject]
-        if (targetDist.version.compareTo(GradleVersion.version("1.12")) > 0) {
+        if (getTargetDistVersion() >= GradleVersion.version("1.12")) {
             // BuildInvocations returns InternalLauncher instances with accesses a different code path
             // TODO: We should support `BuildInvocations` back further than 1.12
             launchableSources += BuildInvocations
