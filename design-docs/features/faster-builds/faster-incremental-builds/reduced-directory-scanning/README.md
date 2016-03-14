@@ -123,14 +123,13 @@ This story doesn't implement all of this. This is just to clarify the direction 
 - reusing directory scanning results of an output snapshot without a pattern when the input is using a pattern.
 - currently the simple cache invalidation strategy flushes the cache before each task execution. A directory scanning result will only get reused when the task that produces the input to a certain task preceeds the task that uses the output.
 
-### Improvement: minimize File.isDirectory calls in DefaultFileCollectionResolveContext
+### Incremental build reuses directory scanning results in most cases
 
-The File.isDirectory call does a file system call to check if the file exists and is a type of a directory. Some uses of `FileCollection` or `MinimalFileSet` always contain files. It should be possible to skip calling File.isDirectory in those cases. 
-Implementing this might require adding a new marker interface, for example `MinimalFileSetOfFiles` or replacing the usage of `FileCollection`/`MinimalFileSet` with an implementation that already implements `MinimalFileTree`. This might be required to implement the other improvement story for minimizing calls to other file metadata methods for the resolved artifacts. The main candidate for this improvement seems to be the resolved artifacts so it might be worth combining these improvements and only solve it for resolved artifacts.
+The story implements cache invalidation strategy that makes it possible to reuse directory scanning results across multiple task executions. Besides the cache invalidation strategy change, there should be a solution for reusing a directory scanning result when the input is using a pattern to filter the results. Currently it's a common case that the output filesnapshot will scan the output directory with the _all_ pattern, but the input will be using a pattern to filter the results.
 
-#### Open issues
+### Incremental build reuses directory scanning results for task inputs
 
-- task output directories are also stored in a FileCollection. FileCollection.getFiles() returns the directories in that case, but it's expected to visit the content of the directories when visited for snapshotting.
+The story adds reusing of directory scanning results for calls to `TaskInputs.getFiles()` or `TaskInputs.getSourceFiles()`.
 
 ### Improvement: minimize File.isDirectory, File.lastModified and File.length calls for resolved artifacts
 
