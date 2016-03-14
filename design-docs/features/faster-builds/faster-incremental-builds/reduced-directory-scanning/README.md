@@ -112,11 +112,12 @@ Add integration test coverage.
 
 ### Improvement: minimize File.isDirectory calls in DefaultFileCollectionResolveContext
 
-The File.isDirectory call does a file system call to check if the file exists and is a type of a directory. This is not necessary when the files are a result of a FileCollection.getFiles or MinimalFileSet.getFiles call.
+The File.isDirectory call does a file system call to check if the file exists and is a type of a directory. Some uses of `FileCollection` or `MinimalFileSet` always contain files. It should be possible to skip calling File.isDirectory in those cases. 
+Implementing this might require adding a new marker interface, for example `MinimalFileSetOfFiles` or replacing the usage of `FileCollection`/`MinimalFileSet` with an implementation that already implements `MinimalFileTree`. This might be required to implement the other improvement story for minimizing calls to other file metadata methods for the resolved artifacts. The main candidate for this improvement seems to be the resolved artifacts so it might be worth combining these improvements and only solve it for resolved artifacts.
 
 #### Open issues
 
-- task output directories are also stored in a FileCollection. FileCollection.getFiles() returns the directories in that case, but it's expected to visit the content of the directories when visited for snapshotting. Therefore it's not possible to remove the 
+- task output directories are also stored in a FileCollection. FileCollection.getFiles() returns the directories in that case, but it's expected to visit the content of the directories when visited for snapshotting.
 
 ### Improvement: minimize File.isDirectory, File.lastModified and File.length calls for resolved artifacts
 
