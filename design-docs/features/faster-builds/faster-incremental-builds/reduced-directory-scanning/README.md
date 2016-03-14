@@ -92,10 +92,9 @@ not be invalidated.
 
 ### Stories
 
-### Incremental build reuses file snapshots in simple cases
+### Incremental build reuses directory scanning results in simple cases
 
-Improve performance when a task takes as input files that are produced by another task or tasks, by reusing the file snapshots produced when scanning the outputs of 
-the tasks.
+Improve performance when a task takes files as input, that are produced by another task or tasks, by reusing the directory scanning results produced when scanning the outputs of the tasks.
 
 Initially start with reuse in simple, but common, cases, such as when everything in a directory tree is to be scanned.
 
@@ -103,10 +102,7 @@ Add integration test coverage.
 
 ##### Implementation notes
 
-- Implementation should change `DefaultFileCollectionSnapshotter` to unpack the file collection to a backing set of file trees, then use an in-memory cache to locate
-a snapshot for each of the file trees, merging the entries from the results together to form the final snapshot.
-- `OutputFilesCollectionSnapshotter` should not need to change, though later might be inlined into `DefaultFileCollectionSnapshotter`.
-- For this story, consider only reuse when calculating file snapshots.
+- Implementation should change `DefaultFileCollectionSnapshotter` to unpack the file collection to a backing set of file trees, then use an in-memory cache to cache visiting each individual directory tree.
 - Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
 - Invalidate cache at the end of the build. 
 
