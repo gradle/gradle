@@ -110,6 +110,10 @@ a snapshot for each of the file trees, merging the entries from the results toge
 - Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
 - Invalidate cache at the end of the build. 
 
+#### Open issues
+- reusing directory scanning results of an output snapshot without a pattern when the input is using a pattern.
+- currently the simple cache invalidation strategy flushes the cache before each task execution. A directory scanning result will only get reused when the task that produces the input to a certain task preceeds the task that uses the output.
+
 ### Incremental build avoids snapshotting duplicate task input or output directories in simple cases
 
 Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
