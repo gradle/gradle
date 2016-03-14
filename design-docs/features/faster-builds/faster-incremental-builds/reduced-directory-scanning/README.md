@@ -118,6 +118,14 @@ a snapshot for each of the file trees, merging the entries from the results toge
 
 The File.isDirectory call does a file system call to check if the file exists and is a type of a directory. This is not necessary when the files are a result of a FileCollection.getFiles or MinimalFileSet.getFiles call.
 
+#### Open issues
+
+- task output directories are also stored in a FileCollection. FileCollection.getFiles() returns the directories in that case, but it's expected to visit the content of the directories when visited for snapshotting. Therefore it's not possible to remove the 
+
+### Improvement: minimize File.isDirectory, File.lastModified and File.length calls for resolved artifacts
+
+Currently there are a lot of file system operations involved when the file metadata for  classpath artifacts is looked up in snapshotting. It should be safe to cache all lookups for artifact files that are stored under the `fileStoreDirectory` for the duration of the build.
+
 ### Incremental build avoids snapshotting duplicate task input or output directories in simple cases
 
 Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
