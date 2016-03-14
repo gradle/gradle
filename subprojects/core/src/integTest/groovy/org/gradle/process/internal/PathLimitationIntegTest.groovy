@@ -103,7 +103,7 @@ class PathLimitationIntegTest extends Specification {
         process.waitFor() == 0
         process.exitValue() == 0
         and:
-        process.errorStream.text.contains("java version")
+        process.errorStream.text.contains("version")
 
         where:
         absolutePathLength << [258, 259, 260]
