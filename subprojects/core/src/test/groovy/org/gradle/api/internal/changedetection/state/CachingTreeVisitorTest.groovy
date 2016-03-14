@@ -28,11 +28,11 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @UsesNativeServices
-class TreeSnapshotterTest extends Specification {
+class CachingTreeVisitorTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     @Subject
-    TreeSnapshotter treeSnapshotter = new TreeSnapshotter()
+    CachingTreeVisitor treeVisitor = new CachingTreeVisitor()
 
     def "should return list of file details and cache it once"() {
         given:
@@ -40,20 +40,20 @@ class TreeSnapshotterTest extends Specification {
         def fileTrees = resolveAsFileTrees()
 
         when:
-        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails.size() == 8
         fileDetails.count { it.isDirectory() } == 3
         fileDetails.count { !it.isDirectory() } == 5
-        treeSnapshotter.cachedTrees.size() == 1
+        treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails2 == fileDetails
-        treeSnapshotter.cachedTrees.size() == 1
+        treeVisitor.cachedTrees.size() == 1
     }
 
     def "should not cache list of file details when there is a pattern or filter"() {
@@ -62,21 +62,21 @@ class TreeSnapshotterTest extends Specification {
         def fileTrees = resolveAsFileTrees(includePattern, includeFilter)
 
         when:
-        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails.size() == 6
         fileDetails.count { it.isDirectory() } == 3
         fileDetails.count { !it.isDirectory() } == 3
-        treeSnapshotter.cachedTrees.size() == 0
+        treeVisitor.cachedTrees.size() == 0
 
         when:
-        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         !fileDetails2.is(fileDetails)
         fileDetails2.collect { it.file } as Set == fileDetails.collect { it.file } as Set
-        treeSnapshotter.cachedTrees.size() == 0
+        treeVisitor.cachedTrees.size() == 0
 
         where:
         includePattern | includeFilter
@@ -91,26 +91,26 @@ class TreeSnapshotterTest extends Specification {
         def fileTrees = resolveAsFileTrees()
 
         when:
-        def fileDetails = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], false)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false)
 
         then:
         fileDetails.size() == 8
-        treeSnapshotter.cachedTrees.size() == 1
+        treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], false)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false)
 
         then:
         !fileDetails2.is(fileDetails)
         fileDetails2.collect { it.file } as Set == fileDetails.collect { it.file } as Set
-        treeSnapshotter.cachedTrees.size() == 1
+        treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails3 = treeSnapshotter.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails3 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
 
         then:
         fileDetails3.is(fileDetails2)
-        treeSnapshotter.cachedTrees.size() == 1
+        treeVisitor.cachedTrees.size() == 1
     }
 
     private def createSampleFiles() {

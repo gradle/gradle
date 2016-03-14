@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
-public class TreeSnapshotter {
+public class CachingTreeVisitor {
     private ConcurrentMap<String, Collection<FileTreeElement>> cachedTrees = new MapMaker().weakValues().makeMap();
 
     public Collection<FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {

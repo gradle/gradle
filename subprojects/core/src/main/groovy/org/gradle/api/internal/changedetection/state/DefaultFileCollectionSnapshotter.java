@@ -27,11 +27,11 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
-    private final TreeSnapshotter treeSnapshotter;
+    private final CachingTreeVisitor treeVisitor;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, TreeSnapshotter treeSnapshotter) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, CachingTreeVisitor treeVisitor) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
-        this.treeSnapshotter = treeSnapshotter;
+        this.treeVisitor = treeVisitor;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnap
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
 
         for (FileTreeInternal fileTree : fileTrees) {
-            fileTreeElements.addAll(treeSnapshotter.visitTreeForSnapshotting(fileTree, allowReuse));
+            fileTreeElements.addAll(treeVisitor.visitTreeForSnapshotting(fileTree, allowReuse));
         }
     }
 }

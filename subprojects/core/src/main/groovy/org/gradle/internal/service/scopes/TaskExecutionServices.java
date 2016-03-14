@@ -46,7 +46,7 @@ import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, Gradle gradle, TreeSnapshotter treeSnapshotter) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, Gradle gradle, CachingTreeVisitor treeVisitor) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -65,7 +65,7 @@ public class TaskExecutionServices {
                                     new ExecuteActionsTaskExecuter(
                                         listenerManager.getBroadcaster(TaskActionListener.class)
                                     )
-                                ), treeSnapshotter)
+                                ), treeVisitor)
                         )
                     )
                 )
@@ -87,13 +87,13 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    TreeSnapshotter createTreeSnapshotter() {
-        return new TreeSnapshotter();
+    CachingTreeVisitor createTreeVisitor() {
+        return new CachingTreeVisitor();
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
-                                                                  StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory, TreeSnapshotter treeSnapshotter) {
-        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeSnapshotter);
+                                                                  StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory, CachingTreeVisitor treeVisitor) {
+        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, stringInterner);
