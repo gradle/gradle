@@ -20,6 +20,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -43,6 +44,7 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.*;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
+    private final static StringInterner INTERNER = new StringInterner();
 
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
@@ -133,7 +135,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String classpathClosureName = scriptTarget.getClasspathBlockName();
             InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
-            String id = "cp_" + scriptTarget.getId();
+            String id = INTERNER.intern("cp_" + scriptTarget.getId());
             CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(id, id, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());

@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
@@ -32,6 +34,8 @@ import java.util.List;
 // TODO some kind of instance state for the method (might be the same as context above)
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
+
+    private final static Interner<MethodModelRuleDescriptor> INTERNER = Interners.newWeakInterner();
 
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
@@ -55,7 +59,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = getClassName() + "#" + method.getName();
+            description = STRING_INTERNER.intern(getClassName() + "#" + method.getName());
         }
 
         return description;
@@ -102,6 +106,10 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
-        return new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
+        return INTERNER.intern(new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method));
+    }
+
+    public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
+        return INTERNER.intern(new MethodModelRuleDescriptor(method));
     }
 }
