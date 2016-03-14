@@ -100,11 +100,24 @@ Initially start with reuse in simple, but common, cases, such as when everything
 
 Add integration test coverage.
 
+##### Goal of changes
+
+There are two main possibilities to reduce directory scanning:
+- when task output gets snapshotted, directory scanning results should get reused in the following tasks that use the output
+  - the task output snapshotting always scans the whole output directory without any pattern
+  - the task input might use a pattern to filter the results. The directory scanning results of the output snapshotting should be reused also in this case. 
+- when task input gets snapshotted, directory scanning results should get reused when the task input gets read
+
+This story doesn't implement all of this. This is just to clarify the direction which this story takes the implementation.
+
+
 ##### Implementation notes
 
 - Implementation should change `DefaultFileCollectionSnapshotter` to unpack the file collection to a backing set of file trees, then use an in-memory cache to cache visiting each individual directory tree.
 - Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
 - Invalidate cache at the end of the build. 
+
+
 
 #### Open issues
 - reusing directory scanning results of an output snapshot without a pattern when the input is using a pattern.
