@@ -31,7 +31,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.8', 'last']
+        runner.targetVersions = targetVersions
         runner.useDaemon = true
 
         when:
@@ -41,10 +41,10 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(800)
-        "multi"           | millis(500)
-        "lotDependencies" | millis(500)
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(800)                | ['2.0', '2.8', 'last']
+        "multi"           | millis(500)                | ['2.8', 'last']
+        "lotDependencies" | millis(500)                | ['2.8', 'last']
     }
 
     @Unroll("Project '#testProject' idea")
@@ -54,7 +54,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.8', 'last']
+        runner.targetVersions = targetVersions
         runner.useDaemon = true
 
         when:
@@ -64,9 +64,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(800)
-        "multi"           | millis(500)
-        "lotDependencies" | millis(500)
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(800)                | ['2.0', '2.8', 'last']
+        "multi"           | millis(500)                | ['2.8', 'last']
+        "lotDependencies" | millis(500)                | ['2.8', 'last']
     }
 }
