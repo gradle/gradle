@@ -19,15 +19,13 @@ package org.gradle.tooling.internal.composite;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.*;
 import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.composite.ModelResults;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Set;
 
-public class ToolingClientGradleConnection implements GradleConnection {
-
+public class ToolingClientGradleConnection implements GradleConnectionInternal {
     private final Set<GradleBuildInternal> participants;
     private final File gradleUserHomeDir;
     private final File daemonBaseDir;

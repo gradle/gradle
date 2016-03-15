@@ -25,8 +25,8 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.composite.GradleBuild;
 import org.gradle.tooling.composite.GradleConnection;
-import org.gradle.tooling.internal.composite.ToolingClientGradleConnectionBuilder;
 import org.gradle.tooling.internal.composite.DefaultGradleBuildBuilder;
+import org.gradle.tooling.internal.composite.DefaultGradleConnectionBuilder;
 import org.gradle.tooling.internal.composite.GradleConnectionFactory;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -88,8 +88,7 @@ public class ConnectorServices {
         protected Factory<GradleConnection.Builder> createGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
             return new Factory<GradleConnection.Builder>() {
                 public GradleConnection.Builder create() {
-                    return new ToolingClientGradleConnectionBuilder();
-//                    return new DefaultGradleConnectionBuilder(gradleConnectionFactory, distributionFactory);
+                    return new DefaultGradleConnectionBuilder(gradleConnectionFactory, distributionFactory);
                 }
             };
         }

@@ -18,11 +18,13 @@ package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.composite.GradleBuild;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -79,6 +81,31 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
 
+        if (useDaemonCoordinator()) {
+            return createDaemonCoordinatorGradleConnection();
+        }
+        return createToolingClientGradleConnection();
+    }
+
+    private boolean useDaemonCoordinator() {
+        if (coordinatorDistribution != null) {
+            return true;
+        }
+        for (GradleBuildInternal participant : participants) {
+            ProjectConnection connect = new GradleParticipantBuild(participant, gradleUserHomeDir).withDaemonBaseDir(daemonBaseDir).connect();
+            try {
+                BuildEnvironment model = connect.getModel(BuildEnvironment.class);
+                if (!model.getGradle().getGradleVersion().equals(GradleVersion.current().getVersion())) {
+                    return false;
+                }
+            } finally {
+                connect.close();
+            }
+        }
+        return true;
+    }
+
+    private GradleConnectionInternal createDaemonCoordinatorGradleConnection() {
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
@@ -92,9 +119,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
 
         Distribution distribution = coordinatorDistribution;
         if (distribution == null) {
-            distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+            distribution = distributionFactory.getClasspathDistribution();
         }
         return gradleConnectionFactory.create(distribution, connectionParameters);
+    }
+
+    private GradleConnectionInternal createToolingClientGradleConnection() {
+        // TODO:DAZ We should be passing other daemon parameters here, or providing configured `GradleParticipantBuild` instances
+        return new ToolingClientGradleConnection(participants, gradleUserHomeDir, daemonBaseDir);
     }
 
     @Override
