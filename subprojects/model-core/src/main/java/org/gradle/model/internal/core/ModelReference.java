@@ -49,6 +49,8 @@ public class ModelReference<T> {
     @Nullable
     private final String description;
 
+    private int hashCode;
+
     private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
         this.type = Preconditions.checkNotNull(type, "type");
@@ -178,11 +180,16 @@ public class ModelReference<T> {
 
     @Override
     public int hashCode() {
-        int result = path == null ? 0 : path.hashCode();
+        int result = hashCode;
+        if (result != 0) {
+            return result;
+        }
+        result = path == null ? 0 : path.hashCode();
         result = 31 * result + (scope == null ? 0 : scope.hashCode());
         result = 31 * result + type.hashCode();
         result = 31 * result + state.hashCode();
         result = 31 * result + (description == null ? 0 : description.hashCode());
+        hashCode = result;
         return result;
     }
 

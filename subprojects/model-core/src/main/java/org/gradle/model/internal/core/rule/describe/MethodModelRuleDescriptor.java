@@ -39,6 +39,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
+    private int hashCode;
 
     public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
         this(WeaklyTypeReferencingMethod.of(target, returnType, method));
@@ -83,7 +84,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(method);
+        int result = hashCode;
+        if (result != 0) {
+            return result;
+        }
+        result = Objects.hashCode(method);
+        hashCode = result;
+        return result;
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
