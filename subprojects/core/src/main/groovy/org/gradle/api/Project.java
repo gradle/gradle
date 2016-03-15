@@ -1171,7 +1171,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param propertyName The name of the property.
      * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
-     *
      * @see Project#findProperty(String)
      */
     Object property(String propertyName) throws MissingPropertyException;
@@ -1202,7 +1201,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param propertyName The name of the property.
      * @return The value of the property, possibly null or null if not found.
-     *
      * @see Project#property(String)
      */
     Object findProperty(String propertyName);

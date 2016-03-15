@@ -528,7 +528,6 @@ assert 'overridden value' == global
         executer.withTasks("run").run()
     }
 
-    @Issue("PR-578")
     @Test
     void findPropertyShouldReturnValueIfFound() {
         buildFile << """
@@ -540,7 +539,6 @@ assert 'overridden value' == global
         executer.withTasks("run").withArguments('-PfoundProperty=foundValue').run();
     }
 
-    @Issue("PR-578")
     @Test
     void findPropertyShouldReturnNullIfNotFound() {
         buildFile << """
