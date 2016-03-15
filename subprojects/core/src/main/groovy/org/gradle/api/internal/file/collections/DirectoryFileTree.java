@@ -116,10 +116,10 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         AtomicBoolean stopFlag = new AtomicBoolean();
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         if (dir.exists()) {
-            if (dir.isFile()) {
-                processSingleFile(dir, visitor, spec, stopFlag);
-            } else {
+            if (dir.isDirectory()) {
                 walkDir(dir, path, visitor, spec, stopFlag);
+            } else {
+                processSingleFile(dir, visitor, spec, stopFlag);
             }
         } else {
             LOGGER.info("file or directory '" + dir + "', not found");
