@@ -41,7 +41,7 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
         if (consoleMetaData == null) {
             // TODO - remove this when we use Terminal rather than JAnsi to render to console
             String term = System.getenv("TERM");
-            boolean isXterm = term != null && term.equals("xterm");
+            boolean isXterm = "xterm".equals(term);
             boolean isCygwin = isXterm && OperatingSystem.current().isWindows();
 
             // If we are using xterm we can for sure render ANSI sequences. So force using an ANSI console if we also
