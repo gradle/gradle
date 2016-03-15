@@ -16,25 +16,21 @@
 
 package org.gradle.tooling.internal.composite;
 
-import org.gradle.api.Transformer;
-import org.gradle.tooling.*;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ModelResults;
-import org.gradle.util.CollectionUtils;
 
-import java.io.File;
 import java.util.Set;
 
 public class ToolingClientGradleConnection implements GradleConnectionInternal {
-    private final Set<GradleBuildInternal> participants;
-    private final File gradleUserHomeDir;
-    private final File daemonBaseDir;
+    private final Set<GradleParticipantBuild> participants;
     private boolean closed;
 
-    public ToolingClientGradleConnection(Set<GradleBuildInternal> participants, File gradleUserHomeDir, File daemonBaseDir) {
+    public ToolingClientGradleConnection(Set<GradleParticipantBuild> participants) {
         this.participants = participants;
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        this.daemonBaseDir = daemonBaseDir;
     }
 
     @Override
@@ -51,28 +47,20 @@ public class ToolingClientGradleConnection implements GradleConnectionInternal {
     public <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType) {
         checkOpen();
         checkSupportedModelType(modelType);
-        return new ToolingClientCompositeModelBuilder<T>(modelType, CollectionUtils.collect(participants, new Transformer<GradleParticipantBuild, GradleBuildInternal>() {
-            @Override
-            public GradleParticipantBuild transform(GradleBuildInternal gradleBuildInternal) {
-                return new GradleParticipantBuild(gradleBuildInternal, gradleUserHomeDir).withDaemonBaseDir(daemonBaseDir);
-            }
-        }));
+        return new ToolingClientCompositeModelBuilder<T>(modelType, participants);
     }
 
     @Override
     public BuildLauncher newBuild(BuildIdentity buildIdentity) {
+        checkOpen();
         // TODO:DAZ These connections are not being closed
-        for (GradleBuildInternal participant : participants) {
+        for (GradleParticipantBuild participant : participants) {
             if (participant.toBuildIdentity().equals(buildIdentity)) {
-                return connect(participant).newBuild();
+                return participant.connect().newBuild();
             }
         }
 
         throw new GradleConnectionException("Not a valid build identity: " + buildIdentity, new IllegalStateException("Build not part of composite"));
-    }
-
-    private ProjectConnection connect(GradleBuildInternal build) {
-        return new GradleParticipantBuild(build, gradleUserHomeDir).connect();
     }
 
     private void checkOpen() {

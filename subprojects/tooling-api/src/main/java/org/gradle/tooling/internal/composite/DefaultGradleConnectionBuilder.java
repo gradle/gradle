@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.composite.GradleBuild;
@@ -25,6 +26,7 @@ import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -92,7 +94,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
             return true;
         }
         for (GradleBuildInternal participant : participants) {
-            ProjectConnection connect = new GradleParticipantBuild(participant, gradleUserHomeDir).withDaemonBaseDir(daemonBaseDir).connect();
+            ProjectConnection connect = createParticipantBuild(participant).connect();
             try {
                 BuildEnvironment model = connect.getModel(BuildEnvironment.class);
                 if (!model.getGradle().getGradleVersion().equals(GradleVersion.current().getVersion())) {
@@ -125,8 +127,17 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     private GradleConnectionInternal createToolingClientGradleConnection() {
-        // TODO:DAZ We should be passing other daemon parameters here, or providing configured `GradleParticipantBuild` instances
-        return new ToolingClientGradleConnection(participants, gradleUserHomeDir, daemonBaseDir);
+        Set<GradleParticipantBuild> gradleParticipantBuilds = CollectionUtils.collect(participants, new Transformer<GradleParticipantBuild, GradleBuildInternal>() {
+            @Override
+            public GradleParticipantBuild transform(GradleBuildInternal gradleBuildInternal) {
+                return createParticipantBuild(gradleBuildInternal);
+            }
+        });
+        return new ToolingClientGradleConnection(gradleParticipantBuilds);
+    }
+
+    private GradleParticipantBuild createParticipantBuild(GradleBuildInternal participant) {
+        return new GradleParticipantBuild(participant, gradleUserHomeDir, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
     }
 
     @Override
