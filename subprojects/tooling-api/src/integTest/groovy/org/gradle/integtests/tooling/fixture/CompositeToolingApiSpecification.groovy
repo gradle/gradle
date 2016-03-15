@@ -96,14 +96,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         file(project)
     }
 
-    boolean assertHasCause(Throwable failure, String message) {
-        def causes = getCausalChain(failure)
-        assert causes.any {
-            it.message != null && it.message.contains(message)
-        }
-        true
-    }
-
     static class ProjectTestFile extends TestFile {
         private final String projectName
 
@@ -132,19 +124,20 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
     boolean assertFailure(Throwable failure, String... messages) {
         assert failure != null
-        def causes = getCausalChain(failure)
+        def causes = getCauses(failure)
+
         messages.each { message ->
-            assert causes.any {
-                it.message.contains(message)
-            }
+            assert causes.contains(message)
         }
     }
 
-
-    private static List<Throwable> getCausalChain(Throwable throwable) {
-        def causes = [];
+    private static String getCauses(Throwable throwable) {
+        def causes = '';
         while (throwable != null) {
-            causes.add(throwable)
+            if (throwable.message != null) {
+                causes += throwable.message
+                causes += '\n'
+            }
             throwable = throwable.cause
         }
         causes

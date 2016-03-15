@@ -111,6 +111,11 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         int getNumberOfProjects() {
             numberOfSingleProjectBuilds + (numberOfMultiProjectBuilds * (numberOfSubProjectsPerMultiProjectBuild + 1))
         }
+
+        @Override
+        String toString() {
+            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} multi-project participants"
+        }
     }
 
     private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects) {
