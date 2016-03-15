@@ -103,6 +103,7 @@ We would like to thank the following community members for making contributions 
 * [Sebastian Schuberth](https://github.com/sschuberth) - rich console output for Cygwin's mintty
 * [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
 * [Jeremie Jost](https://github.com/jjst) - fix a typo in the application plugin documentation
+* [Marcin Zajączkowski](https://github.com/szpak) - add Project.findProperty method
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
