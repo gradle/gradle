@@ -19,15 +19,12 @@ package org.gradle.tooling.internal.composite;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.composite.GradleBuild;
 import org.gradle.tooling.composite.GradleConnection;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
-import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.net.URI;
@@ -90,6 +87,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     private boolean useDaemonCoordinator() {
+        return false;
+/*
         if (coordinatorDistribution != null) {
             return true;
         }
@@ -105,6 +104,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
             }
         }
         return true;
+*/
     }
 
     private GradleConnectionInternal createDaemonCoordinatorGradleConnection() {
