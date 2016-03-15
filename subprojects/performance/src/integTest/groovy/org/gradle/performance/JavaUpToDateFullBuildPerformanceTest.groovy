@@ -32,7 +32,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.targetVersions = targetVersions
 
         when:
         def result = runner.run()
@@ -41,10 +41,10 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(1000)
-        "multi"           | millis(1000)
-        "lotDependencies" | millis(1000)
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(1000)               |  ['1.0', '2.4', '2.8', 'last']
+        "multi"           | millis(1000)               |  ['2.8', 'last']
+        "lotDependencies" | millis(1000)               |  ['2.8', 'last']
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
@@ -55,7 +55,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
-        runner.targetVersions = ['2.0', '2.4', '2.8', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         when:
         def result = runner.run()
