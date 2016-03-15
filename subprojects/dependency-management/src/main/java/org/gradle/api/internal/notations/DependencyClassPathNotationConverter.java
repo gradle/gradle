@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -30,6 +32,7 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -39,14 +42,18 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final File gradleUserHomeDir;
+    private final String gradleVersion;
     private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
     private final Lock internCacheWriteLock = new ReentrantLock();
 
     public DependencyClassPathNotationConverter(Instantiator instantiator, ClassPathRegistry classPathRegistry,
-                                                FileResolver fileResolver) {
+                                                FileResolver fileResolver, File gradleUserHomeDir, String gradleVersion) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
+        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.gradleVersion = gradleVersion;
     }
 
     @Override
@@ -72,10 +79,25 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
             Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
-            FileCollectionInternal files = fileResolver.resolveFiles(classpath);
+            FileCollectionInternal files;
+            if (notation.equals(DependencyFactory.ClassPathNotation.FAT_GRADLE_API)) {
+                List<File> groovyImpl = classPathRegistry.getClassPath(DependencyFactory.ClassPathNotation.LOCAL_GROOVY.name()).getAsFiles();
+                classpath.removeAll(groovyImpl);
+                files = (FileCollectionInternal) apiJar(classpath).plus(fileResolver.resolveFiles(groovyImpl));
+            } else {
+                files = fileResolver.resolveFiles(classpath);
+            }
             dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
             internCache.put(notation, dependency);
         }
         return dependency;
+    }
+
+    private FileCollectionInternal apiJar(Collection<File> classpath) {
+        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar("fatGradleApi()", classpath, getGradleApiFarJarOutputFile()));
+    }
+
+    private File getGradleApiFarJarOutputFile() {
+        return new File(gradleUserHomeDir, "caches/" + gradleVersion + "/apiJars/gradle-api-" + gradleVersion + ".jar");
     }
 }

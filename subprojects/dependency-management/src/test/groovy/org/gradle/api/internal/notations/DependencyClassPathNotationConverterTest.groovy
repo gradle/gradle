@@ -25,13 +25,16 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 public class DependencyClassPathNotationConverterTest extends Specification {
     def instantiator = Mock(Instantiator.class)
     def classPathRegistry = Mock(ClassPathRegistry.class)
     def fileResolver = Mock(FileResolver.class)
-    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver)
+    def gradleUserHomeDir = Mock(File.class)
+    def gradleVersion = GradleVersion.current().version
+    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, gradleUserHomeDir, gradleVersion)
 
     def "parses classpath literals"() {
         given:

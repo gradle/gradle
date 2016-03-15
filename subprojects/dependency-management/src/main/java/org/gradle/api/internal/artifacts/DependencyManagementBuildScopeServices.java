@@ -61,6 +61,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.GradleVersion;
 
 /**
  * The set of dependency management services that are created per build.
@@ -74,18 +75,21 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    DependencyFactory createDependencyFactory(Instantiator instantiator,
-                                              ProjectAccessListener projectAccessListener,
-                                              StartParameter startParameter,
-                                              ClassPathRegistry classPathRegistry,
-                                              FileLookup fileLookup) {
+    DependencyFactory createDependencyFactory(
+            Instantiator instantiator,
+            ProjectAccessListener projectAccessListener,
+            StartParameter startParameter,
+            ClassPathRegistry classPathRegistry,
+            FileLookup fileLookup
+    ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
+        String gradleVersion = GradleVersion.current().getVersion();
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, startParameter.getGradleUserHomeDir(), gradleVersion),
             new ClientModuleNotationParserFactory(instantiator).create(),
             projectDependencyFactory);
     }
