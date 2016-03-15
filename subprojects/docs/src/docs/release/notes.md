@@ -80,6 +80,14 @@ The Delete task will no longer follow symlinks by default and project.delete() w
 task to follow symlinks set `followSymlinks = true`. If you need `project.delete()` to follow symlinks, replace it with `ant.delete()`. This was done to prevent issues where Gradle would attempt to delete files
 outside of Gradle's build directory (e.g. NPM installed in a user-writeable location.).
 
+### Task input properties names now follow the JavaBean specification
+
+Task input properties now follow the JavaBean specification and thus are on par with Groovy. This means that:
+
+- Input properties are now addressed with coherent names in validation error messages, the DSL and through `task.getInputs().getProperties()`.
+- Input properties with getters like `getCFlags()` are now addressable through `task.getInputs().getProperties()` via `CFlags` instead of the erroneous `cFlags`.
+- Input properties with getters like `getURL()` are now addressable through `task.getInputs().getProperties()` via `URL` instead of the erroneous `uRL`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
