@@ -146,7 +146,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
+        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'gosu', 'languageGosu'
     ].collect {
         project(it)
     }

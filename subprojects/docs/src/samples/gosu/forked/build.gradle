@@ -1,0 +1,30 @@
+apply plugin: 'gosu'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.gosu-lang.gosu:gosu-core-api:1.13.1'
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2'
+    testCompile 'junit:junit:4.12'
+}
+
+// START SNIPPET forked-gosu
+tasks.withType(GosuCompile) {
+    gosuCompileOptions.useAnt = false
+    gosuCompileOptions.fork = true
+}
+// END SNIPPET forked-gosu
+
+// START SNIPPET adjust-memory
+tasks.withType(GosuCompile) {
+    configure(gosuCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-DcheckedArithmetic=true']
+    }
+}
+// END SNIPPET adjust-memory

@@ -1,0 +1,25 @@
+apply plugin: 'gosu'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.gosu-lang.gosu:gosu-core-api:1.13.1'
+    testCompile 'junit:junit:4.12'
+}
+
+// START SNIPPET custom-source-locations
+sourceSets {
+    main {
+        gosu {
+            srcDirs = ['src/gosu']
+        }
+    }
+    test {
+        gosu {
+            srcDirs = ['test/gosu']
+        }
+    }
+}
+// END SNIPPET custom-source-locations

@@ -74,6 +74,8 @@ include 'testingNative'
 include 'testingJvm'
 include 'platformPlay'
 include 'testKit'
+include 'gosu'
+include 'languageGosu'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
