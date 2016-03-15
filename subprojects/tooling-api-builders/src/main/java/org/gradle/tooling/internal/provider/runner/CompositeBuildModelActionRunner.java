@@ -27,7 +27,6 @@ import org.gradle.internal.composite.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.*;
-import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
@@ -38,6 +37,7 @@ import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.io.File;
 import java.io.Serializable;
@@ -138,26 +138,22 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
             try {
                 if (modelType == BuildEnvironment.class) {
-                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, ":");
-                    results.putAll(fetchPerBuildModels(projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory));
+                    final BuildEnvironment buildEnvironment = fetchModel(projectConnection, BuildEnvironment.class, cancellationToken, progressLoggerFactory);
+                    Map<Object, Object> models = fetchPerProjectModels(projectConnection, GradleBuild.class, cancellationToken, progressLoggerFactory);
+                    for (Map.Entry<Object, Object> entry : models.entrySet()) {
+                        entry.setValue(buildEnvironment);
+                    }
+                    results.putAll(models);
                 } else {
                     results.putAll(fetchPerProjectModels(projectConnection, modelType, cancellationToken, progressLoggerFactory));
                 }
             } catch (GradleConnectionException e) {
-                throw new CompositeBuildExceptionVersion1(e, buildIdentity);
+                results.put(new DefaultProjectIdentity(buildIdentity, rootDir, ":"), e);
             } finally {
                 projectConnection.close();
             }
         }
         return results;
-    }
-
-    private Map<Object, Object> fetchPerBuildModels(Object projectIdentity, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        Object result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
-        if(result != null) {
-            return Collections.singletonMap(projectIdentity, result);
-        }
-        return Collections.emptyMap();
     }
 
     private Map<Object, Object> fetchPerProjectModels(ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
