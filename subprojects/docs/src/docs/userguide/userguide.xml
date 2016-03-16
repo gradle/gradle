@@ -95,6 +95,7 @@
         <xi:include href='groovyTutorial.xml'/>
         <xi:include href='groovyPlugin.xml'/>
         <xi:include href='scalaPlugin.xml'/>
+        <xi:include href='gosuPlugin.xml'/>
         <xi:include href='antlrPlugin.xml'/>
         <xi:include href='checkstylePlugin.xml'/>
         <xi:include href='codeNarcPlugin.xml'/>

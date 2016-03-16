@@ -1,0 +1,17 @@
+// START SNIPPET use-plugin
+apply plugin: 'gosu'
+// END SNIPPET use-plugin
+
+// START SNIPPET gosu-dependency
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.gosu-lang.gosu:gosu-core-api:1.13.1'
+}
+// END SNIPPET gosu-dependency
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}

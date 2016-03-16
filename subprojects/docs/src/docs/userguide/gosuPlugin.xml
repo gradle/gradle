@@ -1,0 +1,315 @@
+<!--
+  ~ Copyright 2016 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="gosu_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Gosu Plugin</title>
+
+    <para>The Gosu plugin extends the Java plugin to add support for Gosu projects. Unlike the Groovy and Scala plugins,
+        the Gosu plugin only compiles Gosu code. Further, joint and incremental compilation are not supported.
+        Learn more about the Gosu language at <ulink url="http://www.gosu-lang.org">gosu-lang.org</ulink>.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Gosu plugin, include the following in your build script:</para>
+        <sample id="useGosuPlugin" dir="gosu/quickstart" title="Using the Gosu plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Gosu plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Gosu plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>compileGosu</literal></td>
+                <td><literal>compileJava</literal></td>
+                <td><apilink class="org.gradle.api.tasks.gosu.GosuCompile"/></td>
+                <td>Compiles production Gosu source files.</td>
+            </tr>
+            <tr>
+                <td><literal>compileTestGosu</literal></td>
+                <td><literal>compileTestJava</literal></td>
+                <td><apilink class="org.gradle.api.tasks.gosu.GosuCompile"/></td>
+                <td>Compiles test Gosu source files.</td>
+            </tr>
+            <tr>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Gosu</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td><apilink class="org.gradle.api.tasks.gosu.GosuCompile"/></td>
+                <td>Compiles the given source set's Gosu source files.</td>
+            </tr>
+            <tr>
+                <td><literal>gosudoc</literal></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.gosu.GosuDoc"/></td>
+                <td>Generates API documentation for the production Gosu source files.</td>
+            </tr>
+        </table>
+        <para>The Gosu plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>Gosu plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>
+                    <literal>classes</literal>
+                </td>
+                <td>
+                    <literal>compileGosu</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>testClasses</literal>
+                </td>
+                <td>
+                    <literal>compileTestGosu</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>Classes</literal>
+                </td>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable>Gosu</literal>
+                </td>
+            </tr>
+        </table>
+        <figure>
+            <title>Gosu plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="img/gosuPluginTasks.png"/>
+            </imageobject>
+        </figure>
+    </section>
+
+    <section>
+        <title>Project layout</title>
+        <para>The Gosu plugin assumes the project layout shown below.
+            The Java source directories may only contain Java source code.
+            Java sources in a Gosu source directory will be ignored.
+            None of these directories need to exist or have anything in them; the Gosu plugin will simply compile
+            whatever it finds.
+        </para>
+        <table id='gosulayout'>
+            <title>Gosu plugin - project layout</title>
+            <thead>
+                <tr>
+                    <td>Directory</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <xi:include href="javaProjectMainLayout.xml"/>
+            <tr>
+                <td>
+                    <filename>src/main/gosu</filename>
+                </td>
+                <td>Production Gosu sources.</td>
+            </tr>
+            <xi:include href="javaProjectTestLayout.xml"/>
+            <tr>
+                <td>
+                    <filename>src/test/gosu</filename>
+                </td>
+                <td>Test Gosu sources.</td>
+            </tr>
+            <xi:include href="javaProjectGenericLayout.xml"/>
+            <tr>
+                <td>
+                    <filename>src/<replaceable>sourceSet</replaceable>/gosu</filename>
+                </td>
+                <td>Gosu sources for the given source set.</td>
+            </tr>
+        </table>
+
+        <section>
+            <title>Changing the project layout</title>
+            <para>Just like the Java plugin, the Gosu plugin allows you to configure custom locations for Gosu production and test sources.</para>
+            <sample id="customGosuSourceLayout" dir="gosu/customizedLayout" title="Custom Gosu source layout">
+                <sourcefile file="build.gradle" snippet="custom-source-locations"/>
+            </sample>
+        </section>
+
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>
+            Gosu projects need to declare a <literal>gosu-core-api</literal> dependency. This dependency will then be used on compile and
+            runtime class paths. It will also be used to get hold of the Gosu runtime library and Gosudoc tool.
+            <footnote>
+                <para>See <xref linkend="sec:configure_gosu_classpath"/>.</para>
+            </footnote>
+        </para>
+        <para>
+            If Gosu is used for production code, the <literal>gosu-core-api</literal> dependency should be added to the
+            <literal>compile</literal> configuration:
+        </para>
+        <sample id="declareGosuDependency" dir="gosu/quickstart" title="Declaring a Gosu dependency for production code">
+            <sourcefile file="build.gradle" snippet="gosu-dependency"/>
+        </sample>
+        <para>
+            If Gosu is only used for test code, the <literal>gosu-core-api</literal> dependency should be added to the <literal>testCompile</literal>
+            configuration:
+        </para>
+        <sample id="declareGosuTestDependency" dir="userguide/gosu/gosuDependency" title="Declaring a Gosu dependency for test code">
+            <sourcefile file="build.gradle" snippet="gosu-test-dependency"/>
+        </sample>
+    </section>
+
+    <section id="sec:configure_gosu_classpath">
+        <title>Automatic configuration of gosuClasspath</title>
+        <para>
+            The <literal>GosuCompile</literal> and <literal>GosuDoc</literal> tasks consume Gosu code in two ways: on their <literal>classpath</literal>,
+            and on their <literal>gosuClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
+            contain <literal>gosu-core-api</literal> along with other libraries. The latter is used to load and execute the Gosu compiler
+            and Gosudoc tools, and should only contain the <literal>gosu-core-api</literal>, <literal>gosu-core</literal> and <literal>gosu-ant-tools</literal> libraries and their dependencies.
+        </para>
+        <para>
+            Unless a task's <literal>gosuClasspath</literal> is configured explicitly, the Gosu (base) plugin will try to infer it
+            from the task's <literal>classpath</literal>. This is done as follows:
+            <itemizedlist>
+                <listitem>
+                    If a <literal>gosu-core-api</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    a corresponding <literal>gosu-ant-tools</literal> repository dependency will be added to <literal>gosuClasspath</literal>.
+                </listitem>
+                <listitem>
+                    Otherwise, execution of the task will fail with a message saying that <literal>gosuClasspath</literal> could not be inferred.
+                </listitem>
+            </itemizedlist>
+        </para>
+    </section>
+
+    <section>
+        <title>Convention properties</title>
+        <para>The Gosu plugin does not add any convention properties to the project.</para>
+    </section>
+
+    <section>
+        <title>Source set properties</title>
+        <para>The Gosu plugin adds the following convention properties to each source set in the project. You can
+            use these properties in your build script as though they were properties of the source set object.</para>
+        <table>
+            <title>Gosu plugin - source set properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>gosu</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
+                </td>
+                <td>
+                    Not null
+                </td>
+                <td>
+                    The Gosu source files of this source set. Contains all <filename>.gs</filename>, <filename>.gsx</filename>,
+                    <filename>.gst</filename> and <filename>.gsp</filename> files found in the Gosu source directories,
+                    and excludes all other types of files. Identical to <literal>allGosu</literal>.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>gosu.srcDirs</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                </td>
+                <td>
+                    <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/gosu]</literal>
+                </td>
+                <td>
+                    The source directories containing the Gosu source files of this source set.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>allGosu</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                </td>
+                <td>
+                    Not null
+                </td>
+                <td>
+                    The Gosu source files of this source set. Contains all <filename>.gs</filename>, <filename>.gsx</filename>,
+                    <filename>.gst</filename> and <filename>.gsp</filename> files found in the Gosu source directories,
+                    and excludes all other types of files. Identical to <literal>gosu</literal>.
+                </td>
+            </tr>
+        </table>
+
+        <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.tasks.GosuSourceSet"/>.</para>
+        <para>The Gosu plugin also modifies some source set properties:</para>
+        <table>
+            <title>Gosu plugin - source set properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Change</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>allJava</literal>
+                </td>
+                <td>Adds all <filename>.java</filename> files found in the Gosu source directories.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>allSource</literal>
+                </td>
+                <td>Adds all source files found in the Gosu source directories.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Compiling in external process</title>
+        <para>
+            When <literal>gosuCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
+            in an external process using the Gradle compiler daemon. The Ant based compiler
+            (<literal>gosuCompileOptions.useAnt = true</literal>) will fork a new process for every invocation of the <literal>GosuCompile</literal> task,
+            and does not fork by default.
+        </para>
+        <para>Memory settings for the external process default to the defaults of the JVM. To adjust memory settings,
+            configure the <literal>gosuCompileOptions.forkOptions</literal> property as needed:
+            <sample id="forked" dir="gosu/forked" title="Adjusting memory settings">
+                <sourcefile file="build.gradle" snippet="adjust-memory"/>
+            </sample>
+        </para>
+    </section>
+
+</chapter>

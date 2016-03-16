@@ -1,0 +1,3 @@
+placeholder for folder src/testFixtures in source control
+project will not compile without this folder
+remove this file once testFixtures has true content

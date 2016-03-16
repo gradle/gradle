@@ -28,7 +28,7 @@ abstract class TestJvmComponent {
     }
 
     List<JvmSourceFile> getExpectedOutputs(){
-        return getSources().collect{it.classFile}.plus(resources);
+        return getExpectedClasses().plus(resources);
     }
 
     List<TestFile> writeSources(TestFile sourceDir, String sourceSetName = languageName) {

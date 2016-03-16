@@ -70,6 +70,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     def "generated binary includes compiled classes from all language source sets"() {
         setup:
         def extraSourceSetName = "extra${app.languageName}"
+        def isGosu = app.languageName == 'gosu'
 
         when:
         def source1 = app.sources[0]
@@ -96,11 +97,19 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         executedAndNotSkipped ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}", ":compileMyLibJarMyLib${StringUtils.capitalize(extraSourceSetName)}", ":createMyLibJar", ":myLibJar"
 
         and:
-        file("build/classes/myLib/jar").assertHasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+        if(isGosu) {
+            file("build/classes/myLib/jar").assertHasDescendants(source1.classFile.fullPath, source2.classFile.fullPath, source1.fullPath, source2.fullPath)
+        } else {
+            file("build/classes/myLib/jar").assertHasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+        }
 
         and:
         def jar = jarFile("build/jars/myLib/jar/myLib.jar")
-        jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+        if(isGosu) {
+            jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath, source1.fullPath, source2.fullPath)
+        } else {
+            jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
+        }
     }
 
     def "can configure source locations for language and resource source sets"() {
@@ -140,7 +149,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
 
     def "can combine resources and sources in a single source directory"() {
         when:
-        app.writeSources(file("src/myLib"))
+        app.writeSources(file("src/myLib"), '')
         app.writeResources(file("src/myLib"))
 
         buildFile << """
@@ -202,7 +211,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         executedAndNotSkipped ":processMyLibJarMyLibResources", ":compileMyLibJarMyLib${StringUtils.capitalize(app.languageName)}", ":createMyLibJar", ":myLibJar"
 
         and:
-        file("build/custom-classes").assertHasDescendants(app.sources*.classFile.fullPath as String[])
+        file("build/custom-classes").assertHasDescendants(app.expectedClasses*.fullPath as String[])
         file("build/custom-resources").assertHasDescendants(app.resources*.fullPath as String[])
 
         and:
