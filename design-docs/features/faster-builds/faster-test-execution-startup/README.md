@@ -89,9 +89,6 @@ Spike generating the HTML reports at the same time as the XML reports.
 The idea is to try running `Binary2JUnitXmlReportGenerator.generate()` in one thread and `TestReporter.generateReport()` in another. It is not to attempt to generate each
 HTML or XML report output file in parallel (though this could be another spike).
 
-If the results look ok, refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML reports in parallel, subject to
-max parallel workers constraints.
-
 #### Some Results
 The following are running `gradle cleanTest test`.  For each data point, there were a couple of warm-up runs, followed by several runs whose results were averaged together.
 All times are in seconds.
@@ -117,6 +114,13 @@ Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50
 master | 46.27 | 123.71 | 13.07 | 30.63 | 44.6
 parallel | 45.65 | 121.20 | 13.47 | 24.47 | 41.03
 parallel-file | 45.37 | 122.24 | 10.7 | 22.7 | 41.20
+
+### Generate test reports concurrently
+
+Refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML report files in parallel, subject to
+max parallel workers constraints.
+
+Do something useful with exceptions collected during generation.
 
 ### Understand where test task is spending its time
 
