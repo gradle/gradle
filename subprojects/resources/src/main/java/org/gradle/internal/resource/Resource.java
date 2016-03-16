@@ -53,14 +53,30 @@ public interface Resource {
     URI getURI();
 
     /**
-     * Returns true if this resource exists, false if it does not exist. Note that this method may be expensive, depending on the implementation.
+     * Returns true when the content of this resource is cheap to query, for example is cached in-heap or uses a hard-coded value. Returns false when the content is expensive or
+     * it is not known.
+     *
+     * <p>When this method returns false, the caller should avoid querying the content more than once.</p>
+     */
+    boolean isContentCheapToQuery();
+
+    /**
+     * Returns true if this resource exists, false if it does not exist. A resource exists when it has content associated with it.
+     * Note that this method may be expensive when {@link #isContentCheapToQuery()} returns false, depending on the implementation.
      *
      * @return true if this resource exists.
      */
     boolean getExists();
 
     /**
-     * Returns the content of this resource, as a String. Note that this method may be expensive, depending on the implementation.
+     * Returns true when it is known that the content of this resource is empty. Returns false when the content is not empty or when it is expensive to determine whether the
+     * content is empty or not. The implementation should not attempt to read the content, but should instead return false.
+     */
+    boolean getHasEmptyContent();
+
+    /**
+     * Returns the content of this resource, as a String.
+     * Note that this method may be expensive when {@link #isContentCheapToQuery()} returns false, depending on the implementation.
      *
      * @return the content. Never returns null.
      * @throws ResourceNotFoundException When this resource does not exist.

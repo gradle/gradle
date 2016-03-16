@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
 
 import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class UriScriptSourceTest {
     private TestFile testDir;
@@ -58,6 +58,29 @@ public class UriScriptSourceTest {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
         assertThat(source.getResource(), instanceOf(UriResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+    }
+
+    @Test
+    public void convenienceMethodScriptForFileThatHasContent() {
+        new TestFile(scriptFile).write("content");
+        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
+        assertThat(source, instanceOf(UriScriptSource.class));
+        assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getText(), equalTo("content"));
+        assertFalse(source.getResource().isContentCheapToQuery());
+        assertFalse(source.getResource().getHasEmptyContent());
+        assertTrue(source.getResource().getExists());
+    }
+
+    @Test
+    public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
+        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
+        assertThat(source, instanceOf(NonExistentFileScriptSource.class));
+        assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getText(), equalTo(""));
+        assertTrue(source.getResource().isContentCheapToQuery());
+        assertTrue(source.getResource().getHasEmptyContent());
+        assertTrue(source.getResource().getExists()); // exists == has content
     }
 
     @Test

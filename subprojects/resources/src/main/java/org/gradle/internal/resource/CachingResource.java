@@ -16,12 +16,32 @@
 
 package org.gradle.internal.resource;
 
-public class CachingResource extends DelegatingResource {
+import java.io.File;
+import java.net.URI;
+
+public class CachingResource implements Resource {
+    private final Resource resource;
     private String content;
-    private boolean fetched;
 
     public CachingResource(Resource resource) {
-        super(resource);
+        this.resource = resource;
+    }
+
+    public String getDisplayName() {
+        return resource.getDisplayName();
+    }
+
+    public File getFile() {
+        return resource.getFile();
+    }
+
+    public URI getURI() {
+        return resource.getURI();
+    }
+
+    @Override
+    public boolean isContentCheapToQuery() {
+        return true;
     }
 
     @Override
@@ -31,15 +51,19 @@ public class CachingResource extends DelegatingResource {
     }
 
     @Override
+    public boolean getHasEmptyContent() {
+        return content != null ? content.length() == 0 : resource.getHasEmptyContent();
+    }
+
+    @Override
     public String getText() {
         maybeFetch();
         return content;
     }
 
     private void maybeFetch() {
-        if (!fetched) {
-            content = getResource().getText();
-            fetched = true;
+        if (content == null) {
+            content = resource.getText();
         }
     }
 }

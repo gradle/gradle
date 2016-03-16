@@ -13,37 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.internal.resource
 
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.nullValue
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertTrue
+class StringResourceTest extends Specification {
 
-class StringResourceTest {
-    private final StringResource resource = new StringResource('displayname', 'text')
-
-    @Test
-    public void hasTextContent() {
-         assertThat(resource.text, equalTo('text'))
+    def nonEmptyStringResourceHasTextContent() {
+        expect:
+        def resource = new StringResource('displayname', 'text')
+        resource.text == 'text'
+        resource.exists
+        !resource.hasEmptyContent
+        resource.contentCheapToQuery
     }
 
-    @Test
-    public void exists() {
-         assertTrue(resource.exists)
+    def emptyStringResourceHasEmptyContent() {
+        expect:
+        def resource = new StringResource('displayname', '')
+        resource.text == ''
+        resource.exists
+        resource.hasEmptyContent
+        resource.contentCheapToQuery
     }
 
-    @Test
-    public void hasNoFile() {
-         assertThat(resource.file, nullValue())
-    }
-
-    @Test
-    public void hasNoURI() {
-        assertThat(resource.URI, nullValue())
+    def resourceHasNoIdentity() {
+        expect:
+        def resource = new StringResource('displayname', 'text')
+        resource.file == null
+        resource.URI == null
     }
 }

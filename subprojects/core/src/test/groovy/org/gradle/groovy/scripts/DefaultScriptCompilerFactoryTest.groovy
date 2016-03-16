@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.internal.CompileOperation
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
+import org.gradle.internal.resource.Resource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
@@ -30,6 +31,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptClassCompiler scriptClassCompiler = Mock()
     final ScriptSource source = Mock() {
         getFileName() >> "script.file"
+        getResource() >> Stub(Resource)
     }
     final ScriptRunner<TestScript, ?> runner = Mock()
     final ClassLoader classLoader = Mock()

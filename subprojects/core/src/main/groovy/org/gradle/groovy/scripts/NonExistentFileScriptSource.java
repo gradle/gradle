@@ -52,13 +52,23 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
         }
 
         @Override
+        public boolean isContentCheapToQuery() {
+            return true;
+        }
+
+        @Override
+        public boolean getHasEmptyContent() {
+            return true;
+        }
+
+        @Override
         public String getText() {
             return "";
         }
 
         @Override
         public boolean getExists() {
-            return false;
+            return true;
         }
     }
 }

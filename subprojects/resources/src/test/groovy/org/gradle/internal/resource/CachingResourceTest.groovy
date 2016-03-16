@@ -17,51 +17,48 @@
 
 package org.gradle.internal.resource
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.nullValue
-import static org.junit.Assert.*
+class CachingResourceTest extends Specification {
+    def target = Mock(Resource)
+    def resource = new CachingResource(target)
 
-@RunWith(JMock.class)
-class CachingResourceTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Resource target = context.mock(Resource.class)
-    private final CachingResource resource = new CachingResource(target)
+    def fetchesAndCachesContentWhenExistenceIsChecked() {
+        when:
+        assert resource.exists
+        assert resource.text == 'content'
 
-    @Test
-    public void fetchesAndCachesContentWhenExistenceIsChecked() {
-        context.checking {
-            one(target).getText()
-            will(returnValue('content'))
-        }
-
-        assertTrue(resource.exists)
-        assertThat(resource.text, equalTo('content'))
+        then:
+        1 * target.text >> 'content'
+        0 * target._
     }
 
-    @Test
-    public void fetchesAndCachesContentWhenContentIsRead() {
-        context.checking {
-            one(target).getText()
-            will(returnValue('content'))
-        }
+    def fetchesAndCachesContentWhenContentIsChecked() {
+        when:
+        assert resource.text == 'content'
+        assert resource.exists
 
-        assertThat(resource.text, equalTo('content'))
-        assertTrue(resource.exists)
+        then:
+        1 * target.text >> 'content'
+        0 * target._
     }
-    
-    @Test
-    public void fetchesAndCachesContentForResourceThatDoesNotExist() {
-        context.checking {
-            one(target).getText()
-            will(returnValue(null))
-        }
 
-        assertThat(resource.text, nullValue())
-        assertFalse(resource.exists)
+    def usesCachedValueToDetermineWhetherContentIsEmpty() {
+        when:
+        resource.text
+        assert !resource.hasEmptyContent
+
+        then:
+        1 * target.text >> 'content'
+        0 * target._
+    }
+
+    def queryingContentIsEmptyDoesNotTriggerFetchOfContent() {
+        when:
+        assert resource.hasEmptyContent
+
+        then:
+        1 * target.hasEmptyContent >> true
+        0 * target._
     }
 }

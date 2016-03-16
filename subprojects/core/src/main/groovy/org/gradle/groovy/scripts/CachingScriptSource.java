@@ -23,7 +23,7 @@ public class CachingScriptSource extends DelegatingScriptSource {
     private final String displayName;
 
     public static ScriptSource of(ScriptSource source) {
-        if (source instanceof NonExistentFileScriptSource || source instanceof CachingScriptSource) {
+        if (source.getResource().isContentCheapToQuery()) {
             return source;
         }
         return new CachingScriptSource(source);

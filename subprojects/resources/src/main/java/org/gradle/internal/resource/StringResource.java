@@ -32,6 +32,16 @@ public class StringResource implements Resource {
         return displayName;
     }
 
+    @Override
+    public boolean isContentCheapToQuery() {
+        return true;
+    }
+
+    @Override
+    public boolean getHasEmptyContent() {
+        return contents.length() == 0;
+    }
+
     public String getText() {
         return contents.toString();
     }

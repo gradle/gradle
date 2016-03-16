@@ -61,6 +61,16 @@ public class UriResource implements Resource {
         return builder.toString();
     }
 
+    @Override
+    public boolean isContentCheapToQuery() {
+        return false;
+    }
+
+    @Override
+    public boolean getHasEmptyContent() {
+        return false;
+    }
+
     public String getText() {
         if (sourceFile != null && sourceFile.isDirectory()) {
             throw new ResourceException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));

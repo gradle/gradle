@@ -25,7 +25,6 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
-import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashUtil;
@@ -70,7 +69,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
                                                               final Action<? super ClassNode> verifier) {
-        if (source instanceof NonExistentFileScriptSource) {
+        if (source.getResource().getHasEmptyContent()) {
             return emptyCompiledScript(classLoaderId, operation);
         }
 
