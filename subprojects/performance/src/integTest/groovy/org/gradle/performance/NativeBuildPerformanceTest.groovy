@@ -41,7 +41,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        test           | maxExecutionTimeRegression
+        type           | maxExecutionTimeRegression
         "small"        | millis(500)
         "medium"       | millis(500)
         "big"          | millis(2500)
