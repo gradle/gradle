@@ -21,7 +21,8 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
+// This fails with Java 1.8.0_05, but succeeds with 1.8.0_74
+@Requires(adhoc = { TestPrecondition.JDK7_OR_LATER.isFulfilled() && System.getProperty('java.version') != '1.8.0_05' })
 class DirectoryScanningIntegTest extends DaemonIntegrationSpec {
 
     def setup() {
