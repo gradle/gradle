@@ -56,7 +56,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
