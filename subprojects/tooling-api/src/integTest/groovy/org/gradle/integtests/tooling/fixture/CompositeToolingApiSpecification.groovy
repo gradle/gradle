@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.fixture
+
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
@@ -22,12 +23,9 @@ import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
-@Requires([TestPrecondition.NOT_WINDOWS]) // TODO:DAZ Re-enable these tests on Windows
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     static GradleVersion getTargetDistVersion() {
