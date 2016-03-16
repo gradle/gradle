@@ -71,7 +71,7 @@ Profile the daemon and Gradle client using the above test build to identify hots
 
 Note: this goal for this story is only to understand the behaviour, not to fix anything.
 
-#### Some results
+#### Profiling results for ManyEmptyProjectsHelpPerformanceTest
 
 Here are some profiling results from running `ManyEmptyProjectsHelpPerformanceTest`, which is a performance test that involves a lot of empty projects, revealing the fixed cost of creating projects.
 
@@ -94,6 +94,7 @@ Here are some profiling results from running `ManyEmptyProjectsHelpPerformanceTe
             - 53% of time is spent in initializing the project. Most of this time is spent in populating the model registry (41%) and initializing services (38%)
         - 45% of time is spent in evaluating the projects, and almost all time is spent in logging.
 
+#### Profiling results for MediumWithJUnit
 
 Here are results from profiling a `MediumWithJUnit` build consisting of 25 subprojects, each having 200 source files and an equivalent number of tests. We're running `gradle help` to measure the minimal configuration time.
 
@@ -109,7 +110,7 @@ Here are results from profiling a `MediumWithJUnit` build consisting of 25 subpr
         - 414ms spent in applying scripts
         - of applying scripts, 393ms is spent in running the build scripts. Each build script execution consumes around 3% of build time, except the first one (9%, because of plugin resolution). There doesn't seem to be anything obvious from those numbers to make things faster here, but we're definitely seeing dynamic method resolution in action here.
 
-Here are the results of profiling the Gradle build itself.
+#### Profiling results for the Gradle build itself
 
 1. running `gradle tasks`
 
@@ -128,3 +129,19 @@ Given this result, a second profiling result, using `--dry-run` this time:
         - 1.536s in applying settings
         - 5.7s in configuring the build
     - The results are very consistent with what we have seen in the `MediumWithJUnit` case. There are lots of tasks configured and created even though they are not used, which speaks for the software model. Most of the time is spent in creating and configuring tasks. Which is interesting here since we're running with `--dry-run`, so while we could need the _specs_ of the tasks, we certainly don't need the tasks themselves.
+
+#### Profiling results for an Android build
+
+Here are some profiling results, as of March 16th, 2016 (`master`) on an [Android app](https://github.com/google/iosched).
+
+Running `gradle help` isn't particularly slow (~700ms) so profiling was focused on a real use case of up-to-date build.
+
+Running `gradle -Dcom.android.build.gradle.overrideVersionCheck=true assembleDebug` (daemon on, second, up-to-date run):
+
+- 35% of time spent in creating the tasks (Android `BasePlugin`), and most of this time (65%) is spent in dependency resolution
+- 7% of time spent in setting up the Android SDK
+- 16% of time spent in dependency resolution for getting the script classpath (`org.gradle.plugin.use.internal.DefaultPluginRequestApplicator.defineScriptHandlerClassScope(ScriptHandlerInternal, ClassLoaderScope, Iterable)`)
+
+That's roughly 40% of build time spent in dependency resolution. While somehow very diffuse, it seems that a lot of time is spent in executing the DSL build script logic, which is very costly due to heavy use of dynamic extensions. The call stacks are very long and involve a lot of method missing/extension handling.
+
+
