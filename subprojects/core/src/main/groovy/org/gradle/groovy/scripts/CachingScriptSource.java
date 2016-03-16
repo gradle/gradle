@@ -15,11 +15,11 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.CachingResource;
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.CachingTextResource;
+import org.gradle.internal.resource.TextResource;
 
 public class CachingScriptSource extends DelegatingScriptSource {
-    private final Resource resource;
+    private final TextResource resource;
     private final String displayName;
 
     public static ScriptSource of(ScriptSource source) {
@@ -31,7 +31,7 @@ public class CachingScriptSource extends DelegatingScriptSource {
 
     private CachingScriptSource(ScriptSource source) {
         super(source);
-        resource = new CachingResource(source.getResource());
+        resource = new CachingTextResource(source.getResource());
         displayName = source.getDisplayName();
     }
 
@@ -41,7 +41,7 @@ public class CachingScriptSource extends DelegatingScriptSource {
     }
 
     @Override
-    public Resource getResource() {
+    public TextResource getResource() {
         return resource;
     }
 }

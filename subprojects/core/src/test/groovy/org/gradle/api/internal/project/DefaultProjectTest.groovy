@@ -48,7 +48,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.StringResource
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
@@ -126,7 +126,7 @@ class DefaultProjectTest {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
-            allowing(script).getResource(); will(returnValue(new StringResource("", "")))
+            allowing(script).getResource(); will(returnValue(new StringTextResource("", "")))
             allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
         }
 

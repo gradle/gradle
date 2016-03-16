@@ -15,22 +15,22 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.Resource;
-import org.gradle.internal.resource.StringResource;
+import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.resource.StringTextResource;
 import org.gradle.internal.hash.HashUtil;
 
 public class StringScriptSource implements ScriptSource {
-    private final Resource resource;
+    private final TextResource resource;
 
     public StringScriptSource(String description, String content) {
-        resource = new StringResource(description, content == null ? "" : content);
+        resource = new StringTextResource(description, content == null ? "" : content);
     }
 
     public String getClassName() {
         return "script_" + HashUtil.createCompactMD5(resource.getText());
     }
 
-    public Resource getResource() {
+    public TextResource getResource() {
         return resource;
     }
 

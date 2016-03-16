@@ -19,7 +19,7 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import org.gradle.internal.resource.StringResource;
+import org.gradle.internal.resource.StringTextResource;
 import org.junit.Test;
 
 public class StringScriptSourceTest {
@@ -27,7 +27,7 @@ public class StringScriptSourceTest {
 
     @Test
     public void usesProvidedContent() {
-        assertThat(source.getResource(), instanceOf(StringResource.class));
+        assertThat(source.getResource(), instanceOf(StringTextResource.class));
         assertThat(source.getResource().getText(), equalTo("<content>"));
     }
 

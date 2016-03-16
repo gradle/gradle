@@ -37,7 +37,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.Actions
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -95,7 +95,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
     private ScriptSource scriptSource(final String scriptText) {
         def source = Stub(ScriptSource)
-        def resource = Stub(Resource)
+        def resource = Stub(TextResource)
         _ * source.className >> scriptClassName
         _ * source.fileName >> scriptFileName
         _ * source.displayName >> "script-display-name"

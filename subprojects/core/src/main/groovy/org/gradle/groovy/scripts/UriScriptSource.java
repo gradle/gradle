@@ -15,9 +15,9 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.ResourceLocation;
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.UriTextResource;
 
 import java.io.File;
 import java.net.URI;
@@ -26,7 +26,7 @@ import java.net.URI;
  * A {@link ScriptSource} which loads the script from a URI.
  */
 public class UriScriptSource extends AbstractUriScriptSource {
-    private final Resource resource;
+    private final TextResource resource;
 
     public static ScriptSource file(String description, File sourceFile) {
         if (sourceFile.exists()) {
@@ -37,14 +37,14 @@ public class UriScriptSource extends AbstractUriScriptSource {
     }
 
     public UriScriptSource(String description, File sourceFile) {
-        resource = new UriResource(description, sourceFile);
+        resource = new UriTextResource(description, sourceFile);
     }
 
     public UriScriptSource(String description, URI sourceUri) {
-        resource = new UriResource(description, sourceUri);
+        resource = new UriTextResource(description, sourceUri);
     }
 
-    public Resource getResource() {
+    public TextResource getResource() {
         return resource;
     }
 

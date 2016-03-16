@@ -22,7 +22,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashValueSerializer;
@@ -42,7 +42,7 @@ public class CachingFileSnapshotter implements FileSnapshotter {
     }
 
     @Override
-    public FileSnapshot snapshot(Resource resource) {
+    public FileSnapshot snapshot(TextResource resource) {
         File file = resource.getFile();
         if (file != null) {
             return snapshot(file);

@@ -21,11 +21,11 @@ import org.gradle.api.Nullable;
 import java.io.File;
 import java.net.URI;
 
-public class StringResource implements Resource {
+public class StringTextResource implements TextResource {
     private final String displayName;
     private final CharSequence contents;
 
-    public StringResource(String displayName, CharSequence contents) {
+    public StringTextResource(String displayName, CharSequence contents) {
         this.displayName = displayName;
         this.contents = contents;
     }

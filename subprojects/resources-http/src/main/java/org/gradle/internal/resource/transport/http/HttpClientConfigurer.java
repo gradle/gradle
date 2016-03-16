@@ -44,7 +44,7 @@ import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.util.CollectionUtils;
@@ -145,7 +145,7 @@ public class HttpClientConfigurer {
     }
 
     public void configureUserAgent(HttpClientBuilder builder) {
-        builder.setUserAgent(UriResource.getUserAgentString());
+        builder.setUserAgent(UriTextResource.getUserAgentString());
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {

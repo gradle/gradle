@@ -27,7 +27,7 @@ import java.io.File;
  *
  * <p>This type will be merged with {@link ExternalResource} and friends.</p>
  */
-public interface Resource {
+public interface TextResource {
     /**
      * Returns a display name for this resource. This can be used in log and error messages.
      *

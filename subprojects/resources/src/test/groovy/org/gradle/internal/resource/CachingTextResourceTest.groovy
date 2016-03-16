@@ -19,9 +19,9 @@ package org.gradle.internal.resource
 
 import spock.lang.Specification
 
-class CachingResourceTest extends Specification {
-    def target = Mock(Resource)
-    def resource = new CachingResource(target)
+class CachingTextResourceTest extends Specification {
+    def target = Mock(TextResource)
+    def resource = new CachingTextResource(target)
 
     def fetchesAndCachesContentWhenExistenceIsChecked() {
         when:

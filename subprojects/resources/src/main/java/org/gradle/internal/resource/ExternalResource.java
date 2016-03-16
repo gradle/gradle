@@ -23,7 +23,7 @@ import java.io.*;
 import java.net.URI;
 
 /**
- * This will be merged with {@link Resource}.
+ * This will be merged with {@link TextResource}.
  */
 public interface ExternalResource extends Closeable {
     /**

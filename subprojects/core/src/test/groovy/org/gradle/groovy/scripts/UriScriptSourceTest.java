@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class UriScriptSourceTest {
     public void canConstructSourceFromFile() throws IOException {
         scriptFile.createNewFile();
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
@@ -95,7 +95,7 @@ public class UriScriptSourceTest {
     public void canConstructSourceFromFileURI() throws IOException {
         scriptFile.createNewFile();
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
@@ -105,7 +105,7 @@ public class UriScriptSourceTest {
     public void canConstructSourceFromJarURI() throws URISyntaxException {
         URI uri = createJar();
         UriScriptSource source = new UriScriptSource("<file-type>", uri);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertNull(source.getResource().getFile());
         assertNull(source.getResource().getLocation().getFile());
         assertThat(source.getResource().getLocation().getURI(), equalTo(uri));

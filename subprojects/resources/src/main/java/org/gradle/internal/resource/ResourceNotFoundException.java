@@ -19,7 +19,7 @@ package org.gradle.internal.resource;
 import java.net.URI;
 
 /**
- * An exception thrown when attempting to access the content of a {@link Resource} which does not exist.
+ * An exception thrown when attempting to access the content of a {@link TextResource} which does not exist.
  */
 public class ResourceNotFoundException extends ResourceException {
     public ResourceNotFoundException(URI location, String message) {

@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.*
 
-class UriResourceTest {
+class UriTextResourceTest {
     private TestFile testDir;
     private File file;
     private URI fileUri;
@@ -54,7 +54,7 @@ class UriResourceTest {
     @Test
     public void canConstructResourceFromFile() {
         file.createNewFile()
-        UriResource resource = new UriResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file);
         assertThat(resource.file, equalTo(file));
         assertThat(resource.location.file, equalTo(file));
         assertThat(resource.location.URI, equalTo(fileUri));
@@ -63,7 +63,7 @@ class UriResourceTest {
     @Test
     public void canConstructResourceFromFileURI() {
         file.createNewFile()
-        UriResource resource = new UriResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
         assertThat(resource.file, equalTo(file));
         assertThat(resource.location.file, equalTo(file));
         assertThat(resource.location.URI, equalTo(fileUri));
@@ -72,7 +72,7 @@ class UriResourceTest {
     @Test
     public void canConstructResourceFromJarURI() {
         URI jarUri = createJar()
-        UriResource resource = new UriResource('<display-name>', jarUri);
+        UriTextResource resource = new UriTextResource('<display-name>', jarUri);
         assertThat(resource.file, nullValue());
         assertThat(resource.location.file, nullValue());
         assertThat(resource.location.URI, equalTo(jarUri));
@@ -82,7 +82,7 @@ class UriResourceTest {
     public void readsFileContentWhenFileExists() throws IOException {
         file.text = '<content>'
 
-        UriResource resource = new UriResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file);
         assertTrue(resource.exists)
         assertFalse(resource.hasEmptyContent)
         assertThat(resource.text, equalTo('<content>'));
@@ -92,14 +92,14 @@ class UriResourceTest {
     public void assumesFileIsEncodedUsingUtf8() throws IOException {
         file.setText('\u03b1', 'utf-8')
 
-        UriResource resource = new UriResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file);
         assertTrue(resource.exists)
         assertThat(resource.text, equalTo('\u03b1'));
     }
 
     @Test
     public void hasNoContentWhenFileDoesNotExist() {
-        UriResource resource = new UriResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file);
         assertFalse(resource.exists)
         assertNull(resource.file)
         try {
@@ -119,7 +119,7 @@ class UriResourceTest {
     @Test
     public void hasNoContentWhenFileIsADirectory() {
         TestFile dir = testDir.file('somedir').createDir()
-        UriResource resource = new UriResource('<display-name>', dir);
+        UriTextResource resource = new UriTextResource('<display-name>', dir);
         assertTrue(resource.exists)
         assertNull(resource.file)
         try {
@@ -140,14 +140,14 @@ class UriResourceTest {
     public void readsFileContentUsingFileUriWhenFileExists() {
         file.text = '<content>'
 
-        UriResource resource = new UriResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
         assertTrue(resource.exists)
         assertThat(resource.text, equalTo('<content>'));
     }
 
     @Test
     public void hasNoContentWhenUsingFileUriAndFileDoesNotExist() {
-        UriResource resource = new UriResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
         assertFalse(resource.exists)
         assertNull(resource.file)
         try {
@@ -163,7 +163,7 @@ class UriResourceTest {
     public void readsFileContentUsingJarUriWhenFileExists() {
         file.text = '<content>'
 
-        UriResource resource = new UriResource('<display-name>', createJar());
+        UriTextResource resource = new UriTextResource('<display-name>', createJar());
         assertTrue(resource.exists)
         assertThat(resource.text, equalTo('<content>'));
     }
@@ -172,7 +172,7 @@ class UriResourceTest {
     @LeaksFileHandles
     public void hasNoContentWhenUsingJarUriAndFileDoesNotExistInJar() {
         URI jarUri = createJar()
-        UriResource resource = new UriResource('<display-name>', jarUri);
+        UriTextResource resource = new UriTextResource('<display-name>', jarUri);
         assertFalse(resource.exists)
         try {
             resource.text
@@ -186,7 +186,7 @@ class UriResourceTest {
     public void hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
         Assume.assumeTrue(TestPrecondition.ONLINE.fulfilled) // when this test moves to spock, ignore this test instead of just passing.
 
-        UriResource resource = new UriResource('<display-name>', new URI("http://www.gradle.org/unknown.txt"));
+        UriTextResource resource = new UriTextResource('<display-name>', new URI("http://www.gradle.org/unknown.txt"));
         assertFalse(resource.exists)
         try {
             resource.text
@@ -198,34 +198,34 @@ class UriResourceTest {
 
     @Test
     public void usesFilePathToBuildDisplayNameWhenUsingFile() {
-        UriResource resource = new UriResource("<file-type>", file);
+        UriTextResource resource = new UriTextResource("<file-type>", file);
         assertThat(resource.displayName, equalTo(String.format("<file-type> '%s'", file.absolutePath)));
     }
 
     @Test
     public void usesFilePathToBuildDisplayNameWhenUsingFileUri() {
-        UriResource resource = new UriResource("<file-type>", fileUri);
+        UriTextResource resource = new UriTextResource("<file-type>", fileUri);
         assertThat(resource.displayName, equalTo(String.format("<file-type> '%s'", file.absolutePath)));
     }
 
     @Test
     public void usesUriToBuildDisplayNameWhenUsingHttpUri() {
-        UriResource resource = new UriResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
+        UriTextResource resource = new UriTextResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
         assertThat(resource.displayName, equalTo('<file-type> \'http://www.gradle.org/unknown.txt\''))
     }
 
     @Test
     public void extractsCharacterEncodingFromContentType() {
-        assertThat(UriResource.extractCharacterEncoding('content/unknown', null), nullValue())
-        assertThat(UriResource.extractCharacterEncoding('content/unknown', 'default'), equalTo('default'))
-        assertThat(UriResource.extractCharacterEncoding(null, 'default'), equalTo('default'))
-        assertThat(UriResource.extractCharacterEncoding('text/html', null), nullValue())
-        assertThat(UriResource.extractCharacterEncoding('text/html; charset=UTF-8', null), equalTo('UTF-8'))
-        assertThat(UriResource.extractCharacterEncoding('text/html; other=value; other="value"; charset=US-ASCII', null), equalTo('US-ASCII'))
-        assertThat(UriResource.extractCharacterEncoding('text/plain; other=value;', null), equalTo(null))
-        assertThat(UriResource.extractCharacterEncoding('text/plain; charset="charset"', null), equalTo('charset'))
-        assertThat(UriResource.extractCharacterEncoding('text/plain; charset="\\";\\="', null), equalTo('";\\='))
-        assertThat(UriResource.extractCharacterEncoding('text/plain; charset=', null), equalTo(null))
-        assertThat(UriResource.extractCharacterEncoding('text/plain; charset; charset=;charset="missing-quote', null), equalTo("missing-quote"))
+        assertThat(UriTextResource.extractCharacterEncoding('content/unknown', null), nullValue())
+        assertThat(UriTextResource.extractCharacterEncoding('content/unknown', 'default'), equalTo('default'))
+        assertThat(UriTextResource.extractCharacterEncoding(null, 'default'), equalTo('default'))
+        assertThat(UriTextResource.extractCharacterEncoding('text/html', null), nullValue())
+        assertThat(UriTextResource.extractCharacterEncoding('text/html; charset=UTF-8', null), equalTo('UTF-8'))
+        assertThat(UriTextResource.extractCharacterEncoding('text/html; other=value; other="value"; charset=US-ASCII', null), equalTo('US-ASCII'))
+        assertThat(UriTextResource.extractCharacterEncoding('text/plain; other=value;', null), equalTo(null))
+        assertThat(UriTextResource.extractCharacterEncoding('text/plain; charset="charset"', null), equalTo('charset'))
+        assertThat(UriTextResource.extractCharacterEncoding('text/plain; charset="\\";\\="', null), equalTo('";\\='))
+        assertThat(UriTextResource.extractCharacterEncoding('text/plain; charset=', null), equalTo(null))
+        assertThat(UriTextResource.extractCharacterEncoding('text/plain; charset; charset=;charset="missing-quote', null), equalTo("missing-quote"))
     }
 }

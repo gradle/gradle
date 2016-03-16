@@ -28,7 +28,7 @@ import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.hash.HashValue
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.TextResource
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final PersistentCache localCache = Mock()
     final PersistentCache globalCache = Mock()
     final ScriptSource source = Mock()
-    final Resource resource = Mock()
+    final TextResource resource = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()

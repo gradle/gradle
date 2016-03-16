@@ -20,7 +20,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
-import org.gradle.internal.resource.UriResource
+import org.gradle.internal.resource.UriTextResource
 import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
@@ -108,6 +108,6 @@ public class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        httpClientBuilder.userAgent == UriResource.userAgentString
+        httpClientBuilder.userAgent == UriTextResource.userAgentString
     }
 }

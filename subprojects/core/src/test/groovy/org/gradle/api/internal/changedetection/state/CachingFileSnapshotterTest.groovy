@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -108,7 +108,7 @@ class CachingFileSnapshotterTest extends Specification {
     }
 
     def hashesBackingFileWhenResourceIsBackedByFile() {
-        def resource = Mock(Resource)
+        def resource = Mock(TextResource)
 
         when:
         def result = hasher.snapshot(resource)
@@ -123,7 +123,7 @@ class CachingFileSnapshotterTest extends Specification {
     }
 
     def hashesContentWhenResourceIsNotBackedByFile() {
-        def resource = Mock(Resource)
+        def resource = Mock(TextResource)
 
         when:
         def result = hasher.snapshot(resource)

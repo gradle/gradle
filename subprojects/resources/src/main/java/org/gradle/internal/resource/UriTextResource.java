@@ -26,14 +26,14 @@ import java.net.URI;
 import java.net.URLConnection;
 
 /**
- * A {@link Resource} implementation backed by a URI. Assumes content is encoded using UTF-8.
+ * A {@link TextResource} implementation backed by a URI. Assumes content is encoded using UTF-8.
  */
-public class UriResource implements Resource {
+public class UriTextResource implements TextResource {
     private final File sourceFile;
     private final URI sourceUri;
     private final String description;
 
-    public UriResource(String description, File sourceFile) {
+    public UriTextResource(String description, File sourceFile) {
         this.description = description;
         this.sourceFile = canonicalise(sourceFile);
         this.sourceUri = sourceFile.toURI();
@@ -47,7 +47,7 @@ public class UriResource implements Resource {
         }
     }
 
-    public UriResource(String description, URI sourceUri) {
+    public UriTextResource(String description, URI sourceUri) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? canonicalise(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
@@ -216,7 +216,7 @@ public class UriResource implements Resource {
     private class UriResourceLocation implements ResourceLocation {
         @Override
         public String getDisplayName() {
-            return UriResource.this.getDisplayName();
+            return UriTextResource.this.getDisplayName();
         }
 
         @Nullable

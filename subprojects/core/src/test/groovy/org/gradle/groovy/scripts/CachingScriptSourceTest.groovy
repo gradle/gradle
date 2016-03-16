@@ -16,14 +16,14 @@
 
 package org.gradle.groovy.scripts
 
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
 
 class CachingScriptSourceTest extends Specification {
     def "creates wrapper for script source when content is expensive to query"() {
         def scriptSource = Stub(ScriptSource)
-        def resource = Stub(Resource)
+        def resource = Stub(TextResource)
 
         scriptSource.resource >> resource
         resource.contentCached >> false
@@ -36,7 +36,7 @@ class CachingScriptSourceTest extends Specification {
 
     def "does not create wrapper for script source when content is cheap to query"() {
         def scriptSource = Stub(ScriptSource)
-        def resource = Stub(Resource)
+        def resource = Stub(TextResource)
 
         scriptSource.resource >> resource
         resource.contentCached >> true

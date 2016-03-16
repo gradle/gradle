@@ -17,11 +17,11 @@ package org.gradle.internal.resource
 
 import spock.lang.Specification
 
-class StringResourceTest extends Specification {
+class StringTextResourceTest extends Specification {
 
     def nonEmptyStringResourceHasTextContent() {
         expect:
-        def resource = new StringResource('displayname', 'text')
+        def resource = new StringTextResource('displayname', 'text')
         resource.text == 'text'
         resource.exists
         !resource.hasEmptyContent
@@ -30,7 +30,7 @@ class StringResourceTest extends Specification {
 
     def emptyStringResourceHasEmptyContent() {
         expect:
-        def resource = new StringResource('displayname', '')
+        def resource = new StringTextResource('displayname', '')
         resource.text == ''
         resource.exists
         resource.hasEmptyContent
@@ -39,7 +39,7 @@ class StringResourceTest extends Specification {
 
     def resourceHasNoIdentity() {
         expect:
-        def resource = new StringResource('displayname', 'text')
+        def resource = new StringTextResource('displayname', 'text')
         resource.location.file == null
         resource.location.URI == null
         resource.file == null
@@ -47,7 +47,7 @@ class StringResourceTest extends Specification {
 
     def resourceHasDisplayName() {
         expect:
-        def resource = new StringResource('displayname', 'text')
+        def resource = new StringTextResource('displayname', 'text')
         resource.displayName == 'displayname'
         resource.location.displayName == 'displayname'
     }

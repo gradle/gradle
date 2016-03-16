@@ -18,11 +18,11 @@ package org.gradle.internal.resource;
 
 import java.io.File;
 
-public class CachingResource implements Resource {
-    private final Resource resource;
+public class CachingTextResource implements TextResource {
+    private final TextResource resource;
     private String content;
 
-    public CachingResource(Resource resource) {
+    public CachingTextResource(TextResource resource) {
         this.resource = resource;
     }
 
