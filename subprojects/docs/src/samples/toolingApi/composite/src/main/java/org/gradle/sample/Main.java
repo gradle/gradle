@@ -31,13 +31,18 @@ import java.util.Set;
 public class Main {
     public static void main(String... args) {
         GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder();
-        File gradleHome = new File(args[0]);
-        builder.useGradleUserHomeDir(new File(args[1]));
 
-        for (int i=2; i<args.length; i++) {
+        File gradleHome = new File(args[0]);
+        File gradleUserHome = new File(args[1]);
+        builder.useInstallation(gradleHome);
+        builder.useGradleUserHomeDir(gradleUserHome);
+
+        for (int i = 2; i < args.length; i++) {
             File projectDir = new File(args[i]);
-            GradleBuild gradleBuild = GradleConnector.newGradleBuildBuilder().
-                forProjectDirectory(projectDir).useInstallation(gradleHome).create();
+            GradleBuild gradleBuild = GradleConnector.newGradleBuildBuilder()
+                .forProjectDirectory(projectDir)
+                .useInstallation(gradleHome)
+                .create();
             builder.addBuild(gradleBuild);
         }
         GradleConnection connection = builder.build();
