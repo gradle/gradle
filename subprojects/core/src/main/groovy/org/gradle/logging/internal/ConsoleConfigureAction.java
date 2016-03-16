@@ -21,7 +21,6 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
@@ -39,17 +38,9 @@ public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
         ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
         boolean force = false;
         if (consoleMetaData == null) {
-            // TODO - remove this when we use Terminal rather than JAnsi to render to console
-            String term = System.getenv("TERM");
-            boolean isXterm = "xterm".equals(term);
-            boolean isCygwin = isXterm && OperatingSystem.current().isWindows();
-
-            // If we are using xterm we can for sure render ANSI sequences. So force using an ANSI console if we also
-            // are on Windows to support Cygwin's / MSYS' mintty terminal on Windows.
-            if (!isCygwin && consoleOutput == ConsoleOutput.Auto) {
+            if (consoleOutput == ConsoleOutput.Auto) {
                 return;
             }
-
             assert consoleOutput == ConsoleOutput.Rich;
             consoleMetaData = new FallbackConsoleMetaData();
             force = true;
