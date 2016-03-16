@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.hash;
 
-import org.gradle.internal.hash.HashUtil;
+package org.gradle.internal.serialize;
+
 import org.gradle.internal.hash.HashValue;
 
-import java.io.File;
+public class HashValueSerializer implements Serializer<HashValue> {
+    @Override
+    public HashValue read(Decoder decoder) throws Exception {
+        byte hashSize = decoder.readByte();
+        byte[] hash = new byte[hashSize];
+        decoder.readBytes(hash);
+        return new HashValue(hash);
+    }
 
-public class DefaultHasher implements Hasher {
-    public HashValue hash(File file) {
-        return HashUtil.createHash(file, "MD5");
+    @Override
+    public void write(Encoder encoder, HashValue value) throws Exception {
+        byte[] hash = value.asByteArray();
+        encoder.writeByte((byte) hash.length);
+        encoder.writeBytes(hash);
     }
 }

@@ -15,10 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.*;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
 
@@ -60,7 +61,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     }
 
     private class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
-        private final Serializer<byte[]> hashSerializer = new HashSerializer();
+        private final Serializer<HashValue> hashSerializer = new HashValueSerializer();
         private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer());
         private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
 
@@ -77,22 +78,6 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             hashSerializer.write(encoder, value.getHash());
             resolveIncludesSerializer.write(encoder, value.getResolvedIncludes());
             sourceIncludesSerializer.write(encoder, value.getIncludeDirectives());
-        }
-    }
-
-    private class HashSerializer implements Serializer<byte[]> {
-        @Override
-        public byte[] read(Decoder decoder) throws Exception {
-            int size = decoder.readSmallInt();
-            byte[] value = new byte[size];
-            decoder.readBytes(value);
-            return value;
-        }
-
-        @Override
-        public void write(Encoder encoder, byte[] value) throws Exception {
-            encoder.writeSmallInt(value.length);
-            encoder.writeBytes(value);
         }
     }
 

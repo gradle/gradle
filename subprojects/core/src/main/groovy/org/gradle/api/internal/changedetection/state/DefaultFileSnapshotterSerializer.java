@@ -19,12 +19,14 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashValueSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.HashMap;
 import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshotImpl> {
+    private final HashValueSerializer hashValueSerializer = new HashValueSerializer();
     private final StringInterner stringInterner;
 
     public DefaultFileSnapshotterSerializer(StringInterner stringInterner) {
@@ -43,10 +45,7 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
             } else if (fileSnapshotKind == 2) {
                 snapshots.put(key, MissingFileSnapshot.getInstance());
             } else if (fileSnapshotKind == 3) {
-                byte hashSize = decoder.readByte();
-                byte[] hash = new byte[hashSize];
-                decoder.readBytes(hash);
-                snapshots.put(key, new FileHashSnapshot(hash));
+                snapshots.put(key, new FileHashSnapshot(hashValueSerializer.read(decoder)));
             } else {
                 throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
             }
@@ -65,9 +64,7 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
                 encoder.writeByte((byte) 2);
             } else if (incrementalFileSnapshot instanceof FileHashSnapshot) {
                 encoder.writeByte((byte) 3);
-                byte[] hash = ((FileHashSnapshot) incrementalFileSnapshot).hash;
-                encoder.writeByte((byte) hash.length);
-                encoder.writeBytes(hash);
+                hashValueSerializer.write(encoder, ((FileHashSnapshot) incrementalFileSnapshot).hash);
             }
         }
     }

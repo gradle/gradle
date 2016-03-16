@@ -39,12 +39,12 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def setup() {
         fileSnapshotter.snapshot(_) >> { FileTreeElement fileTreeElement ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(fileTreeElement.file).asByteArray()
+                getHash() >> HashUtil.sha1(fileTreeElement.file)
             }
         }
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(file).asByteArray()
+                getHash() >> HashUtil.sha1(file)
             }
         }
         cacheAccess.useCache(_, _) >> { String name, Runnable action ->

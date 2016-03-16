@@ -17,37 +17,36 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.MapSerializer;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.serialize.*;
 
 import java.util.Map;
 
-import static org.gradle.internal.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 
-    private final MapSerializer<String, byte[]> mapSerializer;
+    private final MapSerializer<String, HashValue> mapSerializer;
     private final Serializer<ClassSetAnalysisData> analysisSerializer;
+    private final HashValueSerializer hashValueSerializer;
 
     public JarSnapshotDataSerializer() {
-        mapSerializer = new MapSerializer<String, byte[]>(STRING_SERIALIZER, BYTE_ARRAY_SERIALIZER);
+        hashValueSerializer = new HashValueSerializer();
+        mapSerializer = new MapSerializer<String, HashValue>(STRING_SERIALIZER, hashValueSerializer);
         analysisSerializer = new ClassSetAnalysisData.Serializer();
     }
 
     @Override
     public JarSnapshotData read(Decoder decoder) throws Exception {
-        byte[] hash = decoder.readBinary();
-        Map<String, byte[]> hashes = mapSerializer.read(decoder);
+        HashValue hash = hashValueSerializer.read(decoder);
+        Map<String, HashValue> hashes = mapSerializer.read(decoder);
         ClassSetAnalysisData data = analysisSerializer.read(decoder);
         return new JarSnapshotData(hash, hashes, data);
     }
 
     @Override
     public void write(Encoder encoder, JarSnapshotData value) throws Exception {
-        encoder.writeBinary(value.hash);
+        hashValueSerializer.write(encoder, value.hash);
         mapSerializer.write(encoder, value.hashes);
         analysisSerializer.write(encoder, value.data);
     }

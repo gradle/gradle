@@ -25,9 +25,9 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
-import java.util.Arrays;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final Cache<Key, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
@@ -40,9 +40,9 @@ public class CrossBuildInMemoryCachingScriptClassCache {
     public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier, ScriptClassCompiler delegate) {
         Key key = new Key(source.getClassName(), classLoader, operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
-        byte[] hash = hashFor(source);
+        HashValue hash = hashFor(source);
         if (cached != null) {
-            if (Arrays.equals(hash, cached.hash)) {
+            if (hash.equals(cached.hash)) {
                 return Cast.uncheckedCast(cached.compiledScript);
             }
         }
@@ -51,12 +51,12 @@ public class CrossBuildInMemoryCachingScriptClassCache {
         return compiledScript;
     }
 
-    private byte[] hashFor(ScriptSource source) {
+    private HashValue hashFor(ScriptSource source) {
         File file = source.getResource().getFile();
         if (file != null && file.exists()) {
             return snapshotter.snapshot(file).getHash();
         }
-        return HashUtil.createHash(source.getResource().getText(), "md5").asByteArray();
+        return HashUtil.createHash(source.getResource().getText(), "md5");
     }
 
     private static class Key {
@@ -96,10 +96,10 @@ public class CrossBuildInMemoryCachingScriptClassCache {
     }
 
     private static class CachedCompiledScript {
-        private final byte[] hash;
+        private final HashValue hash;
         private final CompiledScript<?, ?> compiledScript;
 
-        private CachedCompiledScript(byte[] hash, CompiledScript<?, ?> compiledScript) {
+        private CachedCompiledScript(HashValue hash, CompiledScript<?, ?> compiledScript) {
             this.hash = hash;
             this.compiledScript = compiledScript;
         }

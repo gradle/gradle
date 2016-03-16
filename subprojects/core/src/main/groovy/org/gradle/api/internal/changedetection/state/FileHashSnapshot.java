@@ -16,19 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.math.BigInteger;
-import java.util.Arrays;
+import org.gradle.internal.hash.HashValue;
 
 class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
-    final byte[] hash;
+    final HashValue hash;
     final transient long lastModified; // Currently not persisted
 
-    public FileHashSnapshot(byte[] hash) {
+    public FileHashSnapshot(HashValue hash) {
         this.hash = hash;
         this.lastModified = 0;
     }
 
-    public FileHashSnapshot(byte[] hash, long lastModified) {
+    public FileHashSnapshot(HashValue hash, long lastModified) {
         this.hash = hash;
         this.lastModified = lastModified;
     }
@@ -38,7 +37,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
             return false;
         }
         FileHashSnapshot other = (FileHashSnapshot) snapshot;
-        return Arrays.equals(hash, other.hash);
+        return hash.equals(other.hash);
     }
 
     @Override
@@ -47,15 +46,15 @@ class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
             return false;
         }
         FileHashSnapshot other = (FileHashSnapshot) snapshot;
-        return lastModified == other.lastModified && Arrays.equals(hash, other.hash);
+        return lastModified == other.lastModified && hash.equals(other.hash);
     }
 
     @Override
     public String toString() {
-        return new BigInteger(1, hash).toString(16);
+        return hash.asHexString();
     }
 
-    public byte[] getHash() {
+    public HashValue getHash() {
         return hash;
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.serialize.SerializerSpec
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
@@ -25,15 +26,16 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         when:
+        def hash = HashUtil.createHash("foo", "md5")
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot("foo".bytes)]), serializer)
+            "3": new FileHashSnapshot(hash)]), serializer)
 
         then:
         out.snapshots.size() == 3
         out.snapshots['1'] instanceof DirSnapshot
         out.snapshots['2'] instanceof MissingFileSnapshot
-        ((FileHashSnapshot) out.snapshots['3']).hash == "foo".bytes
+        ((FileHashSnapshot) out.snapshots['3']).hash == hash
     }
 }

@@ -57,6 +57,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -247,7 +248,7 @@ public class GlobalScopeServices {
     ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CachingFileSnapshotter fileSnapshotter) {
         if (environment.isLongLivingProcess()) {
             return new HashClassPathSnapshotter(new Hasher() {
-                public byte[] hash(File file) {
+                public HashValue hash(File file) {
                     return fileSnapshotter.snapshot(file).getHash();
                 }
             });
