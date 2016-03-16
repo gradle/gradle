@@ -39,6 +39,11 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         this.stringInterner = stringInterner;
     }
 
+    @Override
+    public HashValue hash(File file) {
+        return snapshot(file).getHash();
+    }
+
     public FileInfo snapshot(File file) {
         return snapshot(file, file.length(), file.lastModified());
     }
