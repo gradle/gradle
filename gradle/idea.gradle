@@ -219,7 +219,11 @@ idea {
         def defaultTestVmParams = [
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
-                "-DintegTest.gradleHomeDir=${intTestImage.destinationDir}",
+                "-DintegTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
+                "-DintegTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
+                "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
+                "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
+                "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-ea",
                 "-XX:MaxPermSize=512m",
