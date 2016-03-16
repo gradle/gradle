@@ -53,16 +53,20 @@ class UriResourceTest {
 
     @Test
     public void canConstructResourceFromFile() {
+        file.createNewFile()
         UriResource resource = new UriResource('<display-name>', file);
         assertThat(resource.file, equalTo(file));
-        assertThat(resource.URI, equalTo(fileUri));
+        assertThat(resource.location.file, equalTo(file));
+        assertThat(resource.location.URI, equalTo(fileUri));
     }
 
     @Test
     public void canConstructResourceFromFileURI() {
+        file.createNewFile()
         UriResource resource = new UriResource('<display-name>', fileUri);
         assertThat(resource.file, equalTo(file));
-        assertThat(resource.URI, equalTo(fileUri));
+        assertThat(resource.location.file, equalTo(file));
+        assertThat(resource.location.URI, equalTo(fileUri));
     }
 
     @Test
@@ -70,7 +74,8 @@ class UriResourceTest {
         URI jarUri = createJar()
         UriResource resource = new UriResource('<display-name>', jarUri);
         assertThat(resource.file, nullValue());
-        assertThat(resource.URI, equalTo(jarUri));
+        assertThat(resource.location.file, nullValue());
+        assertThat(resource.location.URI, equalTo(jarUri));
     }
 
     @Test
@@ -96,6 +101,7 @@ class UriResourceTest {
     public void hasNoContentWhenFileDoesNotExist() {
         UriResource resource = new UriResource('<display-name>', file);
         assertFalse(resource.exists)
+        assertNull(resource.file)
         try {
             resource.text
             fail()
@@ -115,6 +121,7 @@ class UriResourceTest {
         TestFile dir = testDir.file('somedir').createDir()
         UriResource resource = new UriResource('<display-name>', dir);
         assertTrue(resource.exists)
+        assertNull(resource.file)
         try {
             resource.text
             fail()
@@ -142,6 +149,7 @@ class UriResourceTest {
     public void hasNoContentWhenUsingFileUriAndFileDoesNotExist() {
         UriResource resource = new UriResource('<display-name>', fileUri);
         assertFalse(resource.exists)
+        assertNull(resource.file)
         try {
             resource.text
             fail()

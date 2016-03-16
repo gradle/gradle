@@ -44,7 +44,7 @@ public class CachingFileSnapshotter implements FileSnapshotter {
     @Override
     public FileSnapshot snapshot(Resource resource) {
         File file = resource.getFile();
-        if (file != null && file.exists()) {
+        if (file != null) {
             return snapshot(file);
         }
         final HashValue md5 = HashUtil.createHash(resource.getText(), "md5");

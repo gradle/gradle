@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -54,10 +55,13 @@ public class UriScriptSourceTest {
     }
 
     @Test
-    public void canConstructSourceFromFile() {
+    public void canConstructSourceFromFile() throws IOException {
+        scriptFile.createNewFile();
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
         assertThat(source.getResource(), instanceOf(UriResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
 
     @Test
@@ -66,6 +70,8 @@ public class UriScriptSourceTest {
         ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
         assertThat(source, instanceOf(UriScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
         assertThat(source.getResource().getText(), equalTo("content"));
         assertFalse(source.getResource().isContentCached());
         assertFalse(source.getResource().getHasEmptyContent());
@@ -76,7 +82,9 @@ public class UriScriptSourceTest {
     public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
         ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
         assertThat(source, instanceOf(NonExistentFileScriptSource.class));
-        assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertNull(source.getResource().getFile());
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
         assertThat(source.getResource().getText(), equalTo(""));
         assertTrue(source.getResource().isContentCached());
         assertTrue(source.getResource().getHasEmptyContent());
@@ -84,10 +92,13 @@ public class UriScriptSourceTest {
     }
 
     @Test
-    public void canConstructSourceFromFileURI() {
+    public void canConstructSourceFromFileURI() throws IOException {
+        scriptFile.createNewFile();
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
         assertThat(source.getResource(), instanceOf(UriResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
 
     @Test
@@ -95,7 +106,9 @@ public class UriScriptSourceTest {
         URI uri = createJar();
         UriScriptSource source = new UriScriptSource("<file-type>", uri);
         assertThat(source.getResource(), instanceOf(UriResource.class));
-        assertThat(source.getResource().getURI(), equalTo(uri));
+        assertNull(source.getResource().getFile());
+        assertNull(source.getResource().getLocation().getFile());
+        assertThat(source.getResource().getLocation().getURI(), equalTo(uri));
     }
 
     @Test

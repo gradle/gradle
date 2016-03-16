@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.net.URI;
 
@@ -50,11 +52,37 @@ public class StringResource implements Resource {
         return null;
     }
 
-    public URI getURI() {
-        return null;
+    @Override
+    public ResourceLocation getLocation() {
+        return new StringResourceLocation(displayName);
     }
 
     public boolean getExists() {
         return true;
+    }
+
+    private static class StringResourceLocation implements ResourceLocation {
+        private final String displayName;
+
+        public StringResourceLocation(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Nullable
+        @Override
+        public File getFile() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public URI getURI() {
+            return null;
+        }
     }
 }

@@ -44,22 +44,4 @@ public class CachingScriptSource extends DelegatingScriptSource {
     public Resource getResource() {
         return resource;
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-
-        CachingScriptSource other = (CachingScriptSource) obj;
-        return other.getSource().equals(getSource());
-    }
-
-    @Override
-    public int hashCode() {
-        return getSource().hashCode();
-    }
 }

@@ -62,6 +62,11 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
         }
 
         @Override
+        public File getFile() {
+            return null;
+        }
+
+        @Override
         public String getText() {
             return "";
         }

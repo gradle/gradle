@@ -40,7 +40,15 @@ class StringResourceTest extends Specification {
     def resourceHasNoIdentity() {
         expect:
         def resource = new StringResource('displayname', 'text')
+        resource.location.file == null
+        resource.location.URI == null
         resource.file == null
-        resource.URI == null
+    }
+
+    def resourceHasDisplayName() {
+        expect:
+        def resource = new StringResource('displayname', 'text')
+        resource.displayName == 'displayname'
+        resource.location.displayName == 'displayname'
     }
 }

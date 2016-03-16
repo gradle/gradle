@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
@@ -113,11 +114,12 @@ public class UriResource implements Resource {
     }
 
     public File getFile() {
-        return sourceFile;
+        return sourceFile != null && sourceFile.isFile() ? sourceFile : null;
     }
 
-    public URI getURI() {
-        return sourceUri;
+    @Override
+    public ResourceLocation getLocation() {
+        return new UriResourceLocation();
     }
 
     public static String extractCharacterEncoding(String contentType, String defaultEncoding) {
@@ -211,4 +213,22 @@ public class UriResource implements Resource {
                 javaVendorVersion);
     }
 
+    private class UriResourceLocation implements ResourceLocation {
+        @Override
+        public String getDisplayName() {
+            return UriResource.this.getDisplayName();
+        }
+
+        @Nullable
+        @Override
+        public File getFile() {
+            return sourceFile;
+        }
+
+        @Nullable
+        @Override
+        public URI getURI() {
+            return sourceUri;
+        }
+    }
 }

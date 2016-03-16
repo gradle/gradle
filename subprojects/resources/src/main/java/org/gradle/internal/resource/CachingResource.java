@@ -17,7 +17,6 @@
 package org.gradle.internal.resource;
 
 import java.io.File;
-import java.net.URI;
 
 public class CachingResource implements Resource {
     private final Resource resource;
@@ -31,12 +30,13 @@ public class CachingResource implements Resource {
         return resource.getDisplayName();
     }
 
-    public File getFile() {
-        return resource.getFile();
+    @Override
+    public ResourceLocation getLocation() {
+        return resource.getLocation();
     }
 
-    public URI getURI() {
-        return resource.getURI();
+    public File getFile() {
+        return resource.getFile();
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.UriResource;
 
 import java.io.File;
@@ -48,8 +49,9 @@ public class UriScriptSource extends AbstractUriScriptSource {
     }
 
     public String getFileName() {
-        File sourceFile = resource.getFile();
-        URI sourceUri = resource.getURI();
+        ResourceLocation location = resource.getLocation();
+        File sourceFile = location.getFile();
+        URI sourceUri = location.getURI();
         return sourceFile != null ? sourceFile.getPath() : sourceUri.toString();
     }
 

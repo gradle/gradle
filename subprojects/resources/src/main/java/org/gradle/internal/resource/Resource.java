@@ -19,7 +19,6 @@ package org.gradle.internal.resource;
 import org.gradle.api.Nullable;
 
 import java.io.File;
-import java.net.URI;
 
 /**
  * A {@code Resource} represents some binary artifact.
@@ -37,20 +36,18 @@ public interface Resource {
     String getDisplayName();
 
     /**
-     * Returns a file representing this resource. Not all resources are available as a file.
+     * Returns the location of this resource.
+     */
+    ResourceLocation getLocation();
+
+    /**
+     * Returns a file that contains the same content as this resource, encoded using some default charset. Not all resources are available as a file.
+     * Note that this method may return null when {@link ResourceLocation#getFile()} returns non-null, when the contents are different.
      *
-     * @return A file representing this resource. Returns null if this resource is not available as a file.
+     * @return A file containing this resource. Returns null if this resource is not available as a file.
      */
     @Nullable
     File getFile();
-
-    /**
-     * Returns the URI for this resource. Not all resources have a URI.
-     *
-     * @return The URI for this resource. Returns null if this resource does not have a URI.
-     */
-    @Nullable
-    URI getURI();
 
     /**
      * Returns true when the content of this resource is cached in-heap or uses a hard-coded value. Returns false when the content requires IO on each query.
