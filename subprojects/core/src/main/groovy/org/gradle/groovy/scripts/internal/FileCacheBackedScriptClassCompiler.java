@@ -19,7 +19,8 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
@@ -49,11 +50,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
-    private final CachingFileSnapshotter snapshotter;
+    private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, CachingFileSnapshotter snapshotter, ClassLoaderCache classLoaderCache) {
+                                              ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
@@ -114,7 +115,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File file = source.getResource().getFile();
         String hash;
         if (file != null && file.exists()) {
-            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
+            FileSnapshot snapshot = snapshotter.snapshot(file);
             hash = new HashValue(snapshot.getHash()).asCompactString();
         } else {
             hash = HashUtil.createCompactMD5(source.getResource().getText());

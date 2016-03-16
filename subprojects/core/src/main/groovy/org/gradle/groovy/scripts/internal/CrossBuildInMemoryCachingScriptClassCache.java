@@ -20,7 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
@@ -31,9 +31,9 @@ import java.util.Arrays;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final Cache<Key, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
-    private final CachingFileSnapshotter snapshotter;
+    private final FileSnapshotter snapshotter;
 
-    public CrossBuildInMemoryCachingScriptClassCache(CachingFileSnapshotter snapshotter) {
+    public CrossBuildInMemoryCachingScriptClassCache(FileSnapshotter snapshotter) {
         this.snapshotter = snapshotter;
     }
 
@@ -54,8 +54,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
     private byte[] hashFor(ScriptSource source) {
         File file = source.getResource().getFile();
         if (file != null && file.exists()) {
-            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
-            return snapshot.getHash();
+            return snapshotter.snapshot(file).getHash();
         }
         return HashUtil.createHash(source.getResource().getText(), "md5").asByteArray();
     }
