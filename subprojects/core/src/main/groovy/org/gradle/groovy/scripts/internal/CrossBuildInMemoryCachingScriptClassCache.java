@@ -53,7 +53,6 @@ public class CrossBuildInMemoryCachingScriptClassCache {
 
     private byte[] hashFor(ScriptSource source) {
         File file = source.getResource().getFile();
-        String hash;
         if (file != null && file.exists()) {
             CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
             return snapshot.getHash();
