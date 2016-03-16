@@ -145,7 +145,7 @@ project.description = text
                 withConnectionInDir("build$idx") { connection ->
                     def model = connection.model(GradleProject.class)
                     model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
-                    def project = model.get()
+                    def project = model.getInstallation()
                     assert project.description == "project $idx"
                 }
             }

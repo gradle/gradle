@@ -22,7 +22,10 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.classpath.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -53,6 +56,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -132,12 +136,12 @@ public class GlobalScopeServices {
                 pluginModuleRegistry));
     }
 
-    ModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry(additionalModuleClassPath);
+    ModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
-    GradleDistributionLocator createGradleDistributionLocator() {
-        return new DefaultGradleDistributionLocator();
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return CurrentGradleInstallation.locate();
     }
 
     DocumentationRegistry createDocumentationRegistry() {

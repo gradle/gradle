@@ -21,12 +21,13 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 
@@ -97,7 +98,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        gradleHomeDir = new DefaultGradleDistributionLocator().getGradleHome();
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation == null) {
+            gradleHomeDir = null;
+        } else {
+            gradleHomeDir = gradleInstallation.getGradleHome();
+        }
 
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         searchUpwards = layoutParameters.getSearchUpwards();

@@ -74,6 +74,7 @@ include 'testingNative'
 include 'testingJvm'
 include 'platformPlay'
 include 'testKit'
+include 'installationBeacon'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

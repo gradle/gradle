@@ -23,7 +23,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -36,12 +35,14 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
@@ -89,7 +90,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     public File getGradleHomeDir() {
-        return getDistributionLocator().getGradleHome();
+        GradleInstallation gradleInstallation = getCurrentGradleInstallation().getInstallation();
+        return gradleInstallation == null ? null : gradleInstallation.getGradleHome();
     }
 
     public File getGradleUserHomeDir() {
@@ -240,7 +242,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    protected GradleDistributionLocator getDistributionLocator() {
+    protected CurrentGradleInstallation getCurrentGradleInstallation() {
         throw new UnsupportedOperationException();
     }
 

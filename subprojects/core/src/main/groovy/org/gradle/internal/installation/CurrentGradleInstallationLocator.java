@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,59 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classpath;
+package org.gradle.internal.installation;
 
-import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.internal.classloader.ClasspathUtil;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
-public class DefaultGradleDistributionLocator implements GradleDistributionLocator {
-    private final File distDir;
-    private final List<File> libDirs = new ArrayList<File>();
+abstract class CurrentGradleInstallationLocator {
 
-    public DefaultGradleDistributionLocator() {
-        this(DefaultGradleDistributionLocator.class);
+    private static final String BEACON_CLASS_NAME = "org.gradle.internal.installation.beacon.InstallationBeacon";
+
+    private CurrentGradleInstallationLocator() {
     }
 
-    public DefaultGradleDistributionLocator(Class<?> clazz) {
-        this(findDistDir(clazz));
+    public synchronized static CurrentGradleInstallation locate() {
+        return locateViaClassLoader(CurrentGradleInstallationLocator.class.getClassLoader());
     }
 
-    public DefaultGradleDistributionLocator(File distDir) {
-        this.distDir = distDir;
+    private static CurrentGradleInstallation locateViaClassLoader(ClassLoader classLoader) {
+        Class<?> clazz;
+        try {
+            clazz = classLoader.loadClass(BEACON_CLASS_NAME);
+        } catch (ClassNotFoundException e) {
+            clazz = CurrentGradleInstallationLocator.class;
+        }
+        return locateViaClass(clazz);
+    }
 
-        if (distDir != null) {
-            libDirs.addAll(findLibDirs(distDir));
+    static CurrentGradleInstallation locateViaClass(Class<?> clazz) {
+        File dir = findDistDir(clazz);
+        if (dir == null) {
+            return new CurrentGradleInstallation(null);
+        } else {
+            return new CurrentGradleInstallation(new GradleInstallation(dir));
         }
     }
-
-    private List<File> findLibDirs(File distDir) {
-        List<File> libDirAndSubdirs = new ArrayList<File>();
-        collectWithSubdirectories(new File(distDir, "lib"), libDirAndSubdirs);
-        return libDirAndSubdirs;
-    }
-
-    private void collectWithSubdirectories(File root, Collection<File> collection) {
-        collection.add(root);
-        File[] subDirs = root.listFiles(DIRECTORY_FILTER);
-
-        if(subDirs != null) {
-            for (File subdirectory : subDirs) {
-                collectWithSubdirectories(subdirectory, collection);
-            }
-        }
-    }
-
-    public static final FileFilter DIRECTORY_FILTER = new FileFilter() {
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
-    };
 
     private static File findDistDir(Class<?> clazz) {
         File codeSource = ClasspathUtil.getClasspathForClass(clazz);
@@ -85,8 +67,8 @@ public class DefaultGradleDistributionLocator implements GradleDistributionLocat
      * The expected directory layout for JARs of a distribution looks as such:
      *
      * dist-root
-     *    |_ lib
-     *       |_ plugins
+     * |_ lib
+     * |_ plugins
      *
      * @param codeSource Code source of JAR file
      * @return Distribution root directory
@@ -94,12 +76,12 @@ public class DefaultGradleDistributionLocator implements GradleDistributionLocat
     private static File determineDistRootDir(File codeSource) {
         File parentDir = codeSource.getParentFile();
 
-        if(parentDir.getName().equals("lib")) {
+        if (parentDir.getName().equals("lib")) {
             File pluginsDir = new File(parentDir, "plugins");
             return parentDir.isDirectory() && pluginsDir.exists() && pluginsDir.isDirectory() ? parentDir.getParentFile() : null;
         }
 
-        if(parentDir.getName().equals("plugins")) {
+        if (parentDir.getName().equals("plugins")) {
             File libDir = parentDir.getParentFile();
             return parentDir.isDirectory() && libDir.exists() && libDir.isDirectory() && libDir.getName().equals("lib") ? libDir.getParentFile() : null;
         }
@@ -107,11 +89,4 @@ public class DefaultGradleDistributionLocator implements GradleDistributionLocat
         return null;
     }
 
-    public File getGradleHome() {
-        return distDir;
-    }
-
-    public List<File> getLibDirs() {
-        return libDirs;
-    }
 }

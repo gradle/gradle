@@ -34,13 +34,14 @@ import java.util.zip.ZipOutputStream;
 
 public class GradleImplDepsRelocatedJarCreator {
 
+    private static final int BUFFER_SIZE = 8192;
     private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
 
     public static void create(File outputJar, final Iterable<? extends File> files) {
         IoActions.withResource(openJarOutputStream(outputJar), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[8192], new HashSet<String>());
+                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>());
                 jarOutputStream.finish();
             }
         });
@@ -48,7 +49,7 @@ public class GradleImplDepsRelocatedJarCreator {
 
     private static ZipOutputStream openJarOutputStream(File outputJar) {
         try {
-            ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar)));
+            ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar), BUFFER_SIZE));
             outputStream.setLevel(0);
             return outputStream;
         } catch (IOException e) {
@@ -88,11 +89,11 @@ public class GradleImplDepsRelocatedJarCreator {
 
         String name = zipEntry.getName();
         if (name.endsWith(".class")) {
-            processClassFile(outputStream, inputStream, zipEntry, name.substring(0, name.length() - 6), buffer);
+            processClassFile(outputStream, inputStream, zipEntry, buffer);
         } else if (name.startsWith("META-INF/services/")) {
             processServiceDescriptor(outputStream, inputStream, zipEntry, buffer);
         } else {
-            processNonClassFile(outputStream, inputStream, zipEntry, buffer);
+            copyEntry(outputStream, inputStream, zipEntry, buffer);
         }
     }
 
@@ -122,8 +123,10 @@ public class GradleImplDepsRelocatedJarCreator {
         return periodClassName.replace('.', '/');
     }
 
-    private static void processNonClassFile(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
-        writeEntry(outputStream, zipEntry.getName(), readEntry(inputStream, zipEntry, buffer));
+    private static void copyEntry(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
+        outputStream.putNextEntry(new ZipEntry(zipEntry.getName()));
+        pipe(inputStream, outputStream, buffer);
+        outputStream.closeEntry();
     }
 
     private static void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
@@ -133,7 +136,8 @@ public class GradleImplDepsRelocatedJarCreator {
         outputStream.closeEntry();
     }
 
-    private static void processClassFile(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, String className, byte[] buffer) throws IOException {
+    private static void processClassFile(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
+        String className = zipEntry.getName().substring(0, zipEntry.getName().length() - ".class".length());
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
@@ -170,6 +174,14 @@ public class GradleImplDepsRelocatedJarCreator {
                 read += inputStream.read(bytes, read, size - read);
             }
             return bytes;
+        }
+    }
+
+    private static void pipe(InputStream inputStream, OutputStream outputStream, byte[] buffer) throws IOException {
+        int read = inputStream.read(buffer);
+        while (read != -1) {
+            outputStream.write(buffer, 0, read);
+            read = inputStream.read(buffer);
         }
     }
 

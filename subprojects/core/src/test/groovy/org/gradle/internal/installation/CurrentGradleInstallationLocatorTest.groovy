@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classpath
+package org.gradle.internal.installation
 
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.test.fixtures.file.TestFile
@@ -30,7 +30,7 @@ import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 // so we can close the classloaders and allow files to be cleaned up
-class DefaultGradleDistributionLocatorTest extends Specification {
+class CurrentGradleInstallationLocatorTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     List<Closeable> loaders = []
@@ -50,16 +50,16 @@ class DefaultGradleDistributionLocatorTest extends Specification {
     @Unroll
     def "determines Gradle home by class bundled in JAR located in valid distribution subdirectory '#jarDirectory'"() {
         given:
-        TestFile jar = distDir.file("$jarDirectory/mydep-1.2.jar")
+        def jar = distDir.file("$jarDirectory/mydep-1.2.jar")
         createJarFile(jar)
 
         when:
-        Class clazz = loadClassFromJar(jar)
-        def gradleDistributionLocator = new DefaultGradleDistributionLocator(clazz)
+        def clazz = loadClassFromJar(jar)
+        def installation = CurrentGradleInstallationLocator.locateViaClass(clazz).getInstallation()
 
         then:
-        gradleDistributionLocator.gradleHome == distDir
-        gradleDistributionLocator.libDirs == [new File(distDir, 'lib'), new File(distDir, 'lib/plugins')]
+        installation.gradleHome == distDir
+        installation.libDirs == [new File(distDir, 'lib'), new File(distDir, 'lib/plugins')]
 
         where:
         jarDirectory << ['lib', 'lib/plugins']
@@ -72,12 +72,11 @@ class DefaultGradleDistributionLocatorTest extends Specification {
         createJarFile(jar)
 
         when:
-        Class clazz = loadClassFromJar(jar)
-        def gradleDistributionLocator = new DefaultGradleDistributionLocator(clazz)
+        def clazz = loadClassFromJar(jar)
+        def installation = CurrentGradleInstallationLocator.locateViaClass(clazz).getInstallation()
 
         then:
-        !gradleDistributionLocator.gradleHome
-        gradleDistributionLocator.libDirs == []
+        installation == null
 
         where:
         jarDirectory << ['other', 'other/plugins']

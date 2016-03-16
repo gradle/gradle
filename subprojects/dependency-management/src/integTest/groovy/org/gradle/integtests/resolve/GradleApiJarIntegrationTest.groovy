@@ -31,6 +31,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 compile localGroovy()
                 compile fatGradleApi()
+                testCompile gradleTestKit()
                 compile "junit:junit:4.12"
             }
         """

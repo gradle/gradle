@@ -23,31 +23,48 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
-import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 public class DependencyClassPathNotationConverterTest extends Specification {
-    def instantiator = Mock(Instantiator.class)
-    def classPathRegistry = Mock(ClassPathRegistry.class)
-    def fileResolver = Mock(FileResolver.class)
-    def gradleUserHomeDir = Mock(File.class)
-    def gradleVersion = GradleVersion.current().version
-    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, gradleUserHomeDir, gradleVersion)
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
+    def instantiator = Mock(Instantiator)
+    def classPathRegistry = Mock(ClassPathRegistry)
+    def fileResolver = Mock(FileResolver)
+    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, new CurrentGradleInstallation(new GradleInstallation(testDirectoryProvider.file("gradle-home"))), testDirectoryProvider.file("gradle-user-home"), "2.10")
 
     def "parses classpath literals"() {
         given:
-        def dependency = Mock(SelfResolvingDependency.class)
-        def fileCollection = Mock(FileCollectionInternal)
-        def classpath = Mock(ClassPath.class)
-        def files = [new File('foo')]
+        def dependency = Mock(SelfResolvingDependency)
+        def gradleApiFileCollection = Mock(FileCollectionInternal)
+        def gradleApiClasspath = Mock(ClassPath)
+        def gradleApiFiles = [new File('foo')]
+        def localGroovyClasspath = Mock(ClassPath)
+        def localGroovyFileCollection = Mock(FileCollectionInternal)
+        def localGroovyFiles = [new File('bar')]
+        def installationBeaconClasspath = Mock(ClassPath)
+        def installationBeaconFileCollection = Mock(FileCollectionInternal)
+        def installationBeaconFiles = [new File('baz')]
 
         and:
-        classPathRegistry.getClassPath('GRADLE_API') >> classpath
-        classpath.asFiles >> files
-        fileResolver.resolveFiles(files) >> fileCollection
-        instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection as Object) >> dependency
+        classPathRegistry.getClassPath('GRADLE_API') >> gradleApiClasspath
+        gradleApiClasspath.asFiles >> gradleApiFiles
+        fileResolver.resolveFiles(gradleApiFiles) >> gradleApiFileCollection
+        classPathRegistry.getClassPath('LOCAL_GROOVY') >> localGroovyClasspath
+        localGroovyClasspath.asFiles >> localGroovyFiles
+        fileResolver.resolveFiles(localGroovyFiles) >> localGroovyFileCollection
+        classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> installationBeaconClasspath
+        installationBeaconClasspath.asFiles >> installationBeaconFiles
+        fileResolver.resolveFiles(installationBeaconFiles) >> installationBeaconFileCollection
+
+        instantiator.newInstance(DefaultSelfResolvingDependency.class, _) >> dependency
 
         when:
         def out = parse(DependencyFactory.ClassPathNotation.GRADLE_API)

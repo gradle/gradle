@@ -225,6 +225,7 @@ configurations {
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
+    runtime project(":installationBeacon")
     sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')

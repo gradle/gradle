@@ -18,12 +18,12 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.testkit.runner.*;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 
@@ -308,9 +308,8 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private static GradleProvider findGradleInstallFromGradleRunner() {
-        GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
-        File gradleHome = gradleDistributionLocator.getGradleHome();
-        if (gradleHome == null) {
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation == null) {
             String messagePrefix = "Could not find a Gradle installation to use based on the location of the GradleRunner class";
             try {
                 File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
@@ -320,7 +319,7 @@ public class DefaultGradleRunner extends GradleRunner {
             }
             throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
         }
-        return GradleProvider.installation(gradleHome);
+        return GradleProvider.installation(gradleInstallation.getGradleHome());
     }
 
 

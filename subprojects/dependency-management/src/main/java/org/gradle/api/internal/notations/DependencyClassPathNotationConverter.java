@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -37,21 +38,30 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
+
 public class DependencyClassPathNotationConverter implements NotationConverter<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
 
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final CurrentGradleInstallation currentGradleInstallation;
     private final File gradleUserHomeDir;
     private final String gradleVersion;
     private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
     private final Lock internCacheWriteLock = new ReentrantLock();
 
-    public DependencyClassPathNotationConverter(Instantiator instantiator, ClassPathRegistry classPathRegistry,
-                                                FileResolver fileResolver, File gradleUserHomeDir, String gradleVersion) {
+    public DependencyClassPathNotationConverter(
+        Instantiator instantiator,
+        ClassPathRegistry classPathRegistry,
+        FileResolver fileResolver,
+        CurrentGradleInstallation currentGradleInstallation,
+        File gradleUserHomeDir,
+        String gradleVersion) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
+        this.currentGradleInstallation = currentGradleInstallation;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.gradleVersion = gradleVersion;
     }
@@ -79,11 +89,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
             Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
+            boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
             FileCollectionInternal files;
-            if (notation.equals(DependencyFactory.ClassPathNotation.FAT_GRADLE_API)) {
-                List<File> groovyImpl = classPathRegistry.getClassPath(DependencyFactory.ClassPathNotation.LOCAL_GROOVY.name()).getAsFiles();
-                classpath.removeAll(groovyImpl);
-                files = (FileCollectionInternal) apiJar(classpath).plus(fileResolver.resolveFiles(groovyImpl));
+            if (runningFromInstallation && notation.equals(FAT_GRADLE_API)) {
+                files = gradleApiFileCollection(classpath);
+            } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
+                files = gradleTestKitFileCollection(classpath);
             } else {
                 files = fileResolver.resolveFiles(classpath);
             }
@@ -93,11 +104,31 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         return dependency;
     }
 
-    private FileCollectionInternal apiJar(Collection<File> classpath) {
-        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar("fatGradleApi()", classpath, getGradleApiFarJarOutputFile()));
+    private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
+        // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
+        List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        apiClasspath.removeAll(groovyImpl);
+
+        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", "api")
+            .plus(fileResolver.resolveFiles(
+                groovyImpl,
+                classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles())
+            );
     }
 
-    private File getGradleApiFarJarOutputFile() {
-        return new File(gradleUserHomeDir, "caches/" + gradleVersion + "/apiJars/gradle-api-" + gradleVersion + ".jar");
+    private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
+        List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
+        testKitClasspath.removeAll(gradleApi);
+
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", "test-kit")
+            .plus(gradleApiFileCollection(gradleApi));
+    }
+
+    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, String name) {
+        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, classpath, getGeneratedJarPath(name)));
+    }
+
+    private File getGeneratedJarPath(String name) {
+        return new File(gradleUserHomeDir, "caches/" + gradleVersion + "/generated-gradle-jars/gradle-" + name + "-" + gradleVersion + ".jar");
     }
 }

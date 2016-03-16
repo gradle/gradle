@@ -32,6 +32,7 @@ import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
 import org.gradle.internal.Actions;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnectionBuilder;
@@ -75,7 +76,7 @@ public class WorkerProcessIntegrationTest {
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
     private final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current());
     private final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory);
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), TestFiles.execHandleFactory(tmpDir.getTestDirectory()));
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);

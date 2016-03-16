@@ -31,6 +31,7 @@ import org.gradle.cache.internal.*
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.messaging.remote.internal.MessagingServices
@@ -59,7 +60,7 @@ class PathLimitationIntegTest extends Specification {
     private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment.class));
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
     private final CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current()), factory);
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), TestFiles.execHandleFactory(tmpDir.getTestDirectory()));
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);

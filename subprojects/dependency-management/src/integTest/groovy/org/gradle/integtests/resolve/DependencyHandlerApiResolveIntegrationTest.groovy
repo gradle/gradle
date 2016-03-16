@@ -49,9 +49,9 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             verifyTestKitJars {
                 doLast {
                     def jarFiles = resolveLibs.extractedDir.listFiles()
-                    assert jarFiles.size() == 1
-                    def testKitFunctionalJar = jarFiles[0]
-                    assert testKitFunctionalJar.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME')
+                    assert jarFiles.size() == 4
+                    def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
+                    assert testKitFunctionalJar
 
                     def jar = new java.util.jar.JarFile(testKitFunctionalJar)
                     def jarFileEntries = jar.entries()

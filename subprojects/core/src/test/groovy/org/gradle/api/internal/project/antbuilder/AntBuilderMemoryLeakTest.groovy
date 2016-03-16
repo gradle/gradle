@@ -21,6 +21,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
@@ -33,7 +34,7 @@ import java.lang.reflect.Proxy
 class AntBuilderMemoryLeakTest extends Specification {
 
     @Shared
-    private ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
+    private ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
 
     @Shared
     private ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -72,17 +73,17 @@ class AntBuilderMemoryLeakTest extends Specification {
         when:
         int i = 0
         // time out after 10 minutes
-        long maxTime = System.currentTimeMillis() + 10*60*1000
+        long maxTime = System.currentTimeMillis() + 10 * 60 * 1000
         try {
-            while (System.currentTimeMillis()<maxTime) {
+            while (System.currentTimeMillis() < maxTime) {
                 builder.withClasspath([new File("foo$i")]).execute {
 
                 }
 
-                classes[classes.length-1] = Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader([]), Serializable)
+                classes[classes.length - 1] = Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader([]), Serializable)
                 4.times {
                     // exponential grow to make it fail faster
-                    Class[] dup = new Class[classes.length*2]
+                    Class[] dup = new Class[classes.length * 2]
                     System.arraycopy(classes, 0, dup, 0, classes.length)
                     System.arraycopy(classes, 0, dup, classes.length, classes.length)
                     classes = dup
@@ -96,9 +97,9 @@ class AntBuilderMemoryLeakTest extends Specification {
         }
 
         then:
-        assert i>1
+        assert i > 1
         assert classes.length == 0
-        builder.classLoaderCache.empty || builder.classLoaderCache.size() < i-1
+        builder.classLoaderCache.empty || builder.classLoaderCache.size() < i - 1
 
         cleanup:
         builder.stop()

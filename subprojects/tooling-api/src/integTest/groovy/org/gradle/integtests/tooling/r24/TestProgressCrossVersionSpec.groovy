@@ -42,7 +42,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener { TestProgressEvent event ->
                     result << event
-                }.get()
+                }.getInstallation()
         }
 
         then: "test progress events must be forwarded to the attached listeners"

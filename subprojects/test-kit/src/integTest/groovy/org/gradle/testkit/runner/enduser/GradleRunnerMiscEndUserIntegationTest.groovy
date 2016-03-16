@@ -49,11 +49,19 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
     def "fails appropriately if runner is loaded from a JAR that is not part of the distribution and no explicit version set"() {
         when:
         def jarsDir = file('jars').createDir()
+
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (f.name.contains("test-kit")) {
+            if (f.name.contains("gradle-test-kit")
+                || f.name.contains("commons-io")
+                || f.name.contains("guava")
+                || f.name.contains("gradle-base-services")
+                || f.name.contains("gradle-tooling-api")
+                || f.name.contains("gradle-core")
+            ) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }
+
         def testKitJar = jarsDir.listFiles().find { it.name.contains "test-kit" }
         buildFile << """
             dependencies {

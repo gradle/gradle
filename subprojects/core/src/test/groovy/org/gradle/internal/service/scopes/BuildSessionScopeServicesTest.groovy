@@ -28,6 +28,7 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
@@ -48,7 +49,7 @@ class BuildSessionScopeServicesTest extends Specification {
     def setup() {
         startParameter.gradleUserHomeDir = tmpDir.testDirectory
         parent.get(CacheFactory) >> Stub(CacheFactory)
-        parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
+        parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
     }
 
