@@ -29,19 +29,19 @@ public interface ExternalResource extends Closeable {
     /**
      * Get the URI of the resource.
      */
-    public URI getURI();
+    URI getURI();
 
     /**
      * Get the name of the resource. Use {@link #getURI()} instead.
      */
-    public String getName();
+    String getName();
 
     /**
      * Is this resource local to this host, i.e. is it on the file system?
      *
      * @return <code>boolean</code> value indicating if the resource is local.
      */
-    public boolean isLocal();
+    boolean isLocal();
 
     /**
      * Copies the contents of this resource to the given file.
