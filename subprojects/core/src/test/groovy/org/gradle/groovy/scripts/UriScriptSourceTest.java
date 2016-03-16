@@ -67,7 +67,7 @@ public class UriScriptSourceTest {
         assertThat(source, instanceOf(UriScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getText(), equalTo("content"));
-        assertFalse(source.getResource().isContentCheapToQuery());
+        assertFalse(source.getResource().isContentCached());
         assertFalse(source.getResource().getHasEmptyContent());
         assertTrue(source.getResource().getExists());
     }
@@ -78,7 +78,7 @@ public class UriScriptSourceTest {
         assertThat(source, instanceOf(NonExistentFileScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getText(), equalTo(""));
-        assertTrue(source.getResource().isContentCheapToQuery());
+        assertTrue(source.getResource().isContentCached());
         assertTrue(source.getResource().getHasEmptyContent());
         assertTrue(source.getResource().getExists()); // exists == has content
     }

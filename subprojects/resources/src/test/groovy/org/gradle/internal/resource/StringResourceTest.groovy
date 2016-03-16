@@ -25,7 +25,7 @@ class StringResourceTest extends Specification {
         resource.text == 'text'
         resource.exists
         !resource.hasEmptyContent
-        resource.contentCheapToQuery
+        resource.contentCached
     }
 
     def emptyStringResourceHasEmptyContent() {
@@ -34,7 +34,7 @@ class StringResourceTest extends Specification {
         resource.text == ''
         resource.exists
         resource.hasEmptyContent
-        resource.contentCheapToQuery
+        resource.contentCached
     }
 
     def resourceHasNoIdentity() {

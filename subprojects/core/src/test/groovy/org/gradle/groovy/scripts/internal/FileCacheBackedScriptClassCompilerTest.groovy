@@ -61,6 +61,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def setup() {
         _ * source.resource >> resource
+        _ * resource.contentCached >> true
         _ * resource.text >> 'this is the script'
         _ * source.className >> 'ScriptClassName'
         _ * source.fileName >> 'ScriptFileName'

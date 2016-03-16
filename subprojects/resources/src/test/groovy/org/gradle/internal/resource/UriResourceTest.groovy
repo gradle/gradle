@@ -79,6 +79,7 @@ class UriResourceTest {
 
         UriResource resource = new UriResource('<display-name>', file);
         assertTrue(resource.exists)
+        assertFalse(resource.hasEmptyContent)
         assertThat(resource.text, equalTo('<content>'));
     }
 
@@ -101,6 +102,12 @@ class UriResourceTest {
         } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
+        try {
+            resource.hasEmptyContent
+            fail()
+        } catch (ResourceNotFoundException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
+        }
     }
 
     @Test
@@ -110,6 +117,12 @@ class UriResourceTest {
         assertTrue(resource.exists)
         try {
             resource.text
+            fail()
+        } catch (ResourceException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$dir' as it is a directory." as String))
+        }
+        try {
+            resource.hasEmptyContent
             fail()
         } catch (ResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$dir' as it is a directory." as String))

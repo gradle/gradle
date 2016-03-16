@@ -62,13 +62,13 @@ public class UriResource implements Resource {
     }
 
     @Override
-    public boolean isContentCheapToQuery() {
+    public boolean isContentCached() {
         return false;
     }
 
     @Override
     public boolean getHasEmptyContent() {
-        return false;
+        return getText().isEmpty();
     }
 
     public String getText() {

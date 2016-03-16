@@ -33,7 +33,7 @@ public class StringResource implements Resource {
     }
 
     @Override
-    public boolean isContentCheapToQuery() {
+    public boolean isContentCached() {
         return true;
     }
 

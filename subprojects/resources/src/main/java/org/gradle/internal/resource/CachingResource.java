@@ -40,19 +40,24 @@ public class CachingResource implements Resource {
     }
 
     @Override
-    public boolean isContentCheapToQuery() {
+    public boolean isContentCached() {
         return true;
     }
 
     @Override
     public boolean getExists() {
-        maybeFetch();
-        return content != null;
+        try {
+            maybeFetch();
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean getHasEmptyContent() {
-        return content != null ? content.length() == 0 : resource.getHasEmptyContent();
+        maybeFetch();
+        return content.length() == 0;
     }
 
     @Override

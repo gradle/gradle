@@ -26,7 +26,7 @@ class CachingScriptSourceTest extends Specification {
         def resource = Stub(Resource)
 
         scriptSource.resource >> resource
-        resource.contentCheapToQuery >> false
+        resource.contentCached >> false
 
         expect:
         def wrapper = CachingScriptSource.of(scriptSource)
@@ -39,7 +39,7 @@ class CachingScriptSourceTest extends Specification {
         def resource = Stub(Resource)
 
         scriptSource.resource >> resource
-        resource.contentCheapToQuery >> true
+        resource.contentCached >> true
 
         expect:
         CachingScriptSource.of(scriptSource) == scriptSource

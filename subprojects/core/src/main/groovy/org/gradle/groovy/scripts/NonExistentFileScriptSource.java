@@ -52,7 +52,7 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
         }
 
         @Override
-        public boolean isContentCheapToQuery() {
+        public boolean isContentCached() {
             return true;
         }
 

@@ -27,15 +27,6 @@ class CachingResourceTest extends Specification {
         when:
         assert resource.exists
         assert resource.text == 'content'
-
-        then:
-        1 * target.text >> 'content'
-        0 * target._
-    }
-
-    def fetchesAndCachesContentWhenContentIsChecked() {
-        when:
-        assert resource.text == 'content'
         assert resource.exists
 
         then:
@@ -43,9 +34,30 @@ class CachingResourceTest extends Specification {
         0 * target._
     }
 
-    def usesCachedValueToDetermineWhetherContentIsEmpty() {
+    def existenceCheckReturnsFalseWhenResourceDoesNotExist() {
         when:
-        resource.text
+        assert !resource.exists
+
+        then:
+        1 * target.text >> { throw new ResourceNotFoundException(new URI("somewhere:not-here"), "not found")}
+        0 * target._
+    }
+
+    def fetchesAndCachesContentWhenContentIsChecked() {
+        when:
+        assert resource.text == 'content'
+        assert resource.exists
+        assert resource.text == 'content'
+
+        then:
+        1 * target.text >> 'content'
+        0 * target._
+    }
+
+    def fetchesAndCachesContentWhenContentIsEmptyIsChecked() {
+        when:
+        assert !resource.hasEmptyContent
+        assert resource.text == 'content'
         assert !resource.hasEmptyContent
 
         then:
@@ -53,12 +65,12 @@ class CachingResourceTest extends Specification {
         0 * target._
     }
 
-    def queryingContentIsEmptyDoesNotTriggerFetchOfContent() {
+    def hasEmptyContentWhenStringIsEmpty() {
         when:
         assert resource.hasEmptyContent
 
         then:
-        1 * target.hasEmptyContent >> true
+        1 * target.text >> ''
         0 * target._
     }
 }

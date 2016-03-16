@@ -67,6 +67,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
                                                               final Action<? super ClassNode> verifier) {
+        assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
             return emptyCompiledScript(classLoaderId, operation);
         }
