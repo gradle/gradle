@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
+import spock.lang.Ignore
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -160,6 +161,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         junitDependency.scope.text() == 'runtime'
     }
 
+    @Ignore
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         given:
         buildFile << testableGroovyProject()
