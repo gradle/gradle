@@ -27,6 +27,7 @@ class ProgressEvents implements ProgressListener {
     private boolean dirty
     private final List<Operation> operations= new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
+    boolean skipValidation
 
     void clear() {
         events.clear()
@@ -52,7 +53,7 @@ class ProgressEvents implements ProgressListener {
 
                     // Display name should be mostly unique
                     // Ignore this check for TestOperationDescriptors as they are currently not unique when coming from different test tasks
-                    if(!(descriptor instanceof TestOperationDescriptor)){
+                    if (!skipValidation && !(descriptor instanceof TestOperationDescriptor)) {
                         def duplicateName = operations.find({ it.descriptor.displayName == descriptor.displayName })
                         if (duplicateName != null) {
                             println "Found duplicate operation in events: " + events
