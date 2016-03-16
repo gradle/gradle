@@ -19,7 +19,6 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
@@ -28,7 +27,6 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -111,15 +109,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private String hashFor(ScriptSource source) {
-        File file = source.getResource().getFile();
-        String hash;
-        if (file != null && file.exists()) {
-            FileSnapshot snapshot = snapshotter.snapshot(file);
-            hash = snapshot.getHash().asCompactString();
-        } else {
-            hash = HashUtil.createCompactMD5(source.getResource().getText());
-        }
-        return hash;
+        return snapshotter.snapshot(source.getResource()).getHash().asCompactString();
     }
 
     public void close() {

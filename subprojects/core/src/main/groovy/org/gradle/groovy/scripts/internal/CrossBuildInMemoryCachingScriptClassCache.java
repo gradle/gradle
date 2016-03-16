@@ -24,10 +24,7 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-
-import java.io.File;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final Cache<Key, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
@@ -40,7 +37,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
     public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier, ScriptClassCompiler delegate) {
         Key key = new Key(source.getClassName(), classLoader, operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
-        HashValue hash = hashFor(source);
+        HashValue hash = snapshotter.snapshot(source.getResource()).getHash();
         if (cached != null) {
             if (hash.equals(cached.hash)) {
                 return Cast.uncheckedCast(cached.compiledScript);
@@ -49,14 +46,6 @@ public class CrossBuildInMemoryCachingScriptClassCache {
         CompiledScript<T, M> compiledScript = delegate.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
         cachedCompiledScripts.put(key, new CachedCompiledScript(hash, compiledScript));
         return compiledScript;
-    }
-
-    private HashValue hashFor(ScriptSource source) {
-        File file = source.getResource().getFile();
-        if (file != null && file.exists()) {
-            return snapshotter.snapshot(file).getHash();
-        }
-        return HashUtil.createHash(source.getResource().getText(), "md5");
     }
 
     private static class Key {

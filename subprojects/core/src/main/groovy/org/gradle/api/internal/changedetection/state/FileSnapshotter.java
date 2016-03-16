@@ -18,10 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.hash.Hasher;
+import org.gradle.internal.resource.Resource;
 
 import java.io.File;
 
 public interface FileSnapshotter extends Hasher {
+    /**
+     * Takes a snapshot of the current content of the given resource. The provided resource must have content available.
+     */
+    FileSnapshot snapshot(Resource resource);
+
     /**
      * Takes a snapshot of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).
      */

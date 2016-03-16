@@ -20,7 +20,9 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.resource.Resource;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashValueSerializer;
@@ -37,6 +39,21 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         this.hasher = hasher;
         this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
+    }
+
+    @Override
+    public FileSnapshot snapshot(Resource resource) {
+        File file = resource.getFile();
+        if (file != null && file.exists()) {
+            return snapshot(file);
+        }
+        final HashValue md5 = HashUtil.createHash(resource.getText(), "md5");
+        return new FileSnapshot() {
+            @Override
+            public HashValue getHash() {
+                return md5;
+            }
+        };
     }
 
     @Override
