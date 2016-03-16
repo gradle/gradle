@@ -15,7 +15,7 @@ Investigate and improve test execution startup time.
 - Investigate file scanning done by the `Test` task. Initial observations have this task scanning its inputs many times. Investigate and fix.
 - Don't attach source directories to `Test` task, when not required.
 - Fix `Test` task inputs so that candidate class files hash is not required.
-- Fix file snapshot calculation to handle directories that are declared as multiple inputs or outputs for a task. 
+- Fix file snapshot calculation to handle directories that are declared as multiple inputs or outputs for a task.
 
 ## Stories
 
@@ -91,6 +91,32 @@ HTML or XML report output file in parallel (though this could be another spike).
 
 If the results look ok, refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML reports in parallel, subject to
 max parallel workers constraints.
+
+#### Some Results
+The following are running `gradle cleanTest test`.  For each data point, there were a couple of warm-up runs, followed by several runs whose results were averaged together.
+All times are in seconds.
+
+* master - Current master branch (everything is generated in sequence)
+* parallel - Spike of generating junit xml and html reports in parallel.
+* parallel-file - Spike of generating junit xml and html reports in sequence, but individual files in parallel.
+
+The single10000/25000/50000 test sets are single project builds with 10000, 25000, and 50000 tests.
+
+Test Report Generation time - this is a measure of the total time spent generating test reports.
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+master | 3.44 | 7.85 | 3.23 | 7.68 | 15.6
+parallel | 2.20 | 4.91 | 2.33 | 6.30 | 12.0
+parallel-file | 1.01 | 2.84 | 1.46 | 2.90 | 6.31
+
+Total Build Time
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+master | 46.27 | 123.71 | 13.07 | 30.63 | 44.6
+parallel | 45.65 | 121.20 | 13.47 | 24.47 | 41.03
+parallel-file | 45.37 | 122.24 | 10.7 | 22.7 | 41.20
 
 ### Understand where test task is spending its time
 
