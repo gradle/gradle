@@ -19,7 +19,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaD
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.*;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -70,7 +70,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return true;
                 }
             } catch (Exception e) {
-                throw ResourceException.getFailed(location.getUri(), e);
+                throw ResourceExceptions.getFailed(location.getUri(), e);
             }
         }
         return false;
@@ -92,7 +92,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return resource;
                 }
             } catch (Exception e) {
-                throw ResourceException.getFailed(location.getUri(), e);
+                throw ResourceExceptions.getFailed(location.getUri(), e);
             }
         }
         return null;

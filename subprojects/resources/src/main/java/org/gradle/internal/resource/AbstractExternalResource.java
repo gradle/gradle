@@ -33,7 +33,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         } catch (FileNotFoundException e) {
             throw new ResourceNotFoundException(getURI(), String.format("Could not get resource '%s' as it does not exist.", getURI()), e);
         } catch (IOException e) {
-            throw ResourceException.getFailed(getURI(), e);
+            throw ResourceExceptions.getFailed(getURI(), e);
         }
     }
 
@@ -41,7 +41,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         try {
             input.close();
         } catch (IOException e) {
-            throw ResourceException.getFailed(getURI(), e);
+            throw ResourceExceptions.getFailed(getURI(), e);
         }
     }
 
@@ -64,7 +64,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
                 output.close();
             }
         } catch (Exception e) {
-            throw ResourceException.getFailed(getURI(), e);
+            throw ResourceExceptions.getFailed(getURI(), e);
         }
     }
 
@@ -77,7 +77,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
                 input.close();
             }
         } catch (Exception e) {
-            throw ResourceException.getFailed(getURI(), e);
+            throw ResourceExceptions.getFailed(getURI(), e);
         }
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
             try {
                 return readAction.execute(input, getMetaData());
             } catch (IOException e) {
-                throw ResourceException.getFailed(getURI(), e);
+                throw ResourceExceptions.getFailed(getURI(), e);
             }
         } finally {
             close(input);

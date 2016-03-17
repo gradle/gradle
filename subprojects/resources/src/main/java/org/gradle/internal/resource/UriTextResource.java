@@ -18,6 +18,7 @@ package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
@@ -79,7 +80,7 @@ public class UriTextResource implements TextResource {
                 reader.close();
             }
         } catch (Exception e) {
-            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
+            throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }
     }
 
@@ -93,7 +94,7 @@ public class UriTextResource implements TextResource {
                 reader.close();
             }
         } catch (Exception e) {
-            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
+            throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }
     }
 
@@ -107,7 +108,7 @@ public class UriTextResource implements TextResource {
         } catch (FileNotFoundException e) {
             throw new ResourceNotFoundException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
-            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
+            throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }
     }
 
@@ -123,7 +124,7 @@ public class UriTextResource implements TextResource {
         } catch (FileNotFoundException e) {
             return false;
         } catch (Exception e) {
-            throw ResourceException.failure(sourceUri, String.format("Could not determine if %s exists.", getDisplayName()), e);
+            throw ResourceExceptions.failure(sourceUri, String.format("Could not determine if %s exists.", getDisplayName()), e);
         }
     }
 

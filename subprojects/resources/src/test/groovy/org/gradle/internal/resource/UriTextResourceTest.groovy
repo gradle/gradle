@@ -17,9 +17,10 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.api.resources.ResourceException
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import org.junit.Before

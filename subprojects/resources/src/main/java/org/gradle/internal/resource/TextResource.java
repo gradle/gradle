@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import java.io.File;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import org.gradle.api.resources.ResourceException;
 
 /**
  * A {@code Resource} that has text content.

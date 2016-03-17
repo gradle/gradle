@@ -16,15 +16,16 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.api.resources.ResourceException
 import spock.lang.Specification
 
-class ResourceExceptionTest extends Specification {
+class ResourceExceptionsTest extends Specification {
     def "wraps failure"() {
         def location = URI.create("scheme:name")
         def failure = new RuntimeException()
 
         expect:
-        def e = ResourceException.failure(location, "broken", failure)
+        def e = ResourceExceptions.failure(location, "broken", failure)
         e instanceof ResourceException
         e.location == location
         e.message == "broken"
@@ -36,7 +37,7 @@ class ResourceExceptionTest extends Specification {
         def failure = new ResourceException(URI.create("scheme:other"), "cause")
 
         expect:
-        def e = ResourceException.failure(location, "broken", failure)
+        def e = ResourceExceptions.failure(location, "broken", failure)
         e instanceof ResourceException
         e.location == location
         e.message == "broken"
@@ -48,7 +49,7 @@ class ResourceExceptionTest extends Specification {
         def failure = new ResourceException(location, "cause")
 
         expect:
-        def e = ResourceException.failure(location, "broken", failure)
+        def e = ResourceExceptions.failure(location, "broken", failure)
         e.is(failure)
     }
 }

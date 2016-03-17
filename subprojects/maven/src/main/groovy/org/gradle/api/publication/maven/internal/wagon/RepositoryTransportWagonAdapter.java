@@ -16,11 +16,10 @@
 
 package org.gradle.api.publication.maven.internal.wagon;
 
-import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.File;
@@ -36,7 +35,7 @@ public class RepositoryTransportWagonAdapter {
         this.rootUri = rootUri;
     }
 
-    public boolean getRemoteFile(File destination, String resourceName) throws ResourceException, ResourceDoesNotExistException {
+    public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
         URI uriForResource = getUriForResource(resourceName);
         ExternalResource resource = transport.getRepository().getResource(uriForResource);
         if (resource == null) {

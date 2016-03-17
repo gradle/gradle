@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.api.resources.ResourceException;
+
 import java.net.URI;
 
 /**

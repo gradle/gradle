@@ -16,29 +16,11 @@
 
 package org.gradle.internal.resource;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
+import org.gradle.api.resources.ResourceException;
 
 import java.net.URI;
 
-@Contextual
-public class ResourceException extends GradleException {
-    private final URI location;
-
-    public ResourceException(URI location, String message) {
-        super(message);
-        this.location = location;
-    }
-
-    public ResourceException(URI location, String message, Throwable cause) {
-        super(message, cause);
-        this.location = location;
-    }
-
-    public ResourceException(String message, Throwable cause) {
-        super(message, cause);
-        this.location = null;
-    }
+public class ResourceExceptions {
 
     public static ResourceException getFailed(URI location, Throwable failure) {
         return failure(location, String.format("Could not get resource '%s'.", location), failure);
@@ -59,9 +41,5 @@ public class ResourceException extends GradleException {
             }
         }
         return new ResourceException(location, message, failure);
-    }
-
-    public URI getLocation() {
-        return location;
     }
 }

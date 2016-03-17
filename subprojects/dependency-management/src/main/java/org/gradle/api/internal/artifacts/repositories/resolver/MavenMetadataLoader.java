@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.UncheckedException
 import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.ResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.ResourceNotFoundException
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.xml.sax.SAXParseException
