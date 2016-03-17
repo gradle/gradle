@@ -15,12 +15,17 @@
  */
 package org.gradle.testing.jacoco.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.reporting.Reporting
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
@@ -67,6 +72,12 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Nested
     private final JacocoReportsContainerImpl reports
 
+    protected final PatternFilterable patternSet = new PatternSet()
+
+    boolean ignoreFailures = false
+
+    private Closure checkClosure
+
     JacocoReport() {
         reports = instantiator.newInstance(JacocoReportsContainerImpl, this)
         onlyIf { getExecutionData().every { it.exists() } } //TODO SF it should be 'any' instead of 'every'
@@ -82,17 +93,56 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
         throw new UnsupportedOperationException();
     }
 
+    public void setCheck(Closure checkClosure) {
+        this.checkClosure = checkClosure
+    }
+
+    public void include(String... includes) {
+        patternSet.include(includes)
+    }
+
+    public void include(Iterable<String> includes) {
+        patternSet.include(includes)
+    }
+
+    public void include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec)
+    }
+
+    public void include(Closure includeSpec) {
+        patternSet.include(includeSpec)
+    }
+
+    public void exclude(String... excludes) {
+        patternSet.exclude(excludes)
+    }
+
+    public void exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes)
+    }
+
+    public void exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec)
+    }
+
+    public void exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec)
+    }
+
     @TaskAction
     void generate() {
+        def task = this
+        String failures = null
         antBuilder.withClasspath(getJacocoClasspath()).execute {
             ant.taskdef(name: 'jacocoReport', classname: 'org.jacoco.ant.ReportTask')
+            String violationsProperty = 'jacoco.violations'
             ant.jacocoReport {
                 executiondata {
                     getExecutionData().addToAntBuilder(ant, 'resources')
                 }
                 structure(name: getProject().getName()) {
                     classfiles {
-                        getAllClassDirs().filter { it.exists() }.addToAntBuilder(ant, 'resources')
+                        getAllClassDirs().filter { it.exists() }.asFileTree.matching(patternSet).addToAntBuilder(ant, 'resources')
                     }
                     sourcefiles {
                         getAllSourceDirs().filter { it.exists() }.addToAntBuilder(ant, 'resources')
@@ -107,10 +157,22 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
                 if(reports.csv.isEnabled()) {
                     csv(destfile: reports.csv.destination)
                 }
+                if (task.checkClosure!=null) {
+                    def ch = delegate.check(task.checkClosure).getWrapper()
+                    if (!ignoreFailures) {
+                        ch.setAttribute('violationsproperty',violationsProperty)
+                    }
+                    ch.setAttribute('failonviolation',false)
+                }
+            }
+            if (!ignoreFailures) {
+                failures = ant.antProject.getProperty(violationsProperty)
             }
         }
+        if (failures!=null) {
+            throw new GradleException(failures)
+        }
     }
-
     /**
      * Adds execution data files to be used during coverage
      * analysis.
