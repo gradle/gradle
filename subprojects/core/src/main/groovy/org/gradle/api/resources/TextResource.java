@@ -44,7 +44,7 @@ public interface TextResource extends Buildable {
     String asString();
 
     /**
-     * Returns a reader that allows to read the resource's text.
+     * Returns a {@link Reader} that allows to read the resource's text. The caller is responsible for closing the reader.
      *
      * @return a reader that allows to read the resource's text
      */
