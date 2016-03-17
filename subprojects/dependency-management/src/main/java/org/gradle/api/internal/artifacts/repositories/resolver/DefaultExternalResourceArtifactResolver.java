@@ -19,12 +19,8 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaD
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
-import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.local.*;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
@@ -74,7 +70,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return true;
                 }
             } catch (Exception e) {
-                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
+                throw ResourceException.getFailed(location.getUri(), e);
             }
         }
         return false;
@@ -96,7 +92,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return resource;
                 }
             } catch (Exception e) {
-                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
+                throw ResourceException.getFailed(location.getUri(), e);
             }
         }
         return null;
