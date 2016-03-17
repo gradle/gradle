@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.api.resources.MissingResourceException;
+
 import java.io.File;
 import java.io.Reader;
 import java.io.StringReader;
@@ -58,7 +60,7 @@ public class CachingTextResource implements TextResource {
     public boolean getExists() {
         try {
             maybeFetch();
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             return false;
         }
         return true;

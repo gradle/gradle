@@ -18,6 +18,7 @@ package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
@@ -106,7 +107,7 @@ public class UriTextResource implements TextResource {
         try {
             return getInputStream(sourceUri);
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
+            throw new MissingResourceException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
             throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }

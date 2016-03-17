@@ -18,6 +18,7 @@ package org.gradle.internal.resource;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.resources.MissingResourceException;
 
 import java.io.*;
 
@@ -31,7 +32,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
         try {
             return new BufferedInputStream(openStream());
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(getURI(), String.format("Could not get resource '%s' as it does not exist.", getURI()), e);
+            throw new MissingResourceException(getURI(), String.format("Could not get resource '%s' as it does not exist.", getURI()), e);
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }

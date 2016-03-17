@@ -17,11 +17,11 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.resources.ResourceException;
 
 import java.io.File;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import org.gradle.api.resources.ResourceException;
 
 /**
  * A {@code Resource} that has text content.
@@ -72,20 +72,20 @@ public interface TextResource extends Resource {
      *
      * <p>Note that this method may be expensive when {@link #isContentCached()} returns false, depending on the implementation.
      *
-     * @throws ResourceNotFoundException When this resource does not exist.
+     * @throws org.gradle.api.resources.MissingResourceException When this resource does not exist.
      * @throws ResourceException On failure to read content.
      */
-    boolean getHasEmptyContent() throws ResourceNotFoundException, ResourceException;
+    boolean getHasEmptyContent() throws ResourceException;
 
     /**
      * Returns an *unbuffered* reader over the content of this resource.
      *
      * <p>Note that this method, or reading from the provided reader, may be expensive when {@link #isContentCached()} returns false, depending on the implementation.
      *
-     * @throws ResourceNotFoundException When this resource does not exist.
+     * @throws org.gradle.api.resources.MissingResourceException When this resource does not exist.
      * @throws ResourceException On failure to read content.
      */
-    Reader getAsReader() throws ResourceNotFoundException, ResourceException;
+    Reader getAsReader() throws ResourceException;
 
     /**
      * Returns the content of this resource, as a String.
@@ -93,8 +93,8 @@ public interface TextResource extends Resource {
      * <p>Note that this method may be expensive when {@link #isContentCached()} returns false, depending on the implementation.
      *
      * @return the content. Never returns null.
-     * @throws ResourceNotFoundException When this resource does not exist.
+     * @throws org.gradle.api.resources.MissingResourceException When this resource does not exist.
      * @throws ResourceException On failure to read content.
      */
-    String getText() throws ResourceNotFoundException, ResourceException;
+    String getText() throws ResourceException;
 }

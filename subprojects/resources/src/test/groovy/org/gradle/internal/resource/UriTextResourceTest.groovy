@@ -17,6 +17,7 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ResourceException
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -113,19 +114,19 @@ class UriTextResourceTest {
         try {
             resource.text
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
         try {
             resource.asReader
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
         try {
             resource.hasEmptyContent
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
     }
@@ -175,7 +176,7 @@ class UriTextResourceTest {
         try {
             resource.text
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
     }
@@ -199,19 +200,19 @@ class UriTextResourceTest {
         try {
             resource.text
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
         }
         try {
             resource.asReader
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
         }
         try {
             resource.hasEmptyContent
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
         }
     }
@@ -225,7 +226,7 @@ class UriTextResourceTest {
         try {
             resource.text
             fail()
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> 'http://www.gradle.org/unknown.txt' as it does not exist." as String))
         }
     }

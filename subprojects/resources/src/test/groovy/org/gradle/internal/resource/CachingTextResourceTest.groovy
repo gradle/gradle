@@ -17,6 +17,7 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.api.resources.MissingResourceException
 import spock.lang.Specification
 
 class CachingTextResourceTest extends Specification {
@@ -39,7 +40,7 @@ class CachingTextResourceTest extends Specification {
         assert !resource.exists
 
         then:
-        1 * target.text >> { throw new ResourceNotFoundException(new URI("somewhere:not-here"), "not found")}
+        1 * target.text >> { throw new MissingResourceException(new URI("somewhere:not-here"), "not found")}
         0 * target._
     }
 

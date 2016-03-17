@@ -37,13 +37,13 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
@@ -717,7 +717,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ExternalResource resource = UrlExternalResource.open(url);
             try {
                 return parseModuleDescriptor(resource, url);
-            } catch (ResourceNotFoundException e) {
+            } catch (MissingResourceException e) {
                 // Ignore
                 return null;
             } finally {

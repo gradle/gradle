@@ -57,7 +57,7 @@ public interface ExternalResource extends Resource, Closeable {
      * Executes the given action against the binary contents of this resource.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     void withContent(Action<? super InputStream> readAction) throws ResourceException;
 
@@ -65,7 +65,7 @@ public interface ExternalResource extends Resource, Closeable {
      * Executes the given action against the binary contents of this resource.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
@@ -75,7 +75,7 @@ public interface ExternalResource extends Resource, Closeable {
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     <T> T withContent(ContentAction<? extends T> readAction) throws ResourceException;
 
