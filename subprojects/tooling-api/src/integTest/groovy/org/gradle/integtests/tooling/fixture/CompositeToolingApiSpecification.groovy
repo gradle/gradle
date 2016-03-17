@@ -48,14 +48,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection.Builder createCompositeBuilder() {
-        def builder = toolingApi.createCompositeBuilder()
-//        if (embedCoordinatorAndParticipants) {
-            // Embed everything if requested
-//            builder.embeddedParticipants(true)
-//            builder.embeddedCoordinator(true)
-//            builder.useClasspathDistribution()
-//        }
-        return builder
+        return toolingApi.createCompositeBuilder()
     }
 
     GradleBuild createGradleBuildParticipant(File rootDir) {
