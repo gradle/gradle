@@ -17,7 +17,8 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.ToolingApiPerformanceTest
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -27,7 +28,7 @@ import static org.gradle.performance.measure.Duration.millis
 class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
-    def "building eclipse model for a #project Java project"() {
+    def "building #ide model for a #project Java project"() {
         given:
         rootDir {
             'build.gradle'('// this is a sample build')
@@ -41,12 +42,12 @@ class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingA
             }
         }
 
-        experiment("$project Java project", "get $project HierarchicalEclipseProject model") {
+        experiment("$project Java project", "get $project ${modelClass.simpleName} model") {
             warmUpCount = 3
             invocationCount = 10
             maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
-                getModel(HierarchicalEclipseProject)
+                getModel(modelClass)
             }
         }
 
@@ -57,10 +58,14 @@ class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingA
         noExceptionThrown()
 
         where:
-        project  | size | maxRegressionTime
-        "small"  | 5    | 20
-        "medium" | 30   | 100
-        "large"  | 100  | 100
+        project  | size | modelClass     | maxRegressionTime
+        "small"  | 5    | EclipseProject | 20
+        "small"  | 5    | IdeaProject    | 20
+        "medium" | 30   | EclipseProject | 100
+        "medium" | 30   | IdeaProject    | 100
+        "large"  | 100  | EclipseProject | 100
+        "large"  | 100  | IdeaProject    | 100
+        ide = modelClass == IdeaProject ? 'IDEA' : 'Eclipse'
     }
 
     private String settings(int size) {
