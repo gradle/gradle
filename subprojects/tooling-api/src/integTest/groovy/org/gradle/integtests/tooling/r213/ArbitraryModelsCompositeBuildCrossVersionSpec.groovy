@@ -72,6 +72,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         testScenario << createTestScenarios(supportedModels())
     }
 
+    // ProjectPublications was introduced in 1.12
     @TargetGradleVersion("<1.12")
     def "check errors returned for unsupported models in a composite"(TestScenario testScenario) {
         given:
@@ -93,6 +94,53 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
         where:
         testScenario << createTestScenarios([ ProjectPublications ])
+    }
+
+    @TargetGradleVersion("<1.6")
+    def "check errors returned for unknown models in a composite when participant does not support custom models"(TestScenario testScenario) {
+        given:
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'Serializable'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
+        }
+        where:
+        testScenario << createTestScenarios([ Serializable ])
+    }
+
+    @TargetGradleVersion(">=1.6")
+    def "check errors returned for unknown models in a composite when participant supports custom models"(TestScenario testScenario) {
+        given:
+
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assertFailure(it.failure, "No model of type 'Serializable' is available in this build.")
+        }
+        where:
+        testScenario << createTestScenarios([ Serializable ])
     }
 
     private static List<TestScenario> createTestScenarios(List<Class<?>> modelsToTest) {
