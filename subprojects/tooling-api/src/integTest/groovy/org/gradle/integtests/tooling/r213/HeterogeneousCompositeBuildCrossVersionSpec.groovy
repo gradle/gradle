@@ -80,7 +80,7 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         connection?.close()
     }
 
-    @TargetGradleVersion("<1.12")
+    @TargetGradleVersion(">=1.0 <1.12")
     def "gets errors for unsupported models for composite with heterogeneous Gradle versions"() {
         when:
         GradleConnection connection = builder.build()
@@ -99,7 +99,7 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         connection?.close()
     }
 
-    @TargetGradleVersion("<1.6")
+    @TargetGradleVersion(">=1.0 <1.6")
     def "gets errors for unknown models for composite with heterogeneous Gradle versions"() {
         when:
         GradleConnection connection = builder.build()

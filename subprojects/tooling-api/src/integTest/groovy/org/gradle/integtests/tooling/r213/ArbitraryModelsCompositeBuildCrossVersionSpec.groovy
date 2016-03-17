@@ -73,7 +73,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     }
 
     // ProjectPublications was introduced in 1.12
-    @TargetGradleVersion("<1.12")
+    @TargetGradleVersion(">=1.0 <1.12")
     def "check errors returned for unsupported models in a composite"(TestScenario testScenario) {
         given:
         def builds = testScenario.createBuilds(this.&createBuilds)
@@ -96,7 +96,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         testScenario << createTestScenarios([ ProjectPublications ])
     }
 
-    @TargetGradleVersion("<1.6")
+    @TargetGradleVersion(">=1.0 <1.6")
     def "check errors returned for unknown models in a composite when participant does not support custom models"(TestScenario testScenario) {
         given:
         def builds = testScenario.createBuilds(this.&createBuilds)
