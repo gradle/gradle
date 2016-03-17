@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Basic tests for building and retrieving models from a composite.
@@ -80,9 +81,8 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
             }
         }
         then:
-        // TODO:DAZ Should have a consistent exception thrown for composites, whether integrated or not
-        def e = thrown(Exception)
-        assertFailure(e, "Could not fetch model of type 'EclipseProject'")
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "Could not fetch models of type 'EclipseProject'")
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
@@ -93,10 +93,9 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
             }
         }
         then:
-        // TODO:DAZ Should have a consistent exception thrown for composites, whether integrated or not
-        def e = thrown(Exception)
+        def e = thrown(GradleConnectionException)
         assertFailure(e,
-            "Could not fetch model of type 'EclipseProject'",
+            "Could not fetch models of type 'EclipseProject'",
             "project-does-not-exist' does not exist")
     }
 

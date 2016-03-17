@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tests composites with multiple participants.  All participants have the same version.
@@ -267,10 +268,9 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
-        // TODO:DAZ Should have a consistent exception thrown for composites, whether integrated or not
-        def e = thrown(Exception)
+        def e = thrown(GradleConnectionException)
         assertFailure(e,
-            "Could not fetch model of type 'EclipseProject'",
+            "Could not fetch models of type 'EclipseProject'",
             "single-build' does not exist")
 
         cleanup:

@@ -126,12 +126,12 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
-            super(handler);
-        }
-
-        @Override
-        protected String connectionFailureMessage(Throwable failure) {
-            return String.format("Could not execute tests using %s.", connection.getDisplayName());
+            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable throwable) {
+                    return String.format("Could not execute tests using %s.", connection.getDisplayName());
+                }
+            }));
         }
     }
 }

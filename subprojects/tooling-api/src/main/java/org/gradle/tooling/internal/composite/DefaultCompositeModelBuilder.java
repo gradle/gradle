@@ -18,16 +18,14 @@ package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ModelResults;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
-import org.gradle.tooling.internal.consumer.BlockingResultHandler;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
-import org.gradle.tooling.internal.consumer.ResultHandlerAdapter;
+import org.gradle.tooling.internal.consumer.*;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -81,16 +79,7 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                     }
                 };
             }
-        }, new ResultHandlerAdapter<ModelResults<T>>(handler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                }
-                return message;
-            }
-        });
+        }, new ResultHandlerAdapter<T>(handler));
     }
 
     // TODO: Make all configuration methods configure underlying model builders
@@ -167,5 +156,20 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     @Override
     public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
         return unsupportedMethod();
+    }
+
+    private final class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<ModelResults<T>> {
+        ResultHandlerAdapter(ResultHandler<? super ModelResults<T>> handler) {
+            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable failure) {
+                    String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                    if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                    }
+                    return message;
+                }
+            }));
+        }
     }
 }
