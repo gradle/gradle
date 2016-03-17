@@ -16,10 +16,14 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
+
 import static org.gradle.performance.measure.Duration.millis
 
+@Category([ToolingApiPerformanceTest])
 class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
