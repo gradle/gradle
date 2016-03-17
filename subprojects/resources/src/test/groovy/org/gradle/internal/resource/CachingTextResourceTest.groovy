@@ -43,11 +43,22 @@ class CachingTextResourceTest extends Specification {
         0 * target._
     }
 
-    def fetchesAndCachesContentWhenContentIsChecked() {
+    def fetchesAndCachesContentWhenContentQueriedAsString() {
         when:
         assert resource.text == 'content'
         assert resource.exists
         assert resource.text == 'content'
+
+        then:
+        1 * target.text >> 'content'
+        0 * target._
+    }
+
+    def fetchesAndCachesContentWhenContentQueriedAsReader() {
+        when:
+        assert resource.asReader.text == 'content'
+        assert resource.exists
+        assert resource.asReader.text == 'content'
 
         then:
         1 * target.text >> 'content'

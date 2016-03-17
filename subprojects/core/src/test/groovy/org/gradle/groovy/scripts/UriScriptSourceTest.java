@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
 import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
@@ -70,6 +71,7 @@ public class UriScriptSourceTest {
         ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
         assertThat(source, instanceOf(UriScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
         assertThat(source.getResource().getText(), equalTo("content"));
@@ -83,6 +85,7 @@ public class UriScriptSourceTest {
         ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
         assertThat(source, instanceOf(NonExistentFileScriptSource.class));
         assertNull(source.getResource().getFile());
+        assertNull(source.getResource().getCharset());
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
         assertThat(source.getResource().getText(), equalTo(""));
@@ -97,6 +100,7 @@ public class UriScriptSourceTest {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
         assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
@@ -107,6 +111,7 @@ public class UriScriptSourceTest {
         UriScriptSource source = new UriScriptSource("<file-type>", uri);
         assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertNull(source.getResource().getFile());
+        assertNull(source.getResource().getCharset());
         assertNull(source.getResource().getLocation().getFile());
         assertThat(source.getResource().getLocation().getURI(), equalTo(uri));
     }

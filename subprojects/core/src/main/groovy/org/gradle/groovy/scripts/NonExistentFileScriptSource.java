@@ -20,6 +20,9 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
 
 import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 
 public class NonExistentFileScriptSource extends AbstractUriScriptSource {
 
@@ -64,6 +67,16 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
         @Override
         public File getFile() {
             return null;
+        }
+
+        @Override
+        public Charset getCharset() {
+            return null;
+        }
+
+        @Override
+        public Reader getAsReader() {
+            return new StringReader("");
         }
 
         @Override

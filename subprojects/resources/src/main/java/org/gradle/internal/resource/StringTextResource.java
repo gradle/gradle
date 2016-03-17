@@ -19,7 +19,10 @@ package org.gradle.internal.resource;
 import org.gradle.api.Nullable;
 
 import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 public class StringTextResource implements TextResource {
     private final String displayName;
@@ -30,6 +33,7 @@ public class StringTextResource implements TextResource {
         this.contents = contents;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
@@ -44,11 +48,23 @@ public class StringTextResource implements TextResource {
         return contents.length() == 0;
     }
 
+    @Override
+    public Reader getAsReader() {
+        return new StringReader(getText());
+    }
+
+    @Override
     public String getText() {
         return contents.toString();
     }
 
+    @Override
     public File getFile() {
+        return null;
+    }
+
+    @Override
+    public Charset getCharset() {
         return null;
     }
 
@@ -57,6 +73,7 @@ public class StringTextResource implements TextResource {
         return new StringResourceLocation(displayName);
     }
 
+    @Override
     public boolean getExists() {
         return true;
     }

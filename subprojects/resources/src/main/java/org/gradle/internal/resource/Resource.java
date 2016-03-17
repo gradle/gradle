@@ -18,6 +18,8 @@ package org.gradle.internal.resource;
 
 /**
  * Represents some resource that may have content.
+ *
+ * <p>This type is currently pretty much empty. It's here as a place to extract and reuse stuff from the various subtypes, which all stared off as separate hierarchies.
  */
 public interface Resource {
     /**

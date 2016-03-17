@@ -24,6 +24,7 @@ import org.gradle.util.GradleVersion;
 import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 
 /**
  * A {@link TextResource} implementation backed by a URI. Assumes content is encoded using UTF-8.
@@ -53,6 +54,7 @@ public class UriTextResource implements TextResource {
         this.sourceUri = sourceUri;
     }
 
+    @Override
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
         builder.append(description);
@@ -72,17 +74,27 @@ public class UriTextResource implements TextResource {
         return getText().isEmpty();
     }
 
+    @Override
     public String getText() {
-        if (sourceFile != null && sourceFile.isDirectory()) {
-            throw new ResourceException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
-        }
+        Reader reader = getAsReader();
         try {
-            Reader reader = getInputStream(sourceUri);
             try {
                 return IOUtils.toString(reader);
             } finally {
                 reader.close();
             }
+        } catch (Exception e) {
+            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
+        }
+    }
+
+    @Override
+    public Reader getAsReader() {
+        if (sourceFile != null && sourceFile.isDirectory()) {
+            throw new ResourceException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
+        }
+        try {
+            return getInputStream(sourceUri);
         } catch (FileNotFoundException e) {
             throw new ResourceNotFoundException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
@@ -90,6 +102,7 @@ public class UriTextResource implements TextResource {
         }
     }
 
+    @Override
     public boolean getExists() {
         try {
             Reader reader = getInputStream(sourceUri);
@@ -113,8 +126,17 @@ public class UriTextResource implements TextResource {
         return new InputStreamReader(urlConnection.getInputStream(), charset);
     }
 
+    @Override
     public File getFile() {
         return sourceFile != null && sourceFile.isFile() ? sourceFile : null;
+    }
+
+    @Override
+    public Charset getCharset() {
+        if (getFile() != null) {
+            return Charset.forName("utf-8");
+        }
+        return null;
     }
 
     @Override

@@ -26,6 +26,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+import java.nio.charset.Charset
+
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.*
@@ -73,8 +75,9 @@ class UriTextResourceTest {
     public void canConstructResourceFromJarURI() {
         URI jarUri = createJar()
         UriTextResource resource = new UriTextResource('<display-name>', jarUri);
-        assertThat(resource.file, nullValue());
-        assertThat(resource.location.file, nullValue());
+        assertNull(resource.file)
+        assertNull(resource.charset)
+        assertNull(resource.location.file)
         assertThat(resource.location.URI, equalTo(jarUri));
     }
 
@@ -86,6 +89,7 @@ class UriTextResourceTest {
         assertTrue(resource.exists)
         assertFalse(resource.hasEmptyContent)
         assertThat(resource.text, equalTo('<content>'));
+        assertThat(resource.asReader.text, equalTo('<content>'));
     }
 
     @Test
@@ -94,7 +98,9 @@ class UriTextResourceTest {
 
         UriTextResource resource = new UriTextResource('<display-name>', file);
         assertTrue(resource.exists)
+        assertThat(resource.charset, equalTo(Charset.forName("utf-8")))
         assertThat(resource.text, equalTo('\u03b1'));
+        assertThat(resource.asReader.text, equalTo('\u03b1'));
     }
 
     @Test
@@ -102,8 +108,15 @@ class UriTextResourceTest {
         UriTextResource resource = new UriTextResource('<display-name>', file);
         assertFalse(resource.exists)
         assertNull(resource.file)
+        assertNull(resource.charset)
         try {
             resource.text
+            fail()
+        } catch (ResourceNotFoundException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
+        }
+        try {
+            resource.asReader
             fail()
         } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
@@ -122,8 +135,15 @@ class UriTextResourceTest {
         UriTextResource resource = new UriTextResource('<display-name>', dir);
         assertTrue(resource.exists)
         assertNull(resource.file)
+        assertNull(resource.charset)
         try {
             resource.text
+            fail()
+        } catch (ResourceException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$dir' as it is a directory." as String))
+        }
+        try {
+            resource.asReader
             fail()
         } catch (ResourceException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$dir' as it is a directory." as String))
@@ -143,6 +163,7 @@ class UriTextResourceTest {
         UriTextResource resource = new UriTextResource('<display-name>', fileUri);
         assertTrue(resource.exists)
         assertThat(resource.text, equalTo('<content>'));
+        assertThat(resource.asReader.text, equalTo('<content>'));
     }
 
     @Test
@@ -176,6 +197,18 @@ class UriTextResourceTest {
         assertFalse(resource.exists)
         try {
             resource.text
+            fail()
+        } catch (ResourceNotFoundException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
+        }
+        try {
+            resource.asReader
+            fail()
+        } catch (ResourceNotFoundException e) {
+            assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
+        }
+        try {
+            resource.hasEmptyContent
             fail()
         } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))

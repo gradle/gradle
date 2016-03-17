@@ -17,6 +17,9 @@
 package org.gradle.internal.resource;
 
 import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 
 public class CachingTextResource implements TextResource {
     private final TextResource resource;
@@ -26,6 +29,7 @@ public class CachingTextResource implements TextResource {
         this.resource = resource;
     }
 
+    @Override
     public String getDisplayName() {
         return resource.getDisplayName();
     }
@@ -35,8 +39,14 @@ public class CachingTextResource implements TextResource {
         return resource.getLocation();
     }
 
+    @Override
     public File getFile() {
         return resource.getFile();
+    }
+
+    @Override
+    public Charset getCharset() {
+        return resource.getCharset();
     }
 
     @Override
@@ -64,6 +74,12 @@ public class CachingTextResource implements TextResource {
     public String getText() {
         maybeFetch();
         return content;
+    }
+
+    @Override
+    public Reader getAsReader() {
+        maybeFetch();
+        return new StringReader(content);
     }
 
     private void maybeFetch() {
