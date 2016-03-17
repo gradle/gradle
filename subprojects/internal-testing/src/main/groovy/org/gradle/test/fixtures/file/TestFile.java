@@ -571,6 +571,16 @@ public class TestFile extends File {
         return this;
     }
 
+    public TestFile bzip2To(TestFile compressedFile) {
+        new TestFileHelper(this).bzip2To(compressedFile);
+        return this;
+    }
+
+    public TestFile gzipTo(TestFile compressedFile) {
+        new TestFileHelper(this).gzipTo(compressedFile);
+        return this;
+    }
+
     public Snapshot snapshot() {
         assertIsFile();
         return new Snapshot(lastModified(), getHash("MD5"));
