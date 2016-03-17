@@ -19,7 +19,6 @@ package org.gradle.internal.resource;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
@@ -102,7 +101,7 @@ public class UriTextResource implements TextResource {
     @Override
     public Reader getAsReader() {
         if (sourceFile != null && sourceFile.isDirectory()) {
-            throw new ResourceException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
+            throw new ResourceIsAFolderException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
         try {
             return getInputStream(sourceUri);

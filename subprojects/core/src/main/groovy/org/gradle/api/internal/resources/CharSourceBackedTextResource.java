@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class CharSourceBackedTextResource implements TextResourceInternal {
         try {
             return charSource.read();
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw ResourceExceptions.readFailed(displayName, e);
         }
     }
 
@@ -63,7 +63,7 @@ public class CharSourceBackedTextResource implements TextResourceInternal {
         try {
             return charSource.openStream();
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw ResourceExceptions.readFailed(displayName, e);
         }
     }
 

@@ -16,11 +16,12 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,35 +51,43 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
     }
 
     public String asString() {
+        File file = asFile();
         try {
-            return Files.toString(asFile(), charset);
+            return Files.toString(file, charset);
+        } catch (FileNotFoundException e) {
+            throw ResourceExceptions.readMissing(file, e);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw ResourceExceptions.readFailed(file, e);
         }
     }
 
     public Reader asReader() {
+        File file = asFile();
         try {
             return Files.newReader(asFile(), charset);
         } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(e);
+            throw ResourceExceptions.readMissing(file, e);
         }
     }
 
     public File asFile(String targetCharset) {
-        Charset targetCharsetObj = Charset.forName(targetCharset);
-
-        if (targetCharsetObj.equals(charset)) {
-            return fileCollection.getSingleFile();
-        }
-
-        File targetFile = tempFileProvider.createTemporaryFile("fileCollection", ".txt", "resource");
         try {
-            Files.asCharSource(fileCollection.getSingleFile(), charset).copyTo(Files.asCharSink(targetFile, targetCharsetObj));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            Charset targetCharsetObj = Charset.forName(targetCharset);
+
+            if (targetCharsetObj.equals(charset)) {
+                return fileCollection.getSingleFile();
+            }
+
+            File targetFile = tempFileProvider.createTemporaryFile("fileCollection", ".txt", "resource");
+            try {
+                Files.asCharSource(fileCollection.getSingleFile(), charset).copyTo(Files.asCharSink(targetFile, targetCharsetObj));
+            } catch (IOException e) {
+                throw new ResourceException("Could not write " + getDisplayName() + " content to " + targetFile + ".", e);
+            }
+            return targetFile;
+        } catch (Exception e) {
+            throw ResourceExceptions.readFailed(getDisplayName(), e);
         }
-        return targetFile;
     }
 
     public File asFile() {

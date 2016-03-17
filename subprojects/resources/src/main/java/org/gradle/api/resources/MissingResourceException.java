@@ -26,6 +26,10 @@ public class MissingResourceException extends ResourceException {
         super(message);
     }
 
+    public MissingResourceException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public MissingResourceException(URI location, String message) {
         super(location, message);
     }

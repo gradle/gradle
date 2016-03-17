@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.internal.resource.ResourceIsAFolderException;
-import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.*;
 
@@ -29,13 +28,13 @@ public class FileResource extends AbstractFileResource {
 
     public InputStream read() {
         if (file.isDirectory()) {
-            throw new ResourceIsAFolderException(String.format("Cannot read resource %s because it is a folder.", file.getName()));
+            throw ResourceExceptions.readFolder(file);
         }
         try {
             FileInputStream fis = new FileInputStream(file);
             return new BufferedInputStream(fis);
         } catch (FileNotFoundException e) {
-            throw new MissingResourceException(String.format("Cannot read the file resource because the file %s does not exist", file.getName()));
+            throw ResourceExceptions.readMissing(file, e);
         }
     }
 }

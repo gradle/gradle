@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,9 +56,7 @@ public class GzipArchiver extends AbstractArchiver {
         try {
             return new GZIPInputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create gzip input stream for resource %s.", resource.getDisplayName());
-            throw new ResourceException(message, e);
+            throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }
-
 }

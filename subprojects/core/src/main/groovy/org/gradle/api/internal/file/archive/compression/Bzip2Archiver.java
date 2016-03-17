@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,8 +61,7 @@ public class Bzip2Archiver extends AbstractArchiver {
             is.read(skip);
             return new CBZip2InputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create bzip2 input stream for resource %s.", resource.getDisplayName());
-            throw new ResourceException(message, e);
+            throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }
 }
