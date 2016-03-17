@@ -100,9 +100,9 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @TupleConstructor
     private static class Measurement implements ToolingApiClasspathProvider {
-        private final static ReleasedVersionDistributions releases = new ReleasedVersionDistributions()
-        private final static UnderDevelopmentGradleDistribution current = new UnderDevelopmentGradleDistribution()
-        private final static ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        private final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
+        private final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
+        private final static ToolingApiDistributionResolver RESOLVER = new ToolingApiDistributionResolver().withDefaultRepository()
 
         final ToolingApiExperimentSpec experimentSpec
 
@@ -123,16 +123,16 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 gradleOpts: [],
                 daemon: true)
             experimentSpec.with {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(releases, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
                 [*baselines, 'current'].each { String version ->
-                    GradleDistribution dist = 'current' == version ? current : buildContext.distribution(version)
+                    GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
                         def baselineVersion = results.baseline(version)
                         baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
                         baselineVersion.maxMemoryRegression = maxMemoryRegression
                     }
-                    def toolingApiDistribution = resolver.resolve(dist.version.version)
+                    def toolingApiDistribution = RESOLVER.resolve(dist.version.version)
                     def testClassPath = []
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
