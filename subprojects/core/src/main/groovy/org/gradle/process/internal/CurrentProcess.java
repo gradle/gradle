@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
+package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.process.internal.JvmOptions;
 
 import java.lang.management.ManagementFactory;
-import java.util.List;
-import java.util.Properties;
 
 public class CurrentProcess {
     private final JavaInfo jvm;
@@ -33,7 +30,7 @@ public class CurrentProcess {
         this(Jvm.current(), inferJvmOptions());
     }
 
-    CurrentProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions) {
+    protected CurrentProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions) {
         this.jvm = jvm;
         this.effectiveJvmOptions = effectiveJvmOptions;
     }
@@ -42,26 +39,8 @@ public class CurrentProcess {
         return effectiveJvmOptions;
     }
 
-    /**
-     * Attempts to configure the current process to run with the required build parameters.
-     * @return True if the current process could be configured, false otherwise.
-     */
-    public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
-        boolean javaHomeMatch = jvm.equals(requiredBuildParameters.getEffectiveJvm());
-
-        List<String> currentImmutable = new JvmOptions(new IdentityFileResolver()).getAllImmutableJvmArgs();
-        List<String> requiredImmutable = requiredBuildParameters.getEffectiveJvmArgs();
-        requiredImmutable.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
-        boolean noImmutableJvmArgsRequired = requiredImmutable.equals(currentImmutable);
-
-        if (javaHomeMatch && noImmutableJvmArgsRequired) {
-            // Set the system properties and use this process
-            Properties properties = new Properties();
-            properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
-            System.setProperties(properties);
-            return true;
-        }
-        return false;
+    public JavaInfo getJvm() {
+        return jvm;
     }
 
     private static JvmOptions inferJvmOptions() {

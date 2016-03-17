@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r18
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -149,5 +148,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         buildEnvironment.gradle.gradleVersion == targetDist.getVersion().version
+        buildEnvironment.java.javaHome
+        !buildEnvironment.java.jvmArguments.empty
     }
 }

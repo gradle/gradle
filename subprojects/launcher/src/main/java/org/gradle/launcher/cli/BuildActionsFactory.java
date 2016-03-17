@@ -30,7 +30,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.*;
-import org.gradle.launcher.daemon.configuration.CurrentProcess;
+import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.*;
@@ -92,7 +92,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        CurrentProcess currentProcess = new CurrentProcess();
+        BuildProcess currentProcess = new BuildProcess();
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 
