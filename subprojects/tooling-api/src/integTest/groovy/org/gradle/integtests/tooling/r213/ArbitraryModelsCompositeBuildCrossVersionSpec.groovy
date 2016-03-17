@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -30,7 +31,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
 
 import java.lang.reflect.Proxy
-
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
@@ -70,10 +70,42 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios()
+        testScenario << createTestScenarios(supportedModels())
     }
 
-    private static List<TestScenario> createTestScenarios() {
+    @TargetGradleVersion("<1.12")
+    def "check errors returned for unsupported models in a composite"(TestScenario testScenario) {
+        given:
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assert it.failure.message == "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions."
+        }
+        where:
+        testScenario << createTestScenarios([ ProjectPublications ])
+    }
+
+    private static List<TestScenario> createTestScenarios(List<Class<?>> modelsToTest) {
+        modelsToTest.collect { modelType ->
+            [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
+             new TestScenario(modelType: modelType, numberOfMultiProjectBuilds: 1),
+             new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1),
+            ]
+        }.flatten()
+    }
+
+    private static List<Class<?>> supportedModels() {
         List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + BUILD_MODELS
         // Need to create a copy of the dist GradleVersion, due to classloader issues
         def targetVersion = getTargetDistVersion()
@@ -83,15 +115,9 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
         supportedModels << BuildInvocations
         if (targetVersion >= GradleVersion.version("1.12")) {
-            // TODO: Test the failures when requesting ProjectPublications an earlier versions
             supportedModels << ProjectPublications
         }
-        supportedModels.collect { modelType ->
-            [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
-             new TestScenario(modelType: modelType, numberOfMultiProjectBuilds: 1),
-             new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1),
-            ]
-        }.flatten()
+        supportedModels
     }
 
     private static class TestScenario {
@@ -108,13 +134,17 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             getNumberOfProjects()
         }
 
+        int getNumberOfBuilds() {
+            numberOfMultiProjectBuilds + numberOfSingleProjectBuilds
+        }
+
         int getNumberOfProjects() {
             numberOfSingleProjectBuilds + (numberOfMultiProjectBuilds * (numberOfSubProjectsPerMultiProjectBuild + 1))
         }
 
         @Override
         String toString() {
-            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} multi-project participants"
+            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} w/ ${numberOfSubProjectsPerMultiProjectBuild} multi-project participants"
         }
     }
 
