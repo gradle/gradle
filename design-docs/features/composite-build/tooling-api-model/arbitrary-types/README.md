@@ -58,3 +58,7 @@ It's really not a hierarchical structure since a build returns a `IdeaProject` w
     - In these cases, check that the number of returned models matches the number of projects
   - Build models and IdeaProject models are the same for each project in the build. 
     - In these cases, check that the number of returned models matches the number of builds in the composite
+
+### Open Issues
+
+- Support for custom models
