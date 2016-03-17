@@ -123,7 +123,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             testClassPath << ClasspathUtil.getClasspathForClass(TestResultHandler)
 
             getTestClassLoader(TEST_CLASS_LOADERS, toolingApi, testClassPath) {
-                allowResources(target.name.replace('.', '/'))
+                it.allowResources(target.name.replace('.', '/'))
             }
         }
 
