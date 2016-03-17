@@ -30,6 +30,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.CollectionUtils
+import spock.lang.Ignore
 
 /**
  * Tests composites with a different Gradle versions.
@@ -104,20 +105,21 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         when:
         GradleConnection connection = builder.build()
 
-        def modelResults = connection.getModels(Serializable)
+        def modelResults = connection.getModels(CustomModel)
 
         then:
         modelResults.size() == 2
         def varyingResult = findModelResult(modelResults, varyingBuildIdentity)
-        assertFailure(varyingResult.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'Serializable'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
+        assertFailure(varyingResult.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
 
         def fixedResult = findModelResult(modelResults, fixedBuildIdentity)
-        assertFailure(fixedResult.failure, "No model of type 'Serializable' is available in this build.")
+        assertFailure(fixedResult.failure, "No model of type 'CustomModel' is available in this build.")
 
         cleanup:
         connection?.close()
     }
 
+    @Ignore("Need to support custom types from the client")
     @TargetGradleVersion(">=1.6")
     def "can retrieve custom models from some participants"() {
         varyingProject.file("build.gradle") <<

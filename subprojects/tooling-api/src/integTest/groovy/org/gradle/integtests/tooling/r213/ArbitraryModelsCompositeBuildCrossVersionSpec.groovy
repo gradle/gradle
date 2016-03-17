@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -29,6 +30,7 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import java.lang.reflect.Proxy
 /**
@@ -113,12 +115,13 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         modelResults.size() == testScenario.numberOfBuilds
 
         modelResults.each {
-            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'Serializable'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
+            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
         }
         where:
-        testScenario << createTestScenarios([ Serializable ])
+        testScenario << createTestScenarios([CustomModel ])
     }
 
+    @Ignore("Need to support custom types from the client")
     @TargetGradleVersion(">=1.6")
     def "check errors returned for unknown models in a composite when participant supports custom models"(TestScenario testScenario) {
         given:
@@ -137,10 +140,10 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         modelResults.size() == testScenario.numberOfBuilds
 
         modelResults.each {
-            assertFailure(it.failure, "No model of type 'Serializable' is available in this build.")
+            assertFailure(it.failure, "No model of type 'CustomModel' is available in this build.")
         }
         where:
-        testScenario << createTestScenarios([ Serializable ])
+        testScenario << createTestScenarios([ CustomModel ])
     }
 
     private static List<TestScenario> createTestScenarios(List<Class<?>> modelsToTest) {
