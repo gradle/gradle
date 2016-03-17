@@ -24,6 +24,7 @@ import org.gradle.internal.filewatch.AbstractFileWatcherTest
 import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherEvent
 import org.gradle.internal.filewatch.FileWatcherListener
+import org.gradle.util.UsesNativeServices
 import spock.lang.AutoCleanup
 import spock.lang.Unroll
 
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.*
 
+@UsesNativeServices
 class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
     @AutoCleanup("shutdown")
     def executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())
