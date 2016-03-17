@@ -17,10 +17,13 @@
 package org.gradle.api.internal.impldeps;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.progress.PercentageProgressFormatter;
+import org.gradle.logging.ProgressLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -36,6 +39,11 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private static final int BUFFER_SIZE = 8192;
     private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
+    private final ProgressLogger progressLogger;
+
+    public GradleImplDepsRelocatedJarCreator(ProgressLogger progressLogger) {
+        this.progressLogger = progressLogger;
+    }
 
     public void create(File outputJar, final Iterable<? extends File> files) {
         IoActions.withResource(openJarOutputStream(outputJar), new ErroringAction<ZipOutputStream>() {
@@ -58,12 +66,18 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
     }
 
     private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths) throws Exception {
+        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files));
+
         for (File file : files) {
+            progressLogger.progress(progressFormatter.getProgress());
+
             if (file.getName().endsWith(".jar")) {
                 processJarFile(outputStream, file, buffer, seenPaths);
             } else {
                 throw new RuntimeException("non JAR on classpath: " + file.getAbsolutePath());
             }
+
+            progressFormatter.incrementAndGetProgress();
         }
     }
 

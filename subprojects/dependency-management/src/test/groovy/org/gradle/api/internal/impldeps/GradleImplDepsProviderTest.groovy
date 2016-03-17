@@ -19,6 +19,8 @@ package org.gradle.api.internal.impldeps
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,12 +32,8 @@ class GradleImplDepsProviderTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def cacheRepository = Mock(CacheRepository)
-    def relocatedJarCreator = Mock(RelocatedJarCreator)
-    GradleImplDepsProvider provider = new GradleImplDepsProvider(cacheRepository)
-
-    def setup() {
-        provider.relocatedJarCreator = relocatedJarCreator
-    }
+    def progressLoggerFactory = Mock(ProgressLoggerFactory)
+    GradleImplDepsProvider provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory)
 
     def "returns null for unknown JAR file name"() {
         expect:
@@ -48,6 +46,7 @@ class GradleImplDepsProviderTest extends Specification {
         def jarFile = cacheDir.file("gradle-${name}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
+        def progressLogger = Mock(ProgressLogger)
 
         when:
         def resolvedFile = provider.getFile(Collections.emptyList(), name)
@@ -57,7 +56,11 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        1 * relocatedJarCreator.create(jarFile, Collections.emptyList())
+        1 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
+        1 * progressLogger.setDescription('Gradle JARs generation')
+        1 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
+        1 * progressLogger.started()
+        1 * progressLogger.completed()
         jarFile == resolvedFile
 
         where:
@@ -69,6 +72,7 @@ class GradleImplDepsProviderTest extends Specification {
         def jarFile = cacheDir.file("gradle-api.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
+        def progressLogger = Mock(ProgressLogger)
 
         when:
         def resolvedFile = provider.getFile(Collections.emptyList(), 'api')
@@ -78,12 +82,14 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        1 * relocatedJarCreator.create(jarFile, Collections.emptyList())
+        1 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
+        1 * progressLogger.setDescription('Gradle JARs generation')
+        1 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
+        1 * progressLogger.started()
+        1 * progressLogger.completed()
         jarFile == resolvedFile
 
         when:
-        def relocatedJarCreator = Mock(RelocatedJarCreator)
-        provider.relocatedJarCreator = relocatedJarCreator
         resolvedFile = provider.getFile(Collections.emptyList(), 'api')
 
         then:
@@ -91,7 +97,11 @@ class GradleImplDepsProviderTest extends Specification {
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        0 * relocatedJarCreator.create(jarFile, Collections.emptyList())
+        0 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
+        0 * progressLogger.setDescription('Gradle JARs generation')
+        0 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
+        0 * progressLogger.started()
+        0 * progressLogger.completed()
         jarFile == resolvedFile
     }
 }

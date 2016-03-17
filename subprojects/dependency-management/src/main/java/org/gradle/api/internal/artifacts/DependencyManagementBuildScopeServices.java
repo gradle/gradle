@@ -98,8 +98,8 @@ class DependencyManagementBuildScopeServices {
             projectDependencyFactory);
     }
 
-    GradleImplDepsProvider createGradleImplDepsProvider(CacheRepository cacheRepository) {
-        return new GradleImplDepsProvider(cacheRepository);
+    GradleImplDepsProvider createGradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
+        return new GradleImplDepsProvider(cacheRepository, progressLoggerFactory);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {
