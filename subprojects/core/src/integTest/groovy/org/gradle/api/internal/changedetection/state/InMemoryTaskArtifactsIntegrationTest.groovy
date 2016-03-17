@@ -15,15 +15,14 @@
  */
 
 package org.gradle.api.internal.changedetection.state
-
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class InMemoryTaskArtifactsIntegrationTest extends DaemonIntegrationSpec {
 
-    @Issue("GRADLE-3018")
-    def "cached task state handles enum input properties"(){
-        given:
+
+    def setup(){
         buildFile << """
 task someTask {
     inputs.property "someEnum", SomeEnum.E1
@@ -38,9 +37,32 @@ enum SomeEnum {
     E1, E2
 }
 """
+
+    }
+
+    @Issue("GRADLE-3018")
+    def "cached task state handles enum input properties"(){
+        given:
         run "someTask"
 
         when:
+        run "someTask", "-i"
+
+        then:
+        skippedTasks.contains(":someTask")
+    }
+
+    @Issue("GRADLE-3018")
+    @Ignore
+    def "cached task state handles enum input properties for changed runtimeclasspath"(){
+        given:
+        run "someTask"
+
+        when:
+        buildFile << """
+task someOtherTask
+"""
+        and:
         run "someTask"
 
         then:
