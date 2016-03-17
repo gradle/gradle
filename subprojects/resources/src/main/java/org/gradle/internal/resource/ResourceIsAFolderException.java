@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources;
+package org.gradle.internal.resource;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.resources.ResourceException;
 
 /**
- * Generic resource exception that all other resource-related exceptions inherit from.
+ * Exception thrown when one attempts to read a folder
  */
-public class ResourceException extends GradleException {
-
-    public ResourceException() {}
-
-    public ResourceException(String message) {
+public class ResourceIsAFolderException extends ResourceException {
+    public ResourceIsAFolderException(String message) {
         super(message);
-    }
-
-    public ResourceException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

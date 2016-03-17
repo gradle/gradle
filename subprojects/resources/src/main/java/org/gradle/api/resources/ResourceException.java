@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resources;
+package org.gradle.api.resources;
 
-import org.gradle.api.resources.ResourceException;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
- * Exception thrown when one attempts to read a folder
+ * Generic resource exception that all other resource-related exceptions inherit from.
  */
-public class ResourceIsAFolderException extends ResourceException {
-    public ResourceIsAFolderException(String message) {
+@Contextual
+public class ResourceException extends GradleException {
+
+    public ResourceException() {}
+
+    public ResourceException(String message) {
         super(message);
+    }
+
+    public ResourceException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

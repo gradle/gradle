@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.resources.ResourceIsAFolderException;
+import org.gradle.internal.resource.ResourceIsAFolderException;
 import org.gradle.api.resources.MissingResourceException;
 
 import java.io.*;
