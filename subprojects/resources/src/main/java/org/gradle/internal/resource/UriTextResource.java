@@ -71,7 +71,16 @@ public class UriTextResource implements TextResource {
 
     @Override
     public boolean getHasEmptyContent() {
-        return getText().isEmpty();
+        Reader reader = getAsReader();
+        try {
+            try {
+                return reader.read() == -1;
+            } finally {
+                reader.close();
+            }
+        } catch (Exception e) {
+            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
+        }
     }
 
     @Override
