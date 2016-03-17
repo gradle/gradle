@@ -43,7 +43,7 @@ class WatchPointsRegistryTest extends Specification {
         FileSystemSubset fileSystemSubset = createFileSystemSubset(dirs)
 
         when:
-        def delta = registry.appendFileSystemSubset(fileSystemSubset)
+        def delta = registry.appendFileSystemSubset(fileSystemSubset, [])
 
         then:
         checkWatchPoints delta, dirs
@@ -79,7 +79,7 @@ class WatchPointsRegistryTest extends Specification {
         checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = appendInput(dirs[1])
+        delta = appendInput(dirs[1], [dirs[0]])
 
         then:
         delta.startingWatchPoints.size() == 0
@@ -182,24 +182,6 @@ class WatchPointsRegistryTest extends Specification {
         registry.shouldFire(dirs[1].createFile("file2.txt"))
     }
 
-    def "directory doesn't get added when createNewStartingPointsUnderExistingRoots==false"() {
-        given:
-        registry = new WatchPointsRegistry(false)
-        def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
-
-        when:
-        def delta = appendInput(dirs[0])
-
-        then:
-        checkWatchPoints delta, [dirs[0].getParentFile()]
-
-        when:
-        delta = appendInput(dirs[1])
-
-        then:
-        delta.startingWatchPoints.isEmpty()
-    }
-
     def "parents for non-existing watch directories get watched"() {
         given:
         rootDir.createDir("a")
@@ -212,10 +194,10 @@ class WatchPointsRegistryTest extends Specification {
         checkWatchPoints delta, [rootDir.file("a")]
 
         when:
-        delta = appendInput(dirs[1])
+        delta = appendInput(dirs[1], [rootDir.file("a")])
 
         then:
-        checkWatchPoints delta, []
+        checkWatchPoints delta, [rootDir.file("a")]
 
         and: 'should add watch to all parent directories of non-existing root'
         dirs.each { dir ->
@@ -296,12 +278,12 @@ class WatchPointsRegistryTest extends Specification {
         assert delta.startingWatchPoints as Set == files as Set
     }
 
-    private Delta appendInput(Iterable<File> files) {
-        registry.appendFileSystemSubset(createFileSystemSubset(files))
+    private Delta appendInput(Iterable<File> files, Iterable<File> currentWatchPoints = []) {
+        registry.appendFileSystemSubset(createFileSystemSubset(files), currentWatchPoints)
     }
 
-    private Delta appendInput(File file) {
-        registry.appendFileSystemSubset(createFileSystemSubset(file))
+    private Delta appendInput(File file, Iterable<File> currentWatchPoints = []) {
+        registry.appendFileSystemSubset(createFileSystemSubset(file), currentWatchPoints)
     }
 
     private static FileSystemSubset createFileSystemSubset(Iterable<File> files) {

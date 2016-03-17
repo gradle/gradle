@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -60,7 +63,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         lock.lock();
         try {
             LOG.debug("Begin - adding watches for {}", fileSystemSubset);
-            final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+            final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset, getCurrentWatchPoints());
             Iterable<? extends File> startingWatchPoints = delta.getStartingWatchPoints();
 
             for (File dir : startingWatchPoints) {
@@ -91,6 +94,16 @@ class WatchServiceRegistrar implements FileWatcherListener {
         } finally {
             lock.unlock();
         }
+    }
+
+    private synchronized Iterable<File> getCurrentWatchPoints() {
+        List<File> currentWatchPoints = new LinkedList<File>();
+        for (Map.Entry<Path, WatchKey> entry : watchKeys.entrySet()) {
+            if (entry.getValue().isValid()) {
+                currentWatchPoints.add(entry.getKey().toFile());
+            }
+        }
+        return currentWatchPoints;
     }
 
     protected synchronized void watchDir(Path dir) throws IOException {
