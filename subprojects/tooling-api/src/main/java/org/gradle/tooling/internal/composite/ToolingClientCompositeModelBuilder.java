@@ -18,13 +18,11 @@ package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.tooling.*;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ModelResults;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.BlockingResultHandler;
-import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
@@ -34,7 +32,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -50,7 +47,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
     private final List<ProgressListener> legacyProgressListeners = Lists.newArrayList();
 
     private final List<CompositeModelResultsBuilder> builders = Lists.newArrayList();
-    private final ExceptionTransformer exceptionTransformer;
 
     protected ToolingClientCompositeModelBuilder(final Class<T> modelType, Set<GradleParticipantBuild> participants) {
         this.modelType = modelType;
@@ -62,16 +58,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         builders.add(new HierarchicalModelResultsBuilder());
         builders.add(new CustomActionModelResultsBuilder());
         builders.add(new BruteForceModelResultsBuilder());
-        exceptionTransformer = new ExceptionTransformer(new Transformer<String, Throwable>() {
-            @Override
-            public String transform(Throwable failure) {
-                String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                }
-                return message;
-            }
-        });
     }
 
     @Override
@@ -90,7 +76,8 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
                 final List<ModelResult<T>> participantResults = buildResultsForParticipant(participant);
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
-                results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"), exceptionTransformer.transform(e)));
+                String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
+                results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"), new GradleConnectionException(message, e)));
             }
         }
 
@@ -323,7 +310,8 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
                 T model = getProjectModel(participant, modelType);
                 addHierarchicalModel(model, participant, results);
             } catch (GradleConnectionException e) {
-                DefaultModelResult<T> failureResult = new DefaultModelResult<T>(participant.toProjectIdentity(":"), exceptionTransformer.transform(e));
+                String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
+                DefaultModelResult<T> failureResult = new DefaultModelResult<T>(participant.toProjectIdentity(":"), new GradleConnectionException(message, e));
                 results.add(failureResult);
             }
         }
@@ -332,8 +320,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
             String projectPath = getGradleProject(model).getPath();
             ModelResult<T> result = createModelResult(participant, projectPath, model);
             results.add(result);
-
-            System.out.println("Added " + model + " at project path " + projectPath);
 
             for (HierarchicalElement child : ((HierarchicalElement) model).getChildren()) {
                 addHierarchicalModel((T) child, participant, results);

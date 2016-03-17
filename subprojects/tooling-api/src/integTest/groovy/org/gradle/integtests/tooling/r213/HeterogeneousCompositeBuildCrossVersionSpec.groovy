@@ -29,6 +29,8 @@ import org.gradle.tooling.composite.ModelResults
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
+import org.gradle.util.CollectionUtils
+
 /**
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
@@ -169,12 +171,8 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     ModelResult findModelResult(ModelResults modelResults, BuildIdentity buildIdentity) {
-        def result = modelResults.find { ModelResult modelResult ->
+        CollectionUtils.single(modelResults.findAll { ModelResult modelResult ->
             modelResult.projectIdentity.build.equals(buildIdentity)
-        }
-
-        assert result != null
-
-        return result
+        })
     }
 }

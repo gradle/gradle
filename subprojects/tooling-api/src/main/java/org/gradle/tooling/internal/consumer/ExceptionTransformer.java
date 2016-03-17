@@ -36,14 +36,14 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
 
     @Override
     public GradleConnectionException transform(Throwable failure) {
-        if (failure.getClass() == GradleConnectionException.class) {
-            return (GradleConnectionException) failure;
-        } else if (failure instanceof InternalUnsupportedBuildArgumentException) {
+        if (failure instanceof InternalUnsupportedBuildArgumentException) {
             return new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
                 + "\n" + failure.getMessage(), failure);
         } else if (failure instanceof UnsupportedOperationConfigurationException) {
             return new UnsupportedOperationConfigurationException(connectionFailureMessage(failure)
                 + "\n" + failure.getMessage(), failure.getCause());
+        } else if (failure instanceof GradleConnectionException) {
+            return (GradleConnectionException) failure;
         } else if (failure instanceof InternalBuildCancelledException) {
             return new BuildCancelledException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof InternalTestExecutionException) {

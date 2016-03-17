@@ -28,7 +28,6 @@ import org.gradle.util.CollectionUtils
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
 
-    // TODO:DAZ Test (and fix) correlated exceptions for multi-project participants
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
         def rootDirA = populate("A") {
@@ -68,7 +67,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         then:
         def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
         assertFailure(resultA.failure,
-            "Could not fetch model of type 'EclipseProject' using Gradle installation",
+            "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
@@ -77,9 +76,68 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
         def resultC = CollectionUtils.single(findByProjectIdentity(participantC.toProjectIdentity(':')))
         assertFailure(resultC.failure,
-            "Could not fetch model of type 'EclipseProject' using Gradle installation",
+            "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
             "Different failure in C")
+    }
+
+    def "can correlate exceptions in composite with multiple multi-project participants"() {
+        given:
+        def rootDirA = populate("A") {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include 'ax', 'ay'
+            """
+
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.A'
+                    version = '1.0'
+                }
+            """
+            file("ax/build.gradle") << """
+                throw new GradleException("Failure in A::ax")
+"""
+        }
+        def rootDirB = populate("B") {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include 'bx', 'by'
+            """
+
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.B'
+                    version = '1.0'
+                }
+            """
+        }
+        when:
+        def builder = createCompositeBuilder()
+        def participantA = createGradleBuildParticipant(rootDirA)
+        def participantB = createGradleBuildParticipant(rootDirB)
+        builder.addBuild(participantA)
+        builder.addBuild(participantB)
+        def connection = builder.build()
+
+        and:
+        modelResults = connection.getModels(EclipseProject)
+
+        then:
+        // when the build cannot be configured, we return only a failure for the root project
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        assertFailure(resultA.failure,
+            "Could not fetch models of type 'EclipseProject'",
+            "A problem occurred evaluating project ':ax'.",
+            "Failure in A::ax")
+        // cannot find a project by something other than the root project
+        findByProjectIdentity(participantA.toProjectIdentity(":ax")) == []
+
+        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':bx'))
+        assertSingleEclipseProject(resultB, 'B', ':bx')
+        assertContainsEclipseProjects(findByBuildIdentity(participantB.toBuildIdentity()), "B", ":", ":bx", ":by")
     }
 
     def "can correlate models in a single project, single participant composite"() {
