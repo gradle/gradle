@@ -29,7 +29,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(25000)
 
     def setup() {
-        //requireGradleHome()
+        requireGradleHome()
     }
 
     def "can compile typical Java-based Gradle plugin using Gradle API"() {
