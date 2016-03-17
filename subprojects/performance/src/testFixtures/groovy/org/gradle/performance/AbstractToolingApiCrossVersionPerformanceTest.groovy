@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import groovy.transform.InheritConstructors
-import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -42,7 +41,6 @@ import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
-    private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
     static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
@@ -98,13 +96,18 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    @TupleConstructor
     private static class Measurement implements ToolingApiClasspathProvider {
         private final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
         private final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
-        private final static ToolingApiDistributionResolver RESOLVER = new ToolingApiDistributionResolver().withDefaultRepository()
 
         final ToolingApiExperimentSpec experimentSpec
+        // caching class loaders at this level because for performance experiments
+        // we don't want caches of the TAPI to be visible between different experiments
+        private final Map<String, ClassLoader> testClassLoaders = [:]
+
+        Measurement(ToolingApiExperimentSpec experimentSpec) {
+            this.experimentSpec = experimentSpec
+        }
 
         private CrossVersionPerformanceResults run(TestDirectoryProvider temporaryFolder) {
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -123,26 +126,31 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 gradleOpts: [],
                 daemon: true)
             experimentSpec.with {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
-                [*baselines, 'current'].each { String version ->
-                    GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
-                    println "Testing ${dist.version}..."
-                    if ('current' != version) {
-                        def baselineVersion = results.baseline(version)
-                        baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
-                        baselineVersion.maxMemoryRegression = maxMemoryRegression
+                def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+                try {
+                    List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
+                    [*baselines, 'current'].each { String version ->
+                        GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
+                        println "Testing ${dist.version}..."
+                        if ('current' != version) {
+                            def baselineVersion = results.baseline(version)
+                            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
+                            baselineVersion.maxMemoryRegression = maxMemoryRegression
+                        }
+                        def toolingApiDistribution = resolver.resolve(dist.version.version)
+                        def testClassPath = []
+                        // add TAPI test fixtures to classpath
+                        testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
+                        def testClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {}
+                        def tapiClazz = testClassLoader.loadClass('org.gradle.integtests.tooling.fixture.ToolingApi')
+                        def toolingApi = tapiClazz.newInstance(dist, temporaryFolder)
+                        warmup(toolingApi)
+                        println "Waiting ${sleepAfterWarmUpMillis}ms before measurements"
+                        sleep(sleepAfterWarmUpMillis)
+                        measure(results, toolingApi, version)
                     }
-                    def toolingApiDistribution = RESOLVER.resolve(dist.version.version)
-                    def testClassPath = []
-                    // add TAPI test fixtures to classpath
-                    testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
-                    def testClassLoader = getTestClassLoader(TEST_CLASS_LOADERS, toolingApiDistribution, testClassPath) {}
-                    def tapiClazz = testClassLoader.loadClass('org.gradle.integtests.tooling.fixture.ToolingApi')
-                    def toolingApi = tapiClazz.newInstance(dist, temporaryFolder)
-                    warmup(toolingApi)
-                    println "Waiting ${sleepAfterWarmUpMillis}ms before measurements"
-                    sleep(sleepAfterWarmUpMillis)
-                    measure(results, toolingApi, version)
+                } finally {
+                    resolver.stop()
                 }
             }
 
