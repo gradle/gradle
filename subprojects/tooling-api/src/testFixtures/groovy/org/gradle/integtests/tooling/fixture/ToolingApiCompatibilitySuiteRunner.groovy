@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,14 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.internal.classloader.MultiParentClassLoader
-import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.testing.internal.util.RetryRule
-import org.gradle.util.*
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
@@ -56,7 +50,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
     }
 
-    private class Permutation extends AbstractMultiTestRunner.Execution {
+    private class Permutation extends AbstractMultiTestRunner.Execution implements ToolingApiClasspathProvider {
         final ToolingApiDistribution toolingApi
         final GradleDistribution gradle
 
@@ -123,51 +117,14 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return [testClassLoader.loadClass(target.name)]
         }
 
-        private ClassLoader getTestClassLoader() {
-            synchronized(ToolingApiCompatibilitySuiteRunner) {
-                def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
-                if (!classLoader) {
-                    classLoader = createTestClassLoader()
-                    TEST_CLASS_LOADERS.put(toolingApi.version, classLoader)
-                }
-                return classLoader
-            }
-        }
-
-        private ClassLoader createTestClassLoader() {
-            def classLoaderFactory = new DefaultClassLoaderFactory()
-
-            def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
-            sharedClassLoader.allowPackage('org.junit')
-            sharedClassLoader.allowPackage('org.hamcrest')
-            sharedClassLoader.allowPackage('junit.framework')
-            sharedClassLoader.allowPackage('groovy')
-            sharedClassLoader.allowPackage('org.codehaus.groovy')
-            sharedClassLoader.allowPackage('spock')
-            sharedClassLoader.allowPackage('org.spockframework')
-            sharedClassLoader.allowClass(SetSystemProperties)
-            sharedClassLoader.allowClass(RedirectStdOutAndErr)
-            sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
-            sharedClassLoader.allowPackage('org.gradle.play.integtest.fixtures')
-            sharedClassLoader.allowPackage('org.gradle.test.fixtures')
-            sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
-            sharedClassLoader.allowClass(OperatingSystem)
-            sharedClassLoader.allowClass(Requires)
-            sharedClassLoader.allowClass(TestPrecondition)
-            sharedClassLoader.allowClass(TargetGradleVersion)
-            sharedClassLoader.allowClass(ToolingApiVersion)
-            sharedClassLoader.allowClass(DaemonUsageSuggestingBuildActionExecuter)
-            sharedClassLoader.allowClass(TeeOutputStream)
-            sharedClassLoader.allowClass(RetryRule)
-            sharedClassLoader.allowResources(target.name.replace('.', '/'))
-
-            def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
-
+        ClassLoader getTestClassLoader() {
             def testClassPath = []
             testClassPath << ClasspathUtil.getClasspathForClass(target)
             testClassPath << ClasspathUtil.getClasspathForClass(TestResultHandler)
 
-            return new MutableURLClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+            getTestClassLoader(TEST_CLASS_LOADERS, toolingApi, testClassPath) {
+                allowResources(target.name.replace('.', '/'))
+            }
         }
 
         @Override

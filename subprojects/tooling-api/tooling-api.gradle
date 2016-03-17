@@ -9,6 +9,7 @@ dependencies {
     publishCompile libraries.slf4j_api
 
     testFixturesCompile project(':baseServicesGroovy')
+    testFixturesCompile project(':internalIntegTesting')
     testCompile libraries.groovy
 
     // lots of integTest errors otherwise
