@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources.internal;
+package org.gradle.internal.resource;
 
-import org.gradle.api.resources.ReadableResource;
-import org.gradle.internal.resource.Resource;
-
-import java.io.File;
-
-public interface ReadableResourceInternal extends ReadableResource, Resource {
-    File getBackingFile();
+/**
+ * Represents some resource that may have content.
+ */
+public interface Resource {
+    /**
+     * Returns a display name for this resource. This can be used in log and error messages.
+     *
+     * @return the display name
+     */
+    String getDisplayName();
 }

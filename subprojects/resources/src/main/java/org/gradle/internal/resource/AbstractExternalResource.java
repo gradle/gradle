@@ -45,8 +45,14 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public String getName() {
+    @Override
+    public String getDisplayName() {
         return getURI().toString();
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     public void writeTo(File destination) {

@@ -80,7 +80,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     }
 
     protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {
-        return new CharSourceBackedTextResource(new CharSource() {
+        return new CharSourceBackedTextResource("Classpath resource '" + filename + "'", new CharSource() {
             @Override
             public Reader openStream() throws IOException {
                 InputStream stream = clazz.getResourceAsStream(filename);

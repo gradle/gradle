@@ -349,7 +349,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         protected void addError(String msg) {
-            errors.add(msg + " in " + res.getName());
+            errors.add(msg + " in " + res.getDisplayName());
         }
 
         public void warning(SAXParseException ex) {
@@ -376,7 +376,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
                 str.append(systemId);
             } else {
-                str.append(getResource().getName());
+                str.append(getResource().getDisplayName());
             }
             str.append(':');
             str.append(ex.getLineNumber());
@@ -560,9 +560,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 } else if ("mapped".equals(qName)) {
                     dd.addDependencyConfiguration(conf, substitute(attributes.getValue("name")));
                 } else if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
-                    LOGGER.debug("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in {}", getResource().getName());
+                    LOGGER.debug("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in {}", getResource().getDisplayName());
                 } else if ("override".equals(qName) && state == State.DEPS) {
-                    LOGGER.debug("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in {}", getResource().getName());
+                    LOGGER.debug("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in {}", getResource().getDisplayName());
                 } else if ("include".equals(qName) && state == State.CONF) {
                     includeConfStarted(attributes);
                 } else if (validate && state != State.EXTRA_INFO && state != State.DESCRIPTION) {

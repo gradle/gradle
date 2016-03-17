@@ -23,18 +23,13 @@ import java.io.*;
 import java.net.URI;
 
 /**
- * This will be merged with {@link TextResource}.
+ * This will be merged with {@link Resource}.
  */
-public interface ExternalResource extends Closeable {
+public interface ExternalResource extends Resource, Closeable {
     /**
      * Get the URI of the resource.
      */
     URI getURI();
-
-    /**
-     * Get the name of the resource. Use {@link #getURI()} instead.
-     */
-    String getName();
 
     /**
      * Is this resource local to this host, i.e. is it on the file system?

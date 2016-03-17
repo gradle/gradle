@@ -23,7 +23,7 @@ class CharSourceBackedTextResourceTest extends Specification {
 
     def "can use char source text resource"() {
         when:
-        def r = new CharSourceBackedTextResource(CharSource.wrap("foo"))
+        def r = new CharSourceBackedTextResource("display name", CharSource.wrap("foo"))
 
         then:
         r.asString() == "foo"

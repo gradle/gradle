@@ -21,20 +21,9 @@ import org.gradle.api.Nullable;
 import java.io.File;
 
 /**
- * A {@code Resource} represents some binary artifact.
- *
- * <p>Implementations are not required to be thread-safe.</p>
- *
- * <p>This type will be merged with {@link ExternalResource} and friends.</p>
+ * A {@code Resource} that has text content.
  */
-public interface TextResource {
-    /**
-     * Returns a display name for this resource. This can be used in log and error messages.
-     *
-     * @return the display name
-     */
-    String getDisplayName();
-
+public interface TextResource extends Resource {
     /**
      * Returns the location of this resource.
      */

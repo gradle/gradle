@@ -16,17 +16,19 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
-
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.resources.TextResource;
+import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
-public class FileCollectionBackedTextResource implements TextResource {
+public class FileCollectionBackedTextResource implements TextResourceInternal {
     private final TemporaryFileProvider tempFileProvider;
     private final FileCollection fileCollection;
     private final Charset charset;
@@ -35,6 +37,16 @@ public class FileCollectionBackedTextResource implements TextResource {
         this.tempFileProvider = tempFileProvider;
         this.fileCollection = fileCollection;
         this.charset = charset;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return fileCollection.toString();
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     public String asString() {

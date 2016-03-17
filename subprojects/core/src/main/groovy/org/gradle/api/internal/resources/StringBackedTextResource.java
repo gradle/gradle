@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.resources.TextResource;
+import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -29,13 +29,23 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 
-public class StringBackedTextResource implements TextResource {
+public class StringBackedTextResource implements TextResourceInternal {
     private final TemporaryFileProvider tempFileProvider;
     private final String string;
 
     public StringBackedTextResource(TemporaryFileProvider tempFileProvider, String string) {
         this.tempFileProvider = tempFileProvider;
         this.string = string;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "text resource";
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     public String asString() {
