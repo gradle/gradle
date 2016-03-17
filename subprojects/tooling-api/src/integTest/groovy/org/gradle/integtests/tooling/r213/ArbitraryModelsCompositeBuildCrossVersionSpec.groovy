@@ -34,7 +34,6 @@ import java.lang.reflect.Proxy
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
-// TODO:DAZ Need to test multi-project where subproject directory does not exist
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
@@ -101,6 +100,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfMultiProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1),
+             new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1, createSubprojectDirs: false),
             ]
         }.flatten()
     }
@@ -125,9 +125,11 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         int numberOfSingleProjectBuilds
         int numberOfMultiProjectBuilds
         int numberOfSubProjectsPerMultiProjectBuild = 3
+        boolean createSubprojectDirs = true
+
 
         List<TestFile> createBuilds(Closure<List<TestFile>> createBuilds) {
-            createBuilds("single", numberOfSingleProjectBuilds, 0) + createBuilds("multi", numberOfMultiProjectBuilds, numberOfSubProjectsPerMultiProjectBuild)
+            createBuilds("single", numberOfSingleProjectBuilds, 0, true) + createBuilds("multi", numberOfMultiProjectBuilds, numberOfSubProjectsPerMultiProjectBuild, createSubprojectDirs)
         }
 
         int getExpectedNumberOfModelResults() {
@@ -144,11 +146,11 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
         @Override
         String toString() {
-            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} w/ ${numberOfSubProjectsPerMultiProjectBuild} multi-project participants"
+            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} w/ ${numberOfSubProjectsPerMultiProjectBuild} multi-project participants ${createSubprojectDirs?'':'w/o subproject dirs'}"
         }
     }
 
-    private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects) {
+    private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects, boolean createSubprojectDirs) {
         if (numberOfBuilds < 1) {
             return []
         }
@@ -168,7 +170,9 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
                     def subProjects = (1..numberOfSubProjects).collect { "${rootProjectName}-${new String([('a' as char) + (it - 1)] as char[])}".toString() }
                     subProjects.each { subProject ->
                         settingsFile << "include '${subProject}'\n"
-                        addChildDir(subProject)
+                        if (createSubprojectDirs) {
+                            addChildDir(subProject)
+                        }
                     }
                 }
             }
