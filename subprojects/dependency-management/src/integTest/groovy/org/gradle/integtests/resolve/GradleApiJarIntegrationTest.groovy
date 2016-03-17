@@ -18,16 +18,14 @@ package org.gradle.integtests.resolve
 
 import com.google.common.collect.Maps
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(20000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(25000)
 
     def setup() {
         requireGradleHome()
@@ -162,23 +160,27 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         junitDependency.scope.text() == 'runtime'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         given:
-        buildFile << testableGroovyProject()
+        def numProjects = 3
+        numProjects.times {
+            def projectDirName = file("project$it").name
+            def projectBuildFile = file("$projectDirName/build.gradle")
+            projectBuildFile << testableGroovyProject()
 
-        file("src/main/groovy/MyPlugin.groovy") << customGroovyPlugin()
-        file("src/test/groovy/MyTest.groovy") << """
-            class MyTest extends groovy.util.GroovyTestCase {
+            file("$projectDirName/src/main/groovy/MyPlugin.groovy") << customGroovyPlugin()
+            file("$projectDirName/src/test/groovy/MyTest.groovy") << """
+                class MyTest extends groovy.util.GroovyTestCase {
 
-                void testResolveDependencies() { }
-            }
-        """
+                    void testResolveDependencies() { }
+                }
+            """
+        }
 
         when:
-        3.times {
+        numProjects.times { count ->
             concurrent.start {
-                succeeds "build"
+                executer.usingProjectDirectory(file("project$count")).withTasks("build").run()
             }
         }
 
@@ -188,8 +190,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     def "Gradle API and TestKit dependency can be resolved by concurrent tasks within one build"() {
         when:
-        def numProjects = 5
-        (1..numProjects).each {
+        def numProjects = 3
+        numProjects.times {
             def subProjectDirName = file("sub$it").name
             def subProjectBuildFile = file("$subProjectDirName/build.gradle")
             subProjectBuildFile << testableGroovyProject()
