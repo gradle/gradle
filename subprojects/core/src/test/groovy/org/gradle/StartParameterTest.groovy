@@ -259,6 +259,7 @@ class StartParameterTest extends Specification {
         parameter.logLevel = LogLevel.DEBUG
         parameter.colorOutput = false
         parameter.configureOnDemand = true
+        parameter.systemPropertiesArgs.put("testprop", "foo")
 
         // Non-copied
         parameter.currentDir = new File("other")
@@ -288,6 +289,7 @@ class StartParameterTest extends Specification {
         newParameter.refreshDependencies == parameter.refreshDependencies
         newParameter.rerunTasks == parameter.rerunTasks
         newParameter.recompileScripts == parameter.recompileScripts
+        newParameter.systemPropertiesArgs == parameter.systemPropertiesArgs
 
         newParameter.buildFile == null
         newParameter.taskRequests.empty

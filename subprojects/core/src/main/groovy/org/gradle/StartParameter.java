@@ -166,6 +166,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         return p;
     }
 
