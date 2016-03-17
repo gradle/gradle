@@ -30,7 +30,7 @@ class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         toolingApi.requireIsolatedDaemons()
     }
 
-    def "check that retrieving a model causes a daemon to be started for the participant"() {
+    def "check that retrieving a model causes a daemon to be started for the composite"() {
         given:
         def singleBuild = populate("single-build") {
             buildFile << "apply plugin: 'java'"
@@ -46,6 +46,6 @@ class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def daemonsAfter = toolingApi.getDaemons()
         then:
         models.size() == 1
-        daemonsAfter.daemons.size() == 2
+        daemonsAfter.daemons.size() == 1
     }
 }
