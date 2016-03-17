@@ -223,7 +223,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps fatGradleApi(), gradleTestKit()
+                deps fatGradleApi(), fatGradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -274,7 +274,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String testKitDependency() {
         """
             dependencies {
-                testCompile gradleTestKit()
+                testCompile fatGradleTestKit()
             }
         """
     }

@@ -337,6 +337,16 @@ public interface DependencyHandler {
     Dependency gradleTestKit();
 
     /**
+     * Creates a dependency on the <a href="http://docs.gradle.org/current/userguide/test_kit.html">Gradle test-kit</a> API
+     * including all external dependencies as shaded class references.
+     *
+     * @return The dependency.
+     * @since 2.13
+     */
+    @Incubating
+    Dependency fatGradleTestKit();
+
+    /**
      * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
      *
      * @return The dependency.
