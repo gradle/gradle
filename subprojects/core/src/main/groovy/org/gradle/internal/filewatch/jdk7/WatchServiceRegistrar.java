@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -48,6 +49,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private final FileWatcherListener delegate;
     private final Lock lock = new ReentrantLock(true);
     private final WatchPointsRegistry watchPointsRegistry = new WatchPointsRegistry(!FILE_TREE_WATCHING_SUPPORTED);
+    private final HashMap<Path, WatchKey> watchKeys = new HashMap<Path, WatchKey>();
 
     WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
@@ -91,16 +93,28 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    protected void watchDir(Path dir) throws IOException {
+    protected synchronized void watchDir(Path dir) throws IOException {
         LOG.debug("Registering watch for {}", dir);
         if (Thread.currentThread().isInterrupted()) {
             LOG.debug("Skipping adding watch since current thread is interrupted.");
         }
+
+        // check if directory is already watched
+        // on Windows, check if any parent is already watched
+        for (Path path = dir; path != null; path = FILE_TREE_WATCHING_SUPPORTED ? path.getParent() : null) {
+            WatchKey previousWatchKey = watchKeys.get(path);
+            if (previousWatchKey != null && previousWatchKey.isValid()) {
+                LOG.debug("Directory {} is already watched and the watch is valid, not adding another one.", path);
+                return;
+            }
+        }
+
         int retryCount = 0;
         IOException lastException = null;
         while (retryCount++ < 2) {
             try {
-                dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+                WatchKey watchKey = dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+                watchKeys.put(dir, watchKey);
                 return;
             } catch (IOException e) {
                 LOG.debug("Exception in registering for watching of " + dir, e);
