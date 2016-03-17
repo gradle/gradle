@@ -21,8 +21,12 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -43,13 +47,15 @@ class GradleImplDepsProviderTest extends Specification {
     @Unroll
     def "creates JAR file on demand for name '#name'"() {
         def cacheDir = tmpDir.testDirectory
+        def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
+        createJarFile(jar)
         def jarFile = cacheDir.file("gradle-${name}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
         def progressLogger = Mock(ProgressLogger)
 
         when:
-        def resolvedFile = provider.getFile(Collections.emptyList(), name)
+        def resolvedFile = provider.getFile([jar], name)
 
         then:
         1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
@@ -69,13 +75,15 @@ class GradleImplDepsProviderTest extends Specification {
 
     def "reuses existing JAR file if existent"() {
         def cacheDir = tmpDir.testDirectory
+        def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
+        createJarFile(jar)
         def jarFile = cacheDir.file("gradle-api.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
         def progressLogger = Mock(ProgressLogger)
 
         when:
-        def resolvedFile = provider.getFile(Collections.emptyList(), 'api')
+        def resolvedFile = provider.getFile([jar], 'api')
 
         then:
         1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
@@ -90,7 +98,7 @@ class GradleImplDepsProviderTest extends Specification {
         jarFile == resolvedFile
 
         when:
-        resolvedFile = provider.getFile(Collections.emptyList(), 'api')
+        resolvedFile = provider.getFile([jar], 'api')
 
         then:
         0 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
@@ -103,5 +111,25 @@ class GradleImplDepsProviderTest extends Specification {
         0 * progressLogger.started()
         0 * progressLogger.completed()
         jarFile == resolvedFile
+    }
+
+    private void createJarFile(TestFile jar) {
+        TestFile contents = tmpDir.createDir('contents')
+        TestFile classFile = contents.createFile('org/gradle/MyClass.class')
+
+        ClassNode classNode = new ClassNode()
+        classNode.version = Opcodes.V1_6
+        classNode.access = Opcodes.ACC_PUBLIC
+        classNode.name = 'org/gradle/MyClass'
+        classNode.superName = 'java/lang/Object'
+
+        ClassWriter cw = new ClassWriter(0)
+        classNode.accept(cw)
+
+        classFile.withDataOutputStream {
+            it.write(cw.toByteArray())
+        }
+
+        contents.zipTo(jar)
     }
 }
