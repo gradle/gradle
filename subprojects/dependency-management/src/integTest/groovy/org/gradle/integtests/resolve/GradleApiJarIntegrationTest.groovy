@@ -18,10 +18,11 @@ package org.gradle.integtests.resolve
 
 import com.google.common.collect.Maps
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
-import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -161,7 +162,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         junitDependency.scope.text() == 'runtime'
     }
 
-    @Ignore
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         given:
         buildFile << testableGroovyProject()

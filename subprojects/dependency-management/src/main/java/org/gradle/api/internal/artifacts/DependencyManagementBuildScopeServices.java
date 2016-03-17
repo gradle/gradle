@@ -43,6 +43,7 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -82,7 +83,8 @@ class DependencyManagementBuildScopeServices {
             StartParameter startParameter,
             ClassPathRegistry classPathRegistry,
             CurrentGradleInstallation currentGradleInstallation,
-            FileLookup fileLookup
+            FileLookup fileLookup,
+            GradleImplDepsProvider gradleImplDepsProvider
     ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
@@ -91,9 +93,13 @@ class DependencyManagementBuildScopeServices {
         String gradleVersion = GradleVersion.current().getVersion();
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, currentGradleInstallation, startParameter.getGradleUserHomeDir(), gradleVersion),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, gradleImplDepsProvider, currentGradleInstallation),
             new ClientModuleNotationParserFactory(instantiator).create(),
             projectDependencyFactory);
+    }
+
+    GradleImplDepsProvider createGradleImplDepsProvider(CacheRepository cacheRepository) {
+        return new GradleImplDepsProvider(cacheRepository);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {

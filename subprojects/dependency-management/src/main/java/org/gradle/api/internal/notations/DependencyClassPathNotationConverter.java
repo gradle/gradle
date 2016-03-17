@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
 import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -45,9 +46,8 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final GradleImplDepsProvider gradleImplDepsProvider;
     private final CurrentGradleInstallation currentGradleInstallation;
-    private final File gradleUserHomeDir;
-    private final String gradleVersion;
     private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
     private final Lock internCacheWriteLock = new ReentrantLock();
 
@@ -55,15 +55,13 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         Instantiator instantiator,
         ClassPathRegistry classPathRegistry,
         FileResolver fileResolver,
-        CurrentGradleInstallation currentGradleInstallation,
-        File gradleUserHomeDir,
-        String gradleVersion) {
+        GradleImplDepsProvider gradleImplDepsProvider,
+        CurrentGradleInstallation currentGradleInstallation) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
+        this.gradleImplDepsProvider = gradleImplDepsProvider;
         this.currentGradleInstallation = currentGradleInstallation;
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        this.gradleVersion = gradleVersion;
     }
 
     @Override
@@ -125,10 +123,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, String name) {
-        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, classpath, getGeneratedJarPath(name)));
-    }
-
-    private File getGeneratedJarPath(String name) {
-        return new File(gradleUserHomeDir, "caches/" + gradleVersion + "/generated-gradle-jars/gradle-" + name + "-" + gradleVersion + ".jar");
+        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, name);
+        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, gradleImplDepsJar));
     }
 }

@@ -16,29 +16,8 @@
 
 package org.gradle.api.internal.impldeps;
 
-import org.gradle.api.internal.file.collections.MinimalFileSet;
-
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
-public class GradleImplDepsRelocatedJar implements MinimalFileSet {
-
-    private final String displayName;
-    private final File outputJar;
-
-    public GradleImplDepsRelocatedJar(String displayName, File outputJar) {
-        this.displayName = displayName;
-        this.outputJar = outputJar;
-    }
-
-    @Override
-    public Set<File> getFiles() {
-        return Collections.singleton(outputJar);
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
+public interface RelocatedJarCreator {
+    void create(File outputJar, final Iterable<? extends File> files);
 }

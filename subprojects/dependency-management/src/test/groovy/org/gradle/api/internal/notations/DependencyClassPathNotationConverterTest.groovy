@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.impldeps.GradleImplDepsProvider
+import org.gradle.cache.CacheRepository
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
@@ -38,7 +40,9 @@ public class DependencyClassPathNotationConverterTest extends Specification {
     def instantiator = Mock(Instantiator)
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileResolver = Mock(FileResolver)
-    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, new CurrentGradleInstallation(new GradleInstallation(testDirectoryProvider.file("gradle-home"))), testDirectoryProvider.file("gradle-user-home"), "2.10")
+    def cacheRepository = Mock(CacheRepository)
+    def gradleImplDepsProvider = new GradleImplDepsProvider(cacheRepository)
+    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, gradleImplDepsProvider, new CurrentGradleInstallation(new GradleInstallation(testDirectoryProvider.file("gradle-home"))))
 
     def "parses classpath literals"() {
         given:
