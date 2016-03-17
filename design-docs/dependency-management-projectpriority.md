@@ -15,6 +15,7 @@ We have 3 projects: `common`, `moduleA`, `moduleB`
 * `settings.gradle` only includes `common` and `moduleB`. `moduleA` is being pulled from a repository.
 
 What happens:
+
 1. `moduleB` depends on `common` directly and also transitively through `moduleA`.
 2. The version of `common` referenced by `moduleA` happens to be higher.
 3. The higher version of `common` replaces the direct project dependency.
@@ -30,6 +31,7 @@ and is chained in front of `LatestModuleConflictResolver` by `DefaultArtifactDep
 There is also a new method `ResolutionStrategy.disableProjectPriority`, which reverts to the old behavior.
 
 # Unit tests
+
 A change to `DependencySubstitutionRulesIntegrationTest` is made to account for the new behavior.
 
 A new test is added to `DependencyResolveRulesIntegrationTest` in order to test the various permutations of
