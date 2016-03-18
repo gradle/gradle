@@ -91,7 +91,7 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         then:
         modelResults.size() == 2
         def varyingResult = findModelResult(modelResults, varyingBuildIdentity)
-        varyingResult.failure.message == "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions."
+        assertFailure(varyingResult.failure.message, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions.")
 
         def fixedResult = findModelResult(modelResults, fixedBuildIdentity)
         fixedResult.failure == null

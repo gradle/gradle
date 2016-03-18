@@ -92,7 +92,7 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         modelResults.size() == testScenario.numberOfBuilds
 
         modelResults.each {
-            assert it.failure.message == "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions."
+            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions.")
         }
         where:
         testScenario << createTestScenarios([ ProjectPublications ])
