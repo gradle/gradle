@@ -85,3 +85,8 @@ We need to add tests which cover each of these scenarios:
   it would make it impossible to stay backward-compatible.
 - Should the property accept a null value (as it does in the Zip task) and be null by default, and/or should it be set to the default charset?
 - Are there other existing tasks which should deal with character encoding in a better way?
+- Is it a wise choice to use the platform encoding as the default file name encoding? 
+    - The JDK ZipOutputStream defaults to UTF8
+    - Apache comons ZipArchiveOutputStream defaults to UTF8
+    - Apache Ant's ZipOutputStream, which is used by Gradle now, defaults to the platform default encoding, and changing the default would be a  
+      backward incompatibility.
