@@ -16,6 +16,7 @@
 
 package org.gradle.groovy
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovydocCoverage
@@ -59,4 +60,54 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         module << ['groovy']
     }
 
+    @NotYetImplemented
+    @Issue("https://issues.gradle.org//browse/GRADLE-3349")
+    def "changes to overview causes groovydoc to be out of date"() {
+        when:
+        buildFile << """
+            apply plugin: "groovy"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.codehaus.groovy:${module}:${version}"
+            }
+
+            groovydoc {
+                overview = file("overview.html").absolutePath
+            }
+        """
+
+        file("overview.html").text = """
+<b>Hello World</b>
+"""
+        file("src/main/groovy/pkg/Thing.groovy") << """
+            package pkg
+
+            class Thing {}
+        """
+
+        then:
+        succeeds "groovydoc"
+
+        and:
+        def overviewSummary = file('build/docs/groovydoc/overview-summary.html')
+        overviewSummary.exists()
+        overviewSummary.text.contains("Hello World")
+
+        when:
+        file("overview.html").text = """
+<b>Goodbye World</b>
+"""
+        and:
+        succeeds "groovydoc"
+        then:
+        result.assertTaskNotSkipped("groovydoc")
+        overviewSummary.text.contains("Goodbye World")
+
+        where:
+        module << ['groovy']
+    }
 }
