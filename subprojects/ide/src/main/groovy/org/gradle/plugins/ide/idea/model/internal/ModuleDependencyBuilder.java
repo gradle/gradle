@@ -24,11 +24,17 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 class ModuleDependencyBuilder {
     public ModuleDependency create(IdeProjectDependency dependency, String scope) {
+        return new ModuleDependency(determineProjectName(dependency), scope);
+    }
+
+    private String determineProjectName(IdeProjectDependency dependency) {
         Project project = dependency.getProject();
-        if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
-            return new ModuleDependency(((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName(), scope);
+        if (project == null) {
+            return "/" + dependency.getProjectPath();
+        } else if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
+            return ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName();
         } else {
-            return new ModuleDependency(project.getName(), scope);
+            return project.getName();
         }
     }
 }

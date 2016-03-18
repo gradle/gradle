@@ -20,13 +20,25 @@ import org.gradle.api.Project;
 
 public class IdeProjectDependency extends IdeDependency {
     private final Project project;
+    private final String projectPath;
 
     public IdeProjectDependency(String declaredConfiguration, Project project) {
         super(declaredConfiguration);
         this.project = project;
+        this.projectPath = project.getPath();
+    }
+
+    public IdeProjectDependency(String declaredConfiguration, String projectPath) {
+        super(declaredConfiguration);
+        this.project = null;
+        this.projectPath = projectPath;
     }
 
     public Project getProject() {
         return project;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
     }
 }

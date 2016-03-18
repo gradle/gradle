@@ -25,18 +25,18 @@ import org.gradle.util.DeprecationLogger;
 
 public class ProjectDependencyBuilder {
     public ProjectDependency build(IdeProjectDependency dependency) {
-        Project project = dependency.getProject();
-        return buildProjectDependency(determineProjectName(project), project.getPath(), dependency.getDeclaredConfiguration());
+        return buildProjectDependency(determineProjectName(dependency), dependency.getProjectPath(), dependency.getDeclaredConfiguration());
     }
 
-    private String determineProjectName(Project project) {
-        String name;
-        if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
-            name = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
+    private String determineProjectName(IdeProjectDependency dependency) {
+        Project project = dependency.getProject();
+        if (project == null) {
+            return '/' + dependency.getProjectPath();
+        } else if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
+            return project.getExtensions().getByType(EclipseModel.class).getProject().getName();
         } else {
-            name = project.getName();
+            return project.getName();
         }
-        return name;
     }
 
     private ProjectDependency buildProjectDependency(String name, String projectPath, final String declaredConfigurationName) {
