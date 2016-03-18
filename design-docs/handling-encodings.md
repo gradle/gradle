@@ -30,9 +30,7 @@ as the file system where the archive is created.
 
 This use case is why the Zip task and the War task have an `encoding` option added in 
 [Pull Request 499](https://github.com/gradle/gradle/pull/499) which allows creating a zip archive which contains files whose names 
-are encoded with a character encoding different from the default encoding used by ZipOutputStream: UTF-8. Note that the current 
-documentation specifies that the platform default encoding is used by default, but it seems to default to the default ZipOutputStream
-encoding: UTF-8.
+are encoded with a character encoding different from the platform default encoding.
 
 ## Solution
 
@@ -66,10 +64,9 @@ To be easier to specify in the build file, these properties should be of type `S
 
 We need to add tests which cover each of these scenarios:
 
-- The default platform encoding is honored when `contentEncoding` is not set.
-- The default file name encoding, UTF-8, is honored when `fileNameEncoding` is not set.
+- The default platform encoding is honored when either of these properties is not set.
 - When `contentEncoding` is set to something other than the default platform encoding, it is honored.
-- When `fileNameEncoding` is set to something other than UTF-8, it is honored.
+- When `fileNameEncoding` is set to something other than the default platform encoding, it is honored.
 - When a character cannot be properly converted into the specified encoding, a clear error message is displayed to the user.
 
 ## Documentation Plan
