@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BrokenCompressedResourceIntegrationTest extends AbstractIntegrationSpec {
     def "reports missing bzip2 file when attempting to read"() {
+        def file = file('compressed')
         buildFile << """
 def resource = resources.bzip2("compressed")
 
@@ -32,11 +33,12 @@ task show << {
         fails "show"
 
         then:
-        failure.assertHasCause("Could not read '$testDirectory/compressed' as it does not exist.")
+        failure.assertHasCause("Could not read '$file' as it does not exist.")
     }
 
     def "reports broken bzip2 file when attempting to read"() {
-        testDirectory.file("compressed").text = "not compressed"
+        def file = file('compressed')
+        file.text = "not compressed"
 
         buildFile << """
 def resource = resources.bzip2("compressed")
@@ -50,10 +52,11 @@ task show << {
         fails "show"
 
         then:
-        failure.assertHasCause("Could not read $testDirectory/compressed.")
+        failure.assertHasCause("Could not read $file.")
     }
 
     def "reports missing gzip file when attempting to read"() {
+        def file = file('compressed')
         buildFile << """
 def resource = resources.gzip("compressed")
 
@@ -66,11 +69,12 @@ task show << {
         fails "show"
 
         then:
-        failure.assertHasCause("Could not read '$testDirectory/compressed' as it does not exist.")
+        failure.assertHasCause("Could not read '$file' as it does not exist.")
     }
 
     def "reports broken gzip file when attempting to read"() {
-        testDirectory.file("compressed").text = "not compressed"
+        def file = file('compressed')
+        file.text = "not compressed"
 
         buildFile << """
 def resource = resources.gzip("compressed")
@@ -84,6 +88,6 @@ task show << {
         fails "show"
 
         then:
-        failure.assertHasCause("Could not read $testDirectory/compressed.")
+        failure.assertHasCause("Could not read $file.")
     }
 }

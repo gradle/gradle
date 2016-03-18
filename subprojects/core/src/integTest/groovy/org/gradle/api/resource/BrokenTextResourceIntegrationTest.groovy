@@ -43,7 +43,9 @@ task text(type: TextTask)
 
         expect:
         fails("text")
-        failure.assertHasCause("Could not read '${testDirectory}/no-such-file' as it does not exist.")
+
+        def file = file('no-such-file')
+        failure.assertHasCause("Could not read '${file}' as it does not exist.")
     }
 
     def "reports read of missing archive"() {
@@ -54,7 +56,9 @@ task text(type: TextTask)
 
         expect:
         fails("text")
-        failure.assertHasCause("Could not read '${testDirectory}/no-such-file' as it does not exist.")
+
+        def file = file('no-such-file')
+        failure.assertHasCause("Could not read '${file}' as it does not exist.")
     }
 
     def "reports read of missing archive entry"() {

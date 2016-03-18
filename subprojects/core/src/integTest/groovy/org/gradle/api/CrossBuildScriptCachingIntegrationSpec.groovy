@@ -212,14 +212,16 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, module1Hash)
 
         and:
-        failure.assertHasFileName("Build file '$testDirectory/module1/module1.gradle'")
+        def module1File = file("module1/module1.gradle")
+        failure.assertHasFileName("Build file '$module1File'")
         failure.assertHasLineNumber(4)
 
         when:
         fails 'module2:someTask'
 
         then:
-        failure.assertHasFileName("Build file '$testDirectory/module2/module2.gradle'")
+        def module2File = file("module2/module2.gradle")
+        failure.assertHasFileName("Build file '$module2File'")
         failure.assertHasLineNumber(4)
     }
 
