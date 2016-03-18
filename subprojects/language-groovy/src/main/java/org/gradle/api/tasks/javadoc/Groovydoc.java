@@ -269,6 +269,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns a HTML file to be used for overview documentation. Set to {@code null} when there is no overview file.
      */
+    @InputFile
+    @Optional
     public String getOverview() {
         return overview;
     }
