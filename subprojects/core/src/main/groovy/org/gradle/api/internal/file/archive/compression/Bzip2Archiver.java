@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public class Bzip2Archiver extends AbstractArchiver {
     public Bzip2Archiver(ReadableResourceInternal resource) {
@@ -39,13 +37,14 @@ public class Bzip2Archiver extends AbstractArchiver {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
-            public OutputStream createArchiveOutputStream(File destination) {
+            public OutputStream createArchiveOutputStream(File destination) throws FileNotFoundException {
+                OutputStream outStr = new FileOutputStream(destination);
                 try {
-                    OutputStream outStr = new FileOutputStream(destination);
                     outStr.write('B');
                     outStr.write('Z');
                     return new CBZip2OutputStream(outStr);
                 } catch (Exception e) {
+                    IOUtils.closeQuietly(outStr);
                     String message = String.format("Unable to create bzip2 output stream for file %s", destination);
                     throw new RuntimeException(message, e);
                 }
@@ -61,6 +60,7 @@ public class Bzip2Archiver extends AbstractArchiver {
             is.read(skip);
             return new CBZip2InputStream(is);
         } catch (Exception e) {
+            IOUtils.closeQuietly(is);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }
