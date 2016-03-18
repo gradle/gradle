@@ -35,12 +35,14 @@ public class GradleImplDepsProvider implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
     private final CacheRepository cacheRepository;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final String gradleVersion;
     private final Object lock = new Object();
     private PersistentCache gradleImplDepsCache;
 
-    public GradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
+    public GradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
         this.cacheRepository = cacheRepository;
         this.progressLoggerFactory = progressLoggerFactory;
+        this.gradleVersion = gradleVersion;
     }
 
     public File getFile(Collection<File> classpath, String name) {
@@ -88,6 +90,6 @@ public class GradleImplDepsProvider implements Closeable {
     }
 
     private File jarFile(PersistentCache cache, String name) {
-        return new File(cache.getBaseDir(), String.format("gradle-%s.jar", name));
+        return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
     }
 }

@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ public class DependencyClassPathNotationConverterTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def cacheRepository = Mock(CacheRepository)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
-    def gradleImplDepsProvider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory)
+    def gradleImplDepsProvider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, GradleVersion.current().version)
     def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, gradleImplDepsProvider, new CurrentGradleInstallation(new GradleInstallation(testDirectoryProvider.file("gradle-home"))))
 
     def "parses classpath literals"() {

@@ -90,7 +90,6 @@ class DependencyManagementBuildScopeServices {
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
-        String gradleVersion = GradleVersion.current().getVersion();
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, gradleImplDepsProvider, currentGradleInstallation),
@@ -99,7 +98,8 @@ class DependencyManagementBuildScopeServices {
     }
 
     GradleImplDepsProvider createGradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
-        return new GradleImplDepsProvider(cacheRepository, progressLoggerFactory);
+        String gradleVersion = GradleVersion.current().getVersion();
+        return new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {

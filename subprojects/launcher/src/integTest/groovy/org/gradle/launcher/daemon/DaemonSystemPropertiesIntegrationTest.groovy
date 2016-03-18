@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
 
+import java.nio.charset.Charset
+
 @Issue("GRADLE-2460")
 class DaemonSystemPropertiesIntegrationTest extends DaemonIntegrationSpec {
     def "standard and sun. client JVM system properties are not carried over to daemon JVM"() {
@@ -46,5 +48,64 @@ task verify << {
         expect:
         executer.withBuildJvmOpts("-Dfoo.bar=baz").withTasks("verify").run()
 
+    }
+
+    def "forks new daemon when immutable system property is set on with different value via commandline"() {
+        given:
+        def encoding = Charset.defaultCharset().name()
+        assert encoding != "ISO-8859-1"
+
+        buildScript """
+            task encoding {
+                doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
+            }
+        """
+
+        when:
+        run "encoding", "-Dfile.encoding=$encoding"
+        then:
+        output.contains("encoding = $encoding")
+        daemons.daemons.size() == 1
+
+
+        when:
+        run "encoding", "-Dfile.encoding=ISO-8859-1"
+
+        then:
+        output.contains("encoding = ISO-8859-1")
+        daemons.daemons.size() == 2
+    }
+
+    def "forks new daemon when immutable system property is set on with different value via GRADLE_OPTS"() {
+        given:
+        executer.requireGradleHome()
+        def encoding = Charset.defaultCharset().name()
+        assert encoding != "ISO-8859-1"
+
+        buildScript """
+            task encoding {
+                doFirst {
+                    println "GRADLE_VERSION: " + gradle.gradleVersion
+                    println "encoding = " + java.nio.charset.Charset.defaultCharset().name()
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS:"-Dfile.encoding=$encoding")
+        run "encoding"
+
+        then:
+        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
+        output.contains("encoding = $encoding")
+        daemons(gradleVersion).daemons.size() == 1
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS:"-Dfile.encoding=ISO-8859-1")
+        run "encoding"
+
+        then:
+        output.contains("encoding = ISO-8859-1")
+        daemons(gradleVersion).daemons.size() == 2
     }
 }
