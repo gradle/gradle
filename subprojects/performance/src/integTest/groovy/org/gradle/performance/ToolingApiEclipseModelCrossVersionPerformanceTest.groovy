@@ -28,21 +28,10 @@ import static org.gradle.performance.measure.Duration.millis
 class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
-    def "building #ide model for a #project Java project"() {
+    def "building #ide model for a #template project"() {
         given:
-        rootDir {
-            'build.gradle'('// this is a sample build')
-            'settings.gradle'(this.settings(size))
-            size.times { n ->
-                "project${n + 1}" {
-                    'build.gradle'('''
-                    apply plugin: "java"
-                    ''')
-                }
-            }
-        }
 
-        experiment("$project Java project", "get $project ${modelClass.simpleName} model") {
+        experiment(template, "get $template ${modelClass.simpleName} model") {
             warmUpCount = 3
             invocationCount = 10
             maxExecutionTimeRegression = millis(maxRegressionTime)
@@ -58,13 +47,17 @@ class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingA
         noExceptionThrown()
 
         where:
-        project  | size | modelClass     | maxRegressionTime
-        "small"  | 5    | EclipseProject | 20
-        "small"  | 5    | IdeaProject    | 20
-        "medium" | 30   | EclipseProject | 100
-        "medium" | 30   | IdeaProject    | 100
-        "large"  | 100  | EclipseProject | 100
-        "large"  | 100  | IdeaProject    | 100
+        template                 | modelClass     | maxRegressionTime
+        "smallOldJava"           | EclipseProject | 20
+        "smallOldJava"           | IdeaProject    | 20
+        "mediumOldJava"          | EclipseProject | 100
+        "mediumOldJava"          | IdeaProject    | 100
+        "bigOldJava"             | EclipseProject | 100
+        "bigOldJava"             | IdeaProject    | 100
+        "lotDependencies"        | EclipseProject | 400
+        "lotDependencies"        | IdeaProject    | 400
+        "lotProjectDependencies" | EclipseProject | 400
+        "lotProjectDependencies" | IdeaProject    | 400
         ide = modelClass == IdeaProject ? 'IDEA' : 'Eclipse'
     }
 

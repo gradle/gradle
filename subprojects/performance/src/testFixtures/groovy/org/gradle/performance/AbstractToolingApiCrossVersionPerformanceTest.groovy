@@ -47,12 +47,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     ToolingApiExperimentSpec experimentSpec
 
-    void rootDir(Closure spec) { new FileTreeBuilder(projectDir).call(spec) }
-
-    TestFile getProjectDir() {
-        temporaryFolder.testDirectory
-    }
-
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
         experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, 3, 10, 5000L, 500L, null)
         def clone = spec.rehydrate(experimentSpec, this, this)
@@ -61,7 +55,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     CrossVersionPerformanceResults performMeasurements() {
-        new Measurement(experimentSpec).run(temporaryFolder)
+        new Measurement(experimentSpec, temporaryFolder).run()
     }
 
     static {
@@ -101,15 +95,19 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
         final ToolingApiExperimentSpec experimentSpec
+        final TestNameTestDirectoryProvider temporaryFolder
         // caching class loaders at this level because for performance experiments
         // we don't want caches of the TAPI to be visible between different experiments
         private final Map<String, ClassLoader> testClassLoaders = [:]
 
-        Measurement(ToolingApiExperimentSpec experimentSpec) {
+        Measurement(ToolingApiExperimentSpec experimentSpec, TestNameTestDirectoryProvider temporaryFolder) {
             this.experimentSpec = experimentSpec
+            this.temporaryFolder = temporaryFolder
         }
 
-        private CrossVersionPerformanceResults run(TestDirectoryProvider temporaryFolder) {
+        private CrossVersionPerformanceResults run() {
+            def testProjectLocator = new TestProjectLocator()
+            def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
             def results = new CrossVersionPerformanceResults(
                 testId: experimentSpec.displayName,
@@ -127,6 +125,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 daemon: true)
             experimentSpec.with {
                 def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+                def tplDir = copyTemplateToDir(projectDir)
                 try {
                     List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
                     [*baselines, 'current'].each { String version ->
@@ -143,7 +142,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                         testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
                         def testClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {}
                         def tapiClazz = testClassLoader.loadClass('org.gradle.integtests.tooling.fixture.ToolingApi')
-                        def toolingApi = tapiClazz.newInstance(dist, temporaryFolder)
+                        def toolingApi = tapiClazz.newInstance(dist,  tplDir)
                         warmup(toolingApi)
                         println "Waiting ${sleepAfterWarmUpMillis}ms before measurements"
                         sleep(sleepAfterWarmUpMillis)
@@ -160,6 +159,22 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             results.assertCurrentVersionHasNotRegressed()
 
             results
+        }
+
+        private TestDirectoryProvider copyTemplateToDir(File templateDir) {
+            def directory = temporaryFolder.getTestDirectory()
+            directory.copyFrom(templateDir)
+            new TestDirectoryProvider() {
+                @Override
+                TestFile getTestDirectory() {
+                    directory
+                }
+
+                @Override
+                void suppressCleanup() {
+
+                }
+            }
         }
 
         private void measure(CrossVersionPerformanceResults results, toolingApi, String version) {
