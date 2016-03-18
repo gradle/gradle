@@ -23,6 +23,7 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -37,7 +38,8 @@ class GradleImplDepsProviderTest extends Specification {
 
     def cacheRepository = Mock(CacheRepository)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
-    GradleImplDepsProvider provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory)
+    def gradleVersion = GradleVersion.current().version
+    def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
 
     def "returns null for unknown JAR file name"() {
         expect:
@@ -49,7 +51,7 @@ class GradleImplDepsProviderTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
         createJarFile(jar)
-        def jarFile = cacheDir.file("gradle-${name}.jar")
+        def jarFile = cacheDir.file("gradle-${name}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
         def progressLogger = Mock(ProgressLogger)
@@ -77,7 +79,7 @@ class GradleImplDepsProviderTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
         createJarFile(jar)
-        def jarFile = cacheDir.file("gradle-api.jar")
+        def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
         def progressLogger = Mock(ProgressLogger)
