@@ -24,6 +24,8 @@ import org.gradle.util.TestPrecondition
 // This fails with Java 1.8.0_05, but succeeds with 1.8.0_74
 @Requires(adhoc = { TestPrecondition.JDK7_OR_LATER.isFulfilled() && System.getProperty('java.version') != '1.8.0_05' })
 class DirectoryScanningIntegTest extends DaemonIntegrationSpec {
+    boolean trackLocations = false
+    boolean printCounts = true
 
     def setup() {
         file('buildSrc/build.gradle') << '''
@@ -123,6 +125,9 @@ gradle.buildFinished {
    countDirectoryScans.reset()
 }
 '''
+        if (trackLocations) {
+            buildFile << 'Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = true\n'
+        }
     }
 
     // read serialized counts from file and transform paths to relative paths
@@ -183,18 +188,11 @@ gradle.buildFinished {
         given:
         buildFile << '''
 apply plugin: 'java'
-
-//Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = true
 '''
         file('src/main/java/Test.java') << 'class Test {}'
         expect:
         succeeds("build")
-        def scanCounts = loadDirectoryScanCounts()
-        //println scanCounts.sort { a, b -> a.value.compareTo(b.value) }
-        //printDirectoryScanLocations()
-        scanCounts.each { String path, Integer count ->
-            assert count <= 3 : "$path has too many scans."
-        }
+        checkDirectoryScanning()
     }
 
     def "count directory scans for Java project with single source file and test file"() {
@@ -209,7 +207,6 @@ repositories {
 dependencies {
     testCompile 'junit:junit:4.12'
 }
-//Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = true
 '''
         file('src/main/java/Hello.java') << '''
 public class Hello {
@@ -238,11 +235,19 @@ public class HelloTest {
 '''
         expect:
         succeeds("test")
+        checkDirectoryScanning()
+    }
+
+    private void checkDirectoryScanning(int maxScans = 3) {
         def scanCounts = loadDirectoryScanCounts()
-        //println scanCounts.sort { a, b -> a.value.compareTo(b.value) }
-        //printDirectoryScanLocations()
+        if (printCounts) {
+            println "Directory scanning report:\n${scanCounts.sort { a, b -> a.value.compareTo(b.value) }.collect { k, v -> "$k\t$v times"}.join('\n')}"
+        }
+        if (trackLocations) {
+            printDirectoryScanLocations()
+        }
         scanCounts.each { String path, Integer count ->
-            assert count <= 3: "$path has too many scans."
+            assert count <= maxScans: "$path has too many scans."
         }
     }
 }
