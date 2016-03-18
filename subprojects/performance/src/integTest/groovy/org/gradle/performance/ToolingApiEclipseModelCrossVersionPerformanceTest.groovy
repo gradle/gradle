@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
@@ -24,7 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([ToolingApiPerformanceTest])
+@Category([ToolingApiPerformanceTest, Experiment])
 class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
