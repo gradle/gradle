@@ -15,12 +15,12 @@
  */
 
 
+
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -38,7 +38,7 @@ class JvmOptionsTest extends Specification {
     def "reads quoted options from String"() {
         expect:
         JvmOptions.fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
-            ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
+                ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
 
         JvmOptions.fromString("  -Dfoo=\" bar \"  ") == ["-Dfoo= bar "]
         JvmOptions.fromString("  -Dx=\"\"  -Dy=\"\n\" ") == ["-Dx=", "-Dy=\n"]
@@ -165,25 +165,6 @@ class JvmOptionsTest extends Specification {
         opts.debug = true
         then:
         opts.debug
-    }
-
-    @Unroll
-    def "#propName is immutable system property"() {
-        when:
-        def opts = createOpts()
-        opts.jvmArgs(propAsArg)
-
-        then:
-        opts.allImmutableJvmArgs.contains(propAsArg)
-
-        where:
-        propName                     | propAsArg
-        JvmOptions.FILE_ENCODING_KEY | "-Dfile.encoding=UTF-8"
-        JvmOptions.USER_VARIANT_KEY  | "-Duser.variant"
-        JvmOptions.USER_COUNTRY_KEY  | "-Duser.language=en"
-        JvmOptions.USER_LANGUAGE_KEY | "-Duser.country=US"
-        JvmOptions.JMX_REMOTE_KEY    | "-Dcom.sun.management.jmxremote"
-        JvmOptions.JAVA_IO_TMPDIR    | "-Djava.io.tmpdir=/some/tmp/folder"
     }
 
     def "can enter debug mode after setting other options"() {
