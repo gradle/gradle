@@ -17,10 +17,10 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
+import org.junit.Rule
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
@@ -29,18 +29,17 @@ import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
-
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
     FileTreeBuilder root
     File cachesDir
     File scriptCachesDir
     File remappedCachesDir
+    @Rule
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        executer.requireIsolatedDaemons()
         root = new FileTreeBuilder(testDirectory)
         cachesDir = new File(testDirectoryProvider.getTestDirectory().file("user-home"), 'caches')
         def versionCaches = new File(cachesDir, GradleVersion.current().version)
@@ -139,7 +138,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             'settings.gradle'("include 'core', 'module1'")
         }
         run 'help'
-        sleep(500)
 
         when:
         root {
@@ -156,67 +154,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 3 // one for settings, one for each build.gradle file
         buildHashes.size() == 3 // two build.gradle files in different dirs + one new build.gradle
         hasCachedScripts(settingsHash, *buildHashes)
-
-    }
-
-    def "script is cached in build scope in-memory cache"() {
-        executer.requireDaemon()
-
-        given:
-        root {
-            gradle {
-                'collectStats.gradle'('''
-                    def buildScopeCache = project.services.get(org.gradle.groovy.scripts.ScriptCompilerFactory).scriptClassCompiler
-                    def crossBuildScopeCache = gradle.services.get(org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache)
-
-                    def toSimpleNames(keys) {
-                        keys.collect { key ->
-                            String className = key.className
-                            String dslId = key.dslId
-                            "${className.substring(0, className.indexOf('_'))}:$dslId"
-                        }
-                    }
-
-                    gradle.buildFinished {
-                        println "Build scope cache size: ${buildScopeCache.cachedCompiledScripts.size()}"
-                        println "Cross-build scope cache size: ${crossBuildScopeCache.cachedCompiledScripts.size()}"
-                        println "Build scope cache contents: ${toSimpleNames(buildScopeCache.cachedCompiledScripts.keySet())}"
-                        println "Cross-build scope cache contents: ${toSimpleNames(crossBuildScopeCache.cachedCompiledScripts.asMap().keySet())}"
-                        println "Cross-build scope cache stats: ${crossBuildScopeCache.cachedCompiledScripts.stats()}"
-                    }
-                    ''')
-            }
-            'build.gradle'('apply from: "gradle/collectStats.gradle"')
-        }
-        Set scripts = ['settings:cp_settings', 'build:cp_proj', 'settings:settings', 'build:proj', 'collectStats:cp_dsl', 'collectStats:dsl']
-
-        when:
-        run 'help'
-        def stats = crossBuildCacheStats()
-
-        then:
-        buildScopeCacheSize() == scripts.size()
-        crossBuildScopeCacheSize() == scripts.size()
-
-        buildScopeCacheContents() == scripts
-        crossBuildScopeCacheContents() == scripts
-        stats.hitCount == 0
-        stats.missCount == scripts.size()
-
-        when:
-        run 'help'
-        stats = crossBuildCacheStats()
-
-        then:
-        buildScopeCacheSize() == scripts.size()
-        crossBuildScopeCacheSize() == scripts.size()
-        buildScopeCacheContents() == scripts
-        crossBuildScopeCacheContents() == scripts
-        stats.hitCount == scripts.size()
-        stats.missCount == scripts.size()
-
-        cleanup:
-        daemons.killAll()
     }
 
     def "remapping scripts doesn't mix up classes with same name"() {
@@ -275,13 +212,15 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, module1Hash)
 
         and:
-        normaliseFileAndLineSeparators(errorOutput).contains "module1/module1.gradle' line: 4"
+        failure.assertHasFileName("Build file '$testDirectory/module1/module1.gradle'")
+        failure.assertHasLineNumber(4)
 
         when:
         fails 'module2:someTask'
 
         then:
-        normaliseFileAndLineSeparators(errorOutput).contains "module2/module2.gradle' line: 4"
+        failure.assertHasFileName("Build file '$testDirectory/module2/module2.gradle'")
+        failure.assertHasLineNumber(4)
     }
 
     def "caches scripts applied from remote locations"() {
@@ -359,62 +298,41 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2795")
-    def "can run scripts applied from remote locations concurrently without timeout on file lock"() {
-        def http = new HttpServer()
-        int call = 0
-        get(http, '/shared.gradle') {
-            call++
-            """
-                task someLongRunningTask() {
-                   println "Simulate long running task, run ${call}"
-                   sleep(10000)
-                }
-            """
-        }
-        http.start()
-        executer.beforeExecute {
-            requireDaemon()
-            usingInitScript(file('init.gradle'))
-        }
-
+    def "can change script while build is running"() {
         given:
-        root {
-            'init.gradle'('''
-                def lockManager = gradle.services.get(org.gradle.cache.internal.FileLockManager)
-                def timeoutField = lockManager.class.getDeclaredField('lockTimeoutMs')
-                timeoutField.accessible = true
-                timeoutField.set(lockManager, 2000)
-            ''')
-            'build.gradle'(this.applyFromRemote(http))
-        }
+        buildFile << """
+task someLongRunningTask << {
+    new URL("${server.uri}").text
+}
+"""
 
         when:
-        (0..1).collect {
-            def t = Thread.start {
-                run 'someLongRunningTask'
-            }
-            sleep(5000)
-            t
-        }*.join()
+        def longRunning = executer.withTasks("someLongRunningTask").start()
+        server.waitFor()
 
         then:
-        noExceptionThrown()
-        def initHash = uniqueRemapped('init')
-        def buildHash = uniqueRemapped('build')
-        def sharedHashs = hasRemapped('shared')
+        remappedCacheSize() == 1 // build.gradle
+        scriptCacheSize() == 1 // build.gradle
+        hasCachedScripts(uniqueRemapped('build'))
 
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 4 // init.gradle + build.gradle + (shared.gradle version 1) + (shared.gradle version 2)
-        hasCachedScripts(buildHash, initHash, *sharedHashs)
+        when:
+        buildFile << """
+task fastTask { }
+"""
+
+        executer.withTasks("fastTask").run()
+        assert longRunning.isRunning()
+        server.release()
+        longRunning.waitForExit()
+
+        then:
+        remappedCacheSize() == 1 // build.gradle
+        scriptCacheSize() == 2 // build.gradle version 1, build.gradle version 2
+        hasCachedScripts(*hasRemapped('build'))
 
         cleanup:
-        http.stop()
-        daemons.killAll()
-    }
-
-    DaemonsFixture getDaemons() {
-        new DaemonLogsAnalyzer(executer.daemonBaseDir)
+        server.release()
+        longRunning?.waitForExit()
     }
 
     int buildScopeCacheSize() {
