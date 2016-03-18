@@ -113,7 +113,7 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
             siblingDir.mkdirs()
         }
         siblingDirFile1.text = 'Some content'
-        fileEventMatchedLatchReference.get().await(2000L, TimeUnit.MILLISECONDS)
+        waitOn(fileEventMatchedLatchReference.get(), false)
 
         then: 'No changes should have been seen'
         filesSeen.isEmpty()
