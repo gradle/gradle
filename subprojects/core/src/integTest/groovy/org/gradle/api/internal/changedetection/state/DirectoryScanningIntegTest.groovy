@@ -196,4 +196,53 @@ apply plugin: 'java'
             assert count <= 3 : "$path has too many scans."
         }
     }
+
+    def "count directory scans for Java project with single source file and test file"() {
+        given:
+        buildFile << '''
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+//Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = true
+'''
+        file('src/main/java/Hello.java') << '''
+public class Hello {
+    private final String property;
+
+    public Hello(String param) {
+        this.property = param;
+    }
+
+    public String getProperty() {
+        return property;
+    }
+}
+'''
+        file('src/main/test/HelloTest.java') << '''
+import static org.junit.Assert.*;
+
+public class HelloTest {
+     private final Hello hello = new Hello("value");
+
+     @org.junit.Test
+     public void test() {
+        assertEquals(hello.getProperty(), "value");
+     }
+}
+'''
+        expect:
+        succeeds("test")
+        def scanCounts = loadDirectoryScanCounts()
+        //println scanCounts.sort { a, b -> a.value.compareTo(b.value) }
+        //printDirectoryScanLocations()
+        scanCounts.each { String path, Integer count ->
+            assert count <= 3: "$path has too many scans."
+        }
+    }
 }
