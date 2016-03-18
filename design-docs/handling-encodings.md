@@ -90,3 +90,4 @@ We need to add tests which cover each of these scenarios:
     - Apache comons ZipArchiveOutputStream defaults to UTF8
     - Apache Ant's ZipOutputStream, which is used by Gradle now, defaults to the platform default encoding, and changing the default would be a  
       backward incompatibility.
+- Should the Tar task really allow specifying an encoding, and should it default to the platform encoding? It defaults to ASCII, and [the standard](http://www.gnu.org/software/tar/manual/html_node/Standard.html) doesn't seem to allow anything else. 
