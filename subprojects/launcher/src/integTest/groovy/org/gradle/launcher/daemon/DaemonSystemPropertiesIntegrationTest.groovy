@@ -86,14 +86,14 @@ task verify << {
             task encoding {
                 doFirst {
                     println "GRADLE_VERSION: " + gradle.gradleVersion
-                    println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
+                    println "encoding = " + java.nio.charset.Charset.defaultCharset().name()
                 }
             }
         """
 
         when:
         executer.withEnvironmentVars(GRADLE_OPTS:"-Dfile.encoding=$encoding")
-        run "debug", "encoding"
+        run "encoding"
 
         then:
         String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
