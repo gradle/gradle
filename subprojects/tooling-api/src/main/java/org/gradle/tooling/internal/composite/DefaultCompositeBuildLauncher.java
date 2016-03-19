@@ -28,8 +28,8 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 
 import java.io.File;
 
-public class CompositeBuildLauncher extends DefaultBuildLauncher {
-    public CompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher {
+    public DefaultCompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(connection, parameters);
         operationParamsBuilder.setCompositeTargetBuildRootDir(targetBuildDir);
     }
