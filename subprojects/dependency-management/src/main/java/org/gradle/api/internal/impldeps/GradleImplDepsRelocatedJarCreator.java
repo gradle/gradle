@@ -65,6 +65,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
         try {
             tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
+            tmpFile.deleteOnExit();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
