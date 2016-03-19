@@ -68,13 +68,14 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
                 try {
                     processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), progressLogger);
                     jarOutputStream.finish();
-                    GFileUtils.moveFile(tmpFile, outputJar);
                 } catch (Exception e) {
                     GFileUtils.forceDelete(tmpFile);
                     throw e;
                 }
             }
         });
+
+        GFileUtils.moveFile(tmpFile, outputJar);
     }
 
     private ZipOutputStream openJarOutputStream(File outputJar) {
