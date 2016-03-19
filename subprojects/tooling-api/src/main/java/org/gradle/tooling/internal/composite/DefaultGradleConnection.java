@@ -23,7 +23,6 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ModelResults;
 import org.gradle.tooling.composite.internal.BuildIdentityInternal;
-import org.gradle.tooling.composite.internal.CompositeBuildLauncher;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 

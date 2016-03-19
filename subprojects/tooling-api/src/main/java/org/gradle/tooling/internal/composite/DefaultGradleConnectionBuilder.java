@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.composite.GradleBuild;
@@ -26,7 +25,6 @@ import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -82,11 +80,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         if (participants.isEmpty()) {
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
-
-        if (useDaemonCoordinator()) {
-            return createDaemonCoordinatorGradleConnection();
-        }
-        return createToolingClientGradleConnection();
+        return createGradleConnection();
     }
 
     private boolean useDaemonCoordinator() {
@@ -105,7 +99,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         return true;
     }
 
-    private GradleConnectionInternal createDaemonCoordinatorGradleConnection() {
+    private GradleConnectionInternal createGradleConnection() {
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
@@ -121,17 +115,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         if (distribution == null) {
             distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
         }
-        return gradleConnectionFactory.create(distribution, connectionParameters);
-    }
-
-    private GradleConnectionInternal createToolingClientGradleConnection() {
-        Set<GradleParticipantBuild> gradleParticipantBuilds = CollectionUtils.collect(participants, new Transformer<GradleParticipantBuild, GradleBuildInternal>() {
-            @Override
-            public GradleParticipantBuild transform(GradleBuildInternal gradleBuildInternal) {
-                return createParticipantBuild(gradleBuildInternal);
-            }
-        });
-        return new ToolingClientGradleConnection(gradleParticipantBuilds);
+        return gradleConnectionFactory.create(distribution, connectionParameters, useDaemonCoordinator());
     }
 
     private GradleParticipantBuild createParticipantBuild(GradleBuildInternal participant) {

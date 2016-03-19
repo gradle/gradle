@@ -15,14 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Ignore
-
 /**
  * Tooling client provides progress listener for composite model request
  */
@@ -67,7 +66,6 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
     }
 
-    @Ignore("failing with OverlappingFileLockException")
     def "compare events from task execution from a composite build and a regular build with 3 builds"() {
         given:
         def builds = createBuilds(3)

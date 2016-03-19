@@ -17,15 +17,16 @@
 package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ModelResults;
-import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.consumer.*;
+import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
+import org.gradle.tooling.internal.consumer.BlockingResultHandler;
+import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
+import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -37,7 +38,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
-import java.util.Set;
 
 public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
@@ -97,7 +97,6 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
         return unsupportedMethod();
     }
 
-
     @Override
     public DefaultCompositeModelBuilder<T> withArguments(String... arguments) {
         return withArguments(Lists.newArrayList(arguments));
@@ -140,21 +139,6 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
 
     @Override
     public DefaultCompositeModelBuilder<T> setJvmArguments(Iterable<String> jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
-        return addProgressListener(listener, Sets.newHashSet(operationTypes));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
         return unsupportedMethod();
     }
 

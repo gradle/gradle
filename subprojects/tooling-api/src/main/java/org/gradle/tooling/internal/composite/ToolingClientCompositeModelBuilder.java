@@ -17,16 +17,12 @@
 package org.gradle.tooling.internal.composite;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.tooling.*;
 import org.gradle.tooling.composite.ModelResult;
-import org.gradle.tooling.composite.ModelResults;
-import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.consumer.BlockingResultHandler;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
@@ -34,23 +30,20 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<ModelResults<T>> {
+public class ToolingClientCompositeModelBuilder<T> {
     private static final GradleVersion USE_CUSTOM_MODEL_ACTION_VERSION = GradleVersion.version("1.12");
 
+    private final ConsumerOperationParameters operationParameters;
+    private final ToolingClientCompositeUtil util;
     private final Class<T> modelType;
-    private final Set<GradleParticipantBuild> participants;
-    private final List<ProgressListener> legacyProgressListeners = Lists.newArrayList();
-
     private final List<CompositeModelResultsBuilder> builders = Lists.newArrayList();
 
-    protected ToolingClientCompositeModelBuilder(final Class<T> modelType, Set<GradleParticipantBuild> participants) {
+    ToolingClientCompositeModelBuilder(final Class<T> modelType, ConsumerOperationParameters operationParameters) {
         this.modelType = modelType;
-        this.participants = participants;
 
         builders.add(new GradleBuildModelResultsBuilder());
         builders.add(new BuildEnvironmentModelResultsBuilder());
@@ -58,35 +51,23 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         builders.add(new HierarchicalModelResultsBuilder());
         builders.add(new CustomActionModelResultsBuilder());
         builders.add(new BruteForceModelResultsBuilder());
+        this.util = new ToolingClientCompositeUtil(operationParameters);
+        this.operationParameters = operationParameters;
     }
 
-    @Override
-    public ModelResults<T> get() throws GradleConnectionException, IllegalStateException {
-        BlockingResultHandler<ModelResults> handler = new BlockingResultHandler<ModelResults>(ModelResults.class);
-        get(handler);
-        return handler.getResult();
-    }
-
-    @Override
-    public void get(final ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException {
+    public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
         final List<ModelResult<T>> results = Lists.newArrayList();
 
-        for (GradleParticipantBuild participant : participants) {
+        for (GradleBuildInternal participant : operationParameters.getBuilds()) {
             try {
-                final List<ModelResult<T>> participantResults = buildResultsForParticipant(participant);
+                final List<ModelResult<T>> participantResults = buildResultsForParticipant(util.createParticipantBuild(participant));
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
                 String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
                 results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"), new GradleConnectionException(message, e)));
             }
         }
-
-        handler.onComplete(new ModelResults<T>() {
-            @Override
-            public Iterator<ModelResult<T>> iterator() {
-                return results.iterator();
-            }
-        });
+        return results;
     }
 
     private List<ModelResult<T>> buildResultsForParticipant(GradleParticipantBuild participant) throws GradleConnectionException {
@@ -99,94 +80,6 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
         }
         throw new GradleConnectionException("Not a supported model type for this participant: " + modelType.getCanonicalName());
     }
-
-    // TODO: Make all configuration methods configure underlying model builders
-    private ToolingClientCompositeModelBuilder<T> unsupportedMethod() {
-        throw new UnsupportedMethodException("Not supported for composite connections.");
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> addProgressListener(ProgressListener listener) {
-        legacyProgressListeners.add(listener);
-        return this;
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
-        return addProgressListener(listener, Sets.newHashSet(operationTypes));
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ModelBuilder<ModelResults<T>> withCancellationToken(CancellationToken cancellationToken) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> forTasks(String... tasks) {
-        return forTasks(Lists.newArrayList(tasks));
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        return unsupportedMethod();
-    }
-
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> withArguments(String... arguments) {
-        return withArguments(Lists.newArrayList(arguments));
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> withArguments(Iterable<String> arguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setStandardError(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setColorOutput(boolean colorOutput) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setJavaHome(File javaHome) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setJvmArguments(String... jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public ToolingClientCompositeModelBuilder<T> setJvmArguments(Iterable<String> jvmArguments) {
-        return unsupportedMethod();
-    }
-
 
     private abstract class CompositeModelResultsBuilder {
         public abstract boolean canBuild(GradleParticipantBuild participant);
@@ -201,16 +94,10 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
             ProjectConnection connection = build.connect();
             try {
                 ModelBuilder<V> modelBuilder = connection.model(modelType);
-                configureRequest(modelBuilder);
+                util.configureRequest(modelBuilder);
                 return modelBuilder.get();
             } finally {
                 connection.close();
-            }
-        }
-
-        protected <V extends ConfigurableLauncher> void configureRequest(ConfigurableLauncher<V> request) {
-            for (ProgressListener progressListener : legacyProgressListeners) {
-                request.addProgressListener(progressListener);
             }
         }
     }
@@ -361,7 +248,7 @@ public class ToolingClientCompositeModelBuilder<T> implements ModelBuilder<Model
 
             try {
                 BuildActionExecuter<Map<String, T>> actionExecuter = projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
-                configureRequest(actionExecuter);
+                util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
                 for (String projectPath : actionResults.keySet()) {
                     ModelResult<T> result = createModelResult(participant, projectPath, actionResults.get(projectPath));

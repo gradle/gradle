@@ -180,14 +180,18 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                 throw new IllegalStateException("No entry point specified.");
             }
 
-            // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
-            // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
-            // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
-            ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
-            FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
-                new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, injectedPluginClasspath,
-                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken, compositeTargetBuildRootDir);
+                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken, compositeTargetBuildRootDir);
+        }
+
+        public void copyFrom(ConsumerOperationParameters operationParameters) {
+            tasks = operationParameters.tasks;
+            launchables = operationParameters.launchables;
+            cancellationToken = operationParameters.cancellationToken;
+            legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
+            taskProgressListeners.addAll(operationParameters.taskProgressListeners);
+            testProgressListeners.addAll(operationParameters.testProgressListeners);
+            buildOperationProgressListeners.addAll(operationParameters.buildOperationProgressListeners);
         }
     }
 
@@ -211,9 +215,15 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final ClassPath injectedPluginClasspath;
     private final File compositeTargetBuildRootDir;
 
+    private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
+    private final List<ProgressListener> testProgressListeners;
+    private final List<ProgressListener> taskProgressListeners;
+    private final List<ProgressListener> buildOperationProgressListeners;
+
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken, File compositeTargetBuildRootDir) {
+                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, List<ProgressListener> testProgressListeners, List<ProgressListener> taskProgressListeners,
+                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken, File compositeTargetBuildRootDir) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -226,10 +236,19 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.tasks = tasks;
         this.launchables = launchables;
         this.injectedPluginClasspath = injectedPluginClasspath;
-        this.progressListener = progressListener;
-        this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
         this.compositeTargetBuildRootDir = compositeTargetBuildRootDir;
+        this.legacyProgressListeners = legacyProgressListeners;
+        this.testProgressListeners = testProgressListeners;
+        this.taskProgressListeners = taskProgressListeners;
+        this.buildOperationProgressListeners = buildOperationProgressListeners;
+
+        // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
+        // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
+        // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
+        this.progressListener = new ProgressListenerAdapter(this.legacyProgressListeners);
+        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(
+            new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
     }
 
     private static void validateJavaHome(File javaHome) {

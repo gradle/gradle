@@ -87,7 +87,12 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             startParameter.setSearchUpwards(false);
 
             DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer());
-            launcherFactory.newInstance(startParameter, requestContext, sharedServices).run();
+            GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, sharedServices);
+            try {
+                launcher.run();
+            } finally {
+                launcher.stop();
+            }
         }
         if (!buildFound) {
             throw new IllegalStateException("Build not part of composite");
