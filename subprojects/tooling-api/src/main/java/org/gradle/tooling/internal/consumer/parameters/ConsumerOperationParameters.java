@@ -194,6 +194,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             buildOperationProgressListeners.addAll(operationParameters.buildOperationProgressListeners);
             arguments = operationParameters.arguments;
             jvmArguments = operationParameters.jvmArguments;
+            stdout = operationParameters.stdout;
+            stderr = operationParameters.stderr;
+            colorOutput = operationParameters.colorOutput;
+            javaHome = operationParameters.javaHome;
+            injectedPluginClasspath = operationParameters.injectedPluginClasspath;
         }
     }
 

@@ -33,9 +33,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 
@@ -103,27 +101,7 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     @Override
-    public DefaultCompositeModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setStandardError(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setColorOutput(boolean colorOutput) {
-        return unsupportedMethod();
-    }
-
-    @Override
     public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setJavaHome(File javaHome) {
         return unsupportedMethod();
     }
 

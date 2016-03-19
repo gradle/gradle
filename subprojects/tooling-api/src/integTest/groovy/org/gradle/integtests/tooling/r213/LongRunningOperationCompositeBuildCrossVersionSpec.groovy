@@ -28,6 +28,7 @@ import org.gradle.util.CollectionUtils
 
 class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
+    def escapeHeader = "\u001b["
     TestFile singleBuild
     GradleBuild singleBuildParticipant
     ModelResults<EclipseProject> modelResults
@@ -62,6 +63,9 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
                 write("System property = \${System.properties.systemProperty}")
             }
         }
+
+        System.out.println("This is standard out")
+        System.err.println("This is standard err")
 """
         }
         singleBuildParticipant = createGradleBuildParticipant(singleBuild)
@@ -146,5 +150,67 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         def connection = builder.build()
         def buildLauncher = connection.newBuild(buildIdentity)
         buildLauncher
+    }
+
+    def "can receive stdout and stderr with model requests"() {
+        given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        OutputStream stdErr = new ByteArrayOutputStream()
+        when:
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
+            def modelBuilder = connection.models(EclipseProject)
+            modelBuilder.setStandardOutput(stdOut)
+            modelBuilder.setStandardError(stdErr)
+            modelBuilder.get()
+        }
+        then:
+        !stdOut.toString().contains(escapeHeader)
+        stdOut.toString().contains("This is standard out")
+        stdErr.toString().contains("This is standard err")
+    }
+
+    def "can receive stdout and stderr with build launcher"() {
+        given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        OutputStream stdErr = new ByteArrayOutputStream()
+        when:
+        def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        buildLauncher.forTasks("run")
+        buildLauncher.setStandardOutput(stdOut)
+        buildLauncher.setStandardError(stdErr)
+        buildLauncher.run()
+        then:
+        !stdOut.toString().contains(escapeHeader)
+        stdOut.toString().contains("This is standard out")
+        stdErr.toString().contains("This is standard err")
+    }
+
+    def "can colorize output with model requests"() {
+        given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        when:
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
+            def modelBuilder = connection.models(EclipseProject)
+            modelBuilder.setStandardOutput(stdOut)
+            modelBuilder.colorOutput = true
+            modelBuilder.get()
+        }
+        then:
+        stdOut.toString().contains(escapeHeader)
+        stdOut.toString().contains("This is standard out")
+    }
+
+    def "can colorize output with build launcher"() {
+        given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        when:
+        def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        buildLauncher.forTasks("run")
+        buildLauncher.setStandardOutput(stdOut)
+        buildLauncher.colorOutput = true
+        buildLauncher.run()
+        then:
+        stdOut.toString().contains(escapeHeader)
+        stdOut.toString().contains("This is standard out")
     }
 }

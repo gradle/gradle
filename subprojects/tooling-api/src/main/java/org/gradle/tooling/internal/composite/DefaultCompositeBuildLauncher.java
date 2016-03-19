@@ -30,7 +30,6 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
     public DefaultCompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
@@ -59,27 +58,7 @@ public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implemen
     }
 
     @Override
-    public DefaultCompositeBuildLauncher setStandardOutput(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher setStandardError(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher setColorOutput(boolean colorOutput) {
-        return unsupportedMethod();
-    }
-
-    @Override
     public DefaultCompositeBuildLauncher setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher setJavaHome(File javaHome) {
         return unsupportedMethod();
     }
 
