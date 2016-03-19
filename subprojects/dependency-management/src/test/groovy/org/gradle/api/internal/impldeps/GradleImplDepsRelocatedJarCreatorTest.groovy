@@ -54,7 +54,8 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         1 * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
-        contents.length == 0
+        contents.length == 1
+        contents[0] == new File(outputJar.parentFile, outputJar.name + ".tmp")
     }
 
     def "creates fat JAR file for multiple input JAR files"() {
