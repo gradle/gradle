@@ -61,7 +61,13 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
     }
 
     private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
-        final File tmpFile = new File(outputJar.getParentFile(), outputJar.getName() + ".tmp");
+        final File tmpFile;
+
+        try {
+            tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
 
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
