@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
@@ -62,7 +63,7 @@ public class Groovydoc extends SourceTask {
 
     private String footer;
 
-    private String overview;
+    private TextResource overview;
 
     private Set<Link> links = new HashSet<Link>();
 
@@ -268,18 +269,42 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Returns a HTML file to be used for overview documentation. Set to {@code null} when there is no overview file.
+     *
+     * @deprecated please use {@link #getOverviewText()} instead
      */
-    @InputFile
-    @Optional
+    @Deprecated
     public String getOverview() {
-        return overview;
+        if (overview == null) {
+            return null;
+        } else {
+            return overview.asFile().getAbsolutePath();
+        }
     }
 
     /**
      * Sets a HTML file to be used for overview documentation (optional).
+     *
+     * @deprecated please use {@link #setOverviewText(TextResource)} instead
      */
+    @Deprecated
     public void setOverview(String overview) {
-        this.overview = overview;
+        this.overview = getProject().getResources().getText().fromFile(overview);
+    }
+
+    /**
+     * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
+     */
+    @Nested
+    @Optional
+    public TextResource getOverviewText() {
+        return overview;
+    }
+
+    /**
+     * Sets a HTML text to be used for overview documentation (optional).
+     */
+    public void setOverviewText(TextResource overviewText) {
+        this.overview = overviewText;
     }
 
     /**

@@ -16,11 +16,12 @@
 
 package org.gradle.groovy
 
-import groovy.transform.NotYetImplemented
+import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovydocCoverage
 import spock.lang.Issue
+import spock.lang.Unroll;
 
 @TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
@@ -60,9 +61,12 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         module << ['groovy']
     }
 
-    @NotYetImplemented
     @Issue("https://issues.gradle.org//browse/GRADLE-3349")
-    def "changes to overview causes groovydoc to be out of date"() {
+    @Unroll
+    def "changes to overview causes groovydoc to be out of date when overview is set via #overviewSetting"() {
+        File overviewFile = file("overview.html")
+        String escapedOverviewPath = StringEscapeUtils.escapeJava(overviewFile.absolutePath)
+
         when:
         buildFile << """
             apply plugin: "groovy"
@@ -76,11 +80,11 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             groovydoc {
-                overview = file("overview.html").absolutePath
+                ${overviewSetting}("${escapedOverviewPath}")
             }
         """
 
-        file("overview.html").text = """
+        overviewFile.text = """
 <b>Hello World</b>
 """
         file("src/main/groovy/pkg/Thing.groovy") << """
@@ -98,16 +102,17 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         overviewSummary.text.contains("Hello World")
 
         when:
-        file("overview.html").text = """
+        overviewFile.text = """
 <b>Goodbye World</b>
 """
         and:
         succeeds "groovydoc"
         then:
-        result.assertTaskNotSkipped("groovydoc")
+        result.assertTaskNotSkipped(":groovydoc")
         overviewSummary.text.contains("Goodbye World")
 
         where:
-        module << ['groovy']
+        module << ['groovy', 'groovy']
+        overviewSetting << ["overviewText = resources.text.fromFile", "overview"]
     }
 }
