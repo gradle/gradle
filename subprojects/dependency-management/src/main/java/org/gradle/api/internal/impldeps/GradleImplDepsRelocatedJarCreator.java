@@ -24,6 +24,8 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.progress.PercentageProgressFormatter;
 import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -39,18 +41,38 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private static final int BUFFER_SIZE = 8192;
     private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
-    private final ProgressLogger progressLogger;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public GradleImplDepsRelocatedJarCreator(ProgressLogger progressLogger) {
-        this.progressLogger = progressLogger;
+    public GradleImplDepsRelocatedJarCreator(ProgressLoggerFactory progressLoggerFactory) {
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    public void create(File outputJar, final Iterable<? extends File> files) {
-        IoActions.withResource(openJarOutputStream(outputJar), new ErroringAction<ZipOutputStream>() {
+    public void create(final File outputJar, final Iterable<? extends File> files) {
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator.class);
+        progressLogger.setDescription("Gradle JARs generation");
+        progressLogger.setLoggingHeader(String.format("Generating JAR file '%s'", outputJar.getName()));
+        progressLogger.started();
+
+        try {
+            createFatJar(outputJar, files, progressLogger);
+        } finally {
+            progressLogger.completed();
+        }
+    }
+
+    private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
+        final File tmpFile = new File(outputJar.getParentFile(), outputJar.getName() + ".tmp");
+        IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
             protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>());
-                jarOutputStream.finish();
+                try {
+                    processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), progressLogger);
+                    jarOutputStream.finish();
+                    GFileUtils.moveFile(tmpFile, outputJar);
+                } catch (Exception e) {
+                    GFileUtils.forceDelete(tmpFile);
+                    throw e;
+                }
             }
         });
     }
@@ -65,7 +87,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         }
     }
 
-    private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths) throws Exception {
+    private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, ProgressLogger progressLogger) throws Exception {
         PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files));
 
         for (File file : files) {

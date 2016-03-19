@@ -19,7 +19,6 @@ package org.gradle.api.internal.impldeps;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +33,14 @@ public class GradleImplDepsProvider implements Closeable {
     public static final Set<String> VALID_JAR_NAMES = ImmutableSet.of("api", "test-kit");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
     private final CacheRepository cacheRepository;
-    private final ProgressLoggerFactory progressLoggerFactory;
     private final String gradleVersion;
     private final Object lock = new Object();
     private PersistentCache gradleImplDepsCache;
+    private RelocatedJarCreator relocatedJarCreator;
 
     public GradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
         this.cacheRepository = cacheRepository;
-        this.progressLoggerFactory = progressLoggerFactory;
+        this.relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory);
         this.gradleVersion = gradleVersion;
     }
 
@@ -55,17 +54,7 @@ public class GradleImplDepsProvider implements Closeable {
                 File implDepsJarFile = jarFile(gradleImplDepsCache, name);
 
                 if (!implDepsJarFile.exists()) {
-                    ProgressLogger progressLogger = progressLoggerFactory.newOperation(GradleImplDepsProvider.class);
-                    progressLogger.setDescription("Gradle JARs generation");
-                    progressLogger.setLoggingHeader(String.format("Generating JAR file '%s'", implDepsJarFile.getName()));
-                    progressLogger.started();
-
-                    try {
-                        RelocatedJarCreator relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLogger);
-                        relocatedJarCreator.create(implDepsJarFile, classpath);
-                    } finally {
-                        progressLogger.completed();
-                    }
+                    relocatedJarCreator.create(implDepsJarFile, classpath);
                 }
 
                 LOGGER.debug("Using Gradle impl deps JAR file: {}", implDepsJarFile);
@@ -91,5 +80,9 @@ public class GradleImplDepsProvider implements Closeable {
 
     private File jarFile(PersistentCache cache, String name) {
         return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
+    }
+
+    void setRelocatedJarCreator(RelocatedJarCreator relocatedJarCreator) {
+        this.relocatedJarCreator = relocatedJarCreator;
     }
 }

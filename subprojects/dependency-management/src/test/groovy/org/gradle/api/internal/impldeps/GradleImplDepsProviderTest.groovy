@@ -19,15 +19,11 @@ package org.gradle.api.internal.impldeps
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,7 +35,12 @@ class GradleImplDepsProviderTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def gradleVersion = GradleVersion.current().version
+    def relocatedJarCreator = Mock(RelocatedJarCreator)
     def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
+
+    def setup() {
+        provider.relocatedJarCreator = relocatedJarCreator
+    }
 
     def "returns null for unknown JAR file name"() {
         expect:
@@ -50,11 +51,10 @@ class GradleImplDepsProviderTest extends Specification {
     def "creates JAR file on demand for name '#name'"() {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
-        createJarFile(jar)
+        def classpath = [jar]
         def jarFile = cacheDir.file("gradle-${name}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
-        def progressLogger = Mock(ProgressLogger)
 
         when:
         def resolvedFile = provider.getFile([jar], name)
@@ -64,11 +64,7 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        1 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
-        1 * progressLogger.started()
-        1 * progressLogger.completed()
+        1 * relocatedJarCreator.create(jarFile, classpath)
         jarFile == resolvedFile
 
         where:
@@ -78,11 +74,10 @@ class GradleImplDepsProviderTest extends Specification {
     def "reuses existing JAR file if existent"() {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
-        createJarFile(jar)
+        def classpath = [jar]
         def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
-        def progressLogger = Mock(ProgressLogger)
 
         when:
         def resolvedFile = provider.getFile([jar], 'api')
@@ -92,14 +87,11 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        1 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
-        1 * progressLogger.started()
-        1 * progressLogger.completed()
+        1 * relocatedJarCreator.create(jarFile, classpath)
         jarFile == resolvedFile
 
         when:
+        GFileUtils.touch(jarFile)
         resolvedFile = provider.getFile([jar], 'api')
 
         then:
@@ -107,31 +99,7 @@ class GradleImplDepsProviderTest extends Specification {
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        0 * progressLoggerFactory.newOperation(GradleImplDepsProvider) >> progressLogger
-        0 * progressLogger.setDescription('Gradle JARs generation')
-        0 * progressLogger.setLoggingHeader("Generating JAR file '$jarFile.name'")
-        0 * progressLogger.started()
-        0 * progressLogger.completed()
+        0 * relocatedJarCreator.create(jarFile, classpath)
         jarFile == resolvedFile
-    }
-
-    private void createJarFile(TestFile jar) {
-        TestFile contents = tmpDir.createDir('contents')
-        TestFile classFile = contents.createFile('org/gradle/MyClass.class')
-
-        ClassNode classNode = new ClassNode()
-        classNode.version = Opcodes.V1_6
-        classNode.access = Opcodes.ACC_PUBLIC
-        classNode.name = 'org/gradle/MyClass'
-        classNode.superName = 'java/lang/Object'
-
-        ClassWriter cw = new ClassWriter(0)
-        classNode.accept(cw)
-
-        classFile.withDataOutputStream {
-            it.write(cw.toByteArray())
-        }
-
-        contents.zipTo(jar)
     }
 }
