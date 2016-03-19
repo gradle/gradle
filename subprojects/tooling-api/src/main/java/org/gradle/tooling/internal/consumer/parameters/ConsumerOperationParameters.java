@@ -192,6 +192,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             taskProgressListeners.addAll(operationParameters.taskProgressListeners);
             testProgressListeners.addAll(operationParameters.testProgressListeners);
             buildOperationProgressListeners.addAll(operationParameters.buildOperationProgressListeners);
+            arguments = operationParameters.arguments;
+            jvmArguments = operationParameters.jvmArguments;
         }
     }
 

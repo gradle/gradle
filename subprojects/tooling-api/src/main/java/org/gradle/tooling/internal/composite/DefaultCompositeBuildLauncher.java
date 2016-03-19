@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.composite;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
@@ -54,20 +53,9 @@ public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implemen
         }, new ResultHandlerAdapter(handler));
     }
 
-
     // TODO: Make all configuration methods configure underlying model builders
     private DefaultCompositeBuildLauncher unsupportedMethod() {
         throw new UnsupportedMethodException("Not supported for composite connections.");
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher withArguments(String... arguments) {
-        return withArguments(Lists.newArrayList(arguments));
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher withArguments(Iterable<String> arguments) {
-        return unsupportedMethod();
     }
 
     @Override
@@ -94,17 +82,6 @@ public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implemen
     public DefaultCompositeBuildLauncher setJavaHome(File javaHome) {
         return unsupportedMethod();
     }
-
-    @Override
-    public DefaultCompositeBuildLauncher setJvmArguments(String... jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher setJvmArguments(Iterable<String> jvmArguments) {
-        return unsupportedMethod();
-    }
-
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {

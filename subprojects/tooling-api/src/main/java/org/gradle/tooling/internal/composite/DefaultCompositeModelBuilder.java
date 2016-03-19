@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.composite;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
@@ -38,6 +37,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.List;
 
 public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
@@ -53,6 +53,21 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     @Override
     protected DefaultCompositeModelBuilder<T> getThis() {
         return this;
+    }
+
+    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
+        // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this method,
+        // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the model'
+        // this would cause an error when fetching the BuildEnvironment model
+        List<String> rationalizedTasks = rationalizeInput(tasks);
+        operationParamsBuilder.setTasks(rationalizedTasks);
+        return getThis();
+    }
+
+    @Override
+    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
+        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        return getThis();
     }
 
     @Override
@@ -88,26 +103,6 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     @Override
-    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
-        return forTasks(Lists.newArrayList(tasks));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> withArguments(String... arguments) {
-        return withArguments(Lists.newArrayList(arguments));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> withArguments(Iterable<String> arguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
     public DefaultCompositeModelBuilder<T> setStandardOutput(OutputStream outputStream) {
         return unsupportedMethod();
     }
@@ -129,16 +124,6 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
 
     @Override
     public DefaultCompositeModelBuilder<T> setJavaHome(File javaHome) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setJvmArguments(String... jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setJvmArguments(Iterable<String> jvmArguments) {
         return unsupportedMethod();
     }
 
