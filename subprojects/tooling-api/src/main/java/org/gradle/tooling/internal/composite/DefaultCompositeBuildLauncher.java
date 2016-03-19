@@ -16,7 +16,9 @@
 
 package org.gradle.tooling.internal.composite;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
@@ -25,10 +27,13 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher {
+public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
     public DefaultCompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(connection, parameters);
         operationParamsBuilder.setCompositeTargetBuildRootDir(targetBuildDir);
@@ -48,6 +53,58 @@ public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher {
             }
         }, new ResultHandlerAdapter(handler));
     }
+
+
+    // TODO: Make all configuration methods configure underlying model builders
+    private DefaultCompositeBuildLauncher unsupportedMethod() {
+        throw new UnsupportedMethodException("Not supported for composite connections.");
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher withArguments(String... arguments) {
+        return withArguments(Lists.newArrayList(arguments));
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher withArguments(Iterable<String> arguments) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setStandardOutput(OutputStream outputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setStandardError(OutputStream outputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setColorOutput(boolean colorOutput) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setStandardInput(InputStream inputStream) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setJavaHome(File javaHome) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setJvmArguments(String... jvmArguments) {
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeBuildLauncher setJvmArguments(Iterable<String> jvmArguments) {
+        return unsupportedMethod();
+    }
+
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
