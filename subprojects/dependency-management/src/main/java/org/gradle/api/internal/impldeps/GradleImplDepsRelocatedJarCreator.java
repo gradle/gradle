@@ -67,8 +67,11 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
             IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
                 @Override
                 protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                    processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), progressLogger);
-                    jarOutputStream.finish();
+                    try {
+                        processFiles(jarOutputStream, files, new byte[BUFFER_SIZE], new HashSet<String>(), progressLogger);
+                    } finally {
+                        jarOutputStream.finish();
+                    }
                 }
             });
         } catch (Exception e) {
