@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,14 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.GradleException;
 
-import org.gradle.api.Action;
+public class BuildOperationQueueFailure extends GradleException {
+    public BuildOperationQueueFailure(String message) {
+        super(message);
+    }
 
-/**
- * A processor for executing build operations.
- */
-public interface BuildOperationProcessor {
-    /**
-     * Creates a new queue for holding operations to be executed.
-     *
-     * @param worker The action to be executed for each operation.
-     * @param <T> The type of operations the worker uses.
-     * @param generator An action that populates the queue with build operations
-     */
-    <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator);
+    public BuildOperationQueueFailure(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

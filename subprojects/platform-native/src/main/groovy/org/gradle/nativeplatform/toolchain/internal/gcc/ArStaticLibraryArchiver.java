@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -48,16 +49,21 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     }
 
     @Override
-    public WorkResult execute(StaticLibraryArchiverSpec spec) {
+    public WorkResult execute(final StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
-        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("archiving %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
-        queue.add(invocation);
-        queue.waitForCompletion();
+
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                buildQueue.add(invocation);
+            }
+        });
         return new SimpleWorkResult(true);
     }
 

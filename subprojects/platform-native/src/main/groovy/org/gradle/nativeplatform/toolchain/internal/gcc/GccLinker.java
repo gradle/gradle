@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationProcessor;
@@ -51,18 +52,23 @@ class GccLinker implements Compiler<LinkerSpec> {
     }
 
     @Override
-    public WorkResult execute(LinkerSpec spec) {
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
-
+    public WorkResult execute(final LinkerSpec spec) {
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         if (useCommandFile) {
             new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         }
-        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
-        queue.add(invocation);
-        queue.waitForCompletion();
+
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                buildQueue.add(invocation);
+            }
+        });
+
         return new SimpleWorkResult(true);
     }
 

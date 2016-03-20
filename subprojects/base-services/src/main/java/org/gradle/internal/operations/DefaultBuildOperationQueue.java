@@ -32,12 +32,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final BuildOperationWorker<T> worker;
 
     private final List<ListenableFuture> operations;
-    private final String logLocation;
+
+    private String logLocation;
 
     private boolean waitingForCompletion;
 
-    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker, String logLocation) {
-        this.logLocation = logLocation;
+    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
@@ -51,6 +51,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         operations.add(future);
     }
 
+    @Override
+    public void cancel() {
+        for (ListenableFuture future : operations) {
+            future.cancel(false);
+        }
+    }
+
     public void waitForCompletion() throws MultipleBuildOperationFailures {
         waitingForCompletion = true;
 
@@ -58,7 +65,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
 
         for (ListenableFuture operation : operations) {
-            Futures.addCallback(operation, new CompletionCallback(finished, failures));
+            if (operation.isCancelled()) {
+                finished.countDown();
+            } else {
+                Futures.addCallback(operation, new CompletionCallback(finished, failures));
+            }
         }
 
         try {
@@ -73,7 +84,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    private String getFailureMessage(Collection<Throwable> failures) {
+    @Override
+    public void setLogLocation(String logLocation) {
+        this.logLocation = logLocation;
+    }
+
+    private static String getFailureMessage(Collection<? extends Throwable> failures) {
         if (failures.size() == 1) {
             return "A build operation failed.";
         }
