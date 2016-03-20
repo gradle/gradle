@@ -20,7 +20,7 @@ import org.gradle.messaging.remote.MessagingServer
 import spock.lang.Specification
 
 class MessagingServicesTest extends Specification {
-    final MessagingServices services = new MessagingServices(getClass().classLoader)
+    final MessagingServices services = new MessagingServices()
 
     def cleanup() {
         services?.stop()
@@ -34,15 +34,5 @@ class MessagingServicesTest extends Specification {
     def "provides a messaging server"() {
         expect:
         services.get(MessagingServer.class) != null
-    }
-
-    def "provides an incoming broadcast"() {
-        expect:
-        services.get(IncomingBroadcast.class) != null
-    }
-
-    def "provides an outgoing broadcast"() {
-        expect:
-        services.get(OutgoingBroadcast.class) != null
     }
 }

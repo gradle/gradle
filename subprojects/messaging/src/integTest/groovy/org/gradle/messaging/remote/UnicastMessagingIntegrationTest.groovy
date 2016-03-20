@@ -287,10 +287,6 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
     }
 
     class TestMessagingServices extends MessagingServices {
-        TestMessagingServices() {
-            super(TestMessagingServices.classLoader)
-        }
-
         @Override
         protected ExecutorFactory createExecutorFactory() {
             return getExecutorFactory()

@@ -68,7 +68,7 @@ import static org.junit.Assert.*;
 public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
-    private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
+    private final MessagingServices messagingServices = new MessagingServices();
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();

@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue
 
 class PathLimitationIntegTest extends Specification {
     private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class);
-    private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
+    private final MessagingServices messagingServices = new MessagingServices();
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
 
     @Rule

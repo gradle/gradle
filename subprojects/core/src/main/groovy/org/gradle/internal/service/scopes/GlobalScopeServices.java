@@ -178,8 +178,8 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderFactory();
     }
 
-    MessagingServices createMessagingServices(ClassLoaderRegistry classLoaderRegistry) {
-        return new MessagingServices(getClass().getClassLoader());
+    MessagingServices createMessagingServices() {
+        return new MessagingServices();
     }
 
     MessagingServer createMessagingServer(MessagingServices messagingServices) {
