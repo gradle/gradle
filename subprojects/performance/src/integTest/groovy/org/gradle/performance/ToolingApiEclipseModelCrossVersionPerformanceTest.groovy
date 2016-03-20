@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
+import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
@@ -37,7 +38,9 @@ class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingA
             invocationCount = 10
             maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
-                getModel(modelClass)
+                def model = getModel(tapiClass(modelClass))
+                // we must actually do something to highlight some performance issues
+                collectTasks(model, [])
             }
         }
 
@@ -66,5 +69,14 @@ class ToolingApiEclipseModelCrossVersionPerformanceTest extends AbstractToolingA
         (0..size).collect {
             "include 'project${it + 1}'"
         }.join('\n')
+    }
+
+    private static void collectTasks(def elm, List<String> tasks) {
+        if (elm instanceof HasGradleProject) {
+            elm.gradleProject.tasks.collect(tasks) { it.name }
+        }
+        elm.children?.each {
+            collectTasks(it, tasks)
+        }
     }
 }

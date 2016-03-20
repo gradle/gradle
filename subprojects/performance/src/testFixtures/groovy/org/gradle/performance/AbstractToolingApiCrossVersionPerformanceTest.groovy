@@ -42,10 +42,23 @@ import spock.lang.Specification
 
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
 
+    protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
+    protected final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
+
     static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    ToolingApiExperimentSpec experimentSpec
+
+    protected ToolingApiExperimentSpec experimentSpec
+    // caching class loaders at this level because for performance experiments
+    // we don't want caches of the TAPI to be visible between different experiments
+    protected final Map<String, ClassLoader> testClassLoaders = [:]
+
+    protected ClassLoader tapiClassLoader
+
+    public Class<?> tapiClass(Class<?> clazz) {
+        tapiClassLoader.loadClass(clazz.name)
+    }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
         experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, 3, 10, 5000L, 500L, null)
@@ -55,7 +68,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     CrossVersionPerformanceResults performMeasurements() {
-        new Measurement(experimentSpec, temporaryFolder).run()
+        new Measurement().run()
     }
 
     static {
@@ -90,20 +103,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    private static class Measurement implements ToolingApiClasspathProvider {
-        private final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
-        private final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
-
-        final ToolingApiExperimentSpec experimentSpec
-        final TestNameTestDirectoryProvider temporaryFolder
-        // caching class loaders at this level because for performance experiments
-        // we don't want caches of the TAPI to be visible between different experiments
-        private final Map<String, ClassLoader> testClassLoaders = [:]
-
-        Measurement(ToolingApiExperimentSpec experimentSpec, TestNameTestDirectoryProvider temporaryFolder) {
-            this.experimentSpec = experimentSpec
-            this.temporaryFolder = temporaryFolder
-        }
+    private class Measurement implements ToolingApiClasspathProvider {
 
         private CrossVersionPerformanceResults run() {
             def testProjectLocator = new TestProjectLocator()
@@ -123,34 +123,34 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 args: [],
                 gradleOpts: [],
                 daemon: true)
-            experimentSpec.with {
-                def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-                def tplDir = copyTemplateToDir(projectDir)
-                try {
-                    List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
-                    [*baselines, 'current'].each { String version ->
-                        GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
-                        println "Testing ${dist.version}..."
-                        if ('current' != version) {
-                            def baselineVersion = results.baseline(version)
-                            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
-                            baselineVersion.maxMemoryRegression = maxMemoryRegression
-                        }
-                        def toolingApiDistribution = resolver.resolve(dist.version.version)
-                        def testClassPath = []
-                        // add TAPI test fixtures to classpath
-                        testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
-                        def testClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {}
-                        def tapiClazz = testClassLoader.loadClass('org.gradle.integtests.tooling.fixture.ToolingApi')
-                        def toolingApi = tapiClazz.newInstance(dist,  tplDir)
-                        warmup(toolingApi)
-                        println "Waiting ${sleepAfterWarmUpMillis}ms before measurements"
-                        sleep(sleepAfterWarmUpMillis)
-                        measure(results, toolingApi, version)
+            def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+            def tplDir = copyTemplateToDir(projectDir)
+            try {
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
+                [*baselines, 'current'].each { String version ->
+                    GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
+                    println "Testing ${dist.version}..."
+                    if ('current' != version) {
+                        def baselineVersion = results.baseline(version)
+                        baselineVersion.maxExecutionTimeRegression = experimentSpec.maxExecutionTimeRegression
+                        baselineVersion.maxMemoryRegression = experimentSpec.maxMemoryRegression
                     }
-                } finally {
-                    resolver.stop()
+                    def toolingApiDistribution = resolver.resolve(dist.version.version)
+                    def testClassPath = []
+                    // add TAPI test fixtures to classpath
+                    testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
+                    tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
+                    }
+                    def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
+                    def toolingApi = tapiClazz.newInstance(dist, tplDir)
+                    assert toolingApi != ToolingApi
+                    warmup(toolingApi)
+                    println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
+                    sleep(experimentSpec.sleepAfterWarmUpMillis)
+                    measure(results, toolingApi, version)
                 }
+            } finally {
+                resolver.stop()
             }
 
             results.assertEveryBuildSucceeds()
