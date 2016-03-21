@@ -118,8 +118,36 @@ project(":project2") {
         pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
     }
 
+
     @Issue("GRADLE-3030")
-    def "project dependency classifier correctly reflected in POM"() {
+    def "project dependency correctly reflected in POM when dependency configuration has no artifacts"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(path: ":project2")
+        compile project(path: ":project2", configuration: "otherStuff")
+    }
+}
+
+project(":project2") {
+    configurations {
+        otherStuff
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:project2:1.9"
+        )
+    }
+
+    @Issue("GRADLE-3030")
+    def "project dependency correctly reflected in POM when dependency configuration has multiple classified artifacts"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -140,6 +168,11 @@ project(":project2") {
         classifier = 'otherStuff'
     }
 
+    task otherJarDifferentClassifier(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'otherStuffDifferentClassifier'
+    }
+
     task moreJar(type:Jar) {
         from sourceSets.test.output
         classifier = 'moreStuff'
@@ -148,6 +181,8 @@ project(":project2") {
     artifacts {
         otherStuff      otherJar
         archives        otherJar
+        otherStuff      otherJarDifferentClassifier
+        archives        otherJarDifferentClassifier
         moreStuff       moreJar
         archives        moreJar
     }
@@ -159,8 +194,169 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9", "org.gradle.test:project2:1.9:otherStuff")
-        pom.scopes.test.assertDependsOn("org.gradle.test:project2:1.9:moreStuff")
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:project2:1.9",
+            "org.gradle.test:project2:1.9:otherStuff",
+            "org.gradle.test:project2:1.9:otherStuffDifferentClassifier")
+        pom.scopes.test.assertDependsOn(
+            "org.gradle.test:project2:1.9:moreStuff")
+    }
+
+    @Issue("GRADLE-3030")
+    def "project dependency correctly reflected in POM when default configuration has classifier"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+    }
+}
+
+project(":project2") {
+    jar {
+        classifier = 'theDefaultJar'
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:project2:1.9:theDefaultJar")
+    }
+
+    @Issue("GRADLE-3030")
+    def "project dependency correctly reflected in POM if configuration has classifier and modified id"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(path: ":project2", configuration: "otherStuff")
+    }
+}
+
+project(":project2") {
+    uploadArchives {
+        repositories.mavenDeployer {
+            pom.artifactId = "changed"
+        }
+    }
+
+    configurations {
+        otherStuff
+    }
+
+    task otherJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'otherStuff'
+    }
+
+    artifacts {
+        otherStuff  otherJar
+        archives    otherJar
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:changed:1.9:otherStuff")
+    }
+
+    @Issue("GRADLE-3030")
+    def "project dependency correctly reflected in POM when configuration is extended by other configurations"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(path: ":project2", configuration: "baseConfig")
+    }
+}
+
+project(":project2") {
+    configurations {
+        baseConfig
+        extendedConfig {
+            extendsFrom baseConfig
+        }
+    }
+
+    task baseConfigJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'baseConfig'
+    }
+
+    task extendedConfigJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'extendedConfig'
+    }
+
+    artifacts {
+        baseConfig      baseConfigJar
+        archives        baseConfigJar
+        extendedConfig  extendedConfigJar
+        archives        extendedConfigJar
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:project2:1.9:baseConfig")
+    }
+
+    @Issue("GRADLE-3030")
+    def "project dependency correctly reflected in POM when configuration is extending other configurations"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(path: ":project2", configuration: "extendedConfig")
+    }
+}
+
+project(":project2") {
+    configurations {
+        baseConfig
+        extendedConfig {
+            extendsFrom baseConfig
+        }
+    }
+
+    task baseConfigJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'baseConfig'
+    }
+
+    task extendedConfigJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'extendedConfig'
+    }
+
+    artifacts {
+        baseConfig      baseConfigJar
+        archives        baseConfigJar
+        extendedConfig  extendedConfigJar
+        archives        extendedConfigJar
+    }
+}
+        """)
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn(
+            "org.gradle.test:project2:1.9:baseConfig",
+            "org.gradle.test:project2:1.9:extendedConfig")
     }
 
     private void createBuildScripts(String append = "") {
