@@ -126,6 +126,8 @@ public class MessageHub implements AsyncStoppable {
 
     /**
      * Adds a connection to some other message hub. Outgoing messages are forwarded to this connection, and incoming messages are received from it.
+     *
+     * <p>Does not cleanup connections on stop or disconnect. It is the caller's responsibility to manage the connection lifecycle.</p>
      */
     public void addConnection(Connection<InterHubMessage> connection) {
         lock.lock();

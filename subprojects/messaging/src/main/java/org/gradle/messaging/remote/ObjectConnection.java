@@ -36,8 +36,8 @@ public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilde
     void requestStop();
 
     /**
-     * Performs a graceful stop of this connection. Stops accepting outgoing message. Blocks until all incoming messages
-     * have been handled, and all outgoing messages have been handled by the peer.
+     * Performs a graceful stop of this connection. Stops accepting outgoing messages. Blocks until all incoming messages
+     * have been handled, and all outgoing messages have been forwarded to the peer.
      */
     void stop();
 }
