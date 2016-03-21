@@ -19,9 +19,7 @@ package org.gradle.api.internal.impldeps
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.FileLockManager
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
@@ -29,48 +27,24 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_DISPLAY_NAME
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_KEY
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
-
 class GradleImplDepsProviderTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(10000)
-
     def cacheRepository = Mock(CacheRepository)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def gradleVersion = GradleVersion.current().version
     def relocatedJarCreator = Mock(RelocatedJarCreator)
-    def cacheBuilder = Mock(CacheBuilder)
-    def cache = Mock(PersistentCache)
+    def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
 
-    def "can close cache"() {
-        when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        provider.close()
-
-        then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.Exclusive)) >> cacheBuilder
-        1 * cacheBuilder.open() >> { cache }
-        1 * cache.close()
+    def setup() {
+        provider.relocatedJarCreator = relocatedJarCreator
     }
 
     def "returns null for unknown JAR file name"() {
-        when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
+        expect:
         provider.getFile(Collections.emptyList(), 'unknown') == null
-
-        then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.Exclusive)) >> cacheBuilder
-        1 * cacheBuilder.open() >> { cache }
     }
 
     @Unroll
@@ -79,16 +53,14 @@ class GradleImplDepsProviderTest extends Specification {
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
         def classpath = [jar]
         def jarFile = cacheDir.file("gradle-${name}-${gradleVersion}.jar")
+        def cacheBuilder = Mock(CacheBuilder)
+        def cache = Mock(PersistentCache)
 
         when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        provider.relocatedJarCreator = relocatedJarCreator
         def resolvedFile = provider.getFile([jar], name)
 
         then:
         1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName('Generated Gradle JARs cache') >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.Exclusive)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
@@ -104,16 +76,14 @@ class GradleImplDepsProviderTest extends Specification {
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
         def classpath = [jar]
         def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")
+        def cacheBuilder = Mock(CacheBuilder)
+        def cache = Mock(PersistentCache)
 
         when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        provider.relocatedJarCreator = relocatedJarCreator
         def resolvedFile = provider.getFile([jar], 'api')
 
         then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.Exclusive)) >> cacheBuilder
+        1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
@@ -125,9 +95,7 @@ class GradleImplDepsProviderTest extends Specification {
         resolvedFile = provider.getFile([jar], 'api')
 
         then:
-        0 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.Exclusive)) >> cacheBuilder
+        0 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._

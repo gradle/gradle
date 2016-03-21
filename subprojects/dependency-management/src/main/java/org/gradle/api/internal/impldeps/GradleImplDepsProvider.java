@@ -19,7 +19,6 @@ package org.gradle.api.internal.impldeps;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,47 +27,39 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class GradleImplDepsProvider implements Closeable {
     public static final String CACHE_KEY = "generated-gradle-jars";
-    public static final String CACHE_DISPLAY_NAME = "Generated Gradle JARs cache";
     public static final Set<String> VALID_JAR_NAMES = ImmutableSet.of("api", "test-kit");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
+    private final CacheRepository cacheRepository;
     private final String gradleVersion;
+    private final Object lock = new Object();
+    private PersistentCache gradleImplDepsCache;
     private RelocatedJarCreator relocatedJarCreator;
-    private PersistentCache cache;
-    private final Lock lock = new ReentrantLock();
 
     public GradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
+        this.cacheRepository = cacheRepository;
         this.relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory);
         this.gradleVersion = gradleVersion;
-        cache = cacheRepository
-                .cache(CACHE_KEY)
-                .withDisplayName(CACHE_DISPLAY_NAME)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
     }
 
     public File getFile(Collection<File> classpath, String name) {
         if (VALID_JAR_NAMES.contains(name)) {
-            File implDepsJarFile = jarFile(cache, name);
-
-            if (!implDepsJarFile.exists()) {
-                lock.lock();
-
-                try {
-                    relocatedJarCreator.create(implDepsJarFile, classpath);
-                } finally {
-                    lock.unlock();
+            synchronized (lock) {
+                if (gradleImplDepsCache == null) {
+                    gradleImplDepsCache = cacheRepository.cache(CACHE_KEY).open();
                 }
-            }
 
-            LOGGER.debug("Using Gradle impl deps JAR file: {}", implDepsJarFile);
-            return implDepsJarFile;
+                File implDepsJarFile = jarFile(gradleImplDepsCache, name);
+
+                if (!implDepsJarFile.exists()) {
+                    relocatedJarCreator.create(implDepsJarFile, classpath);
+                }
+
+                LOGGER.debug("Using Gradle impl deps JAR file: {}", implDepsJarFile);
+                return implDepsJarFile;
+            }
         }
 
         LOGGER.warn("The provided name {} does not refer to a valid Gradle impl deps JAR", name);
@@ -76,15 +67,14 @@ public class GradleImplDepsProvider implements Closeable {
     }
 
     public void close() {
-        lock.lock();
-
-        try {
-            if (cache != null) {
-                cache.close();
+        synchronized (lock) {
+            try {
+                if (gradleImplDepsCache != null) {
+                    gradleImplDepsCache.close();
+                }
+            } finally {
+                gradleImplDepsCache = null;
             }
-        } finally {
-            cache = null;
-            lock.unlock();
         }
     }
 
