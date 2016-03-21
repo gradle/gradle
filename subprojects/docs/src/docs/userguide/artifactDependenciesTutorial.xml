@@ -157,7 +157,11 @@
         <sample id="defineMavenCentral" dir="userguide/artifacts/defineRepository" title="Usage of Maven central repository">
             <sourcefile file="build.gradle" snippet="maven-central"/>
         </sample>
-        <para>Or a remote Maven repository:</para>
+        <para>Or Bintray's JCenter:</para>
+        <sample id="defineJCenter" dir="userguide/artifacts/defineRepository" title="Usage of Jcenter repository">
+            <sourcefile file="build.gradle" snippet="maven-jcenter"/>
+        </sample>
+        <para>Or a any other remote Maven repository:</para>
         <sample id="defineRemoteMavenRepo" dir="userguide/artifacts/defineRepository" title="Usage of a remote Maven repository">
             <sourcefile file="build.gradle" snippet="maven-like-repo"/>
         </sample>
