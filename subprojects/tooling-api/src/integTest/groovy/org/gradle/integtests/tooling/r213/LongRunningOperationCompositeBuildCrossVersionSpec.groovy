@@ -25,7 +25,9 @@ import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
+import spock.lang.Ignore
 
+@Ignore("not implemented for daemon coordinator")
 class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     def escapeHeader = "\u001b["
