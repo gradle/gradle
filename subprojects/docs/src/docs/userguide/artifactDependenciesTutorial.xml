@@ -158,7 +158,7 @@
             <sourcefile file="build.gradle" snippet="maven-central"/>
         </sample>
         <para>Or Bintray's JCenter:</para>
-        <sample id="defineJCenter" dir="userguide/artifacts/defineRepository" title="Usage of Jcenter repository">
+        <sample id="defineJCenter" dir="userguide/artifacts/defineRepository" title="Usage of JCenter repository">
             <sourcefile file="build.gradle" snippet="maven-jcenter"/>
         </sample>
         <para>Or a any other remote Maven repository:</para>
