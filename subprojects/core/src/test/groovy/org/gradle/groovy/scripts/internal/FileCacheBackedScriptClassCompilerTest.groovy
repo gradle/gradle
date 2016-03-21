@@ -95,11 +95,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId') >> globalCacheBuilder
-        1 * globalCacheBuilder.withProperties(!null) >> { args ->
-            assert args[0].get('classpath.hash') == 'key'
-            globalCacheBuilder
-        }
+        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
@@ -151,11 +147,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId') >> globalCacheBuilder
-        1 * globalCacheBuilder.withProperties(!null) >> { args ->
-            assert args[0].get('classpath.hash') == 'key'
-            globalCacheBuilder
-        }
+        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> { args ->
             globalInitializer = args[0]

@@ -36,8 +36,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -72,10 +70,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        final String hash = hashFor(source);
-        final String cacheKey = operation.getCacheKey();
-        final Map<String, Object> cacheProperties = createCacheProperties(cacheKey);
-
+        final String sourceHash = hashFor(source);
+        final String classpathHash = operation.getCacheKey();
         final String dslId = operation.getId();
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
@@ -85,10 +81,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), hash, cacheKey))
-            .withDisplayName(String.format("%s remapped class cache for %s", dslId, hash))
+        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), sourceHash, classpathHash))
+            .withDisplayName(String.format("%s remapped class cache for %s", dslId, sourceHash))
             .withValidator(validator)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, hash, dslId, cacheProperties, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local build cache"))
             .open();
@@ -98,10 +94,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
-    }
-
-    private Map<String, Object> createCacheProperties(String hash) {
-        return Collections.<String, Object>singletonMap("classpath.hash", hash);
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
@@ -316,9 +308,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private class RemapBuildScriptsAction<M, T extends Script> implements Action<PersistentCache> {
-        private final String hash;
+        private final String classpathHash;
+        private final String sourceHash;
         private final String dslId;
-        private final Map<String, Object> cacheProperties;
         private final ScriptSource source;
         private final RemappingScriptSource remapped;
         private final ClassLoader classLoader;
@@ -326,10 +318,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Action<? super ClassNode> verifier;
         private final Class<T> scriptBaseClass;
 
-        public RemapBuildScriptsAction(RemappingScriptSource remapped, String hash, String dslId, Map<String, Object> cacheProperties, ClassLoader classLoader, CompileOperation<M> operation, Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
-            this.hash = hash;
+        public RemapBuildScriptsAction(RemappingScriptSource remapped, String classpathHash, String sourceHash, String dslId, ClassLoader classLoader, CompileOperation<M> operation, Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
+            this.classpathHash = classpathHash;
+            this.sourceHash = sourceHash;
             this.dslId = dslId;
-            this.cacheProperties = cacheProperties;
             this.remapped = remapped;
             this.source = remapped.getSource();
             this.classLoader = classLoader;
@@ -339,8 +331,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         public void execute(final PersistentCache remappedClassesCache) {
-            final PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s", hash, dslId))
-                .withProperties(cacheProperties)
+            final PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s/%s", sourceHash, dslId, classpathHash))
                 .withValidator(validator)
                 .withDisplayName(String.format("%s generic class cache for %s", dslId, source.getDisplayName()))
                 .withInitializer(new ProgressReportingInitializer(
