@@ -24,7 +24,10 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.process.ArgWriter;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
@@ -39,21 +42,20 @@ import java.util.*;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                            jvm bootstrap
- *                                 |
- *                +----------------+--------------+
- *                |                               |
- *            jvm system                     infrastructure
- *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
- *                |                   (ImplementationClassLoaderWorker)
- *                |                               |
- *             filter                          filter
- *        (shared packages)                  (logging)
- *                |                               |
- *                +---------------+---------------+
- *                                |
- *                          implementation
- *         (ActionExecutionWorker + worker action implementation)
+ *                       jvm bootstrap
+ *                             |
+ *                             |
+ *                        jvm system
+ *           (GradleWorkerMain, application classes)
+ *                             |
+ *                             |
+ *                          filter
+ *                    (shared packages)
+ *                             |
+ *                             |
+ *                       implementation
+ *          (SystemApplicationClassLoaderWorker, logging)
+ *     (ActionExecutionWorker + worker action implementation)
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
@@ -68,7 +70,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     @Override
     public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
-        Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
@@ -85,12 +86,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             List<String> jvmArgs = writeOptionsFile(workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
             execSpec.jvmArgs(jvmArgs);
         } else {
-            // Use a dummy security manager
+            // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
             execSpec.classpath(workerMainClassPath.getAsFiles());
             execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
         }
-
-        ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress, processBuilder.getGradleUserHomeDir());
 
         // Serialize configuration for the worker process to it stdin
 
@@ -107,14 +106,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
             }
 
-            // Serialize the infrastructure classpath, this is consumed by GradleWorkerMain
-            outstr.writeInt(workerClassPath.size());
-            for (URL entry : workerClassPath) {
-                outstr.writeUTF(entry.toString());
-            }
-
-            // Serialize the worker configuration, this is consumed by GradleWorkerMain
-            outstr.writeInt(logLevel.ordinal());
+            // Serialize the shared packages, this is consumed by GradleWorkerMain
             outstr.writeInt(sharedPackages.size());
             for (String str : sharedPackages) {
                 outstr.writeUTF(str);
@@ -126,16 +118,22 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 outstr.writeUTF(entry.toString());
             }
 
-            // Serialize the worker, this is consumed by GradleWorkerMain
-            byte[] serializedWorker = GUtil.serialize(worker);
-            outstr.writeInt(serializedWorker.length);
-            outstr.write(serializedWorker);
+            // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
+            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
+            encoder.writeSmallInt(logLevel.ordinal());
+            new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
 
-            outstr.flush();
+            // Serialize the worker, this is consumed by SystemApplicationClassLoaderWorker
+            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, processBuilder.getGradleUserHomeDir());
+            byte[] serializedWorker = GUtil.serialize(worker);
+            encoder.writeBinary(serializedWorker);
+
+            encoder.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
+        byte[] encodedConfig = bytes.toByteArray();
+        execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
     }
 
     private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {

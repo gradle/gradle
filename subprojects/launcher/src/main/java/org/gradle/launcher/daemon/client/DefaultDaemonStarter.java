@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -25,6 +24,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
@@ -34,7 +35,6 @@ import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.util.Clock;
@@ -46,6 +46,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class DefaultDaemonStarter implements DaemonStarter {
 
@@ -66,23 +67,23 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     public DaemonStartupInfo startDaemon() {
-        // Ensure we have a unique UID any time we start a new daemon
-        daemonParameters.resetUid();
+        String daemonUid = UUID.randomUUID().toString();
 
-        ModuleRegistry registry = new DefaultModuleRegistry();
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
         ClassPath classpath;
         List<File> searchClassPath;
-        if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
-            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
-            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
-            searchClassPath = Collections.emptyList();
-        } else {
+        if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
             classpath = new DefaultClassPath();
             for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
             searchClassPath = registry.getAdditionalClassPath().getAsFiles();
+        } else {
+            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
+            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
+            searchClassPath = Collections.emptyList();
         }
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
@@ -115,7 +116,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
-            encoder.writeString(daemonParameters.getUid());
+            encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);
@@ -146,10 +147,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             handle.start();
             LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
-            ExecResult result = handle.waitForFinish();
+            handle.waitForFinish();
             LOGGER.debug("Gradle daemon process is now detached.");
 
-            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), result);
+            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput());
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

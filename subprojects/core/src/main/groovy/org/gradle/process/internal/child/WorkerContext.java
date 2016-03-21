@@ -16,6 +16,9 @@
 
 package org.gradle.process.internal.child;
 
+import org.gradle.messaging.remote.ObjectConnection;
+
 public interface WorkerContext {
     ClassLoader getApplicationClassLoader();
+    ObjectConnection getServerConnection();
 }

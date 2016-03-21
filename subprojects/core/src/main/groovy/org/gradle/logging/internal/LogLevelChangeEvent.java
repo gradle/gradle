@@ -17,6 +17,9 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
+/**
+ * Notifies output consumers that the log level has changed. Consumers will not receive any further events at a lesser log level.
+ */
 public class LogLevelChangeEvent extends OutputEvent {
     private final LogLevel newLogLevel;
 

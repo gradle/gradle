@@ -16,7 +16,7 @@
 
 package org.gradle.internal.progress;
 
-class PercentageProgressFormatter implements ProgressFormatter {
+public class PercentageProgressFormatter implements ProgressFormatter {
     private int current;
     private int total;
     private String prefix;

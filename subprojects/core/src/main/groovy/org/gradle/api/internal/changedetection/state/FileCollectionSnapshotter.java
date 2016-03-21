@@ -35,7 +35,8 @@ public interface FileCollectionSnapshotter {
      * Creates a snapshot of the contents of the given collection
      *
      * @param files The files to snapshot
+     * @param allowReuse When true, can use cached snapshot trees
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files);
+    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse);
 }

@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildController;
  * from an instance of {@link org.gradle.tooling.BuildAction}.
  * Used by consumer connections 1.8+.
  */
-class InternalBuildActionAdapter<T> implements InternalBuildAction<T> {
+public class InternalBuildActionAdapter<T> implements InternalBuildAction<T> {
     private final BuildAction<T> action;
     private final ProtocolToModelAdapter adapter;
 

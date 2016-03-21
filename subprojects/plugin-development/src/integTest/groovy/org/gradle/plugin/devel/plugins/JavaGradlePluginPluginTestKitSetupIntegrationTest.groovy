@@ -17,12 +17,17 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.GUtil
 
+import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
+import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.METADATA_FILE_NAME
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
 class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PLUGIN_CLASSPATH_TASK_PATH = ":$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME"
+    private static final String PLUGIN_UNDER_TEST_METADATA_TASK_PATH = ":$PLUGIN_UNDER_TEST_METADATA_TASK_NAME"
 
     def setup() {
         buildFile << """
@@ -30,16 +35,19 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    def "configures functional testing by conventions"() {
+    def "wires creation of plugin under test metadata into build lifecycle"() {
+        given:
+        def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('compile', module)
+
         when:
         succeeds 'build'
 
         then:
-        result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-classpath.txt")
-        classpathManifest.exists() && classpathManifest.isFile()
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/main').absolutePath))
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/main').absolutePath))
+        executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
+        def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
+        def expectedClasspath = [file('build/classes/main'), file('build/resources/main'), module.artifactFile]
+        assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
     def "can configure plugin and test source set by extension"() {
@@ -48,7 +56,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             sourceSets.remove(sourceSets.main)
 
             sourceSets {
-                customMain {
+                custom {
                     java {
                         srcDir 'src'
                     }
@@ -74,22 +82,42 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
 
             check.dependsOn functionalTest
 
-            javaGradlePlugin {
-                functionalTestClasspath {
-                    pluginSourceSet sourceSets.customMain
-                    testSourceSets sourceSets.functionalTest
-                }
+            gradlePlugin {
+                pluginSourceSet sourceSets.custom
+                testSourceSets sourceSets.functionalTest
             }
         """
+        def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
+        buildFile << compileDependency('customCompile', module)
 
         when:
         succeeds 'build'
 
         then:
-        result.executedTasks.contains(PLUGIN_CLASSPATH_TASK_PATH)
-        File classpathManifest = file("build/$JavaGradlePluginPlugin.PLUGIN_CLASSPATH_TASK_NAME/plugin-classpath.txt")
-        classpathManifest.exists() && classpathManifest.isFile()
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/classes/customMain').absolutePath))
-        classpathManifest.text.contains(normaliseFileAndLineSeparators(file('build/resources/customMain').absolutePath))
+        executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
+        def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
+        def expectedClasspath = [file('build/classes/custom'), file('build/resources/custom'), module.artifactFile]
+        assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
+    }
+
+    private String compileDependency(String configurationName, MavenModule module) {
+        """
+            repositories {
+                maven { url "$mavenRepo.uri" }
+            }
+
+            dependencies {
+                $configurationName '$module.groupId:$module.artifactId:$module.version'
+            }
+        """
+    }
+
+    static void assertHasImplementationClasspath(File pluginMetadata, List<File> expected) {
+        assert pluginMetadata.exists() && pluginMetadata.isFile()
+        assert !pluginMetadata.text.contains("#")
+        def implementationClasspath = GUtil.loadProperties(pluginMetadata).getProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY)
+        assert !implementationClasspath.contains("\\")
+        def expectedEntries = normaliseFileAndLineSeparators(expected.collect { it.absolutePath }.join(File.pathSeparator))
+        assert implementationClasspath == expectedEntries
     }
 }

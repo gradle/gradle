@@ -20,7 +20,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.util.GradleVersion;
+import org.gradle.util.GradleVersion
 
 @CompileStatic
 class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
@@ -36,7 +36,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            ((GradleInvocationSpec.InvocationBuilder)builder.invocation).distribution(gradleDistribution)
+            ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
         }
     }
 
@@ -58,7 +58,13 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
             invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
             if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
-                invocation.args.add("-Dmaven.repo.local=\"${m2.mavenRepo().rootDir.absolutePath}\"".toString())
+                def localRepoPath = m2.mavenRepo().rootDir.absolutePath
+                if (OperatingSystem.current().isWindows()) {
+                    localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
+                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
+                } else {
+                    invocation.args.add("-Dmaven.repo.local=\"${localRepoPath}\"".toString())
+                }
             }
             if (!invocation.mavenHome) {
                 def home = System.getProperty("MAVEN_HOME")

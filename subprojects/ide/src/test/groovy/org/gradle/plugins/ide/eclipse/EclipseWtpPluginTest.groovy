@@ -66,7 +66,7 @@ class EclipseWtpPluginTest extends Specification {
         [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
             assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
         checkEclipseWtpComponentForJava()
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, 'jst.java', null),
@@ -84,7 +84,7 @@ class EclipseWtpPluginTest extends Specification {
         [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
             assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
         checkEclipseWtpComponentForJava()
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, 'jst.java', null),
@@ -123,7 +123,7 @@ class EclipseWtpPluginTest extends Specification {
             assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
 
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
         checkEclipseWtpComponentForWar()
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, "jst.java", null),
@@ -143,7 +143,7 @@ class EclipseWtpPluginTest extends Specification {
             assert project.tasks.cleanEclipseWtp.dependsOn.contains(it)
         }
 
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
         checkEclipseWtpComponentForWar()
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, "jst.java", null),
@@ -217,7 +217,7 @@ class EclipseWtpPluginTest extends Specification {
         }
 
         if (plugs.contains('java')) {
-            checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileOnly, project.configurations.testCompileOnly])
+            checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
             checkEclipseWtpComponentForEar(project.sourceSets.main.allSource.srcDirs)
         } else {
             checkEclipseClasspath([])

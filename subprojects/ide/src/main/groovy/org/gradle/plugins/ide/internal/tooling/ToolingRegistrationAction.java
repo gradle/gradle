@@ -37,5 +37,6 @@ public class ToolingRegistrationAction implements ProjectConfigureAction {
         modelBuilderRegistry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
         modelBuilderRegistry.register(new BuildInvocationsBuilder(taskLister));
         modelBuilderRegistry.register(new PublicationsBuilder(projectPublicationRegistry));
+        modelBuilderRegistry.register(new BuildEnvironmentBuilder());
     }
 }

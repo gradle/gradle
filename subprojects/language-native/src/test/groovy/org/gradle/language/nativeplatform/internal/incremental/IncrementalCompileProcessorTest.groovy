@@ -49,7 +49,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def setup() {
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(file).asByteArray()
+                getHash() >> HashUtil.sha1(file)
             }
         }
 

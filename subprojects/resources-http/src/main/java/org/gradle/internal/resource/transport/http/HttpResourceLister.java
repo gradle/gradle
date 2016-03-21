@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
@@ -51,7 +52,7 @@ public class HttpResourceLister implements ExternalResourceLister {
                 response.close();
             }
         } catch (IOException e) {
-            throw ResourceException.getFailed(directory, e);
+            throw ResourceExceptions.getFailed(directory, e);
         }
     }
 }

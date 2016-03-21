@@ -20,9 +20,11 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
@@ -30,8 +32,11 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +53,7 @@ public class AntGroovydoc {
         this.ant = ant;
     }
 
-    public void execute(final FileCollection source, File destDir, boolean use, String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate, final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
+    public void execute(final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp, String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate, final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
 
         final File tmpDir = new File(project.getBuildDir(), "tmp/groovydoc");
         FileOperations fileOperations = (ProjectInternal) project;
@@ -59,10 +64,21 @@ public class AntGroovydoc {
             }
         });
 
+        List<File> combinedClasspath = ImmutableList.<File>builder()
+            .addAll(classpath)
+            .addAll(groovyClasspath)
+            .build();
+
+        VersionNumber version = VersionNumber.parse(getGroovyVersion(combinedClasspath));
+
         final Map<String, Object> args = Maps.newLinkedHashMap();
         args.put("sourcepath", tmpDir.toString());
         args.put("destdir", destDir);
         args.put("use", use);
+        if (isAtLeast(version, "2.4.6")) {
+            args.put("noTimestamp", noTimestamp);
+            args.put("noVersionStamp", noVersionStamp);
+        }
         args.put("private", includePrivate);
         putIfNotNull(args, "windowtitle", windowTitle);
         putIfNotNull(args, "doctitle", docTitle);
@@ -70,11 +86,48 @@ public class AntGroovydoc {
         putIfNotNull(args, "footer", footer);
         putIfNotNull(args, "overview", overview);
 
-        List<File> combinedClasspath = ImmutableList.<File>builder()
-                .addAll(classpath)
-                .addAll(groovyClasspath)
-                .build();
+        invokeGroovydoc(links, combinedClasspath, args);
+    }
 
+    private boolean isAtLeast(VersionNumber version, String versionString) {
+        return version.compareTo(VersionNumber.parse(versionString)) >= 0;
+    }
+
+    private String getGroovyVersion(List<File> combinedClasspath) {
+        File temp;
+        final String tempPath;
+        try {
+            temp = File.createTempFile("temp", "");
+            String p = temp.getCanonicalPath();
+            tempPath = File.separatorChar == '/' ? p : p.replace(File.separatorChar, '/');
+            temp.deleteOnExit();
+        } catch (IOException e) {
+            throw new GradleException("Unable to create temp file needed for Groovydoc", e);
+        }
+
+        ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
+            @SuppressWarnings("UnusedDeclaration")
+            public Object doCall(Object it) {
+                final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
+
+                antBuilder.invokeMethod("taskdef", ImmutableMap.of(
+                    "name", "groovy",
+                    "classname", "org.codehaus.groovy.ant.Groovy"
+                ));
+
+                antBuilder.invokeMethod("groovy", new Object[]{"new File('"+ tempPath + "').text = GroovySystem.version"});
+
+                return null;
+            }
+        });
+        try {
+            return Files.toString(temp, Charset.defaultCharset()).trim();
+        } catch (IOException e) {
+            throw new GradleException("Unable to find Groovy version needed for Groovydoc", e);
+        }
+    }
+
+    private void invokeGroovydoc(final Set<Groovydoc.Link> links, List<File> combinedClasspath, final Map<String, Object> args) {
         ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
             public Object doCall(Object it) {

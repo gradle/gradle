@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class FixedStepsPathMatcherTest extends Specification {
     def "calculates min and max number of segments"() {
@@ -44,74 +43,62 @@ class FixedStepsPathMatcherTest extends Specification {
         matcher.maxSegments == Integer.MAX_VALUE
     }
 
-    @Unroll
-    def "matches path that is appropriate length and matches every step and the next pattern when isFile:#isFile"() {
+    def "matches path that is appropriate length and matches every step and the next pattern"() {
         def matcher = new FixedStepsPathMatcher([step("a"), step("b")], matchesLastOrSecondLast("c"))
 
         expect:
-        !matcher.matches(["a"] as String[], 0, isFile)
-        !matcher.matches(["a", "b"] as String[], 0, isFile)
-        !matcher.matches(["a", "b", "c"] as String[], 1, isFile)
-        !matcher.matches(["a", "b", "c", "d", "e"] as String[], 0, isFile)
-        !matcher.matches(["a", "b", "c", "d", "e", "f"] as String[], 1, isFile)
+        !matcher.matches(["a"] as String[], 0)
+        !matcher.matches(["a", "b"] as String[], 0)
+        !matcher.matches(["a", "b", "c"] as String[], 1)
+        !matcher.matches(["a", "b", "c", "d", "e"] as String[], 0)
+        !matcher.matches(["a", "b", "c", "d", "e", "f"] as String[], 1)
 
         and:
-        matcher.matches(["a", "b", "c"] as String[], 0, isFile)
-        matcher.matches(["a", "b", "c", "d"] as String[], 0, isFile)
-        matcher.matches(["prefix", "a", "b", "c"] as String[], 1, isFile)
+        matcher.matches(["a", "b", "c"] as String[], 0)
+        matcher.matches(["a", "b", "c", "d"] as String[], 0)
+        matcher.matches(["prefix", "a", "b", "c"] as String[], 1)
 
         and:
-        !matcher.matches(["other", "b", "c"] as String[], 0, isFile)
-        !matcher.matches(["a", "other", "c"] as String[], 0, isFile)
-        !matcher.matches(["a", "b", "other"] as String[], 0, isFile)
-        !matcher.matches(["prefix", "a", "b", "other"] as String[], 1,  isFile)
-
-        where:
-        isFile << [true, false]
+        !matcher.matches(["other", "b", "c"] as String[], 0)
+        !matcher.matches(["a", "other", "c"] as String[], 0)
+        !matcher.matches(["a", "b", "other"] as String[], 0)
+        !matcher.matches(["prefix", "a", "b", "other"] as String[], 1)
     }
 
-    @Unroll
-    def "path is a prefix when it matches the steps and is shorter than or equal to the number of steps when isFile:#isFile"() {
+    def "path is a prefix when it matches the steps and is shorter than or equal to the number of steps"() {
         def matcher = new FixedStepsPathMatcher([step("a"), step("b")], matchesLastOrSecondLast("c"))
 
         expect:
-        matcher.isPrefix(["a"] as String[], 0, isFile)
-        matcher.isPrefix(["a", "b"] as String[], 0, isFile)
-        matcher.isPrefix(["prefix", "a"] as String[], 1, isFile)
-        matcher.isPrefix(["prefix", "a", "b"] as String[], 1, isFile)
-        !matcher.isPrefix(["a", "other"] as String[], 0, isFile)
-        !matcher.isPrefix(["other", "b"] as String[], 0, isFile)
-        !matcher.isPrefix(["other"] as String[], 0, isFile)
-        !matcher.isPrefix(["prefix", "a", "other"] as String[], 1, isFile)
-
-        where:
-        isFile << [true, false]
+        matcher.isPrefix(["a"] as String[], 0)
+        matcher.isPrefix(["a", "b"] as String[], 0)
+        matcher.isPrefix(["prefix", "a"] as String[], 1)
+        matcher.isPrefix(["prefix", "a", "b"] as String[], 1)
+        !matcher.isPrefix(["a", "other"] as String[], 0)
+        !matcher.isPrefix(["other", "b"] as String[], 0)
+        !matcher.isPrefix(["other"] as String[], 0)
+        !matcher.isPrefix(["prefix", "a", "other"] as String[], 1)
     }
 
-    @Unroll
-    def "path is a prefix when it matches the steps and is a prefix of next pattern when isFile:#isFile"() {
+    def "path is a prefix when it matches the steps and is a prefix of next pattern"() {
         def matcher = new FixedStepsPathMatcher([step("a"), step("b")], matchesLastOrSecondLast("c"))
 
         expect:
-        matcher.isPrefix(["a", "b", "c"] as String[], 0, isFile)
-        matcher.isPrefix(["a", "b", "c", "d"] as String[], 0, isFile)
-        matcher.isPrefix(["prefix", "a", "b", "c", "d"] as String[], 1, isFile)
-        !matcher.isPrefix(["other", "b", "c"] as String[], 0, isFile)
-        !matcher.isPrefix(["a", "other", "c"] as String[], 0, isFile)
-        !matcher.isPrefix(["a", "b", "other"] as String[], 0, isFile)
-
-        where:
-        isFile << [true, false]
+        matcher.isPrefix(["a", "b", "c"] as String[], 0)
+        matcher.isPrefix(["a", "b", "c", "d"] as String[], 0)
+        matcher.isPrefix(["prefix", "a", "b", "c", "d"] as String[], 1)
+        !matcher.isPrefix(["other", "b", "c"] as String[], 0)
+        !matcher.isPrefix(["a", "other", "c"] as String[], 0)
+        !matcher.isPrefix(["a", "b", "other"] as String[], 0)
     }
 
     def matchesLastOrSecondLast(String value) {
         return Stub(PathMatcher) {
             getMinSegments() >> 1
             getMaxSegments() >> 2
-            matches(_, _,_) >> { String[] segments, int index, boolean isFile ->
+            matches(_, _) >> { String[] segments, int index ->
                 return segments[index] == value && segments.length - index <= 2
             }
-            isPrefix(_, _,_) >> { String[] segments, int index, boolean isFile ->
+            isPrefix(_, _) >> { String[] segments, int index ->
                 return segments[index] == value;
             }
         }
@@ -119,7 +106,7 @@ class FixedStepsPathMatcherTest extends Specification {
 
     def step(String value) {
         return Stub(PatternStep) {
-            matches(value, _) >> true
+            matches(value) >> true
         }
     }
 }

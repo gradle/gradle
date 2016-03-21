@@ -1,0 +1,22 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.1'
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2.2'
+    testCompile 'junit:junit:4.12'
+}
+
+// START SNIPPET force-compilation
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        force = true
+    }
+}
+// END SNIPPET force-compilation

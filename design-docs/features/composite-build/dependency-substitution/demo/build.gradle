@@ -1,6 +1,37 @@
-import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
+
+task printModel << {
+    def builder = GradleConnector.newGradleConnectionBuilder()
+    rootProjectDirectories().each {
+        println "Adding project $it.absolutePath to composite"
+        def participant = GradleConnector.newGradleBuildBuilder().forProjectDirectory(it).useInstallation(gradle.gradleHomeDir).create()
+        builder.addBuild(participant)
+    }
+    def connection = builder.build()
+
+    def eclipseProjects = connection.getModels(EclipseProject).collect { it.model }
+    def rootProjects = eclipseProjects.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
+    rootProjects.each { rootProject ->
+        renderEclipseProject("", rootProject)
+    }
+
+    def gradleProjects = connection.getModels(GradleProject).collect { it.model }
+    gradleProjects.each { gradleProject ->
+        println "GradleProject: " + gradleProject.path
+    }
+
+    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications)
+    publicationResults.each { publicationResult ->
+        println "Pubs: " + publicationResult.projectIdentity + " :: " + publicationResult.model.publications*.id
+    }
+
+    def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }
+    buildEnvironments.each { env ->
+        println "Env: gradleVersion=${env.gradle.gradleVersion}, javaHome=${env.java.javaHome}"
+    }
+}
 
 def rootProjectDirectories() {
     file("demo.composite").readLines().collect { new File(it) }
@@ -13,26 +44,22 @@ def findRootProject(project) {
     return project
 }
 
-def renderProject(indent, project) {
-    renderProjectSummary(indent, project)    
-    renderDependencies(indent, project)
-    project.children.each { child ->
-        renderProject(indent + " ", child)
+def renderEclipseProject(indent, eclipseProject) {
+    renderEclipseProjectSummary(indent, eclipseProject)
+    renderEclipseProjectDependencies(indent, eclipseProject)
+    eclipseProject.children.each { child ->
+        renderEclipseProject(indent + " ", child)
     }
 }
 
-def renderProjectSummary(indent, project) {
-    def rootProject = findRootProject(project)
-    def gradleProject = project.gradleProject
+def renderEclipseProjectSummary(indent, eclipseProject) {
+    def rootProject = findRootProject(eclipseProject)
+    def gradleProject = eclipseProject.gradleProject
     def participantDir = rootProject.gradleProject.projectDirectory.absolutePath - file("projects").absolutePath - "/"
     println "${indent}${participantDir}:${gradleProject.path} (${gradleProject.name})"
 }
 
-def renderDependency(indent, dependency) {
-    println "${indent}> depends on ${dependency}"
-}
-
-def renderDependencies(indent, project) {
+def renderEclipseProjectDependencies(indent, project) {
     project.classpath.each { externalDependency ->
         def module = externalDependency.gradleModuleVersion
         if (module!=null) {
@@ -46,20 +73,8 @@ def renderDependencies(indent, project) {
     }
 }
 
-task printModel << {
-    def builder = GradleConnector.newGradleConnectionBuilder()
-    builder.embeddedCoordinator = true
-    rootProjectDirectories().each {
-        println "Adding project $it.absolutePath to composite"
-        builder.addBuild(it, gradle.gradleHomeDir)
-    }
-    def connection = builder.build()
-    def models = connection.getModels(EclipseProject)
-
-    def rootProjects = models.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
-    rootProjects.each { rootProject ->
-        renderProject("", rootProject)
-    }
+def renderDependency(indent, dependency) {
+    println "${indent}> depends on ${dependency}"
 }
 
 defaultTasks = [ "printModel" ]

@@ -38,6 +38,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
+    private boolean hasConsole;
 
     public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem,
                                  LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
@@ -78,6 +79,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
             for (OutputEventListener listener : outputEventListeners) {
                 loggingOutput.removeOutputEventListener(listener);
+            }
+            if (hasConsole) {
+                loggingOutput.flush();
             }
         } finally {
             started = false;
@@ -168,16 +172,19 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         }
     }
 
-    public void removeAllOutputEventListeners() {
-        loggingOutput.removeAllOutputEventListeners();
-    }
-
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
+        hasConsole = true;
         loggingOutput.attachProcessConsole(consoleOutput);
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {
+        hasConsole = true;
         loggingOutput.attachAnsiConsole(outputStream);
+    }
+
+    @Override
+    public void flush() {
+        throw new UnsupportedOperationException();
     }
 
     public void attachSystemOutAndErr() {

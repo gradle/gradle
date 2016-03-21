@@ -435,8 +435,16 @@ tasks.withType(RunTestExecutable) {
         useStandardConfig()
         buildFile << """
 model {
+    components {
+        unbuildable(NativeLibrarySpec)
+    }
+    testSuites {
+        unbuildableTest(GoogleTestTestSuiteSpec) {
+            testing \$.components.unbuildable
+        }
+    }
     binaries {
-        helloTestGoogleTestExe {
+        unbuildableTestGoogleTestExe {
             buildable = false
         }
     }
@@ -447,7 +455,8 @@ model {
         run "check"
 
         then:
-        skipped(':check')
+        notExecuted ":runUnbuildableTestGoogleTestExe"
+        executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
     private useConventionalSourceLocations() {

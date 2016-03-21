@@ -133,18 +133,4 @@ class DaemonParametersTest extends Specification {
         then:
         parametersWithDisabledDaemon.daemonUsage == DaemonUsage.EXPLICITLY_DISABLED
     }
-
-    def "can reset daemon uid" () {
-        when:
-        def origUid = parameters.getUid()
-
-        then:
-        parameters.getUid() == origUid
-
-        when:
-        parameters.resetUid()
-
-        then:
-        parameters.getUid() != origUid
-    }
 }

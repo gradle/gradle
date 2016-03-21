@@ -31,7 +31,7 @@ public abstract class AbstractUriScriptSource implements ScriptSource {
      */
     public String getClassName() {
         if (className == null) {
-            URI sourceUri = getResource().getURI();
+            URI sourceUri = getResource().getLocation().getURI();
             String name = StringUtils.substringBeforeLast(StringUtils.substringAfterLast(sourceUri.toString(), "/"), ".");
             StringBuilder className = new StringBuilder(name.length());
             for (int i = 0; i < name.length(); i++) {

@@ -31,7 +31,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
     }
 
     public void execute(ProjectInternal project) {
-        LOGGER.info(String.format("Evaluating %s using %s.", project, project.getBuildScriptSource().getDisplayName()));
+        LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
         Clock clock = new Clock();
         try {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);

@@ -15,18 +15,21 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.composite.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
-
 /**
  * Tests cancellation of model requests in a composite build.
  */
+@TargetGradleVersion(">=2.1")
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
@@ -84,7 +87,9 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }
 
         then:
-        resultHandler.result instanceof BuildCancelledException
+        resultHandler.result.size() == 3
+        // overall operation "succeeded"
+        resultHandler.failure == null
         // participant should be properly cancelled
         participantCancelledFile.exists()
         // no new builds should have been executed after cancelling
@@ -115,13 +120,15 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }
 
         then:
-        resultHandler.result instanceof BuildCancelledException
+        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.result == null
         !executedAfterCancellingFile.exists()
     }
 
 
     static class ResultCollector implements ResultHandler {
-        def result
+        ModelResults result
+        GradleConnectionException failure
 
         @Override
         void onComplete(Object result) {
@@ -130,7 +137,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         @Override
         void onFailure(GradleConnectionException failure) {
-            this.result = failure
+            this.failure = failure
         }
     }
 }

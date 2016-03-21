@@ -17,46 +17,37 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class HasPrefixPatternStepTest extends Specification {
-    @Unroll
-    def "matches name case sensitive when isFile is #isFile"() {
+    def "matches name case sensitive"() {
         def step = new HasPrefixPatternStep(".abc", true)
 
         expect:
-        step.matches(".abcd", isFile)
-        step.matches(".abc", isFile)
-        !step.matches(".", isFile)
-        !step.matches(".a", isFile)
-        !step.matches(".ab", isFile)
-        !step.matches(".b", isFile)
-        !step.matches(".bcd", isFile)
-        !step.matches("_abc", isFile)
-        !step.matches("", isFile)
-        !step.matches("something else", isFile)
-
-        where:
-        isFile << [true, false]
+        step.matches(".abcd")
+        step.matches(".abc")
+        !step.matches(".")
+        !step.matches(".a")
+        !step.matches(".ab")
+        !step.matches(".b")
+        !step.matches(".bcd")
+        !step.matches("_abc")
+        !step.matches("")
+        !step.matches("something else")
     }
 
-    @Unroll
-    def "matches name case insensitive when isFile is #isFile"() {
+    def "matches name case insensitive"() {
         def step = new HasPrefixPatternStep(".abc", false)
 
         expect:
-        step.matches(".abc", isFile)
-        step.matches(".ABC", isFile)
-        step.matches(".Abc", isFile)
-        step.matches(".aBCD", isFile)
-        !step.matches(".A", isFile)
-        !step.matches(".Ab", isFile)
-        !step.matches(".BCD", isFile)
-        !step.matches("ABC", isFile)
-        !step.matches("", isFile)
-        !step.matches("something else", isFile)
-
-        where:
-        isFile << [true, false]
+        step.matches(".abc")
+        step.matches(".ABC")
+        step.matches(".Abc")
+        step.matches(".aBCD")
+        !step.matches(".A")
+        !step.matches(".Ab")
+        !step.matches(".BCD")
+        !step.matches("ABC")
+        !step.matches("")
+        !step.matches("something else")
     }
 }

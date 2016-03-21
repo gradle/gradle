@@ -31,9 +31,8 @@
     <para>
         The plugin also integrates with <link linkend="test_kit">TestKit</link>, a library that aids in writing and executing functional
         tests for plugin code. It automatically adds the <literal>gradleTestKit()</literal> dependency to the test compile configuration
-        and generates a plugin classpath manifest file consumed by a <literal>GradleRunner</literal> instance if found. Please refer to the
-        relevant <link linkend="test_kit#sub:test-kit-automatic-classpath-injection">information in the user guide</link> for more usage,
-        configuration options and samples.
+        and generates a plugin classpath manifest file consumed by a <literal>GradleRunner</literal> instance if found. Please refer to
+        <xref linkend="sub:test-kit-automatic-classpath-injection"/> for more on its usage, configuration options and samples.
     </para>
 
     <section>

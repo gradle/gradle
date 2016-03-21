@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 import java.io.Reader;
@@ -33,6 +34,7 @@ import java.io.Reader;
  * @since 2.2
  */
 @Incubating
+@HasInternalProtocol
 public interface TextResource extends Buildable {
     /**
      * Returns a string containing the resource's text
@@ -42,9 +44,9 @@ public interface TextResource extends Buildable {
     String asString();
 
     /**
-     * Returns a reader that allows to read the resource's text.
+     * Returns an unbuffered {@link Reader} that allows the resource's text to be read. The caller is responsible for closing the reader.
      *
-     * @return a reader that allows to read the resource's text
+     * @return a reader that allows the resource's text to be read.
      */
     Reader asReader();
 

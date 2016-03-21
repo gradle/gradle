@@ -30,9 +30,10 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
 import org.gradle.internal.Actions;
-import org.gradle.internal.id.LongIdGenerator;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnectionBuilder;
 import org.gradle.messaging.remote.internal.MessagingServices;
@@ -50,6 +51,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -66,7 +68,7 @@ import static org.junit.Assert.*;
 public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
-    private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
+    private final MessagingServices messagingServices = new MessagingServices();
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -74,7 +76,7 @@ public class WorkerProcessIntegrationTest {
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
     private final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current());
     private final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory);
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), TestFiles.execHandleFactory(tmpDir.getTestDirectory()));
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
@@ -161,7 +163,13 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhichNeverConnects() throws Throwable {
-        execute(worker(new NoConnectRemoteProcess()).expectStartFailure());
+        workerFactory.setConnectTimeoutSeconds(3);
+        execute(worker(Actions.doNothing()).jvmArgs("-Dorg.gradle.worker.test.stuck").expectStartFailure());
+    }
+
+    @Test
+    public void handlesWorkerActionThatCannotBeDeserialized() throws Throwable {
+        execute(worker(new NotDeserializable()).expectStopFailure());
     }
 
     @Test
@@ -288,9 +296,9 @@ public class WorkerProcessIntegrationTest {
             ClassLoader thisClassLoader = getClass().getClassLoader();
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
 
-            assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
+            assertThat(antClassLoader, sameInstance(systemClassLoader));
             assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
-            assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
+            assertThat(thisClassLoader.getParent().getParent(), equalTo(systemClassLoader));
             try {
                 assertThat(thisClassLoader.loadClass(Project.class.getName()), sameInstance((Object) Project.class));
             } catch (ClassNotFoundException e) {
@@ -383,8 +391,18 @@ public class WorkerProcessIntegrationTest {
         }
     }
 
+    public static class NotDeserializable implements Action<WorkerProcessContext>, Serializable {
+        private void readObject(ObjectInputStream instr) throws IOException {
+            throw new IOException("Broken");
+        }
+
+        public void execute(WorkerProcessContext workerProcessContext) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     public interface TestListenerInterface {
-        public void send(String message, int count);
+        void send(String message, int count);
     }
 }
 

@@ -32,6 +32,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -48,6 +52,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private final FileWatcherListener delegate;
     private final Lock lock = new ReentrantLock(true);
     private final WatchPointsRegistry watchPointsRegistry = new WatchPointsRegistry(!FILE_TREE_WATCHING_SUPPORTED);
+    private final HashMap<Path, WatchKey> watchKeys = new HashMap<Path, WatchKey>();
 
     WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
@@ -58,7 +63,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         lock.lock();
         try {
             LOG.debug("Begin - adding watches for {}", fileSystemSubset);
-            final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset);
+            final WatchPointsRegistry.Delta delta = watchPointsRegistry.appendFileSystemSubset(fileSystemSubset, getCurrentWatchPoints());
             Iterable<? extends File> startingWatchPoints = delta.getStartingWatchPoints();
 
             for (File dir : startingWatchPoints) {
@@ -91,20 +96,47 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    protected void watchDir(Path dir) throws IOException {
+    private synchronized Iterable<File> getCurrentWatchPoints() {
+        List<File> currentWatchPoints = new LinkedList<File>();
+        for (Map.Entry<Path, WatchKey> entry : watchKeys.entrySet()) {
+            if (entry.getValue().isValid()) {
+                currentWatchPoints.add(entry.getKey().toFile());
+            }
+        }
+        return currentWatchPoints;
+    }
+
+    protected synchronized void watchDir(Path dir) throws IOException {
         LOG.debug("Registering watch for {}", dir);
         if (Thread.currentThread().isInterrupted()) {
             LOG.debug("Skipping adding watch since current thread is interrupted.");
         }
+
+        // check if directory is already watched
+        // on Windows, check if any parent is already watched
+        for (Path path = dir; path != null; path = FILE_TREE_WATCHING_SUPPORTED ? path.getParent() : null) {
+            WatchKey previousWatchKey = watchKeys.get(path);
+            if (previousWatchKey != null && previousWatchKey.isValid()) {
+                LOG.debug("Directory {} is already watched and the watch is valid, not adding another one.", path);
+                return;
+            }
+        }
+
         int retryCount = 0;
         IOException lastException = null;
         while (retryCount++ < 2) {
             try {
-                dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+                WatchKey watchKey = dir.register(watchService, WATCH_KINDS, WATCH_MODIFIERS);
+                watchKeys.put(dir, watchKey);
                 return;
             } catch (IOException e) {
                 LOG.debug("Exception in registering for watching of " + dir, e);
                 lastException = e;
+
+                if (e instanceof NoSuchFileException) {
+                    LOG.debug("Return silently since directory doesn't exist.");
+                    return;
+                }
 
                 if (e instanceof FileSystemException && e.getMessage() != null && e.getMessage().contains("Bad file descriptor")) {
                     // retry after getting "Bad file descriptor" exception
@@ -143,9 +175,9 @@ class WatchServiceRegistrar implements FileWatcherListener {
             File file = event.getFile();
             maybeFire(watcher, event);
 
-            if (!Thread.currentThread().isInterrupted() && watcher.isRunning() && file.isDirectory() && event.getType().equals(FileWatcherEvent.Type.CREATE)) {
+            if (event.getType().equals(FileWatcherEvent.Type.CREATE) && file.isDirectory()) {
                 try {
-                    newDirectory(watcher, file);
+                    maybeWatchNewDirectory(watcher, file);
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -180,11 +212,16 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    private void newDirectory(FileWatcher watcher, File dir) throws IOException {
-        if (!watcher.isRunning()) {
+    private void maybeWatchNewDirectory(FileWatcher watcher, File dir) throws IOException {
+        LOG.debug("Begin - maybeWatchNewDirectory {}", dir);
+        if (isStopRequested(watcher)) {
+            LOG.debug("Stop requested, returning.");
             return;
         }
-        LOG.debug("Begin - newDirectory {}", dir);
+        if (!watchPointsRegistry.shouldWatch(dir)) {
+            LOG.debug("Ignoring watching {}", dir);
+            return;
+        }
         if (dir.exists()) {
             if (!FILE_TREE_WATCHING_SUPPORTED) {
                 watchDir(dir.toPath());
@@ -192,18 +229,22 @@ class WatchServiceRegistrar implements FileWatcherListener {
             File[] contents = dir.listFiles();
             if (contents != null) {
                 for (File file : contents) {
-                    maybeFire(watcher, FileWatcherEvent.create(file));
-                    if (!watcher.isRunning()) {
+                    if (isStopRequested(watcher)) {
+                        LOG.debug("Stop requested, returning.");
                         return;
                     }
-
+                    maybeFire(watcher, FileWatcherEvent.create(file));
                     if (file.isDirectory()) {
-                        newDirectory(watcher, file);
+                        maybeWatchNewDirectory(watcher, file);
                     }
                 }
             }
         }
-        LOG.debug("End - newDirectory {}", dir);
+        LOG.debug("End - maybeWatchNewDirectory {}", dir);
+    }
+
+    private boolean isStopRequested(FileWatcher watcher) {
+        return Thread.currentThread().isInterrupted() || !watcher.isRunning();
     }
 
 }

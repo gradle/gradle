@@ -30,7 +30,6 @@ die ( ) {
 cygwin=false
 msys=false
 darwin=false
-nonstop=false
 case "`uname`" in
   CYGWIN* )
     cygwin=true
@@ -40,9 +39,6 @@ case "`uname`" in
     ;;
   MINGW* )
     msys=true
-    ;;
-  NONSTOP* )
-    nonstop=true
     ;;
 esac
 
@@ -89,7 +85,7 @@ location of your Java installation."
 fi
 
 # Increase the maximum file descriptors if we can.
-if [ "$cygwin" = "false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
+if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
     MAX_FD_LIMIT=`ulimit -H -n`
     if [ $? -eq 0 ] ; then
         if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then

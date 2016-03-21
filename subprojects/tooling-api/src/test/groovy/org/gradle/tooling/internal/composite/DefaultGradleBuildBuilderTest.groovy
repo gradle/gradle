@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class DefaultGradleBuildBuilderTest extends Specification {
     def builder = new DefaultGradleBuildBuilder()
-    File rootDir = Mock()
+    File rootDir = new File("build-root")
     URI gradleDistribution = new URI("http://www.gradle.org")
     File gradleHome = Mock()
     String gradleVersion = "1.0"
@@ -29,7 +29,7 @@ class DefaultGradleBuildBuilderTest extends Specification {
         given:
         def gradleBuild = (GradleBuildInternal)builder.forProjectDirectory(rootDir).create()
         expect:
-        gradleBuild.projectDir == rootDir
+        gradleBuild.projectDir.absolutePath == rootDir.absolutePath
         assertBuildDistribution()
     }
 

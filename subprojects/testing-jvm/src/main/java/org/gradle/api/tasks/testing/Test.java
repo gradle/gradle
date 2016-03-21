@@ -790,8 +790,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
-    public Test setTestNameIncludePattern(String testNamePattern) {
-        filter.setIncludePatterns(testNamePattern);
+    public Test setTestNameIncludePattern(List<String> testNamePattern) {
+        filter.setIncludePatterns(testNamePattern.toArray(new String[]{}));
         return this;
     }
 
@@ -1064,7 +1064,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The candidate class files.
      */
-    @InputFiles
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
     }

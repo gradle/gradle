@@ -32,7 +32,6 @@ import java.util.List;
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
     private static final int CONNECT_TIMEOUT = 10000;
-    private static final int MAXIMUM_RETRIES = 3;
 
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {

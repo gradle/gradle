@@ -38,12 +38,20 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
     protected abstract FileCollectionSnapshot getCurrent();
     protected abstract void saveCurrent();
 
+    protected FileCollectionSnapshot.ChangeIterator<String> getChanges() {
+        return getCurrent().iterateContentChangesSince(getPrevious(), Collections.<FileCollectionSnapshot.ChangeFilter>emptySet());
+    }
+
     protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection);
+            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse());
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
         }
+    }
+
+    protected boolean isAllowSnapshotReuse() {
+        return true;
     }
 
     public Iterator<TaskStateChange> iterator() {
@@ -52,7 +60,7 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
         }
 
         return new AbstractIterator<TaskStateChange>() {
-            final FileCollectionSnapshot.ChangeIterator<String> changeIterator = getCurrent().iterateChangesSince(getPrevious());
+            final FileCollectionSnapshot.ChangeIterator<String> changeIterator = getChanges();
             final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter(getInputFileType());
 
             @Override

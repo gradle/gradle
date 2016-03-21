@@ -40,7 +40,6 @@ public abstract class WorkerProcessBuilder {
     private final Set<File> applicationClasspath = new LinkedHashSet<File>();
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private boolean loadApplicationInSystemClassLoader;
     private String baseName = "Gradle Worker";
     private File gradleUserHomeDir;
 
@@ -99,14 +98,6 @@ public abstract class WorkerProcessBuilder {
 
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
-    }
-
-    public boolean isLoadApplicationInSystemClassLoader() {
-        return loadApplicationInSystemClassLoader;
-    }
-
-    public void setLoadApplicationInSystemClassLoader(boolean loadApplicationInSystemClassLoader) {
-        this.loadApplicationInSystemClassLoader = loadApplicationInSystemClassLoader;
     }
 
     public File getGradleUserHomeDir() {

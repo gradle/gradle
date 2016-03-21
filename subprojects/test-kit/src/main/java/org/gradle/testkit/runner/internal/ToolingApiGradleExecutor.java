@@ -16,20 +16,11 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
-import org.gradle.testkit.runner.internal.dist.GradleDistribution;
-import org.gradle.testkit.runner.internal.dist.InstalledGradleDistribution;
-import org.gradle.testkit.runner.internal.dist.URILocatedGradleDistribution;
-import org.gradle.testkit.runner.internal.dist.VersionBasedGradleDistribution;
-import org.gradle.testkit.runner.internal.feature.TestKitFeature;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.tooling.*;
@@ -43,9 +34,9 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +76,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             parameters.getGradleUserHome(),
             parameters.getProjectDir(),
             parameters.isEmbedded(),
-            parameters.getGradleDistribution()
+            parameters.getGradleProvider()
         );
 
         ProjectConnection connection = null;
@@ -104,7 +95,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
             launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
 
-            configureInjectedClasspath(launcher, parameters, targetGradleVersion);
+            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 
             launcher.run();
         } catch (UnsupportedVersionException e) {
@@ -145,51 +136,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
     }
 
-    private boolean targetGradleVersionSupportsClasspathInjection(GradleVersion targetGradleVersion) {
-        return targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) >= 0;
-    }
-
-    private void configureInjectedClasspath(DefaultBuildLauncher launcher, GradleExecutionParameters parameters, GradleVersion targetGradleVersion) {
-        List<File> pluginClasspath = readPluginClasspath();
-
-        if (!pluginClasspath.isEmpty() && targetGradleVersionSupportsClasspathInjection(targetGradleVersion)) {
-            launcher.withInjectedClassPath(new DefaultClassPath(pluginClasspath));
-        }
-
-        if (!parameters.getInjectedClassPath().isEmpty()) {
-            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
-        }
-    }
-
-    private List<File> readPluginClasspath() {
-        List<File> pluginClasspath = new ArrayList<File>();
-        URL[] classLoaderURLs = ((URLClassLoader) (Thread.currentThread().getContextClassLoader())).getURLs();
-        URL pluginClasspathUrl = CollectionUtils.findFirst(classLoaderURLs, new Spec<URL>() {
-            @Override
-            public boolean isSatisfiedBy(URL url) {
-                return url.toString().endsWith("generatePluginClasspathManifest/plugin-classpath.txt");
-            }
-        });
-
-        if (pluginClasspathUrl != null) {
-            BufferedReader br = null;
-
-            try {
-                br = new BufferedReader(new InputStreamReader(pluginClasspathUrl.openStream()));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    pluginClasspath.add(new File(line));
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } finally {
-                IOUtils.closeQuietly(br);
-            }
-        }
-
-        return pluginClasspath;
-    }
-
     private static OutputStream teeOutput(OutputStream capture, OutputStream user) {
         if (user == null) {
             return capture;
@@ -198,9 +144,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
     }
 
-    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleDistribution gradleDistribution) {
+    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleProvider gradleProvider) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
-        useGradleDistribution(gradleConnector, gradleDistribution);
+        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
+        gradleProvider.applyTo(gradleConnector);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
@@ -208,18 +155,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.embedded(embedded);
         return gradleConnector;
-    }
-
-    private void useGradleDistribution(DefaultGradleConnector gradleConnector, GradleDistribution gradleDistribution) {
-        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
-
-        if (gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
-        } else if (gradleDistribution instanceof URILocatedGradleDistribution) {
-            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getLocation());
-        } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getGradleVersion());
-        }
     }
 
     private class TaskExecutionProgressListener implements ProgressListener {

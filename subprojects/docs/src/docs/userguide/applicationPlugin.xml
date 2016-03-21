@@ -17,7 +17,7 @@
     <title>The Application Plugin</title>
     <para>
         The Application plugin facilitates creating an executable JVM application.
-        It makes it easy to start the application locally during development, and to packaging the application as a TAR and/or ZIP including operating system specific start scripts.
+        It makes it easy to start the application locally during development, and to package the application as a TAR and/or ZIP including operating system specific start scripts.
     </para>
     <para>
         Applying the Application plugin also implicitly applies the <link linkend="java_plugin">Java plugin</link>.

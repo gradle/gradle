@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.internal;
+package org.gradle.plugins.ide.internal
 
-
+import groovy.transform.CompileStatic
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.tasks.Delete
 
+@CompileStatic
 public abstract class IdePlugin implements Plugin<Project> {
     private Task lifecycleTask;
     private Task cleanTask;
     protected Project project;
+
+    protected static ConventionMapping conventionMappingFor(GroovyObject projectModel) {
+        (ConventionMapping) projectModel.getProperty('conventionMapping')
+    }
 
     public void apply(Project target) {
         project = target;
@@ -53,7 +59,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         return String.format("clean%s", StringUtils.capitalize(taskName));
     }
 
-    protected void addWorker(Task worker, boolean includeInClean = true) {
+    void addWorker(Task worker, boolean includeInClean = true) {
         lifecycleTask.dependsOn(worker)
         Delete cleanWorker = project.tasks.create(cleanName(worker.name), Delete.class)
         cleanWorker.delete(worker.getOutputs().getFiles())
@@ -61,7 +67,7 @@ public abstract class IdePlugin implements Plugin<Project> {
             cleanTask.dependsOn(cleanWorker)
         }
     }
-    
+
     protected void onApply(Project target) {
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 
 import java.io.ByteArrayOutputStream;

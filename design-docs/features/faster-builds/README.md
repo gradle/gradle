@@ -8,7 +8,7 @@ to more users, by enabling the Gradle daemon by default.
 ### Audience
 
 The improvements are aimed at *developers* working in the Java and Android ecosystems and whose builds use the
-current software model and and who are using the Gradle daemon (possibly implicitly through the IDE). 
+current software model and and who are using the Gradle daemon (possibly implicitly through the IDE).
 
 The improvements will be general purpose and so will benefit all Gradle users, to greater and lesser degrees.
 
@@ -24,7 +24,7 @@ Out-of-scope are the following improvements:
 - Improving parallel project execution
 - Improving configure on demand
 
-Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to other work, then that's a good thing. 
+Here 'out-of-scope' means only that these use cases won't be specifically prioritized. If these use cases happen to improve due to other work, then that's a good thing.
 
 ## Features
 
@@ -47,3 +47,5 @@ Here 'out-of-scope' means only that these use cases won't be specifically priori
     - [Support all use cases that are supported by non-daemon execution](daemon-on-by-default/daemon-use-case-parity)
     - [Fix Windows specific blockers](daemon-on-by-default/windows-blockers)
     - Enable by default
+- [ ] [Tooling API performance improvements](tapi-performance-improvements)
+    - Setup performance tests dedicated to the Tooling API

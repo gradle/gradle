@@ -17,42 +17,33 @@
 package org.gradle.api.internal.file.pattern
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class HasSuffixPatternStepTest extends Specification {
-    @Unroll
-    def "matches name case sensitive when isFile is #isFile"() {
+    def "matches name case sensitive"() {
         def step = new HasSuffixPatternStep(".java", true)
 
         expect:
-        step.matches("thing.java", isFile)
-        step.matches(".java", isFile)
-        !step.matches("thing.JAVA", isFile)
-        !step.matches("thing.Java", isFile)
-        !step.matches("thing.jav", isFile)
-        !step.matches("thing.c", isFile)
-        !step.matches("", isFile)
-        !step.matches("something else", isFile)
-
-        where:
-        isFile << [true, false]
+        step.matches("thing.java")
+        step.matches(".java")
+        !step.matches("thing.JAVA")
+        !step.matches("thing.Java")
+        !step.matches("thing.jav")
+        !step.matches("thing.c")
+        !step.matches("")
+        !step.matches("something else")
     }
 
-    @Unroll
-    def "matches name case insensitive when isFile is #isFile"() {
+    def "matches name case insensitive"() {
         def step = new HasSuffixPatternStep(".java", false)
 
         expect:
-        step.matches("thing.java", isFile)
-        step.matches(".java", isFile)
-        step.matches("thing.JAVA", isFile)
-        step.matches("thing.Java", isFile)
-        !step.matches("thing.jav", isFile)
-        !step.matches("thing.c", isFile)
-        !step.matches("", isFile)
-        !step.matches("something else", isFile)
-
-        where:
-        isFile << [true, false]
+        step.matches("thing.java")
+        step.matches(".java")
+        step.matches("thing.JAVA")
+        step.matches("thing.Java")
+        !step.matches("thing.jav")
+        !step.matches("thing.c")
+        !step.matches("")
+        !step.matches("something else")
     }
 }

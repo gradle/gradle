@@ -26,7 +26,7 @@ import org.gradle.tooling.model.*;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
+public interface EclipseProject extends HierarchicalEclipseProject {
     /**
      * {@inheritDoc}
      */

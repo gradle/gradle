@@ -16,16 +16,16 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.composite.BuildIdentity;
+import org.gradle.tooling.composite.internal.BuildIdentityInternal;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultBuildIdentity implements BuildIdentity, Serializable {
+public class DefaultBuildIdentity implements BuildIdentityInternal, Serializable {
     private final File rootDir;
 
     public DefaultBuildIdentity(File rootDir) {
-        this.rootDir = rootDir;
+        this.rootDir = rootDir.getAbsoluteFile();
     }
 
     public File getRootDir() {
@@ -34,7 +34,7 @@ public class DefaultBuildIdentity implements BuildIdentity, Serializable {
 
     @Override
     public String toString() {
-        return String.format("build=%s", rootDir.getAbsolutePath());
+        return String.format("build=%s", rootDir.getPath());
     }
 
     @Override
@@ -55,5 +55,10 @@ public class DefaultBuildIdentity implements BuildIdentity, Serializable {
     @Override
     public int hashCode() {
         return rootDir.hashCode();
+    }
+
+    @Override
+    public File getRootDirectory() {
+        return rootDir;
     }
 }

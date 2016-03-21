@@ -20,6 +20,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
@@ -33,7 +35,9 @@ import java.util.List;
 
 @ThreadSafe
 public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
-    public static final ModelPath ROOT = new ModelPath("", Collections.<String>emptyList()) {
+    private static final Interner<ModelPath> INTERNER = Interners.newWeakInterner();
+
+    public static final ModelPath ROOT = INTERNER.intern(new ModelPath("", Collections.<String>emptyList()) {
         @Override
         public String toString() {
             return "<root>";
@@ -43,7 +47,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         public ModelPath descendant(ModelPath path) {
             return path;
         }
-    };
+    });
 
     public static final String SEPARATOR = ".";
     public static final Splitter PATH_SPLITTER = Splitter.on('.');
@@ -110,11 +114,11 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public static ModelPath path(String path) {
-        return new ModelPath(path);
+        return INTERNER.intern(new ModelPath(path));
     }
 
     public static ModelPath path(Iterable<String> names) {
-        return new ModelPath(names);
+        return INTERNER.intern(new ModelPath(names));
     }
 
     public static String pathString(Iterable<String> names) {
@@ -142,7 +146,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         // Somewhat optimized implementation
         List<String> parentComponents = components.subList(0, components.size() - 1);
         String parentPath = path.substring(0, path.length() - components.get(components.size() - 1).length() - 1);
-        return new ModelPath(parentPath, parentComponents);
+        return INTERNER.intern(new ModelPath(parentPath, parentComponents));
     }
 
     public String getName() {

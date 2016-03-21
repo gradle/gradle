@@ -200,10 +200,14 @@ public class CommandLineActionFactory {
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
 
-            NativeServices.initialize(buildLayout.getGradleUserHomeDir());
-            loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
+            try {
+                NativeServices.initialize(buildLayout.getGradleUserHomeDir());
+                loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
 
-            action.execute(executionListener);
+                action.execute(executionListener);
+            } finally {
+                loggingManager.stop();
+            }
         }
     }
 

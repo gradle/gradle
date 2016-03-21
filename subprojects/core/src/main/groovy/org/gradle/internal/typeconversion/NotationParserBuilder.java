@@ -39,7 +39,6 @@ public class NotationParserBuilder<T> {
 
     private NotationParserBuilder(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
-        typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : "an object of type ".concat(resultingType.getTargetType().getSimpleName());
     }
 
     /**
@@ -120,6 +119,9 @@ public class NotationParserBuilder<T> {
     }
 
     private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
+        if (typeDisplayName == null) {
+            typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : "an object of type ".concat(resultingType.getTargetType().getSimpleName());
+        }
         return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
     }
 

@@ -82,7 +82,7 @@ public interface PluginResolutionServiceClient extends Closeable {
         String getClientStatusChecksum();
     }
 
-    public static class ErrorResponseResponse<T> implements Response<T> {
+    class ErrorResponseResponse<T> implements Response<T> {
         private final ErrorResponse errorResponse;
         private final int statusCode;
         private final String url;
@@ -120,7 +120,7 @@ public interface PluginResolutionServiceClient extends Closeable {
         }
     }
 
-    public static class SuccessResponse<T> implements Response<T> {
+    class SuccessResponse<T> implements Response<T> {
         private final T response;
         private final int statusCode;
         private final String url;

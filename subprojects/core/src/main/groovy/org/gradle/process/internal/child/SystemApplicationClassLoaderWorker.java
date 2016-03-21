@@ -18,40 +18,95 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.remote.MessagingClient;
+import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
 
-import java.net.URL;
-import java.util.Collection;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
 /**
  * <p>Stage 2 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
- * care of deserializing and then invoking the next stage of start-up.</p>
+ * care of deserializing and invoking the worker action.</p>
  *
- * <p> Instantiated in the infrastructure ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
+ * <p> Instantiated in the implementation ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
-    private final int logLevel;
-    private final Collection<String> sharedPackages;
-    private final Collection<URL> workerClassPath;
-    private final byte[] serializedWorker;
+    private final DataInputStream configInputStream;
 
-    public SystemApplicationClassLoaderWorker(int logLevel, Collection<String> sharedPackages, Collection<URL> workerClassPath, byte[] serializedWorker) {
-        this.logLevel = logLevel;
-        this.sharedPackages = sharedPackages;
-        this.workerClassPath = workerClassPath;
-        this.serializedWorker = serializedWorker;
+    public SystemApplicationClassLoaderWorker(DataInputStream configInputStream) {
+        this.configInputStream = configInputStream;
     }
 
     public Void call() throws Exception {
-        final Action<WorkerContext> action = new ImplementationClassLoaderWorker(LogLevel.values()[logLevel], sharedPackages, workerClassPath, serializedWorker);
+        if (System.getProperty("org.gradle.worker.test.stuck") != null) {
+            // Simulate a stuck worker. There's probably a way to inject this failure...
+            Thread.sleep(30000);
+            return null;
+        }
 
-        action.execute(new WorkerContext() {
-            public ClassLoader getApplicationClassLoader() {
-                return ClassLoader.getSystemClassLoader();
+        Decoder decoder = new InputStreamBackedDecoder(configInputStream);
+
+        // Read logging config and setup logging
+        int logLevel = decoder.readSmallInt();
+        LoggingManagerInternal loggingManager = createLoggingManager();
+        loggingManager.setLevel(LogLevel.values()[logLevel]).start();
+
+        // Read server address and start connecting
+        MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        MessagingServices messagingServices = createClient();
+
+        try {
+            final ObjectConnection connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+
+            try {
+                // Read serialized worker
+                byte[] serializedWorker = decoder.readBinary();
+
+                // Deserialize the worker action
+                Action<WorkerContext> action;
+                try {
+                    ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
+                    action = (Action<WorkerContext>) instr.readObject();
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                action.execute(new WorkerContext() {
+                    public ClassLoader getApplicationClassLoader() {
+                        return ClassLoader.getSystemClassLoader();
+                    }
+
+                    @Override
+                    public ObjectConnection getServerConnection() {
+                        return connection;
+                    }
+                });
+            } finally {
+                connection.stop();
             }
-        });
+        } finally {
+            messagingServices.close();
+        }
 
         return null;
+    }
+
+    MessagingServices createClient() {
+        return new MessagingServices();
+    }
+
+    LoggingManagerInternal createLoggingManager() {
+        return LoggingServiceRegistry.newCommandLineProcessLogging().newInstance(LoggingManagerInternal.class);
     }
 }

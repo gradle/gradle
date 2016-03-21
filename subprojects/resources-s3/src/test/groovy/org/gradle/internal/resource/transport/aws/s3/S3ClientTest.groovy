@@ -22,8 +22,8 @@ import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.credentials.DefaultAwsCredentials
-import org.gradle.internal.resource.ResourceException
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import spock.lang.Ignore
 import spock.lang.Specification

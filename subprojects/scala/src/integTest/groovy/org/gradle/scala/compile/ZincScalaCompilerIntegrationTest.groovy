@@ -26,8 +26,15 @@ import org.junit.Rule
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
+    // Explicitly set the options to their default values so that the
+    // test will be robust against future changes to these defaults.
     String compilerConfiguration() {
-        ""
+        """
+        compileScala.scalaCompileOptions.with {
+            useAnt = false
+            fork = true
+        }
+        """
     }
 
     String logStatement() {
@@ -45,6 +52,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -67,6 +75,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.java").delete()
         file("src/main/scala/Person.java") << "public class Person {}"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -86,6 +95,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("prj1/src/main/scala/Person.scala").delete()
         file("prj1/src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -105,6 +115,7 @@ class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest
         file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:

@@ -63,20 +63,22 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     @Override
-    public WorkResult execute(T spec) {
+    public WorkResult execute(final T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final BuildOperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
 
-        File objectDir = transformedSpec.getObjectFileDir();
-        for (File sourceFile : transformedSpec.getSourceFiles()) {
-            CommandLineToolInvocation perFileInvocation =
-                    createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
-            buildQueue.add(perFileInvocation);
-        }
-
-        // Wait on all executions to complete or fail
-        buildQueue.waitForCompletion();
+        final File objectDir = transformedSpec.getObjectFileDir();
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                for (File sourceFile : transformedSpec.getSourceFiles()) {
+                    CommandLineToolInvocation perFileInvocation =
+                        createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
+                    buildQueue.add(perFileInvocation);
+                }
+            }
+        });
 
         return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
     }

@@ -15,27 +15,22 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.event.ListenerNotificationException;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.*;
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
-import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
-import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
 /**
  * Adapts a {@link ResultHandler} to a {@link ResultHandlerVersion1}.
  *
  * @param <T> The result type.
  */
-public abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
+public class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
     private final ResultHandler<? super T> handler;
+    private final Transformer<GradleConnectionException, Throwable> exceptionTransformer;
 
-    protected ResultHandlerAdapter(ResultHandler<? super T> handler) {
+    protected ResultHandlerAdapter(ResultHandler<? super T> handler, Transformer<GradleConnectionException, Throwable> exceptionTransformer) {
         this.handler = handler;
+        this.exceptionTransformer = exceptionTransformer;
     }
 
     public void onComplete(T result) {
@@ -43,29 +38,6 @@ public abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T
     }
 
     public void onFailure(Throwable failure) {
-        if (failure instanceof InternalUnsupportedBuildArgumentException) {
-            handler.onFailure(new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
-                    + "\n" + failure.getMessage(), failure));
-        } else if (failure instanceof UnsupportedOperationConfigurationException) {
-            handler.onFailure(new UnsupportedOperationConfigurationException(connectionFailureMessage(failure)
-                    + "\n" + failure.getMessage(), failure.getCause()));
-        } else if (failure instanceof GradleConnectionException) {
-            handler.onFailure((GradleConnectionException) failure);
-        } else if (failure instanceof InternalBuildCancelledException) {
-            handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
-        } else if (failure instanceof InternalTestExecutionException) {
-            handler.onFailure(new TestExecutionException(connectionFailureMessage(failure), failure.getCause()));
-        } else if (failure.getClass().getName().equals(CompositeBuildExceptionVersion1.class.getName())) {
-            CompositeBuildExceptionVersion1 compositeBuildException = (CompositeBuildExceptionVersion1)failure;
-            handler.onFailure(new CompositeBuildException(connectionFailureMessage(failure), failure.getCause(), compositeBuildException.getBuildIdentity()));
-        } else if (failure instanceof BuildExceptionVersion1) {
-            handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
-        } else if (failure instanceof ListenerNotificationException) {
-            handler.onFailure(new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses()));
-        } else {
-            handler.onFailure(new GradleConnectionException(connectionFailureMessage(failure), failure));
-        }
+        handler.onFailure(exceptionTransformer.transform(failure));
     }
-
-    protected abstract String connectionFailureMessage(Throwable failure);
 }

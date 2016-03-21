@@ -17,7 +17,10 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.classpath.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
@@ -35,6 +38,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -118,8 +122,8 @@ public class GlobalScopeServicesTest {
     }
 
     @Test
-    public void providesAGradleDistributionLocator() {
-        assertThat(registry().get(GradleDistributionLocator.class), instanceOf(DefaultGradleDistributionLocator.class));
+    public void providesACurrentGradleInstallation() {
+        assertThat(registry().get(CurrentGradleInstallation.class), instanceOf(CurrentGradleInstallation.class));
     }
 
     @Test

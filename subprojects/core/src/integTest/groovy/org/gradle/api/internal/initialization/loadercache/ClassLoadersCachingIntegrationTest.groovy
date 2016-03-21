@@ -561,7 +561,17 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         then:
         assertCacheSizeChange(-2)
         isCached("a")
-        isNotCached("a:a")
+        isCached("a:a") // cached in cross-build cache
+
+        when:
+        file("a/a/build.gradle").text = getIsCachedCheck() + '// add some random chars'
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        isCached("a")
+        isNotCached("a:a") // cached in cross-build cache
+
     }
 
     @Ignore

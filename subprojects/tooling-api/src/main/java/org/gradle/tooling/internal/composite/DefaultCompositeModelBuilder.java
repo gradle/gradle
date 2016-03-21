@@ -16,17 +16,16 @@
 
 package org.gradle.tooling.internal.composite;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.composite.ModelResult;
-import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.composite.ModelResults;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.consumer.BlockingResultHandler;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
-import org.gradle.tooling.internal.consumer.ResultHandlerAdapter;
+import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -34,12 +33,11 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
+import java.util.Iterator;
+import java.util.List;
 
-public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<Iterable<ModelResult<T>>> {
+public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
@@ -55,35 +53,46 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
         return this;
     }
 
+    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
+        // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this method,
+        // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the model'
+        // this would cause an error when fetching the BuildEnvironment model
+        List<String> rationalizedTasks = rationalizeInput(tasks);
+        operationParamsBuilder.setTasks(rationalizedTasks);
+        return getThis();
+    }
+
     @Override
-    public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
-        BlockingResultHandler<Iterable> handler = new BlockingResultHandler<Iterable>(Iterable.class);
+    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
+        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        return getThis();
+    }
+
+    @Override
+    public ModelResults<T> get() throws GradleConnectionException, IllegalStateException {
+        BlockingResultHandler<ModelResults> handler = new BlockingResultHandler<ModelResults>(ModelResults.class);
         get(handler);
         return handler.getResult();
     }
 
     @Override
-    public void get(final ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException {
+    public void get(final ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        connection.run(new ConsumerAction<Iterable<ModelResult<T>>>() {
+        connection.run(new ConsumerAction<ModelResults<T>>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
 
-            public Iterable<ModelResult<T>> run(ConsumerConnection connection) {
-                Iterable<ModelResult<T>> model = connection.buildModels(modelType, operationParameters);
-                return model;
+            public ModelResults<T> run(ConsumerConnection connection) {
+                final Iterable<ModelResult<T>> models = connection.buildModels(modelType, operationParameters);
+                return new ModelResults<T>() {
+                    @Override
+                    public Iterator<ModelResult<T>> iterator() {
+                        return models.iterator();
+                    }
+                };
             }
-        }, new ResultHandlerAdapter<Iterable<ModelResult<T>>>(handler) {
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                }
-                return message;
-            }
-        });
+        }, new ResultHandlerAdapter<T>(handler));
     }
 
     // TODO: Make all configuration methods configure underlying model builders
@@ -92,73 +101,22 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     @Override
-    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
-        return forTasks(Lists.newArrayList(tasks));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        return unsupportedMethod();
-    }
-
-
-    @Override
-    public DefaultCompositeModelBuilder<T> withArguments(String... arguments) {
-        return withArguments(Lists.newArrayList(arguments));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> withArguments(Iterable<String> arguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setStandardOutput(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setStandardError(OutputStream outputStream) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setColorOutput(boolean colorOutput) {
-        return unsupportedMethod();
-    }
-
-    @Override
     public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
         return unsupportedMethod();
     }
 
-    @Override
-    public DefaultCompositeModelBuilder<T> setJavaHome(File javaHome) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setJvmArguments(String... jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setJvmArguments(Iterable<String> jvmArguments) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
-        return addProgressListener(listener, Sets.newHashSet(operationTypes));
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes) {
-        return unsupportedMethod();
+    private final class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<ModelResults<T>> {
+        ResultHandlerAdapter(ResultHandler<? super ModelResults<T>> handler) {
+            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable failure) {
+                    String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                    if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                    }
+                    return message;
+                }
+            }));
+        }
     }
 }

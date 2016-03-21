@@ -47,4 +47,11 @@ public interface CompileOperation<T> {
 
     Serializer<T> getDataSerializer();
 
+    /**
+     * Returns an identifier that can be used when caching the result of compilation of this script. The key is different from the id
+     * as it can include transient information like compile classpath
+     * @return a cache key to be used for caching
+     */
+    String getCacheKey();
+
 }

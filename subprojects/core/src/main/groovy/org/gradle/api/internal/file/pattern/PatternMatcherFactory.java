@@ -56,7 +56,7 @@ public class PatternMatcherFactory {
         }
         List<PatternStep> steps = new ArrayList<PatternStep>(parts.length - startIndex);
         while (pos < parts.length && !parts[pos].equals("**")) {
-            steps.add(PatternStepFactory.getStep(parts[pos], caseSensitive, pos + 1 == parts.length));
+            steps.add(PatternStepFactory.getStep(parts[pos], caseSensitive));
             pos++;
         }
         return new FixedStepsPathMatcher(steps, compile(parts, pos, caseSensitive));
@@ -73,9 +73,9 @@ public class PatternMatcherFactory {
 
         public boolean isSatisfiedBy(RelativePath element) {
             if (element.isFile() || !partialMatchDirs) {
-                return pathMatcher.matches(element.getSegments(), 0, element.isFile());
+                return pathMatcher.matches(element.getSegments(), 0);
             } else {
-                return pathMatcher.isPrefix(element.getSegments(), 0, element.isFile());
+                return pathMatcher.isPrefix(element.getSegments(), 0);
             }
         }
     }

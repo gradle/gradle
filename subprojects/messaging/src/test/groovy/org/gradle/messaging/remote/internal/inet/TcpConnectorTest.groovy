@@ -87,7 +87,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     def "client throws exception when cannot connect to server"() {
-        def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost")])
+        def address = new MultiChoiceAddress(idGenerator.generateId(), 12345, [InetAddress.getByName("localhost")])
 
         when:
         outgoingConnector.connect(address)
@@ -99,7 +99,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     def "the exception includes last failure when cannot connect"() {
-        def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
+        def address = new MultiChoiceAddress(idGenerator.generateId(), 12345, [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
 
         when:
         outgoingConnector.connect(address)

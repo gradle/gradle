@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProgressEvent
@@ -25,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Tooling client provides progress listener for composite model request
  */
 class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    static final List<String> IGNORED_EVENTS = ['Validate distribution', '']
+    static final List<String> IGNORED_EVENTS = ['Validate distribution', '', 'Compiling script into cache', 'Build']
 
     def "compare events from a composite build and a regular build with single build"() {
         given:
@@ -65,16 +66,35 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
         }
     }
 
-    private List<ProjectTestFile> createBuilds(int numberOfBuilds) {
+    def "compare events from task execution from a composite build and a regular build with 3 builds"() {
+        given:
+        def builds = createBuilds(3)
+
+        when:
+        def progressListenerForComposite = new CapturingProgressListener()
+        def progressListenerForRegularBuild = new CapturingProgressListener()
+        executeFirstBuild(builds, progressListenerForComposite, progressListenerForRegularBuild)
+
+        then:
+        progressListenerForComposite.eventDescriptions.size() > 0
+        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
+            if (!(eventDescription in IGNORED_EVENTS)) {
+                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
+                progressListenerForComposite.eventDescriptions.remove(eventDescription)
+            }
+        }
+    }
+
+    private List<File> createBuilds(int numberOfBuilds) {
         def builds = (1..numberOfBuilds).collect {
             populate("build-$it") {
                 buildFile << "apply plugin: 'java'"
             }
         }
-        builds
+        return builds
     }
 
-    private void requestModels(List<ProjectTestFile> builds, progressListenerForComposite, progressListenerForRegularBuild) {
+    private void requestModels(List<File> builds, progressListenerForComposite, progressListenerForRegularBuild) {
         withCompositeConnection(builds) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.addProgressListener(progressListenerForComposite)
@@ -83,12 +103,31 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
         builds.each { buildDir ->
             GradleConnector connector = toolingApi.connector()
-            connector.forProjectDirectory(buildDir)
+            connector.forProjectDirectory(buildDir.absoluteFile)
             toolingApi.withConnection(connector) { ProjectConnection connection ->
                 def modelBuilder = connection.model(EclipseProject)
                 modelBuilder.addProgressListener(progressListenerForRegularBuild)
                 modelBuilder.get()
             }
+        }
+    }
+
+    private void executeFirstBuild(List<File> builds, progressListenerForComposite, progressListenerForRegularBuild) {
+        def buildId = createGradleBuildParticipant(builds[0]).toBuildIdentity()
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild(buildId)
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForComposite)
+            buildLauncher.run()
+        }
+
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(builds[0].absoluteFile)
+        toolingApi.withConnection(connector) { ProjectConnection connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForRegularBuild)
+            buildLauncher.run()
         }
     }
 

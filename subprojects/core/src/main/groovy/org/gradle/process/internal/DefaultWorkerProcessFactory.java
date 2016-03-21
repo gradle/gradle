@@ -27,9 +27,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
-import org.gradle.process.internal.child.WorkerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +43,8 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
     private final ExecHandleFactory execHandleFactory;
-    private final ApplicationClassesInSystemClassLoaderWorkerFactory systemClassLoaderWorkerFactory;
-    private final ApplicationClassesInIsolatedClassLoaderWorkerFactory isolatedClassLoaderWorkerFactory;
+    private final ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory;
+    private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
                                        File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
@@ -55,8 +53,11 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
-        isolatedClassLoaderWorkerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(classPathRegistry);
-        systemClassLoaderWorkerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
+        workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
+    }
+
+    public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
+        this.connectTimeoutSeconds = connectTimeoutSeconds;
     }
 
     public WorkerProcessBuilder create() {
@@ -76,7 +77,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
             ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
                 public void execute(ObjectConnection connection) {
                     workerProcess.onConnect(connection);
@@ -89,13 +90,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
             Object id = idGenerator.generateId();
             String displayName = getBaseName() + " " + id;
-
-            WorkerFactory workerFactory;
-            if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = systemClassLoaderWorkerFactory;
-            } else {
-                workerFactory = isolatedClassLoaderWorkerFactory;
-            }
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());

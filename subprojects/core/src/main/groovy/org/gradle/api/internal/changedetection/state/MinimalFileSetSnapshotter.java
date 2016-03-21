@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,7 +31,7 @@ import java.util.List;
  * in the input FileCollection without visiting the files on disk.  This allows files that do not exist yet to be considered part of the
  * FileCollectionSnapshot without that information being lost.
  */
-public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
+public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileSystem fileSystem;
 
     public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
@@ -40,10 +40,10 @@ public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter 
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles) {
+    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<File> missingFiles, boolean allowReuse) {
         for (File file : input.getFiles()) {
             if (file.exists()) {
-                allFileVisitDetails.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+                fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
                 missingFiles.add(file);
             }

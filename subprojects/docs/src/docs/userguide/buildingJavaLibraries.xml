@@ -477,10 +477,10 @@
         </section>
     </section>
 
-    <section>
+    <section id="declaring_java_toolchains">
         <title>Declaring Java toolchains</title>
         <para>You can declare the list of local JVM installations using the <literal>javaInstallations</literal> model block. Gradle will use this information
-        to locate your JVMs and probe their version. Please note that this information is not yet used by Gradle to select the appropriate JDK or JRE when
+        to locate your JVMs and probe their versions. Please note that this information is not yet used by Gradle to select the appropriate JDK or JRE when
         compiling your Java sources, or when executing Java applications. A local Java installation can be declared using the <literal>LocalJava</literal> type,
         independently of the fact they are a JDK or a JRE:</para>
         <sample id="javaLibraryPlugin/toolchains" dir="javaLibraryPlugin/toolchains" title="Declaring local Java installations">

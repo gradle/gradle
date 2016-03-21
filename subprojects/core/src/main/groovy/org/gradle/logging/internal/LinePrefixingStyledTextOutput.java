@@ -37,12 +37,17 @@ public class LinePrefixingStyledTextOutput extends AbstractLineChoppingStyledTex
     }
 
     @Override
-    protected void doLineText(CharSequence text, boolean terminatesLine) {
+    protected void doLineText(CharSequence text) {
         if (!prefixed && prefixFirstLine) {
             output.text(prefix);
             prefixed = true;
         }
         output.text(text);
+    }
+
+    @Override
+    protected void doEndLine(CharSequence endOfLine) {
+        output.text(endOfLine);
     }
 
     @Override

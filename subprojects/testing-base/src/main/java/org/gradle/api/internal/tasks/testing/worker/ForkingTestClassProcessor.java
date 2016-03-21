@@ -65,7 +65,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Test Executor");
         builder.applicationClasspath(classPath);
-        builder.setLoadApplicationInSystemClassLoader(true);
         builder.worker(new TestWorker(processorFactory));
         options.copyTo(builder.getJavaCommand());
         buildConfigAction.execute(builder);

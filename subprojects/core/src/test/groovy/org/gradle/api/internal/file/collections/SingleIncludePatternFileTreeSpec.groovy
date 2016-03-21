@@ -59,7 +59,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
                 file("file2")
                 file("file3")
             }
-            file("file1")
         }
     }
 
@@ -136,7 +135,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         0 * _
     }
 
-    def "include directory non-recursively files only"() {
+    def "include directory non-recursively"() {
         fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/*")
 
         when:
@@ -147,6 +146,8 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/file2") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/file3") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir2") })
+        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir1") })
+        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir2") })
         0 * _
     }
 
@@ -179,7 +180,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         fileTree.visit(visitor)
 
         then:
-        1 * visitor.visitFile({ it.file == tempDir.file("file1") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir2") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir3") })
@@ -214,7 +214,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         fileTree.visit(visitor)
 
         then:
-        1 * visitor.visitFile({ it.file == tempDir.file("file1") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir1/file1") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir1/file2") })
@@ -232,44 +231,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file1") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file2") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file3") })
-        0 * _
-    }
-
-    def "include everything but top-level files."() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "*/")
-
-        when:
-        fileTree.visit(visitor)
-
-        then:
-        1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir1/file1") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir1/file2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir1/file3") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/file1") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/file2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/file3") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir3") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir3/file1") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir3/file2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir3/file3") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir1") })
-        1 * visitor.visitDir({ it.file == tempDir.file("dir2/dir2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file1") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file2") })
-        1 * visitor.visitFile({ it.file == tempDir.file("dir2/dir1/file3") })
-        0 * _
-    }
-
-    def "include only top-level files."() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "*")
-
-        when:
-        fileTree.visit(visitor)
-
-        then:
-        1 * visitor.visitFile({ it.file == tempDir.file("file1") })
         0 * _
     }
 

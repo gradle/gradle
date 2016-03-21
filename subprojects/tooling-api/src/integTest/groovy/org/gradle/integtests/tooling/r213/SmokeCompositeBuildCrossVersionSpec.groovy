@@ -15,12 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.BuildException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
-
 /**
  * Basic tests for building and retrieving models from a composite.
  */
@@ -78,31 +76,27 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         when:
         withCompositeConnection(project) { connection ->
-            def models = connection.getModels(EclipseProject)
-            connection.close()
+            connection.getModels(EclipseProject).each {
+                it.model
+            }
         }
         then:
-        def e = thrown(BuildException)
-        def causes = getCausalChain(e)
-        causes.any {
-            it.message.contains("Could not fetch models of type 'EclipseProject'")
-        }
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "Could not fetch models of type 'EclipseProject'")
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
         when:
         withCompositeConnection(projectDir("project-does-not-exist")) { connection ->
-            connection.getModels(EclipseProject)
+            connection.getModels(EclipseProject).each {
+                it.model
+            }
         }
         then:
-        def e = thrown(BuildException)
-        def causes = getCausalChain(e)
-        causes.any {
-            it.message.contains("Could not fetch models of type 'EclipseProject'")
-        }
-        causes.any {
-            it.message.contains("project-does-not-exist' does not exist")
-        }
+        def e = thrown(GradleConnectionException)
+        assertFailure(e,
+            "Could not fetch models of type 'EclipseProject'",
+            "project-does-not-exist' does not exist")
     }
 
     def "does not search upwards for projects"() {
@@ -119,6 +113,6 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         then:
         // should only find 'project', not the other projects defined in root.
         models.size() == 1
-        models[0].model.gradleProject.projectDirectory == project
+        models[0].model.projectDirectory == project
     }
 }

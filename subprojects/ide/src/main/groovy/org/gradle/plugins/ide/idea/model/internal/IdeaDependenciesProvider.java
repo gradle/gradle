@@ -63,16 +63,18 @@ public class IdeaDependenciesProvider {
                 Lists.newArrayList(new IdeaScopeMappingRule("providedCompile"), new IdeaScopeMappingRule("providedRuntime")));
         scopeMappings.put(GeneratedIdeaScope.COMPILE,
                 Collections.singletonList(new IdeaScopeMappingRule("compile")));
+        scopeMappings.put(GeneratedIdeaScope.RUNTIME_COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath", "runtime")));
+        scopeMappings.put(GeneratedIdeaScope.RUNTIME_TEST_COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath", "testRuntime")));
         scopeMappings.put(GeneratedIdeaScope.RUNTIME_TEST,
                 Collections.singletonList(new IdeaScopeMappingRule("testCompile", "runtime")));
         scopeMappings.put(GeneratedIdeaScope.RUNTIME,
                 Collections.singletonList(new IdeaScopeMappingRule("runtime")));
         scopeMappings.put(GeneratedIdeaScope.TEST,
-                Lists.newArrayList(new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
-        scopeMappings.put(GeneratedIdeaScope.COMPILE_ONLY,
-                Collections.singletonList(new IdeaScopeMappingRule("compileOnly")));
-        scopeMappings.put(GeneratedIdeaScope.COMPILE_ONLY_TEST,
-            Collections.singletonList(new IdeaScopeMappingRule("testCompileOnly")));
+                Lists.newArrayList(new IdeaScopeMappingRule("testCompileClasspath"), new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
+        scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {

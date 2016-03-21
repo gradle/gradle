@@ -16,15 +16,19 @@
 package org.gradle.logging.internal
 
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.util.MockExecutor
+import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
 class ConsoleBackedProgressRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
     def console = Mock(Console)
     def statusBar = Mock(Label)
+    def timeProvider = new MockTimeProvider()
+    def executor = new MockExecutor()
     def statusBarFormatter = new DefaultStatusBarFormatter(Mock(ConsoleMetaData))
 
-    @Subject renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter)
+    @Subject renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter, 100, executor, timeProvider)
 
     def setup() {
         (0..1) * console.getStatusBar() >> statusBar
@@ -38,8 +42,122 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         then:
         1 * listener.onOutput(event)
-        0 * listener._
-        0 * statusBar._
+        1 * console.flush()
+        0 * _
+    }
+
+    def queuesEventsReceivedSoonAfterFirstAndForwardsThemLater() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def event3 = event('3')
+        def event4 = event('4')
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(event3)
+
+        then:
+        1 * listener.onOutput(event1)
+        1 * console.flush()
+        0 * _
+
+        when:
+        executor.runNow()
+
+        then:
+        1 * listener.onOutput(event2)
+        1 * listener.onOutput(event3)
+        1 * console.flush()
+        0 * _
+
+        when:
+        renderer.onOutput(event4)
+
+        then:
+        0 * _
+    }
+
+    def forwardsEventReceivedSomeTimeAfterFirst() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def event3 = event('3')
+
+        given:
+        renderer.onOutput(event1)
+
+        when:
+        timeProvider.increment(100)
+        renderer.onOutput(event2)
+
+        then:
+        1 * listener.onOutput(event2)
+        1 * console.flush()
+        0 * _
+
+        when:
+        renderer.onOutput(event3)
+
+        then:
+        0 * _
+    }
+
+    def forwardsQueuedEventsOnFlush() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def event3 = event('3')
+        def flush = new FlushToOutputsEvent()
+        def event4 = event('4')
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(event3)
+
+        then:
+        1 * listener.onOutput(event1)
+        1 * console.flush()
+        0 * _
+
+        when:
+        renderer.onOutput(flush)
+
+        then:
+        1 * listener.onOutput(event2)
+        1 * listener.onOutput(event3)
+        1 * listener.onOutput(flush)
+        1 * console.flush()
+        0 * _
+
+        when:
+        renderer.onOutput(event4)
+
+        then:
+        0 * _
+    }
+
+    def backgroundFlushDoesNothingWhenEventsAlreadyFlushed() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def event3 = event('3')
+        def flush = new FlushToOutputsEvent()
+
+        given:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(flush)
+
+        when:
+        executor.runNow()
+
+        then:
+        0 * _
+
+        when:
+        renderer.onOutput(event3)
+
+        then:
+        0 * _
     }
 
     def statusBarTracksMostRecentOperationStatus() {
@@ -52,6 +170,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -59,9 +178,47 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
+        0 * statusBar._
+    }
+
+    def coalescesMultipleQueuedStatusUpdates() {
+        when:
+        renderer.onOutput(start(status: 'status'))
+
+        then:
+        1 * statusBar.setText('> status')
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(progress('progress1'))
+        renderer.onOutput(progress('progress2'))
+        renderer.onOutput(progress('progress3'))
+        flush()
+
+        then:
+        1 * statusBar.setText('> progress3')
+        0 * statusBar._
+    }
+
+    def coalescesQueuedOperationStartStopAndStatusUpdates() {
+        when:
+        renderer.onOutput(event('something'))
+
+        then:
+        0 * statusBar._
+
+        when:
+        renderer.onOutput(start(status: 'status'))
+        renderer.onOutput(progress('progress1'))
+        renderer.onOutput(progress('progress2'))
+        renderer.onOutput(complete('done'))
+        flush()
+
+        then:
         0 * statusBar._
     }
 
@@ -75,6 +232,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -91,6 +249,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -98,6 +257,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -114,6 +274,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -121,6 +282,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(start(status: 'status2'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress > status2')
@@ -128,6 +290,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress2'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress > progress2')
@@ -135,6 +298,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -142,6 +306,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -152,6 +317,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         when:
         renderer.onOutput(start(status: ''))
         renderer.onOutput(start(status: ''))
+        flush()
 
         then:
         2 * statusBar.setText('')
@@ -159,6 +325,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -166,6 +333,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -173,6 +341,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -189,6 +358,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress('progress'))
+        flush()
 
         then:
         1 * statusBar.setText('> progress')
@@ -196,6 +366,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(progress(''))
+        flush()
 
         then:
         1 * statusBar.setText('> short')
@@ -203,6 +374,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
 
         when:
         renderer.onOutput(complete('complete'))
+        flush()
 
         then:
         1 * statusBar.setText('')
@@ -216,5 +388,9 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         then:
         def e = thrown(RuntimeException)
         e.message.contains('unstarted operation')
+    }
+
+    void flush() {
+        executor.runNow()
     }
 }

@@ -278,8 +278,7 @@ class IdeaModule {
      * The module specific language Level to use for this module. When {@code null}, the module will inherit the
      * language level from the idea project.
      * <p>
-     * Idea project and module language levels are based on the {@code sourceCompatibility} settings for each Gradle project,
-     * unless the {@link IdeaProject#languageLevel} is explicitly set.
+     * The Idea module language level is based on the {@code sourceCompatibility} settings for the associated Gradle project.
      */
     @Incubating
     IdeaLanguageLevel languageLevel
@@ -288,7 +287,7 @@ class IdeaModule {
      * The module specific bytecode version to use for this module. When {@code null}, the module will inherit the
      * bytecode version from the idea project.
      * <p>
-     * Idea project and module byte code versions are based on the {@code targetCompatibility} settings for each Gradle project.
+     * The Idea module bytecode version is based on the {@code targetCompatibility} settings for the associated Gradle project.
      */
     @Incubating
     JavaVersion targetBytecodeVersion

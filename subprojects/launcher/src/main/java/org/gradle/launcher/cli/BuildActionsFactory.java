@@ -30,7 +30,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.*;
-import org.gradle.launcher.daemon.configuration.CurrentProcess;
+import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.*;
@@ -38,6 +38,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 
 import java.lang.management.ManagementFactory;
+import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineAction {
     private final CommandLineConverter<Parameters> parametersConverter;
@@ -61,9 +62,8 @@ class BuildActionsFactory implements CommandLineAction {
         }
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
-            daemonParameters.resetUid();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                    daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
+                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
             return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (parameters.getDaemonParameters().getDaemonUsage().isEnabled()) {
@@ -92,7 +92,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        CurrentProcess currentProcess = new CurrentProcess();
+        BuildProcess currentProcess = new BuildProcess();
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 

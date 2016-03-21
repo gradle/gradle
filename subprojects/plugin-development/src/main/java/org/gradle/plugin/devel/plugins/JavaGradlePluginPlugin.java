@@ -18,15 +18,22 @@ package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.plugin.devel.plugins.internal.tasks.PluginClasspathManifest;
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -34,16 +41,19 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+
 /**
  * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
  * <p>
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
- * configuration. Default conventions can be customized with the help of {@link JavaGradlePluginExtension#getFunctionalTestClasspath()}.
+ * configuration. Default conventions can be customized with the help of {@link GradlePluginDevelopmentExtension}.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+    private final ClassPathRegistry classPathRegistry;
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -52,14 +62,19 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
-    static final String EXTENSION_NAME = "javaGradlePlugin";
-    static final String PLUGIN_CLASSPATH_TASK_NAME = "generatePluginClasspathManifest";
+    static final String EXTENSION_NAME = "gradlePlugin";
+    static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
+
+    @Inject
+    public JavaGradlePluginPlugin(ClassPathRegistry classPathRegistry) {
+        this.classPathRegistry = classPathRegistry;
+    }
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
         configureJarTask(project);
-        JavaGradlePluginExtension extension = project.getExtensions().create(EXTENSION_NAME, JavaGradlePluginExtension.class, project);
+        GradlePluginDevelopmentExtension extension = createExtension(project);
         configureTestKit(project, extension);
     }
 
@@ -81,24 +96,38 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         jarTask.appendParallelSafeAction(pluginValidationAction);
     }
 
-    private void configureTestKit(Project project, JavaGradlePluginExtension extension) {
-        PluginClasspathManifest pluginClasspathTask = createAndConfigurePluginClasspathManifestTask(project, extension);
-        establishTestKitAndPluginClasspathDependencies(project, extension, pluginClasspathTask);
+    private GradlePluginDevelopmentExtension createExtension(Project project) {
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        SourceSet defaultPluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet defaultTestSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
-    private PluginClasspathManifest createAndConfigurePluginClasspathManifestTask(Project project, final JavaGradlePluginExtension extension) {
-        PluginClasspathManifest pluginClasspathTask = project.getTasks().create(PLUGIN_CLASSPATH_TASK_NAME, PluginClasspathManifest.class);
+    private void configureTestKit(Project project, GradlePluginDevelopmentExtension extension) {
+        PluginUnderTestMetadata pluginUnderTestMetadataTask = createAndConfigurePluginUnderTestMetadataTask(project, extension);
+        establishTestKitAndPluginClasspathDependencies(project, extension, pluginUnderTestMetadataTask);
+    }
 
-        pluginClasspathTask.getConventionMapping().map("pluginClasspath", new Callable<Object>() {
+    private PluginUnderTestMetadata createAndConfigurePluginUnderTestMetadataTask(final Project project, final GradlePluginDevelopmentExtension extension) {
+        final PluginUnderTestMetadata pluginUnderTestMetadataTask = project.getTasks().create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class);
+
+        ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask).getConventionMapping();
+        conventionMapping.map("pluginClasspath", new Callable<Object>() {
             public Object call() throws Exception {
-                return extension.getFunctionalTestClasspath().getPluginSourceSet().getRuntimeClasspath();
+                FileCollection gradleApi = project.files(classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles());
+                return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
+            }
+        });
+        conventionMapping.map("outputDirectory", new Callable<Object>() {
+            public Object call() throws Exception {
+                return new File(project.getBuildDir(), pluginUnderTestMetadataTask.getName());
             }
         });
 
-        return pluginClasspathTask;
+        return pluginUnderTestMetadataTask;
     }
 
-    private void establishTestKitAndPluginClasspathDependencies(Project project, JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+    private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, PluginUnderTestMetadata pluginClasspathTask) {
         project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
@@ -189,10 +218,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * on the plugin classpath manifest generation task for the test runtime configuration.
      */
     private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
-        private final JavaGradlePluginExtension extension;
-        private final PluginClasspathManifest pluginClasspathTask;
+        private final GradlePluginDevelopmentExtension extension;
+        private final PluginUnderTestMetadata pluginClasspathTask;
 
-        private TestKitAndPluginClasspathDependenciesAction(JavaGradlePluginExtension extension, PluginClasspathManifest pluginClasspathTask) {
+        private TestKitAndPluginClasspathDependenciesAction(GradlePluginDevelopmentExtension extension, PluginUnderTestMetadata pluginClasspathTask) {
             this.extension = extension;
             this.pluginClasspathTask = pluginClasspathTask;
         }
@@ -200,7 +229,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         @Override
         public void execute(Project project) {
             DependencyHandler dependencies = project.getDependencies();
-            Set<SourceSet> testSourceSets = extension.getFunctionalTestClasspath().getTestSourceSets();
+            Set<SourceSet> testSourceSets = extension.getTestSourceSets();
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();

@@ -17,10 +17,12 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
-import org.gradle.tooling.internal.composite.DefaultModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.composite.DefaultModelResult;
+import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -31,7 +33,6 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,16 +46,27 @@ public class CompositeAwareModelProducer extends CancellableModelBuilderBackedMo
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> Iterable<ModelResult<T>> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
         if (result.getModel() instanceof Map) {
+            ExceptionTransformer exceptionTransformer = new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable throwable) {
+                    // TODO:DAZ The installation in this message isn't going to be right
+                    return String.format("Could not fetch models of type '%s' using Gradle daemon composite connection.", elementType.getSimpleName());
+                }
+            });
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
-            Map<Object, Object> targetMap = new HashMap<Object, Object>();
-            adapter.convertMap(targetMap, ProjectIdentity.class, elementType, Map.class.cast(result.getModel()), getCompatibilityMapperAction());
-            for (Map.Entry<Object, Object> e : targetMap.entrySet()) {
-                ProjectIdentity projectIdentity = (ProjectIdentity)e.getKey();
-                T model = (T)e.getValue();
-                models.add(new DefaultModelResult<T>(model, projectIdentity));
+            Map<Object, Object> resultMap = (Map) result.getModel();
+            for (Map.Entry<Object, Object> entry : resultMap.entrySet()) {
+                ProjectIdentity projectIdentity = adapter.adapt(ProjectIdentity.class, entry.getKey(), getCompatibilityMapperAction());
+                if (entry.getValue() instanceof Throwable) {
+                    GradleConnectionException failure = exceptionTransformer.transform((Throwable) entry.getValue());
+                    models.add(new DefaultModelResult<T>(projectIdentity, failure));
+                } else {
+                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction());
+                    models.add(new DefaultModelResult<T>(projectIdentity, modelResult));
+                }
             }
             return models;
         }

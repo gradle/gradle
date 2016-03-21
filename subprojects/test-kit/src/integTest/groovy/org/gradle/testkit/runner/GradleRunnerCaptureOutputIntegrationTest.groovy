@@ -17,16 +17,15 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-
-import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
 @InspectsBuildOutput
-class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTest {
+class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     static final String OUT = "-- out --"
     static final String ERR = "-- err --"
@@ -38,7 +37,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
         given:
         def standardOutput = new StringWriter()
         def standardError = new StringWriter()
-        buildFile << helloWorldWithStandardOutputAndError()
+        buildScript helloWorldWithStandardOutputAndError()
 
         when:
         def result = runner('helloWorld')
@@ -47,13 +46,12 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
             .build()
 
         then:
-        noExceptionThrown()
         result.output.findAll(OUT).size() == 1
         result.output.findAll(ERR).size() == 1
         standardOutput.toString().findAll(OUT).size() == 1
         standardError.toString().findAll(ERR).size() == 1
 
-        // isn't empty if version < 2.8
+        // isn't empty if version < 2.8 or potentially contains Gradle dist download progress output
         if (isCompatibleVersion('2.8') && !crossVersion) {
             assert stdStreams.stdOut.empty
             assert stdStreams.stdErr.empty
@@ -78,6 +76,9 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
         if (isCompatibleVersion('2.3')) {
             assert stdStreams.stdOut.findAll(OUT).size() == 1
             assert stdStreams.stdOut.findAll(ERR).size() == 1
+        } else {
+            assert stdStreams.stdOut.findAll(OUT).size() == 2
+            assert stdStreams.stdOut.findAll(ERR).size() == 2
         }
     }
 
@@ -109,7 +110,14 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
         Writer standardError = new StringWriter()
 
         buildFile << helloWorldWithStandardOutputAndError() << """
-            helloWorld.doLast { Runtime.runtime.halt(0) }
+            helloWorld.doLast {
+                 // since the messages are now queued and sent asynchronously to the client
+                 // we're giving more time to make sure that the messages were forwarded.
+                 // It also means that in some circumstances, some messages might not be sent
+                 // to the client
+                sleep(500)
+                Runtime.runtime.halt(0)
+            }
         """
 
         when:
@@ -137,7 +145,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends GradleRunnerIntegrationTe
         """
     }
 
-    private boolean isCompatibleVersion(String minCompatibleVersion) {
+    private static boolean isCompatibleVersion(String minCompatibleVersion) {
         gradleVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
     }
 }

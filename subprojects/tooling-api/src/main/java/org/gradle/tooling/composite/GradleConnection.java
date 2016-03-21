@@ -17,6 +17,7 @@
 package org.gradle.tooling.composite;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
@@ -112,7 +113,7 @@ public interface GradleConnection {
      * @throws GradleConnectionException
      * @throws IllegalStateException
      */
-    <T> Iterable<ModelResult<T>> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
+    <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
      * Starts fetching a Set of snapshots of the model of the given type for this composite, passing the result to the given handler when complete. This method returns immediately, and the result is later
@@ -131,7 +132,7 @@ public interface GradleConnection {
      * @param <T>
      * @throws IllegalStateException
      */
-    <T> void getModels(Class<T> modelType, ResultHandler<? super Iterable<ModelResult<T>>> handler) throws IllegalStateException;
+    <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
     /**
      * Creates a builder which can be used to query the model of the given type for all projects in the composite.
@@ -139,10 +140,31 @@ public interface GradleConnection {
      * <p>The set of projects is "live", so that models from projects added to the overall composite after the builder
      * was been created will appear in the results without recreating the builder.</p>
      *
+     * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
+     * build:
+     *
+     * <ul>
+     *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
+     *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.idea.BasicIdeaProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
+     *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
+     * </ul>
+     *
+     * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
+     *
      * @param modelType
      * @param <T>
      */
-    <T> ModelBuilder<Iterable<ModelResult<T>>> models(Class<T> modelType);
+    <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
+
+
+    BuildLauncher newBuild(BuildIdentity buildIdentity);
+
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

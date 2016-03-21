@@ -50,13 +50,16 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
     }
 
     @Override
-    protected void doLineText(CharSequence text, boolean terminatesLine) {
+    protected void doLineText(CharSequence text) {
         buffer.append(text);
-        if (terminatesLine) {
-            spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
-            buffer.setLength(0);
-            listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans));
-            spans = new ArrayList<StyledTextOutputEvent.Span>();
-        }
+    }
+
+    @Override
+    protected void doEndLine(CharSequence endOfLine) {
+        buffer.append(endOfLine);
+        spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
+        buffer.setLength(0);
+        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans));
+        spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }

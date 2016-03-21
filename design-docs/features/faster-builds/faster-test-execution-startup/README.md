@@ -13,6 +13,9 @@ Investigate and improve test execution startup time.
 
 - Fix hotspots identified by profiling
 - Investigate file scanning done by the `Test` task. Initial observations have this task scanning its inputs many times. Investigate and fix.
+- Don't attach source directories to `Test` task, when not required.
+- Fix `Test` task inputs so that candidate class files hash is not required.
+- Fix file snapshot calculation to handle directories that are declared as multiple inputs or outputs for a task.
 
 ## Stories
 
@@ -79,6 +82,46 @@ This doesn't make test execution faster, makes for a fairer subjective compariso
 
 Add some basic test coverage for test progress logging. Use the progress logging test fixture.
 
+### Spike generating the HTML and XML reports in parallel
+
+Spike generating the HTML reports at the same time as the XML reports.
+
+The idea is to try running `Binary2JUnitXmlReportGenerator.generate()` in one thread and `TestReporter.generateReport()` in another. It is not to attempt to generate each
+HTML or XML report output file in parallel (though this could be another spike).
+
+#### Some Results
+The following are running `gradle cleanTest test`.  For each data point, there were a couple of warm-up runs, followed by several runs whose results were averaged together.
+All times are in seconds.
+
+* master - Current master branch (everything is generated in sequence)
+* parallel - Spike of generating junit xml and html reports in parallel.
+* parallel-file - Spike of generating junit xml and html reports in sequence, but individual files in parallel.
+
+The single10000/25000/50000 test sets are single project builds with 10000, 25000, and 50000 tests.
+
+Test Report Generation time - this is a measure of the total time spent generating test reports.
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+master | 3.44 | 7.85 | 3.23 | 7.68 | 15.6
+parallel | 2.20 | 4.91 | 2.33 | 6.30 | 12.0
+parallel-file | 1.01 | 2.84 | 1.46 | 2.90 | 6.31
+
+Total Build Time
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+master | 46.27 | 123.71 | 13.07 | 30.63 | 44.6
+parallel | 45.65 | 121.20 | 13.47 | 24.47 | 41.03
+parallel-file | 45.37 | 122.24 | 10.7 | 22.7 | 41.20
+
+### Generate test reports concurrently
+
+Refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML report files in parallel, subject to
+max parallel workers constraints.
+
+Do something useful with exceptions collected during generation.
+
 ### Understand where test task is spending its time
 
 Instrument Gradle to get a breakdown of how long each of the main activities in test start up take:
@@ -120,3 +163,29 @@ A typical breakdown of the wall clock time spent by `test` with 1000 main and te
 - 384ms, generate HTML reports
 - 190ms, snapshot outputs
 - 9ms, write task history
+
+Miscellaneous profiling results:
+
+- When excluding test execution time, up to 10% of remaining time is spent calling `getGenericReturnType` in decorators (fixed already)
+- A large number of empty snapshots are generated when tasks are up-to-date. This could be optimized for memory and iteration. Experimental fix: https://github.com/gradle/gradle/commit/9946a56f225aa9f4007eb65f0cfb3274a718e140
+- 20% of dependency resolution time in up-to-date build is spent in parsing the Ivy XML descriptor
+- IDE plugin application consumes most of the build script (project) setup. The Eclipse and IDEA plugins trigger a lot of dynamic variable resolution (`conventionMapping`, `projectModel`, ...) which are very expensive (and not optimized) in Groovy. This is called even if, in the end, we will never call the IDEA or Eclipse tasks...
+
+Latest hotspots on an up-to-date test execution build (aka, does nothing)
+
+- **Dependency resolution** org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager.withIvy(Transformer) DefaultIvyContextManager.java 544ms	**9 %**
+- groovy.lang.Closure.getPropertyTryThese(String, Object, Object) Closure.java 248ms	4 %
+- **String interning** com.google.common.collect.Interners$WeakInterner.intern(Object) Interners.java 232ms	4 %
+- java.util.LinkedList.toArray(Object[]) LinkedList.java 192ms	3 %
+- org.gradle.api.internal.changedetection.state.CachingFileSnapshotter.snapshot(FileTreeElement) CachingFileSnapshotter.java 188ms	3 %
+- groovy.lang.MetaClassImpl.invokeMissingProperty(Object, String, Object, boolean) MetaClassImpl.java 180ms	3 %
+- java.lang.Class.getSimpleName() Class.java 160ms	3 %
+- com.google.common.cache.LocalCache$LocalManualCache.getIfPresent(Object) LocalCache.java 148ms	3 %
+- com.google.common.collect.Sets$SetFromMap.add(Object) Sets.java 124ms	2 %
+- java.io.File.isDirectory() File.java 112ms	2 %
+- java.lang.reflect.Method.getGenericReturnType() Method.java 104ms	2 % (already optimized, used to be 10%)
+- org.gradle.api.internal.CompositeDynamicObject.setProperty(String, Object) CompositeDynamicObject.java 104ms	2 %
+- org.gradle.initialization.ProjectPropertySettingBuildLoader.addPropertiesToProject(Project) ProjectPropertySettingBuildLoader.java 100ms	2 %
+- org.gradle.internal.service.DefaultServiceRegistry.getFactory(Class) DefaultServiceRegistry.java 84ms	1 %
+- org.gradle.internal.service.DefaultServiceRegistry$CompositeProvider.getService(DefaultServiceRegistry$LookupContext, DefaultServiceRegistry$TypeSpec) DefaultServiceRegistry.java 84ms	1 %
+- java.lang.Class.isArray() Class.java (native) 80ms	1 %

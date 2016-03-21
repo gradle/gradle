@@ -27,6 +27,6 @@ public class MetaDataParseException extends GradleException {
     }
 
     public MetaDataParseException(String typeName, ExternalResource resource, Throwable cause) {
-        super(String.format("Could not parse %s %s", typeName, resource.getName()), cause);
+        super(String.format("Could not parse %s %s", typeName, resource.getDisplayName()), cause);
     }
 }

@@ -19,6 +19,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -148,18 +149,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         }
     }
 
-    public void removeAllOutputEventListeners() {
-        synchronized (lock) {
-            formatters.removeAll();
-        }
-    }
-
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
         final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
                 new ProgressLogEventGenerator(
                         new StyledTextOutputBackedRenderer(console.getMainArea()), true),
                 console,
-                new DefaultStatusBarFormatter(consoleMetaData));
+                new DefaultStatusBarFormatter(consoleMetaData),
+                new TrueTimeProvider());
         synchronized (lock) {
             if (stdout && stderr) {
                 formatters.add(consoleChain);
@@ -231,6 +227,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void configure(LogLevel logLevel) {
         onOutput(new LogLevelChangeEvent(logLevel));
+    }
+
+    public void flush() {
+        onOutput(new FlushToOutputsEvent());
     }
 
     public void onOutput(OutputEvent event) {

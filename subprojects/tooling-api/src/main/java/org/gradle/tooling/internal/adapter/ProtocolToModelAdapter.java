@@ -132,7 +132,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    protected Object convert(Type targetType, Object sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Object convert(Type targetType, Object sourceObject, Action<? super SourceObjectMapping> mapping) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
             if (parameterizedTargetType.getRawType() instanceof Class) {
@@ -157,19 +157,15 @@ public class ProtocolToModelAdapter implements Serializable {
         throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
     }
 
-    protected Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, Action<? super SourceObjectMapping> mapping) {
         Map<Object, Object> convertedElements = collectionMapper.createEmptyMap(mapClass);
-        convertMap(convertedElements, targetKeyType, targetValueType, sourceObject, mapping);
+        for (Map.Entry<?, ?> entry : sourceObject.entrySet()) {
+            convertedElements.put(convert(targetKeyType, entry.getKey(), mapping), convert(targetValueType, entry.getValue(), mapping));
+        }
         return convertedElements;
     }
 
-    public void convertMap(Map<Object, Object> targetMap, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, Action<? super SourceObjectMapping> mapping) {
-        for (Map.Entry<?, ?> entry : sourceObject.entrySet()) {
-            targetMap.put(convert(targetKeyType, entry.getKey(), mapping), convert(targetValueType, entry.getValue(), mapping));
-        }
-    }
-
-    protected Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {
         Collection<Object> convertedElements = collectionMapper.createEmptyCollection(collectionClass);
         convertCollectionInternal(convertedElements, targetElementType, sourceObject, mapping);
         if (collectionClass.equals(DomainObjectSet.class)) {
@@ -177,10 +173,6 @@ public class ProtocolToModelAdapter implements Serializable {
         } else {
             return convertedElements;
         }
-    }
-
-    public <T> void convertCollection(Collection<T> targetCollection, Class<T> targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {
-        convertCollectionInternal((Collection<Object>) targetCollection, targetElementType, sourceObject, mapping);
     }
 
     private void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {

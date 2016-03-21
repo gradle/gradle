@@ -16,17 +16,19 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.CompositeBuildException
 import org.gradle.tooling.composite.BuildIdentity
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.tooling.composite.ProjectIdentity
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.CollectionUtils
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private Iterable<ModelResult> modelResults
 
-    def "can correlate errors with build that caused it"() {
+    def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
         def rootDirA = populate("A") {
             settingsFile << "rootProject.name = '${rootProjectName}'"
@@ -34,22 +36,108 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
                 apply plugin: 'java'
                 group = 'org.A'
                 version = '1.0'
-                throw new GradleException("Fail")
+                throw new GradleException("Failure in A")
+"""
+        }
+        def rootDirB = populate("B") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        def rootDirC = populate("C") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
+            buildFile << """
+                apply plugin: 'java'
+                throw new GradleException("Different failure in C")
 """
         }
         when:
         def builder = createCompositeBuilder()
         def participantA = createGradleBuildParticipant(rootDirA)
+        def participantB = createGradleBuildParticipant(rootDirB)
+        def participantC = createGradleBuildParticipant(rootDirC)
         builder.addBuild(participantA)
+        builder.addBuild(participantB)
+        builder.addBuild(participantC)
         def connection = builder.build()
-        def buildIdentity = participantA.toBuildIdentity()
-        def otherBuildIdentity = createGradleBuildParticipant(file("B")).toBuildIdentity()
+
         and:
         modelResults = connection.getModels(EclipseProject)
+
         then:
-        def e = thrown(CompositeBuildException)
-        e.causedBy(buildIdentity)
-        !e.causedBy(otherBuildIdentity)
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        assertFailure(resultA.failure,
+            "Could not fetch models of type 'EclipseProject'",
+            "A problem occurred evaluating root project 'A'.",
+            "Failure in A")
+
+        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':'))
+        assertSingleEclipseProject(resultB, 'B', ':')
+
+        def resultC = CollectionUtils.single(findByProjectIdentity(participantC.toProjectIdentity(':')))
+        assertFailure(resultC.failure,
+            "Could not fetch models of type 'EclipseProject'",
+            "A problem occurred evaluating root project 'C'.",
+            "Different failure in C")
+    }
+
+    def "can correlate exceptions in composite with multiple multi-project participants"() {
+        given:
+        def rootDirA = populate("A") {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include 'ax', 'ay'
+            """
+
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.A'
+                    version = '1.0'
+                }
+            """
+            file("ax/build.gradle") << """
+                throw new GradleException("Failure in A::ax")
+"""
+        }
+        def rootDirB = populate("B") {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include 'bx', 'by'
+            """
+
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.B'
+                    version = '1.0'
+                }
+            """
+        }
+        when:
+        def builder = createCompositeBuilder()
+        def participantA = createGradleBuildParticipant(rootDirA)
+        def participantB = createGradleBuildParticipant(rootDirB)
+        builder.addBuild(participantA)
+        builder.addBuild(participantB)
+        def connection = builder.build()
+
+        and:
+        modelResults = connection.getModels(EclipseProject)
+
+        then:
+        // when the build cannot be configured, we return only a failure for the root project
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        assertFailure(resultA.failure,
+            "Could not fetch models of type 'EclipseProject'",
+            "A problem occurred evaluating project ':ax'.",
+            "Failure in A::ax")
+        // cannot find a project by something other than the root project
+        findByProjectIdentity(participantA.toProjectIdentity(":ax")) == []
+
+        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':bx'))
+        assertSingleEclipseProject(resultB, 'B', ':bx')
+        assertContainsEclipseProjects(findByBuildIdentity(participantB.toBuildIdentity()), "B", ":", ":bx", ":by")
     }
 
     def "can correlate models in a single project, single participant composite"() {
@@ -128,9 +216,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
+        def otherHierarchicalModelResults = connection.getModels(GradleProject)
+        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
         then:
-        containSameIdentifiers(otherModelResults)
+        containSameIdentifiers(otherHierarchicalModelResults)
+        containSameIdentifiers(otherPerBuildModelResults)
 
         cleanup:
         connection?.close()
@@ -194,9 +284,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         // We can take the results from one model request and correlate it with other model requests by
         // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
+        def otherHierarchicalModelResults = connection.getModels(GradleProject)
+        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
         then:
-        containSameIdentifiers(otherModelResults)
+        containSameIdentifiers(otherHierarchicalModelResults)
+        containSameIdentifiers(otherPerBuildModelResults)
 
         cleanup:
         connection?.close()

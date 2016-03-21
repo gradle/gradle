@@ -99,6 +99,14 @@ public class ReleasedVersionDistributions {
         });
     }
 
+    public GradleDistribution getDistribution(final String gradleVersion) {
+        return findFirst(getAll(), new Spec<GradleDistribution>() {
+            public boolean isSatisfiedBy(GradleDistribution element) {
+                return element.getVersion().getVersion().equals(gradleVersion);
+            }
+        });
+    }
+
     public GradleDistribution getPrevious(final GradleVersion gradleVersion) {
         GradleDistribution distribution = getDistribution(gradleVersion);
         List<GradleDistribution> sortedDistributions = sort(distributions, new Comparator<GradleDistribution>() {

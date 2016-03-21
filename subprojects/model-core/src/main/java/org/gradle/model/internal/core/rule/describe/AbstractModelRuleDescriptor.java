@@ -17,9 +17,12 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.cache.StringInterner;
 
 @ThreadSafe
 abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor {
+
+    protected final static StringInterner STRING_INTERNER = new StringInterner();
 
     @Override
     public ModelRuleDescriptor append(ModelRuleDescriptor child) {

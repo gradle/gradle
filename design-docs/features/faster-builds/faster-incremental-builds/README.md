@@ -15,20 +15,22 @@ Audience is developers that are using the Gradle daemon.
 Up-to-date checks    
 
 - Fix hotspots identified by profiling
-- Write task history to file system asynchronously (in worker pool)
+- Write cache updates to the backing persistent store asynchronously (in worker pool)
 - Improve in-heap cache management to evict entries that aren't likely to be used, such as when switching builds.
 - Don't cache the result of `PatternSpec` evaluation. It's now faster to evaluate each time than cache the result
 
 Dependency resolution
 
+- Don't parse ivy.xml/pom.xml on each resolve for modules in local repositories.
+- Store cached module meta-data in a more efficient format than ivy.xml. 
 - Fix hotspots identified by profiling
 - Reuse resolution result for configuration that has same inputs as another.
 - Reuse resolution result across builds.
 
 ## Stories
 
-TBD
-   
+TBD    
+
 ## Notes    
 
 The following are notes collected from old design specs.

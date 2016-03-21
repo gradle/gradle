@@ -1,11 +1,10 @@
 import groovy.json.JsonSlurper
+import org.gradle.internal.hash.HashUtil
 import org.gradle.performance.generator.DependencyGenerator
 import org.gradle.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.performance.generator.tasks.ProjectGeneratorTask
-
-import java.util.regex.Pattern
 
 apply plugin: 'javascript-base'
 
@@ -35,6 +34,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':toolingApi', sourceSet: 'testFixtures')
 useClassycle()
 
 task reportResources(type: Copy) {
@@ -72,6 +72,12 @@ task withJUnit(type: JvmProjectGeneratorTask) {
 task mediumWithJUnit(type: JvmProjectGeneratorTask) {
     projects = 25
     sourceFiles = 200
+    subProjectTemplates << 'with-junit'
+}
+
+task largeWithJUnit(type: JvmProjectGeneratorTask) {
+    projects = 50
+    sourceFiles = 300
     subProjectTemplates << 'with-junit'
 }
 
@@ -549,7 +555,7 @@ task all {
 }
 
 task prepareSamples {
-    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, largeWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
         smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
@@ -597,27 +603,37 @@ task buildReceiptReport {
     }
 }
 
+tasks.withType(Test){
+    ext.performanceTest = false
+}
+
+def performanceTestTasks = tasks.withType(Test).matching { it.performanceTest }
+
+
 task performanceTest(type: Test) {
-    dependsOn prepareSamples
-    finalizedBy report
-    maxParallelForks = 1
+    performanceTest = true
     options {
         includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
     }
 }
 
 task performanceExperiments(type: Test) {
-    dependsOn prepareSamples
-    finalizedBy report
-    maxParallelForks = 1
+    performanceTest = true
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
 
 task performanceAdhocTest(type: Test) {
-    dependsOn prepareSamples
+    performanceTest = true
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
+    maxParallelForks = 1
+}
+
+performanceTestTasks.all {
+    dependsOn prepareSamples
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    finalizedBy report
     maxParallelForks = 1
 }
 
@@ -649,6 +665,23 @@ task buildReceiptPluginPerformanceTest(type: Test) {
 
     options {
         includeCategories 'org.gradle.performance.categories.BuildReceiptPluginPerformanceTest'
+    }
+}
+
+task checkNoIdenticalBuildFiles {
+    doLast {
+        def files = [:].withDefault { [] }
+        buildDir.eachFileRecurse {
+            if (it.name.endsWith('.gradle')) {
+                def hash = HashUtil.createHash(it, 'sha1').asHexString()
+                files[hash] << it
+            }
+        }
+        files.each { hash, candidates ->
+            if (candidates.size()>1) {
+                println "Duplicate build files found for hash '$hash' : $candidates"
+            }
+        }
     }
 }
 

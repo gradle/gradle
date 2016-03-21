@@ -49,6 +49,35 @@ task showBroken << { println configurations.compile.files }
             .assertHasCause("invalid version null")
     }
 
+    def "reports local Ivy descriptor that cannot be parsed"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task showBroken << { println configurations.compile.files }
+"""
+
+        and:
+        def module = ivyRepo.module('group', 'projectA', '1.2').publish()
+        module.ivyFile.text = "<ivy-module>"
+
+        when:
+        fails "showBroken"
+
+        then:
+        failure
+            .assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse Ivy file ${module.ivyFile}")
+            .assertHasCause("invalid version null")
+    }
+
     def "reports Ivy descriptor with configuration that extends unknown configuration"() {
         given:
         buildFile << """

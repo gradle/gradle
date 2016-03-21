@@ -41,7 +41,7 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
 
     public void process(final ScriptSource initScript, GradleInternal gradle) {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        URI uri = initScript.getResource().getURI();
+        URI uri = initScript.getResource().getLocation().getURI();
         String id = uri == null ? idGenerator.generateId().toString() : uri.toString();
         ClassLoaderScope scriptScope = baseScope.createChild("init-" + id);
         ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, scriptScope);

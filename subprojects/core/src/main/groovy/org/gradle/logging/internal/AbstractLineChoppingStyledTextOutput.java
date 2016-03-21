@@ -21,11 +21,13 @@ import org.gradle.internal.SystemProperties;
  * A {@link org.gradle.logging.StyledTextOutput} that breaks text up into lines.
  */
 public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyledTextOutput {
-    private final char[] eol;
+    private final char[] eolChars;
+    private final String eol;
     private int seenCharsFromEol;
 
     protected AbstractLineChoppingStyledTextOutput() {
-        eol = SystemProperties.getInstance().getLineSeparator().toCharArray();
+        eol = SystemProperties.getInstance().getLineSeparator();
+        eolChars = eol.toCharArray();
     }
 
     @Override
@@ -34,32 +36,32 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         int pos = 0;
         int start = 0;
         while (pos < max) {
-            if (seenCharsFromEol == eol.length) {
+            if (seenCharsFromEol == eolChars.length) {
                 doStartLine();
                 seenCharsFromEol = 0;
             }
-            if (seenCharsFromEol < eol.length && text.charAt(pos) == eol[seenCharsFromEol]) {
+            if (seenCharsFromEol < eolChars.length && text.charAt(pos) == eolChars[seenCharsFromEol]) {
                 seenCharsFromEol++;
                 pos++;
-                if (seenCharsFromEol == eol.length) {
-                    doLineText(text.substring(start, pos), true);
-                    doFinishLine();
+                if (seenCharsFromEol == eolChars.length) {
+                    if (start < pos - seenCharsFromEol) {
+                        doLineText(text.substring(start,  pos - seenCharsFromEol));
+                    }
+                    doEndLine(eol);
                     start = pos;
                 }
             } else {
+                if (seenCharsFromEol > 0 && start == 0) {
+                    doLineText(eol.substring(0, seenCharsFromEol));
+                    start = pos;
+                }
                 seenCharsFromEol = 0;
                 pos++;
             }
         }
-        if (pos > start) {
-            doLineText(text.substring(start, pos), false);
+        if (start < pos - seenCharsFromEol) {
+            doLineText(text.substring(start,  pos - seenCharsFromEol));
         }
-    }
-
-    /**
-     * Called <em>after</em> the end-of-line text has been appended.
-     */
-    protected void doFinishLine() {
     }
 
     /**
@@ -69,9 +71,12 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     }
 
     /**
-     * Called when text is to be appended.
-     * @param text The text, includes any end-of-line terminator
-     * @param terminatesLine true if the given text terminates a line (including the end-of-line string).
+     * Called when text is to be appended. Does not include any end-of-line separators.
      */
-    protected abstract void doLineText(CharSequence text, boolean terminatesLine);
+    protected abstract void doLineText(CharSequence text);
+
+    /**
+     * Called when end of line is to be appended.
+     */
+    protected abstract void doEndLine(CharSequence endOfLine);
 }

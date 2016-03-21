@@ -16,7 +16,10 @@
 package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
+import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.initialization.ClassLoaderIds
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -24,7 +27,8 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.hash.HashValue
+import org.gradle.internal.resource.TextResource
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -32,17 +36,23 @@ import spock.lang.Specification
 class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ScriptCompilationHandler scriptCompilationHandler = Mock()
     final CacheRepository cacheRepository = Mock()
-    final CacheBuilder cacheBuilder = Mock()
+    final CacheBuilder localCacheBuilder = Mock()
+    final CacheBuilder globalCacheBuilder = Mock()
     final CacheValidator validator = Mock()
-    final PersistentCache cache = Mock()
+    final PersistentCache localCache = Mock()
+    final PersistentCache globalCache = Mock()
     final ScriptSource source = Mock()
+    final TextResource resource = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
-    final File cacheDir = new File("base-dir")
-    final File classesDir = new File(cacheDir, "classes")
-    final File metadataDir = new File(cacheDir, "metadata")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
+    final CachingFileSnapshotter snapshotter = Mock()
+    final ClassLoaderCache classLoaderCache = Mock()
+    final File localDir = new File("local-dir")
+    final File globalDir = new File("global-dir")
+    final File classesDir = new File(globalDir, "classes")
+    final File metadataDir = new File(globalDir, "metadata")
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
@@ -50,71 +60,107 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     def classLoaderId = ClassLoaderIds.buildScript("foo", "bar")
 
     def setup() {
-        Resource resource = Mock()
         _ * source.resource >> resource
+        _ * resource.contentCached >> true
         _ * resource.text >> 'this is the script'
         _ * source.className >> 'ScriptClassName'
         _ * source.fileName >> 'ScriptFileName'
+        _ * source.displayName >> 'Build Script'
         _ * operation.id >> 'TransformerId'
+        _ * operation.cacheKey >> 'key'
         _ * operation.transformer >> transformer
-        _ * cache.baseDir >> cacheDir
+        _ * localCache.baseDir >> localDir
+        _ * globalCache.baseDir >> globalDir
         _ * validator.isValid() >> true
     }
 
     def "loads classes from cache directory"() {
+        def initializer
+
         when:
         def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
-        1 * cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
-        1 * cacheBuilder.withProperties(!null) >> { args ->
-            assert args[0].get('source.filename') == 'ScriptFileName'
-            assert args[0].containsKey('source.hash')
-            return cacheBuilder
+        1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
+        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/key") >> localCacheBuilder
+        1 * localCacheBuilder.withInitializer(!null) >> { args ->
+            initializer = args[0]
+            localCacheBuilder
         }
-        1 * cacheBuilder.withInitializer(!null) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
-        1 * cacheBuilder.withValidator(!null) >> cacheBuilder
-        1 * cacheBuilder.open() >> cache
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
+        1 * localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
+        1 * localCacheBuilder.withValidator(!null) >> localCacheBuilder
+        1 * localCacheBuilder.open() >> {
+            initializer.execute(localCache)
+            localCache
+        }
+
+        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
+        1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
+        1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
+        1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
+        1 * globalCacheBuilder.open() >> globalCache
+
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(localDir, 'classes'), new File(localDir, 'metadata'), operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
-    def "passes CacheValidator to cacheBuilder"() {
+    def "passes CacheValidator to cache builders"() {
         setup:
-        cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
-        cacheBuilder.withProperties(!null) >> cacheBuilder
-        cacheBuilder.withInitializer(!null) >> cacheBuilder
-        cacheBuilder.withDisplayName(!null) >> cacheBuilder
-        cacheBuilder.open() >> cache
+        snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
+        cacheRepository.cache("scripts-remapped/ScriptClassName/83/key") >> localCacheBuilder
+        localCacheBuilder.withProperties(!null) >> localCacheBuilder
+        localCacheBuilder.withInitializer(!null) >> localCacheBuilder
+        localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
+        localCacheBuilder.open() >> localCache
         scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
 
         when:
         compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier)
 
         then:
-        1 * cacheBuilder.withValidator(validator) >> cacheBuilder
+        1 * localCacheBuilder.withValidator(validator) >> localCacheBuilder
     }
 
     def "compiles classes to cache directory when cache is invalid"() {
-        def initializer
+        def initializer, globalInitializer
         def classesDir = classesDir
-        def metadataDir = new File(cacheDir, "metadata")
+        def metadataDir = new File(globalDir, "metadata")
+        def localMetadataDir = new File(localDir, "metadata")
+        def localClassesDir = new File(localDir, "classes")
 
         when:
         def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
-        1 * cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
-        1 * cacheBuilder.withProperties(!null) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
-        1 * cacheBuilder.withValidator(!null) >> cacheBuilder
-        1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
-        1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, Script, verifier)
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
+        1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
+        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/key') >> localCacheBuilder
+        1 * localCacheBuilder.withInitializer(!null) >> { args ->
+            initializer = args[0]
+            localCacheBuilder
+        }
+        1 * localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
+        1 * localCacheBuilder.withValidator(!null) >> localCacheBuilder
+        1 * localCacheBuilder.open() >> {
+            initializer.execute(localCache)
+            localCache
+        }
+
+        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
+        1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
+        1 * globalCacheBuilder.withInitializer(!null) >> { args ->
+            globalInitializer = args[0]
+            globalCacheBuilder
+        }
+        1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
+        1 * globalCacheBuilder.open() >> {
+            globalInitializer.execute(globalCache)
+            globalCache
+        }
+
+        1 * scriptCompilationHandler.compileToDir({ it instanceof RemappingScriptSource}, classLoader, classesDir, metadataDir, operation, Script, verifier)
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, localClassesDir, localMetadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
@@ -124,7 +170,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def cache = Mock(PersistentCache)
         def logger = Mock(ProgressLogger)
 
-        def initializer = new FileCacheBackedScriptClassCompiler.ProgressReportingInitializer(factory, delegate)
+        def initializer = new FileCacheBackedScriptClassCompiler.ProgressReportingInitializer(factory, delegate, 'Compile script into cache', 'Compiling script into cache')
 
         when:
         initializer.execute(cache)

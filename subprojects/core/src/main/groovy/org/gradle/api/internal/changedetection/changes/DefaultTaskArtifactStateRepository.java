@@ -126,7 +126,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return;
             }
 
-            if (taskInputs!=null) {
+            if (taskInputs != null) {
                 getStates().newInputs(taskInputs.getDiscoveredInputs());
             }
             getStates().getAllTaskChanges().snapshotAfterTask();

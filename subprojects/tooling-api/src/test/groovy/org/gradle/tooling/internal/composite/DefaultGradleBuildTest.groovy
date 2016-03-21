@@ -16,11 +16,22 @@
 
 package org.gradle.tooling.internal.composite
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultGradleBuildTest extends Specification {
-    File projectDir = Mock()
-    def gradleBuild = new DefaultGradleBuild(projectDir, null, null, null)
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = TestNameTestDirectoryProvider.newInstance()
+    File projectDir
+    DefaultGradleBuild gradleBuild
+
+    def setup() {
+        projectDir = testDirectoryProvider.createDir("projectDir")
+        gradleBuild = new DefaultGradleBuild(projectDir, null, null, null)
+    }
 
     def "create build identity from projectDir"() {
         expect:

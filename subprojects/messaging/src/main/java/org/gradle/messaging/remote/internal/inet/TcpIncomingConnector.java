@@ -34,14 +34,15 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.UUID;
 
 public class TcpIncomingConnector implements IncomingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<UUID> idGenerator;
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
+    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<UUID> idGenerator) {
         this.executorFactory = executorFactory;
         this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
@@ -58,7 +59,7 @@ public class TcpIncomingConnector implements IncomingConnector {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        Object id = idGenerator.generateId();
+        UUID id = idGenerator.generateId();
         List<InetAddress> addresses = allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
         final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);

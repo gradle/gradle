@@ -17,6 +17,7 @@
 package org.gradle.tooling.composite;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.GradleConnectionException;
 
 /**
  * A model with the identity of the project it was produced from.
@@ -27,16 +28,24 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ModelResult<T> {
     /**
-     * Model produced
-     *
-     * @return the model, never null.
-     */
-    T getModel();
-
-    /**
      * Identity of the project this model was produced from.
      *
      * @return the project identity, never null.
      */
     ProjectIdentity getProjectIdentity();
+
+    /**
+     * Model produced
+     *
+     * @return the model, never null.
+     * @throws GradleConnectionException if the model could not be retrieved.
+     */
+    T getModel() throws GradleConnectionException;
+
+    /**
+     * The failure retrieving the model.
+     *
+     * @return the failure.
+     */
+    GradleConnectionException getFailure();
 }

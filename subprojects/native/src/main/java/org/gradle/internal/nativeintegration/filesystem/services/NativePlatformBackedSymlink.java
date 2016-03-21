@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import net.rubygrapefruit.platform.PosixFile;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 
@@ -38,5 +39,10 @@ class NativePlatformBackedSymlink implements Symlink {
     public void symlink(File link, File target) throws IOException {
         link.getParentFile().mkdirs();
         posixFiles.symlink(link, target.getPath());
+    }
+
+    @Override
+    public boolean isSymlink(File suspect) {
+        return posixFiles.stat(suspect).getType() == PosixFile.Type.Symlink;
     }
 }

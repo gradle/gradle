@@ -62,5 +62,4 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
         result.buildResult(spec.displayInfo)
     }
 
-
 }

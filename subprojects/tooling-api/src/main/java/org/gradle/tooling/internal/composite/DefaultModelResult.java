@@ -16,16 +16,25 @@
 
 package org.gradle.tooling.internal.composite;
 
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.composite.ModelResult;
 import org.gradle.tooling.composite.ProjectIdentity;
 
 public class DefaultModelResult<T> implements ModelResult<T> {
     private final T model;
     private final ProjectIdentity projectIdentity;
+    private final GradleConnectionException failure;
 
-    public DefaultModelResult(T model, ProjectIdentity projectIdentity) {
-        this.model = model;
+    public DefaultModelResult(ProjectIdentity projectIdentity, T model) {
         this.projectIdentity = projectIdentity;
+        this.model = model;
+        this.failure = null;
+    }
+
+    public DefaultModelResult(ProjectIdentity projectIdentity, GradleConnectionException failure) {
+        this.projectIdentity = projectIdentity;
+        this.model = null;
+        this.failure = failure;
     }
 
     @Override
@@ -35,11 +44,23 @@ public class DefaultModelResult<T> implements ModelResult<T> {
 
     @Override
     public T getModel() {
+        if (failure != null) {
+            throw failure;
+        }
         return model;
     }
 
     @Override
+    public GradleConnectionException getFailure() {
+        return failure;
+    }
+
+    @Override
     public String toString() {
-        return String.format("result={ project=%s, model=%s }", projectIdentity, model.getClass().getCanonicalName());
+        if (model != null) {
+            return String.format("result={ project=%s, model=%s }", projectIdentity, model.getClass().getCanonicalName());
+        }
+        assert failure != null;
+        return String.format("result={ project=%s, failure=%s }", projectIdentity, failure.getMessage());
     }
 }

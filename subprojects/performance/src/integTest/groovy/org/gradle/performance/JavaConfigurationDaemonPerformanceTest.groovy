@@ -33,7 +33,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.previousTestIds = ["configure new java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['2.8', '2.10', '2.11', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(25)
@@ -60,7 +60,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.previousTestIds = ["configure java project $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ['2.0', '2.4', '2.8', '2.11', 'last']
+        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(25)
@@ -73,9 +73,9 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | maxExecutionTimeRegression
-        "bigOldJava"    | millis(500)
-        "mediumOldJava" | millis(500)
-        "smallOldJava"  | millis(500)
+        testProject     | maxExecutionTimeRegression | targetVersions
+        "bigOldJava"    | millis(500)                | ['2.11', 'last']
+        "mediumOldJava" | millis(500)                | ['2.11', 'last']
+        "smallOldJava"  | millis(500)                | ['2.0', '2.11', 'last']
     }
 }

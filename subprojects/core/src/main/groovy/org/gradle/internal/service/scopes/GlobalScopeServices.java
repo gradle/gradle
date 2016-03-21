@@ -22,7 +22,10 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.classpath.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -38,6 +41,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -51,6 +55,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -71,7 +76,10 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.util.GradleVersion;
 
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.List;
 
 /**
@@ -126,12 +134,12 @@ public class GlobalScopeServices {
                 pluginModuleRegistry));
     }
 
-    ModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry(additionalModuleClassPath);
+    ModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
-    GradleDistributionLocator createGradleDistributionLocator() {
-        return new DefaultGradleDistributionLocator();
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return CurrentGradleInstallation.locate();
     }
 
     DocumentationRegistry createDocumentationRegistry() {
@@ -146,8 +154,20 @@ public class GlobalScopeServices {
         return new DefaultCacheFactory(fileLockManager);
     }
 
-    DefaultClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        if (codeSource != null) {
+            URL location = codeSource.getLocation();
+            if (location.getProtocol().equals("file") && location.getPath().endsWith("gradle-api-" + GradleVersion.current().getVersion() + ".jar")) {
+                return new FlatClassLoaderRegistry(getClass().getClassLoader());
+            }
+        }
+
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);
+    }
+
+    JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
+        return new DefaultJdkToolsInitializer(classLoaderFactory);
     }
 
     ListenerManager createListenerManager() {
@@ -158,8 +178,8 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderFactory();
     }
 
-    MessagingServices createMessagingServices(ClassLoaderRegistry classLoaderRegistry) {
-        return new MessagingServices(getClass().getClassLoader());
+    MessagingServices createMessagingServices() {
+        return new MessagingServices();
     }
 
     MessagingServer createMessagingServer(MessagingServices messagingServices) {
@@ -222,14 +242,20 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors), managedProxyFactory, modelSchemaStore, structBindingsStore);
     }
 
-    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, StringInterner stringInterner) {
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CachingFileSnapshotter fileSnapshotter) {
         if (environment.isLongLivingProcess()) {
-            final MapBackedInMemoryStore inMemoryStore = new MapBackedInMemoryStore();
-            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
-            return new HashClassPathSnapshotter(fileSnapshotter, inMemoryStore);
+            return new HashClassPathSnapshotter(fileSnapshotter);
         } else {
             return new FileClassPathSnapshotter();
         }
+    }
+
+    MapBackedInMemoryStore createInMemoryStore() {
+        return new MapBackedInMemoryStore();
+    }
+
+    CachingFileSnapshotter createCachingFileSnapshotter(StringInterner stringInterner, MapBackedInMemoryStore inMemoryStore) {
+        return new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner);
     }
 
     ClassLoaderCache createClassLoaderCache(ClassPathSnapshotter classPathSnapshotter) {
@@ -279,5 +305,9 @@ public class GlobalScopeServices {
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
+    }
+
+    protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CachingFileSnapshotter snapshotter) {
+        return new CrossBuildInMemoryCachingScriptClassCache(snapshotter);
     }
 }

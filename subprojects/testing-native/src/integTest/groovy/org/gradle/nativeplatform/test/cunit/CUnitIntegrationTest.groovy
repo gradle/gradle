@@ -486,8 +486,16 @@ tasks.withType(RunTestExecutable) {
         useStandardConfig()
         buildFile << """
 model {
+    components {
+        unbuildable(NativeLibrarySpec)
+    }
+    testSuites {
+        unbuildableTest(CUnitTestSuiteSpec) {
+            testing \$.components.unbuildable
+        }
+    }
     binaries {
-        helloTestCUnitExe {
+        unbuildableTestCUnitExe {
             buildable = false
         }
     }
@@ -498,7 +506,8 @@ model {
         run "check"
 
         then:
-        skipped(':check')
+        notExecuted ":runUnbuildableTestCUnitExe"
+        executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
     private useConventionalSourceLocations() {

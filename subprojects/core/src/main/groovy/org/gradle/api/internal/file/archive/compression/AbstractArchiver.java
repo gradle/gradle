@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.archive.compression;
 
 import org.gradle.api.internal.resources.URIBuilder;
-import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
@@ -48,11 +47,6 @@ abstract class AbstractArchiver implements CompressedReadableResource {
 
     public String getBaseName() {
         return resource.getBaseName();
-    }
-
-    @Override
-    public ReadableResource getCompressedResource() {
-        return resource;
     }
 
     public File getBackingFile() {

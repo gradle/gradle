@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
@@ -33,8 +35,11 @@ import java.util.List;
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
+    private final static Interner<MethodModelRuleDescriptor> INTERNER = Interners.newWeakInterner();
+
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
+    private int hashCode;
 
     public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
         this(WeaklyTypeReferencingMethod.of(target, returnType, method));
@@ -55,7 +60,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = getClassName() + "#" + method.getName();
+            description = STRING_INTERNER.intern(getClassName() + "#" + method.getName());
         }
 
         return description;
@@ -79,7 +84,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(method);
+        int result = hashCode;
+        if (result != 0) {
+            return result;
+        }
+        result = Objects.hashCode(method);
+        hashCode = result;
+        return result;
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
@@ -102,6 +113,10 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
-        return new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
+        return INTERNER.intern(new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method));
+    }
+
+    public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
+        return INTERNER.intern(new MethodModelRuleDescriptor(method));
     }
 }

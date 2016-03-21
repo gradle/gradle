@@ -17,12 +17,19 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Factory;
+import org.gradle.performance.fixture.DataReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ResultsStoreHelper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
+    public static final boolean ADHOC_RUN = System.getProperty("GRADLE_ADHOC_PERF_TESTS") != null;
+
     public static List<String> splitVcsCommits(String string) {
         if (null != string) {
             return ImmutableList.copyOf(Splitter.on(",").split(string));
@@ -44,5 +51,13 @@ public class ResultsStoreHelper {
             result.add(aValue.toString());
         }
         return result;
+    }
+
+    public static <T> DataReporter<T> maybeUseResultStore(Factory<DataReporter<T>> factory) {
+        if (ADHOC_RUN) {
+            LOGGER.info("Detected ad-hoc experiment : using no-op results store");
+            return new NoResultsStore<T>();
+        }
+        return factory.create();
     }
 }

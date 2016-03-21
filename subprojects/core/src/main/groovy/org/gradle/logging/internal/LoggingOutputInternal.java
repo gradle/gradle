@@ -68,7 +68,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void removeOutputEventListener(OutputEventListener listener);
 
     /**
-     * Removes all non-standard output event listeners (also the ones attached with attachConsole)
+     * Flushes output to all destinations.
      */
-    void removeAllOutputEventListeners();
+    void flush();
 }

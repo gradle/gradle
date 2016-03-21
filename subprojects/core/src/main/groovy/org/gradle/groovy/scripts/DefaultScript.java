@@ -72,10 +72,13 @@ public abstract class DefaultScript extends BasicScript {
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         if (target instanceof FileOperations) {
             fileOperations = (FileOperations) target;
-        } else if (getScriptSource().getResource().getFile() != null) {
-            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory);
         } else {
-            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory);
+            File sourceFile = getScriptSource().getResource().getLocation().getFile();
+            if (sourceFile != null) {
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory);
+            } else {
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory);
+            }
         }
 
         processOperations = (ProcessOperations) fileOperations;

@@ -30,6 +30,10 @@ class ConsoleStub implements Console {
         };
     }
 
+    @Override
+    public void flush() {
+    }
+
     public String getValue() {
         return mainArea.toString();
     }

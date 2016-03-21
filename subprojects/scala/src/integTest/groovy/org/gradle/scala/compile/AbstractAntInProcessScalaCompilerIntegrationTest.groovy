@@ -29,11 +29,12 @@ abstract class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicSca
     }
 
     String compilerConfiguration() {
-        '''
-compileScala.scalaCompileOptions.with {
-    useAnt = true
-}
-'''
+        """
+        compileScala.scalaCompileOptions.with {
+             useAnt = true
+             fork = false
+        }
+        """
     }
 
     String logStatement() {

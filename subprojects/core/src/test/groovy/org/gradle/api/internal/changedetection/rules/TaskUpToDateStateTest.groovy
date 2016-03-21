@@ -64,15 +64,15 @@ class TaskUpToDateStateTest extends Specification {
 
         then:
         noExceptionThrown()
-        1 * mockOutputFileSnapshotter.snapshot(_)
-        1 * mockInputFileSnapshotter.snapshot(_) >> stubSnapshot
+        1 * mockOutputFileSnapshotter.snapshot(_, _)
+        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.snapshot(_) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)
@@ -89,7 +89,7 @@ class TaskUpToDateStateTest extends Specification {
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-         _ * stubOutputFileSnapshotter.snapshot(_) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)

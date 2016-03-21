@@ -18,6 +18,4 @@ package org.gradle.logging.internal;
 
 public interface Label {
     void setText(String text);
-
-    void close();
 }

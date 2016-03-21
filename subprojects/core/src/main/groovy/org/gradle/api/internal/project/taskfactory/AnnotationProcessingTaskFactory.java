@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
@@ -34,6 +33,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
+import java.beans.Introspector;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -297,13 +297,13 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
             Map<String, Field> fields = getFields(type);
             for (Method method : type.getDeclaredMethods()) {
-                if (!isGetter(method)) {
+                if (!isGetter(method) || method.isBridge()) {
                     continue;
                 }
 
                 String name = method.getName();
                 int prefixLength = name.startsWith("is") ? 2 : 3; // it's 'get' if not 'is'.
-                String fieldName = StringUtils.uncapitalize(name.substring(prefixLength));
+                String fieldName = Introspector.decapitalize(name.substring(prefixLength));
                 String propertyName = fieldName;
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;

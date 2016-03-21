@@ -45,10 +45,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
         }
-        ivyModule.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.1@runtime", "commons-io:commons-io:1.4@runtime")
+        ivyModule.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime", "commons-io:commons-io:1.4@runtime")
 
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
     public void "ignores extra artifacts added to configurations"() {
@@ -113,7 +113,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.parsedIvy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
 
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
     public void "generated ivy descriptor includes dependency exclusions"() {
@@ -146,7 +146,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         dependency.exclusions[0].module == 'commons-logging'
 
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
     }
 
     def createBuildScripts(def append) {
@@ -172,7 +172,7 @@ $append
             }
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.1"
+                compile "commons-collections:commons-collections:3.2.2"
                 compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"

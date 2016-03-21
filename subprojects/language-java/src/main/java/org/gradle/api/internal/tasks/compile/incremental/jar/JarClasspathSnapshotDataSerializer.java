@@ -16,23 +16,24 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.*;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.serialize.BaseSerializerFactory.*;
+import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class JarClasspathSnapshotDataSerializer implements Serializer<JarClasspathSnapshotData> {
-
-    private final MapSerializer<File, byte[]> mapSerializer = new MapSerializer<File, byte[]>(FILE_SERIALIZER, BYTE_ARRAY_SERIALIZER);
+    private final MapSerializer<File, HashValue> mapSerializer = new MapSerializer<File, HashValue>(FILE_SERIALIZER, new HashValueSerializer());
     private final SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 
     @Override
     public JarClasspathSnapshotData read(Decoder decoder) throws Exception {
         Set<String> duplicates = setSerializer.read(decoder);
-        Map<File, byte[]> hashes = mapSerializer.read(decoder);
+        Map<File, HashValue> hashes = mapSerializer.read(decoder);
         return new JarClasspathSnapshotData(hashes, duplicates);
     }
 

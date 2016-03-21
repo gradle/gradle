@@ -32,7 +32,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.1', '2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.targetVersions = targetVersions
 
         when:
         def result = runner.run()
@@ -41,30 +41,10 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(1200)
-        "multi"           | millis(1200)
-        "lotDependencies" | millis(1000)
-    }
-
-    @Unroll("configure Java build - #testProject")
-    def "configure large Java build"() {
-        given:
-        runner.testId = "configure Java build $testProject"
-        runner.previousTestIds = ["configuration $testProject"]
-        runner.testProject = testProject
-        runner.tasksToRun = ['help']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.0', '2.4', '2.8', '2.11', 'last']
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject       | maxExecutionTimeRegression
-        "bigOldJava"      | millis(1000)
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(1200)               | ['1.1', '2.8', 'last']
+        "multi"           | millis(1200)               | ['1.1', '2.8', 'last']
+        "lotDependencies" | millis(1000)               | ['1.1', '2.4', '2.8', 'last']
+        "bigOldJava"      | millis(1000)               | ['2.11', 'last']
     }
 }

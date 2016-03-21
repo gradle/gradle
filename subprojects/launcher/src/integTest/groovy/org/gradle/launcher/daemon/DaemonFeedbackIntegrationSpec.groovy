@@ -100,7 +100,7 @@ task sleep << {
         given:
         file("build.gradle") << "task foo << { println 'hey!' }"
 
-        when: "runing build with --info"
+        when: "running build with --info"
         executer.withArguments("-i").withTasks('foo').run()
 
         then:

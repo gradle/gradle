@@ -72,9 +72,15 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         }
 
         @Override
-        protected void doLineText(CharSequence text, boolean terminatesLine) {
+        protected void doLineText(CharSequence text) {
             textOutput.text(text);
-            atEndOfLine = terminatesLine;
+            atEndOfLine = false;
+        }
+
+        @Override
+        protected void doEndLine(CharSequence endOfLine) {
+            textOutput.text(endOfLine);
+            atEndOfLine = true;
         }
     }
 }

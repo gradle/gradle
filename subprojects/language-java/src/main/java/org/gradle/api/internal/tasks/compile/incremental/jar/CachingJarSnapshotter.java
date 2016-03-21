@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashValue;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
@@ -38,7 +39,7 @@ public class CachingJarSnapshotter implements JarSnapshotter {
 
     @Override
     public JarSnapshot createSnapshot(final JarArchive jarArchive) {
-        final byte[] hash = getHash(jarArchive);
+        final HashValue hash = getHash(jarArchive);
         return cache.get(hash, new Factory<JarSnapshot>() {
             public JarSnapshot create() {
                 return snapshotter.createSnapshot(hash, jarArchive);
@@ -46,7 +47,7 @@ public class CachingJarSnapshotter implements JarSnapshotter {
         });
     }
 
-    private byte[] getHash(JarArchive jarArchive) {
+    private HashValue getHash(JarArchive jarArchive) {
         FileSnapshot s = inputFilesSnapshot.findSnapshot(jarArchive.file);
         if (s != null) {
             return s.getHash();

@@ -20,4 +20,10 @@ public interface Console {
     TextArea getMainArea();
 
     Label getStatusBar();
+
+    /**
+     * Flushes any pending updates. Updates may or may not be buffered, and this method should be called to finish rendering and pending updates, such as
+     * updating the status bar.
+     */
+    void flush();
 }

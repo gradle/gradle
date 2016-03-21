@@ -643,10 +643,6 @@ class MessageHubTest extends ConcurrentSpec {
             return incoming.take()
         }
 
-        void requestStop() {
-            throw new UnsupportedOperationException()
-        }
-
         void stop() {
             incoming.put(new EndOfStream())
         }
@@ -667,10 +663,6 @@ class MessageHubTest extends ConcurrentSpec {
 
         void queueIncoming(InterHubMessage message) {
             incoming.put(message)
-        }
-
-        void requestStop() {
-            throw new UnsupportedOperationException()
         }
 
         void stop() {

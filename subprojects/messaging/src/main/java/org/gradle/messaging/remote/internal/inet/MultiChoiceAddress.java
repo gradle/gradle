@@ -21,13 +21,14 @@ import com.google.common.collect.Lists;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MultiChoiceAddress implements InetEndpoint {
-    private final Object canonicalAddress;
+    private final UUID canonicalAddress;
     private final int port;
     private final List<InetAddress> candidates;
 
-    public MultiChoiceAddress(Object canonicalAddress, int port, List<InetAddress> candidates) {
+    public MultiChoiceAddress(UUID canonicalAddress, int port, List<InetAddress> candidates) {
         this.canonicalAddress = canonicalAddress;
         this.port = port;
         this.candidates = new ArrayList<InetAddress>(candidates);
@@ -37,7 +38,7 @@ public class MultiChoiceAddress implements InetEndpoint {
         return String.format("[%s port:%s, addresses:%s]", canonicalAddress, port, candidates);
     }
 
-    public Object getCanonicalAddress() {
+    public UUID getCanonicalAddress() {
         return canonicalAddress;
     }
 
@@ -63,7 +64,7 @@ public class MultiChoiceAddress implements InetEndpoint {
             return false;
         }
         MultiChoiceAddress other = (MultiChoiceAddress) o;
-        return other.canonicalAddress.equals(canonicalAddress);
+        return other.canonicalAddress.equals(canonicalAddress) && port == other.port && candidates.equals(other.candidates);
     }
 
     @Override

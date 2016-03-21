@@ -36,21 +36,6 @@ class IdeaModuleTest extends Specification {
         module.languageLevel == null
     }
 
-    def "language level is null if idea project language level is explicitly set"() {
-        given:
-        rootProject.getPlugins().apply(IdeaPlugin)
-        rootProject.getPlugins().apply(JavaPlugin)
-        rootProject.idea.project.languageLevel = 1.6
-        moduleProject.getPlugins().apply(JavaPlugin)
-        moduleProject.sourceCompatibility = 1.7
-        rootProject.sourceCompatibility = 1.8
-
-        def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
-        expect:
-        module.languageLevel == null
-    }
-
     def "language level is null if matching calculated idea project language level"() {
         given:
         rootProject.getPlugins().apply(IdeaPlugin)

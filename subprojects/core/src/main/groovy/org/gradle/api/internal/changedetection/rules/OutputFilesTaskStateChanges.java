@@ -20,7 +20,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.util.ChangeListener;
+
+import java.util.EnumSet;
 
 public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
     private final TaskExecution previousExecution;
@@ -54,6 +55,11 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
     }
 
     @Override
+    protected FileCollectionSnapshot.ChangeIterator<String> getChanges() {
+        return getCurrent().iterateContentChangesSince(getPrevious(), EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles));
+    }
+
+    @Override
     public void saveCurrent() {
         FileCollectionSnapshot lastExecutionOutputFiles;
         if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
@@ -61,22 +67,13 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
         } else {
             lastExecutionOutputFiles = previousExecution.getOutputFilesSnapshot();
         }
-        FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
-                lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
-                    public void added(FileCollectionSnapshot.Merge element) {
-                        // Ignore added files
-                        element.ignore();
-                    }
-
-                    public void removed(FileCollectionSnapshot.Merge element) {
-                        // Discard any files removed since the task was last executed
-                    }
-
-                    public void changed(FileCollectionSnapshot.Merge element) {
-                        // Update any files which were change since the task was last executed
-                    }
-                });
+        FileCollectionSnapshot newOutputFiles = lastExecutionOutputFiles.updateFrom(outputFilesBefore);
         FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
-        currentExecution.setOutputFilesSnapshot(outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles));
+        currentExecution.setOutputFilesSnapshot(outputFilesAfter.applyAllChangesSince(outputFilesBefore, newOutputFiles));
+    }
+
+    @Override
+    protected boolean isAllowSnapshotReuse() {
+        return false;
     }
 }

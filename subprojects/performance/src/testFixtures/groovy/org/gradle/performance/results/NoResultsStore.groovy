@@ -16,10 +16,9 @@
 
 package org.gradle.performance.results
 
-import org.gradle.performance.fixture.CrossVersionPerformanceResults
 import org.gradle.performance.fixture.DataReporter
 
-public class NoResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
+public class NoResultsStore<T> implements DataReporter<T>, ResultsStore, Closeable {
 
     @Override
     void close() throws IOException {
@@ -27,22 +26,22 @@ public class NoResultsStore implements DataReporter<CrossVersionPerformanceResul
     }
 
     @Override
-    void report(CrossVersionPerformanceResults results) {
+    void report(T results) {
 
     }
 
     @Override
     List<String> getTestNames() {
-        return null
+        null
     }
 
     @Override
     PerformanceTestHistory getTestResults(String testName) {
-        return
+        null
     }
 
     @Override
     PerformanceTestHistory getTestResults(String testName, int mostRecentN) {
-        return null
+        null
     }
 }

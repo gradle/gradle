@@ -215,4 +215,13 @@ public interface SourceSet {
      */
     @Incubating
     String getCompileOnlyConfigurationName();
+
+    /**
+     * Returns the name of the compile classpath configuration for this source set.
+     * @return The compile classpath configuration
+     *
+     * @since 2.12
+     */
+    @Incubating
+    String getCompileClasspathConfigurationName();
 }

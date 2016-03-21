@@ -103,7 +103,7 @@ public class MapFileTreeTest {
     }
 
     @Test
-    public void wontOverwriteFileWhenGeneratedContentRemainsTheSame() {
+    public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() {
         Action<OutputStream> action = getAction();
         tree.add("path/file.txt", action);
 

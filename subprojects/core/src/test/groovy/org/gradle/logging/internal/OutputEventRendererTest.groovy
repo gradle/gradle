@@ -213,6 +213,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
@@ -226,6 +227,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
@@ -239,6 +241,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['{error}error', '{normal}']
@@ -251,6 +254,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
         renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
@@ -262,6 +266,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['info', '{error}error', '{normal}']
@@ -275,6 +280,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, true, false, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['info']
@@ -288,6 +294,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addConsole(console, false, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
+        renderer.flush()
 
         then:
         console.value.readLines() == ['{error}error', '{normal}']
