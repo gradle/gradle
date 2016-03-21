@@ -69,10 +69,6 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         return adapter.getSource();
     }
 
-    public void useDefaultSerialization(ClassLoader methodParamClassLoader) {
-        this.methodParamClassLoader = methodParamClassLoader;
-    }
-
     public void useParameterSerializer(Serializer<Object[]> serializer) {
         this.paramSerializer = serializer;
     }

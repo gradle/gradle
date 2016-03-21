@@ -22,13 +22,6 @@ package org.gradle.messaging.remote.internal;
  */
 public interface ConnectCompletion {
     /**
-     * Creates the connection. Uses Java serialization for all messages.
-     *
-     * @param messageClassLoader The ClassLoader to use to deserialize incoming messages.
-     */
-    <T> RemoteConnection<T> create(ClassLoader messageClassLoader);
-
-    /**
      * Creates the connection. Uses the specified serializer for all messages.
      *
      * @return The serializer to use.

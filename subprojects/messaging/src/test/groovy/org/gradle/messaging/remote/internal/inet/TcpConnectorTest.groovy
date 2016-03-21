@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.messaging.remote.internal.inet
+
 import org.gradle.api.Action
 import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.serialize.*
-import org.gradle.messaging.remote.internal.*
+import org.gradle.messaging.remote.internal.ConnectCompletion
+import org.gradle.messaging.remote.internal.ConnectException
+import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer
+import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -32,8 +36,7 @@ import java.nio.channels.SocketChannel
 
 @Timeout(60)
 class TcpConnectorTest extends ConcurrentSpec {
-    @Shared def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
-    @Shared def kryoSerializer = new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER))
+    @Shared def serializer = new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER))
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
@@ -195,18 +198,18 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     @Unroll
-    def "can receive message from peer after peer has closed connection using #serializerName"() {
+    def "can receive message from peer after peer has closed connection"() {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 
         when:
         def acceptor = incomingConnector.accept({ ConnectCompletion event ->
-            def connection = event.create(messageSerializer)
+            def connection = event.create(serializer)
             connection.dispatch("bye")
             connection.stop()
             instant.closed
         } as Action, false)
 
-        def connection = outgoingConnector.connect(acceptor.address).create(messageSerializer)
+        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
         thread.blockUntil.closed
 
         then:
@@ -216,11 +219,6 @@ class TcpConnectorTest extends ConcurrentSpec {
         cleanup:
         connection?.stop()
         acceptor?.stop()
-
-        where:
-        messageSerializer | serializerName
-        serializer        | "java"
-        kryoSerializer    | "kryo"
     }
 
     def "returns null on failure to receive due to truncated input"() {

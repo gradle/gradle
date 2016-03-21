@@ -16,7 +16,9 @@
 
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.messaging.remote.internal.*;
+import org.gradle.messaging.remote.internal.ConnectCompletion;
+import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 
 import java.nio.channels.SocketChannel;
 
@@ -30,10 +32,6 @@ class SocketConnectCompletion implements ConnectCompletion {
     @Override
     public String toString() {
         return String.format("%s to %s", socket.socket().getLocalSocketAddress(), socket.socket().getRemoteSocketAddress());
-    }
-
-    public <T> RemoteConnection<T> create(ClassLoader messageClassLoader) {
-        return new SocketConnection<T>(socket, new DefaultMessageSerializer<T>(messageClassLoader));
     }
 
     public <T> RemoteConnection<T> create(MessageSerializer<T> serializer) {
