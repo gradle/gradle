@@ -16,7 +16,11 @@
 
 package org.gradle.api
 
+import org.gradle.api.internal.hash.DefaultHasher
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -24,6 +28,7 @@ import org.junit.Rule
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
+import spock.lang.Shared
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
@@ -37,6 +42,9 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     File remappedCachesDir
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+
+    @Shared
+    ClassPathSnapshotter fileSnapshotter = new HashClassPathSnapshotter(new DefaultHasher())
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -337,6 +345,57 @@ task fastTask { }
         longRunning?.waitForExit()
     }
 
+    def "build script is recompiled when project's classpath changes"() {
+        root {
+            lib {
+                'foo.jar'('foo')
+            }
+            'build.gradle'('''
+                buildscript {
+                    dependencies {
+                        classpath files('lib/foo.jar')
+                    }
+                }
+            ''')
+        }
+
+        when:
+        run 'help'
+        def origJarHash = classpathHashFor('lib/foo.jar')
+
+        then:
+        def coreHash = uniqueRemapped('build')
+        remappedCacheSize() == 1
+        scriptCacheSize() == 1
+        hasCachedScripts(coreHash)
+        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
+        hasCachedScriptForClasspath(coreHash, 'proj', "proj$origJarHash")
+
+        when:
+        root {
+            lib {
+                'foo.jar'('baz')
+            }
+        }
+        sleep(1000)
+        run 'help'
+        coreHash = uniqueRemapped('build')
+        def updatedJarHash = classpathHashFor('lib/foo.jar')
+
+        then:
+        remappedCacheSize() == 1
+        scriptCacheSize() == 1
+        hasCachedScripts(coreHash)
+        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
+        hasCachedScriptForClasspath(coreHash, 'proj', "proj$origJarHash")
+        hasCachedScriptForClasspath(coreHash, 'proj', "proj$updatedJarHash")
+    }
+
+    private String classpathHashFor(String... files) {
+        "${fileSnapshotter.snapshot(new DefaultClassPath(testDirectory.file(files))).hashCode()}"
+    }
+
+
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
         m.matches()
@@ -399,6 +458,15 @@ task fastTask { }
         Set foundInCache = scriptCachesDir.list() as Set
         Set expected = contentHashes as Set
         assert foundInCache == expected
+    }
+
+    void hasCachedScriptForClasspath(String contentHash, String dslId, String classpathHash) {
+        def contentsDir = new File(scriptCachesDir, contentHash)
+        assert contentsDir.exists(): "Unable to find a cached script directory for content hash $contentHash.  Found: ${scriptCachesDir.list().toList()}"
+        def dslDir = new File(contentsDir, dslId)
+        assert dslDir.exists(): "Unable to find a cached script directory for content hash $contentHash and DSL id $dslId. Found: ${contentsDir.list().toList()}"
+        def classpathDir = new File(dslDir, classpathHash)
+        assert classpathDir.exists(): "Unable to find a cached script directory for content hash $contentHash, DSL id $dslId and classpath hash $classpathHash. Found: ${dslDir.list().toList()}"
     }
 
     String simpleBuild(String comment = '') {
