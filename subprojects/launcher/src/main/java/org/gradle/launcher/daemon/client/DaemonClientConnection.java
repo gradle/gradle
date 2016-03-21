@@ -46,11 +46,6 @@ public class DaemonClientConnection implements Connection<Message> {
         this.staleAddressDetector = staleAddressDetector;
     }
 
-    public void requestStop() {
-        LOG.debug("thread {}: requesting connection stop", Thread.currentThread().getId());
-        connection.requestStop();
-    }
-
     public DaemonInstanceDetails getDaemon() {
         return daemon;
     }

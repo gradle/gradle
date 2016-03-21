@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.internal.concurrent.AsyncStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.Receive;
 
@@ -33,5 +33,5 @@ import org.gradle.messaging.dispatch.Receive;
  * </li>
  * </ul>
  */
-public interface Connection<T> extends Dispatch<T>, Receive<T>, AsyncStoppable {
+public interface Connection<T> extends Dispatch<T>, Receive<T>, Stoppable {
 }

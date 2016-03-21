@@ -112,10 +112,6 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
     }
 
-    public void requestStop() {
-        CompositeStoppable.stoppable(instr).stop();
-    }
-
     public void stop() {
         CompositeStoppable.stoppable(instr, outstr, socket).stop();
     }

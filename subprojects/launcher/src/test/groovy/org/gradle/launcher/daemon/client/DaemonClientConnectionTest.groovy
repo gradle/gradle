@@ -35,13 +35,6 @@ class DaemonClientConnectionTest extends Specification {
         then:
         1 * delegate.stop()
         0 * staleAddressDetector._
-
-        when:
-        connection.requestStop()
-
-        then:
-        1 * delegate.requestStop()
-        0 * staleAddressDetector._
     }
 
     def "dispatches messages"() {

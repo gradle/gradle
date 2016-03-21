@@ -196,10 +196,6 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
                     return incomingA.take()
                 }
 
-                void requestStop() {
-                    throw new UnsupportedOperationException()
-                }
-
                 void stop() {
                     throw new UnsupportedOperationException()
                 }
@@ -214,10 +210,6 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
 
                 InterHubMessage receive() {
                     return incomingB.take()
-                }
-
-                void requestStop() {
-                    throw new UnsupportedOperationException()
                 }
 
                 void stop() {

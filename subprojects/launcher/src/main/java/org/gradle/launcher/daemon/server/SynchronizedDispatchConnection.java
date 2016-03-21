@@ -36,11 +36,6 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
         this.delegate = delegate;
     }
     
-    public void requestStop() {
-        LOGGER.debug("thread {}: requesting stop for connection", Thread.currentThread().getId());
-        delegate.requestStop();
-    }
-
     public void dispatch(final T message) {
         if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
