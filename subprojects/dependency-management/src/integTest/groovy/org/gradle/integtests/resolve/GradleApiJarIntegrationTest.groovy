@@ -17,11 +17,12 @@
 package org.gradle.integtests.resolve
 
 import com.google.common.collect.Maps
+import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
-import spock.lang.Ignore
+import spock.lang.Unroll
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -161,32 +162,26 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         junitDependency.scope.text() == 'runtime'
     }
 
-    @Ignore("no idea why Windows still locks files and is unable to delete them")
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
-        given:
-        def numProjects = 3
-        numProjects.times {
-            def projectDirName = file("project$it").name
-            def projectBuildFile = file("$projectDirName/build.gradle")
-            projectBuildFile << testableGroovyProject()
-
-            file("$projectDirName/src/main/groovy/MyPlugin.groovy") << customGroovyPlugin()
-            file("$projectDirName/src/test/groovy/MyTest.groovy") << """
-                class MyTest extends groovy.util.GroovyTestCase {
-
-                    void testResolveDependencies() { }
-                }
-            """
-        }
-
-        when:
-        numProjects.times { count ->
+        expect:
+        3.times { count ->
             concurrent.start {
-                executer.projectDir(file("project$count")).withTasks("build").run()
+                def projectDirName = file("project$count").name
+                def projectBuildFile = file("$projectDirName/build.gradle")
+                projectBuildFile << testableGroovyProject()
+
+                file("$projectDirName/src/main/groovy/MyPlugin.groovy") << customGroovyPlugin()
+                file("$projectDirName/src/test/groovy/MyTest.groovy") << """
+                    class MyTest extends groovy.util.GroovyTestCase {
+
+                        void testResolveDependencies() { }
+                    }
+                """
+
+                executer.inDirectory(file("project$count")).withTasks("build").run()
             }
         }
 
-        then:
         concurrent.finished()
     }
 
@@ -242,6 +237,87 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'resolveDependencyArtifacts'
+    }
+
+    @Unroll
+    def "Gradle API and TestKit are compatible regardless of order [#description]"() {
+        when:
+        buildFile << applyGroovyPlugin()
+        buildFile << jcenterRepository()
+        buildFile << junitDependency()
+
+        dependencyTuples.each {
+            buildFile << """
+                dependencies.add('$it.configurationName', dependencies.$it.dependencyNotation)
+            """
+        }
+
+        file("src/test/groovy/MyTest.groovy") << """
+            import org.gradle.testkit.runner.BuildResult;
+            import org.gradle.testkit.runner.GradleRunner;
+            import org.junit.Before;
+            import org.junit.Rule;
+            import org.junit.Test;
+            import org.junit.rules.TemporaryFolder;
+
+            import java.io.BufferedWriter;
+            import java.io.File;
+            import java.io.FileWriter;
+            import java.io.IOException;
+            import java.util.Collections;
+
+            import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
+            import static org.junit.Assert.assertEquals;
+            import static org.junit.Assert.assertTrue;
+
+            public class MyTest {
+                @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
+                private File buildFile;
+
+                @Before
+                public void setup() throws IOException {
+                    buildFile = testProjectDir.newFile("build.gradle");
+                }
+
+                @Test
+                public void testHelloWorldTask() throws IOException {
+                    String buildFileContent = "task helloWorld {" +
+                                              "    doLast {" +
+                                              "        println 'Hello world!'" +
+                                              "    }" +
+                                              "}";
+                    writeFile(buildFile, buildFileContent);
+
+                    BuildResult result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.getRoot())
+                        .withArguments("helloWorld")
+                        .build();
+
+                    assertTrue(result.getOutput().contains("Hello world!"));
+                    assertEquals(result.task(":helloWorld").getOutcome(), SUCCESS);
+                }
+
+                private void writeFile(File destination, String content) throws IOException {
+                    BufferedWriter output = null;
+                    try {
+                        output = new BufferedWriter(new FileWriter(destination));
+                        output.write(content);
+                    } finally {
+                        if (output != null) {
+                            output.close();
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "build"
+
+        where:
+        description                          | dependencyTuples
+        'fatGradleApi(), fatGradleTestKit()' | [new GradleDependency('compile', 'fatGradleApi()'), new GradleDependency('testCompile', 'fatGradleTestKit()')]
+        'fatGradleTestKit(), fatGradleApi()' | [new GradleDependency('testCompile', 'fatGradleTestKit()'), new GradleDependency('compile', 'fatGradleApi()')]
     }
 
     static String applyJavaPlugin() {
@@ -314,5 +390,11 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         buildFile <<= testKitDependency()
         buildFile <<= junitDependency()
         buildFile.toString()
+    }
+
+    @TupleConstructor
+    private static class GradleDependency {
+        String configurationName
+        String dependencyNotation
     }
 }
