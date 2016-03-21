@@ -260,6 +260,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         expect:
+        requireOwnGradleUserHomeDir()
+
         5.times { count ->
             concurrent.start {
                 def projectDirName = file("project$count").name
@@ -274,6 +276,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Gradle API and TestKit dependency can be resolved by concurrent tasks within one build"() {
+        given:
+        requireOwnGradleUserHomeDir()
+
         when:
         buildFile << """
             subprojects {
