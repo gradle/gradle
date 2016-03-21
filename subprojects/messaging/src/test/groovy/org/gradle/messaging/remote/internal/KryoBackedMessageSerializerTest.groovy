@@ -35,7 +35,7 @@ class KryoBackedMessageSerializerTest extends Specification {
         writer.write("c")
 
         then:
-        def reader = messageSerializer.newReader(new ByteArrayInputStream(outputStream.toByteArray()), null, null)
+        def reader = messageSerializer.newReader(new ByteArrayInputStream(outputStream.toByteArray()))
         reader.read() == "a"
         reader.read() == "b"
         reader.read() == "c"

@@ -16,14 +16,9 @@
 
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.FlushableEncoder;
-import org.gradle.internal.serialize.ObjectReader;
-import org.gradle.internal.serialize.ObjectWriter;
+import org.gradle.internal.serialize.*;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.internal.serialize.StatefulSerializer;
-import org.gradle.messaging.remote.Address;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,7 +35,7 @@ public class KryoBackedMessageSerializer<T> implements MessageSerializer<T> {
     }
 
     @Override
-    public ObjectReader<T> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
+    public ObjectReader<T> newReader(InputStream inputStream) {
         Decoder decoder = new KryoBackedDecoder(inputStream);
         return payloadSerializer.newReader(decoder);
     }

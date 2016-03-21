@@ -15,7 +15,6 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.Address;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 
@@ -27,7 +26,7 @@ public interface MessageSerializer<T> {
      * Creates a reader that can deserialize objects from the given input stream. Note that the implementation may perform buffering, and may consume any or all of the
      * content from the given input stream.
      */
-    ObjectReader<T> newReader(InputStream inputStream, Address localAddress, Address remoteAddress);
+    ObjectReader<T> newReader(InputStream inputStream);
 
     /**
      * Creates a writer that can write objects to the given output stream. Note that the implementation must not perform any buffering, so that after calling {@link ObjectWriter#write(Object)}

@@ -63,7 +63,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         localAddress = new SocketInetAddress(localSocketAddress.getAddress(), localSocketAddress.getPort());
         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
         remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
-        objectReader = serializer.newReader(instr, localAddress, remoteAddress);
+        objectReader = serializer.newReader(instr);
         objectWriter = serializer.newWriter(outstr);
     }
 
