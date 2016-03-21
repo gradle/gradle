@@ -144,7 +144,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             uploadArchives {
                 repositories {
                     mavenDeployer {
-                        repository(url: 'file://$repoDir')
+                        repository(url: '${repoDir.toURI()}')
                     }
                 }
             }
@@ -177,7 +177,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             uploadArchives {
                 repositories {
                     ivy {
-                        url 'file://$repoDir'
+                        url '${repoDir.toURI()}'
                     }
                 }
             }
