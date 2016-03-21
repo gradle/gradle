@@ -22,8 +22,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.Serializers;
-import org.gradle.internal.serialize.kryo.JavaSerializer;
 import org.gradle.internal.serialize.StatefulSerializer;
+import org.gradle.internal.serialize.kryo.JavaSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
@@ -31,8 +31,6 @@ import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer;
-import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +83,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             paramSerializer = new JavaSerializer<Object[]>(methodParamClassLoader);
         }
 
-        MessageSerializer<InterHubMessage> serializer = new KryoBackedMessageSerializer<InterHubMessage>(
-                new InterHubMessageSerializer(
-                        new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
-                                new MethodInvocationSerializer(
-                                        methodParamClassLoader,
-                                        paramSerializer))));
+        StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
+                new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class,
+                        new MethodInvocationSerializer(
+                                methodParamClassLoader,
+                                paramSerializer)));
 
         connection = completion.create(serializer);
         hub.addConnection(connection);

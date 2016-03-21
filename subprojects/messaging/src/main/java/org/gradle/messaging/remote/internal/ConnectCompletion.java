@@ -16,6 +16,8 @@
 
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.internal.serialize.StatefulSerializer;
+
 /**
  * A builder that allows a {@link Connection} to be created once the underlying transport with the peer has been
  * established.
@@ -26,5 +28,5 @@ public interface ConnectCompletion {
      *
      * @return The serializer to use.
      */
-    <T> RemoteConnection<T> create(MessageSerializer<T> serializer);
+    <T> RemoteConnection<T> create(StatefulSerializer<T> serializer);
 }

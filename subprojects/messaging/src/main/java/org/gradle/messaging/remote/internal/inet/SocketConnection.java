@@ -19,8 +19,10 @@ package org.gradle.messaging.remote.internal.inet;
 import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
+import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -47,8 +49,9 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     private final ObjectReader<T> objectReader;
     private final InputStream instr;
     private final OutputStream outstr;
+    private final FlushableEncoder encoder;
 
-    public SocketConnection(SocketChannel socket, MessageSerializer<T> serializer) {
+    public SocketConnection(SocketChannel socket, MessageSerializer streamSerializer, StatefulSerializer<T> messageSerializer) {
         this.socket = socket;
         try {
             // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while
@@ -63,8 +66,9 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         localAddress = new SocketInetAddress(localSocketAddress.getAddress(), localSocketAddress.getPort());
         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
         remoteAddress = new SocketInetAddress(remoteSocketAddress.getAddress(), remoteSocketAddress.getPort());
-        objectReader = serializer.newReader(instr);
-        objectWriter = serializer.newWriter(outstr);
+        objectReader = messageSerializer.newReader(streamSerializer.newDecoder(instr));
+        encoder = streamSerializer.newEncoder(outstr);
+        objectWriter = messageSerializer.newWriter(encoder);
     }
 
     @Override
@@ -106,6 +110,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     public void dispatch(T message) throws MessageIOException {
         try {
             objectWriter.write(message);
+            encoder.flush();
             outstr.flush();
         } catch (Exception e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);

@@ -20,7 +20,6 @@ import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.serialize.*
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.ConnectException
-import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Requires
@@ -36,7 +35,7 @@ import java.nio.channels.SocketChannel
 
 @Timeout(60)
 class TcpConnectorTest extends ConcurrentSpec {
-    @Shared def serializer = new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER))
+    @Shared def serializer = Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER)
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
@@ -227,7 +226,7 @@ class TcpConnectorTest extends ConcurrentSpec {
             encoder.writeInt(value.length())
         } as Serializer
         def action = { ConnectCompletion completion ->
-            def connection = completion.create(new KryoBackedMessageSerializer<String>(Serializers.stateful(incomingSerializer)))
+            def connection = completion.create(Serializers.stateful(incomingSerializer))
             connection.dispatch("string")
             connection.stop()
         } as Action
@@ -238,7 +237,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         when:
         def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(new KryoBackedMessageSerializer<String>(Serializers.stateful(outgoingSerializer)))
+        def connection = outgoingConnector.connect(acceptor.address).create(Serializers.stateful(outgoingSerializer))
         def result = connection.receive()
 
         then:
@@ -255,7 +254,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         given:
         def action = { ConnectCompletion completion ->
-            def connection = completion.create(kryoSerializer)
+            def connection = completion.create(serializer)
             connection.dispatch("string")
             connection.stop()
         } as Action
@@ -265,7 +264,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         when:
         def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(new KryoBackedMessageSerializer<String>(Serializers.stateful(outgoingSerializer)))
+        def connection = outgoingConnector.connect(acceptor.address).create(Serializers.stateful(outgoingSerializer))
         connection.receive()
 
         then:

@@ -20,5 +20,8 @@ import java.io.Flushable;
 import java.io.IOException;
 
 public interface FlushableEncoder extends Encoder, Flushable {
+    /**
+     * Ensures that all binary data has been written to the backing stream.
+     */
     void flush() throws IOException;
 }
