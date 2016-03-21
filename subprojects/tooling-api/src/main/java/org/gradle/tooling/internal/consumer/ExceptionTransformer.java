@@ -22,7 +22,6 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
@@ -48,9 +47,6 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
             return new BuildCancelledException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof InternalTestExecutionException) {
             return new TestExecutionException(connectionFailureMessage(failure), failure.getCause());
-        } else if (failure.getClass().getName().equals(CompositeBuildExceptionVersion1.class.getName())) {
-            CompositeBuildExceptionVersion1 compositeBuildException = (CompositeBuildExceptionVersion1) failure;
-            return new CompositeBuildException(connectionFailureMessage(failure), failure.getCause(), compositeBuildException.getBuildIdentity());
         } else if (failure instanceof BuildExceptionVersion1) {
             return new BuildException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof ListenerNotificationException) {
