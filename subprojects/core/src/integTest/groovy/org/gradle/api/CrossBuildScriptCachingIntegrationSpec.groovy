@@ -391,6 +391,29 @@ task fastTask { }
         hasCachedScriptForClasspath(coreHash, 'proj', "proj$updatedJarHash")
     }
 
+    def "init script is cached"() {
+        root {
+            'build.gradle'(this.simpleBuild())
+            gradle {
+                'init.gradle'('// init script')
+            }
+        }
+
+        when:
+        executer.withArgument('-Igradle/init.gradle')
+        run 'help'
+
+        then:
+        def initHash = uniqueRemapped('init')
+        def coreHash = uniqueRemapped('build')
+        remappedCacheSize() == 2
+        scriptCacheSize() == 2
+        hasCachedScripts(coreHash, initHash)
+        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
+        hasCachedScriptForClasspath(coreHash, 'proj', "proj")
+        hasCachedScriptForClasspath(initHash, 'init', 'init')
+    }
+
     private String classpathHashFor(String... files) {
         "${fileSnapshotter.snapshot(new DefaultClassPath(testDirectory.file(files))).hashCode()}"
     }
