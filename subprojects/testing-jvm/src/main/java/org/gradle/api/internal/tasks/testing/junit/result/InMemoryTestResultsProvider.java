@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.IOException;
@@ -24,31 +25,53 @@ import java.io.Writer;
 
 public class InMemoryTestResultsProvider implements TestResultsProvider {
     private final Iterable<TestClassResult> results;
-    private final TestOutputStore.Reader outputReader;
+    private final TestOutputStore outputStore;
 
-    public InMemoryTestResultsProvider(Iterable<TestClassResult> results, TestOutputStore.Reader outputReader) {
+    public InMemoryTestResultsProvider(Iterable<TestClassResult> results, TestOutputStore outputStore) {
         this.results = results;
-        this.outputReader = outputReader;
+        this.outputStore = outputStore;
     }
 
     @Override
-    public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
-        return outputReader.hasOutput(id, destination);
+    public boolean hasOutput(final long id, final TestOutputEvent.Destination destination) {
+        final boolean[] hasOutput = new boolean[1];
+        withReader(new Action<TestOutputStore.Reader>() {
+            @Override
+            public void execute(TestOutputStore.Reader reader) {
+                hasOutput[0] = reader.hasOutput(id, destination);
+            }
+        });
+        return hasOutput[0];
     }
 
     @Override
-    public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeAllOutput(id, destination, writer);
+    public void writeAllOutput(final long id, final TestOutputEvent.Destination destination, final Writer writer) {
+        withReader(new Action<TestOutputStore.Reader>() {
+            @Override
+            public void execute(TestOutputStore.Reader reader) {
+                reader.writeAllOutput(id, destination, writer);
+            }
+        });
     }
 
     @Override
-    public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeNonTestOutput(id, destination, writer);
+    public void writeNonTestOutput(final long id, final TestOutputEvent.Destination destination, final Writer writer) {
+        withReader(new Action<TestOutputStore.Reader>() {
+            @Override
+            public void execute(TestOutputStore.Reader reader) {
+                reader.writeNonTestOutput(id, destination, writer);
+            }
+        });
     }
 
     @Override
-    public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        outputReader.writeTestOutput(classId, testId, destination, writer);
+    public void writeTestOutput(final long classId, final long testId, final TestOutputEvent.Destination destination, final Writer writer) {
+        withReader(new Action<TestOutputStore.Reader>() {
+            @Override
+            public void execute(TestOutputStore.Reader reader) {
+                reader.writeTestOutput(classId, testId, destination, writer);
+            }
+        });
     }
 
     @Override
@@ -63,8 +86,20 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
         return results.iterator().hasNext();
     }
 
+    private void withReader(Action<TestOutputStore.Reader> action) {
+        try {
+            TestOutputStore.Reader reader = outputStore.reader();
+            try {
+                action.execute(reader);
+            } finally {
+                reader.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     @Override
     public void close() throws IOException {
-        outputReader.close();
     }
 }

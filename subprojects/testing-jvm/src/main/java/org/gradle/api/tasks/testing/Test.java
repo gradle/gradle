@@ -579,7 +579,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         new TestResultSerializer(binaryResultsDir).write(results.values());
 
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore.reader());
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
 
         try {
             if (testReporter == null) {
