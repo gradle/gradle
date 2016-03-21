@@ -31,4 +31,6 @@ public interface BuildOperationProcessor {
      * @param generator An action that populates the queue with build operations
      */
     <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator);
+
+    <T extends RunnableBuildOperation> void run(Action<BuildOperationQueue<T>> generator);
 }

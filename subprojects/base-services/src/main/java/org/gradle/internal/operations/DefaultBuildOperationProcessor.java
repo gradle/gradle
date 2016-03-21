@@ -61,6 +61,22 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
     }
 
+    @Override
+    public <T extends RunnableBuildOperation> void run(final Action<BuildOperationQueue<T>> generator) {
+        BuildOperationWorker<T> runnableWorker = new BuildOperationWorker<T>() {
+            @Override
+            public String getDisplayName() {
+                return "runnable worker";
+            }
+
+            @Override
+            public void execute(T t) {
+                t.run();
+            }
+        };
+        run(runnableWorker, generator);
+    }
+
     public void stop() {
         fixedSizePool.stop();
     }

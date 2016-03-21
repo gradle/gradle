@@ -18,6 +18,10 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
@@ -27,7 +31,8 @@ import spock.lang.Specification
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final DefaultTestReport report = new DefaultTestReport()
+    final BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 1)
+    final DefaultTestReport report = new DefaultTestReport(buildOperationProcessor)
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()

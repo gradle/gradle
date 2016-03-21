@@ -122,6 +122,21 @@ max parallel workers constraints.
 
 Do something useful with exceptions collected during generation.
 
+This should reuse the `BuildOperationQueue` used by native compilation.  `BuildOperationQueue` should be modified so that it
+better deals with failure in the thread that is generating the build operations.  Currently, this thread (the main task thread)
+1. creates the queue, then 2. iterates over some stuff and adds operations to the queue, then 3. finally waits for completion.
+The problem is when #2 fails with an exception after having queued some stuff up - these operations will continue to run, even
+though the main task thread has finished running the task and is off doing something else.  When a failure occurs while generating
+build operations, we should instead discard any queued operations and block until the currently running operations are finished,
+then propagate the failure (and any build operations failures too).
+
+#### Implementation
+Instead of `BuildOperationProcessor.newQueue(worker, …)` that returns a queue that you mess with, we might have
+`BuildOperationProcessor.run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator)` that would create the
+queue, run the generator to populate the queue, wait for the result and clean up on failure.
+
+(when `T` is `Runnable` we can leave out the `worker` - we would just run the operations)
+
 ### Understand where test task is spending its time
 
 Instrument Gradle to get a breakdown of how long each of the main activities in test start up take:

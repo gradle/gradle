@@ -55,6 +55,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.ConsoleRenderer;
@@ -201,6 +202,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @Inject
     protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildOperationProcessor getBuildOperationProcessor() {
         throw new UnsupportedOperationException();
     }
 
@@ -577,7 +583,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport();
+                testReporter = new DefaultTestReport(getBuildOperationProcessor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
@@ -585,7 +591,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation);
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
