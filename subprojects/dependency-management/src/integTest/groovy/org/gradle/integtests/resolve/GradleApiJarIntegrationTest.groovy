@@ -336,7 +336,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             """
         }
 
-        file('src/test/groovy/MyTest.groovy') << """
+        file('src/test/groovy/BuildLogicFunctionalTest.groovy') << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
