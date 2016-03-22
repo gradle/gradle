@@ -44,7 +44,7 @@ public class GradleConnectionFactory {
         if (useDaemonCoordinator) {
             lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
         } else {
-            lazyConnection = new LazyConsumerActionExecutor(distribution, new EmeddedCoordinator(), loggingProvider, parameters);
+            lazyConnection = new LazyConsumerActionExecutor(distribution, new EmbeddedCoordinator(), loggingProvider, parameters);
         }
         ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
@@ -53,7 +53,7 @@ public class GradleConnectionFactory {
         return new DefaultGradleConnection(asyncConnection, parameters);
     }
 
-    private static class EmeddedCoordinator implements ToolingImplementationLoader {
+    private static class EmbeddedCoordinator implements ToolingImplementationLoader {
         @Override
         public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             return new ToolingClientConsumerConnection();
