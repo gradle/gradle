@@ -23,11 +23,7 @@ import java.io.File;
 public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
 
     public TempTestKitDirProvider(SystemProperties systemProperties) {
-        super(new File(systemProperties.getJavaIoTmpDir()));
-    }
-
-    TempTestKitDirProvider(File rootDir) {
-        super(new File(rootDir, ".gradle-test-kit-".concat(System.getProperty("user.name"))));
+        super(new File(systemProperties.getJavaIoTmpDir(), ".gradle-test-kit-".concat(systemProperties.getUserName())));
     }
 
 }
