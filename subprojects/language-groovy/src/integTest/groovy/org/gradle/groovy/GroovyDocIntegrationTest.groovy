@@ -26,7 +26,7 @@ import spock.lang.Unroll
 @TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-3116")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3116")
     def "can run groovydoc"() {
         when:
         buildFile << """
@@ -61,7 +61,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         module << ['groovy']
     }
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-3349")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3349")
     @Unroll
     def "changes to overview causes groovydoc to be out of date when overview is set via #overviewSetting"() {
         File overviewFile = file("overview.html")
