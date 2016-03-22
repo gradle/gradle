@@ -114,6 +114,7 @@ We would like to thank the following community members for making contributions 
 * [Marcin Zajączkowski](https://github.com/szpak) - fix a test which was failing against the OpenJDK
 * [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 * [Ryan Ernst](https://github.com/rjernst) - support system properties from the command-line for buildSrc builds ([GRADLE-2475](https://issues.gradle.org/browse/GRADLE-2475))
+* [Baruch Sadogursky](https://github.com/jbaruch) - add jcenter repository example to the userguide
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
