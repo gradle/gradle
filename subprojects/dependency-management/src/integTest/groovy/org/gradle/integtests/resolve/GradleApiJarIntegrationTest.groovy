@@ -34,7 +34,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(25000)
 
     def setup() {
-        requireGradleHome()
+        executer.requireGradleHome().withStackTraceChecksDisabled()
+        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
     def "can compile typical Java-based Gradle plugin using Gradle API"() {
@@ -327,7 +328,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << applyGroovyPlugin()
         buildFile << jcenterRepository()
-        buildFile << junitDependency()
+        buildFile << spockDependency()
 
         dependencyTuples.each {
             buildFile << """
@@ -336,60 +337,39 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         file('src/test/groovy/MyTest.groovy') << """
-            import org.gradle.testkit.runner.BuildResult;
-            import org.gradle.testkit.runner.GradleRunner;
-            import org.junit.Before;
-            import org.junit.Rule;
-            import org.junit.Test;
-            import org.junit.rules.TemporaryFolder;
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
 
-            import java.io.BufferedWriter;
-            import java.io.File;
-            import java.io.FileWriter;
-            import java.io.IOException;
-            import java.util.Collections;
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
 
-            import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
-            import static org.junit.Assert.assertEquals;
-            import static org.junit.Assert.assertTrue;
-
-            public class MyTest {
-                @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
-                private File buildFile;
-
-                @Before
-                public void setup() throws IOException {
-                    buildFile = testProjectDir.newFile("build.gradle");
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
                 }
 
-                @Test
-                public void testHelloWorldTask() throws IOException {
-                    String buildFileContent = "task helloWorld {" +
-                                              "    doLast {" +
-                                              "        println 'Hello world!'" +
-                                              "    }" +
-                                              "}";
-                    writeFile(buildFile, buildFileContent);
-
-                    BuildResult result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.getRoot())
-                        .withArguments("helloWorld")
-                        .build();
-
-                    assertTrue(result.getOutput().contains("Hello world!"));
-                    assertEquals(result.task(":helloWorld").getOutcome(), SUCCESS);
-                }
-
-                private void writeFile(File destination, String content) throws IOException {
-                    BufferedWriter output = null;
-                    try {
-                        output = new BufferedWriter(new FileWriter(destination));
-                        output.write(content);
-                    } finally {
-                        if (output != null) {
-                            output.close();
+                def "hello world task prints hello world"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
                         }
-                    }
+                    '''
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .build()
+
+                    then:
+                    result.output.contains('Hello world!')
+                    result.task(':helloWorld').outcome == SUCCESS
                 }
             }
         """
@@ -447,6 +427,16 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         """
             dependencies {
                 testCompile 'junit:junit:4.12'
+            }
+        """
+    }
+
+    static String spockDependency() {
+        """
+            dependencies {
+                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                    exclude module: 'groovy-all'
+                }
             }
         """
     }
