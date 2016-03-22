@@ -19,11 +19,16 @@ package org.gradle.integtests.resolve
 import com.google.common.collect.Maps
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
+import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Unroll
 
 @UsesNativeServices
@@ -34,6 +39,15 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(25000)
+
+    @Shared
+    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties(
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath,
+        (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
+    )
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
