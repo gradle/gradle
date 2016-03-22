@@ -17,9 +17,9 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Issue
-
-import java.nio.charset.Charset
+import spock.lang.Unroll
 
 @Issue("GRADLE-2460")
 class DaemonSystemPropertiesIntegrationTest extends DaemonIntegrationSpec {
@@ -50,62 +50,74 @@ task verify << {
 
     }
 
-    def "forks new daemon when immutable system property is set on with different value via commandline"() {
+    @Unroll
+    def "forks new daemon when immutable #propName system property  is set on with different value via commandline"() {
         given:
-        def encoding = Charset.defaultCharset().name()
-        assert encoding != "ISO-8859-1"
-
         buildScript """
-            task encoding {
-                doFirst { println "encoding = " + java.nio.charset.Charset.defaultCharset().name() }
-            }
-        """
-
-        when:
-        run "encoding", "-Dfile.encoding=$encoding"
-        then:
-        output.contains("encoding = $encoding")
-        daemons.daemons.size() == 1
-
-
-        when:
-        run "encoding", "-Dfile.encoding=ISO-8859-1"
-
-        then:
-        output.contains("encoding = ISO-8859-1")
-        daemons.daemons.size() == 2
-    }
-
-    def "forks new daemon when immutable system property is set on with different value via GRADLE_OPTS"() {
-        given:
-        executer.requireGradleHome()
-        def encoding = Charset.defaultCharset().name()
-        assert encoding != "ISO-8859-1"
-
-        buildScript """
-            task encoding {
+            task verify {
                 doFirst {
-                    println "GRADLE_VERSION: " + gradle.gradleVersion
-                    println "encoding = " + java.nio.charset.Charset.defaultCharset().name()
+                    println "verified = " + $verifyOutput
                 }
             }
         """
 
         when:
-        executer.withEnvironmentVars(GRADLE_OPTS:"-Dfile.encoding=$encoding")
-        run "encoding"
+        run "verify", "-D${propName}=${propValue1.call()}"
+        then:
+        output.contains("verified = " + propValue1.call())
+        daemons.daemons.size() == 1
+
+        when:
+        run "verify", "-D${propName}=${propValue2.call()}"
+
+        then:
+        output.contains("verified = " + propValue2.call())
+        daemons.daemons.size() == 2
+
+        where:
+        propName         | verifyOutput                                       | propValue1            | propValue2
+        "java.io.tmpdir" | "File.createTempFile(\"pre\", \"post\")"           | tempFolder("folder1") | tempFolder("folder2")
+        "file.encoding"  | "java.nio.charset.Charset.defaultCharset().name()" | { "UTF-8" }           | { "ISO-8859-1" }
+    }
+
+    @Unroll
+    def "forks new daemon when immutable system property (#propName) is set on with different value via GRADLE_OPTS"() {
+        given:
+        executer.requireGradleHome()
+        buildScript """
+            println "GRADLE_VERSION: " + gradle.gradleVersion
+
+            task verify {
+                doFirst {
+                    println "verified = " + $verifyOutput
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS: "\"-D${propName}=${propValue1.call()}\" -Dorg.gradle.daemon.performance.logging=true");
+        run "verify"
 
         then:
         String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
-        output.contains("encoding = $encoding")
         daemons(gradleVersion).daemons.size() == 1
 
         when:
-        executer.withEnvironmentVars(GRADLE_OPTS:"-Dfile.encoding=ISO-8859-1")
-        run "encoding"
+        executer.withEnvironmentVars(GRADLE_OPTS: "\"-D${propName}=${propValue2.call()}\" -Dorg.gradle.daemon.performance.logging=true");
+        run "verify"
 
         then:
-        output.contains("encoding = ISO-8859-1")
+        output.contains("verified = " + propValue2.call())
         daemons(gradleVersion).daemons.size() == 2
+
+        where:
+        propName         | verifyOutput                                       | propValue1            | propValue2
+        "java.io.tmpdir" | "File.createTempFile(\"pre\", \"post\")"           | tempFolder("folder1") | tempFolder("folder2")
+        "file.encoding"  | "java.nio.charset.Charset.defaultCharset().name()" | { "UTF-8" }           | { "ISO-8859-1" }
+    }
+
+    Closure tempFolder(String folderName) {
+        def dir = new TestNameTestDirectoryProvider().createDir(folderName)
+        return { dir.mkdirs(); println "dir "+ dir.absolutePath; dir.absolutePath }
     }
 }
