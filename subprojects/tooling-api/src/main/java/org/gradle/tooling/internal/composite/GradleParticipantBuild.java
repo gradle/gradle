@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.composite;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.composite.BuildIdentity;
 import org.gradle.tooling.composite.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
@@ -52,10 +51,6 @@ class GradleParticipantBuild {
 
     public ProjectIdentity toProjectIdentity(String projectPath) {
         return build.toProjectIdentity(projectPath);
-    }
-
-    public BuildIdentity toBuildIdentity() {
-        return build.toBuildIdentity();
     }
 
     public ProjectConnection connect() {
