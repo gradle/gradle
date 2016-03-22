@@ -111,6 +111,7 @@ We would like to thank the following community members for making contributions 
 * [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
 * [Jeremie Jost](https://github.com/jjst) - fix a typo in the application plugin documentation
 * [Marcin Zajączkowski](https://github.com/szpak) - add Project.findProperty method
+* [Marcin Zajączkowski](https://github.com/szpak) - fix a test which was failing against the OpenJDK
 * [Raymond Navarette](https://github.com/rnavarette) - Add classifiers for project dependencies in generated POM files
 
 <!--
