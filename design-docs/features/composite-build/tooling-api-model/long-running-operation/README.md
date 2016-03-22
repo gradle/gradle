@@ -105,4 +105,3 @@ The existing `ModelBuilder` and `BuildLauncher` interfaces extends from `Configu
 ### Out of Scope
 
 - Failing early if JVM arguments or java home are invalid (i.e., we'll try every participant)
-- 
