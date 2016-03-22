@@ -61,12 +61,15 @@ public class TaskExecutionServices {
                     new SkipEmptySourceFilesTaskExecuter(
                         taskInputsListener,
                         new ValidatingTaskExecuter(
-                            new SkipUpToDateTaskExecuter(repository,
+                            new SkipUpToDateTaskExecuter(
+                                repository,
+                                treeVisitor,
                                 new PostExecutionAnalysisTaskExecuter(
                                     new ExecuteActionsTaskExecuter(
                                         listenerManager.getBroadcaster(TaskActionListener.class)
                                     )
-                                ), treeVisitor)
+                                )
+                            )
                         )
                     )
                 )

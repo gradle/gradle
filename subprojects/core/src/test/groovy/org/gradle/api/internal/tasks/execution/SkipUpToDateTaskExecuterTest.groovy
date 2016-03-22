@@ -41,7 +41,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
     def treeVisitor = Mock(CachingTreeVisitor)
     Action<Task> action = Mock(Action)
 
-    def executer = new SkipUpToDateTaskExecuter(repository, delegate, treeVisitor)
+    def executer = new SkipUpToDateTaskExecuter(repository, treeVisitor, delegate)
 
     def skipsTaskWhenOutputsAreUpToDate() {
         when:

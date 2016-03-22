@@ -40,7 +40,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private final TaskArtifactStateRepository repository;
     private final CachingTreeVisitor treeVisitor;
 
-    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer, CachingTreeVisitor treeVisitor) {
+    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, CachingTreeVisitor treeVisitor, TaskExecuter executer) {
         this.executer = executer;
         this.repository = repository;
         this.treeVisitor = treeVisitor;
