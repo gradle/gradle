@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultCompositeConnectionParameters extends AbstractConnectionParameters implements CompositeConnectionParameters {
     private final List<GradleBuildInternal> builds;
-    private final boolean embeddedParticipants;
 
     public static Builder builder() {
         return new Builder();
@@ -45,13 +44,8 @@ public class DefaultCompositeConnectionParameters extends AbstractConnectionPara
         return builds;
     }
 
-    public boolean isEmbeddedParticipants() {
-        return embeddedParticipants;
-    }
-
     public static class Builder extends AbstractConnectionParameters.Builder {
         private final List<GradleBuildInternal> builds = new ArrayList<GradleBuildInternal>();
-        private boolean embeddedParticipants;
 
         private Builder() {
             super();
@@ -59,24 +53,19 @@ public class DefaultCompositeConnectionParameters extends AbstractConnectionPara
 
         public DefaultCompositeConnectionParameters build() {
             return new DefaultCompositeConnectionParameters(gradleUserHomeDir, embedded,
-                daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, builds, embeddedParticipants);
+                daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, builds);
         }
 
         public void setBuilds(Collection<GradleBuildInternal> builds) {
             this.builds.clear();
             this.builds.addAll(builds);
         }
-
-        public void setEmbeddedParticipants(boolean embeddedParticipants) {
-            this.embeddedParticipants = embeddedParticipants;
-        }
     }
 
     private DefaultCompositeConnectionParameters(File gradleUserHomeDir, Boolean embedded,
                                                  Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                                 boolean verboseLogging, List<GradleBuildInternal> builds, boolean embeddedParticipants) {
+                                                 boolean verboseLogging, List<GradleBuildInternal> builds) {
         super(gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging);
         this.builds = Collections.unmodifiableList(builds);
-        this.embeddedParticipants = embeddedParticipants;
     }
 }

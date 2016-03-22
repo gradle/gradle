@@ -30,8 +30,5 @@ public interface GradleConnectionInternal extends GradleConnection {
         Builder daemonBaseDir(File daemonBaseDir);
 
         Builder useClasspathDistribution();
-
-        Builder embeddedParticipants(boolean embedded);
-
     }
 }

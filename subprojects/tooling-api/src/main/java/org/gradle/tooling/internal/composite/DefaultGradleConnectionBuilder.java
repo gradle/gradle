@@ -42,7 +42,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     private TimeUnit daemonMaxIdleTimeUnits;
     private File daemonBaseDir;
     private Distribution coordinatorDistribution;
-    private boolean emeddedParticipants;
 
     public DefaultGradleConnectionBuilder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
         this.gradleConnectionFactory = gradleConnectionFactory;
@@ -107,7 +106,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
         compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
-        compositeConnectionParametersBuilder.setEmbeddedParticipants(emeddedParticipants);
 
         DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
@@ -162,12 +160,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     @Override
     public GradleConnection.Builder useGradleVersion(String gradleVersion) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
-        return this;
-    }
-
-    @Override
-    public GradleConnectionInternal.Builder embeddedParticipants(boolean embedded) {
-        this.emeddedParticipants = embedded;
         return this;
     }
 }
