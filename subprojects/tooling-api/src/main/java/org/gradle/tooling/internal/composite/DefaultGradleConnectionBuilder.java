@@ -82,6 +82,9 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         return createGradleConnection();
     }
 
+    /**
+     * Determine whether all participants can be integrated into a composite: if so use the daemon coordinator.
+     */
     private boolean useDaemonCoordinator() {
         // TODO:DAZ Provide a way to force the use of the daemon coordinator?
         for (GradleBuildInternal participant : participants) {
@@ -113,7 +116,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
         if (distribution == null) {
             distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
         }
-        return gradleConnectionFactory.create(distribution, connectionParameters, useDaemonCoordinator());
+        return gradleConnectionFactory.create(distribution, connectionParameters, false);
     }
 
     private GradleParticipantBuild createParticipantBuild(GradleBuildInternal participant) {
