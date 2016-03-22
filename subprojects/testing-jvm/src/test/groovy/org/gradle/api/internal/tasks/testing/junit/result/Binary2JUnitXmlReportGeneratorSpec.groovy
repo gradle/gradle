@@ -25,19 +25,26 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
-    final BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 1)
-    private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor)
+    BuildOperationProcessor buildOperationProcessor
+    Binary2JUnitXmlReportGenerator generator
 
-    def setup() {
-        generator.xmlWriter = Mock(JUnitXmlResultWriter)
+    def generatorWithMaxThreads(int numThreads) {
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), numThreads)
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor)
+        reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
+        return reportGenerator
     }
 
-    def "writes results"() {
+    @Unroll
+    def "writes results - #numThreads parallel thread(s)"() {
+        generator = generatorWithMaxThreads(numThreads)
+
         def fooTest = new TestClassResult(1, 'FooTest', 100)
             .add(new TestMethodResult(1, "foo"))
 
@@ -57,9 +64,14 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         1 * generator.xmlWriter.write(fooTest, _)
         1 * generator.xmlWriter.write(barTest, _)
         0 * generator.xmlWriter._
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
     def "adds context information to the failure if something goes wrong"() {
+        generator = generatorWithMaxThreads(1)
+
         def fooTest = new TestClassResult(1, 'FooTest', 100)
                 .add(new TestMethodResult(1, "foo"))
 
