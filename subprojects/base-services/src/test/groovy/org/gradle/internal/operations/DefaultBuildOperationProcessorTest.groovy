@@ -19,6 +19,7 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
@@ -60,11 +61,11 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), maxThreads)
         def numberOfQueues = 5
         def operations = [
-                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
-                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
-                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
-                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
-                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+            Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+            Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+            Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+            Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+            Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
         ]
 
         when:
@@ -86,7 +87,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         }
 
         where:
-        maxThreads << [ 1, 4, 10 ]
+        maxThreads << [1, 4, 10]
     }
 
     def "failures in one queue do not cause failures in other queues"() {
@@ -159,7 +160,7 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
     def "operations are canceled when the generator fails"() {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_,_) >> { buildQueue }
+            create(_, _) >> { buildQueue }
         }
         def buildOperationProcessor = new DefaultBuildOperationProcessor(buildOperationQueueFactory, Stub(ExecutorFactory), 1)
         def worker = Stub(BuildOperationWorker)
@@ -177,5 +178,52 @@ class DefaultBuildOperationProcessorTest extends ConcurrentSpec {
         and:
         4 * buildQueue.add(_)
         1 * buildQueue.cancel()
+    }
+
+    def "multi-cause error when there are failures both enqueueing and running operations"() {
+        def operationFailures = [ new Exception("failed operation 1"), new Exception("failed operation 2") ]
+        def buildQueue = Mock(BuildOperationQueue) {
+            waitForCompletion() >> { throw new MultipleBuildOperationFailures("operations failed", operationFailures, null) }
+        }
+        def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
+            create(_, _) >> { buildQueue }
+        }
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(buildOperationQueueFactory, Stub(ExecutorFactory), 1)
+        def worker = Stub(BuildOperationWorker)
+        def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
+
+        when:
+        buildOperationProcessor.run(worker, { queue ->
+            4.times { queue.add(operation) }
+            throw new Exception("Failure in generator")
+        })
+
+        then:
+        def e = thrown(DefaultMultiCauseException)
+        e.message.startsWith("There was a failure while populating the build operation queue:")
+        e.message.contains("operations failed")
+        e.message.contains("failed operation 1")
+        e.message.contains("failed operation 2")
+        e.causes.size() == 2
+        e.causes.any { it instanceof BuildOperationQueueFailure && it.message.startsWith("There was a failure while populating the build operation queue:") }
+        e.causes.any { it instanceof MultipleBuildOperationFailures && it.causes.collect { it.message }.sort() == [ "failed operation 1", "failed operation 2" ] }
+
+        and:
+        4 * buildQueue.add(_)
+        1 * buildQueue.cancel()
+    }
+
+    def "can provide only runnable build operations to the processor"() {
+        given:
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), 2)
+        def operation = Mock(RunnableBuildOperation)
+
+        when:
+        buildOperationProcessor.run({ queue ->
+            5.times { queue.add(operation) }
+        })
+
+        then:
+        5 * operation.run()
     }
 }

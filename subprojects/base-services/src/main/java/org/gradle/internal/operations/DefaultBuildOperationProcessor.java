@@ -17,16 +17,22 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
+    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
+
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final StoppableExecutor fixedSizePool;
 
@@ -43,7 +49,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         try {
             generator.execute(queue);
         } catch (Exception e) {
-            failures.add(new BuildOperationQueueFailure("There was a failure while populating the build operation queue.", e));
+            failures.add(new BuildOperationQueueFailure("There was a failure while populating the build operation queue: " + e.getMessage(), e));
             queue.cancel();
         }
 
@@ -56,9 +62,8 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         if (failures.size() == 1) {
             throw failures.get(0);
         } else if (failures.size() > 1) {
-            throw new DefaultMultiCauseException("There were failures with both submitting and executing operations in the build operation queue.", failures);
+            throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
         }
-
     }
 
     @Override
@@ -79,5 +84,14 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
     public void stop() {
         fixedSizePool.stop();
+    }
+
+    private static String formatMultipleFailureMessage(List<GradleException> failures) {
+        return StringUtils.join(CollectionUtils.collect(failures, new Transformer<String, GradleException>() {
+            @Override
+            public String transform(GradleException e) {
+                return e.getMessage();
+            }
+        }), LINE_SEPARATOR + "AND" + LINE_SEPARATOR);
     }
 }
