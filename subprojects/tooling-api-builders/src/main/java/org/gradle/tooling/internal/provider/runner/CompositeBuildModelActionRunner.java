@@ -57,18 +57,19 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         Map<Object, Object> results = null;
         if (modelType != Void.class) {
             results = new HashMap<Object, Object>();
-            results.putAll(fetchCompositeModelsInProcess((BuildModelAction) action, modelType, actionParameters.getCompositeParameters().getBuilds(), requestContext.getCancellationToken(), buildController.getBuildScopeServices()));
+
+            results.putAll(fetchCompositeModelsInProcess((BuildModelAction) action, modelType, requestContext, actionParameters.getCompositeParameters().getBuilds(), buildController.getBuildScopeServices()));
         } else {
             if (!((BuildModelAction) action).isRunTasks()) {
                 throw new IllegalStateException("No tasks defined.");
             }
-            executeTasksInProcess(action.getStartParameter(), actionParameters, requestContext.getCancellationToken(), buildController.getBuildScopeServices());
+            executeTasksInProcess(action.getStartParameter(), actionParameters, requestContext, buildController.getBuildScopeServices());
         }
         PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
         buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results), null));
     }
 
-    private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ServiceRegistry sharedServices) {
+    private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
         List<GradleParticipantBuild> participantBuilds = compositeParameters.getBuilds();
         GradleLauncherFactory launcherFactory = sharedServices.get(GradleLauncherFactory.class);
@@ -79,14 +80,15 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 continue;
             }
             buildFound = true;
-            if (cancellationToken.isCancellationRequested()) {
+            if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
                 break;
             }
             StartParameter startParameter = parentStartParam.newInstance();
             startParameter.setProjectDir(participant.getProjectDir());
             startParameter.setSearchUpwards(false);
 
-            DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer());
+            DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()),
+                buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
             GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, sharedServices);
             try {
                 launcher.run();
@@ -109,16 +111,20 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     // TODO:DAZ Need to fix this for `BuildEnvironment`
-    private <T> Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, Class<T> modelType, List<GradleParticipantBuild> participantBuilds,
-                                                                  BuildCancellationToken cancellationToken, ServiceRegistry sharedServices) {
+    private <T> Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, Class<T> modelType, BuildRequestContext buildRequestContext,
+                                                                  List<GradleParticipantBuild> participantBuilds,
+                                                                  ServiceRegistry sharedServices) {
         final Map<Object, Object> results = new HashMap<Object, Object>();
 
         PayloadSerializer payloadSerializer = sharedServices.get(PayloadSerializer.class);
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
 
-        BuildActionRunner runner = new ClientProvidedBuildActionRunner();
+        BuildActionRunner runner = new SubscribableBuildActionRunner(new ClientProvidedBuildActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
-        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()), cancellationToken, new NoOpBuildEventConsumer());
+        // TODO: Need to consider how to handle builds in parallel when sharing event consumers/output streams
+        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),
+            buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
+            buildRequestContext.getErrorListener());
 
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
 

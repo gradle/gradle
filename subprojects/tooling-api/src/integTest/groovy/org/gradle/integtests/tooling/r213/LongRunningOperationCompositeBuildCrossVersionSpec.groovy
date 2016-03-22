@@ -27,7 +27,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
 
-@Ignore("not implemented for daemon coordinator")
+// @Ignore("not implemented for daemon coordinator")
 class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     def escapeHeader = "\u001b["
@@ -74,6 +74,8 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
     }
 
     def "can call tasks before building composite model"() {
+        given:
+        skipForDaemonCoordinator()
         when:
         modelResults = withCompositeConnection(singleBuild) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
@@ -125,7 +127,8 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         singleBuild.file("result").text == "System property = foo"
     }
 
-    // TODO: This cannot run in embedded mode
+    // TODO:
+    @Ignore("This cannot run in embedded mode")
     def "can pass additional jvm arguments"() {
         when:
         modelResults = withCompositeConnection(singleBuild) { GradleConnection connection ->
@@ -189,6 +192,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     def "can colorize output with model requests"() {
         given:
+        skipForDaemonCoordinator()
         OutputStream stdOut = new ByteArrayOutputStream()
         when:
         withCompositeConnection(singleBuild) { GradleConnection connection ->
@@ -204,6 +208,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     def "can colorize output with build launcher"() {
         given:
+        skipForDaemonCoordinator()
         OutputStream stdOut = new ByteArrayOutputStream()
         when:
         def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
