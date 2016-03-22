@@ -19,6 +19,8 @@ package org.gradle.api.internal.impldeps;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,38 +30,48 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class GradleImplDepsProvider implements Closeable {
     public static final String CACHE_KEY = "generated-gradle-jars";
+    public static final String CACHE_DISPLAY_NAME = "Generated Gradle JARs cache";
     public static final Set<String> VALID_JAR_NAMES = ImmutableSet.of("api", "test-kit");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
-    private final CacheRepository cacheRepository;
     private final String gradleVersion;
-    private final Object lock = new Object();
-    private PersistentCache gradleImplDepsCache;
+    private PersistentCache cache;
     private RelocatedJarCreator relocatedJarCreator;
 
     public GradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
-        this.cacheRepository = cacheRepository;
         this.relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory);
         this.gradleVersion = gradleVersion;
+        cache = cacheRepository
+                .cache(CACHE_KEY)
+                .withDisplayName(CACHE_DISPLAY_NAME)
+                .withLockOptions(mode(FileLockManager.LockMode.None))
+                .open();
     }
 
-    public File getFile(Collection<File> classpath, String name) {
+    public File getFile(final Collection<File> classpath, String name) {
         if (VALID_JAR_NAMES.contains(name)) {
-            synchronized (lock) {
-                if (gradleImplDepsCache == null) {
-                    gradleImplDepsCache = cacheRepository.cache(CACHE_KEY).open();
+            final File implDepsJarFile = jarFile(cache, name);
+
+            Boolean existsInCache = cache.useCache(String.format("Checking %s", implDepsJarFile.getName()), new Factory<Boolean>() {
+                @Override
+                public Boolean create() {
+                    return implDepsJarFile.exists();
                 }
+            });
 
-                File implDepsJarFile = jarFile(gradleImplDepsCache, name);
-
-                if (!implDepsJarFile.exists()) {
-                    relocatedJarCreator.create(implDepsJarFile, classpath);
-                }
-
-                LOGGER.debug("Using Gradle impl deps JAR file: {}", implDepsJarFile);
-                return implDepsJarFile;
+            if (!existsInCache) {
+                cache.useCache(String.format("Generating %s", implDepsJarFile.getName()), new Runnable() {
+                    public void run() {
+                        relocatedJarCreator.create(implDepsJarFile, classpath);
+                    }
+                });
             }
+
+            LOGGER.debug("Using Gradle impl deps JAR file: {}", implDepsJarFile);
+            return implDepsJarFile;
         }
 
         LOGGER.warn("The provided name {} does not refer to a valid Gradle impl deps JAR", name);
@@ -67,22 +79,10 @@ public class GradleImplDepsProvider implements Closeable {
     }
 
     public void close() {
-        synchronized (lock) {
-            try {
-                if (gradleImplDepsCache != null) {
-                    gradleImplDepsCache.close();
-                }
-            } finally {
-                gradleImplDepsCache = null;
-            }
-        }
+        cache.close();
     }
 
     private File jarFile(PersistentCache cache, String name) {
         return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
-    }
-
-    void setRelocatedJarCreator(RelocatedJarCreator relocatedJarCreator) {
-        this.relocatedJarCreator = relocatedJarCreator;
     }
 }
