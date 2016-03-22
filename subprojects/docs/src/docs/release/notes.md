@@ -112,7 +112,8 @@ We would like to thank the following community members for making contributions 
 * [Jeremie Jost](https://github.com/jjst) - fix a typo in the application plugin documentation
 * [Marcin Zajączkowski](https://github.com/szpak) - add Project.findProperty method
 * [Marcin Zajączkowski](https://github.com/szpak) - fix a test which was failing against the OpenJDK
-* [Raymond Navarette](https://github.com/rnavarette) - Add classifiers for project dependencies in generated POM files
+* [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
+* [Ryan Ernst](https://github.com/rjernst) - support system properties from the command-line for buildSrc builds ([GRADLE-2475](https://issues.gradle.org/browse/GRADLE-2475))
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
