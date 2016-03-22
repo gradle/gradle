@@ -32,6 +32,7 @@ import java.util.*;
 // Be careful running “Optimize Imports” as it will wipe this out.
 // If there's no import below this comment, this has happened.
 import org.gradle.api.tasks.Optional;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -274,6 +275,8 @@ public class Groovydoc extends SourceTask {
      */
     @Deprecated
     public String getOverview() {
+        SingleMessageLogger.nagUserOfDeprecated("getOverview()", "Please use getOverviewText() instead");
+
         if (overview == null) {
             return null;
         } else {
@@ -288,6 +291,8 @@ public class Groovydoc extends SourceTask {
      */
     @Deprecated
     public void setOverview(String overview) {
+        SingleMessageLogger.nagUserOfDeprecated("setOverview()", "Please use setOverviewText(TextResource) instead");
+
         this.overview = getProject().getResources().getText().fromFile(overview);
     }
 
