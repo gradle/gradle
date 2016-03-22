@@ -67,7 +67,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     private void updateCaches() {
         String version = GradleVersion.current().version
         def hash =  HashUtil.createCompactMD5(buildFile.text)
-        String baseDir = "caches/$version/scripts/$hash/proj/proj${'apiAndPlugins'.hashCode()}"
+        String baseDir = "caches/$version/scripts/$hash/proj/projgradleApi"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")
         classFile = userHomeDir.file("$baseDir/classes/_BuildScript_.class")
     }

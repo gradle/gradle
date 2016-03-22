@@ -202,7 +202,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
-        CachingFileSnapshotter snapshotter) {
+        CachingFileSnapshotter snapshotter, ClassLoaderRegistry registry) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -214,8 +214,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
             progressLoggerFactory,
             snapshotter,
-            classLoaderCache
-        );
+            classLoaderCache,
+            registry);
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {

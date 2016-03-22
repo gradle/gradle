@@ -26,6 +26,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -47,15 +48,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache) {
+                                              ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache,
+                                              ClassLoaderRegistry classLoaderRegistry) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
         this.classLoaderCache = classLoaderCache;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -72,7 +76,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + classLoader.hashCode();
+        final String classpathHash = dslId + getClassLoaderHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -94,6 +98,22 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+    }
+
+    private String getClassLoaderHash(ClassLoader cl) {
+        if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
+            return "runtime";
+        }
+        if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
+            return "gradleApi";
+        }
+        if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
+            return "gradleCoreApi";
+        }
+        if (classLoaderRegistry.getPluginsClassLoader() == cl) {
+            return "plugins";
+        }
+        return String.valueOf(cl.hashCode());
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {

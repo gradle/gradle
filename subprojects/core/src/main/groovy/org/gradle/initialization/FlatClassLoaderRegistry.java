@@ -16,14 +16,12 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.initialization.loadercache.HashedClassLoader;
-
 public class FlatClassLoaderRegistry implements ClassLoaderRegistry {
 
     private final ClassLoader classLoader;
 
     public FlatClassLoaderRegistry(ClassLoader classLoader) {
-        this.classLoader = new HashedClassLoader(classLoader, "flat".hashCode());
+        this.classLoader = classLoader;
     }
 
     @Override

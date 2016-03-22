@@ -16,9 +16,6 @@
 
 package org.gradle.api
 
-import org.gradle.api.internal.hash.DefaultHasher
-import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -29,7 +26,6 @@ import org.junit.Rule
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
-import spock.lang.Shared
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
@@ -44,8 +40,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    @Shared
-    ClassPathSnapshotter fileSnapshotter = new HashClassPathSnapshotter(new DefaultHasher())
     private TestFile homeDirectory = testDirectoryProvider.getTestDirectory().file("user-home")
 
     def setup() {
