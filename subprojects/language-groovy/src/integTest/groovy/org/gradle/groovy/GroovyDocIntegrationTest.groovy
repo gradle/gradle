@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovydocCoverage
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
@@ -62,8 +61,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3349")
-    @Unroll
-    def "changes to overview causes groovydoc to be out of date when overview is set via #overviewSetting"() {
+    def "changes to overview causes groovydoc to be out of date"() {
         File overviewFile = file("overview.html")
         String escapedOverviewPath = StringEscapeUtils.escapeJava(overviewFile.absolutePath)
 
@@ -80,7 +78,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             groovydoc {
-                ${overviewSetting}("${escapedOverviewPath}")
+                overviewText = resources.text.fromFile("${escapedOverviewPath}")
             }
         """
 
@@ -113,6 +111,5 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         where:
         module << ['groovy', 'groovy']
-        overviewSetting << ["overviewText = resources.text.fromFile", "overview"]
     }
 }

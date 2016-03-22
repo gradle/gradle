@@ -77,8 +77,9 @@ public class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(), getDocTitle(), getHeader(),
-                getFooter(), getOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(), getClasspath(), getProject());
+        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
+                getDocTitle(), getHeader(), getFooter(), getOverviewText(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
+                getClasspath(), getProject());
     }
 
     private void checkGroovyClasspathNonEmpty(Collection<File> classpath) {
@@ -275,7 +276,7 @@ public class Groovydoc extends SourceTask {
      */
     @Deprecated
     public String getOverview() {
-        SingleMessageLogger.nagUserOfDeprecated("getOverview()", "Please use getOverviewText() instead");
+        reportOverviewDeprecation();
 
         if (overview == null) {
             return null;
@@ -291,7 +292,7 @@ public class Groovydoc extends SourceTask {
      */
     @Deprecated
     public void setOverview(String overview) {
-        SingleMessageLogger.nagUserOfDeprecated("setOverview()", "Please use setOverviewText(TextResource) instead");
+        reportOverviewDeprecation();
 
         this.overview = getProject().getResources().getText().fromFile(overview);
     }
@@ -353,6 +354,10 @@ public class Groovydoc extends SourceTask {
      */
     public void link(String url, String... packages) {
         links.add(new Link(url, packages));
+    }
+
+    private static final void reportOverviewDeprecation() {
+        SingleMessageLogger.nagUserOfDeprecated("The overview property", "Please use the overviewText property instead");
     }
 
     /**
