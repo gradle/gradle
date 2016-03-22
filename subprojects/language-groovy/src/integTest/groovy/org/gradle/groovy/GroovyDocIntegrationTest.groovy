@@ -110,6 +110,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         overviewSummary.text.contains("Goodbye World")
 
         where:
-        module << ['groovy', 'groovy']
+        module << ['groovy']
     }
 }
