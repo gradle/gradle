@@ -183,7 +183,7 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesAClasspathSnapshotter() throws Exception {
-        assertThat(registry().get(ClassPathSnapshotter.class), instanceOf(FileClassPathSnapshotter.class));
+        assertThat(registry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
         assertThat(longLivingProcessRegistry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
     }
 

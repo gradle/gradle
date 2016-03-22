@@ -43,7 +43,9 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final PersistentCache globalCache = Mock()
     final ScriptSource source = Mock()
     final TextResource resource = Mock()
-    final ClassLoader classLoader = Mock()
+    final ClassLoader classLoader = Mock() {
+        hashCode() >> 9999
+    }
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
     final CachingFileSnapshotter snapshotter = Mock()
@@ -67,7 +69,6 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         _ * source.fileName >> 'ScriptFileName'
         _ * source.displayName >> 'Build Script'
         _ * operation.id >> 'TransformerId'
-        _ * operation.cacheKey >> 'key'
         _ * operation.transformer >> transformer
         _ * localCache.baseDir >> localDir
         _ * globalCache.baseDir >> globalDir
@@ -83,7 +84,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/key") >> localCacheBuilder
+        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId9999") >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -95,7 +96,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
+        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId9999') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
@@ -108,7 +109,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     def "passes CacheValidator to cache builders"() {
         setup:
         snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        cacheRepository.cache("scripts-remapped/ScriptClassName/83/key") >> localCacheBuilder
+        cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId9999") >> localCacheBuilder
         localCacheBuilder.withProperties(!null) >> localCacheBuilder
         localCacheBuilder.withInitializer(!null) >> localCacheBuilder
         localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
@@ -135,7 +136,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/key') >> localCacheBuilder
+        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/TransformerId9999') >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -147,7 +148,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/key') >> globalCacheBuilder
+        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId9999') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> { args ->
             globalInitializer = args[0]

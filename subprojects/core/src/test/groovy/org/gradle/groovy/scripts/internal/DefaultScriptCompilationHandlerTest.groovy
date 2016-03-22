@@ -292,11 +292,6 @@ println 'hi'
             public Serializer<String> getDataSerializer() {
                 return new BaseSerializerFactory().getSerializerFor(String)
             }
-
-            @Override
-            String getCacheKey() {
-                return "id"
-            }
         }
 
         def source = scriptSource("transformMe()")
@@ -346,10 +341,6 @@ println 'hi'
                 return new BaseSerializerFactory().getSerializerFor(String)
             }
 
-            @Override
-            String getCacheKey() {
-                return "id"
-            }
         }
 
         def source = scriptSource("transformMe()")

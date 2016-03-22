@@ -20,7 +20,8 @@ import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -45,11 +46,12 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
     @Shared
     ClassPathSnapshotter fileSnapshotter = new HashClassPathSnapshotter(new DefaultHasher())
+    private TestFile homeDirectory = testDirectoryProvider.getTestDirectory().file("user-home")
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         root = new FileTreeBuilder(testDirectory)
-        cachesDir = new File(testDirectoryProvider.getTestDirectory().file("user-home"), 'caches')
+        cachesDir = new File(homeDirectory, 'caches')
         def versionCaches = new File(cachesDir, GradleVersion.current().version)
         scriptCachesDir = new File(versionCaches, 'scripts')
         remappedCachesDir = new File(versionCaches, 'scripts-remapped')
@@ -80,6 +82,37 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
         coreHash == module1Hash
         hasCachedScripts(settingsHash, coreHash)
+    }
+
+    def "identical build files are compiled once for distinct invocations"() {
+        given:
+        root {
+            core {
+                'core.gradle'(this.simpleBuild())
+            }
+            module1 {
+                'module1.gradle'(this.simpleBuild())
+            }
+            'settings.gradle'(settings('core', 'module1'))
+        }
+
+        when:
+        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
+        executer.withGradleUserHomeDir(homeDirectory)
+        run 'help'
+        run 'help'
+
+        then:
+        def settingsHash = uniqueRemapped('settings')
+        def coreHash = uniqueRemapped('core')
+        def module1Hash = uniqueRemapped('module1')
+
+        and:
+        remappedCacheSize() == 3 // one for each build script
+        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
+        coreHash == module1Hash
+        hasCachedScripts(settingsHash, coreHash)
+        getCompileClasspath(coreHash, 'proj').length == 1
     }
 
     def "can have two build files with same contents and file name"() {
@@ -361,15 +394,13 @@ task fastTask { }
 
         when:
         run 'help'
-        def origJarHash = classpathHashFor('lib/foo.jar')
 
         then:
         def coreHash = uniqueRemapped('build')
         remappedCacheSize() == 1
         scriptCacheSize() == 1
         hasCachedScripts(coreHash)
-        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
-        hasCachedScriptForClasspath(coreHash, 'proj', "proj$origJarHash")
+        getCompileClasspath(coreHash, 'proj').length == 1
 
         when:
         root {
@@ -380,15 +411,63 @@ task fastTask { }
         sleep(1000)
         run 'help'
         coreHash = uniqueRemapped('build')
-        def updatedJarHash = classpathHashFor('lib/foo.jar')
 
         then:
         remappedCacheSize() == 1
         scriptCacheSize() == 1
         hasCachedScripts(coreHash)
-        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
-        hasCachedScriptForClasspath(coreHash, 'proj', "proj$origJarHash")
-        hasCachedScriptForClasspath(coreHash, 'proj', "proj$updatedJarHash")
+        getCompileClasspath(coreHash, 'proj').length == 2
+    }
+
+    def "build script is recompiled when parent project's classpath changes"() {
+        root {
+            lib {
+                'foo.jar'('foo')
+            }
+            'build.gradle'('''
+                buildscript {
+                    dependencies {
+                        classpath files('lib/foo.jar')
+                    }
+                }
+            ''')
+            module {
+                'module.gradle'(this.simpleBuild('module'))
+            }
+            'settings.gradle'(this.settings('module'))
+        }
+
+        when:
+        run 'help'
+
+        then:
+        def coreHash = uniqueRemapped('build')
+        def moduleHash = uniqueRemapped('module')
+        def settingsHash = uniqueRemapped('settings')
+        remappedCacheSize() == 3 // core, module, settings
+        scriptCacheSize() == 3
+        hasCachedScripts(coreHash, moduleHash, settingsHash)
+        getCompileClasspath(coreHash, 'proj').length == 1
+        getCompileClasspath(moduleHash, 'proj').length == 1
+
+        when:
+        root {
+            lib {
+                'foo.jar'('baz')
+            }
+        }
+        sleep(1000)
+        run 'help'
+        coreHash = uniqueRemapped('build')
+        moduleHash = uniqueRemapped('module')
+        settingsHash = uniqueRemapped('settings')
+
+        then:
+        remappedCacheSize() == 3
+        scriptCacheSize() == 3
+        hasCachedScripts(coreHash, moduleHash, settingsHash)
+        getCompileClasspath(coreHash, 'proj').length == 2
+        getCompileClasspath(moduleHash, 'proj').length == 2
     }
 
     def "init script is cached"() {
@@ -409,14 +488,10 @@ task fastTask { }
         remappedCacheSize() == 2
         scriptCacheSize() == 2
         hasCachedScripts(coreHash, initHash)
-        hasCachedScriptForClasspath(coreHash, 'cp_proj', 'cp_proj')
-        hasCachedScriptForClasspath(coreHash, 'proj', "proj")
-        hasCachedScriptForClasspath(initHash, 'init', 'init')
+        getCompileClasspath(coreHash, 'proj').length == 1
+        getCompileClasspath(initHash, 'init').length == 1
     }
 
-    private String classpathHashFor(String... files) {
-        "${fileSnapshotter.snapshot(new DefaultClassPath(testDirectory.file(files))).hashCode()}"
-    }
 
 
     int buildScopeCacheSize() {
@@ -481,6 +556,10 @@ task fastTask { }
         Set foundInCache = scriptCachesDir.list() as Set
         Set expected = contentHashes as Set
         assert foundInCache == expected
+    }
+
+    String[] getCompileClasspath(String contentHash, String dslId) {
+        new File(new File(scriptCachesDir, contentHash), dslId).list()?:new String[0]
     }
 
     void hasCachedScriptForClasspath(String contentHash, String dslId, String classpathHash) {

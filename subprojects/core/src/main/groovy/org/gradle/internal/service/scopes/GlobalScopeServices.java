@@ -243,11 +243,7 @@ public class GlobalScopeServices {
     }
 
     ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CachingFileSnapshotter fileSnapshotter) {
-        if (environment.isLongLivingProcess()) {
-            return new HashClassPathSnapshotter(fileSnapshotter);
-        } else {
-            return new FileClassPathSnapshotter();
-        }
+        return new HashClassPathSnapshotter(fileSnapshotter);
     }
 
     MapBackedInMemoryStore createInMemoryStore() {

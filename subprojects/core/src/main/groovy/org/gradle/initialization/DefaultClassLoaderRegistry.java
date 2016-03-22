@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.initialization.loadercache.HashedClassLoader;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -24,6 +25,7 @@ import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
+    private final ClassLoader runtimeClassLoader;
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader extensionsClassLoader;
@@ -31,14 +33,14 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
-        ClassLoader runtimeClassLoader = getClass().getClassLoader();
+        this.runtimeClassLoader = new HashedClassLoader(getClass().getClassLoader(), "runtime".hashCode());
 
-        apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
+        apiOnlyClassLoader = new HashedClassLoader(restrictToGradleApi(runtimeClassLoader), "apiOnly".hashCode());
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        extensionsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
+        extensionsClassLoader = new HashedClassLoader(new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath), "extensions".hashCode());
 
-        this.apiAndPluginsClassLoader = restrictToGradleApi(extensionsClassLoader);
+        this.apiAndPluginsClassLoader = new HashedClassLoader(restrictToGradleApi(extensionsClassLoader), "apiAndPlugins".hashCode());
     }
 
     private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
@@ -57,7 +59,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     }
 
     public ClassLoader getRuntimeClassLoader() {
-        return getClass().getClassLoader();
+        return runtimeClassLoader;
     }
 
     public ClassLoader getGradleApiClassLoader() {
