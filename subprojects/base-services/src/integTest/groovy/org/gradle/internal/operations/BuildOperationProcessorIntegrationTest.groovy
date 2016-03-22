@@ -16,14 +16,14 @@
 
 package org.gradle.internal.operations
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
+import spock.lang.Ignore
 
 
 class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
+    @Ignore
     def "produces sensible error when there are failures both enqueueing and running operations" () {
         buildFile << """
             import org.gradle.internal.operations.BuildOperationProcessor
