@@ -18,29 +18,35 @@ package org.gradle.internal.operations
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
-import spock.lang.Ignore
-
 
 class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore
     def "produces sensible error when there are failures both enqueueing and running operations" () {
         buildFile << """
             import org.gradle.internal.operations.BuildOperationProcessor
             import org.gradle.internal.operations.RunnableBuildOperation
+            import java.util.concurrent.CountDownLatch
 
+            def startedLatch = new CountDownLatch(2)
             task causeErrors {
                 doLast {
                     def buildOperationProcessor = services.get(BuildOperationProcessor)
                     buildOperationProcessor.run { queue ->
-                        queue.add(new TestOperation())
-                        queue.add(new TestOperation())
+                        queue.add(new TestOperation(startedLatch))
+                        queue.add(new TestOperation(startedLatch))
+                        startedLatch.await()
                         throw new Exception("queue failure")
                     }
                 }
             }
 
             class TestOperation implements RunnableBuildOperation {
+                final CountDownLatch startedLatch
+
+                TestOperation(CountDownLatch startedLatch) {
+                    this.startedLatch = startedLatch
+                }
+
                 @Override
                 public String getDescription() {
                     return "test operation"
@@ -48,6 +54,7 @@ class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void run() {
+                    startedLatch.countDown()
                     throw new Exception("operation failure")
                 }
             }
