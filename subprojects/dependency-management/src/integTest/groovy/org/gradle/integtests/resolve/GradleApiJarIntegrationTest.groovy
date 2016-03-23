@@ -31,7 +31,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     private static final String TESTKIT_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-test-kit-(.*)\\.jar"
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(25000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(35000)
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
