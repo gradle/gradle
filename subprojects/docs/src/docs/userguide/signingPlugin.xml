@@ -23,7 +23,7 @@
         as well as other information such as when the signature was generated.
     </para>
     <para>
-        The signing plugin currently only provides support for generating <ulink url='http://www.pgpi.org/'>PGP signatures</ulink>
+        The signing plugin currently only provides support for generating <ulink url='https://en.wikipedia.org/wiki/Pretty_Good_Privacy#OpenPGP'>OpenPGP signatures</ulink>
         (which is the signature format <ulink url="http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp">required for
         publication to the Maven Central Repository</ulink>).
     </para>
@@ -39,8 +39,8 @@
     <section>
         <title>Signatory credentials</title>
         <para>
-            In order to create PGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="http://www.gnupg.org/">GnuPG tools</ulink>
-            can be found in the <ulink url="http://www.gnupg.org/documentation/howtos.html">GnuPG HOWTOs</ulink>). You need to provide the signing plugin
+            In order to create OpenPGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="https://www.gnupg.org/">GnuPG tools</ulink>
+            can be found in the <ulink url="https://www.gnupg.org/documentation/howtos.html">GnuPG HOWTOs</ulink>). You need to provide the signing plugin
             with your key information, which means three things:
         </para>
         <itemizedlist>
@@ -59,7 +59,7 @@ signing.password=secret
 signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
         </programlisting>
         <para>
-            If specifying this information in the user <literal>gradle.properties</literal> file is not feasible for your environment, you can source the information
+            If specifying this information (especially <literal>signing.password</literal>) in the user <literal>gradle.properties</literal> file is not feasible for your environment, you can source the information
             however you need to and set the project properties manually.
         </para>
         <!--
@@ -88,6 +88,17 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
         </programlisting>
+        <section>
+            <title>Using OpenPGP subkeys</title>
+            <para>
+                In more advanced configuration OpenPGP allows to create a dedicated subkeys. Subkeys are the normal keys, except they are bound to a master key pair.
+                They useful consequence is that they can be easily revoked independently of the master keys what makes key management easier. A practical case study
+                how subkeys can be leveraged in software development can be read on <ulink url="https://wiki.debian.org/Subkeys">Debian wiki</ulink>.
+            </para>
+            <para>
+                The signing plugin supports OpenPGP subkeys out of the box. It is enough to specify subkey ID as the value in the <literal>signing.keyId</literal> property.
+            </para>
+        </section>
     </section>
 
     <section>
