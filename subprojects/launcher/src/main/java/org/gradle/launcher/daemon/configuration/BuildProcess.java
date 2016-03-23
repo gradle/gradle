@@ -40,6 +40,7 @@ public class BuildProcess extends CurrentProcess {
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
+
         List<String> currentImmutable = new JvmOptions(new IdentityFileResolver()).getAllImmutableJvmArgs();
         List<String> requiredImmutable = requiredBuildParameters.getEffectiveJvmArgs();
         requiredImmutable.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
