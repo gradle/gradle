@@ -22,11 +22,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Unroll
 
-@UsesNativeServices
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String API_JAR_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-api-(.*)\\.jar"
