@@ -21,7 +21,6 @@ import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -53,9 +52,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def resolvedArtifacts = configurations.deps.incoming.files.files
                     assert resolvedArtifacts.size() == 3
-                    assert resolvedArtifacts.find { it.name =~ 'gradle-api-(.*)\\\\.jar' }
-                    assert resolvedArtifacts.find { it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar' }
-                    assert resolvedArtifacts.find { it.name =~ 'groovy-all-(.*)\\\\.jar' }
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-api-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.find { (it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar').matches() }
+                    assert resolvedArtifacts.find { (it.name =~ 'groovy-all-(.*)\\\\.jar').matches() }
                 }
             }
         """
@@ -276,7 +275,6 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         given:
         requireOwnGradleUserHomeDir()
-        def gradleVersion = GradleVersion.current().version
 
         when:
         def outputs = []
@@ -295,8 +293,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         concurrent.finished()
 
         then:
-        def apiGenerationOutputs = outputs.findAll { it.contains("Generating JAR file 'gradle-api-${gradleVersion}.jar'") }
-        def testKitGenerationOutputs = outputs.findAll { it.contains("Generating JAR file 'gradle-test-kit-${gradleVersion}.jar'") }
+        def apiGenerationOutputs = outputs.findAll { it =~ /$API_JAR_GENERATION_OUTPUT_REGEX/ }
+        def testKitGenerationOutputs = outputs.findAll { it =~ /$TESTKIT_GENERATION_OUTPUT_REGEX/ }
         apiGenerationOutputs.size() == 1
         testKitGenerationOutputs.size() == 1
         assertApiGenerationOutput(apiGenerationOutputs[0])
