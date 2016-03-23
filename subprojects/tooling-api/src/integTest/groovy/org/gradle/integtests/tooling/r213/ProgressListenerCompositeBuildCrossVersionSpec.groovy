@@ -66,8 +66,6 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     @TargetGradleVersion(">=2.5")
     def "compare new listener events executing tasks from a composite build and a regular build with single build"() {
         given:
-        skipForDaemonCoordinator()
-
         def builds = createBuilds(1)
         createListeners(CapturingEventProgressListener)
 
@@ -114,8 +112,6 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     @TargetGradleVersion(">=2.5")
     def "compare new listener events from task execution from a composite build and a regular build with 3 builds"() {
         given:
-        skipForDaemonCoordinator()
-
         def builds = createBuilds(3)
         createListeners(CapturingEventProgressListener)
 

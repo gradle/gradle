@@ -28,7 +28,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
 
-// @Ignore("not implemented for daemon coordinator")
 class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     def escapeHeader = "\u001b["
@@ -76,8 +75,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     @TargetGradleVersion(">=1.2")
     def "can call tasks before building composite model"() {
-        given:
-        skipForDaemonCoordinator()
         when:
         modelResults = withCompositeConnection(singleBuild) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
@@ -196,7 +193,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
     @TargetGradleVersion(">=2.3")
     def "can colorize output with model requests"() {
         given:
-        skipForDaemonCoordinator()
         OutputStream stdOut = new ByteArrayOutputStream()
         when:
         withCompositeConnection(singleBuild) { GradleConnection connection ->
@@ -214,7 +210,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
     @TargetGradleVersion(">=2.3")
     def "can colorize output with build launcher"() {
         given:
-        skipForDaemonCoordinator()
         OutputStream stdOut = new ByteArrayOutputStream()
         when:
         def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)

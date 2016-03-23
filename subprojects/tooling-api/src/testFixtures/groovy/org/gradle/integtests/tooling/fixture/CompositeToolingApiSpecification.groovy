@@ -23,7 +23,6 @@ import org.gradle.tooling.composite.GradleBuild
 import org.gradle.tooling.composite.GradleConnection
 import org.gradle.tooling.composite.ModelResult
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
@@ -134,13 +133,4 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
         causes
     }
-
-
-    void skipForDaemonCoordinator() {
-        // TODO: Currently we do not receive events for events.ProgressListeners when executing tasks
-        // TODO: We do not execute tasks before building models for the daemon coordinator
-        // TODO: We do not pass colorized output parameters to underlying builds when using the daemon coordinator
-        Assume.assumeFalse(targetDist.version == GradleVersion.current())
-    }
-
 }
