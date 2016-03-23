@@ -17,19 +17,17 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.IOException;
 import java.io.Writer;
 
-public class InMemoryTestResultsProvider implements TestResultsProvider {
+public class InMemoryTestResultsProvider extends TestOutputStoreBackedResultsProvider {
     private final Iterable<TestClassResult> results;
-    private final TestOutputStore outputStore;
 
     public InMemoryTestResultsProvider(Iterable<TestClassResult> results, TestOutputStore outputStore) {
+        super(outputStore);
         this.results = results;
-        this.outputStore = outputStore;
     }
 
     @Override
@@ -84,19 +82,6 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
     @Override
     public boolean isHasResults() {
         return results.iterator().hasNext();
-    }
-
-    private void withReader(Action<TestOutputStore.Reader> action) {
-        try {
-            TestOutputStore.Reader reader = outputStore.reader();
-            try {
-                action.execute(reader);
-            } finally {
-                reader.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     @Override
