@@ -24,7 +24,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @UsesNativeServices
@@ -326,7 +325,6 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'resolveDependencyArtifacts'
     }
 
-    @Ignore
     @Unroll
     def "Gradle API and TestKit are compatible regardless of order [#description]"() {
         when:
