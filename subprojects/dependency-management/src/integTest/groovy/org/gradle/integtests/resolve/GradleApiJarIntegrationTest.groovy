@@ -38,6 +38,31 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
+    def "Gradle API dependency resolves the expected JAR files"() {
+        expect:
+        buildFile << """
+            configurations {
+                deps
+            }
+
+            dependencies {
+                deps fatGradleApi()
+            }
+
+            task resolveDependencyArtifacts {
+                doLast {
+                    def resolvedArtifacts = configurations.deps.incoming.files.files
+                    assert resolvedArtifacts.size() == 3
+                    assert resolvedArtifacts.find { it.name =~ 'gradle-api-(.*)\\\\.jar' }
+                    assert resolvedArtifacts.find { it.name =~ 'gradle-installation-beacon-(.*)\\\\.jar' }
+                    assert resolvedArtifacts.find { it.name =~ 'groovy-all-(.*)\\\\.jar' }
+                }
+            }
+        """
+
+        succeeds 'resolveDependencyArtifacts'
+    }
+
     def "can compile typical Java-based Gradle plugin using Gradle API"() {
         when:
         buildFile << applyJavaPlugin()
