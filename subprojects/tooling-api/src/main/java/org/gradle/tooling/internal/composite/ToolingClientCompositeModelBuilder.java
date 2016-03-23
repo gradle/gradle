@@ -303,14 +303,14 @@ public class ToolingClientCompositeModelBuilder<T> {
         @Override
         public Map<String, V> execute(BuildController controller) {
             final Map<String, V> results = new HashMap<String, V>();
-            fetchResults(modelType, results, controller, controller.getBuildModel().getRootProject(), controller.getBuildModel().getRootProject());
+            fetchResults(modelType, results, controller, controller.getBuildModel().getRootProject());
             return results;
         }
 
-        private void fetchResults(Class<V> modelType, Map<String, V> results, BuildController controller, BasicGradleProject project, BasicGradleProject rootProject) {
+        private void fetchResults(Class<V> modelType, Map<String, V> results, BuildController controller, BasicGradleProject project) {
             results.put(project.getPath(), controller.getModel(project, modelType));
             for (BasicGradleProject child : project.getChildren()) {
-                fetchResults(modelType, results, controller, child, rootProject);
+                fetchResults(modelType, results, controller, child);
             }
         }
     }
