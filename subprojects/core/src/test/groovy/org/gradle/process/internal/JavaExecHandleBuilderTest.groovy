@@ -26,7 +26,7 @@ import static java.util.Arrays.asList
 
 public class JavaExecHandleBuilderTest extends Specification {
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver())
-    
+
     public void cannotSetAllJvmArgs() {
         when:
         builder.setAllJvmArgs(asList("arg"))
@@ -53,15 +53,15 @@ public class JavaExecHandleBuilderTest extends Specification {
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2"]
+        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), tmpDir(), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2"]
 
         when:
         List commandLine = builder.getCommandLine()
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
-        
+        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), tmpDir(), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+
         where:
         inputEncoding | expectedEncoding
         null          | Charset.defaultCharset().name()
@@ -75,6 +75,10 @@ public class JavaExecHandleBuilderTest extends Specification {
 
     private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
         return "-Dfile.encoding=$encoding"
+    }
+
+    private static String tmpDir(String tmpDir = System.getProperty("java.io.tmpdir")) {
+        return "-Djava.io.tmpdir=$tmpDir"
     }
 
     private static List<String> localeProperties(Locale locale = Locale.default) {

@@ -15,12 +15,12 @@
  */
 
 
-
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -38,7 +38,7 @@ class JvmOptionsTest extends Specification {
     def "reads quoted options from String"() {
         expect:
         JvmOptions.fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
-                ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
+            ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
 
         JvmOptions.fromString("  -Dfoo=\" bar \"  ") == ["-Dfoo= bar "]
         JvmOptions.fromString("  -Dx=\"\"  -Dy=\"\n\" ") == ["-Dx=", "-Dy=\n"]
@@ -69,7 +69,7 @@ class JvmOptionsTest extends Specification {
 
     def "system properties are always before the symbolic arguments"() {
         expect:
-        parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16", *localePropertyStrings()]
+        parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16", tmpDirString(), *localePropertyStrings()]
     }
 
     def "debug option can be set via allJvmArgs"() {
@@ -89,26 +89,18 @@ class JvmOptionsTest extends Specification {
 
     def "managed jvm args includes heap settings"() {
         expect:
-        parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}", *localePropertyStrings()]
+        parse("-Xms1G -XX:-PrintClassHistogram -Xmx2G -Dfoo.encoding=blah").managedJvmArgs == ["-Xms1G", "-Xmx2G", "-Dfile.encoding=${defaultCharset}", tmpDirString(), *localePropertyStrings()]
     }
 
     def "managed jvm args includes file encoding"() {
         expect:
-        parse("-XX:-PrintClassHistogram -Dfile.encoding=klingon-16 -Dfoo.encoding=blah").managedJvmArgs == ["-Dfile.encoding=klingon-16", *localePropertyStrings()]
-        parse("-XX:-PrintClassHistogram -Dfoo.encoding=blah").managedJvmArgs == ["-Dfile.encoding=${defaultCharset}", *localePropertyStrings()]
+        parse("-XX:-PrintClassHistogram -Dfile.encoding=klingon-16 -Dfoo.encoding=blah").managedJvmArgs == ["-Dfile.encoding=klingon-16", tmpDirString(), *localePropertyStrings()]
+        parse("-XX:-PrintClassHistogram -Dfoo.encoding=blah").managedJvmArgs == ["-Dfile.encoding=${defaultCharset}", tmpDirString(), *localePropertyStrings()]
     }
 
     def "managed jvm args includes JMX settings"() {
         expect:
-        parse("-Dfile.encoding=utf-8 -Dcom.sun.management.jmxremote").managedJvmArgs == ["-Dcom.sun.management.jmxremote", "-Dfile.encoding=utf-8", *localePropertyStrings()]
-    }
-
-    def "file encoding can be set as systemproperty"() {
-        JvmOptions opts = createOpts()
-        when:
-        opts.systemProperty("file.encoding", "ISO-8859-1")
-        then:
-        opts.allJvmArgs.contains("-Dfile.encoding=ISO-8859-1");
+        parse("-Dfile.encoding=utf-8 -Dcom.sun.management.jmxremote").managedJvmArgs == ["-Dcom.sun.management.jmxremote", "-Dfile.encoding=utf-8", tmpDirString(), *localePropertyStrings()]
     }
 
     def "file encoding can be set via defaultFileEncoding property"() {
@@ -155,7 +147,7 @@ class JvmOptionsTest extends Specification {
         parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").copyTo(target)
         then:
         1 * target.systemProperties({
-            it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
+            it == new TreeMap(["file.encoding": "UTF-16"] + tmpDirProperty() + localeProperties())
         })
     }
 
@@ -165,6 +157,43 @@ class JvmOptionsTest extends Specification {
         opts.debug = true
         then:
         opts.debug
+    }
+
+    @Unroll
+    def "#propDescr is immutable system property"() {
+        when:
+        def opts = createOpts()
+        opts.jvmArgs(propAsArg)
+
+        then:
+        opts.allImmutableJvmArgs.contains(propAsArg)
+        and:
+        opts.immutableSystemProperties.containsKey(propKey)
+
+        where:
+
+        propDescr        | propKey                      | propAsArg
+        "file encoding"  | JvmOptions.FILE_ENCODING_KEY | "-Dfile.encoding=UTF-8"
+        "user variant"   | JvmOptions.USER_VARIANT_KEY  | "-Duser.variant"
+        "user language"  | JvmOptions.USER_LANGUAGE_KEY | "-Duser.language=en"
+        "user country"   | JvmOptions.USER_COUNTRY_KEY  | "-Duser.country=US"
+        "jmx remote"     | JvmOptions.JMX_REMOTE_KEY    | "-Dcom.sun.management.jmxremote"
+        "temp directory" | JvmOptions.JAVA_IO_TMPDIR    | "-Djava.io.tmpdir=/some/tmp/folder"
+    }
+
+    @Unroll
+    def "#propDescr can be set as systemproperty"() {
+        JvmOptions opts = createOpts()
+        when:
+        opts.systemProperty(propKey, propValue)
+        then:
+        opts.allJvmArgs.contains("-D${propKey}=${propValue}".toString());
+        where:
+        propDescr        | propKey                      | propValue
+        "file encoding"  | JvmOptions.FILE_ENCODING_KEY | "ISO-8859-1"
+        "user country"   | JvmOptions.USER_COUNTRY_KEY  | "en"
+        "user language"  | JvmOptions.USER_LANGUAGE_KEY | "US"
+        "temp directory" | JvmOptions.JAVA_IO_TMPDIR    | "/some/tmp/folder"
     }
 
     def "can enter debug mode after setting other options"() {
@@ -213,6 +242,15 @@ class JvmOptionsTest extends Specification {
         def opts = createOpts()
         opts.jvmArgs(JvmOptions.fromString(optsString))
         opts
+    }
+
+
+    static Map<String,String> tmpDirProperty(String tmpDir = System.getProperty("java.io.tmpdir")) {
+        return ["java.io.tmpdir":tmpDir]
+    }
+
+    private static String tmpDirString(String tmpDir = System.getProperty("java.io.tmpdir")) {
+        return "-Djava.io.tmpdir=$tmpDir"
     }
 
     private static List<String> localePropertyStrings(Locale locale = Locale.default) {

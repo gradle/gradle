@@ -59,7 +59,7 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.bootstrapClasspath.files, isEmpty())
         assertFalse(options.enableAssertions)
         assertFalse(options.debug)
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == [fileEncodingProperty(), tmpDir(), *localeProperties()]
     }
 
     @Test
@@ -92,7 +92,7 @@ public class DefaultJavaForkOptionsTest {
         options.systemProperties(key: 12, key2: null, "key3": 'value')
         options.jvmArgs('arg1')
 
-        assert options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty(), tmpDir(), *localeProperties()]
     }
 
     @Test
@@ -115,14 +115,14 @@ public class DefaultJavaForkOptionsTest {
     public void allJvmArgsIncludeMinHeapSize() {
         options.minHeapSize = '64m'
         options.jvmArgs('arg1')
-        assert options.allJvmArgs == ['arg1', '-Xms64m', fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == ['arg1', '-Xms64m', fileEncodingProperty(), tmpDir(), *localeProperties()]
     }
 
     @Test
     public void allJvmArgsIncludeMaxHeapSize() {
         options.maxHeapSize = '1g'
         options.jvmArgs('arg1')
-        assert options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), tmpDir(), *localeProperties()]
     }
 
     @Test
@@ -159,9 +159,9 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void allJvmArgsIncludeAssertionsEnabled() {
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == [fileEncodingProperty(), tmpDir(), *localeProperties()]
         options.enableAssertions = true
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), '-ea']
+        assert options.allJvmArgs == [fileEncodingProperty(), tmpDir(), *localeProperties(), '-ea']
     }
 
     @Test
@@ -182,9 +182,9 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void allJvmArgsIncludeDebugArgs() {
-        assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs == [fileEncodingProperty(), tmpDir(), *localeProperties()]
         options.debug = true
-        assert options.allJvmArgs  == [fileEncodingProperty(), *localeProperties(), '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        assert options.allJvmArgs  == [fileEncodingProperty(), tmpDir(), *localeProperties(), '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
     }
 
     @Test
@@ -248,7 +248,7 @@ public class DefaultJavaForkOptionsTest {
             will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'}] as FileCollection))
         }
 
-        assert options.allJvmArgs  == ['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty(), *localeProperties()]
+        assert options.allJvmArgs  == ['-Xbootclasspath:' + files.join(System.properties['path.separator']), fileEncodingProperty(), tmpDir(), *localeProperties()]
     }
 
     @Test
@@ -288,6 +288,11 @@ public class DefaultJavaForkOptionsTest {
 
     private static String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
         return "-Dfile.encoding=$encoding"
+    }
+
+
+    private static String tmpDir(String tmpDir = System.getProperty("java.io.tmpdir")) {
+        return "-Djava.io.tmpdir=$tmpDir"
     }
 
     private static List<String> localeProperties(Locale locale = Locale.default) {

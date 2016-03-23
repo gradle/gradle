@@ -67,6 +67,8 @@ public class BuildProcessTest extends Specification {
         !buildProcess.configureForBuild(buildParameters(["-Duser.language=$notDefaultLanguage"]))
         buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}"]))
         buildProcess.configureForBuild(buildParameters(["-Duser.language=${Locale.default.language}"]))
+        !buildProcess.configureForBuild(buildParameters(["-Dcom.sun.management.jmxremote"]))
+        !buildProcess.configureForBuild(buildParameters(["-Djava.io.tmpdir=/some/custom/folder"]))
     }
 
     def "sets all mutable system properties before running build"() {
