@@ -20,6 +20,8 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.tooling.*
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 /**
  * Tooling client provides progress listener for composite model request
@@ -29,8 +31,17 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     AbstractCapturingProgressListener progressListenerForComposite
     AbstractCapturingProgressListener progressListenerForRegularBuild
 
+    private boolean progressListenerSupported(Class progressListenerType) {
+        if (progressListenerType == CapturingEventProgressListener) {
+            return targetDist.version >= GradleVersion.version("2.5")
+        }
+        return true
+    }
+
     def "compare events from a composite build and a regular build with single build"() {
         given:
+        Assume.assumeTrue(progressListenerSupported(progressListenerType))
+
         def builds = createBuilds(1)
         progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
         progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
@@ -47,6 +58,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
     def "compare events executing tasks from a composite build and a regular build with single build"() {
         given:
+        Assume.assumeTrue(progressListenerSupported(progressListenerType))
         skipForDaemonCoordinator()
 
         def builds = createBuilds(1)
@@ -65,6 +77,8 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
     def "compare events from a composite build and a regular build with 3 builds"() {
         given:
+        Assume.assumeTrue(progressListenerSupported(progressListenerType))
+
         def builds = createBuilds(3)
         progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
         progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
@@ -81,6 +95,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
     def "compare events from task execution from a composite build and a regular build with 3 builds"() {
         given:
+        Assume.assumeTrue(progressListenerSupported(progressListenerType))
         skipForDaemonCoordinator()
 
         def builds = createBuilds(3)

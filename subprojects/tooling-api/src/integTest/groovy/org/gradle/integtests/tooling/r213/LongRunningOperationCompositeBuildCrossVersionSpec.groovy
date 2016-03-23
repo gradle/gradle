@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.composite.BuildIdentity
@@ -73,6 +74,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         singleBuildParticipant = createGradleBuildParticipant(singleBuild)
     }
 
+    @TargetGradleVersion(">=1.2")
     def "can call tasks before building composite model"() {
         given:
         skipForDaemonCoordinator()
@@ -191,6 +193,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
     }
 
     @Ignore
+    @TargetGradleVersion(">=2.3")
     def "can colorize output with model requests"() {
         given:
         skipForDaemonCoordinator()
@@ -208,6 +211,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
     }
 
     @Ignore
+    @TargetGradleVersion(">=2.3")
     def "can colorize output with build launcher"() {
         given:
         skipForDaemonCoordinator()
