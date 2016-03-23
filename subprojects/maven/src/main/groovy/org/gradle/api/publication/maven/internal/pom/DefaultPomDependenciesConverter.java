@@ -51,7 +51,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private Map<ModuleDependency, String> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer,
-            Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
+                                                                     Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
         Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
             Conf2ScopeMapping conf2ScopeDependencyMapping = conf2ScopeMappingContainer.getMapping(dependencyToConfigurations.get(dependency));
@@ -59,7 +59,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
                 continue;
             }
             dependencyToScope.put(findDependency(dependency, conf2ScopeDependencyMapping.getConfiguration()),
-                    conf2ScopeDependencyMapping.getScope());
+                conf2ScopeDependencyMapping.getScope());
         }
         return dependencyToScope;
     }
@@ -91,28 +91,28 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private void addFromArtifactDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
-            Set<Configuration> configurations) {
+                                           Set<Configuration> configurations) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
-            mavenDependencies.addAll(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope, configurations));
+            mavenDependencies.addAll(createMavenDependenciesFromArtifactDescriptor(dependency, artifact, scope, configurations));
         }
     }
 
     private void addFromDependencyDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
-            Set<Configuration> configurations) {
-        mavenDependencies.addAll(createMavenDependencyFromDependencyDescriptor(dependency, scope, configurations));
+                                             Set<Configuration> configurations) {
+        mavenDependencies.addAll(createMavenDependenciesFromDependencyDescriptor(dependency, scope, configurations));
     }
 
-    private List<Dependency> createMavenDependencyFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope,
-                                                                         Set<Configuration> configurations) {
-        return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier(), configurations);
+    private List<Dependency> createMavenDependenciesFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope,
+                                                                           Set<Configuration> configurations) {
+        return createMavenDependencies(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier(), configurations);
     }
 
-    private List<Dependency> createMavenDependencyFromDependencyDescriptor(ModuleDependency dependency, String scope, Set<Configuration> configurations) {
-        return createMavenDependency(dependency, dependency.getName(), null, scope, null, configurations);
+    private List<Dependency> createMavenDependenciesFromDependencyDescriptor(ModuleDependency dependency, String scope, Set<Configuration> configurations) {
+        return createMavenDependencies(dependency, dependency.getName(), null, scope, null, configurations);
     }
 
-    private List<Dependency> createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier,
-                                                   Set<Configuration> configurations) {
+    private List<Dependency> createMavenDependencies(ModuleDependency dependency, String name, String type, String scope, String classifier,
+                                                     Set<Configuration> configurations) {
         List<Dependency> mavenDependencies = new ArrayList<Dependency>();
 
         if (dependency instanceof ProjectDependency) {
@@ -120,20 +120,20 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             final String artifactId = determineProjectDependencyArtifactId((ProjectDependency) dependency);
 
             Configuration dependencyConfig = projectDependency.getProjectConfiguration();
-            for(PublishArtifact artifactToPublish : dependencyConfig.getAllArtifacts()) {
-                Dependency mavenDependency =  new Dependency();
+            for (PublishArtifact artifactToPublish : dependencyConfig.getAllArtifacts()) {
+                Dependency mavenDependency = new Dependency();
                 mavenDependency.setArtifactId(artifactId);
                 mavenDependency.setClassifier(artifactToPublish.getClassifier());
                 mavenDependencies.add(mavenDependency);
             }
         } else {
-            Dependency mavenDependency =  new Dependency();
+            Dependency mavenDependency = new Dependency();
             mavenDependency.setArtifactId(name);
             mavenDependency.setClassifier(classifier);
             mavenDependencies.add(mavenDependency);
         }
 
-        for(Dependency mavenDependency : mavenDependencies) {
+        for (Dependency mavenDependency : mavenDependencies) {
             mavenDependency.setGroupId(dependency.getGroup());
             mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
             mavenDependency.setType(type);
@@ -145,7 +145,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private String mapToMavenSyntax(String version) {
-       return versionRangeMapper.map(version);
+        return versionRangeMapper.map(version);
     }
 
     protected String determineProjectDependencyArtifactId(ProjectDependency dependency) {
