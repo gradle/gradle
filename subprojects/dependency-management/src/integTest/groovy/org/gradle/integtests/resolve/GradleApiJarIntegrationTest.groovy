@@ -45,7 +45,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps fatGradleApi()
+                deps gradleApi()
             }
 
             task resolveDependencyArtifacts {
@@ -65,7 +65,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     def "can compile typical Java-based Gradle plugin using Gradle API"() {
         when:
         buildFile << applyJavaPlugin()
-        buildFile << fatGradleApiDependency()
+        buildFile << gradleApiDependency()
 
         file('src/main/java/MyPlugin.java') << """
             import org.gradle.api.Plugin;
@@ -86,7 +86,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     def "can compile typical Groovy-based Gradle plugin using Gradle API without having to declare Groovy dependency"() {
         when:
         buildFile << applyGroovyPlugin()
-        buildFile << fatGradleApiDependency()
+        buildFile << gradleApiDependency()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
@@ -330,7 +330,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -401,9 +401,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         where:
-        description                          | dependencyTuples
-        'fatGradleApi(), fatGradleTestKit()' | [new GradleDependency('compile', 'fatGradleApi()'), new GradleDependency('testCompile', 'fatGradleTestKit()')]
-        'fatGradleTestKit(), fatGradleApi()' | [new GradleDependency('testCompile', 'fatGradleTestKit()'), new GradleDependency('compile', 'fatGradleApi()')]
+        description                    | dependencyTuples
+        'gradleApi(), gradleTestKit()' | [new GradleDependency('compile', 'gradleApi()'), new GradleDependency('testCompile', 'gradleTestKit()')]
+        'gradleTestKit(), gradleApi()' | [new GradleDependency('testCompile', 'gradleTestKit()'), new GradleDependency('compile', 'gradleApi()')]
     }
 
     static String applyJavaPlugin() {
@@ -430,18 +430,18 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    static String fatGradleApiDependency() {
+    static String gradleApiDependency() {
         """
             dependencies {
-                compile fatGradleApi()
+                compile gradleApi()
             }
         """
     }
 
-    static String fatTestKitDependency() {
+    static String testKitDependency() {
         """
             dependencies {
-                testCompile fatGradleTestKit()
+                testCompile gradleTestKit()
             }
         """
     }
@@ -485,7 +485,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencies {
@@ -500,8 +500,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         StringBuilder buildFile = new StringBuilder()
         buildFile <<= applyGroovyPlugin()
         buildFile <<= jcenterRepository()
-        buildFile <<= fatGradleApiDependency()
-        buildFile <<= fatTestKitDependency()
+        buildFile <<= gradleApiDependency()
+        buildFile <<= testKitDependency()
         buildFile <<= junitDependency()
         buildFile.toString()
     }
