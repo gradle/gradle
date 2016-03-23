@@ -17,12 +17,10 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.tooling.*
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
-import org.junit.Assume
-
 /**
  * Tooling client provides progress listener for composite model request
  */
@@ -31,85 +29,105 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     AbstractCapturingProgressListener progressListenerForComposite
     AbstractCapturingProgressListener progressListenerForRegularBuild
 
-    private boolean progressListenerSupported(Class progressListenerType) {
-        if (progressListenerType == CapturingEventProgressListener) {
-            return targetDist.version >= GradleVersion.version("2.5")
-        }
-        return true
-    }
-
-    def "compare events from a composite build and a regular build with single build"() {
+    def "compare old listener events from a composite build and a regular build with single build"() {
         given:
-        Assume.assumeTrue(progressListenerSupported(progressListenerType))
-
         def builds = createBuilds(1)
-        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
-        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
-        println "Progress listener type ${progressListenerType.canonicalName}"
+        createListeners(CapturingProgressListener)
 
         when:
         requestModels(builds)
         then:
         assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-
-        where:
-        progressListenerType << [ CapturingProgressListener, CapturingEventProgressListener ]
     }
 
-    def "compare events executing tasks from a composite build and a regular build with single build"() {
+    @TargetGradleVersion(">=2.5")
+    def "compare new listener events from a composite build and a regular build with single build"() {
         given:
-        Assume.assumeTrue(progressListenerSupported(progressListenerType))
-        skipForDaemonCoordinator()
-
         def builds = createBuilds(1)
-        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
-        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
-        println "Progress listener type ${progressListenerType.canonicalName}"
-
-        when:
-        executeFirstBuild(builds)
-        then:
-        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-
-        where:
-        progressListenerType << [ CapturingProgressListener, CapturingEventProgressListener ]
-    }
-
-    def "compare events from a composite build and a regular build with 3 builds"() {
-        given:
-        Assume.assumeTrue(progressListenerSupported(progressListenerType))
-
-        def builds = createBuilds(3)
-        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
-        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
-        println "Progress listener type ${progressListenerType.canonicalName}"
+        createListeners(CapturingEventProgressListener)
 
         when:
         requestModels(builds)
         then:
         assertListenerReceivedSameEventsInCompositeAndRegularConnections()
-
-        where:
-        progressListenerType << [ CapturingProgressListener, CapturingEventProgressListener ]
     }
 
-    def "compare events from task execution from a composite build and a regular build with 3 builds"() {
+    def "compare old listener events executing tasks from a composite build and a regular build with single build"() {
         given:
-        Assume.assumeTrue(progressListenerSupported(progressListenerType))
-        skipForDaemonCoordinator()
-
-        def builds = createBuilds(3)
-        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
-        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
-        println "Progress listener type ${progressListenerType.canonicalName}"
+        def builds = createBuilds(1)
+        createListeners(CapturingProgressListener)
 
         when:
         executeFirstBuild(builds)
         then:
         assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
 
-        where:
-        progressListenerType << [ CapturingProgressListener, CapturingEventProgressListener ]
+    @TargetGradleVersion(">=2.5")
+    def "compare new listener events executing tasks from a composite build and a regular build with single build"() {
+        given:
+        skipForDaemonCoordinator()
+
+        def builds = createBuilds(1)
+        createListeners(CapturingEventProgressListener)
+
+        when:
+        executeFirstBuild(builds)
+        then:
+        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
+
+    def "compare old listener events from a composite build and a regular build with 3 builds"() {
+        given:
+        def builds = createBuilds(3)
+        createListeners(CapturingProgressListener)
+
+        when:
+        requestModels(builds)
+        then:
+        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
+
+    @TargetGradleVersion(">=2.5")
+    def "compare new listener events from a composite build and a regular build with 3 builds"() {
+        given:
+        def builds = createBuilds(3)
+        createListeners(CapturingEventProgressListener)
+
+        when:
+        requestModels(builds)
+        then:
+        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
+
+    def "compare old listener events from task execution from a composite build and a regular build with 3 builds"() {
+        given:
+        def builds = createBuilds(3)
+        createListeners(CapturingProgressListener)
+
+        when:
+        executeFirstBuild(builds)
+        then:
+        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
+
+    @TargetGradleVersion(">=2.5")
+    def "compare new listener events from task execution from a composite build and a regular build with 3 builds"() {
+        given:
+        skipForDaemonCoordinator()
+
+        def builds = createBuilds(3)
+        createListeners(CapturingEventProgressListener)
+
+        when:
+        executeFirstBuild(builds)
+        then:
+        assertListenerReceivedSameEventsInCompositeAndRegularConnections()
+    }
+
+    private void createListeners(Class progressListenerType) {
+        progressListenerForComposite = DirectInstantiator.instantiate(progressListenerType)
+        progressListenerForRegularBuild = DirectInstantiator.instantiate(progressListenerType)
     }
 
     private void assertListenerReceivedSameEventsInCompositeAndRegularConnections() {
