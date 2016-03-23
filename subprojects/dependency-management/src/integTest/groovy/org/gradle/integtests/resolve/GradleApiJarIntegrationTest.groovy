@@ -45,7 +45,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps gradleApi()
+                deps fatGradleApi()
             }
 
             task resolveDependencyArtifacts {
@@ -330,7 +330,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps gradleApi(), gradleTestKit()
+                gradleImplDeps fatGradleApi(), fatGradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -402,8 +402,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                    | dependencyTuples
-        'gradleApi(), gradleTestKit()' | [new GradleDependency('compile', 'gradleApi()'), new GradleDependency('testCompile', 'gradleTestKit()')]
-        'gradleTestKit(), gradleApi()' | [new GradleDependency('testCompile', 'gradleTestKit()'), new GradleDependency('compile', 'gradleApi()')]
+        'fatGradleApi(), fatGradleTestKit()' | [new GradleDependency('compile', 'fatGradleApi()'), new GradleDependency('testCompile', 'fatGradleTestKit()')]
+        'fatGradleTestKit(), fatGradleApi()' | [new GradleDependency('testCompile', 'fatGradleTestKit()'), new GradleDependency('compile', 'fatGradleApi()')]
     }
 
     static String applyJavaPlugin() {
@@ -433,7 +433,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String gradleApiDependency() {
         """
             dependencies {
-                compile gradleApi()
+                compile fatGradleApi()
             }
         """
     }
@@ -441,7 +441,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String testKitDependency() {
         """
             dependencies {
-                testCompile gradleTestKit()
+                testCompile fatGradleTestKit()
             }
         """
     }
@@ -485,7 +485,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps gradleApi(), gradleTestKit()
+                gradleImplDeps fatGradleApi(), fatGradleTestKit()
             }
 
             task resolveDependencies {
