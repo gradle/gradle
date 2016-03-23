@@ -123,7 +123,9 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             for (PublishArtifact artifactToPublish : dependencyConfig.getAllArtifacts()) {
                 Dependency mavenDependency = new Dependency();
                 mavenDependency.setArtifactId(artifactId);
-                mavenDependency.setClassifier(artifactToPublish.getClassifier());
+                if (artifactToPublish.getClassifier() != null && artifactToPublish.getClassifier() != "") {
+                    mavenDependency.setClassifier(artifactToPublish.getClassifier());
+                }
                 mavenDependencies.add(mavenDependency);
             }
         } else {
