@@ -26,16 +26,19 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
-    private final List<ListenableFuture> operations;
+    private final List<QueuedOperation> operations;
 
     private String logLocation;
 
     private boolean waitingForCompletion;
+
+    private final AtomicBoolean canceled = new AtomicBoolean();
 
     DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
         this.executor = MoreExecutors.listeningDecorator(executor);
@@ -47,14 +50,23 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         if (waitingForCompletion) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
-        ListenableFuture<?> future = executor.submit(new OperationHolder(operation));
-        operations.add(future);
+        OperationHolder operationHolder = new OperationHolder(operation);
+        ListenableFuture<?> future = executor.submit(operationHolder);
+        operations.add(new QueuedOperation(operationHolder, future));
     }
 
     @Override
     public void cancel() {
-        for (ListenableFuture future : operations) {
-            future.cancel(false);
+        canceled.set(true);
+        for (QueuedOperation operation : operations) {
+            // Although we can cancel the future of a running operation, we have no way of knowing
+            // that the operation was canceled after it began executing (i.e. isCanceled always returns
+            // true) which is a problem because we need to know whether to wait on the result or not.
+            // So we have to maintain the running state ourselves and only cancel operations we know
+            // have not started executing.
+            if (!operation.operationHolder.isRunning()) {
+                operation.future.cancel(false);
+            }
         }
     }
 
@@ -64,11 +76,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         CountDownLatch finished = new CountDownLatch(operations.size());
         Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
 
-        for (ListenableFuture operation : operations) {
-            if (operation.isCancelled()) {
+        for (QueuedOperation operation : operations) {
+            if (operation.future.isCancelled()) {
+                // If it's canceled, we'll never get a callback, so we just remove it from
+                // operations we're waiting for.
                 finished.countDown();
             } else {
-                Futures.addCallback(operation, new CompletionCallback(finished, failures));
+                Futures.addCallback(operation.future, new CompletionCallback(finished, failures));
             }
         }
 
@@ -115,15 +129,35 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
+    private class QueuedOperation {
+        final OperationHolder operationHolder;
+        final ListenableFuture future;
+
+        public QueuedOperation(OperationHolder operationHolder, ListenableFuture future) {
+            this.operationHolder = operationHolder;
+            this.future = future;
+        }
+    }
+
     private class OperationHolder implements Runnable {
         private final T operation;
+        private final AtomicBoolean running = new AtomicBoolean();
 
         OperationHolder(T operation) {
             this.operation = operation;
         }
 
         public void run() {
-            worker.execute(operation);
+            // Don't execute if the queue has been canceled
+            running.set(!canceled.get());
+            if (running.get()) {
+                worker.execute(operation);
+                running.set(false);
+            }
+        }
+
+        public boolean isRunning() {
+            return running.get();
         }
 
         public String toString() {
