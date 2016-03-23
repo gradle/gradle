@@ -837,12 +837,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Unroll
-    void "project dependency (#apiProjectVersion) vs external dependency (2.0) resolved in favor of #winner, when disableProjectPriority=#disableProjectPriority"()
+    void "project dependency (#apiProjectVersion) vs external dependency (2.0) resolved in favor of #winner"()
     {
         mavenRepo.module("org.utils", "api", '2.0').publish()
         settingsFile << 'include "api", "impl"'
 
-        def resulutionStrategySetting = disableProjectPriority ? 'disableProjectPriority()' : ''
         buildFile << """
             $common
 
@@ -858,7 +857,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 configurations.conf.resolutionStrategy{
-                    $resulutionStrategySetting
                     dependencySubstitution {
                         substitute module("org.utils:api:1.5") with project(":api")
                     }
@@ -890,10 +888,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         succeeds "impl:check"
 
         where:
-        apiProjectVersion | winner                                | selectedByRule  | disableProjectPriority
-        "1.6"             | 'moduleId("org.utils", "api", "2.0")' | false           | true
-        "1.6"             | 'projectId(":api")'                   | true            | false
-        "3.0"             | 'projectId(":api")'                   | true            | false
+        apiProjectVersion | winner                                | selectedByRule
+        "1.6"             | 'projectId(":api")'                   | true
+        "3.0"             | 'projectId(":api")'                   | true
     }
 
     void "can blacklist a version"()

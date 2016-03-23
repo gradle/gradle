@@ -637,7 +637,9 @@ dependencies {
 }
 
 configurations.all {
-    resolutionStrategy.disableProjectPriority()
+    resolutionStrategy.dependencySubstitution {
+        substitute project('test') with module('org:test:2.1')
+    }
 }
 """
 

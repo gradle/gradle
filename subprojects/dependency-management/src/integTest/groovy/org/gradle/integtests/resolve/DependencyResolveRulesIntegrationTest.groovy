@@ -68,7 +68,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    void "project dependency (#versionInProject) vs external dependency (#versionExternal) resolved in favor of #winner, when disableProjectPriority=#disableProjectPriority and forcedVersion=#forcedVersion"()
+    void "project dependency (#versionInProject) vs external dependency (#versionExternal) resolved in favor of #winner, when forcedVersion=#forcedVersion"()
     {
         mavenRepo.module("org.utils", "api", versionExternal).publish()
         if (forcedVersion!=null && forcedVersion!='project' && forcedVersion!=versionExternal) {
@@ -77,7 +77,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api-ext", '1.0').dependsOn("org.utils", "api", versionExternal).publish()
         settingsFile << 'include "api", "moduleA", "moduleB"'
 
-        def projectPrioritySetting = disableProjectPriority ? 'disableProjectPriority()' : ''
         String apiDependency = forcedVersion==null && forcedVersion!='project'?
             'conf project(":api")' : "conf ('org.utils:api:$forcedVersion') { force = true }"
 
@@ -114,7 +113,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 configurations.conf.resolutionStrategy{
-                    $projectPrioritySetting
                     $substitutionSetting
                 }
 
@@ -141,13 +139,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "moduleB:check"
 
         where:
-        versionInProject | versionExternal  | winner                                | disableProjectPriority | forcedVersion
-        "1.6"            | "2.0"            | 'projectId(":api")'                   | false                  | null
-        "1.6"            | "2.0"            | 'moduleId("org.utils", "api", "2.0")' | true                   | null
-        "3.0"            | "2.0"            | 'moduleId("org.utils", "api", "1.5")' | false                  | '1.5'
-        "1.6"            | "2.0"            | 'projectId(":api")'                   | true                   | 'project'
-        "1.6"            | "1.6"            | 'projectId(":api")'                   | false                  | null
-        "1.6"            | "1.6"            | 'projectId(":api")'                   | true                   | null
+        versionInProject | versionExternal  | winner                                | forcedVersion
+        "1.6"            | "2.0"            | 'projectId(":api")'                   | null
+        "3.0"            | "2.0"            | 'moduleId("org.utils", "api", "1.5")' | '1.5'
+        "1.6"            | "1.6"            | 'projectId(":api")'                   | null
     }
 
     void "forces multiple modules by rule"()
