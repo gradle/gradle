@@ -10,6 +10,21 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Faster Gradle builds
+Gradle is now faster than ever.  A number of performance improvements targeted at "execution time" (i.e. the part of the build lifecycle
+where Gradle is actually performing the actions of the build) have been introduced with this release:
+
+* Messages are logged to the console more efficiently.
+* A performance bottleneck when reading `gradle.properties` has been fixed.
+* Compiled build scripts are cached more efficiently.
+* Logging between the client and daemon now occurs asynchronously.
+* Test report generation is more efficient.
+
+TODO: Add more numbers here?
+Stress tests run as part of Gradle's own build pipeline have demonstrated up to a 10% improvement in build time.
+
+No change is required to builds to leverage these performance improvements.
+
 ### More convenient testing of Gradle plugins
 
 Gradle 2.6 introduced the “[Gradle TestKit](userguide/test_kit.html)” which made it easier to thoroughly test Gradle plugins.
