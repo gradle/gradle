@@ -44,6 +44,15 @@ Two properties are added and can be used as follows.
 
 The flags are ignored for versions of Groovy prior to 2.4.6.
 
+### Signing with OpenPGP subkeys
+
+OpenPGP supports subkeys, which are like the normal keys, except they're bound to a master key pair.
+One useful consequence of OpenPGP subkeys is that they can be easily revoked independently of the master keys what makes key management easier.
+Another consequence is that you only need the subkey for signature operations. In other words you can deploy only your signing subkey to e.g. a CI server.
+
+A simple limitation in the signing plugin prevented to use subkeys, starting with Gradle 2.13, they are supported out of the box.
+See the documentation for the [Signing](userguide/signing_plugin.html) plugin for more details.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -115,6 +124,7 @@ We would like to thank the following community members for making contributions 
 * [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 * [Ryan Ernst](https://github.com/rjernst) - support system properties from the command-line for buildSrc builds ([GRADLE-2475](https://issues.gradle.org/browse/GRADLE-2475))
 * [Baruch Sadogursky](https://github.com/jbaruch) - add jcenter repository example to the userguide
+* [Marcin Zajączkowski](https://github.com/szpak) - support for OpenPGP subkeys in the signing plugin
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
