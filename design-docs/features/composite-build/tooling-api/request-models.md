@@ -1,9 +1,11 @@
-## Tooling client requests arbitrary model type for every project in a composite
+## Tooling Client requests models for all builds in a composite
 
 ### Overview
 
-Previous stories have implemented hard-coded support only for EclipseProject models. This story adds support for the other
-standard models that are supported in the Tooling API.
+This story provides an API for retrieving a particular model type for all projects in a `GradleConnection`.
+
+This will be useful both for a single multi-project build, as well as for a composite consisting of muliple builds.
+(With the existing `ProjectConnection` API, getting all models for a multi-project build can involve opening a connection to each subproject.)
 
 Tooling API supports retrieving these model types:
 - hierarchical model, a single model contains models for all projects.
@@ -20,146 +22,131 @@ Tooling API supports retrieving these model types:
   - BuildInvocations
   - ProjectPublications
 
-### API
+A `GradleConnection` will make it easy to retrieve models for all of the Gradle projects the composite. It will be possible to correlate each model with the Build or Project that it is associated with.
 
-This story doesn't introduce any API changes.
+For some projects, it may not be possible to determine the model, due to incompatible Gradle version, configuration error, etc. The result will include a failure for each Project, again correlated with the Build or Project that it is associated with.
 
-### Implementation notes
-
-The current implementation supports hierarchical models. Support for per-project models will be added.
-
-Per-project models will be retrieved from each participant by using a custom BuildAction that traverses the build's project structure and uses the API method available on
-`org.gradle.tooling.BuildController` to request per-project models:
-```
-<T> T getModel(Model target, Class<T> modelType) throws UnknownModelException;
-```
-The `getBuildModel` method on `BuildController` will be used to traverse the build's project structure.
-
-Build models will be handled in the same way as per-project models in the implementation.
-The same applies to `IdeaProject` and `BasicIdeaProject`, they will be handled as per-project models, returning the same instance for each project in the build.
-They are hierarchical models, but the children are different type than the parent.
-It's really not a hierarchical structure since a build returns a `IdeaProject` with multiple `IdeaModule`s as children. The possible sub-project hierarchy is flattened.
-
-### Test coverage
-
-- given 4 scenarios of composites:
-  - scenario #1, participant:
-    - 1 single-project build
-  - scenario #2, participant:
-    - 1 multi-project build with 3 projects
-  - scenario #3, participants:
-    - 1 single-project build
-    - 1 multi-project builds with 3 projects
-- each sample project is a java project with publications for each project so that `ProjectPublications` can be tested.
-
-- test that each model type can be retrieved
-  - check that there is a model result for each project for project models and normal hierarchical models
-  - some model types don't contain the project information so that the model can be correlated to a project.
-    - In these cases, check that the number of returned models matches the number of projects
-  - Build models and IdeaProject models are the same for each project in the build.
-    - In these cases, check that the number of returned models matches the number of builds in the composite
-
-### Open Issues
-
-- Support for custom models
-
-## Tooling client can correlate model instances to projects in a composite
-
-### Overview
-
-- Not all model types include information that allows a client TAPI to determine which project the model came from
-- Composite API does not guarantee any particular order to the results returned
-- All model results from all projects are always returned (no partial results or selective API yet)
+Open Question: Is it important to always have a result for every `Project` in the connection? Or is it OK to have a result for each _Build_ when:
+ - The user requests a build model, like `BuildEnvironment` or `GradleBuild`
+ - The user requests an invalid model type, or a model type that is not supported by the target Gradle version
+ - The target build cannot be loaded (in this case it's not really possible to determine the project structure)
+ - The user requests `IdeaProject`, which is another example of a per-build model
 
 ### API
 
-    // NEW: Interface to identify a build (a collection of 1+ projects)
-    interface BuildIdentity {
-        // pretty toString
+New types:
+
+    public interface ModelResults<T> extends Iterable<ModelResult<T>> {}
+
+    public interface ModelResult<T> {
+        /**
+         * @return the identity of the project this model was produced from, never null.
+         */
+        ProjectIdentity getProjectIdentity();
+
+        /**
+         * @return the model produced, never null.
+         * @throws GradleConnectionException if the model could not be retrieved.
+         */
+        T getModel() throws GradleConnectionException;
+
+        /**
+         * @return the failure.
+         */
+        GradleConnectionException getFailure();
     }
 
-    // NEW: Interface to identify a project (a single project in a build)
     interface ProjectIdentity {
-        // Build that contains this project
         BuildIdentity getBuild()
-
-        // pretty toString
     }
 
-    // NEW: Interface to create identities based on a participant
-    interface GradleBuild {
-        // Get a BuildIdentity that can be used to correlate all results from a particular build
-        BuildIdentity toBuildIdentity()
-
-        // Get a ProjectIdentity that can be used to correlate a result from a particular project
-        ProjectIdentity toProjectIdentity(String projectPath)
+    interface BuildIdentity {
     }
 
-    // NEW: Interface for results returned
-    interface ModelResult<T> {
-        T getModel()
-        ProjectIdentity getProjectIdentity()
+Example usage:
+
+    GradleBuild build1 = GradleConnector.newGradleBuildBuilder().forProjectDirectory(dir1).create()
+    GradleBuild build2 = GradleConnector.newGradleBuildBuilder().forProjectDirectory(dir2).create()
+
+    GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
+        .addBuild(build1)
+        .addBuild(build2)
+        .build()
+
+    BuildIdentity idBuild1 = build1.toBuildIdentity()
+    ProjectIdentity idProjectX = build1.toProjectIdentity(":x")
+
+    try {
+        ModelResults<EclipseProject> eclipseProjectResults = connection.getModels(EclipseProject.class);
+
+        def allEclipseModels = eclipseProjectResults*.model
+        def eclipseModelsForBuild1 = eclipseProjectResults.findAll({it.projectIdentity.build == idBuild1})*.model
+        def eclipseModelForProjectX = eclipseProjectResults.find({it.projectIdentity == idProjectX}).model
+    } finally {
+        connection.close();
     }
 
-    // NEW: Method to get a GradleBuild which can be used to get identities
-    GradleBuild participantA = GradleConnector.newParticipant(new File ("path/to/A")).
-        useGradleDistribution("2.11").create()
-    GradleBuild participantB = GradleConnector.newParticipant(new File ("path/to/B")).
-        create()
-    // or URI or File or don't specify to use the wrapper
-
-    GradleConnection connection = GradleConnector.newGradleCompositeBuilder().
-        addBuild(participantA).
-        addBuild(participantB).
-        build()
-
-    // NEW: ModelBuilder returned by GradleConnection becomes a ModelBuilder<Iterable<ModelResult<T>>>
-    // get() returns a Iterable<ModelResult<T>>
-    // get(ResultHandler) receives a Iterable<ModelResult<T>>
-
-    Iterable<ModelResult<EclipseProject>> eclipseProjects = connection.getModels(EclipseProject)
-    for (ModelResult<EclipseProject> modelResult : eclipseProjects) {
-        // do something with all eclipse projects
-    }
-
-    // Participants are A::x, B::y, B::z
-    final ProjectIdentity projectYofB = participantB.toProjectIdentity(":y")
-     // returns B::y EclipseProject
-    eclipseProjects.find({ modelResult -> modelResult.getProjectIdentity().equals(projectYofB) })
-
-    // Find all EclipseProjects in the B participant
-    final BuildIdentity buildB = participantB.toBuildIdentity()
-    Iterable<ModelResult<EclipseProject>> eclipseProjectsOfB = CollectionUtils.
-        filter(eclipseProjects, new Spec<ModelResult<EclipseProject>>() {
-            public boolean isSatisfiedBy(ModelResult<EclipseProject> modelResult) {
-                return modelResult.getProjectIdentity().getBuild().equals(buildB)
-            }
-        })
 
 ### Implementation notes
 
-- TBD
+- Create a separate `ProjectConnection` instance for each participant and delegate model requests
+- A variety of strategies are used to retrieve all project models for a build:
+    - For per-build models, retrieve the `GradleBuild` model to determine structure, and obtain a single model for the root project
+    - For hierarchical models, obtain a single model for the root project and traverse to determine structure and get other project models
+    - For Gradle versions that support custom model actions, use a custom action to get all models for all projects
+    - Otherwise, use a brute force strategy that opens a separate `ProjectConnection` for each subproject
+- Each participant in the composite will be used sequentially
+- Order of participants added to a composite does not guarantee an order when operating on participants or returning results.  A composite with [A,B,C] will return the same results as a composite with [C,B,A], but results are not guaranteed to be in any particular order.
 
 ### Test coverage
 
-- For a single project/single participant composite, getModels(X) returns a single entry with
-    - ProjectIdentity for single project
-    - BuildIdentity for single project
-- For a N-multi-project/single participant composite, getModels(X) returns N-entries that have
-    - ProjectIdentity for each project
-    - BuildIdentity for all results are equal
-- For a single-project + N-multi-project multi-participant composite, getModels(X) returns (N+1)-entries that have
-    - ProjectIdentity for each project
-    - BuildIdentity for all results from the multi-project participant are equal
-    - BuildIdentity from the single-project participant is not equal to the others
+- Given:
+    - scenario #1, single participant:
+        - 1 single-project build
+    - scenario #2, single participant:
+        - 1 multi-project build with 3 projects
+    - scenario #3, 2 participants:
+        - 1 single-project build
+        - 1 multi-project builds with 3 projects
+    - each project is a java project with publications for each project so that `ProjectPublications` can be tested.
+
+- test that each supported model type can be retrieved
+    - check that there is a model result for each project for project models and normal hierarchical models
+    - some model types don't contain the project information so that the model can be correlated to a project.
+        - In these cases, check that the number of returned models matches the number of projects
+    - Build models and IdeaProject models are the same for each project in the build.
+        - In these cases, check that the number of returned models matches the number of builds in the composite
+    - Check `ProjectIdentity` and `BuildIdentity` attached to model results
+- Test failures:
+    - When all participants have bad project configuration, get a single failure result per participant
+    - When one participant has bad project configuration, get model results for other participant(s)
+
 - The same BuildIdentity and ProjectIdentity should be able to correlate across model types
     - Retrieve modelType X and modelType Y
     - ProjectIdentity for modelType-X should be able to locate modelType-Y results
 
+- After making a successful model request, on a subsequent model request:
+    - Changing the set of sub-projects changes the size of the `ModelResults` that is returned
+    - Changing a single build into a multi-project build changes the number of `EclipseProject`s that are returned
+    - Removing the project directory is causes a failure
+    - Making one participant a subproject of another causes the request to fail
+
+- Fail with `IllegalStateException` after connecting to a `GradleConnection`, closing the connection and trying to retrieve a model.
+- Fail if participant is not a Gradle build (what does this look like for existing integration tests?)
+- Fail if participant is a subproject of another participant.
+- The correct Gradle distribution is used to connect to each participant
+- Participant project directory is matches that used to define the composite participant
+- When composite build connection is closed, all `ProjectConnection`s are closed.
+
 ### Documentation
 
-- Update sample to handle complex return type
+- Add to the `GradleConnection` sample so that models are requested and reported.
+    - Include reporting of project that matches each model
+- Add to the 'Embedding Gradle' of the user guide.
 
 ### Open issues
 
-- n/a
+- Deferred most of `ModelBuilder` API by creating simpler `CompositeModelBuilder`
+- Check that all `ModelBuilder` methods are forwarded to each underlying build's `ModelBuilder` when configuring a build specific `ModelBuilder`
+- Make `GradleCompositeException` more useful?
+- Support for custom models
