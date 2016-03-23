@@ -91,9 +91,9 @@ gradle.taskGraph.whenReady { taskGraph ->
         <section>
             <title>Using OpenPGP subkeys</title>
             <para>
-                In more advanced configuration OpenPGP allows to create a dedicated subkeys. Subkeys are the normal keys, except they are bound to a master key pair.
-                They useful consequence is that they can be easily revoked independently of the master keys what makes key management easier. A practical case study
-                how subkeys can be leveraged in software development can be read on <ulink url="https://wiki.debian.org/Subkeys">Debian wiki</ulink>.
+                OpenPGP further supports subkeys, which are like the normal keys, except they're bound to a master key pair.
+                One useful consequence is that they can be easily revoked independently of the master keys what makes key management easier.
+                A practical case study of how subkeys can be leveraged in software development can be read on the <ulink url="https://wiki.debian.org/Subkeys">Debian wiki</ulink>.
             </para>
             <para>
                 The signing plugin supports OpenPGP subkeys out of the box. It is enough to specify subkey ID as the value in the <literal>signing.keyId</literal> property.

@@ -91,7 +91,7 @@ class PgpSignatoryFactory {
     }
 
     protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
-        def key = keyRings.keyRings*.secretKeys*.collect { it }.flatten().find{ new PgpKeyId(it.keyID) == keyId }
+        def key = keyRings.keyRings*.secretKeys*.collect { it }.flatten().find { new PgpKeyId(it.keyID) == keyId }
         if (key == null) {
             throw new InvalidUserDataException("did not find secret key for id '$keyId' in key source '$sourceDescription'")
         }
