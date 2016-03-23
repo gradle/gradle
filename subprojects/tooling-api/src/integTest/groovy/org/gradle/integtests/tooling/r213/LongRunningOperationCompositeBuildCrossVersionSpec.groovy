@@ -190,6 +190,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         stdErr.toString().contains("This is standard err")
     }
 
+    @Ignore
     def "can colorize output with model requests"() {
         given:
         skipForDaemonCoordinator()
@@ -206,6 +207,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         stdOut.toString().contains("This is standard out")
     }
 
+    @Ignore
     def "can colorize output with build launcher"() {
         given:
         skipForDaemonCoordinator()
