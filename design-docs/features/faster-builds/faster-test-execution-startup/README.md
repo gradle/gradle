@@ -89,32 +89,6 @@ Spike generating the HTML reports at the same time as the XML reports.
 The idea is to try running `Binary2JUnitXmlReportGenerator.generate()` in one thread and `TestReporter.generateReport()` in another. It is not to attempt to generate each
 HTML or XML report output file in parallel (though this could be another spike).
 
-#### Some Results
-The following are running `gradle cleanTest test`.  For each data point, there were a couple of warm-up runs, followed by several runs whose results were averaged together.
-All times are in seconds.
-
-* master - Current master branch (everything is generated in sequence)
-* parallel - Spike of generating junit xml and html reports in parallel.
-* parallel-file - Spike of generating junit xml and html reports in sequence, but individual files in parallel.
-
-The single10000/25000/50000 test sets are single project builds with 10000, 25000, and 50000 tests.
-
-Test Report Generation time - this is a measure of the total time spent generating test reports.
-
-Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
------- | --------------- | -------------- | ----------- | ----------- | -----------
-master | 3.44 | 7.85 | 3.23 | 7.68 | 15.6
-parallel | 2.20 | 4.91 | 2.33 | 6.30 | 12.0
-parallel-file | 1.01 | 2.84 | 1.46 | 2.90 | 6.31
-
-Total Build Time
-
-Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
------- | --------------- | -------------- | ----------- | ----------- | -----------
-master | 46.27 | 123.71 | 13.07 | 30.63 | 44.6
-parallel | 45.65 | 121.20 | 13.47 | 24.47 | 41.03
-parallel-file | 45.37 | 122.24 | 10.7 | 22.7 | 41.20
-
 ### Generate test reports concurrently
 
 Refactor the worker thread pool used by native compilation so that the `Test` task can reuse it to generate the HTML and XML report files in parallel, subject to
@@ -129,6 +103,28 @@ The problem is when #2 fails with an exception after having queued some stuff up
 though the main task thread has finished running the task and is off doing something else.  When a failure occurs while generating
 build operations, we should instead discard any queued operations and block until the currently running operations are finished,
 then propagate the failure (and any build operations failures too).
+
+#### Some Results
+The following are running `gradle cleanTest test`.  For each data point, there were a couple of warm-up runs, followed by several runs whose results were averaged together.
+All times are in seconds.
+
+The single10000/25000/50000 test sets are single project builds with 10000, 25000, and 50000 tests.
+
+Test Report Generation time - this is a measure of the total time spent generating test reports.
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+Mar 21 snapshot | 3.16 | 9.00 | 5.81 | 8.30 | 17.83
+Mar 23 master | 1.11 | 3.11 | 2.10 | 6.21 | 8.40
+**Difference** | -2.05 | -5.89 | -3.61 | -2.09 | -9.43
+
+Total Build Time
+
+Branch | mediumWithJUnit | largeWithJUnit | single10000 | single25000 | single50000
+------ | --------------- | -------------- | ----------- | ----------- | -----------
+Mar 21 snapshot | 46.33 | 118.45 | 15.92 | 28.18 | 55.86
+Mar 23 master | 43.55 | 112.32 | 11.77 | 25.30 | 48.82
+**Difference** | -2.78 | -6.13 | -4.15 | -2.88 | -7.04
 
 #### Implementation
 Instead of `BuildOperationProcessor.newQueue(worker, …)` that returns a queue that you mess with, we might have
