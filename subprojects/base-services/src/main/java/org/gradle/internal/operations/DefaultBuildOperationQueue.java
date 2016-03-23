@@ -64,7 +64,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // true) which is a problem because we need to know whether to wait on the result or not.
             // So we have to maintain the running state ourselves and only cancel operations we know
             // have not started executing.
-            if (!operation.operationHolder.isRunning()) {
+            if (!operation.operationHolder.isStarted()) {
                 operation.future.cancel(false);
             }
         }
@@ -141,7 +141,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private class OperationHolder implements Runnable {
         private final T operation;
-        private final AtomicBoolean running = new AtomicBoolean();
+        private final AtomicBoolean started = new AtomicBoolean();
 
         OperationHolder(T operation) {
             this.operation = operation;
@@ -149,15 +149,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         public void run() {
             // Don't execute if the queue has been canceled
-            running.set(!canceled.get());
-            if (running.get()) {
+            started.set(!canceled.get());
+            if (started.get()) {
                 worker.execute(operation);
-                running.set(false);
             }
         }
 
-        public boolean isRunning() {
-            return running.get();
+        public boolean isStarted() {
+            return started.get();
         }
 
         public String toString() {
