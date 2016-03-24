@@ -19,17 +19,14 @@ package org.gradle.tooling.internal.protocol;
 import org.gradle.tooling.connection.BuildIdentity;
 import org.gradle.tooling.connection.ProjectIdentity;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
     private final BuildIdentity build;
-    private final File rootDir;
     private final String projectPath;
 
-    public DefaultProjectIdentity(DefaultBuildIdentity build, File rootDir, String projectPath) {
+    public DefaultProjectIdentity(BuildIdentity build, String projectPath) {
         this.build = build;
-        this.rootDir = rootDir;
         this.projectPath = projectPath;
     }
 
@@ -39,7 +36,7 @@ public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
 
     @Override
     public String toString() {
-        return String.format("project={ cpath=%s:%s, (%s) }", rootDir.getName(), projectPath, build);
+        return String.format("project=%s, %s", projectPath, build);
     }
 
     @Override
@@ -56,9 +53,6 @@ public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
         if (!build.equals(that.build)) {
             return false;
         }
-        if (!rootDir.equals(that.rootDir)) {
-            return false;
-        }
         return projectPath.equals(that.projectPath);
 
     }
@@ -66,7 +60,6 @@ public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
     @Override
     public int hashCode() {
         int result = build.hashCode();
-        result = 31 * result + rootDir.hashCode();
         result = 31 * result + projectPath.hashCode();
         return result;
     }

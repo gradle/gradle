@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.connection.ProjectIdentity
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -62,16 +62,16 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         modelResults = connection.getModels(EclipseProject)
 
         then:
-        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA, ':'))
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
-        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':'))
+        def resultB = findByProjectIdentity(participantB, ':')
         assertSingleEclipseProject(resultB, 'B', ':')
 
-        def resultC = CollectionUtils.single(findByProjectIdentity(participantC.toProjectIdentity(':')))
+        def resultC = CollectionUtils.single(findByProjectIdentity(participantC, ':'))
         assertFailure(resultC.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
@@ -122,17 +122,17 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
         then:
         // when the build cannot be configured, we return only a failure for the root project
-        def resultA = CollectionUtils.single(findByProjectIdentity(participantA.toProjectIdentity(':')))
+        def resultA = CollectionUtils.single(findByProjectIdentity(participantA, ':'))
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating project ':ax'.",
             "Failure in A::ax")
         // cannot find a project by something other than the root project
-        findByProjectIdentity(participantA.toProjectIdentity(":ax")) == []
+        findByProjectIdentity(participantA, ":ax") == []
 
-        def resultB = findByProjectIdentity(participantB.toProjectIdentity(':bx'))
+        def resultB = findByProjectIdentity(participantB, ':bx')
         assertSingleEclipseProject(resultB, 'B', ':bx')
-        assertContainsEclipseProjects(findByBuildIdentity(participantB.toBuildIdentity()), "B", ":", ":bx", ":by")
+        assertContainsEclipseProjects(findByBuildIdentity(participantB), "B", ":", ":bx", ":by")
     }
 
     def "can correlate models in a single project, single participant composite"() {
@@ -149,15 +149,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
-        def buildIdentity = participantA.toBuildIdentity()
-        def projectIdentity = participantA.toProjectIdentity(":")
         when:
         modelResults = connection.getModels(EclipseProject)
         then:
         // We can locate the root project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentity), "A", ":")
+        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
         // We can locate all projects (just one in this case) by the build identity for the participant
-        assertSingleEclipseProject(findByBuildIdentity(buildIdentity), "A", ":")
+        assertSingleEclipseProject(findByBuildIdentity(participantA), "A", ":")
 
         when:
         // We can take the results from one model request and correlate it with other model requests by
@@ -190,21 +188,17 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
-        def buildIdentity = participantA.toBuildIdentity()
-        def projectIdentity = participantA.toProjectIdentity(":")
-        def projectIdentityX = participantA.toProjectIdentity(":x")
-        def projectIdentityY = participantA.toProjectIdentity(":y")
 
         when:
         modelResults = connection.getModels(EclipseProject)
         then:
         // We can locate each project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentity), "A", ":")
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityX), "A", ":x")
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityY), "A", ":y")
+        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
+        assertSingleEclipseProject(findByProjectIdentity(participantA, ':x'), "A", ":x")
+        assertSingleEclipseProject(findByProjectIdentity(participantA, ':y'), "A", ":y")
 
         // We can locate all projects by the build identity for the participant
-        assertContainsEclipseProjects(findByBuildIdentity(buildIdentity), "A", ":", ":x", ":y")
+        assertContainsEclipseProjects(findByBuildIdentity(participantA), "A", ":", ":x", ":y")
 
         when:
         // We can take the results from one model request and correlate it with other model requests by
@@ -252,26 +246,18 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def participantB = addCompositeParticipant(builder, rootDirB)
         def connection = builder.build()
 
-        def buildIdentityA = participantA.toBuildIdentity()
-        def projectIdentityA = participantA.toProjectIdentity(":")
-
-        def buildIdentityB = participantB.toBuildIdentity()
-        def projectIdentityB = participantB.toProjectIdentity(":")
-        def projectIdentityBX = participantB.toProjectIdentity(":x")
-        def projectIdentityBY = participantB.toProjectIdentity(":y")
-
         when:
         modelResults = connection.getModels(EclipseProject)
         then:
         // We can locate each project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityA), "A", ":")
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityB), "B", ":")
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityBX), "B", ":x")
-        assertSingleEclipseProject(findByProjectIdentity(projectIdentityBY), "B", ":y")
+        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
+        assertSingleEclipseProject(findByProjectIdentity(participantB, ':'), "B", ":")
+        assertSingleEclipseProject(findByProjectIdentity(participantB, ':x'), "B", ":x")
+        assertSingleEclipseProject(findByProjectIdentity(participantB, ':y'), "B", ":y")
 
         // We can locate all projects by the build identity for the participant
-        assertContainsEclipseProjects(findByBuildIdentity(buildIdentityA), "A", ":")
-        assertContainsEclipseProjects(findByBuildIdentity(buildIdentityB), "B", ":", ":x", ":y")
+        assertContainsEclipseProjects(findByBuildIdentity(participantA), "A", ":")
+        assertContainsEclipseProjects(findByBuildIdentity(participantB), "B", ":", ":x", ":y")
 
         when:
         // We can take the results from one model request and correlate it with other model requests by
@@ -309,7 +295,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         modelResults.findAll { buildIdentity.equals(it.projectIdentity.build) }
     }
 
-    def findByProjectIdentity(ProjectIdentity projectIdentity) {
+    def findByProjectIdentity(BuildIdentity buildIdentity, String projectPath) {
+        def projectIdentity = new DefaultProjectIdentity(buildIdentity, projectPath)
         modelResults.findAll { projectIdentity.equals(it.projectIdentity) }
     }
 

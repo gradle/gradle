@@ -64,5 +64,5 @@ public interface GradleBuildBuilder {
      *
      * @return a new instance, never null.
      */
-    GradleBuild create();
+    BuildIdentity create();
 }

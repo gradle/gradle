@@ -20,6 +20,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +51,7 @@ class GradleParticipantBuild {
     }
 
     public ProjectIdentity toProjectIdentity(String projectPath) {
-        return build.toProjectIdentity(projectPath);
+        return new DefaultProjectIdentity(build.toBuildIdentity(), projectPath);
     }
 
     public ProjectConnection connect() {

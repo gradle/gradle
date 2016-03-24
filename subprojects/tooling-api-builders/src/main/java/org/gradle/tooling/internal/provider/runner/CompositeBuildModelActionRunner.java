@@ -33,6 +33,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.connection.BuildIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.connection.InternalBuildActionAdapter;
 import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
@@ -153,13 +154,13 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 } else {
                     Throwable failure = (Throwable) payloadSerializer.deserialize(result.failure);
                     File rootDir = participant.getProjectDir();
-                    DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
-                    results.put(new DefaultProjectIdentity(buildIdentity, rootDir, ":"), failure);
+                    BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+                    results.put(new DefaultProjectIdentity(buildIdentity, ":"), failure);
                 }
             } catch (Exception e) {
                 File rootDir = participant.getProjectDir();
-                DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
-                results.put(new DefaultProjectIdentity(buildIdentity, rootDir, ":"), e);
+                BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+                results.put(new DefaultProjectIdentity(buildIdentity, ":"), e);
             }
 
         }
@@ -167,7 +168,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private DefaultProjectIdentity convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
-        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.rootDir, internalProjectIdentity.projectPath);
+        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.projectPath);
     }
 
     private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<Map<Object, Object>> {

@@ -54,11 +54,8 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         println "Testing a composite with ${fixedDistribution.version} and ${targetDist.version}"
         builder = createCompositeBuilder()
 
-        def varyingDistributionParticipant = addCompositeParticipant(builder, varyingProject)
-        varyingBuildIdentity = varyingDistributionParticipant.toBuildIdentity()
-
-        def fixedDistributionParticipant = builder.newParticipant(fixedDistributionProject).useInstallation(fixedDistribution.gradleHomeDir.absoluteFile).create()
-        fixedBuildIdentity = fixedDistributionParticipant.toBuildIdentity()
+        varyingBuildIdentity = addCompositeParticipant(builder, varyingProject)
+        fixedBuildIdentity = builder.newParticipant(fixedDistributionProject).useInstallation(fixedDistribution.gradleHomeDir.absoluteFile).create()
     }
 
     def "retrieve models for composite with heterogeneous Gradle versions"() {

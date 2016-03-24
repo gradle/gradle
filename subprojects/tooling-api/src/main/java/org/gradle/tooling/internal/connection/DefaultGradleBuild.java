@@ -83,7 +83,7 @@ public class DefaultGradleBuild implements GradleBuildInternal {
         if (!projectPath.startsWith(":")) {
             throw new IllegalArgumentException("projectPath must be absolute and start with a :");
         }
-        return new DefaultProjectIdentity((DefaultBuildIdentity)toBuildIdentity(), projectDir, projectPath);
+        return new DefaultProjectIdentity(toBuildIdentity(), projectPath);
     }
 
     @Override

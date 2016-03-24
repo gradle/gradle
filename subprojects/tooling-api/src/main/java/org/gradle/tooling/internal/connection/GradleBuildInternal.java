@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.GradleBuild;
+import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.connection.ProjectIdentity;
 
 import java.io.File;
 import java.net.URI;
 
-public interface GradleBuildInternal extends GradleBuild {
+public interface GradleBuildInternal {
     File getProjectDir();
 
     String getDisplayName();
@@ -31,4 +32,8 @@ public interface GradleBuildInternal extends GradleBuild {
     URI getGradleDistribution();
 
     String getGradleVersion();
+
+    BuildIdentity toBuildIdentity();
+
+    ProjectIdentity toProjectIdentity(String projectPath);
 }

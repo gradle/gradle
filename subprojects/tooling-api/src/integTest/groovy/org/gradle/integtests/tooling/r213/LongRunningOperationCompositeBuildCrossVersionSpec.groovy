@@ -145,7 +145,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     private BuildLauncher buildLauncherFor(TestFile rootDir) {
         def builder = createCompositeBuilder()
-        def buildIdentity = addCompositeParticipant(builder, rootDir).toBuildIdentity()
+        def buildIdentity = addCompositeParticipant(builder, rootDir)
         def connection = builder.build()
         def buildLauncher = connection.newBuild(buildIdentity)
         buildLauncher

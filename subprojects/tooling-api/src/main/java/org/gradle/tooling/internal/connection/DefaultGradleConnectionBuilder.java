@@ -18,10 +18,7 @@ package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.connection.GradleBuild;
-import org.gradle.tooling.connection.GradleBuildBuilder;
-import org.gradle.tooling.connection.GradleConnection;
-import org.gradle.tooling.connection.GradleConnectionBuilder;
+import org.gradle.tooling.connection.*;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
@@ -51,17 +48,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     @Override
     public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
-        return this;
-    }
-
-    public GradleConnectionBuilder addBuild(GradleBuild gradleBuild) {
-        if (gradleBuild==null) {
-            throw new NullPointerException("gradleBuild must not be null");
-        }
-        if (!(gradleBuild instanceof GradleBuildInternal)) {
-            throw new IllegalArgumentException("GradleBuild has an internal API that must be implemented.");
-        }
-        participants.add((GradleBuildInternal)gradleBuild);
         return this;
     }
 
@@ -180,10 +166,10 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         }
 
         @Override
-        public GradleBuildInternal create() {
+        public BuildIdentity create() {
             DefaultGradleBuild gradleBuild = new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
-            addBuild(gradleBuild);
-            return gradleBuild;
+            participants.add(gradleBuild);
+            return gradleBuild.toBuildIdentity();
         }
 
         private void resetDistribution() {

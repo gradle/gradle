@@ -15,9 +15,8 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.GradleBuild
+import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
@@ -46,7 +45,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return toolingApi.createCompositeBuilder()
     }
 
-    GradleBuild addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+    BuildIdentity addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
         return toolingApi.addCompositeParticipant(builder, rootDir)
     }
 
@@ -59,8 +58,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         def buildIds = []
 
         rootProjectDirectories.each {
-            def participant = addCompositeParticipant(builder, it)
-            buildIds << participant.toBuildIdentity()
+            buildIds << addCompositeParticipant(builder, it)
         }
 
         GradleConnection connection = builder.build()
