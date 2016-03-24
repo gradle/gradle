@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
-import org.gradle.internal.resource.ResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll

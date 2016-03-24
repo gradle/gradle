@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.internal.hash.HashValue;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +34,7 @@ public class JarClasspathSnapshotFactory {
 
     JarClasspathSnapshot createSnapshot(Iterable<JarArchive> jarArchives) {
         Map<File, JarSnapshot> jarSnapshots = new HashMap<File, JarSnapshot>();
-        Map<File, byte[]> jarHashes = new HashMap<File, byte[]>();
+        Map<File, HashValue> jarHashes = new HashMap<File, HashValue>();
         Set<String> allClasses = new HashSet<String>();
         Set<String> duplicateClasses = new HashSet<String>();
 

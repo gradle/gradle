@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestOutputEventListener
 import org.junit.After
@@ -39,7 +40,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 
 class DefaultIsolatedAntBuilderTest {
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestOutputEventListener outputEventListener = new TestOutputEventListener()

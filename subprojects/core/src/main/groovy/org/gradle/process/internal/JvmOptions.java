@@ -37,14 +37,24 @@ public class JvmOptions {
     private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
     private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
     private static final Pattern BOOTSTRAP_PATTERN = Pattern.compile("-Xbootclasspath:(.+)");
-    private static final String FILE_ENCODING_KEY = "file.encoding";
-    private static final String USER_LANGUAGE_KEY = "user.language";
-    private static final String USER_COUNTRY_KEY = "user.country";
-    private static final String USER_VARIANT_KEY = "user.variant";
-    private static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
+    public static final String FILE_ENCODING_KEY = "file.encoding";
+    public static final String USER_LANGUAGE_KEY = "user.language";
+    public static final String USER_COUNTRY_KEY = "user.country";
+    public static final String USER_VARIANT_KEY = "user.variant";
+    public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
+    public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
 
-    private static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
-            FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY
+
+    public static final String SSL_KEYSTORE_KEY = "javax.net.ssl.keyStore";
+    public static final String SSL_KEYSTOREPASSWORD_KEY = "javax.net.ssl.keyStorePassword";
+    public static final String SSL_KEYSTORETYPE_KEY = "javax.net.ssl.keyStoreType";
+    public static final String SSL_TRUSTSTORE_KEY = "javax.net.ssl.trustStore";
+    public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
+    public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
+
+    public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
+        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY,
+        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default
@@ -59,6 +69,10 @@ public class JvmOptions {
     private String maxHeapSize;
     private boolean assertionsEnabled;
     private boolean debug;
+
+    public Map<String, Object> getImmutableSystemProperties() {
+        return immutableSystemProperties;
+    }
 
     public JvmOptions(PathToFileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);

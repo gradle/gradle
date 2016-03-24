@@ -17,22 +17,34 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
-import org.gradle.api.GradleException
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
-    private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE)
+    BuildOperationProcessor buildOperationProcessor
+    Binary2JUnitXmlReportGenerator generator
 
-    def setup() {
-        generator.xmlWriter = Mock(JUnitXmlResultWriter)
+    def generatorWithMaxThreads(int numThreads) {
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), numThreads)
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationProcessor)
+        reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
+        return reportGenerator
     }
 
-    def "writes results"() {
+    @Unroll
+    def "writes results - #numThreads parallel thread(s)"() {
+        generator = generatorWithMaxThreads(numThreads)
+
         def fooTest = new TestClassResult(1, 'FooTest', 100)
             .add(new TestMethodResult(1, "foo"))
 
@@ -52,9 +64,14 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         1 * generator.xmlWriter.write(fooTest, _)
         1 * generator.xmlWriter.write(barTest, _)
         0 * generator.xmlWriter._
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
     def "adds context information to the failure if something goes wrong"() {
+        generator = generatorWithMaxThreads(1)
+
         def fooTest = new TestClassResult(1, 'FooTest', 100)
                 .add(new TestMethodResult(1, "foo"))
 
@@ -67,8 +84,9 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.startsWith('Could not write XML test results for FooTest')
-        ex.cause.message == "Boo!"
+        def ex = thrown(MultipleBuildOperationFailures)
+        ex.causes.size() == 1
+        ex.causes[0].message.startsWith('Could not write XML test results for FooTest')
+        ex.causes[0].cause.message == "Boo!"
     }
 }

@@ -30,8 +30,8 @@ import spock.lang.Specification
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def treeSnapshotter = new TreeSnapshotter()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver(), treeSnapshotter)
+    def treeVisitor = new CachingTreeVisitor()
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver(), treeVisitor)
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -39,12 +39,12 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def setup() {
         fileSnapshotter.snapshot(_) >> { FileTreeElement fileTreeElement ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(fileTreeElement.file).asByteArray()
+                getHash() >> HashUtil.sha1(fileTreeElement.file)
             }
         }
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(file).asByteArray()
+                getHash() >> HashUtil.sha1(file)
             }
         }
         cacheAccess.useCache(_, _) >> { String name, Runnable action ->
@@ -133,7 +133,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
-        treeSnapshotter.clearCache()
+        treeVisitor.clearCache()
         file.delete()
         file.createDir()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
@@ -175,7 +175,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
-        treeSnapshotter.clearCache()
+        treeVisitor.clearCache()
         dir.deleteDir()
         dir.createFile()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
@@ -203,7 +203,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
-        treeSnapshotter.clearCache()
+        treeVisitor.clearCache()
         file.createFile()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
 
@@ -218,7 +218,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true)
-        treeSnapshotter.clearCache()
+        treeVisitor.clearCache()
         file.delete()
         changes(snapshotter.snapshot(fileCollection, true), snapshot, listener)
 

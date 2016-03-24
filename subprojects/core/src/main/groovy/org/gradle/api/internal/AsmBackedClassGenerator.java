@@ -44,6 +44,7 @@ import static org.objectweb.asm.Opcodes.V1_5;
 import static org.objectweb.asm.Type.VOID_TYPE;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
+
     private static final JavaMethod<ClassLoader, Class> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
 
     @Override

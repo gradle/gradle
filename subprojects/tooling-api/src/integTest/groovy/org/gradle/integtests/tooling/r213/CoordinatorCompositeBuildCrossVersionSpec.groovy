@@ -15,18 +15,24 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Ignore
+
 /**
  * Tooling models for composite are produced by a single daemon instance.
+ * We only do this for target gradle versions that support composite build.
  */
+@Ignore("Daemon coordinator is disabled until we branch for 2.13 release")
+@TargetGradleVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def setup() {
         toolingApi.requireIsolatedDaemons()
     }
 
-    def "check that retrieving a model causes a daemon to be started for the participant"() {
+    def "check that retrieving a model causes a daemon to be started for the composite"() {
         given:
         def singleBuild = populate("single-build") {
             buildFile << "apply plugin: 'java'"
@@ -42,6 +48,6 @@ class CoordinatorCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def daemonsAfter = toolingApi.getDaemons()
         then:
         models.size() == 1
-        daemonsAfter.daemons.size() == 2
+        daemonsAfter.daemons.size() == 1
     }
 }

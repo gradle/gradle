@@ -714,6 +714,35 @@ public class AnnotationProcessingTaskFactoryTest {
         assertThat(task.traversedOutputsCount, is(1));
     }
 
+    @Test
+    public void propertyExtractionJavaBeanSpec() {
+        TaskWithJavaBeanCornerCaseProperties task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties.class, "c", "C", "d", "U", "a", "b");
+        assertThat("cCompiler property", task.getInputs().getProperties().get("cCompiler"), notNullValue());
+        assertThat("CFlags property", task.getInputs().getProperties().get("CFlags"), notNullValue());
+        assertThat("dns property", task.getInputs().getProperties().get("dns"), notNullValue());
+        assertThat("URL property", task.getInputs().getProperties().get("URL"), notNullValue());
+        assertThat("a property", task.getInputs().getProperties().get("a"), notNullValue());
+        assertThat("b property", task.getInputs().getProperties().get("b"), notNullValue());
+    }
+
+    @Test
+    public void propertyValidationJavaBeanSpecCase() {
+        TaskWithJavaBeanCornerCaseProperties task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties.class, new Object[]{null, null, null, null, "a", "b"});
+        assertValidationFails(task,
+            "No value has been specified for property 'cCompiler'.",
+            "No value has been specified for property 'CFlags'.",
+            "No value has been specified for property 'dns'.",
+            "No value has been specified for property 'URL'.");
+    }
+
+    @Test
+    public void propertyValidationJavaBeanSpecSingleChar() {
+        TaskWithJavaBeanCornerCaseProperties task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties.class, new Object[]{"c", "C", "d", "U", null, null});
+        assertValidationFails(task,
+            "No value has been specified for property 'a'.",
+            "No value has been specified for property 'b'.");
+    }
+
     private void assertValidationFails(TaskInternal task, String... expectedErrorMessages) {
         try {
             task.execute();
@@ -1149,4 +1178,54 @@ public class AnnotationProcessingTaskFactoryTest {
             return inputFile2;
         }
     }
+
+    //CHECKSTYLE:OFF
+    public static class TaskWithJavaBeanCornerCaseProperties extends DefaultTask {
+        private String cCompiler;
+        private String CFlags;
+        private String dns;
+        private String URL;
+        private String a;
+        private String b;
+
+        public TaskWithJavaBeanCornerCaseProperties(String cCompiler, String CFlags, String dns, String URL, String a, String b) {
+            this.cCompiler = cCompiler;
+            this.CFlags = CFlags;
+            this.dns = dns;
+            this.URL = URL;
+            this.a = a;
+            this.b = b;
+        }
+
+        @Input
+        public String getcCompiler() {
+            return cCompiler;
+        }
+
+        @Input
+        public String getCFlags() {
+            return CFlags;
+        }
+
+        @Input
+        public String getDns() {
+            return dns;
+        }
+
+        @Input
+        public String getURL() {
+            return URL;
+        }
+
+        @Input
+        public String getA() {
+            return a;
+        }
+
+        @Input
+        public String getb() {
+            return b;
+        }
+    }
+    //CHECKSTYLE:ON
 }

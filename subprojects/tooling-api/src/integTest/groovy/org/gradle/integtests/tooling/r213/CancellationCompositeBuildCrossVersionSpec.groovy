@@ -15,27 +15,27 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
-
 /**
  * Tests cancellation of model requests in a composite build.
  */
+@TargetGradleVersion(">=2.1")
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    def "can cancel model operation while a participant request is being processed"() {
-        given:
-        def cancelledFile = file("cancelled")
-        def executedAfterCancellingFile = file("executed")
-        def participantCancelledFile = file("participant_cancelled")
-        def buildFileText = """
+    def cancellationHookText(File cancelledFile, File executedAfterCancellingFile) {
+        """
         import org.gradle.initialization.BuildCancellationToken
         import java.util.concurrent.CountDownLatch
 
@@ -52,12 +52,24 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         cancellationToken.addCallback {
             latch.countDown()
         }
+        """
+    }
 
+    def cancellationBlockingText(File participantCancelledFile) {
+        """
         println "Connecting to server..."
         new URL('${server.uri}').text
         latch.await()
         file('${participantCancelledFile.toURI()}') << "participant \${project.name} cancelled\\n"
-"""
+        """
+    }
+
+    def "can cancel model operation while a participant request is being processed"() {
+        given:
+        def cancelledFile = file("cancelled")
+        def executedAfterCancellingFile = file("executed")
+        def participantCancelledFile = file("participant_cancelled")
+        def buildFileText = cancellationHookText(cancelledFile, executedAfterCancellingFile) + cancellationBlockingText(participantCancelledFile)
         def build1 = populate("build-1") {
             buildFile << buildFileText
         }
@@ -84,7 +96,66 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }
 
         then:
-        resultHandler.result instanceof BuildCancelledException
+        resultHandler.result.size() == 3
+        // overall operation "succeeded"
+        resultHandler.failure == null
+        // each individual request failed
+        resultHandler.result.each { result ->
+            assertFailureHasCause(result.failure, BuildCancelledException)
+        }
+        // participant should be properly cancelled
+        participantCancelledFile.exists()
+        // no new builds should have been executed after cancelling
+        !executedAfterCancellingFile.exists()
+    }
+
+    // Handling cancellation for task execution in a composite
+    @NotYetImplemented
+    def "can cancel task execution while a participant request is being processed"() {
+        given:
+        def cancelledFile = file("cancelled")
+        def executedAfterCancellingFile = file("executed")
+        def participantCancelledFile = file("participant_cancelled")
+        def buildFileText = cancellationHookText(cancelledFile, executedAfterCancellingFile) + """
+        task run << {
+            ${cancellationBlockingText(participantCancelledFile)}
+        }
+        """
+        def build1 = populate("build-1") {
+            buildFile << buildFileText
+        }
+        def build2 = populate("build-2") {
+            buildFile << buildFileText
+        }
+        def build3 = populate("build-3") {
+            buildFile << buildFileText
+        }
+        when:
+        def cancellationToken = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new ResultCollector()
+        def build1Participant = createGradleBuildParticipant(build1)
+        withCompositeBuildParticipants([build1, build2, build3]) { connection, buildIds ->
+            def buildLauncher = connection.newBuild(buildIds[0])
+            buildLauncher.forTasks("run")
+            buildLauncher.withCancellationToken(cancellationToken.token())
+            // async ask for results
+            buildLauncher.run(resultHandler)
+            // wait for task execution to start
+            server.sync()
+            // make sure no new builds get executed
+            cancelledFile.text = "cancelled"
+            // cancel operation
+            cancellationToken.cancel()
+        }
+
+        then:
+        resultHandler.result.size() == 3
+        // overall operation "succeeded"
+        resultHandler.failure == null
+        // each individual request failed
+        resultHandler.result.each { result ->
+            assertFailureHasCause(result.failure, BuildCancelledException)
+        }
         // participant should be properly cancelled
         participantCancelledFile.exists()
         // no new builds should have been executed after cancelling
@@ -115,13 +186,15 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }
 
         then:
-        resultHandler.result instanceof BuildCancelledException
+        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.result == null
         !executedAfterCancellingFile.exists()
     }
 
 
     static class ResultCollector implements ResultHandler {
-        def result
+        ModelResults result
+        GradleConnectionException failure
 
         @Override
         void onComplete(Object result) {
@@ -130,7 +203,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
         @Override
         void onFailure(GradleConnectionException failure) {
-            this.result = failure
+            this.failure = failure
         }
     }
 }

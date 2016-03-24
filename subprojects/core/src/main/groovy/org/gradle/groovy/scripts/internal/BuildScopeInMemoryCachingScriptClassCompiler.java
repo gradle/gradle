@@ -33,7 +33,7 @@ import java.util.Map;
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final CrossBuildInMemoryCachingScriptClassCache cache;
     private final ScriptClassCompiler scriptClassCompiler;
-    private final Map<Key, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
+    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
 
     public BuildScopeInMemoryCachingScriptClassCompiler(CrossBuildInMemoryCachingScriptClassCache cache, ScriptClassCompiler scriptClassCompiler) {
         this.cache = cache;
@@ -42,7 +42,7 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, ClassLoaderId classLoaderId, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        Key key = new Key(source.getClassName(), classLoader, operation.getId());
+        ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
             compiledScript = cache.getOrCompile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier, scriptClassCompiler);
@@ -51,39 +51,4 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
         return compiledScript;
     }
 
-    private static class Key {
-        private final String className;
-        private final ClassLoader classLoader;
-        private final String dslId;
-
-        public Key(String className, ClassLoader classLoader, String dslId) {
-            this.className = className;
-            this.classLoader = classLoader;
-            this.dslId = dslId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            Key key = (Key) o;
-
-            return classLoader.equals(key.classLoader)
-                && className.equals(key.className)
-                && dslId.equals(key.dslId);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = className.hashCode();
-            result = 31 * result + classLoader.hashCode();
-            result = 31 * result + dslId.hashCode();
-            return result;
-        }
-    }
 }

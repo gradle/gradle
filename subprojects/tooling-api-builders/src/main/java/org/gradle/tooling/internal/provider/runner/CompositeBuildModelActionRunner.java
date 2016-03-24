@@ -17,32 +17,37 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.StartParameter;
-import org.gradle.TaskExecutionRequest;
-import org.gradle.api.Nullable;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.*;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.*;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.tooling.*;
-import org.gradle.tooling.composite.ProjectIdentity;
-import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.internal.protocol.CompositeBuildExceptionVersion1;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.launcher.daemon.configuration.DaemonUsage;
+import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.connection.InternalBuildActionAdapter;
 import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
 import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
-import org.gradle.tooling.internal.provider.BuildActionResult;
-import org.gradle.tooling.internal.provider.BuildModelAction;
-import org.gradle.tooling.internal.provider.PayloadSerializer;
-import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.provider.*;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
     public void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController) {
@@ -50,60 +55,46 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             return;
         }
         Class<?> modelType = resolveModelType((BuildModelAction) action);
-        ProgressLoggerFactory progressLoggerFactory = buildController.getBuildScopeServices().get(ProgressLoggerFactory.class);
         Map<Object, Object> results = null;
         if (modelType != Void.class) {
-            results = aggregateModels(modelType, actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
+            results = new HashMap<Object, Object>();
+
+            results.putAll(fetchCompositeModelsInProcess((BuildModelAction) action, modelType, requestContext, actionParameters.getCompositeParameters().getBuilds(), buildController.getBuildScopeServices()));
         } else {
             if (!((BuildModelAction) action).isRunTasks()) {
                 throw new IllegalStateException("No tasks defined.");
             }
-            executeTasks(action.getStartParameter(), actionParameters, requestContext.getCancellationToken(), progressLoggerFactory);
+            executeTasksInProcess(action.getStartParameter(), actionParameters, requestContext, buildController.getBuildScopeServices());
         }
         PayloadSerializer payloadSerializer = buildController.getBuildScopeServices().get(PayloadSerializer.class);
         buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results), null));
     }
 
-    private void executeTasks(StartParameter startParameter, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+    private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
+        List<GradleParticipantBuild> participantBuilds = compositeParameters.getBuilds();
+        GradleLauncherFactory launcherFactory = sharedServices.get(GradleLauncherFactory.class);
+
         boolean buildFound = false;
-        for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
+        for (GradleParticipantBuild participant : participantBuilds) {
             if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
                 continue;
             }
             buildFound = true;
-            if (cancellationToken.isCancellationRequested()) {
+            if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
                 break;
             }
-            ProjectConnection projectConnection = connect(participant, compositeParameters);
+            StartParameter startParameter = parentStartParam.newInstance();
+            startParameter.setProjectDir(participant.getProjectDir());
+            startParameter.setSearchUpwards(false);
+
+            DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()),
+                buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
+            GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, sharedServices);
             try {
-                BuildLauncher buildLauncher = projectConnection.newBuild();
-                buildLauncher.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
-                buildLauncher.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
-                List<String> taskArgs = new ArrayList<String>();
-                for (TaskExecutionRequest request : startParameter.getTaskRequests()) {
-                    if (request.getProjectPath() == null) {
-                        taskArgs.addAll(request.getArgs());
-                    } else {
-                        String projectPath = request.getProjectPath();
-                        int index = 0;
-                        for (String arg : request.getArgs()) {
-                            if (index == 0) {
-                                // add project path to first arg
-                                taskArgs.add(projectPath + ":" + arg);
-                            } else {
-                                taskArgs.add(arg);
-                            }
-                            index++;
-                        }
-                    }
-                }
-                buildLauncher.forTasks(taskArgs.toArray(new String[0]));
-                buildLauncher.run();
-            } catch (GradleConnectionException e) {
-                throw new CompositeBuildExceptionVersion1(e, new DefaultBuildIdentity(compositeParameters.getCompositeTargetBuildRootDir()));
+                launcher.run();
             } finally {
-                projectConnection.close();
+                launcher.stop();
             }
         }
         if (!buildFound) {
@@ -120,63 +111,64 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    private Map<Object, Object> aggregateModels(Class<?> modelType, CompositeBuildActionParameters actionParameters, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
+    // TODO:DAZ Need to fix this for `BuildEnvironment`
+    private <T> Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, Class<T> modelType, BuildRequestContext buildRequestContext,
+                                                                  List<GradleParticipantBuild> participantBuilds,
+                                                                  ServiceRegistry sharedServices) {
         final Map<Object, Object> results = new HashMap<Object, Object>();
-        final CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        results.putAll(fetchModels(compositeParameters.getBuilds(), modelType, cancellationToken, compositeParameters, progressLoggerFactory));
-        return results;
-    }
 
-    private Map<Object, Object> fetchModels(List<GradleParticipantBuild> participantBuilds, Class<?> modelType, final BuildCancellationToken cancellationToken, CompositeParameters compositeParameters, final ProgressLoggerFactory progressLoggerFactory) {
-        final Map<Object, Object> results = new HashMap<Object, Object>();
+        PayloadSerializer payloadSerializer = sharedServices.get(PayloadSerializer.class);
+        GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
+
+        BuildActionRunner runner = new SubscribableBuildActionRunner(new ClientProvidedBuildActionRunner());
+        org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
+        // TODO: Need to consider how to handle builds in parallel when sharing event consumers/output streams
+        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),
+            buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
+            buildRequestContext.getErrorListener());
+
+        ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
+
+        FetchPerProjectModelAction fetchPerProjectModelAction = new FetchPerProjectModelAction(modelType.getName());
+        InternalBuildAction<?> internalBuildAction = new InternalBuildActionAdapter<Map<Object, Object>>(fetchPerProjectModelAction, protocolToModelAdapter);
+        SerializedPayload serializedAction = payloadSerializer.serialize(internalBuildAction);
+
         for (GradleParticipantBuild participant : participantBuilds) {
-            if (cancellationToken.isCancellationRequested()) {
-                break;
-            }
-            ProjectConnection projectConnection = connect(participant, compositeParameters);
-            File rootDir = participant.getProjectDir();
-            DefaultBuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+            DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), participant.getProjectDir(), LogLevel.INFO, DaemonUsage.EXPLICITLY_DISABLED, false, true, ClassPath.EMPTY);
+
+            StartParameter startParameter = modelAction.getStartParameter().newInstance();
+            startParameter.setProjectDir(participant.getProjectDir());
+
+            ServiceRegistry buildScopedServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
+
+            ClientProvidedBuildAction mappedAction = new ClientProvidedBuildAction(startParameter, serializedAction, modelAction.getClientSubscriptions());
+
             try {
-                if (modelType == BuildEnvironment.class) {
-                    ProjectIdentity projectIdentity = new DefaultProjectIdentity(buildIdentity, rootDir, ":");
-                    results.putAll(fetchPerBuildModels(projectIdentity, projectConnection, modelType, cancellationToken, progressLoggerFactory));
+                BuildActionResult result = (BuildActionResult) buildActionExecuter.execute(mappedAction, requestContext, actionParameters, buildScopedServices);
+                if (result.result != null) {
+                    Map<Object, Object> values = Cast.uncheckedCast(payloadSerializer.deserialize(result.result));
+                    for (Map.Entry<Object, Object> e : values.entrySet()) {
+                        InternalProjectIdentity internalProjectIdentity = (InternalProjectIdentity) e.getKey();
+                        results.put(convertToProjectIdentity(internalProjectIdentity), e.getValue());
+                    }
                 } else {
-                    results.putAll(fetchPerProjectModels(projectConnection, modelType, cancellationToken, progressLoggerFactory));
+                    Throwable failure = (Throwable) payloadSerializer.deserialize(result.failure);
+                    File rootDir = participant.getProjectDir();
+                    BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+                    results.put(new DefaultProjectIdentity(buildIdentity, ":"), failure);
                 }
-            } catch (GradleConnectionException e) {
-                throw new CompositeBuildExceptionVersion1(e, buildIdentity);
-            } finally {
-                projectConnection.close();
+            } catch (Exception e) {
+                File rootDir = participant.getProjectDir();
+                BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
+                results.put(new DefaultProjectIdentity(buildIdentity, ":"), e);
             }
-        }
-        return results;
-    }
 
-    private Map<Object, Object> fetchPerBuildModels(Object projectIdentity, ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        Object result = fetchModel(projectConnection, modelType, cancellationToken, progressLoggerFactory);
-        if(result != null) {
-            return Collections.singletonMap(projectIdentity, result);
-        }
-        return Collections.emptyMap();
-    }
-
-    private Map<Object, Object> fetchPerProjectModels(ProjectConnection projectConnection, Class<?> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        Map<Object, Object> results = new HashMap<Object, Object>();
-        BuildActionExecuter<Map<Object, Object>> buildActionExecuter = projectConnection.action(new FetchPerProjectModelAction(modelType.getName()));
-        buildActionExecuter.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
-        buildActionExecuter.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
-
-        if (!cancellationToken.isCancellationRequested()) {
-            for (Map.Entry<Object, Object> e : buildActionExecuter.run().entrySet()) {
-                InternalProjectIdentity internalProjectIdentity = (InternalProjectIdentity) e.getKey();
-                results.put(convertToProjectIdentity(internalProjectIdentity), e.getValue());
-            }
         }
         return results;
     }
 
     private DefaultProjectIdentity convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
-        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.rootDir, internalProjectIdentity.projectPath);
+        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.projectPath);
     }
 
     private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<Map<Object, Object>> {
@@ -217,83 +209,4 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    @Nullable
-    private <T> T fetchModel(ProjectConnection projectConnection, Class<T> modelType, BuildCancellationToken cancellationToken, ProgressLoggerFactory progressLoggerFactory) {
-        ModelBuilder<T> modelBuilder = projectConnection.model(modelType);
-        modelBuilder.withCancellationToken(new CancellationTokenAdapter(cancellationToken));
-        modelBuilder.addProgressListener(new ProgressListenerToProgressLoggerAdapter(progressLoggerFactory));
-        if (cancellationToken.isCancellationRequested()) {
-            return null;
-        }
-        return modelBuilder.get();
-    }
-
-    private ProjectConnection connect(GradleParticipantBuild build, CompositeParameters compositeParameters) {
-        DefaultGradleConnector connector = getInternalConnector();
-        File gradleUserHomeDir = compositeParameters.getGradleUserHomeDir();
-        File daemonBaseDir = compositeParameters.getDaemonBaseDir();
-        Integer daemonMaxIdleTimeValue = compositeParameters.getDaemonMaxIdleTimeValue();
-        TimeUnit daemonMaxIdleTimeUnits = compositeParameters.getDaemonMaxIdleTimeUnits();
-        Boolean embeddedParticipants = compositeParameters.isEmbeddedParticipants();
-
-        if (gradleUserHomeDir != null) {
-            connector.useGradleUserHomeDir(gradleUserHomeDir);
-        }
-        if (daemonBaseDir != null) {
-            connector.daemonBaseDir(daemonBaseDir);
-        }
-        if (daemonMaxIdleTimeValue != null && daemonMaxIdleTimeUnits != null) {
-            connector.daemonMaxIdleTime(daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
-        }
-        connector.searchUpwards(false);
-        connector.forProjectDirectory(build.getProjectDir());
-
-        if (embeddedParticipants) {
-            connector.embedded(true);
-            connector.useClasspathDistribution();
-            return connector.connect();
-        } else {
-            return configureDistribution(connector, build).connect();
-        }
-    }
-
-    private DefaultGradleConnector getInternalConnector() {
-        return (DefaultGradleConnector) GradleConnector.newConnector();
-    }
-
-    private GradleConnector configureDistribution(GradleConnector connector, GradleParticipantBuild build) {
-        if (build.getGradleDistribution() == null) {
-            if (build.getGradleHome() == null) {
-                if (build.getGradleVersion() == null) {
-                    connector.useBuildDistribution();
-                } else {
-                    connector.useGradleVersion(build.getGradleVersion());
-                }
-            } else {
-                connector.useInstallation(build.getGradleHome());
-            }
-        } else {
-            connector.useDistribution(build.getGradleDistribution());
-        }
-
-        return connector;
-    }
-
-    private final static class CancellationTokenAdapter implements CancellationToken, CancellationTokenInternal {
-        private final BuildCancellationToken token;
-
-        private CancellationTokenAdapter(BuildCancellationToken token) {
-            this.token = token;
-        }
-
-        public boolean isCancellationRequested() {
-            return token.isCancellationRequested();
-        }
-
-        public BuildCancellationToken getToken() {
-            return token;
-        }
-    }
-
 }
-

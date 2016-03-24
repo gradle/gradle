@@ -88,4 +88,12 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
         lines = lines[0..lines.indexOf("[END " + operation + "]")]
         lines.size() >= 2
     }
+
+    boolean statusLogged(String message) {
+        return progressContent.contains("[" + message + "]")
+    }
+
+    boolean statusMatches(String regex) {
+        return progressContent.any { it.matches("\\[" + regex + "\\]") }
+    }
 }

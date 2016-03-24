@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -27,18 +29,17 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import java.lang.reflect.Proxy
-
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
-    private static final List<Class<?>> HIERARCHICAL_SPECIAL_MODELS = [IdeaProject, BasicIdeaProject]
+    private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
-    private static final List<Class<?>> PROJECT_MODELS = [BuildInvocations, ProjectPublications]
-    private static final List<Class<?>> ALL_MODELS = [] + HIERARCHICAL_MODELS + HIERARCHICAL_SPECIAL_MODELS + BUILD_MODELS + PROJECT_MODELS
 
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
@@ -70,16 +71,105 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         models.size() == testScenario.expectedNumberOfModelResults
 
         where:
-        testScenario << createTestScenarios(ALL_MODELS)
+        testScenario << createTestScenarios(supportedModels())
     }
 
-    private static List<TestScenario> createTestScenarios(List<Class<?>> modelTypes) {
-        modelTypes.collect { modelType ->
+    // ProjectPublications was introduced in 1.12
+    @TargetGradleVersion(">=1.0 <1.12")
+    def "check errors returned for unsupported models in a composite"(TestScenario testScenario) {
+        given:
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions.")
+        }
+        where:
+        testScenario << createTestScenarios([ ProjectPublications ])
+    }
+
+    @TargetGradleVersion(">=1.0 <1.6")
+    def "check errors returned for unknown models in a composite when participant does not support custom models"(TestScenario testScenario) {
+        given:
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assertFailure(it.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
+        }
+        where:
+        testScenario << createTestScenarios([CustomModel ])
+    }
+
+    @Ignore("Need to support custom types from the client")
+    @TargetGradleVersion(">=1.6")
+    def "check errors returned for unknown models in a composite when participant supports custom models"(TestScenario testScenario) {
+        given:
+
+        def builds = testScenario.createBuilds(this.&createBuilds)
+        println testScenario
+
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(testScenario.modelType)
+            modelBuilder.get()
+        }
+
+        then:
+        // check that we get the expected number of failures based on total number of participants
+        modelResults.size() == testScenario.numberOfBuilds
+
+        modelResults.each {
+            assertFailure(it.failure, "No model of type 'CustomModel' is available in this build.")
+        }
+        where:
+        testScenario << createTestScenarios([ CustomModel ])
+    }
+
+    private static List<TestScenario> createTestScenarios(List<Class<?>> modelsToTest) {
+        modelsToTest.collect { modelType ->
             [new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfMultiProjectBuilds: 1),
              new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1),
+             // TODO: Currently fails badly when subproject directory does not exist
+             // new TestScenario(modelType: modelType, numberOfSingleProjectBuilds: 1, numberOfMultiProjectBuilds: 1, createSubprojectDirs: false),
             ]
         }.flatten()
+    }
+
+    private static List<Class<?>> supportedModels() {
+        List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + BUILD_MODELS
+        // Need to create a copy of the dist GradleVersion, due to classloader issues
+        def targetVersion = getTargetDistVersion()
+        if (targetVersion >= GradleVersion.version("1.1")) {
+            // Idea models fail to apply with 1.0 on because JavaVersion.current() fails
+            supportedModels += HIERARCHICAL_IDEA_MODELS
+        }
+        supportedModels << BuildInvocations
+        if (targetVersion >= GradleVersion.version("1.12")) {
+            supportedModels << ProjectPublications
+        }
+        supportedModels
     }
 
     private static class TestScenario {
@@ -87,29 +177,32 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         int numberOfSingleProjectBuilds
         int numberOfMultiProjectBuilds
         int numberOfSubProjectsPerMultiProjectBuild = 3
+        boolean createSubprojectDirs = true
+
 
         List<TestFile> createBuilds(Closure<List<TestFile>> createBuilds) {
-            createBuilds("single", numberOfSingleProjectBuilds, 0) + createBuilds("multi", numberOfMultiProjectBuilds, numberOfSubProjectsPerMultiProjectBuild)
+            createBuilds("single", numberOfSingleProjectBuilds, 0, true) + createBuilds("multi", numberOfMultiProjectBuilds, numberOfSubProjectsPerMultiProjectBuild, createSubprojectDirs)
         }
 
         int getExpectedNumberOfModelResults() {
-            if (modelType == BuildEnvironment) {
-                getNumberOfBuilds()
-            } else {
-                getNumberOfProjects()
-            }
+            getNumberOfProjects()
         }
 
         int getNumberOfBuilds() {
-            numberOfSingleProjectBuilds + numberOfMultiProjectBuilds
+            numberOfMultiProjectBuilds + numberOfSingleProjectBuilds
         }
 
         int getNumberOfProjects() {
             numberOfSingleProjectBuilds + (numberOfMultiProjectBuilds * (numberOfSubProjectsPerMultiProjectBuild + 1))
         }
+
+        @Override
+        String toString() {
+            return "Request ${modelType.simpleName} for ${numberOfSingleProjectBuilds} single-project and ${numberOfMultiProjectBuilds} w/ ${numberOfSubProjectsPerMultiProjectBuild} multi-project participants ${createSubprojectDirs?'':'w/o subproject dirs'}"
+        }
     }
 
-    private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects) {
+    private List<TestFile> createBuilds(String prefix, int numberOfBuilds, int numberOfSubProjects, boolean createSubprojectDirs) {
         if (numberOfBuilds < 1) {
             return []
         }
@@ -127,7 +220,12 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 """
                 if (numberOfSubProjects > 0) {
                     def subProjects = (1..numberOfSubProjects).collect { "${rootProjectName}-${new String([('a' as char) + (it - 1)] as char[])}".toString() }
-                    settingsFile << "include '${subProjects.join("', '")}'\n"
+                    subProjects.each { subProject ->
+                        settingsFile << "include '${subProject}'\n"
+                        if (createSubprojectDirs) {
+                            addChildDir(subProject)
+                        }
+                    }
                 }
             }
         }

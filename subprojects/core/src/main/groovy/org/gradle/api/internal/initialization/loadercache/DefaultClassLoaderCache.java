@@ -75,11 +75,22 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
+            final int hashCode = spec.hashCode();
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
-                classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
+                classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec) {
+                    @Override
+                    public int hashCode() {
+                        return hashCode;
+                    }
+                };
             } else {
-                classLoader = new MutableURLClassLoader(spec.parent, classPath);
+                classLoader = new MutableURLClassLoader(spec.parent, classPath) {
+                    @Override
+                    public int hashCode() {
+                        return hashCode;
+                    }
+                };
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);

@@ -351,9 +351,6 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         final Object endInput = new Object()
         final LinkedList<Object> receiveQueue = new LinkedList<Object>()
 
-        void requestStop() {
-        }
-
         void dispatch(Object message) {
         }
 

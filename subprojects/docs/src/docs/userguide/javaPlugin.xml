@@ -1243,6 +1243,8 @@
                     <listitem>Command line option “--tests” is provided to conveniently set the test filter.
                         Especially useful for the classic 'single test method execution' use case.
                         When the command line option is used, the inclusion filters declared in the build script are ignored.
+                        It is possible to supply multiple “--tests” options and tests matching any of those patterns will be
+                        included.
                     </listitem>
                     <listitem>Gradle tries to filter the tests given the limitations of the test framework API.
                         Some advanced, synthetic tests may not be fully compatible with filtering.

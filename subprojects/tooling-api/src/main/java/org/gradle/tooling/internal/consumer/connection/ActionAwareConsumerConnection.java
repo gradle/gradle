@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.gradle.BuildInvocations;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -71,7 +72,7 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
 
         @Override
         public boolean maySupportModel(Class<?> modelType) {
-            return modelType != BuildInvocations.class;
+            return modelType != ProjectPublications.class && modelType != BuildInvocations.class;
         }
     }
 

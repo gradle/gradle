@@ -774,6 +774,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return extensibleDynamicObject.getProperty(propertyName);
     }
 
+    public Object findProperty(String propertyName) {
+        return hasProperty(propertyName) ? property(propertyName) : null;
+    }
+
     public void setProperty(String name, Object value) {
         extensibleDynamicObject.setProperty(name, value);
     }

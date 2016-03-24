@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -25,6 +24,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
@@ -68,20 +69,21 @@ public class DefaultDaemonStarter implements DaemonStarter {
     public DaemonStartupInfo startDaemon() {
         String daemonUid = UUID.randomUUID().toString();
 
-        ModuleRegistry registry = new DefaultModuleRegistry();
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
         ClassPath classpath;
         List<File> searchClassPath;
-        if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
-            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
-            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
-            searchClassPath = Collections.emptyList();
-        } else {
+        if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
             classpath = new DefaultClassPath();
             for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
             searchClassPath = registry.getAdditionalClassPath().getAsFiles();
+        } else {
+            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
+            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
+            searchClassPath = Collections.emptyList();
         }
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");

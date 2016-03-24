@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Constructor;
 
-public abstract class Message implements Serializable {
+public abstract class Message {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Message.class);
 

@@ -160,4 +160,8 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         operationParamsBuilder.setInjectedPluginClasspath(classpath);
         return getThis();
     }
+
+    public void copyFrom(ConsumerOperationParameters operationParameters) {
+        operationParamsBuilder.copyFrom(operationParameters);
+    }
 }

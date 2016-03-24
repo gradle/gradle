@@ -110,7 +110,14 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         Writer standardError = new StringWriter()
 
         buildFile << helloWorldWithStandardOutputAndError() << """
-            helloWorld.doLast { Runtime.runtime.halt(0) }
+            helloWorld.doLast {
+                 // since the messages are now queued and sent asynchronously to the client
+                 // we're giving more time to make sure that the messages were forwarded.
+                 // It also means that in some circumstances, some messages might not be sent
+                 // to the client
+                sleep(500)
+                Runtime.runtime.halt(0)
+            }
         """
 
         when:

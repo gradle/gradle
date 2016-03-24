@@ -19,7 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
-import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.serialize.HashValueSerializer;
 
 import java.io.File;
 import java.util.HashMap;
@@ -31,18 +32,18 @@ import java.util.Map;
  */
 public class DefaultJarSnapshotCache implements JarSnapshotCache {
 
-    private final MinimalPersistentCache<byte[], JarSnapshotData> cache;
+    private final MinimalPersistentCache<HashValue, JarSnapshotData> cache;
 
     public DefaultJarSnapshotCache(CacheRepository cacheRepository) {
-        cache = new MinimalPersistentCache<byte[], JarSnapshotData>(cacheRepository, "jar snapshots", BaseSerializerFactory.BYTE_ARRAY_SERIALIZER, new JarSnapshotDataSerializer());
+        cache = new MinimalPersistentCache<HashValue, JarSnapshotData>(cacheRepository, "jar snapshots", new HashValueSerializer(), new JarSnapshotDataSerializer());
     }
 
     @Override
-    public Map<File, JarSnapshot> getJarSnapshots(final Map<File, byte[]> jarHashes) {
+    public Map<File, JarSnapshot> getJarSnapshots(final Map<File, HashValue> jarHashes) {
         return cache.getCacheAccess().useCache("loading jar snapshots", new Factory<Map<File, JarSnapshot>>() {
             public Map<File, JarSnapshot> create() {
                 final Map<File, JarSnapshot> out = new HashMap<File, JarSnapshot>();
-                for (Map.Entry<File, byte[]> entry : jarHashes.entrySet()) {
+                for (Map.Entry<File, HashValue> entry : jarHashes.entrySet()) {
                     JarSnapshot snapshot = new JarSnapshot(cache.getCache().get(entry.getValue()));
                     out.put(entry.getKey(), snapshot);
                 }
@@ -52,7 +53,7 @@ public class DefaultJarSnapshotCache implements JarSnapshotCache {
     }
 
     @Override
-    public JarSnapshot get(byte[] key, final Factory<JarSnapshot> factory) {
+    public JarSnapshot get(HashValue key, final Factory<JarSnapshot> factory) {
         return new JarSnapshot(cache.get(key, new Factory<JarSnapshotData>() {
             public JarSnapshotData create() {
                 return factory.create().getData();

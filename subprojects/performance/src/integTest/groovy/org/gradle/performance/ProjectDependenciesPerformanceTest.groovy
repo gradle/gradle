@@ -30,7 +30,7 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = "lotProjectDependencies"
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
-        runner.targetVersions = ['2.8', '2.11', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.maxExecutionTimeRegression = millis(1000)
 
         when:

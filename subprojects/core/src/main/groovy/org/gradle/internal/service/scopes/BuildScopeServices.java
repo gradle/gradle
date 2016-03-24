@@ -36,7 +36,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -86,7 +85,6 @@ import org.gradle.logging.ShowStacktrace;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
@@ -204,7 +202,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
-        CachingFileSnapshotter snapshotter) {
+        CachingFileSnapshotter snapshotter, ClassLoaderRegistry registry) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -216,8 +214,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
             progressLoggerFactory,
             snapshotter,
-            classLoaderCache
-        );
+            classLoaderCache,
+            registry);
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
@@ -230,9 +228,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(FileLookup.class),
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
-            get(ModelRuleSourceDetector.class),
-            get(ClassPathSnapshotter.class),
-            get(InjectedPluginClasspath.class)
+            get(ModelRuleSourceDetector.class)
         );
     }
 

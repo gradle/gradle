@@ -135,6 +135,33 @@ project(':child3') {
         ipr.bytecodeTargetLevel.module.find { it.@name == "child1" }.@target == "1.6"
         ipr.bytecodeTargetLevel.module.find { it.@name == "child2" }.@target == "1.5"
         !ipr.bytecodeTargetLevel.module.find { it.@name == "child3" }
+
+        when:
+        succeeds "idea"
+
+        then:
+        ipr.bytecodeTargetLevel.children().size() == 3
+
+        ipr.bytecodeTargetLevel.module.find { it.@name == "root" }.@target == "1.4"
+        ipr.bytecodeTargetLevel.module.find { it.@name == "child1" }.@target == "1.6"
+        ipr.bytecodeTargetLevel.module.find { it.@name == "child2" }.@target == "1.5"
+        !ipr.bytecodeTargetLevel.module.find { it.@name == "child3" }
+
+        when:
+        buildFile.text = """
+        allprojects {
+            apply plugin:'idea'
+            apply plugin:'java'
+
+            sourceCompatibility = 1.4
+            targetCompatibility = 1.4
+        }
+        """
+        and:
+        succeeds "idea"
+
+        then:
+        ipr.bytecodeTargetLevel.children().size() == 0
     }
 
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {

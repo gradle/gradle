@@ -3,9 +3,15 @@ Fix robustness and diagnostic issues that prevent the daemon to be enabled by de
 ## Implementation plan
 
 - Add daemon stability tests
+    - existing stability related tests in
+        - DaemonPerformanceMonitoringIntegrationTest
+        - DaemonHealthLoggingIntegrationTest
 - Review and tune the existing disabled health monitoring
 - Add diagnostics
 - Spike additional strategies for health monitoring
+    - collect gc statistics
+    - discuss expose health via jmx
+    - discuss log health status in internal log format
 
 ## Candidate stories
 

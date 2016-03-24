@@ -23,6 +23,9 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
@@ -35,7 +38,12 @@ import java.util.List;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
 public class DefaultTestReport implements TestReporter {
+    private final BuildOperationProcessor buildOperationProcessor;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
+
+    public DefaultTestReport(BuildOperationProcessor buildOperationProcessor) {
+        this.buildOperationProcessor = buildOperationProcessor;
+    }
 
     @Override
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
@@ -74,21 +82,51 @@ public class DefaultTestReport implements TestReporter {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
-                public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
-                    PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
-                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider);
-
-                    output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
-                    for (PackageTestResults packageResults : model.getPackages()) {
-                        output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, packagePageRenderer);
-                        for (ClassTestResults classResults : packageResults.getClasses()) {
-                            output.renderHtmlPage(classResults.getBaseUrl(), classResults, classPageRenderer);
+                public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {
+                    buildOperationProcessor.run(new Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>>() {
+                        @Override
+                        public void execute(BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>> queue) {
+                            queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
+                            for (PackageTestResults packageResults : model.getPackages()) {
+                                queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
+                                for (ClassTestResults classResults : packageResults.getClasses()) {
+                                    queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(resultsProvider), output));
+                                }
+                            }
                         }
-                    }
+                    });
                 }
             }, reportDir);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportDir), e);
+        }
+    }
+
+    public static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+        return new HtmlReportFileGenerator<T>(fileUrl, results, renderer, output);
+    }
+
+    private static class HtmlReportFileGenerator<T extends CompositeTestResults> implements RunnableBuildOperation {
+        private final String fileUrl;
+        private final T results;
+        private final PageRenderer<T> renderer;
+        private final HtmlReportBuilder output;
+
+        HtmlReportFileGenerator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+            this.fileUrl = fileUrl;
+            this.results = results;
+            this.renderer = renderer;
+            this.output = output;
+        }
+
+        @Override
+        public String getDescription() {
+            return "generating html test report for ".concat(results.getTitle());
+        }
+
+        @Override
+        public void run() {
+            output.renderHtmlPage(fileUrl, results, renderer);
         }
     }
 }

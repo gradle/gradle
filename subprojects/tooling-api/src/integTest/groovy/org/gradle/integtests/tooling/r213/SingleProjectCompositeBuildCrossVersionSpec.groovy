@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.BuildException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
-
 /**
  * Builds a composite with a single project.
  */
@@ -69,6 +67,35 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         models.size() == 1
         rootProjects(models).size() == 1
         containsProjects(models, [':'])
+    }
+
+    def "participant is always treated as root of a build"() {
+        given:
+        def badParentDir = populate("bad-parent") {
+            buildFile << """
+                allprojects {
+                    throw new RuntimeException("Badly configured project")
+                }
+"""
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include 'a', 'b', 'c'
+"""
+        }
+        def goodChildProject = badParentDir.file("c").createDir()
+        goodChildProject.file("build.gradle") <<"""
+            apply plugin: 'java'
+"""
+        when:
+        def models = withCompositeConnection(goodChildProject) { connection ->
+            unwrap(connection.getModels(EclipseProject))
+        }
+        then:
+        models.size() == 1
+        EclipseProject project = models.get(0)
+        project.gradleProject.parent == null
+        project.gradleProject.path == ':'
+        project.projectDirectory == goodChildProject
     }
 
     def "sees changes to composite build when projects are added"() {
@@ -131,14 +158,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
 
         then:
-        def e = thrown(BuildException)
-        def causes = getCausalChain(e)
-        causes.any {
-            it.message.contains("Could not fetch models of type 'EclipseProject'")
-        }
-        causes.any {
-            it.message.contains("single-build' does not exist")
-        }
+        def e = thrown(GradleConnectionException)
+        assertFailure(e,
+            "Could not fetch models of type 'EclipseProject'",
+            "single-build' does not exist")
 
         cleanup:
         composite?.close()

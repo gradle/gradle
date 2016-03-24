@@ -62,6 +62,17 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
+    public TestFile getFatToolingApiJar() {
+        TestFile toolingApiLibsDir = file("integTest.toolingApiLibsDir", "subprojects/tooling-api/build/libs");
+        TestFile fatToolingApiJar = new TestFile(toolingApiLibsDir, String.format("gradle-tooling-api-fat-%s.jar", getVersion().getVersion()));
+
+        if (!fatToolingApiJar.exists()) {
+            throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));
+        }
+
+        return fatToolingApiJar;
+    }
+
     public GradleDistribution distribution(String version) {
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();

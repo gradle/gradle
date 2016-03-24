@@ -150,7 +150,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message == "invalid version unknown"
     }
 
@@ -172,7 +172,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message == "unknown configuration 'invalidConf'. It is extended by A"
     }
 
@@ -195,7 +195,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message == "illegal cycle detected in configuration extension: A => B => A"
     }
 
@@ -211,7 +211,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message.contains('Element type "info"')
     }
 
@@ -227,7 +227,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message.contains('unknown tag not-an-ivy-file')
     }
 
@@ -238,7 +238,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse Ivy file ${file.toURI()}"
+        e.message == "Could not parse Ivy file ${file}"
         e.cause.message.contains('null name not allowed')
 
         where:

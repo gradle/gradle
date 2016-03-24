@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.TreeSnapshotter;
+import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -38,12 +38,12 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
-    private final TreeSnapshotter treeSnapshotter;
+    private final CachingTreeVisitor treeVisitor;
 
-    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer, TreeSnapshotter treeSnapshotter) {
+    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, CachingTreeVisitor treeVisitor, TaskExecuter executer) {
         this.executer = executer;
         this.repository = repository;
-        this.treeSnapshotter = treeSnapshotter;
+        this.treeVisitor = treeVisitor;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -63,7 +63,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             context.setTaskArtifactState(taskArtifactState);
 
             taskArtifactState.beforeTask();
-            treeSnapshotter.clearCache();
+            treeVisitor.clearCache();
             try {
                 executer.execute(task, state, context);
                 if (state.getFailure() == null) {

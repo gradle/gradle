@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.archive.compression;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -29,5 +30,5 @@ public interface ArchiveOutputStreamFactory {
      *
      * @param destination the destination of the archive output stream
      */
-    OutputStream createArchiveOutputStream(File destination);
+    OutputStream createArchiveOutputStream(File destination) throws IOException;
 }

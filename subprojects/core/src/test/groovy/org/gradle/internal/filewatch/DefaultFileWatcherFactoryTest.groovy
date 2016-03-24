@@ -16,16 +16,20 @@
 
 package org.gradle.internal.filewatch
 
+import org.gradle.api.file.DirectoryTree
 import org.gradle.api.internal.file.FileSystemSubset
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
+@UsesNativeServices
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     FileWatcher fileWatcher
@@ -328,4 +332,46 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         filesSeen.size() == 1
         filesSeen[0] == subdirFile.absolutePath
     }
+
+    @Unroll
+    def "should watch changes in sub directory when watching first for single file in parent directory where usesDirectoryTree: #usesDirectoryTree"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatch = new CountDownLatch(1)
+        def filesSeen = ([] as Set).asSynchronized()
+        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                filesSeen.add(event.file.absolutePath)
+                fileEventMatchedLatch.countDown()
+            }
+        }
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        def subdir = testDir.file('src/subdirectory')
+        def subdirFile = subdir.file("nested.txt")
+
+        // watch for file in parent directory initially
+        def singleFile = testDir.file('src/topLevel.txt').createFile()
+        fileWatcher.watch(FileSystemSubset.builder().add(singleFile).build())
+
+        when: 'Adds watch for sub directory'
+        subdir.mkdirs()
+        fileWatcher.watch(FileSystemSubset.builder().add(usesDirectoryTree ? new SimpleDirectoryTree(dir: subdir) : subdir).build())
+
+        and: 'Create file'
+        subdirFile.createFile().text = 'Some content'
+        waitOn(fileEventMatchedLatch)
+
+        then: 'File should have been noticed'
+        filesSeen.size() == 1
+        filesSeen[0] == subdirFile.absolutePath
+
+        where:
+        usesDirectoryTree << [false, true]
+    }
+
+    private static class SimpleDirectoryTree implements DirectoryTree {
+        File dir
+        PatternSet patterns = new PatternSet()
+    }
+
 }

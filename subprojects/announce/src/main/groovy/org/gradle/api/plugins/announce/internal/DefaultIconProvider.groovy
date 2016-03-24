@@ -15,21 +15,20 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.internal.GradleDistributionLocator
+import org.gradle.internal.installation.GradleInstallation
 
 class DefaultIconProvider implements IconProvider {
-    private final GradleDistributionLocator locator
+    private final GradleInstallation gradleInstallation
     
-    DefaultIconProvider(GradleDistributionLocator locator) {
-        this.locator = locator
+    DefaultIconProvider(GradleInstallation gradleInstallation) {
+        this.gradleInstallation = gradleInstallation
     }
 
     File getIcon(int width, int height) {
-        def homeDir = locator.gradleHome
-        if (!homeDir) {
+        if (gradleInstallation == null) {
             return null
         }
-        def candidate = new File(homeDir, "media/gradle-icon-${width}x${height}.png")
+        def candidate = new File(gradleInstallation.gradleHome, "media/gradle-icon-${width}x${height}.png")
         return candidate.file ? candidate : null
     }
 }

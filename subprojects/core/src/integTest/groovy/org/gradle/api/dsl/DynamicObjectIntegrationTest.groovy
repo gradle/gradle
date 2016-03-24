@@ -28,7 +28,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canAddDynamicPropertiesToProject() {
-        
+
         file("settings.gradle").writelns("include 'child'");
         file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
@@ -74,7 +74,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canAddDynamicMethodsToProject() {
-        
+
         file("settings.gradle").writelns("include 'child'");
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
@@ -108,7 +108,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canAddMixinsToProject() {
-        
+
         file('build.gradle') << '''
 convention.plugins.test = new ConventionBean()
 
@@ -126,7 +126,7 @@ class ConventionBean {
 
     @Test
     public void canAddExtensionsToProject() {
-        
+
         file('build.gradle') << '''
 extensions.test = new ExtensionBean()
 
@@ -144,7 +144,7 @@ class ExtensionBean {
 
     @Test
     public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
-        
+
         file("settings.gradle").writelns("include 'child'");
         file("gradle.properties") << '''
 global=some value
@@ -171,7 +171,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddDynamicPropertiesToCoreDomainObjects() {
-        
+
         file('build.gradle') << '''
             class GroovyTask extends DefaultTask { }
 
@@ -233,7 +233,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddMixInsToCoreDomainObjects() {
-        
+
         file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -287,7 +287,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddExtensionsToCoreDomainObjects() {
-        
+
         file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -341,7 +341,7 @@ assert 'overridden value' == global
 
     @Test
     public void mixesDslMethodsIntoCoreDomainObjects() {
-        
+
         file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
                 def String prop
@@ -367,7 +367,7 @@ assert 'overridden value' == global
 
     @Test
     void canAddExtensionsToDynamicExtensions() {
-        
+
         file('build.gradle') << '''
             class Extension {
                 String name
@@ -392,7 +392,7 @@ assert 'overridden value' == global
 
     @Test
     public void canInjectMethodsFromParentProject() {
-        
+
         file("settings.gradle").writelns("include 'child'");
         file("build.gradle").writelns(
                 "subprojects {",
@@ -407,9 +407,9 @@ assert 'overridden value' == global
 
         executer.withTasks("testTask").run();
     }
-    
+
     @Test void canAddNewPropertiesViaTheAdhocNamespace() {
-        
+
         file("build.gradle") << """
             assert !hasProperty("p1")
 
@@ -444,7 +444,7 @@ assert 'overridden value' == global
                 assert ext.p1 == 2
             }
         """
-        
+
         executer.withTasks("run").run()
     }
 
@@ -472,7 +472,7 @@ assert 'overridden value' == global
 
     @Issue("GRADLE-2163")
     @Test void canDecorateBooleanPrimitiveProperties() {
-        
+
         file("build.gradle") << """
             class CustomBean {
                 boolean b
@@ -522,6 +522,28 @@ assert 'overridden value' == global
             task run << {
                 assert dynamic.methods.size() == 1
                 assert dynamic.props.p1 == 2
+            }
+        """
+
+        executer.withTasks("run").run()
+    }
+
+    @Test
+    void findPropertyShouldReturnValueIfFound() {
+        buildFile << """
+            task run << {
+                assert project.findProperty('foundProperty') == 'foundValue'
+            }
+        """
+
+        executer.withTasks("run").withArguments('-PfoundProperty=foundValue').run();
+    }
+
+    @Test
+    void findPropertyShouldReturnNullIfNotFound() {
+        buildFile << """
+            task run << {
+                assert project.findProperty('notFoundProperty') == null
             }
         """
 

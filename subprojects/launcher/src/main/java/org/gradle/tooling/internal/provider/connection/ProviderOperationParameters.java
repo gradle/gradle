@@ -171,11 +171,5 @@ public interface ProviderOperationParameters {
     @Nullable
     List<GradleParticipantBuild> getBuilds(List<GradleParticipantBuild> defaultBuilds);
 
-    /**
-     * @since 2.13-rc-1
-     *
-     */
-    Boolean isEmbeddedParticipants();
-
     File getCompositeTargetBuildRootDir(File defaultRootDir);
 }

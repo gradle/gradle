@@ -19,17 +19,15 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
-import org.gradle.groovy.scripts.NonExistentFileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -39,8 +37,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -50,17 +46,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
-    private final CachingFileSnapshotter snapshotter;
+    private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
+    private final ClassLoaderRegistry classLoaderRegistry;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, CachingFileSnapshotter snapshotter, ClassLoaderCache classLoaderCache) {
+                                              ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache,
+                                              ClassLoaderRegistry classLoaderRegistry) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
         this.classLoaderCache = classLoaderCache;
+        this.classLoaderRegistry = classLoaderRegistry;
     }
 
     @Override
@@ -70,15 +69,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
                                                               final Action<? super ClassNode> verifier) {
-        if (source instanceof NonExistentFileScriptSource) {
+        assert source.getResource().isContentCached();
+        if (source.getResource().getHasEmptyContent()) {
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        final String hash = hashFor(source);
-        final String cacheKey = operation.getCacheKey();
-        final Map<String, Object> cacheProperties = createCacheProperties(cacheKey);
-
+        final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
+        final String classpathHash = dslId + getClassLoaderHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -87,10 +85,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), hash, cacheKey))
-            .withDisplayName(String.format("%s remapped class cache for %s", dslId, hash))
+        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), sourceHash, classpathHash))
+            .withDisplayName(String.format("%s remapped class cache for %s", dslId, sourceHash))
             .withValidator(validator)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, hash, dslId, cacheProperties, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local build cache"))
             .open();
@@ -102,8 +100,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
-    private Map<String, Object> createCacheProperties(String hash) {
-        return Collections.<String, Object>singletonMap("classpath.hash", hash);
+    private String getClassLoaderHash(ClassLoader cl) {
+        if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
+            return "runtime";
+        }
+        if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
+            return "gradleApi";
+        }
+        if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
+            return "gradleCoreApi";
+        }
+        if (classLoaderRegistry.getPluginsClassLoader() == cl) {
+            return "plugins";
+        }
+        return String.valueOf(cl.hashCode());
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
@@ -112,15 +122,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private String hashFor(ScriptSource source) {
-        File file = source.getResource().getFile();
-        String hash;
-        if (file != null && file.exists()) {
-            CachingFileSnapshotter.FileInfo snapshot = snapshotter.snapshot(file);
-            hash = new HashValue(snapshot.getHash()).asCompactString();
-        } else {
-            hash = HashUtil.createCompactMD5(source.getResource().getText());
-        }
-        return hash;
+        return snapshotter.snapshot(source.getResource()).getHash().asCompactString();
     }
 
     public void close() {
@@ -251,7 +253,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 return Type.getType(remap(((Type) o).getDescriptor()));
             }
             if (RuleVisitor.SOURCE_URI_TOKEN.equals(o)) {
-                URI uri = scriptSource.getResource().getURI();
+                URI uri = scriptSource.getResource().getLocation().getURI();
                 return uri == null ? null : uri.toString();
             }
             if (RuleVisitor.SOURCE_DESC_TOKEN.equals(o)) {
@@ -326,9 +328,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private class RemapBuildScriptsAction<M, T extends Script> implements Action<PersistentCache> {
-        private final String hash;
+        private final String classpathHash;
+        private final String sourceHash;
         private final String dslId;
-        private final Map<String, Object> cacheProperties;
         private final ScriptSource source;
         private final RemappingScriptSource remapped;
         private final ClassLoader classLoader;
@@ -336,10 +338,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Action<? super ClassNode> verifier;
         private final Class<T> scriptBaseClass;
 
-        public RemapBuildScriptsAction(RemappingScriptSource remapped, String hash, String dslId, Map<String, Object> cacheProperties, ClassLoader classLoader, CompileOperation<M> operation, Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
-            this.hash = hash;
+        public RemapBuildScriptsAction(RemappingScriptSource remapped, String classpathHash, String sourceHash, String dslId, ClassLoader classLoader, CompileOperation<M> operation, Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
+            this.classpathHash = classpathHash;
+            this.sourceHash = sourceHash;
             this.dslId = dslId;
-            this.cacheProperties = cacheProperties;
             this.remapped = remapped;
             this.source = remapped.getSource();
             this.classLoader = classLoader;
@@ -349,8 +351,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         public void execute(final PersistentCache remappedClassesCache) {
-            final PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s", hash, dslId))
-                .withProperties(cacheProperties)
+            final PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s/%s", sourceHash, dslId, classpathHash))
                 .withValidator(validator)
                 .withDisplayName(String.format("%s generic class cache for %s", dslId, source.getDisplayName()))
                 .withInitializer(new ProgressReportingInitializer(

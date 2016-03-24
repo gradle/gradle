@@ -186,6 +186,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     protected LocallyAvailableResource entryAt(final String path) {
         return new AbstractLocallyAvailableResource() {
             public File getFile() {
+                // Calculated on demand to deal with moves
                 return new File(baseDir, path);
             }
         };

@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.hash;
 
+import org.gradle.internal.hash.HashValue;
+
 import java.io.File;
 
 public interface Hasher {
-    byte[] hash(File file);
+    HashValue hash(File file);
 }

@@ -17,6 +17,7 @@ package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.*;
@@ -25,23 +26,18 @@ import java.net.URI;
 /**
  * This will be merged with {@link Resource}.
  */
-public interface ExternalResource extends Closeable {
+public interface ExternalResource extends Resource, Closeable {
     /**
      * Get the URI of the resource.
      */
-    public URI getURI();
-
-    /**
-     * Get the name of the resource. Use {@link #getURI()} instead.
-     */
-    public String getName();
+    URI getURI();
 
     /**
      * Is this resource local to this host, i.e. is it on the file system?
      *
      * @return <code>boolean</code> value indicating if the resource is local.
      */
-    public boolean isLocal();
+    boolean isLocal();
 
     /**
      * Copies the contents of this resource to the given file.
@@ -61,7 +57,7 @@ public interface ExternalResource extends Closeable {
      * Executes the given action against the binary contents of this resource.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     void withContent(Action<? super InputStream> readAction) throws ResourceException;
 
@@ -69,7 +65,7 @@ public interface ExternalResource extends Closeable {
      * Executes the given action against the binary contents of this resource.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
@@ -79,7 +75,7 @@ public interface ExternalResource extends Closeable {
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
      *
      * @throws ResourceException on failure to read the content.
-     * @throws ResourceNotFoundException when the resource does not exist
+     * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     <T> T withContent(ContentAction<? extends T> readAction) throws ResourceException;
 

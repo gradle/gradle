@@ -133,6 +133,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can run and cancel test execution in continuous mode"() {
         given:
+        events.skipValidation = true
         collectDescriptorsFromBuild()
         and: // Need to run the test task beforehand, since continuous build doesn't handle the new directories created after 'clean'
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"))

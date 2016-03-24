@@ -123,7 +123,7 @@ public class IncrementalCompileProcessor {
         }
 
         private boolean sameHash(CompilationFileState previousState, CompilationFileState newState) {
-            return previousState != null && Arrays.equals(newState.getHash(), previousState.getHash());
+            return previousState != null && newState.getHash().equals(previousState.getHash());
         }
 
         private boolean sameResolved(CompilationFileState previousState, CompilationFileState newState) {

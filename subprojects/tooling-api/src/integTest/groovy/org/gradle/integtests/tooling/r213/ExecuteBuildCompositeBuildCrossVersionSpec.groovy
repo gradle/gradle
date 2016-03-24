@@ -18,16 +18,15 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 
 /**
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    def setup() {
-        //embedCoordinatorAndParticipants = true
-    }
 
     def "executes task in a single project within a composite "() {
         given:
@@ -49,12 +48,11 @@ task hello {
             })
         }
         when:
-        def build1Id = createGradleBuildParticipant(build1).toBuildIdentity()
-        withCompositeConnection(builds) { connection ->
+        withCompositeBuildParticipants(builds) { connection, List buildIds ->
+            def build1Id = buildIds[0]
             def buildLauncher = connection.newBuild(build1Id)
             buildLauncher.forTasks("hello")
             buildLauncher.run()
-
         }
         then:
         def helloFile = build1.file("hello.txt")
@@ -78,7 +76,7 @@ task hello {
         }
         def builds = [build1, build2]
         when:
-        def buildId = createGradleBuildParticipant(build3).toBuildIdentity()
+        def buildId = new DefaultBuildIdentity(build3)
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild(buildId)
             buildLauncher.forTasks("jar")
@@ -108,8 +106,8 @@ task hello {
             }
         })
         when:
-        def build1Id = createGradleBuildParticipant(build1).toBuildIdentity()
-        withCompositeConnection(builds) { connection ->
+        withCompositeBuildParticipants(builds) { connection, List buildIds ->
+            def build1Id = buildIds[0]
             def task
             connection.getModels(modelType).each { modelresult ->
                 if (modelresult.projectIdentity.build == build1Id) {
@@ -127,7 +125,17 @@ task hello {
         helloFile.text == 'Hello world'
 
         where:
-        // BuildInvocations returns InternalLauncher instances with accesses a different code path
-        modelType << [GradleProject, BuildInvocations]
+        modelType << launchableSources()
     }
+
+    private static List<Class<?>> launchableSources() {
+        List<Class<?>> launchableSources = [GradleProject]
+        if (getTargetDistVersion() >= GradleVersion.version("1.12")) {
+            // BuildInvocations returns InternalLauncher instances with accesses a different code path
+            // TODO: We should support `BuildInvocations` back further than 1.12
+            launchableSources += BuildInvocations
+        }
+        return launchableSources
+    }
+
 }

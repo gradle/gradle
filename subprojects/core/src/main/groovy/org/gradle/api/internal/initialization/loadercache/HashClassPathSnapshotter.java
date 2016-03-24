@@ -58,7 +58,7 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
                 }
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
-                combinedHash.update(hasher.hash(file));
+                combinedHash.update(hasher.hash(file).asByteArray());
             }
             //else an empty folder - a legit situation
         }

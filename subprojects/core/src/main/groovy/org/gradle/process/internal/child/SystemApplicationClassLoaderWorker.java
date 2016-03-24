@@ -103,7 +103,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     }
 
     MessagingServices createClient() {
-        return new MessagingServices(getClass().getClassLoader());
+        return new MessagingServices();
     }
 
     LoggingManagerInternal createLoggingManager() {

@@ -46,6 +46,7 @@ public class TestCountLogger implements TestListener {
 
     @Override
     public void beforeTest(TestDescriptor testDescriptor) {
+        progressLogger.progress(summary());
     }
 
     @Override
@@ -53,7 +54,6 @@ public class TestCountLogger implements TestListener {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
         skippedTests += result.getSkippedTestCount();
-        progressLogger.progress(summary());
     }
 
     private String summary() {
@@ -94,6 +94,8 @@ public class TestCountLogger implements TestListener {
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
+            progressLogger.progress(summary());
+
             if (failedTests > 0) {
                 logger.error(TextUtil.getPlatformLineSeparator() + summary());
             }

@@ -82,29 +82,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsCommits: [Git.current().commitId],
             testTime: System.currentTimeMillis())
 
-        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
-        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
-        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = new LinkedHashSet()
-
-
-        if (adhocRun) {
-            baselineVersions.add(mostRecentSnapshot)
-        } else {
-            for (String version : targetVersions) {
-                if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
-                    // These are all treated specially below
-                    continue
-                }
-                baselineVersions.add(findRelease(version).version.version)
-            }
-            if (!targetVersions.contains('nightly')) {
-                // Include the most recent final release if we're not testing against a nightly
-                baselineVersions.add(mostRecentFinalRelease)
-            } else {
-                baselineVersions.add(mostRecentSnapshot)
-            }
-        }
+        LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions, adhocRun)
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
@@ -128,7 +106,34 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    GradleDistribution findRelease(String requested) {
+    static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, boolean adhocRun) {
+        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
+        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
+        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
+        def baselineVersions = new LinkedHashSet()
+
+
+        if (adhocRun) {
+            baselineVersions.add(mostRecentSnapshot)
+        } else {
+            for (String version : targetVersions) {
+                if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
+                    // These are all treated specially below
+                    continue
+                }
+                baselineVersions.add(findRelease(releases, version).version.version)
+            }
+            if (!targetVersions.contains('nightly')) {
+                // Include the most recent final release if we're not testing against a nightly
+                baselineVersions.add(mostRecentFinalRelease)
+            } else {
+                baselineVersions.add(mostRecentSnapshot)
+            }
+        }
+        baselineVersions
+    }
+
+    protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
         GradleDistribution best = null
         for (GradleDistribution release : releases.all) {
             if (release.version.version == requested) {

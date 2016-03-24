@@ -41,6 +41,8 @@ import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
@@ -71,7 +73,7 @@ public class BuildScopeServicesTest extends Specification {
         cacheFactoryFactory.create() >> cacheFactory
         sessionServices.get(ClassLoaderRegistry) >> classLoaderRegistry
         sessionServices.getFactory(LoggingManagerInternal) >> Stub(Factory)
-        sessionServices.get(ModuleRegistry) >> new DefaultModuleRegistry()
+        sessionServices.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         sessionServices.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
         sessionServices.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         sessionServices.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
@@ -187,7 +189,7 @@ public class BuildScopeServicesTest extends Specification {
     def providesAnInitScriptHandler() {
         setup:
         expectListenerManagerCreated()
-        allowGetGradleDistributionLocator()
+        allowGetGradleInstallation()
         expectParentServiceLocated(CacheRepository)
 
         expect:
@@ -317,8 +319,8 @@ public class BuildScopeServicesTest extends Specification {
         listenerManager
     }
 
-    private void allowGetGradleDistributionLocator() {
-        sessionServices.get(GradleDistributionLocator) >> Mock(GradleDistributionLocator)
+    private void allowGetGradleInstallation() {
+        sessionServices.get(GradleInstallation) >> Mock(GradleInstallation)
     }
 
     public interface ClosableCacheFactory extends CacheFactory {

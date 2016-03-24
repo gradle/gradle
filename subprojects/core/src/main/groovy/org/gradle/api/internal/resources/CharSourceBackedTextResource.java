@@ -19,9 +19,9 @@ package org.gradle.api.internal.resources;
 import com.google.common.io.CharSource;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.resources.TextResource;
+import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,12 +29,24 @@ import java.io.Reader;
 import java.util.Collections;
 import java.util.Set;
 
-public class CharSourceBackedTextResource implements TextResource {
+public class CharSourceBackedTextResource implements TextResourceInternal {
 
+    private final String displayName;
     private final CharSource charSource;
 
-    public CharSourceBackedTextResource(CharSource charSource) {
+    public CharSourceBackedTextResource(String displayName, CharSource charSource) {
+        this.displayName = displayName;
         this.charSource = charSource;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     @Override
@@ -42,7 +54,7 @@ public class CharSourceBackedTextResource implements TextResource {
         try {
             return charSource.read();
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw ResourceExceptions.readFailed(displayName, e);
         }
     }
 
@@ -51,7 +63,7 @@ public class CharSourceBackedTextResource implements TextResource {
         try {
             return charSource.openStream();
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw ResourceExceptions.readFailed(displayName, e);
         }
     }
 

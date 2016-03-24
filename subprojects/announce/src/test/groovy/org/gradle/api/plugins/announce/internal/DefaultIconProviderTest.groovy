@@ -15,40 +15,41 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.internal.GradleDistributionLocator
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultIconProviderTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final GradleDistributionLocator locator = Mock()
-    final DefaultIconProvider provider = new DefaultIconProvider(locator)
+
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    GradleInstallation installation
+
+    private DefaultIconProvider createProvider() {
+        new DefaultIconProvider(installation)
+    }
     
     def "returns png file that matches specified dimensions exactly"() {
         given:
         def homeDir = tmpDir.testDirectory
         def pngFile = tmpDir.createFile("media/gradle-icon-48x18.png")
-        _ * locator.gradleHome >> homeDir
+        installation = new GradleInstallation(homeDir)
 
         expect:
-        provider.getIcon(48, 18) == pngFile
+        createProvider().getIcon(48, 18) == pngFile
     }
     
     def "returns null when no distribution home"() {
-        given:
-        _ * locator.gradleHome >> null
-
         expect:
-        provider.getIcon(48, 18) == null
+        createProvider().getIcon(48, 18) == null
     }
 
     def "returns null when no icon with exact dimension"() {
         given:
-        def homeDir = tmpDir.testDirectory
-        _ * locator.gradleHome >> homeDir
+        installation = new GradleInstallation(tmpDir.testDirectory)
 
         expect:
-        provider.getIcon(48, 18) == null
+        createProvider().getIcon(48, 18) == null
     }
 }

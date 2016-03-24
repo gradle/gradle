@@ -46,7 +46,7 @@ class ProjectBuilderTest extends Specification {
         project.projectDir.parentFile != null
         project.gradle != null
         project.gradle.rootProject == project
-        project.gradle.gradleHomeDir == project.file('gradleHome')
+        project.gradle.gradleHomeDir == null
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
@@ -60,7 +60,7 @@ class ProjectBuilderTest extends Specification {
 
         then:
         project.projectDir == temporaryFolder.testDirectory
-        project.gradle.gradleHomeDir == project.file('gradleHome')
+        project.gradle.gradleHomeDir == null
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 

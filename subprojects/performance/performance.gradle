@@ -34,6 +34,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ':toolingApi', sourceSet: 'testFixtures')
 useClassycle()
 
 task reportResources(type: Copy) {
@@ -602,27 +603,37 @@ task buildReceiptReport {
     }
 }
 
+tasks.withType(Test){
+    ext.performanceTest = false
+}
+
+def performanceTestTasks = tasks.withType(Test).matching { it.performanceTest }
+
+
 task performanceTest(type: Test) {
-    dependsOn prepareSamples
-    finalizedBy report
-    maxParallelForks = 1
+    performanceTest = true
     options {
         includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
     }
 }
 
 task performanceExperiments(type: Test) {
-    dependsOn prepareSamples
-    finalizedBy report
-    maxParallelForks = 1
+    performanceTest = true
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
 
 task performanceAdhocTest(type: Test) {
-    dependsOn prepareSamples
+    performanceTest = true
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
+    maxParallelForks = 1
+}
+
+performanceTestTasks.all {
+    dependsOn prepareSamples
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    finalizedBy report
     maxParallelForks = 1
 }
 

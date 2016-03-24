@@ -18,22 +18,34 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final DefaultTestReport report = new DefaultTestReport()
+    BuildOperationProcessor buildOperationProcessor
+    DefaultTestReport report
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()
 
+    def reportWithMaxThreads(int numThreads) {
+        buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), new DefaultExecutorFactory(), numThreads)
+        return new DefaultTestReport(buildOperationProcessor)
+    }
+
     def generatesReportWhenThereAreNoTestResults() {
         given:
+        report = reportWithMaxThreads(1)
         emptyResultSet()
 
         when:
@@ -49,8 +61,10 @@ class DefaultTestReportTest extends Specification {
         index.assertHasNoNavLinks()
     }
 
-    def generatesReportWithAggregatedIndexPageForBuildWithNoFailures() {
+    @Unroll
+    def "generates report with aggregated index page for build with no failures - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def testTestResults = passingBuildResults()
 
         when:
@@ -102,10 +116,15 @@ class DefaultTestReportTest extends Specification {
         alsoPassedClassDetails.assertSuccessRate("100%");
         alsoPassedClassDetails.assertPassed()
         alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.subpackage.AlsoPassed.html");
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
-    def generatesReportWithAggregatedIndexPageForFailingBuild() {
+    @Unroll
+    def "generates report with aggregated index page for failing build - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def testTestResults = failingBuildResults()
 
         when:
@@ -187,10 +206,15 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertSuccessRate("50%");
         someFailedClassDetails.assertFailed()
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
-    def generatesReportWithAggregatedPackagePages() {
+    @Unroll
+    def "generates report with aggregated package pages - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def testTestResults = failingBuildResults()
 
         when:
@@ -261,10 +285,15 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertSuccessRate("50%");
         someFailedClassDetails.assertFailed()
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
-    def generatesReportWithClassPages() {
+    @Unroll
+    def "generates report with class pages - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def testTestResults = failingBuildResults()
 
         when:
@@ -338,10 +367,15 @@ class DefaultTestReportTest extends Specification {
         failingTestDetails.assertFailed()
 
         failingClassFile.assertHasFailure('failed', 'something failed\n\nthis is the failure\nat someClass\n')
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
-    def aggregateSameTestsRunWithDifferentResults() {
+    @Unroll
+    def "aggregate same tests run with different results - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def firstTestResults = aggregatedBuildResultsRun1()
         def secondTestResults = aggregatedBuildResultsRun2()
 
@@ -373,10 +407,15 @@ class DefaultTestReportTest extends Specification {
         failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'second')
 
         mixedClassFile.assertHasFailure('second', 'something failed\n\nthis is the failure\nat someClass\n')
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
-    def aggregateSameTestsDifferentMethodsRunWithDifferentResults() {
+    @Unroll
+    def "aggregate same tests different methods run with different results - #numThreads parallel thread(s)"() {
         given:
+        report = reportWithMaxThreads(numThreads)
         def firstTestResults = aggregatedBuildResultsRun1()
         def secondTestResults = aggregatedBuildResultsRun2('Alternative')
 
@@ -410,10 +449,14 @@ class DefaultTestReportTest extends Specification {
         failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'secondAlternative')
 
         mixedClassFile.assertHasFailure('secondAlternative', 'something failed\n\nthis is the failure\nat someClass\n')
+
+        where:
+        numThreads << [ 1, 4 ]
     }
 
     def reportsOnClassesInDefaultPackage() {
         given:
+        report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
             testClassResult("Test") {
                 testcase("test1") {
@@ -435,6 +478,7 @@ class DefaultTestReportTest extends Specification {
 
     def escapesHtmlContentInReport() {
         given:
+        report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
                 testcase("test1 < test2") {
@@ -458,6 +502,7 @@ class DefaultTestReportTest extends Specification {
 
     def encodesUnicodeCharactersInReport() {
         given:
+        report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
                 testcase('\u0107') {

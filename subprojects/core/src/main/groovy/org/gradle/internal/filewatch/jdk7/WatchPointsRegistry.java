@@ -18,7 +18,6 @@ package org.gradle.internal.filewatch.jdk7;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -34,17 +33,15 @@ class WatchPointsRegistry {
     private final static Logger LOG = Logging.getLogger(WatchPointsRegistry.class);
     private final CombinedRootSubset rootSubset = new CombinedRootSubset();
     private ImmutableSet<? extends File> allRequestedRoots;
-    private ImmutableCollection<? extends File> currentWatchPoints;
     private final boolean createNewStartingPointsUnderExistingRoots;
 
     public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
         this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
-        currentWatchPoints = ImmutableSet.of();
         allRequestedRoots = ImmutableSet.of();
     }
 
-    public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset) {
-        return new Delta(fileSystemSubset);
+    public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset, Iterable<? extends File> currentWatchPoints) {
+        return new Delta(fileSystemSubset, ImmutableSet.copyOf(currentWatchPoints));
     }
 
     public boolean shouldFire(File file) {
@@ -52,9 +49,9 @@ class WatchPointsRegistry {
     }
 
     public boolean shouldWatch(File directory) {
-        final boolean result = (rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !currentWatchPoints.contains(directory);
+        final boolean result = rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true);
         if (!result && LOG.isDebugEnabled()) {
-            LOG.debug("not watching directory: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", directory, currentWatchPoints, allRequestedRoots, rootSubset.roots, rootSubset.combinedFileSystemSubset);
+            LOG.debug("not watching directory: {} allRequestedRoots: {} roots: {} unfiltered: {}", directory, allRequestedRoots, rootSubset.roots, rootSubset.combinedFileSystemSubset);
         }
         return result;
     }
@@ -64,15 +61,16 @@ class WatchPointsRegistry {
         private Iterable<? extends File> roots;
         private FileSystemSubset combinedRoots;
         private Iterable<? extends File> startingWatchPoints;
+        private ImmutableSet<? extends File> currentWatchPoints;
 
-        private Delta(FileSystemSubset fileSystemSubset) {
+        private Delta(FileSystemSubset fileSystemSubset, ImmutableSet<? extends File> currentWatchPoints) {
             this.fileSystemSubset = fileSystemSubset;
+            this.currentWatchPoints = currentWatchPoints;
             init();
         }
 
         private Delta init() {
             roots = fileSystemSubset.getRoots();
-            allRequestedRoots = ImmutableSet.<File>builder().addAll(allRequestedRoots).addAll(roots).build();
             combinedRoots = fileSystemSubset.unfiltered();
             Iterable<? extends File> startingWatchPointCandidates = calculateStartingWatchPoints(roots, combinedRoots);
             if (!currentWatchPoints.isEmpty()) {
@@ -90,13 +88,14 @@ class WatchPointsRegistry {
                 rootSubset.append(fileSystemSubset);
                 currentWatchPoints = ImmutableSet.copyOf(startingWatchPoints);
             }
+            allRequestedRoots = ImmutableSet.<File>builder().addAll(allRequestedRoots).addAll(roots).build();
             return this;
         }
 
         private ImmutableSet<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
             final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
             for (File file : startingWatchPointCandidates) {
-                if (!currentWatchPoints.contains(file)) {
+                if (!allRequestedRoots.contains(file) || !currentWatchPoints.contains(file)) {
                     newStartingPoints.add(file);
                 }
             }

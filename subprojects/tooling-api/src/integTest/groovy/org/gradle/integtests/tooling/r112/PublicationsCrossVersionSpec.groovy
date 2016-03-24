@@ -208,7 +208,7 @@ publishing {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message.contains('does not support building a model of type \'ProjectPublications\'.') || 
+        e.message.contains('does not support building a model of type \'ProjectPublications\'.') ||
         e.message.contains('No model of type \'ProjectPublications\' is available in this build.')
     }
 }

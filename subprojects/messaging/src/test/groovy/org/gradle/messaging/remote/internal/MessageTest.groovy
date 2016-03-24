@@ -298,7 +298,7 @@ class MessageTest extends Specification {
         return message.payload
     }
 
-    static class TestPayloadMessage extends Message {
+    static class TestPayloadMessage implements Serializable {
         def payload
     }
 

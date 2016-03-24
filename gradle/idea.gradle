@@ -219,7 +219,11 @@ idea {
         def defaultTestVmParams = [
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
-                "-DintegTest.gradleHomeDir=${intTestImage.destinationDir}",
+                "-DintegTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
+                "-DintegTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
+                "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
+                "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
+                "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-ea",
                 "-XX:MaxPermSize=512m",
@@ -298,10 +302,23 @@ idea {
             listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Application.${runnerName}' />"
         }
 
+        // Add remote debugger configuration
+        runManagerConfig.append(new XmlParser().parseText("""
+            <configuration default="false" name="Remote debug port 5005" type="Remote" factoryName="Remote">
+              <option name="USE_SOCKET_TRANSPORT" value="true" />
+              <option name="SERVER_MODE" value="false" />
+              <option name="SHMEM_ADDRESS" value="javadebug" />
+              <option name="HOST" value="localhost" />
+              <option name="PORT" value="5005" />
+              <method />
+            </configuration>
+        """))
+        listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Remote.Remote debug port 5005' />"
+
         runManagerConfig.append(new XmlParser().parseText("""
             <list size='${listItems.size() + 1}'>
               <item index='0' class='java.lang.String' itemvalue='Application.Gradle' />
-              ${listItems}
+              ${listItems.join('\n')}
             </list>
         """))
     }

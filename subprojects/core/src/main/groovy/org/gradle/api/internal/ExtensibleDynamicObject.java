@@ -57,7 +57,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
-        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention(instantiator));
+        this(delegate, createDynamicObject(delegate), new DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
@@ -70,6 +70,10 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
 
         updateDelegates();
+    }
+
+    private static BeanDynamicObject createDynamicObject(Object delegate) {
+        return new BeanDynamicObject(delegate);
     }
 
     private void updateDelegates() {

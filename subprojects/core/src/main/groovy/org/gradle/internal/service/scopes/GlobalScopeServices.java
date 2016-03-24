@@ -22,12 +22,14 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.classpath.*;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -53,6 +55,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -73,8 +76,10 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.util.GradleVersion;
 
-import java.io.File;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.List;
 
 /**
@@ -129,12 +134,12 @@ public class GlobalScopeServices {
                 pluginModuleRegistry));
     }
 
-    ModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry(additionalModuleClassPath);
+    ModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
-    GradleDistributionLocator createGradleDistributionLocator() {
-        return new DefaultGradleDistributionLocator();
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return CurrentGradleInstallation.locate();
     }
 
     DocumentationRegistry createDocumentationRegistry() {
@@ -149,8 +154,20 @@ public class GlobalScopeServices {
         return new DefaultCacheFactory(fileLockManager);
     }
 
-    DefaultClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        if (codeSource != null) {
+            URL location = codeSource.getLocation();
+            if (location.getProtocol().equals("file") && location.getPath().endsWith("gradle-api-" + GradleVersion.current().getVersion() + ".jar")) {
+                return new FlatClassLoaderRegistry(getClass().getClassLoader());
+            }
+        }
+
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);
+    }
+
+    JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
+        return new DefaultJdkToolsInitializer(classLoaderFactory);
     }
 
     ListenerManager createListenerManager() {
@@ -161,8 +178,8 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderFactory();
     }
 
-    MessagingServices createMessagingServices(ClassLoaderRegistry classLoaderRegistry) {
-        return new MessagingServices(getClass().getClassLoader());
+    MessagingServices createMessagingServices() {
+        return new MessagingServices();
     }
 
     MessagingServer createMessagingServer(MessagingServices messagingServices) {
@@ -226,15 +243,7 @@ public class GlobalScopeServices {
     }
 
     ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment, final CachingFileSnapshotter fileSnapshotter) {
-        if (environment.isLongLivingProcess()) {
-            return new HashClassPathSnapshotter(new Hasher() {
-                public byte[] hash(File file) {
-                    return fileSnapshotter.snapshot(file).getHash();
-                }
-            });
-        } else {
-            return new FileClassPathSnapshotter();
-        }
+        return new HashClassPathSnapshotter(fileSnapshotter);
     }
 
     MapBackedInMemoryStore createInMemoryStore() {

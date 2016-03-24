@@ -17,7 +17,7 @@
 package org.gradle.internal.operations;
 
 
-import org.gradle.api.Nullable;
+import org.gradle.api.Action;
 
 /**
  * A processor for executing build operations.
@@ -28,7 +28,9 @@ public interface BuildOperationProcessor {
      *
      * @param worker The action to be executed for each operation.
      * @param <T> The type of operations the worker uses.
-     * @return A queue to add operations to and wait for their completion.
+     * @param generator An action that populates the queue with build operations
      */
-    <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker, @Nullable String logLocation);
+    <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator);
+
+    <T extends RunnableBuildOperation> void run(Action<BuildOperationQueue<T>> generator);
 }

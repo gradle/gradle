@@ -16,13 +16,14 @@
 
 package org.gradle.initialization;
 
-import groovy.lang.MissingPropertyException;
+import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,39 +46,62 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
         buildLoader.load(rootProjectDescriptor, defaultProject, gradle, classLoaderScope);
-        setProjectProperties(gradle.getRootProject());
+        setProjectProperties(gradle.getRootProject(), new Applicator());
     }
 
-    private void setProjectProperties(Project project) {
-        addPropertiesToProject(project);
+    private void setProjectProperties(Project project, Applicator applicator) {
+        addPropertiesToProject(project, applicator);
         for (Project childProject : project.getChildProjects().values()) {
-            setProjectProperties(childProject);
+            setProjectProperties(childProject, applicator);
         }
     }
 
-    private void addPropertiesToProject(Project project) {
+    private void addPropertiesToProject(Project project, Applicator applicator) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
         if (projectPropertiesFile.isFile()) {
             projectProperties = GUtil.loadProperties(projectPropertiesFile);
             LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",
-                    projectProperties.keySet());
+                projectProperties.keySet());
         } else {
             LOGGER.debug("project property file does not exists. We continue!");
         }
-        
+
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
-        ExtraPropertiesExtension extraProperties = new DslObject(project).getExtensions().getExtraProperties();
-        for (Map.Entry<String, String> entry: mergedProperties.entrySet()) {
-            try {
-                project.setProperty(entry.getKey(), entry.getValue());
-            } catch (MissingPropertyException e) {
-                if (!entry.getKey().equals(e.getProperty())) {
-                    throw e;
+        for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
+            applicator.configureProperty(project, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Applies the given properties to the project and its subprojects, caching property mutators whenever possible
+     * to avoid too many searches.
+     */
+    private static class Applicator {
+        private final Map<String, PropertyMutator> mutators = Maps.newHashMap();
+        private Class<? extends Project> projectClazz;
+
+        void configureProperty(Project project, String name, String value) {
+            Class<? extends Project> clazz = project.getClass();
+            if (clazz != projectClazz) {
+                mutators.clear();
+                projectClazz = clazz;
+            }
+            PropertyMutator propertyMutator = mutators.get(name);
+            if (propertyMutator != null) {
+                propertyMutator.setValue(project, value);
+            } else {
+                if (!mutators.containsKey(name)) {
+                    propertyMutator = JavaReflectionUtil.writeablePropertyIfExists(clazz, name);
+                    mutators.put(name, propertyMutator);
+                    if (propertyMutator != null) {
+                        propertyMutator.setValue(project, value);
+                        return;
+                    }
                 }
-                // Ignore and define as an extra property
-                extraProperties.set(entry.getKey(), entry.getValue());
+                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
+                extraProperties.set(name, value);
             }
         }
     }

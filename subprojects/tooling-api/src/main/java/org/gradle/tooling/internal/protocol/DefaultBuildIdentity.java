@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.composite.internal.BuildIdentityInternal;
+import org.gradle.tooling.connection.internal.BuildIdentityInternal;
 
 import java.io.File;
 import java.io.Serializable;

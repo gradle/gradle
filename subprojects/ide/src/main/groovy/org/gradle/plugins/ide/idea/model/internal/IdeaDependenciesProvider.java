@@ -63,6 +63,10 @@ public class IdeaDependenciesProvider {
                 Lists.newArrayList(new IdeaScopeMappingRule("providedCompile"), new IdeaScopeMappingRule("providedRuntime")));
         scopeMappings.put(GeneratedIdeaScope.COMPILE,
                 Collections.singletonList(new IdeaScopeMappingRule("compile")));
+        scopeMappings.put(GeneratedIdeaScope.RUNTIME_COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath", "runtime")));
+        scopeMappings.put(GeneratedIdeaScope.RUNTIME_TEST_COMPILE_CLASSPATH,
+                Collections.singletonList(new IdeaScopeMappingRule("compileClasspath", "testRuntime")));
         scopeMappings.put(GeneratedIdeaScope.RUNTIME_TEST,
                 Collections.singletonList(new IdeaScopeMappingRule("testCompile", "runtime")));
         scopeMappings.put(GeneratedIdeaScope.RUNTIME,

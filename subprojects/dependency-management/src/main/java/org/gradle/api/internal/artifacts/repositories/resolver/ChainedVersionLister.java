@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resource.ResourceException;
-import org.gradle.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,12 +41,12 @@ public class ChainedVersionLister implements VersionLister {
         }
         return new VersionPatternVisitor() {
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                ResourceNotFoundException failure = null;
+                MissingResourceException failure = null;
                 for (VersionPatternVisitor list : visitors) {
                     try {
                         list.visit(pattern, artifact);
                         return;
-                    } catch (ResourceNotFoundException e) {
+                    } catch (MissingResourceException e) {
                         // Try next
                         if (failure == null) {
                             failure = e;

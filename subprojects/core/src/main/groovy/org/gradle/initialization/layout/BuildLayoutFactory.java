@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.internal.resource.ResourceNotFoundException;
+import org.gradle.api.resources.MissingResourceException;
 
 import java.io.File;
 
@@ -37,7 +37,7 @@ public class BuildLayoutFactory {
         File explicitSettingsFile = configuration.getSettingsFile();
         if (explicitSettingsFile != null) {
             if (!explicitSettingsFile.isFile()) {
-                throw new ResourceNotFoundException(explicitSettingsFile.toURI(), String.format("Could not read settings file '%s' as it does not exist.", explicitSettingsFile.getAbsolutePath()));
+                throw new MissingResourceException(explicitSettingsFile.toURI(), String.format("Could not read settings file '%s' as it does not exist.", explicitSettingsFile.getAbsolutePath()));
             }
             return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), explicitSettingsFile);
         }

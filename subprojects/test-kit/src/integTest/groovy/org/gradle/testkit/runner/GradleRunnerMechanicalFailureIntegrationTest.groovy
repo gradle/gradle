@@ -142,6 +142,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
             task helloWorld {
                 doLast {
                     println 'Hello world!'
+                    sleep(500)
                     Runtime.runtime.halt(0)
                     println 'Bye world!'
                 }

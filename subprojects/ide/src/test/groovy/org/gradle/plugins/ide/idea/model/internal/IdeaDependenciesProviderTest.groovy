@@ -183,6 +183,29 @@ public class IdeaDependenciesProviderTest extends Specification {
         assertSingleLibrary(result, 'TEST', 'foo-impl.jar')
     }
 
+    def "compile only dependency conflicts with runtime dependencies"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('compileOnly', project.files('lib/foo-runtime.jar'))
+        project.dependencies.add('compileOnly', project.files('lib/foo-testRuntime.jar'))
+        project.dependencies.add('runtime', project.files('lib/foo-runtime.jar'))
+        project.dependencies.add('testRuntime', project.files('lib/foo-testRuntime.jar'))
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 4
+        assertSingleLibrary(result, 'PROVIDED', 'foo-runtime.jar')
+        assertSingleLibrary(result, 'PROVIDED', 'foo-testRuntime.jar')
+        assertSingleLibrary(result, 'RUNTIME', 'foo-runtime.jar')
+        assertSingleLibrary(result, 'TEST', 'foo-testRuntime.jar')
+    }
+
     def "ignore unknown configurations"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')

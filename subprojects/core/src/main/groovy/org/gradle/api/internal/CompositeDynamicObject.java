@@ -112,7 +112,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                     object.setProperty(name, value);
                     return;
                 } catch (MissingPropertyException e) {
-                    if (e.getProperty() == null || !e.getProperty().equals(name)) {
+                    if (!name.equals(e.getProperty())) {
                         throw e;
                     }
                 }

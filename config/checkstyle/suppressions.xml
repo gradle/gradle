@@ -9,6 +9,8 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]resources[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]resources[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
