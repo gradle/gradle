@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite
+package org.gradle.tooling.internal.connection
 
 import spock.lang.Specification
 

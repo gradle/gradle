@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.composite.BuildIdentity
-import org.gradle.tooling.composite.ModelResult
-import org.gradle.tooling.composite.ProjectIdentity
+import org.gradle.tooling.connection.BuildIdentity
+import org.gradle.tooling.connection.ModelResult
+import org.gradle.tooling.connection.ProjectIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject

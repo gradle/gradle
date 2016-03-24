@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite;
+package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.BuildLauncher;
@@ -95,7 +95,7 @@ public interface GradleConnection {
         Builder addBuilds(GradleBuild... gradleBuilds);
 
         /**
-         * Builds the connection. You should call {@link org.gradle.tooling.composite.GradleConnection#close()} when you are finished with the connection.
+         * Builds the connection. You should call {@link org.gradle.tooling.connection.GradleConnection#close()} when you are finished with the connection.
          *
          * @return The connection. Never returns null.
          * @throws GradleConnectionException If the composite is invalid (e.g., no participants).

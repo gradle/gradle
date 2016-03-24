@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite;
-
-import org.gradle.api.Incubating;
-
 /**
- * A set of model results for multiple projects.
- * @param <T> the type of model requested
+ * The main interfaces and classes to create composite Gradle connections.
  */
-@Incubating
-public interface ModelResults<T> extends Iterable<ModelResult<T>> {
-}
+package org.gradle.tooling.connection;

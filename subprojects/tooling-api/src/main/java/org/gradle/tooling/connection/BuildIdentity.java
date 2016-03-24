@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
+package org.gradle.tooling.connection;
+
+import org.gradle.api.Incubating;
+
 /**
- * The main interfaces and classes to create composite Gradle connections.
+ * Identifies a Gradle build.
+ * <p>
+ *     A Gradle Build is a collection of one or more projects.
+ * </p>
+ *
+ * @since 2.13
  */
-package org.gradle.tooling.composite;
+@Incubating
+public interface BuildIdentity {
+}

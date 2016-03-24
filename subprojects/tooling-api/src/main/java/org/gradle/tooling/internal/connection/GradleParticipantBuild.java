@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.File;

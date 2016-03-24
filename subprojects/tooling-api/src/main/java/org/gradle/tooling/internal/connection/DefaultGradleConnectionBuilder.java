@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.composite.GradleBuild;
-import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.connection.GradleBuild;
+import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;

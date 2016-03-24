@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.composite.ModelResult;
-import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.connection.ModelResult;
+import org.gradle.tooling.connection.ProjectIdentity;
 
 public class DefaultModelResult<T> implements ModelResult<T> {
     private final T model;

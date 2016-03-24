@@ -17,7 +17,7 @@
 package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.composite.*;
+import org.gradle.tooling.connection.*;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.eclipse.EclipseProject;

@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.composite.GradleBuildInternal;
+import org.gradle.tooling.internal.connection.GradleBuildInternal;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.connection.GradleBuild;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
+import java.net.URI;
 
-public interface GradleConnectionInternal extends GradleConnection {
-    interface Builder extends GradleConnection.Builder {
-        Builder embeddedCoordinator(boolean embedded);
+public interface GradleBuildInternal extends GradleBuild {
+    File getProjectDir();
 
-        Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
+    String getDisplayName();
 
-        Builder daemonBaseDir(File daemonBaseDir);
+    File getGradleHome();
 
-        Builder useClasspathDistribution();
-    }
+    URI getGradleDistribution();
+
+    String getGradleVersion();
 }

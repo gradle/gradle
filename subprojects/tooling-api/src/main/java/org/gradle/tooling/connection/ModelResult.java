@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite;
+package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.GradleConnectionException;

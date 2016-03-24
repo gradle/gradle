@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.connection.GradleConnection;
 
-/**
- * Identifies a Gradle build.
- * <p>
- *     A Gradle Build is a collection of one or more projects.
- * </p>
- *
- * @since 2.13
- */
-@Incubating
-public interface BuildIdentity {
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+public interface GradleConnectionInternal extends GradleConnection {
+    interface Builder extends GradleConnection.Builder {
+        Builder embeddedCoordinator(boolean embedded);
+
+        Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
+
+        Builder daemonBaseDir(File daemonBaseDir);
+
+        Builder useClasspathDistribution();
+    }
 }

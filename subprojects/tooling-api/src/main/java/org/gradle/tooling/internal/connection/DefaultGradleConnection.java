@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.ModelResults;
-import org.gradle.tooling.composite.internal.BuildIdentityInternal;
+import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.connection.ModelResults;
+import org.gradle.tooling.connection.internal.BuildIdentityInternal;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 

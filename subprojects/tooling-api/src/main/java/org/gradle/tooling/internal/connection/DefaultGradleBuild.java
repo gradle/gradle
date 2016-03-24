@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
 import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 

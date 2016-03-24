@@ -19,9 +19,9 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.composite.GradleBuild
-import org.gradle.tooling.composite.GradleConnection
-import org.gradle.tooling.composite.ModelResult
+import org.gradle.tooling.connection.GradleBuild
+import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.ModelResult
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)

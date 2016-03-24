@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.composite.internal;
+package org.gradle.tooling.connection;
 
-import org.gradle.tooling.composite.BuildIdentity;
+import org.gradle.api.Incubating;
 
-import java.io.File;
-
-public interface BuildIdentityInternal extends BuildIdentity {
-    File getRootDirectory();
+/**
+ * A set of model results for multiple projects.
+ * @param <T> the type of model requested
+ */
+@Incubating
+public interface ModelResults<T> extends Iterable<ModelResult<T>> {
 }

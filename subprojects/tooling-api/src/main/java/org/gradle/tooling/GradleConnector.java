@@ -16,8 +16,8 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.composite.GradleBuild;
-import org.gradle.tooling.composite.GradleConnection;
+import org.gradle.tooling.connection.GradleBuild;
+import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;

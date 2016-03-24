@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;

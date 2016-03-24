@@ -22,10 +22,10 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.composite.BuildIdentity
-import org.gradle.tooling.composite.GradleConnection
-import org.gradle.tooling.composite.ModelResult
-import org.gradle.tooling.composite.ModelResults
+import org.gradle.tooling.connection.BuildIdentity
+import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.ModelResult
+import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 public interface MultiModelProducer extends ModelProducer {

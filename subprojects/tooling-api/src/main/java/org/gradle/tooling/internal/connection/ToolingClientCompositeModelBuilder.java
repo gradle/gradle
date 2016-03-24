@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Lists;
 import org.gradle.tooling.*;
-import org.gradle.tooling.composite.ModelResult;
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;

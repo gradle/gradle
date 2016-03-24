@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.composite;
+package org.gradle.tooling.connection.internal;
 
-import org.gradle.tooling.composite.GradleBuild;
+import org.gradle.tooling.connection.BuildIdentity;
 
 import java.io.File;
-import java.net.URI;
 
-public interface GradleBuildInternal extends GradleBuild {
-    File getProjectDir();
-
-    String getDisplayName();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
+public interface BuildIdentityInternal extends BuildIdentity {
+    File getRootDirectory();
 }

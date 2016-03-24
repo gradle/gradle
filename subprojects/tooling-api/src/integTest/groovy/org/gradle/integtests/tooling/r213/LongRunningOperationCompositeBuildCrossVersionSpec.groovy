@@ -20,10 +20,10 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.composite.BuildIdentity
-import org.gradle.tooling.composite.GradleBuild
-import org.gradle.tooling.composite.GradleConnection
-import org.gradle.tooling.composite.ModelResults
+import org.gradle.tooling.connection.BuildIdentity
+import org.gradle.tooling.connection.GradleBuild
+import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore

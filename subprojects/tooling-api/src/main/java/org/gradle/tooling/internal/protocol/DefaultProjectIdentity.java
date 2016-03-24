@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.composite.BuildIdentity;
-import org.gradle.tooling.composite.ProjectIdentity;
+import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.connection.ProjectIdentity;
 
 import java.io.File;
 import java.io.Serializable;
