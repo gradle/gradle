@@ -42,10 +42,19 @@ public class JvmOptions {
     public static final String USER_COUNTRY_KEY = "user.country";
     public static final String USER_VARIANT_KEY = "user.variant";
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
-    public static final String JAVA_IO_TMPDIR = "java.io.tmpdir";
+    public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
+
+
+    public static final String SSL_KEYSTORE_KEY = "javax.net.ssl.keyStore";
+    public static final String SSL_KEYSTOREPASSWORD_KEY = "javax.net.ssl.keyStorePassword";
+    public static final String SSL_KEYSTORETYPE_KEY = "javax.net.ssl.keyStoreType";
+    public static final String SSL_TRUSTSTORE_KEY = "javax.net.ssl.trustStore";
+    public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
+    public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
-            FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR
+        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY,
+        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default

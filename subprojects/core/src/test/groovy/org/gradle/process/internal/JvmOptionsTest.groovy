@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
@@ -25,25 +24,27 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
+import static org.gradle.process.internal.JvmOptions.*
+
 class JvmOptionsTest extends Specification {
     final String defaultCharset = Charset.defaultCharset().name()
 
     def "reads options from String"() {
         expect:
-        JvmOptions.fromString("") == []
-        JvmOptions.fromString("-Xmx512m") == ["-Xmx512m"]
-        JvmOptions.fromString("\t-Xmx512m\n") == ["-Xmx512m"]
-        JvmOptions.fromString(" -Xmx512m   -Dfoo=bar\n-XDebug  ") == ["-Xmx512m", "-Dfoo=bar", "-XDebug"]
+        fromString("") == []
+        fromString("-Xmx512m") == ["-Xmx512m"]
+        fromString("\t-Xmx512m\n") == ["-Xmx512m"]
+        fromString(" -Xmx512m   -Dfoo=bar\n-XDebug  ") == ["-Xmx512m", "-Dfoo=bar", "-XDebug"]
     }
 
     def "reads quoted options from String"() {
         expect:
-        JvmOptions.fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
-                ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
+        fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
+            ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
 
-        JvmOptions.fromString("  -Dfoo=\" bar \"  ") == ["-Dfoo= bar "]
-        JvmOptions.fromString("  -Dx=\"\"  -Dy=\"\n\" ") == ["-Dx=", "-Dy=\n"]
-        JvmOptions.fromString(" \"-Dx= a b c \" -Dy=\" x y z \" ") == ["-Dx= a b c ", "-Dy= x y z "]
+        fromString("  -Dfoo=\" bar \"  ") == ["-Dfoo= bar "]
+        fromString("  -Dx=\"\"  -Dy=\"\n\" ") == ["-Dx=", "-Dy=\n"]
+        fromString(" \"-Dx= a b c \" -Dy=\" x y z \" ") == ["-Dx= a b c ", "-Dy= x y z "]
     }
 
     def "understands quoted system properties and jvm opts"() {
@@ -159,19 +160,24 @@ class JvmOptionsTest extends Specification {
         opts.jvmArgs(propAsArg)
 
         then:
-        opts.allImmutableJvmArgs.contains(propAsArg)
+        opts.allImmutableJvmArgs.contains(propAsArg.toString())
         and:
         opts.immutableSystemProperties.containsKey(propKey)
 
         where:
-
-        propDescr        | propKey                      | propAsArg
-        "file encoding"  | JvmOptions.FILE_ENCODING_KEY | "-Dfile.encoding=UTF-8"
-        "user variant"   | JvmOptions.USER_VARIANT_KEY  | "-Duser.variant"
-        "user language"  | JvmOptions.USER_LANGUAGE_KEY | "-Duser.language=en"
-        "user country"   | JvmOptions.USER_COUNTRY_KEY  | "-Duser.country=US"
-        "jmx remote"     | JvmOptions.JMX_REMOTE_KEY    | "-Dcom.sun.management.jmxremote"
-        "temp directory" | JvmOptions.JAVA_IO_TMPDIR    | "-Djava.io.tmpdir=/some/tmp/folder"
+        propDescr                 | propKey                  | propAsArg
+        "file encoding"           | FILE_ENCODING_KEY        | "-D${FILE_ENCODING_KEY}=UTF-8"
+        "user variant"            | USER_VARIANT_KEY         | "-D${USER_VARIANT_KEY}"
+        "user language"           | USER_LANGUAGE_KEY        | "-D${USER_LANGUAGE_KEY}=en"
+        "user country"            | USER_COUNTRY_KEY         | "-D${USER_COUNTRY_KEY}=US"
+        "jmx remote"              | JMX_REMOTE_KEY           | "-D${JMX_REMOTE_KEY}"
+        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
+        "ssl keystore path"       | SSL_KEYSTORE_KEY         | "-D${SSL_KEYSTORE_KEY}=/keystore/path"
+        "ssl keystore password"   | SSL_KEYSTOREPASSWORD_KEY | "-D${SSL_KEYSTOREPASSWORD_KEY}=secret"
+        "ssl keystore type"       | SSL_KEYSTORETYPE_KEY     | "-D${SSL_KEYSTORETYPE_KEY}=jks"
+        "ssl truststore path"     | SSL_TRUSTSTORE_KEY       | "-D${SSL_TRUSTSTORE_KEY}=truststore/path"
+        "ssl truststore password" | SSL_TRUSTPASSWORD_KEY    | "-D${SSL_TRUSTPASSWORD_KEY}=secret"
+        "ssl truststore type"     | SSL_TRUSTSTORETYPE_KEY   | "-D${SSL_TRUSTSTORETYPE_KEY}=jks"
     }
 
     @Unroll
@@ -182,11 +188,17 @@ class JvmOptionsTest extends Specification {
         then:
         opts.allJvmArgs.contains("-D${propKey}=${propValue}".toString());
         where:
-        propDescr        | propKey                      | propValue
-        "file encoding"  | JvmOptions.FILE_ENCODING_KEY | "ISO-8859-1"
-        "user country"   | JvmOptions.USER_COUNTRY_KEY  | "en"
-        "user language"  | JvmOptions.USER_LANGUAGE_KEY | "US"
-        "temp directory" | JvmOptions.JAVA_IO_TMPDIR    | "/some/tmp/folder"
+        propDescr                 | propKey                  | propValue
+        "file encoding"           | FILE_ENCODING_KEY        | "ISO-8859-1"
+        "user country"            | USER_COUNTRY_KEY         | "en"
+        "user language"           | USER_LANGUAGE_KEY        | "US"
+        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "/some/tmp/folder"
+        "ssl keystore path"       | SSL_KEYSTORE_KEY         | "/keystore/path"
+        "ssl keystore password"   | SSL_KEYSTOREPASSWORD_KEY | "secret"
+        "ssl keystore type"       | SSL_KEYSTORETYPE_KEY     | "jks"
+        "ssl truststore path"     | SSL_TRUSTSTORE_KEY       | "truststore/path"
+        "ssl truststore password" | SSL_TRUSTPASSWORD_KEY    | "secret"
+        "ssl truststore type"     | SSL_TRUSTSTORETYPE_KEY   | "jks"
     }
 
     def "can enter debug mode"() {
@@ -200,7 +212,7 @@ class JvmOptionsTest extends Specification {
     def "can enter debug mode after setting other options"() {
         def opts = createOpts()
         when:
-        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         opts.debug = true
         then:
         opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
@@ -210,7 +222,7 @@ class JvmOptionsTest extends Specification {
         def opts = createOpts()
         opts.debug = true
         when:
-        opts.jvmArgs(JvmOptions.fromString('-Xmx1G -Xms1G'))
+        opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         then:
         opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
     }
@@ -241,7 +253,7 @@ class JvmOptionsTest extends Specification {
 
     private JvmOptions parse(String optsString) {
         def opts = createOpts()
-        opts.jvmArgs(JvmOptions.fromString(optsString))
+        opts.jvmArgs(fromString(optsString))
         opts
     }
 
