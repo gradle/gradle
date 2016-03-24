@@ -114,9 +114,9 @@ public interface GradleConnectionBuilder {
         ParticipantBuilder useDistribution(URI gradleDistribution);
 
         /**
-         * Creates an immutable GradleBuild instance based on this builder.
+         * Creates the participant and adds it to the Gradle connection.
          *
-         * @return a new instance, never null.
+         * @return The identity of the created participant.
          */
         BuildIdentity create();
     }

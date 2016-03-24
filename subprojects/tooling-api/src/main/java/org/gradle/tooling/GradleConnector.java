@@ -73,7 +73,7 @@ public abstract class GradleConnector {
      * @since 2.13
      */
     @Incubating
-    public static GradleConnectionBuilder newGradleConnectionBuilder() {
+    public static GradleConnectionBuilder newGradleConnection() {
         return ConnectorServices.createGradleConnectionBuilder();
     }
 

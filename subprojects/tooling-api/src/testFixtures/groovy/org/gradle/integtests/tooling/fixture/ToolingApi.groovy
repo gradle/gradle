@@ -199,7 +199,7 @@ class ToolingApi implements TestRule {
     }
 
     def createCompositeBuilder() {
-        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnectionBuilder()
+        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection()
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         builder.daemonBaseDir(new File(daemonBaseDir.path))
         builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
