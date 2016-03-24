@@ -17,8 +17,12 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+
+@IgnoreIf({GradleContextualExecuter.parallel}) // uploadArchive task is not parallel-friendly
 class MavenMultiProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
