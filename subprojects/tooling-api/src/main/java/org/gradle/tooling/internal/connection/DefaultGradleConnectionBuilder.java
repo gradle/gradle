@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.connection;
 import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.GradleBuild;
+import org.gradle.tooling.connection.GradleBuildBuilder;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
@@ -63,6 +64,11 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         }
         participants.add((GradleBuildInternal)gradleBuild);
         return this;
+    }
+
+    @Override
+    public GradleBuildBuilder newParticipant(File projectDirectory) {
+        return new DefaultGradleBuildBuilder(projectDirectory);
     }
 
     @Override
@@ -133,4 +139,57 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
+
+    private static class DefaultGradleBuildBuilder implements GradleBuildBuilder {
+        private final File projectDir;
+        private File gradleHome;
+        private URI gradleDistribution;
+        private String gradleVersion;
+
+        public DefaultGradleBuildBuilder(File projectDir) {
+            if (projectDir == null) {
+                throw new IllegalArgumentException("Project directory cannot be null.");
+            }
+            this.projectDir = projectDir;
+        }
+
+        @Override
+        public GradleBuildBuilder useBuildDistribution() {
+            resetDistribution();
+            return this;
+        }
+
+        @Override
+        public GradleBuildBuilder useInstallation(File gradleHome) {
+            resetDistribution();
+            this.gradleHome = gradleHome;
+            return this;
+        }
+
+        @Override
+        public GradleBuildBuilder useGradleVersion(String gradleVersion) {
+            resetDistribution();
+            this.gradleVersion = gradleVersion;
+            return this;
+        }
+
+        @Override
+        public GradleBuildBuilder useDistribution(URI gradleDistribution) {
+            resetDistribution();
+            this.gradleDistribution = gradleDistribution;
+            return this;
+        }
+
+        @Override
+        public GradleBuildInternal create() {
+            return new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+        }
+
+        private void resetDistribution() {
+            this.gradleHome = null;
+            this.gradleDistribution = null;
+            this.gradleVersion = null;
+        }
+    }
+
 }

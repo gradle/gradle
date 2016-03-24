@@ -15,7 +15,6 @@
  */
 
 package org.gradle.tooling.internal.connection
-
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.tooling.internal.consumer.DistributionFactory
 import org.gradle.tooling.internal.consumer.LoggingProvider
@@ -23,13 +22,13 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import spock.lang.Specification
 
 class DefaultGradleConnectionBuilderTest extends Specification {
-    ToolingImplementationLoader toolingImplementationLoader = Mock()
-    ExecutorFactory executorFactory = Mock()
-    LoggingProvider loggingProvider = Mock()
-    GradleConnectionFactory connectionFactory = new GradleConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider)
-    DistributionFactory distributionFactory = Mock()
+    final connectionFactory = new GradleConnectionFactory(Mock(ToolingImplementationLoader), Mock(ExecutorFactory), Mock(LoggingProvider))
+    final builder = new DefaultGradleConnectionBuilder(connectionFactory, Mock(DistributionFactory))
 
-    def builder = new DefaultGradleConnectionBuilder(connectionFactory, distributionFactory)
+    final rootDir = new File("build-root")
+    final gradleDistribution = new URI("http://www.gradle.org")
+    final gradleHome = Mock(File)
+    final gradleVersion = "1.0"
 
     def "requires at least one participant"() {
         when:
@@ -37,4 +36,86 @@ class DefaultGradleConnectionBuilderTest extends Specification {
         then:
         thrown(IllegalStateException)
     }
+
+    def "builds a GradleBuild with just a project directory"() {
+        when:
+        def gradleBuild = builder.newParticipant(rootDir).create()
+
+        then:
+        gradleBuild.projectDir.absolutePath == rootDir.absolutePath
+        assertBuildDistribution(gradleBuild)
+    }
+
+    def "requires a project directory"() {
+        when:
+        builder.newParticipant(null).create()
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "uses last configured distribution option"() {
+        given:
+        def participant = builder.newParticipant(rootDir)
+
+        when:
+        participant.useDistribution(gradleDistribution)
+        participant.useInstallation(gradleHome)
+        participant.useGradleVersion(gradleVersion)
+        participant.useBuildDistribution()
+        def gradleBuild = participant.create()
+        then:
+        assertBuildDistribution(gradleBuild)
+
+        when:
+        participant.useBuildDistribution()
+        participant.useDistribution(gradleDistribution)
+        participant.useInstallation(gradleHome)
+        participant.useGradleVersion(gradleVersion)
+        gradleBuild = participant.create()
+        then:
+        assertGradleVersionDistribution(gradleBuild)
+
+        when:
+        participant.useGradleVersion(gradleVersion)
+        participant.useBuildDistribution()
+        participant.useDistribution(gradleDistribution)
+        participant.useInstallation(gradleHome)
+        gradleBuild = participant.create()
+        then:
+        assertFileDistribution(gradleBuild)
+
+        when:
+        participant.useInstallation(gradleHome)
+        participant.useGradleVersion(gradleVersion)
+        participant.useBuildDistribution()
+        participant.useDistribution(gradleDistribution)
+        gradleBuild = participant.create()
+        then:
+        assertURIDistribution(gradleBuild)
+    }
+
+    void assertBuildDistribution(gradleBuildInternal) {
+        assert gradleBuildInternal.gradleDistribution == null
+        assert gradleBuildInternal.gradleHome == null
+        assert gradleBuildInternal.gradleVersion == null
+    }
+
+    void assertURIDistribution(gradleBuildInternal) {
+        assert gradleBuildInternal.gradleDistribution == gradleDistribution
+        assert gradleBuildInternal.gradleHome == null
+        assert gradleBuildInternal.gradleVersion == null
+    }
+
+    void assertFileDistribution(gradleBuildInternal) {
+        assert gradleBuildInternal.gradleDistribution == null
+        assert gradleBuildInternal.gradleHome == gradleHome
+        assert gradleBuildInternal.gradleVersion == null
+    }
+
+    void assertGradleVersionDistribution(gradleBuildInternal) {
+        assert gradleBuildInternal.gradleDistribution == null
+        assert gradleBuildInternal.gradleHome == null
+        assert gradleBuildInternal.gradleVersion == gradleVersion
+    }
+
 }

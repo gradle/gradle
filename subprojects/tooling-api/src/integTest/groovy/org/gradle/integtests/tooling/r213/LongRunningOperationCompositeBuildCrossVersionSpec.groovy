@@ -15,13 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.connection.BuildIdentity
-import org.gradle.tooling.connection.GradleBuild
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -32,7 +29,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     def escapeHeader = "\u001b["
     TestFile singleBuild
-    GradleBuild singleBuildParticipant
     ModelResults<EclipseProject> modelResults
 
     def setup() {
@@ -70,7 +66,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         System.err.println("This is standard err")
 """
         }
-        singleBuildParticipant = createGradleBuildParticipant(singleBuild)
     }
 
     @TargetGradleVersion(">=1.2")
@@ -98,7 +93,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         CollectionUtils.single(modelResults).model.description == "Set from project property = foo"
 
         when:
-        BuildLauncher buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        BuildLauncher buildLauncher = buildLauncherFor(singleBuild)
         buildLauncher.forTasks("run")
         buildLauncher.withArguments("-PprojectProperty=foo")
         buildLauncher.run()
@@ -118,7 +113,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         CollectionUtils.single(modelResults).model.description == "Set from system property = foo"
 
         when:
-        BuildLauncher buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        BuildLauncher buildLauncher = buildLauncherFor(singleBuild)
         buildLauncher.forTasks("run")
         buildLauncher.withArguments("-DsystemProperty=foo")
         buildLauncher.run()
@@ -140,7 +135,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         CollectionUtils.single(modelResults).model.description == "Set from system property = foo"
 
         when:
-        BuildLauncher buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        BuildLauncher buildLauncher = buildLauncherFor(singleBuild)
         buildLauncher.forTasks("run")
         buildLauncher.setJvmArguments("-DsystemProperty=foo")
         buildLauncher.run()
@@ -148,9 +143,9 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         singleBuild.file("result").text == "System property = foo"
     }
 
-    private BuildLauncher buildLauncherFor(BuildIdentity buildIdentity, GradleBuild... participants) {
+    private BuildLauncher buildLauncherFor(TestFile rootDir) {
         def builder = createCompositeBuilder()
-        participants.each { builder.addBuild(it) }
+        def buildIdentity = createGradleBuildParticipant(builder, rootDir).toBuildIdentity()
         def connection = builder.build()
         def buildLauncher = connection.newBuild(buildIdentity)
         buildLauncher
@@ -178,7 +173,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         OutputStream stdOut = new ByteArrayOutputStream()
         OutputStream stdErr = new ByteArrayOutputStream()
         when:
-        def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        def buildLauncher = buildLauncherFor(singleBuild)
         buildLauncher.forTasks("run")
         buildLauncher.setStandardOutput(stdOut)
         buildLauncher.setStandardError(stdErr)
@@ -212,7 +207,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         given:
         OutputStream stdOut = new ByteArrayOutputStream()
         when:
-        def buildLauncher = buildLauncherFor(singleBuildParticipant.toBuildIdentity(), singleBuildParticipant)
+        def buildLauncher = buildLauncherFor(singleBuild)
         buildLauncher.forTasks("run")
         buildLauncher.setStandardOutput(stdOut)
         buildLauncher.colorOutput = true

@@ -28,14 +28,6 @@ import java.net.URI;
 public interface GradleBuildBuilder {
 
     /**
-     * Sets the root project directory for this Gradle Build.
-     *
-     * @param projectDir root project directory.
-     * @return this
-     */
-    GradleBuildBuilder forProjectDirectory(File projectDir);
-
-    /**
      * Specifies the Gradle distribution described in the build should be used.
      *
      * @return this

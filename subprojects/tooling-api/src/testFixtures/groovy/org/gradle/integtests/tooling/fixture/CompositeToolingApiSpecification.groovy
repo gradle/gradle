@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleBuild
 import org.gradle.tooling.connection.GradleConnection
@@ -35,14 +33,10 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection createComposite(File... rootProjectDirectories) {
-        createComposite(rootProjectDirectories as List<File>)
-    }
-
-    GradleConnection createComposite(List<File> rootProjectDirectories) {
         GradleConnectionBuilder builder = createCompositeBuilder()
 
         rootProjectDirectories.each {
-            builder.addBuild(createGradleBuildParticipant(it))
+            builder.addBuild(createGradleBuildParticipant(builder, it))
         }
 
         builder.build()
@@ -52,19 +46,27 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return toolingApi.createCompositeBuilder()
     }
 
-    GradleBuild createGradleBuildParticipant(File rootDir) {
-        return toolingApi.createCompositeParticipant(rootDir)
+    GradleBuild createGradleBuildParticipant(GradleConnectionBuilder builder, File rootDir) {
+        return toolingApi.createCompositeParticipant(builder, rootDir)
     }
 
-    def <T> T withCompositeConnection(File rootProjectDir, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
+    def <T> T withCompositeConnection(File rootProjectDir, Closure<T> c) {
         withCompositeConnection([rootProjectDir], c)
     }
 
-    def <T> T withCompositeConnection(List<File> rootProjectDirectories, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
-        GradleConnection connection
+    def <T> T withCompositeConnection(List<File> rootProjectDirectories, Closure<T> c) {
+        GradleConnectionBuilder builder = createCompositeBuilder()
+        def buildIds = []
+
+        rootProjectDirectories.each {
+            def participant = createGradleBuildParticipant(builder, it)
+            buildIds << participant.toBuildIdentity()
+            builder.addBuild(participant)
+        }
+
+        GradleConnection connection = builder.build()
         try {
-            connection = createComposite(rootProjectDirectories)
-            return c(connection)
+            return c(connection, buildIds)
         } finally {
             connection?.close()
         }

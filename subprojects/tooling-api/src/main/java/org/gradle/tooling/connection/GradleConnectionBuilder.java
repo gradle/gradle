@@ -61,6 +61,15 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useDistribution(URI gradleDistribution);
 
     /**
+     * Creates a new GradleBuildBuilder builder instance for creating Gradle composite participants.
+     *
+     * @param projectDirectory The root project directory for the participant.
+     *
+     * @return The builder. Never returns null.
+     */
+    GradleBuildBuilder newParticipant(File projectDirectory);
+
+    /**
      * Adds a Gradle build as a participant in a composite.
      *
      * @param gradleBuild Gradle build to add to the composite

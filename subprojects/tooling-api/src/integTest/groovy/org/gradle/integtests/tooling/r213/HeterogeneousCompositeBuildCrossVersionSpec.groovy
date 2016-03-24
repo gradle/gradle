@@ -15,13 +15,11 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.ModelResult
@@ -31,7 +29,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
-
 /**
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
@@ -57,11 +54,11 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         println "Testing a composite with ${fixedDistribution.version} and ${targetDist.version}"
         builder = createCompositeBuilder()
 
-        def varyingDistributionParticipant = createGradleBuildParticipant(varyingProject)
+        def varyingDistributionParticipant = createGradleBuildParticipant(builder, varyingProject)
         varyingBuildIdentity = varyingDistributionParticipant.toBuildIdentity()
         builder.addBuild(varyingDistributionParticipant)
 
-        def fixedDistributionParticipant = GradleConnector.newGradleBuildBuilder().forProjectDirectory(fixedDistributionProject).useInstallation(fixedDistribution.gradleHomeDir.absoluteFile).create()
+        def fixedDistributionParticipant = builder.newParticipant(fixedDistributionProject).useInstallation(fixedDistribution.gradleHomeDir.absoluteFile).create()
         fixedBuildIdentity = fixedDistributionParticipant.toBuildIdentity()
         builder.addBuild(fixedDistributionParticipant)
     }
