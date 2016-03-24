@@ -107,8 +107,6 @@ task verify << {
         daemons.daemons.size() == 2
     }
 
-    // TODO FIXME investigage this further. shouldn't matter
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
         executer.requireGradleHome()

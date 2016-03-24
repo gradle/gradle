@@ -233,7 +233,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
-        if(noExplicitTmpDir){
+        if (noExplicitTmpDir) {
             executer.withNoExplicitTmpDir();
         }
         if (tmpDir != null) {
@@ -658,12 +658,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
-        if(!noExplicitTmpDir){
+        if (!noExplicitTmpDir) {
             String tmpDirPath = tmpDir;
             if (tmpDirPath == null) {
                 tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
             }
-            if (!tmpDirPath.contains(" ") || getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+            if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
         }
@@ -689,6 +689,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         return properties;
+    }
+
+    protected boolean supportsWhiteSpaceInEnvVars() {
+        return true;
     }
 
     public final GradleHandle start() {
