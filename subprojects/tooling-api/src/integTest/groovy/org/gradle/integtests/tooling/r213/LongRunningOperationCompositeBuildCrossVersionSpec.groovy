@@ -23,10 +23,11 @@ import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
-import spock.lang.Ignore
+import org.gradle.util.RedirectStdOutAndErr
+import org.junit.Rule
 
 class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-
+    @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
     TestFile singleBuild
     ModelResults<EclipseProject> modelResults
@@ -60,6 +61,10 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
             if (System.properties.systemProperty) {
                 write("System property = \${System.properties.systemProperty}")
             }
+        }
+
+        task log {
+            outputs.upToDateWhen { true }
         }
 
         System.out.println("This is standard out")
@@ -121,8 +126,6 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         singleBuild.file("result").text == "System property = foo"
     }
 
-    // TODO:
-    @Ignore("This cannot run in embedded mode")
     def "can pass additional jvm arguments"() {
         when:
         modelResults = withCompositeConnection(singleBuild) { GradleConnection connection ->
@@ -166,6 +169,8 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         !stdOut.toString().contains(escapeHeader)
         stdOut.toString().contains("This is standard out")
         stdErr.toString().contains("This is standard err")
+        !stdOutAndErr.stdOut.contains("This is standard out")
+        !stdOutAndErr.stdErr.contains("This is standard err")
     }
 
     def "can receive stdout and stderr with build launcher"() {
@@ -182,9 +187,10 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         !stdOut.toString().contains(escapeHeader)
         stdOut.toString().contains("This is standard out")
         stdErr.toString().contains("This is standard err")
+        !stdOutAndErr.stdOut.contains("This is standard out")
+        !stdOutAndErr.stdErr.contains("This is standard err")
     }
 
-    @Ignore
     @TargetGradleVersion(">=2.3")
     def "can colorize output with model requests"() {
         given:
@@ -192,16 +198,17 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         when:
         withCompositeConnection(singleBuild) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
+            modelBuilder.forTasks("log")
             modelBuilder.setStandardOutput(stdOut)
             modelBuilder.colorOutput = true
             modelBuilder.get()
         }
         then:
-        stdOut.toString().contains(escapeHeader)
-        stdOut.toString().contains("This is standard out")
+        stdOut.toString().contains("UP-TO-DATE" + escapeHeader)
+        !stdOutAndErr.stdOut.contains(escapeHeader)
+        !stdOutAndErr.stdErr.contains(escapeHeader)
     }
 
-    @Ignore
     @TargetGradleVersion(">=2.3")
     def "can colorize output with build launcher"() {
         given:
@@ -213,7 +220,8 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
         buildLauncher.colorOutput = true
         buildLauncher.run()
         then:
-        stdOut.toString().contains(escapeHeader)
-        stdOut.toString().contains("This is standard out")
+        stdOut.toString().contains("UP-TO-DATE" + escapeHeader)
+        !stdOutAndErr.stdOut.contains(escapeHeader)
+        !stdOutAndErr.stdErr.contains(escapeHeader)
     }
 }
