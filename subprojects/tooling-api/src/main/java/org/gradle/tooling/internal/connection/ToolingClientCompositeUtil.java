@@ -31,7 +31,7 @@ public class ToolingClientCompositeUtil {
         ((AbstractLongRunningOperation)request).copyFrom(operationParameters);
     }
 
-    GradleParticipantBuild createParticipantBuild(GradleBuildInternal participant) {
-        return new GradleParticipantBuild(participant, operationParameters.getGradleUserHomeDir(), operationParameters.getDaemonBaseDir(), operationParameters.getDaemonMaxIdleTimeValue(), operationParameters.getDaemonMaxIdleTimeUnits());
+    ParticipantConnector createParticipantConnector(GradleConnectionParticipant participant) {
+        return new ParticipantConnector(participant, operationParameters.getGradleUserHomeDir(), operationParameters.getDaemonBaseDir(), operationParameters.getDaemonMaxIdleTimeValue(), operationParameters.getDaemonMaxIdleTimeUnits());
     }
 }

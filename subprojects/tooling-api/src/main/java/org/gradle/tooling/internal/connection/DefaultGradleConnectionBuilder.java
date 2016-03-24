@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderInternal {
-    private final Set<GradleBuildInternal> participants = Sets.newLinkedHashSet();
+    private final Set<GradleConnectionParticipant> participants = Sets.newLinkedHashSet();
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
     private File gradleUserHomeDir;
@@ -167,7 +167,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
 
         @Override
         public BuildIdentity create() {
-            DefaultGradleBuild gradleBuild = new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+            DefaultGradleConnectionParticipant gradleBuild = new DefaultGradleConnectionParticipant(projectDir, gradleHome, gradleDistribution, gradleVersion);
             participants.add(gradleBuild);
             return gradleBuild.toBuildIdentity();
         }

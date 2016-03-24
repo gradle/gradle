@@ -16,22 +16,15 @@
 
 package org.gradle.tooling.internal.connection;
 
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.connection.BuildIdentity;
 import org.gradle.tooling.connection.ProjectIdentity;
 
 import java.io.File;
 import java.net.URI;
 
-public interface GradleBuildInternal {
-    File getProjectDir();
-
+public interface GradleConnectionParticipant extends GradleParticipantBuild {
     String getDisplayName();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
 
     BuildIdentity toBuildIdentity();
 

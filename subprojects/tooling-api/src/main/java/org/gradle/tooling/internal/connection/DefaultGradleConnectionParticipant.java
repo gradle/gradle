@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import java.io.File;
 import java.net.URI;
 
-public class DefaultGradleBuild implements GradleBuildInternal {
+public class DefaultGradleConnectionParticipant implements GradleConnectionParticipant {
     private final File projectDir;
     private final File gradleHome;
     private final URI gradleDistribution;
@@ -39,7 +39,7 @@ public class DefaultGradleBuild implements GradleBuildInternal {
             return false;
         }
 
-        DefaultGradleBuild that = (DefaultGradleBuild) o;
+        DefaultGradleConnectionParticipant that = (DefaultGradleConnectionParticipant) o;
 
         if (!projectDir.equals(that.projectDir)) {
             return false;
@@ -63,7 +63,7 @@ public class DefaultGradleBuild implements GradleBuildInternal {
         return result;
     }
 
-    public DefaultGradleBuild(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
+    public DefaultGradleConnectionParticipant(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
         this.projectDir = projectDir;
         this.gradleHome = gradleHome;
         this.gradleDistribution = gradleDistribution;

@@ -25,19 +25,19 @@ import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-class GradleParticipantBuild {
-    private final GradleBuildInternal build;
+class ParticipantConnector {
+    private final GradleConnectionParticipant build;
     private final File gradleUserHome;
     private final File projectDirectory;
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
 
-    public GradleParticipantBuild(GradleBuildInternal build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    public ParticipantConnector(GradleConnectionParticipant build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this(build, build.getProjectDir(), gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
     }
 
-    private GradleParticipantBuild(GradleBuildInternal build, File projectDirectory, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private ParticipantConnector(GradleConnectionParticipant build, File projectDirectory, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.build = build;
         this.projectDirectory = projectDirectory;
         this.gradleUserHome = gradleUserHome;
@@ -46,8 +46,8 @@ class GradleParticipantBuild {
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
     }
 
-    public GradleParticipantBuild withProjectDirectory(File projectDirectory) {
-        return new GradleParticipantBuild(build, projectDirectory, gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+    public ParticipantConnector withProjectDirectory(File projectDirectory) {
+        return new ParticipantConnector(build, projectDirectory, gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
     }
 
     public ProjectIdentity toProjectIdentity(String projectPath) {

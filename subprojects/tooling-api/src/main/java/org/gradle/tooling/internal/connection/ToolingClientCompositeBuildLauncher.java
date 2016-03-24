@@ -32,12 +32,12 @@ public class ToolingClientCompositeBuildLauncher {
     }
 
     public void run() {
-        for (GradleBuildInternal gradleBuildInternal : operationParameters.getBuilds()) {
+        for (GradleConnectionParticipant gradleBuildInternal : operationParameters.getBuilds()) {
             // TODO: Use BuildIdentity directly?
             if (operationParameters.getCompositeTargetBuildRootDir().equals(gradleBuildInternal.getProjectDir())) {
                 ProjectConnection connection = null;
                 try {
-                    connection = util.createParticipantBuild(gradleBuildInternal).connect();
+                    connection = util.createParticipantConnector(gradleBuildInternal).connect();
                     BuildLauncher buildLauncher = connection.newBuild();
                     util.configureRequest(buildLauncher);
                     buildLauncher.run();
