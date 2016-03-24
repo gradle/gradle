@@ -54,14 +54,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilder addBuilds(GradleBuild... gradleBuilds) {
-        for (GradleBuild gradleBuild : gradleBuilds) {
-            addBuild(gradleBuild);
-        }
-        return this;
-    }
-
-    @Override
     public GradleConnectionBuilder addBuild(GradleBuild gradleBuild) {
         if (gradleBuild==null) {
             throw new NullPointerException("gradleBuild must not be null");

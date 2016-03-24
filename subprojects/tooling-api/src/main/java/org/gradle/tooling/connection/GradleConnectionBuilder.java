@@ -70,15 +70,6 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder addBuild(GradleBuild gradleBuild);
 
     /**
-     * Add Gradle builds as participants in a composite.
-     *
-     * @param gradleBuilds Gradle builds to add to the composite
-     *
-     * @return this
-     */
-    GradleConnectionBuilder addBuilds(GradleBuild... gradleBuilds);
-
-    /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
      *
      * @return The connection. Never returns null.

@@ -257,7 +257,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def builder = createCompositeBuilder()
         def participantA = createGradleBuildParticipant(rootDirA)
         def participantB = createGradleBuildParticipant(rootDirB)
-        builder.addBuilds(participantA, participantB)
+        builder.addBuild(participantA).addBuild(participantB)
         def connection = builder.build()
 
         def buildIdentityA = participantA.toBuildIdentity()

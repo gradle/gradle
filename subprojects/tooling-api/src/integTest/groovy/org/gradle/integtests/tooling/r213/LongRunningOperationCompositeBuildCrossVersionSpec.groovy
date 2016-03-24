@@ -150,7 +150,7 @@ class LongRunningOperationCompositeBuildCrossVersionSpec extends CompositeToolin
 
     private BuildLauncher buildLauncherFor(BuildIdentity buildIdentity, GradleBuild... participants) {
         def builder = createCompositeBuilder()
-        builder.addBuilds(participants)
+        participants.each { builder.addBuild(it) }
         def connection = builder.build()
         def buildLauncher = connection.newBuild(buildIdentity)
         buildLauncher
