@@ -12,9 +12,7 @@
 // 3. The complete gradle project from github must be cloned (i.e. https://github.com/gradle/gradle)
 // 4. Run ./gradlew eclipse on that folder
 // 5. Import the project into workspace, choose 'search for nested projects', take ALL projects
-// 6. Accept that some things just don't seem to work in eclipse, especially all of the groovy files
- 
-
+// 6. Accept that some things just don't seem to work in eclipse, especially some of the groovy files
 
 project.ext.originalPathToCachePath = [:];
 project.ext.subprojectsPath = new File(projectDir,'/subprojects').absolutePath

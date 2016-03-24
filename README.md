@@ -86,13 +86,15 @@ Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. 
 
 #### Gradle Integration for Eclipse (by Pivotal)
 
-The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
+The Gradle project is not currently completely buildable in Eclipse. 
+This is something that will be rectified in the future.
 
 You can try running:
 
     ./gradlew eclipse
 
-This command generates Eclipse metadata that allows importing the project into Eclipse. However, you will have to do some manual fixes to the project's setup to make it work.
+This command generates Eclipse metadata that allows importing the project into Eclipse. 
+See further comments in [gradle/eclipse.gradle](gradle/eclipse.gradle).
 
 #### Gradle for Eclipse (by Nodeclipse/Enide)
 
