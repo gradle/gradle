@@ -196,6 +196,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             jvmArguments = operationParameters.jvmArguments;
             stdout = operationParameters.stdout;
             stderr = operationParameters.stderr;
+            stdin = operationParameters.stdin;
             colorOutput = operationParameters.colorOutput;
             javaHome = operationParameters.javaHome;
             injectedPluginClasspath = operationParameters.injectedPluginClasspath;

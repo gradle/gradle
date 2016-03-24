@@ -33,7 +33,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
@@ -93,16 +92,6 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                 };
             }
         }, new ResultHandlerAdapter<T>(handler));
-    }
-
-    // TODO: Make all configuration methods configure underlying model builders
-    private DefaultCompositeModelBuilder<T> unsupportedMethod() {
-        throw new UnsupportedMethodException("Not supported for composite connections.");
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
     }
 
     private final class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<ModelResults<T>> {

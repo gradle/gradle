@@ -26,10 +26,8 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
-import java.io.InputStream;
 
 public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
     public DefaultCompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
@@ -50,16 +48,6 @@ public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implemen
                 return sink;
             }
         }, new ResultHandlerAdapter(handler));
-    }
-
-    // TODO: Make all configuration methods configure underlying model builders
-    private DefaultCompositeBuildLauncher unsupportedMethod() {
-        throw new UnsupportedMethodException("Not supported for composite connections.");
-    }
-
-    @Override
-    public DefaultCompositeBuildLauncher setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {

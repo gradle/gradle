@@ -6,6 +6,7 @@
 
     LongRunningOperation.setStandardOutput
     LongRunningOperation.setStandardError
+    LongRunningOperation.setStandardInput
     LongRunningOperation.setColorOutput
 
 This allows a user to capture standard output or standard error with their own OutputStream.
@@ -33,5 +34,4 @@ The existing `ModelBuilder` and `BuildLauncher` interfaces extends from `Configu
 
 ### Out of Scope
 
-- LongRunningOperation.setStandardInput
 - Parallel participant execution
