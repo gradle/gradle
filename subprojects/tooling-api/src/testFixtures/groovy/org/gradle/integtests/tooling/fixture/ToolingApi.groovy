@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
-
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -212,7 +211,7 @@ class ToolingApi implements TestRule {
         builder
     }
 
-    def createCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+    def addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
         builder.newParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile).create()
     }
 }

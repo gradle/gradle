@@ -54,7 +54,6 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         return this;
     }
 
-    @Override
     public GradleConnectionBuilder addBuild(GradleBuild gradleBuild) {
         if (gradleBuild==null) {
             throw new NullPointerException("gradleBuild must not be null");
@@ -140,7 +139,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         return this;
     }
 
-    private static class DefaultGradleBuildBuilder implements GradleBuildBuilder {
+    private class DefaultGradleBuildBuilder implements GradleBuildBuilder {
         private final File projectDir;
         private File gradleHome;
         private URI gradleDistribution;
@@ -182,7 +181,9 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
 
         @Override
         public GradleBuildInternal create() {
-            return new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+            DefaultGradleBuild gradleBuild = new DefaultGradleBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+            addBuild(gradleBuild);
+            return gradleBuild;
         }
 
         private void resetDistribution() {

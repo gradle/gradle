@@ -70,15 +70,6 @@ public interface GradleConnectionBuilder {
     GradleBuildBuilder newParticipant(File projectDirectory);
 
     /**
-     * Adds a Gradle build as a participant in a composite.
-     *
-     * @param gradleBuild Gradle build to add to the composite
-     *
-     * @return this
-     */
-    GradleConnectionBuilder addBuild(GradleBuild gradleBuild);
-
-    /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
      *
      * @return The connection. Never returns null.

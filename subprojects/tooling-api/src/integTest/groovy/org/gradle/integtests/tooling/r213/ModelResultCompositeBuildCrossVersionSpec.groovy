@@ -53,12 +53,9 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         when:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(builder, rootDirA)
-        def participantB = createGradleBuildParticipant(builder, rootDirB)
-        def participantC = createGradleBuildParticipant(builder, rootDirC)
-        builder.addBuild(participantA)
-        builder.addBuild(participantB)
-        builder.addBuild(participantC)
+        def participantA = addCompositeParticipant(builder, rootDirA)
+        def participantB = addCompositeParticipant(builder, rootDirB)
+        def participantC = addCompositeParticipant(builder, rootDirC)
         def connection = builder.build()
 
         and:
@@ -116,10 +113,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         when:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(builder, rootDirA)
-        def participantB = createGradleBuildParticipant(builder, rootDirB)
-        builder.addBuild(participantA)
-        builder.addBuild(participantB)
+        def participantA = addCompositeParticipant(builder, rootDirA)
+        def participantB = addCompositeParticipant(builder, rootDirB)
         def connection = builder.build()
 
         and:
@@ -152,8 +147,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         and:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(builder, rootDirA)
-        builder.addBuild(participantA)
+        def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
         def buildIdentity = participantA.toBuildIdentity()
         def projectIdentity = participantA.toProjectIdentity(":")
@@ -194,8 +188,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         and:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(builder, rootDirA)
-        builder.addBuild(participantA)
+        def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
         def buildIdentity = participantA.toBuildIdentity()
         def projectIdentity = participantA.toProjectIdentity(":")
@@ -255,9 +248,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
         and:
         def builder = createCompositeBuilder()
-        def participantA = createGradleBuildParticipant(builder, rootDirA)
-        def participantB = createGradleBuildParticipant(builder, rootDirB)
-        builder.addBuild(participantA).addBuild(participantB)
+        def participantA = addCompositeParticipant(builder, rootDirA)
+        def participantB = addCompositeParticipant(builder, rootDirB)
         def connection = builder.build()
 
         def buildIdentityA = participantA.toBuildIdentity()

@@ -36,7 +36,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         GradleConnectionBuilder builder = createCompositeBuilder()
 
         rootProjectDirectories.each {
-            builder.addBuild(createGradleBuildParticipant(builder, it))
+            addCompositeParticipant(builder, it)
         }
 
         builder.build()
@@ -46,8 +46,8 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return toolingApi.createCompositeBuilder()
     }
 
-    GradleBuild createGradleBuildParticipant(GradleConnectionBuilder builder, File rootDir) {
-        return toolingApi.createCompositeParticipant(builder, rootDir)
+    GradleBuild addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+        return toolingApi.addCompositeParticipant(builder, rootDir)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, Closure<T> c) {
@@ -59,9 +59,8 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         def buildIds = []
 
         rootProjectDirectories.each {
-            def participant = createGradleBuildParticipant(builder, it)
+            def participant = addCompositeParticipant(builder, it)
             buildIds << participant.toBuildIdentity()
-            builder.addBuild(participant)
         }
 
         GradleConnection connection = builder.build()
