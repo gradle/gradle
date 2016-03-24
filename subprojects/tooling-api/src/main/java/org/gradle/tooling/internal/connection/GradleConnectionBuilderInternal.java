@@ -16,19 +16,17 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.GradleConnection;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public interface GradleConnectionInternal extends GradleConnection {
-    interface Builder extends GradleConnection.Builder {
-        Builder embeddedCoordinator(boolean embedded);
+public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder {
+    GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded);
 
-        Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
+    GradleConnectionBuilderInternal daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
 
-        Builder daemonBaseDir(File daemonBaseDir);
+    GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir);
 
-        Builder useClasspathDistribution();
-    }
+    GradleConnectionBuilderInternal useClasspathDistribution();
 }

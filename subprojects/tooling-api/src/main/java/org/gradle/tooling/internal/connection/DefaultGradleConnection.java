@@ -21,12 +21,13 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.ModelResults;
 import org.gradle.tooling.connection.internal.BuildIdentityInternal;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
-public class DefaultGradleConnection implements GradleConnectionInternal {
+public class DefaultGradleConnection implements GradleConnection {
     private final AsyncConsumerActionExecutor asyncConnection;
     private final CompositeConnectionParameters parameters;
 

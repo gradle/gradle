@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleBuild
 import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.util.GradleVersion
 
@@ -38,7 +39,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection createComposite(List<File> rootProjectDirectories) {
-        GradleConnection.Builder builder = createCompositeBuilder()
+        GradleConnectionBuilder builder = createCompositeBuilder()
 
         rootProjectDirectories.each {
             builder.addBuild(createGradleBuildParticipant(it))
@@ -47,7 +48,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         builder.build()
     }
 
-    GradleConnection.Builder createCompositeBuilder() {
+    GradleConnectionBuilder createCompositeBuilder() {
         return toolingApi.createCompositeBuilder()
     }
 

@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.GradleBuild;
 import org.gradle.tooling.connection.GradleConnection;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
@@ -30,7 +31,7 @@ import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.Builder {
+public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderInternal {
     private final Set<GradleBuildInternal> participants = Sets.newLinkedHashSet();
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
@@ -47,13 +48,13 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnection.Builder useGradleUserHomeDir(File gradleUserHomeDir) {
+    public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         return this;
     }
 
     @Override
-    public GradleConnection.Builder addBuilds(GradleBuild... gradleBuilds) {
+    public GradleConnectionBuilder addBuilds(GradleBuild... gradleBuilds) {
         for (GradleBuild gradleBuild : gradleBuilds) {
             addBuild(gradleBuild);
         }
@@ -61,7 +62,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnection.Builder addBuild(GradleBuild gradleBuild) {
+    public GradleConnectionBuilder addBuild(GradleBuild gradleBuild) {
         if (gradleBuild==null) {
             throw new NullPointerException("gradleBuild must not be null");
         }
@@ -73,14 +74,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnectionInternal build() throws GradleConnectionException {
+    public GradleConnection build() throws GradleConnectionException {
         if (participants.isEmpty()) {
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
         return createGradleConnection();
     }
 
-    private GradleConnectionInternal createGradleConnection() {
+    private GradleConnection createGradleConnection() {
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
@@ -99,44 +100,44 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionInternal.
     }
 
     @Override
-    public GradleConnectionInternal.Builder embeddedCoordinator(boolean embedded) {
+    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
         this.embeddedCoordinator = embedded;
         return this;
     }
 
     @Override
-    public GradleConnectionInternal.Builder daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
+    public GradleConnectionBuilderInternal daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
         this.daemonMaxIdleTimeValue = timeoutValue;
         this.daemonMaxIdleTimeUnits = timeoutUnits;
         return this;
     }
 
     @Override
-    public GradleConnectionInternal.Builder daemonBaseDir(File daemonBaseDir) {
+    public GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir;
         return this;
     }
 
     @Override
-    public GradleConnectionInternal.Builder useClasspathDistribution() {
+    public GradleConnectionBuilderInternal useClasspathDistribution() {
         this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
         return this;
     }
 
     @Override
-    public GradleConnection.Builder useInstallation(File gradleHome) {
+    public GradleConnectionBuilder useInstallation(File gradleHome) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
         return this;
     }
 
     @Override
-    public GradleConnection.Builder useDistribution(URI gradleDistribution) {
+    public GradleConnectionBuilder useDistribution(URI gradleDistribution) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleDistribution);
         return this;
     }
 
     @Override
-    public GradleConnection.Builder useGradleVersion(String gradleVersion) {
+    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }

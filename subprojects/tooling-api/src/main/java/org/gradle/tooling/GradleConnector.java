@@ -17,7 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.connection.GradleBuild;
-import org.gradle.tooling.connection.GradleConnection;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
@@ -74,7 +74,7 @@ public abstract class GradleConnector {
      * @since 2.13
      */
     @Incubating
-    public static GradleConnection.Builder newGradleConnectionBuilder() {
+    public static GradleConnectionBuilder newGradleConnectionBuilder() {
         return ConnectorServices.createGradleConnectionBuilder();
     }
 
