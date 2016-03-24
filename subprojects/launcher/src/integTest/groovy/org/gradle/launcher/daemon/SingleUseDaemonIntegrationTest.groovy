@@ -35,6 +35,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         // '-ea' is always set on the forked process. So I've added it explicitly here.
         executer.requireGradleHome().withEnvironmentVars(["JAVA_OPTS": "-ea"])
         executer.requireIsolatedDaemons()
+        executer.withNoExplicitTmpDir()
     }
 
     def "forks build when JVM args are requested"() {

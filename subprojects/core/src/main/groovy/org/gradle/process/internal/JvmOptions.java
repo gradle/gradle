@@ -71,7 +71,6 @@ public class JvmOptions {
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
-        immutableSystemProperties.put(JAVA_IO_TMPDIR, System.getProperty(JAVA_IO_TMPDIR));
     }
 
     /**

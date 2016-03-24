@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
@@ -32,10 +31,6 @@ import org.junit.Rule
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
-
-    def setup(){
-        System.setProperty("java.io.tmpdir", new TestFile(temporaryFolder.testDirectory, "tmp").createDir().absolutePath)
-    }
 
     def cleanup() {
         reset()
@@ -140,6 +135,6 @@ task slow << { new URL("${server.uri}").text }
     private GradleExecuter daemonExecutor() {
         // Need to use the same JVM args to start daemon as those used by tooling api fixture
         // TODO - use more sane JVM args here and for the daemons started using tooling api fixture
-        targetDist.executer(temporaryFolder).withDaemonBaseDir(toolingApi.daemonBaseDir).withTmpDir(temporaryFolder.getTestDirectory().createDir("tmp").absolutePath).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useDefaultBuildJvmArgs().requireDaemon()
+        targetDist.executer(temporaryFolder).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useDefaultBuildJvmArgs().requireDaemon()
     }
 }

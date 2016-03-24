@@ -56,13 +56,13 @@ public class DaemonParameters {
     }
 
     public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
-        jvmOptions.systemProperties(inheritedImutableSystemProperties());
+        jvmOptions.systemProperties(inheritedSystemProperties());
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
     }
 
-    private Map<String, ?> inheritedImutableSystemProperties() {
+    private Map<String, Object> inheritedSystemProperties() {
         return new CurrentProcess().getJvmOptions().getImmutableSystemProperties();
     }
 

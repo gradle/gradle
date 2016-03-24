@@ -21,6 +21,9 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 public class CurrentProcess {
     private final JavaInfo jvm;
@@ -47,7 +50,10 @@ public class CurrentProcess {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        final List<String> inputArguments1 = ManagementFactory.getRuntimeMXBean().getInputArguments();
+        final LinkedHashSet<String> strings = new LinkedHashSet<String>(inputArguments1);
+        final List<String> inputArguments = new ArrayList<String>(strings);
+        jvmOptions.setAllJvmArgs(inputArguments);
         return jvmOptions;
     }
 }

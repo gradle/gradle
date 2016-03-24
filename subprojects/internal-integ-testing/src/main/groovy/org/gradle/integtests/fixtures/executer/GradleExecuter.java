@@ -168,6 +168,12 @@ public interface GradleExecuter {
      */
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
+
+    /**
+     * Don't set temp folder explicitly.
+     */
+    GradleExecuter withNoExplicitTmpDir();
+
     /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
