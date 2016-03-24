@@ -61,13 +61,13 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useDistribution(URI gradleDistribution);
 
     /**
-     * Creates a new GradleBuildBuilder builder instance for creating Gradle composite participants.
+     * Creates a new participant builder instance for creating Gradle composite participants.
      *
      * @param projectDirectory The root project directory for the participant.
      *
      * @return The builder. Never returns null.
      */
-    GradleBuildBuilder newParticipant(File projectDirectory);
+    ParticipantBuilder newParticipant(File projectDirectory);
 
     /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
@@ -76,4 +76,48 @@ public interface GradleConnectionBuilder {
      * @throws GradleConnectionException If the composite is invalid (e.g., no participants).
      */
     GradleConnection build() throws GradleConnectionException;
+
+    /**
+     * Builds a new participant that will be included in the connection.
+     */
+    interface ParticipantBuilder {
+        /**
+         * Specifies the Gradle distribution described in the build should be used.
+         *
+         * @return this
+         */
+        ParticipantBuilder useBuildDistribution();
+
+        /**
+         * Specifies the Gradle distribution to use.
+         *
+         * @param gradleHome The Gradle installation directory.
+         * @return this
+         */
+        ParticipantBuilder useInstallation(File gradleHome);
+
+        /**
+         * Specifies the version of Gradle to use.
+         *
+         * @param gradleVersion The version to use.
+         * @return this
+         */
+        ParticipantBuilder useGradleVersion(String gradleVersion);
+
+        /**
+         * Specifies the Gradle distribution to use.
+         *
+         * @param gradleDistribution The distribution to use.
+         *
+         * @return this
+         */
+        ParticipantBuilder useDistribution(URI gradleDistribution);
+
+        /**
+         * Creates an immutable GradleBuild instance based on this builder.
+         *
+         * @return a new instance, never null.
+         */
+        BuildIdentity create();
+    }
 }

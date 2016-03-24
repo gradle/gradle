@@ -52,8 +52,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleBuildBuilder newParticipant(File projectDirectory) {
-        return new DefaultGradleBuildBuilder(projectDirectory);
+    public ParticipantBuilder newParticipant(File projectDirectory) {
+        return new DefaultGradleConnectionParticipantBuilder(projectDirectory);
     }
 
     @Override
@@ -125,13 +125,13 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         return this;
     }
 
-    private class DefaultGradleBuildBuilder implements GradleBuildBuilder {
+    private class DefaultGradleConnectionParticipantBuilder implements ParticipantBuilder {
         private final File projectDir;
         private File gradleHome;
         private URI gradleDistribution;
         private String gradleVersion;
 
-        public DefaultGradleBuildBuilder(File projectDir) {
+        public DefaultGradleConnectionParticipantBuilder(File projectDir) {
             if (projectDir == null) {
                 throw new IllegalArgumentException("Project directory cannot be null.");
             }
@@ -139,27 +139,27 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         }
 
         @Override
-        public GradleBuildBuilder useBuildDistribution() {
+        public ParticipantBuilder useBuildDistribution() {
             resetDistribution();
             return this;
         }
 
         @Override
-        public GradleBuildBuilder useInstallation(File gradleHome) {
+        public ParticipantBuilder useInstallation(File gradleHome) {
             resetDistribution();
             this.gradleHome = gradleHome;
             return this;
         }
 
         @Override
-        public GradleBuildBuilder useGradleVersion(String gradleVersion) {
+        public ParticipantBuilder useGradleVersion(String gradleVersion) {
             resetDistribution();
             this.gradleVersion = gradleVersion;
             return this;
         }
 
         @Override
-        public GradleBuildBuilder useDistribution(URI gradleDistribution) {
+        public ParticipantBuilder useDistribution(URI gradleDistribution) {
             resetDistribution();
             this.gradleDistribution = gradleDistribution;
             return this;
