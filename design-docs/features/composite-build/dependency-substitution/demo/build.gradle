@@ -32,6 +32,25 @@ task printModel << {
     }
 }
 
+task executeTasks << {
+    def builder = GradleConnector.newGradleConnection()
+    def buildIds = []
+    rootProjectDirectories().each {
+        println "Adding project $it.absolutePath to composite"
+        buildIds << builder.newParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir).create()
+    }
+    def connection = builder.build()
+    def targetBuild = buildIds[0]
+    def targetTasks = "build"
+    println "Running tasks '${targetTasks}' in $targetBuild"
+    def buildLauncher = connection.newBuild(targetBuild)
+    buildLauncher.forTasks(targetTasks)
+    buildLauncher.standardOutput = System.out
+    buildLauncher.standardError = System.err
+    buildLauncher.run()
+    connection.close()
+}
+
 def rootProjectDirectories() {
     file("demo.composite").readLines().collect { new File(it) }
 }
