@@ -129,13 +129,24 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         modelResults.collect { it.model }
     }
 
-    boolean assertFailure(Throwable failure, String... messages) {
+    void assertFailure(Throwable failure, String... messages) {
         assert failure != null
         def causes = getCauses(failure)
 
         messages.each { message ->
             assert causes.contains(message)
         }
+    }
+
+    void assertFailureHasCause(Throwable failure, Class<Throwable> cause) {
+        assert failure != null
+        Throwable throwable = failure
+        List causes = []
+        while (throwable != null) {
+            causes << throwable
+            throwable = throwable.cause
+        }
+        assert causes.any { it.getClass().getCanonicalName().equals(cause.getCanonicalName()) }
     }
 
     private static String getCauses(Throwable throwable) {
