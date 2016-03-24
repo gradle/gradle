@@ -3,11 +3,10 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 task printModel << {
-    def builder = GradleConnector.newGradleConnectionBuilder()
+    def builder = GradleConnector.newGradleConnection()
     rootProjectDirectories().each {
         println "Adding project $it.absolutePath to composite"
-        def participant = GradleConnector.newGradleBuildBuilder().forProjectDirectory(it).useInstallation(gradle.gradleHomeDir).create()
-        builder.addBuild(participant)
+        builder.newParticipant(it).useInstallation(gradle.gradleHomeDir).create()
     }
     def connection = builder.build()
 
