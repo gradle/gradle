@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public class Main {
     public static void main(String... args) {
-        GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder();
+        GradleConnectionBuilder builder = GradleConnector.newGradleConnectionBuilder();
 
         File gradleHome = new File(args[0]);
         File gradleUserHome = new File(args[1]);
@@ -39,11 +39,7 @@ public class Main {
 
         for (int i = 2; i < args.length; i++) {
             File projectDir = new File(args[i]);
-            GradleBuild gradleBuild = GradleConnector.newGradleBuildBuilder()
-                .forProjectDirectory(projectDir)
-                .useInstallation(gradleHome)
-                .create();
-            builder.addBuild(gradleBuild);
+            builder.newParticipant(projectDir).useInstallation(gradleHome).create();
         }
         GradleConnection connection = builder.build();
         try {
