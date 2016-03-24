@@ -18,69 +18,12 @@ package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
-import java.net.URI;
-
 /**
  * Represents a participant in a composite.
  *
  */
 @Incubating
 public interface GradleBuild {
-    /**
-     * Builds a new Gradle composite participant.
-     */
-    @Incubating
-    interface Builder {
-
-        /**
-         * Sets the root project directory for this Gradle Build.
-         *
-         * @param projectDir root project directory.
-         * @return this
-         */
-        Builder forProjectDirectory(File projectDir);
-
-        /**
-         * Specifies the Gradle distribution described in the build should be used.
-         *
-         * @return this
-         */
-        Builder useBuildDistribution();
-
-        /**
-         * Specifies the Gradle distribution to use.
-         *
-         * @param gradleHome The Gradle installation directory.
-         * @return this
-         */
-        Builder useInstallation(File gradleHome);
-
-        /**
-         * Specifies the version of Gradle to use.
-         *
-         * @param gradleVersion The version to use.
-         * @return this
-         */
-        Builder useGradleVersion(String gradleVersion);
-
-        /**
-         * Specifies the Gradle distribution to use.
-         *
-         * @param gradleDistribution The distribution to use.
-         *
-         * @return this
-         */
-        Builder useDistribution(URI gradleDistribution);
-
-        /**
-         * Creates an immutable GradleBuild instance based on this builder.
-         *
-         * @return a new instance, never null.
-         */
-        GradleBuild create();
-    }
-
     /**
      * Build Identity to be used to correlate results.
      *

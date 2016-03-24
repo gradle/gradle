@@ -16,46 +16,46 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.GradleBuild;
+import org.gradle.tooling.connection.GradleBuildBuilder;
 
 import java.io.File;
 import java.net.URI;
 
-public class DefaultGradleBuildBuilder implements GradleBuild.Builder {
+public class DefaultGradleBuildBuilder implements GradleBuildBuilder {
     private File projectDir;
     private File gradleHome;
     private URI gradleDistribution;
     private String gradleVersion;
 
     @Override
-    public GradleBuild.Builder forProjectDirectory(File projectDir) {
+    public GradleBuildBuilder forProjectDirectory(File projectDir) {
         // New file instance, to ensure it can be serialized
         this.projectDir = projectDir.getAbsoluteFile();
         return this;
     }
 
     @Override
-    public GradleBuild.Builder useBuildDistribution() {
+    public GradleBuildBuilder useBuildDistribution() {
         resetDistribution();
         return this;
     }
 
     @Override
-    public GradleBuild.Builder useInstallation(File gradleHome) {
+    public GradleBuildBuilder useInstallation(File gradleHome) {
         resetDistribution();
         this.gradleHome = gradleHome;
         return this;
     }
 
     @Override
-    public GradleBuild.Builder useGradleVersion(String gradleVersion) {
+    public GradleBuildBuilder useGradleVersion(String gradleVersion) {
         resetDistribution();
         this.gradleVersion = gradleVersion;
         return this;
     }
 
     @Override
-    public GradleBuild.Builder useDistribution(URI gradleDistribution) {
+    public GradleBuildBuilder useDistribution(URI gradleDistribution) {
         resetDistribution();
         this.gradleDistribution = gradleDistribution;
         return this;
