@@ -7,15 +7,10 @@
 
 ### API
 
-    GradleConnection.Builder builder = GradleConnector.newGradleConnectionBuilder();
+    GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
 
     builder.useGradleUserHomeDir(gradleUserHome);
-
-    GradleBuild participant1 = GradleConnector.newGradleBuildBuilder()
-        .forProjectDirectory(projectDir)
-        .useInstallation(gradleHome)
-        .create();
-    builder.addBuild(participant1);
+    builder.newParticipant(projectDir).useInstallation(gradleHome).create()
 
     GradleConnection connection = builder.build();
 

@@ -65,27 +65,26 @@ New types:
 
 Example usage:
 
-    GradleBuild build1 = GradleConnector.newGradleBuildBuilder().forProjectDirectory(dir1).create()
-    GradleBuild build2 = GradleConnector.newGradleBuildBuilder().forProjectDirectory(dir2).create()
+    GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
 
-    GradleConnection connection = GradleConnector.newGradleConnectionBuilder()
-        .addBuild(build1)
-        .addBuild(build2)
-        .build()
+    BuildIdentity idBuild1 = builder.newParticipant(dir1).create()
+    BuildIdentity idBuild2 = builder.newParticipant(dir2).create()
 
-    BuildIdentity idBuild1 = build1.toBuildIdentity()
-    ProjectIdentity idProjectX = build1.toProjectIdentity(":x")
+    GradleConnection connection = builder.build()
 
     try {
-        ModelResults<EclipseProject> eclipseProjectResults = connection.getModels(EclipseProject.class);
+        ModelResults<EclipseProject> eclipseResults = connection.getModels(EclipseProject.class);
+        ModelResults<ProjectPublications> publicationResults = connection.getModels(ProjectPubications.class);
 
-        def allEclipseModels = eclipseProjectResults*.model
-        def eclipseModelsForBuild1 = eclipseProjectResults.findAll({it.projectIdentity.build == idBuild1})*.model
-        def eclipseModelForProjectX = eclipseProjectResults.find({it.projectIdentity == idProjectX}).model
+        // Get all eclipse model results for build1
+        def eclipseResultsForBuild1 = eclipseResults.findAll({it.projectIdentity.build == idBuild1})
+
+        // Find the ProjectPublication model matching a particular EclipseProject
+        def selectedEclipseResult = eclipseResults.last()
+        def matchingProjectResult = publicationResults.find({it.projectIdentity == selectedEclipseResult.projectIdentity})
     } finally {
         connection.close();
     }
-
 
 ### Implementation notes
 
