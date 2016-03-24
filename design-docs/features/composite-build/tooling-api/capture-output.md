@@ -2,7 +2,7 @@
 
 ### Overview
 
-ModelBuilder and BuildLauncher API through the composite interface should support
+`ModelBuilder` and `BuildLauncher` API through the composite interface should support
 
     LongRunningOperation.setStandardOutput
     LongRunningOperation.setStandardError
@@ -10,7 +10,7 @@ ModelBuilder and BuildLauncher API through the composite interface should suppor
 
 This allows a user to capture standard output or standard error with their own OutputStream.
 
-This also allows a user to disable colorized output.
+This also allows a user to enable/disable colorized output.
 
 ### API
 
@@ -28,7 +28,7 @@ The existing `ModelBuilder` and `BuildLauncher` interfaces extends from `Configu
     - A multi-project, single-participant
     - A single-project/multi-project, multi-participant
 - Test should exercise model requests and task execution.
-- Build should log a message to stdout and stderr that identifies the project.  Test verifies that stdout and stderr contain the appropriate messages.  The logging can be a part of configuration (we do not need to execute tasks).
+- Build should log a message to stdout and stderr that identifies the project.  Test verifies that stdout and stderr contain the appropriate messages.  The logging can be a part of configuration (we do not need to log as part of task execution).
 - A separate test should force color output and check that color escape codes are found in the output
 
 ### Out of Scope

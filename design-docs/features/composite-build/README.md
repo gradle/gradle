@@ -60,7 +60,7 @@ By starting with the Tooling API, we will ensure that the composite build featur
 
 #### M2: Programmatic API for requesting IDE models for a composite build
 
- - Jetbrains developers can use Tooling API to define a composite build and configure Eclipse with all projects in the composite.
+ - Buildship developers can use Tooling API to define a composite build and configure Eclipse with all projects in the composite.
  - Jetbrains developers can use Tooling API to define a composite build and configure IntelliJ IDEA with all projects in the composite.
 
 #### M3: Dependency substitution for Java projects in a composite build
