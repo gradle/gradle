@@ -15,6 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.fixture
+
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
@@ -32,6 +35,10 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnection createComposite(File... rootProjectDirectories) {
+        createComposite(rootProjectDirectories.toList())
+    }
+
+    GradleConnection createComposite(List<File> rootProjectDirectories) {
         GradleConnectionBuilder builder = createCompositeBuilder()
 
         rootProjectDirectories.each {
@@ -53,7 +60,16 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         withCompositeConnection([rootProjectDir], c)
     }
 
-    def <T> T withCompositeConnection(List<File> rootProjectDirectories, Closure<T> c) {
+    def <T> T withCompositeConnection(List<File> rootProjectDirectories, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
+        GradleConnection connection = createComposite(rootProjectDirectories)
+        try {
+            return c(connection)
+        } finally {
+            connection?.close()
+        }
+    }
+
+    def <T> T withCompositeBuildParticipants(List<File> rootProjectDirectories, Closure<T> c) {
         GradleConnectionBuilder builder = createCompositeBuilder()
         def buildIds = []
 

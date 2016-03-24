@@ -48,7 +48,7 @@ task hello {
             })
         }
         when:
-        withCompositeConnection(builds) { connection, List buildIds ->
+        withCompositeBuildParticipants(builds) { connection, List buildIds ->
             def build1Id = buildIds[0]
             def buildLauncher = connection.newBuild(build1Id)
             buildLauncher.forTasks("hello")
@@ -106,7 +106,7 @@ task hello {
             }
         })
         when:
-        withCompositeConnection(builds) { connection, List buildIds ->
+        withCompositeBuildParticipants(builds) { connection, List buildIds ->
             def build1Id = buildIds[0]
             def task
             connection.getModels(modelType).each { modelresult ->
