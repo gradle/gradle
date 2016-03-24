@@ -26,6 +26,8 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
+
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String API_JAR_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-api-(.*)\\.jar"
@@ -408,7 +410,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         where:
         dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
                                    new GradleDependency('TestKit', 'testCompile', 'dependencies.fatGradleTestKit()'),
-                                   new GradleDependency('Tooling API', 'compile', "project.files('$buildContext.fatToolingApiJar')")].permutations()
+                                   new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileAndLineSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
     static String applyJavaPlugin() {
@@ -516,6 +518,10 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         String name
         String configurationName
         String dependencyNotation
+
+        String toString() {
+            name
+        }
     }
 
     static void assertApiGenerationOutput(String output) {
