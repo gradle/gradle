@@ -19,9 +19,11 @@ package org.gradle.integtests.resolve
 import com.google.common.collect.Maps
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Unroll
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
@@ -31,6 +33,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(35000)
+
+    @Shared
+    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
@@ -347,15 +352,15 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "Gradle API and TestKit are compatible regardless of order [#description]"() {
+    def "Gradle API and TestKit are compatible regardless of order #dependencyPermutations"() {
         when:
         buildFile << applyGroovyPlugin()
         buildFile << jcenterRepository()
         buildFile << spockDependency()
 
-        dependencyTuples.each {
+        dependencyPermutations.each {
             buildFile << """
-                dependencies.add('$it.configurationName', dependencies.$it.dependencyNotation)
+                dependencies.add('$it.configurationName', $it.dependencyNotation)
             """
         }
 
@@ -401,9 +406,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         where:
-        description                    | dependencyTuples
-        'fatGradleApi(), fatGradleTestKit()' | [new GradleDependency('compile', 'fatGradleApi()'), new GradleDependency('testCompile', 'fatGradleTestKit()')]
-        'fatGradleTestKit(), fatGradleApi()' | [new GradleDependency('testCompile', 'fatGradleTestKit()'), new GradleDependency('compile', 'fatGradleApi()')]
+        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
+                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.fatGradleTestKit()'),
+                                   new GradleDependency('Tooling API', 'compile', "project.files('$buildContext.fatToolingApiJar')")].permutations()
     }
 
     static String applyJavaPlugin() {
@@ -508,6 +513,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     @TupleConstructor
     private static class GradleDependency {
+        String name
         String configurationName
         String dependencyNotation
     }
