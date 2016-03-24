@@ -1,4 +1,4 @@
-// This is a hack
+// This is sort of a hack
 // 1. It will speed up eclipse performance dramatically, 
 //    by linking .jars used somewhere in the workspace to a folder in the root project ('gradle')
 //    This is because eclipse requires .jars to be inside the workspace
@@ -8,11 +8,12 @@
 // 
 // Things required for this hack to work:
 // 1. Eclipse must be a recent one and needs the Groovyclipse feature. Take it from here, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.4/
-// 2. I think 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
+// 2. 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
 // 3. The complete gradle project from github must be cloned (i.e. https://github.com/gradle/gradle)
 // 4. Run ./gradlew eclipse on that folder
 // 5. Import the project into workspace, choose 'search for nested projects', take ALL projects
-// 6. Accept that some things just don't seem to work in eclipse, especially some of the groovy files
+// 6. Wait 20 minutes for Eclipse to settle down.
+// 7. Accept that some things just don't seem to work in eclipse, especially some of the groovy files
 
 project.ext.originalPathToCachePath = [:];
 project.ext.subprojectsPath = new File(projectDir,'/subprojects').absolutePath
