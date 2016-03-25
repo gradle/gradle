@@ -18,7 +18,6 @@ package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.messaging.remote.internal.RemoteConnection
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
@@ -97,7 +96,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
-        (1.._) * outgoing.flush()
+        _ * outgoing.flush()
         0 * _._
 
         and:
@@ -135,7 +134,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
-        (1.._) * outgoing.flush()
+        _ * outgoing.flush()
         0 * _._
 
         and:
@@ -662,15 +661,17 @@ class MessageHubTest extends ConcurrentSpec {
         private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingQueue<>()
         private final BlockingQueue<InterHubMessage> outgoingBuffered = new LinkedBlockingQueue<>()
 
+        @Override
         void dispatch(InterHubMessage message) {
             outgoingBuffered.put(message)
         }
 
         @Override
-        void flush() throws MessageIOException {
+        void flush() {
             outgoingBuffered.drainTo(outgoing)
         }
 
+        @Override
         InterHubMessage receive() {
             def message = incoming.take()
             return message instanceof EndOfStream ? null : message
@@ -680,6 +681,7 @@ class MessageHubTest extends ConcurrentSpec {
             incoming.put(message)
         }
 
+        @Override
         void stop() {
             incoming.put(new EndOfStream())
         }
