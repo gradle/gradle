@@ -17,7 +17,7 @@ where Gradle is actually performing the actions of the build) have been introduc
 * Messages are logged to the console more efficiently.
 * A performance bottleneck when reading `gradle.properties` has been fixed.
 * Compiled build scripts are cached more efficiently.
-* Logging between the client and daemon now occurs asynchronously.
+* Communication between the client and the daemon has been optimized.
 * Test report generation is more efficient.
 
 TODO: Add more numbers here?
