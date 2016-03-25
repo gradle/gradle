@@ -37,12 +37,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class CompositeAwareModelProducer extends CancellableModelBuilderBackedModelProducer implements MultiModelProducer {
+public class CompositeAwareModelProducer extends HasCompatibilityMapperAction implements MultiModelProducer {
+    private final ModelProducer delegate;
+    private final ProtocolToModelAdapter adapter;
+    private final VersionDetails versionDetails;
+    private final ModelMapping modelMapping;
     private final InternalCompositeAwareConnection connection;
+    private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
-    public CompositeAwareModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCompositeAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
-        super(adapter, versionDetails, modelMapping, connection, exceptionTransformer);
+    public CompositeAwareModelProducer(ModelProducer delegate, ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCompositeAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+        super(versionDetails);
+        this.delegate = delegate;
+        this.adapter = adapter;
+        this.versionDetails = versionDetails;
+        this.modelMapping = modelMapping;
         this.connection = connection;
+        this.exceptionTransformer = exceptionTransformer;
+    }
+
+    @Override
+    public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+        return delegate.produceModel(type, operationParameters);
     }
 
     @Override
