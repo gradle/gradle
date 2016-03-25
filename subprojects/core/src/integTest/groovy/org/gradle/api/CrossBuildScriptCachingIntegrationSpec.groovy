@@ -549,6 +549,37 @@ task fastTask { }
         getCompileClasspath(commonHash, 'dsl').length == 1
     }
 
+    def "same applied script is compiled once for different projects with different classpath"() {
+        root {
+            'common.gradle'('println "poke"')
+        }
+
+        when:
+        def iterations = 3
+        def builder = root
+        iterations.times { n ->
+            new File(root.baseDir, 'build.gradle').delete()
+            builder {
+                "foo${n}.jar"('abcdef'.bytes)
+                'build.gradle'("""
+                    buildscript {
+                        dependencies {
+                            classpath files('foo${n}.jar')
+                        }
+                    }
+
+                    apply from: 'common.gradle'
+                """)
+            }
+            run 'help'
+            sleep(500)
+        }
+
+        then:
+        remappedCacheSize() == 2 // build + common
+        scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
+    }
+
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
         m.matches()
