@@ -18,14 +18,18 @@ package org.gradle.integtests.resolve.http
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     protected TestProxyServer testProxyServer
+    def MavenHttpModule module
 
     @Rule
     TestProxyServer getProxyServer() {
@@ -35,25 +39,28 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
         return testProxyServer
     }
 
+    abstract MavenHttpRepository getRepo()
     abstract String getProxyScheme()
     abstract String getRepoServerUrl()
     abstract boolean isTunnel()
     abstract void setupServer()
 
     def setup() {
+        module = repo.module("org.gradle.test", "some-lib", "1.2.17").publish()
         buildFile << """
 configurations { compile }
-dependencies { compile 'log4j:log4j:1.2.17' }
+dependencies { compile 'org.gradle.test:some-lib:1.2.17' }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
+    assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
 }
 """
     }
 
-    @Unroll
-    def "uses configured proxy to access remote #targetServerScheme repository"() {
+    def "uses configured proxy to access remote repository"() {
         given:
         proxyServer.start()
+        setupServer()
+
         and:
         buildFile << """
 repositories {
@@ -62,6 +69,7 @@ repositories {
 """
         when:
         configureProxy()
+        module.allowAll()
 
         then:
         succeeds('listJars')
@@ -72,16 +80,39 @@ repositories {
         } else {
             proxyServer.requestCount == 2
         }
-
-        where:
-        targetServerScheme = new URL(repoServerUrl).protocol
     }
 
-    @Unroll
-    def "uses authenticated proxy to access remote #targetServerScheme repository"() {
+    def "reports proxy not running at configured location"() {
+        given:
+        proxyServer.start()
+        proxyServer.stop()
+        setupServer()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy()
+        module.allowAll()
+
+        then:
+        fails('listJars')
+
+        and:
+        failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+        failure.assertThatCause(Matchers.containsString("Connection refused"))
+    }
+
+    def "uses authenticated proxy to access remote repository"() {
         given:
         def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
         proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
+
         and:
         buildFile << """
 repositories {
@@ -90,6 +121,7 @@ repositories {
 """
         when:
         configureProxy(proxyUserName, proxyPassword)
+        module.allowAll()
 
         then:
         succeeds('listJars')
@@ -100,15 +132,38 @@ repositories {
         } else {
             proxyServer.requestCount == 2
         }
-
-        where:
-        targetServerScheme = new URL(repoServerUrl).protocol
     }
 
-    @Unroll
-    def "uses configured proxy to access remote #targetServerScheme repository when both https.proxy and http.proxy are specified"() {
+    def "reports failure due to proxy authentication failure"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy(proxyUserName, "not-the-password")
+        module.allowAll()
+
+        then:
+        fails('listJars')
+
+        and:
+        failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+        failure.assertThatCause(Matchers.containsString("Proxy Authentication Required"))
+    }
+
+    def "uses configured proxy to access remote repository when both https.proxy and http.proxy are specified"() {
         given:
         proxyServer.start()
+        setupServer()
+
         and:
         buildFile << """
 repositories {
@@ -117,40 +172,38 @@ repositories {
 """
         when:
         configureProxy()
-        configureProxyHostFor(targetServerScheme)
+        configureProxyHostFor("http")
+        configureProxyHostFor("https")
+        module.allowAll()
 
         then:
         succeeds('listJars')
 
         and:
         proxyServer.requestCount == (tunnel ? 1 : 2)
-
-        where:
-        targetServerScheme = new URL(repoServerUrl).protocol
     }
 
-    @Unroll
-    def "can resolve from #targetServerScheme repo with #proxyServerScheme proxy configured"() {
+    def "can resolve from repo with other proxy scheme configured"() {
         given:
         proxyServer.start()
+        setupServer()
+
         and:
         buildFile << """
 repositories {
-    maven { url "${targetServerScheme}://repo1.maven.org/maven2/" }
+    maven { url "${repoServerUrl}" }
 }
 """
+
         when:
-        configureProxy()
+        configureProxyHostFor(proxyScheme == 'https' ? 'http' : 'https')
+        module.allowAll()
 
         then:
         succeeds('listJars')
 
         and:
         proxyServer.requestCount == 0
-
-        where:
-        proxyServerScheme | targetServerScheme
-        proxyScheme       | (proxyScheme == 'https' ? 'http' : 'https')
     }
 
     @Unroll
@@ -160,11 +213,12 @@ repositories {
         def (repoUserName, repoPassword) = ['targetUser', 'targetPassword']
         proxyServer.start(proxyUserName, proxyPassword)
         setupServer()
+
         and:
         buildFile << """
 repositories {
     maven {
-        url "${proxyScheme}://localhost:${proxyScheme == 'https' ? server.sslPort : server.port}/repo"
+        url "${repoServerUrl}"
         credentials {
             username '$repoUserName'
             password '$repoPassword'
@@ -172,10 +226,6 @@ repositories {
     }
 }
 """
-        and:
-        def repo = mavenHttpRepo
-        def module = repo.module('log4j', 'log4j', '1.2.17')
-        module.publish()
 
         when:
         server.authenticationScheme = authScheme

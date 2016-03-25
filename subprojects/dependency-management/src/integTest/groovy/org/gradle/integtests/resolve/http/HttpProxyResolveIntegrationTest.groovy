@@ -16,7 +16,14 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+
 class HttpProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
+    @Override
+    MavenHttpRepository getRepo() {
+        return mavenHttpRepo
+    }
+
     @Override
     String getProxyScheme() {
         return 'http'
@@ -24,7 +31,7 @@ class HttpProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTes
 
     @Override
     String getRepoServerUrl() {
-        "http://repo1.maven.org/maven2/"
+        mavenHttpRepo.uri
     }
 
     @Override
