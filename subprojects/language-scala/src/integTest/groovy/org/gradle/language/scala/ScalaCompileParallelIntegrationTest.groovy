@@ -218,8 +218,12 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         return file("configuredZincDir")
     }
 
+    TestFile getZincCacheHomeDir() {
+        return file("zincHome")
+    }
+
     Set<File> getZincCacheInterfaceJars() {
-        return findInterfaceJars(file("zincHomeDir/caches/${GradleVersion.current().version}/zinc"))
+        return findInterfaceJars(zincCacheHomeDir.file("caches/${GradleVersion.current().version}/zinc"))
     }
 
     Set<File> getConfiguredZincDirInterfaceJars() {
@@ -252,7 +256,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     String getIsolatedZincCacheHome() {
         return """
             tasks.withType(PlatformScalaCompile) {
-                options.forkOptions.jvmArgs += "-D${ZincScalaCompiler.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY}=${file('zincHomeDir')}"
+                options.forkOptions.jvmArgs += "-D${ZincScalaCompiler.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY}=${TextUtil.normaliseFileSeparators(zincCacheHomeDir.absolutePath)}"
             }
         """
     }
