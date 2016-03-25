@@ -40,14 +40,17 @@ task executeTasks << {
         buildIds << builder.newParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir).create()
     }
     def connection = builder.build()
-    def targetBuild = buildIds[0]
-    def targetTasks = "build"
+    def targetBuild = buildIds.find { it.rootDirectory.toString().endsWith(project.targetProject) }
+    def targetTasks = project.targetTasks
     println "Running tasks '${targetTasks}' in $targetBuild"
     def buildLauncher = connection.newBuild(targetBuild)
-    buildLauncher.forTasks(targetTasks)
+    buildLauncher.forTasks(targetTasks.split(","))
+    buildLauncher.withArguments("--info")
     buildLauncher.standardOutput = System.out
     buildLauncher.standardError = System.err
+    println "-------------"
     buildLauncher.run()
+    println "-------------\n\n"
     connection.close()
 }
 
