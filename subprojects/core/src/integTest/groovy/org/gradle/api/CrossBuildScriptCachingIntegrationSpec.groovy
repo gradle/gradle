@@ -572,7 +572,7 @@ task fastTask { }
                 """)
             }
             run 'help'
-            sleep(500)
+            sleep(1000)
         }
 
         then:
