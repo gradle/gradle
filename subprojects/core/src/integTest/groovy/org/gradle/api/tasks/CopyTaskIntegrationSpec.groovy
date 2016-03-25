@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -219,7 +218,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3418")
-    @NotYetImplemented
     def "can copy files with # in path"() {
         given:
         file("test/#/a.txt").touch()
