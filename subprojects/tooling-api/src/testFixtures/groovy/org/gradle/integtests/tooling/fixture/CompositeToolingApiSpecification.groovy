@@ -60,7 +60,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         withCompositeConnection([rootProjectDir], c)
     }
 
-    def <T> T withCompositeConnection(List<File> rootProjectDirectories, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.composite.GradleConnection" ]) Closure<T> c) {
+    def <T> T withCompositeConnection(List<File> rootProjectDirectories, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.connection.GradleConnection" ]) Closure<T> c) {
         GradleConnection connection = createComposite(rootProjectDirectories)
         try {
             return c(connection)
