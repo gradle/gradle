@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
@@ -32,6 +33,9 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
 
     @Rule
     RedirectStdOutAndErr stdStreams = new RedirectStdOutAndErr()
+
+    @Rule
+    CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def "can capture stdout and stderr"() {
         given:
@@ -105,22 +109,50 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
 
     @NoDebug
     def "output is captured if mechanical failure occurs"() {
+        // todo: should we keep this test altogether? It was supposed to test that if a mechanical
+        // failure occurs, we're receiving all the messages that were sent before the failure, but
+        // in this case, we're now sending events asynchronously, so there's a chance that those
+        // messages are not received. The test works around by waiting for the client to get the
+        // messages before killing the daemon, but it defeats the concept of this test...
         given:
-        Writer standardOutput = new StringWriter()
-        Writer standardError = new StringWriter()
+        boolean foundOut
+        boolean foundErr
+        def release = { char[] cbuf, int off, int len ->
+            def str = new String(cbuf, off, len)
+            if (str.contains(OUT)) {
+                foundOut = true
+            } else if (str.contains(ERR)) {
+                foundErr = true
+            }
+            if (foundOut && foundErr) {
+                server.release()
+            }
+        }
+        Writer standardOutput = new StringWriter() {
+            @Override
+            void write(char[] cbuf, int off, int len) {
+                super.write(cbuf, off, len)
+                release(cbuf, off, len)
+            }
+        }
+        Writer standardError = new StringWriter() {
+            @Override
+            void write(char[] cbuf, int off, int len) {
+                super.write(cbuf, off, len)
+                release(cbuf, off, len)
+            }
+        }
+
 
         buildFile << helloWorldWithStandardOutputAndError() << """
             helloWorld.doLast {
-                 // since the messages are now queued and sent asynchronously to the client
-                 // we're giving more time to make sure that the messages were forwarded.
-                 // It also means that in some circumstances, some messages might not be sent
-                 // to the client
-                sleep(500)
+                new URL("${server.uri}").text
                 Runtime.runtime.halt(0)
             }
         """
 
         when:
+        Thread.start { server.waitFor() }
         runner('helloWorld')
             .forwardStdOutput(standardOutput)
             .forwardStdError(standardError)
