@@ -91,6 +91,10 @@ This is something that will be rectified in the future.
 
 You can try running:
 
+    ./gradlew build
+
+then    
+    
     ./gradlew eclipse
 
 This command generates Eclipse metadata that allows importing the project into Eclipse. 

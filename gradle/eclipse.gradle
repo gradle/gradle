@@ -1,125 +1,120 @@
 // This is sort of a hack
-// 1. It will speed up eclipse performance dramatically, 
+// 1. It will speed up Eclipse performance dramatically,
 //    by linking .jars used somewhere in the workspace to a folder in the root project ('gradle')
-//    This is because eclipse requires .jars to be inside the workspace
-//    and be referenced that way (/projectname/jarpath). 
-//    Otherwise eclipse will reindex .jars in every project over again. 
-// 2. It deconfigures eclipse projects so that only the Eclipse default JRE is used
-// 
+//    This is because Eclipse requires .jars to be inside the workspace
+//    and be referenced that way (/projectname/jarpath).
+//    Otherwise Eclipse will reindex .jars in every project over again.
+// 2. It deconfigures Eclipse projects so that only the Eclipse default JRE is used
+//
 // Things required for this hack to work:
 // 1. Eclipse must be a recent one and needs the Groovyclipse feature. Take it from here, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.4/
 // 2. 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
 // 3. The complete gradle project from github must be cloned (i.e. https://github.com/gradle/gradle)
-// 4. Run ./gradlew eclipse on that folder
-// 5. Import the project into workspace, choose 'search for nested projects', take ALL projects
-// 6. Wait 20 minutes for Eclipse to settle down.
-// 7. Accept that some things just don't seem to work in eclipse, especially some of the groovy files
+// 5. Run ./gradlew build on that folder
+// 6. Run ./gradlew eclipse on that folder
+// 7. Import the gradle project into the Eclipse workspace, choose 'search for nested projects', take ALL projects
+// 8. Wait 20 minutes for Eclipse to settle down.
+// 9. Accept that some things just don't seem to work in Eclipse, especially some of the groovy files
+
+import org.gradle.util.GUtil
 
 project.ext.originalPathToCachePath = [:];
 project.ext.subprojectsPath = new File(projectDir,'/subprojects').absolutePath
 
 def eclipseReplacePathIfNecessary(def classpathEntry){
-    def originalPath = classpathEntry.@path
-    if(classpathEntry.@kind == 'lib' ) {
-        if(originalPath.endsWith('.jar') || originalPath.endsWith('.zip')){
-            classpathEntry.@path = '/' + name + '/' + eclipseCacheFileAndGivePath (originalPath)
-            if(classpathEntry.@sourcepath){
-                classpathEntry.@sourcepath = '/' + name + '/' + eclipseCacheFileAndGivePath (classpathEntry.@sourcepath)
-            }
-        } else {
-            if(originalPath.startsWith(subprojectsPath)){
-                String newpath = originalPath.substring(subprojectsPath.length())
-                int secondSlashIndex = newpath.indexOf('/', 1)
-                if(secondSlashIndex>-1) {
-                    newpath = newpath.substring(0, secondSlashIndex)
-                }
-                classpathEntry.@path = makeCamelCase newpath
-                classpathEntry.@kind = 'src'
-            }
-        }
-    } 
+	def originalPath = classpathEntry.@path
+	if(classpathEntry.@kind == 'lib' ) {
+		if(originalPath.endsWith('.jar') || originalPath.endsWith('.zip')){
+			classpathEntry.@path = '/' + name + '/' + eclipseCacheFileAndGivePath (originalPath)
+			if(classpathEntry.@sourcepath){
+				classpathEntry.@sourcepath = '/' + name + '/' + eclipseCacheFileAndGivePath (classpathEntry.@sourcepath)
+			}
+		} else {
+			if(originalPath.startsWith(subprojectsPath)){
+				String newpath = originalPath.substring(subprojectsPath.length())
+				int secondSlashIndex = newpath.indexOf('/', 1)
+				if(secondSlashIndex>-1) {
+					newpath = newpath.substring(0, secondSlashIndex)
+				}
+				classpathEntry.@path = '/' + GUtil.toLowerCamelCase(newpath)
+				classpathEntry.@kind = 'src'
+			}
+		}
+	}
 }
 
 def eclipseCacheFileAndGivePath(def originalPath){
-    if(originalPathToCachePath.get(originalPath)){
-        return originalPathToCachePath.get(originalPath)
-    } else {
-        File originalFile = new File(originalPath)
-        String originalFileName = originalFile.name
-        String targetPath = '.eclipsecache/'+originalFileName
-        originalPathToCachePath.put(originalPath, targetPath)
-        return targetPath
-    }
-}
-
-// can't find that method in any of the utilities, but I need it
-def makeCamelCase(String text){
-    String[] parts = text.split('-')
-    for(int n = 1; n < parts.length; n++){
-        parts[n] = parts[n].charAt(0).toUpperCase().toString() + parts[n].substring(1)
-    }
-    return parts.join()
+	if(originalPathToCachePath.get(originalPath)){
+		return originalPathToCachePath.get(originalPath)
+	} else {
+		File originalFile = new File(originalPath)
+		String originalFileName = originalFile.name
+		String targetPath = '.eclipsecache/'+originalFileName
+		originalPathToCachePath.put(originalPath, targetPath)
+		return targetPath
+	}
 }
 
 apply plugin: 'eclipse'
 
-eclipse.project.file.withXml { 
-    def prj = it.asNode()
-    prj.linkedResources.clear()
-    def lR = prj.linkedResources[0]
-    originalPathToCachePath.each {originalPath, cachePath ->
-      def link = lR.appendNode ('link', [:])
-      link.appendNode('name', [:], cachePath)
-      link.appendNode('type', [:], 1)
-      link.appendNode('location', [:], originalPath)
-    }
-    project.file('.eclipseproject').mkdir()
+eclipse.project.file.withXml {
+	def prj = it.asNode()
+	prj.linkedResources.clear()
+	// remove all natures and buildspec from the root project - otherwise the groovy files will be compiled twice in Eclipse
+	prj.remove prj.natures
+	prj.remove prj.buildSpec
+
+	def lR = prj.linkedResources[0]
+	originalPathToCachePath.each {originalPath, cachePath ->
+		def link = lR.appendNode ('link', [:])
+		link.appendNode('name', [:], cachePath)
+		link.appendNode('type', [:], 1)
+		link.appendNode('location', [:], originalPath)
+	}
 }
 
 subprojects { subProject ->
-    subProject.apply plugin: 'eclipse'
+	subProject.apply plugin: 'eclipse'
 
-    subProject.plugins.withType(JavaPlugin) {
-        subProject.rootProject.tasks.eclipseProject.dependsOn subProject.tasks.eclipseClasspath
+	subProject.plugins.withType(JavaPlugin) {
+		subProject.rootProject.tasks.eclipseProject.dependsOn subProject.tasks.eclipseClasspath
 
-        eclipse {
-            classpath {
-                file.whenMerged { classpath ->
-                    // use the workspace default JRE, not the bogus JRE names generated by the eclipse plugin
-                    classpath.entries.findAll { it.path.contains('JRE_CONTAINER') }.each {
-                        it.path = "org.eclipse.jdt.launching.JRE_CONTAINER"
-                    }
-                    //There are classes in here not designed to be compiled, but just used in our testing
-                    classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-                    //Workaround for some projects referring to themselves as dependent projects
-                    classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
-                    classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
-                }
-                file.withXml {
-                    // postprocessing the xml, because I don't know how the change the sourcepath on the classpathEntry domain object
-                    Set allEntries = new HashSet();
-                    def cp = it.asNode()
-                    cp.classpathentry.each { cpe ->
-                        eclipseReplacePathIfNecessary cpe
-                        if(cpe.@kind == 'src' && cpe.@path.startsWith("/$project.name")) {
-                            // remove reference to own project
-                            cp.remove cpe
-                        } else if(!allEntries.add(cpe.@kind + ':' + cpe.@path)){
-                            // remove duplicate entry
-                            cp.remove cpe
-                        }
-                    }
-                }
-            }
-            jdt {
-                file.withProperties { props ->
-                    // start with a fresh props - the target/sourceRuntime = 1.5 entries just make things hard (@Override on interface method warnings all over the place)
-                    props.clear()
-                    props["eclipse.preferences.version"] = "1"
-                    //Eclipse's view of projects treat circular dependencies as errors by default
-                    props["org.eclipse.jdt.core.circularClasspath"] = "warning"
-                }
-            }
-        }
-    }
+		eclipse {
+			classpath {
+				file.whenMerged { classpath ->
+					// use the workspace default JRE, not the bogus JRE names generated by the eclipse plugin
+					classpath.entries.findAll { it.path.contains('JRE_CONTAINER') }.each { it.path = "org.eclipse.jdt.launching.JRE_CONTAINER" }
+					//There are classes in here not designed to be compiled, but just used in our testing
+					classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+					//Workaround for some projects referring to themselves as dependent projects
+					classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+					classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
+				}
+				file.withXml {
+					// postprocessing the xml, because I don't know how to change the sourcepath on the classpathEntry domain object
+					Set allEntries = new HashSet();
+					def cp = it.asNode()
+					cp.classpathentry.each { cpe ->
+						eclipseReplacePathIfNecessary cpe
+						if(cpe.@kind == 'src' && cpe.@path.startsWith("/$project.name")) {
+							// remove reference to own project
+							cp.remove cpe
+						} else if(!allEntries.add(cpe.@kind + ':' + cpe.@path)){
+							// remove duplicate entry
+							cp.remove cpe
+						}
+					}
+				}
+			}
+			jdt {
+				file.withProperties { properties ->
+					// start with a fresh properties - the target/sourceRuntime = 1.5 entries just make things hard (@Override on interface method warnings all over the place)
+					properties.clear()
+					properties["eclipse.preferences.version"] = "1"
+					// Eclipse's view of projects treat circular dependencies as errors by default
+					properties["org.eclipse.jdt.core.circularClasspath"] = "warning"
+				}
+			}
+		}
+	}
 }
