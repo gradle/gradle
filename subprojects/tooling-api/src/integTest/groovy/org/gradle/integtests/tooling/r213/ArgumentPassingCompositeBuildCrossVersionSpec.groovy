@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Assume
+import spock.lang.Ignore
 
 class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
@@ -129,6 +130,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
+    @Ignore
     @TargetGradleVersion(">=2.10")
     def "can set javahome for model requests"() {
         given:
@@ -152,6 +154,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
+    @Ignore
     def "can set javahome for build launcher"() {
         given:
         File javaHome = findJavaHome()
