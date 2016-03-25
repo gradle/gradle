@@ -29,10 +29,7 @@ import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
@@ -110,15 +107,28 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     public void dispatch(T message) throws MessageIOException {
         try {
             objectWriter.write(message);
-            encoder.flush();
-            outstr.flush();
         } catch (Exception e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }
     }
 
+    @Override
+    public void flush() throws MessageIOException {
+        try {
+            encoder.flush();
+            outstr.flush();
+        } catch (Exception e) {
+            throw new MessageIOException(String.format("Could not write '%s'.", remoteAddress), e);
+        }
+    }
+
     public void stop() {
-        CompositeStoppable.stoppable(instr, outstr, socket).stop();
+        CompositeStoppable.stoppable(new Closeable() {
+            @Override
+            public void close() throws IOException {
+                flush();
+            }
+        }, instr, outstr, socket).stop();
     }
 
     private static class SocketInputStream extends InputStream {

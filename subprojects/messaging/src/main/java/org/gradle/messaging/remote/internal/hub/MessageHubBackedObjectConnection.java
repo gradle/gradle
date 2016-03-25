@@ -30,7 +30,7 @@ import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
     private ConnectCompletion completion;
-    private Connection<InterHubMessage> connection;
+    private RemoteConnection<InterHubMessage> connection;
     private ClassLoader methodParamClassLoader;
     private Serializer<Object[]> paramSerializer;
 

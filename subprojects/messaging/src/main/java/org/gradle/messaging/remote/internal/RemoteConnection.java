@@ -31,6 +31,8 @@ public interface RemoteConnection<T> extends Connection<T> {
      */
     void dispatch(T message) throws MessageIOException;
 
+    void flush() throws MessageIOException;
+
     /**
      * {@inheritDoc}
      * @throws MessageIOException On failure to receive the message from the peer.

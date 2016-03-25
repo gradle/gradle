@@ -16,24 +16,24 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
 
 class ConnectionState {
     private boolean receiveFinished;
     private boolean dispatchFinished;
-    private final Connection<InterHubMessage> connection;
+    private final RemoteConnection<InterHubMessage> connection;
     private final ConnectionSet owner;
     private final EndPointQueue dispatchQueue;
 
-    ConnectionState(ConnectionSet owner, Connection<InterHubMessage> connection, EndPointQueue dispatchQueue) {
+    ConnectionState(ConnectionSet owner, RemoteConnection<InterHubMessage> connection, EndPointQueue dispatchQueue) {
         this.owner = owner;
         this.connection = connection;
         this.dispatchQueue = dispatchQueue;
     }
 
-    public Connection<InterHubMessage> getConnection() {
+    public RemoteConnection<InterHubMessage> getConnection() {
         return connection;
     }
 

@@ -18,7 +18,7 @@ package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.RemoteConnection
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Timeout
@@ -184,12 +184,19 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
 
     private class TestConnector {
         private final BlockingQueue<InterHubMessage> incomingA = new LinkedBlockingQueue<>()
+        private final BlockingQueue<InterHubMessage> outgoingA = new LinkedBlockingQueue<>()
         private final BlockingQueue<InterHubMessage> incomingB = new LinkedBlockingQueue<>()
+        private final BlockingQueue<InterHubMessage> outgoingB = new LinkedBlockingQueue<>()
 
-        Connection<InterHubMessage> getConnectionA() {
-            return new Connection<InterHubMessage>() {
+        RemoteConnection<InterHubMessage> getConnectionA() {
+            return new RemoteConnection<InterHubMessage>() {
                 void dispatch(InterHubMessage message) {
-                    incomingB.put(message)
+                    outgoingA.put(message)
+                }
+
+                @Override
+                void flush() {
+                    outgoingA.drainTo(incomingB)
                 }
 
                 InterHubMessage receive() {
@@ -202,10 +209,15 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
             }
         }
 
-        Connection<InterHubMessage> getConnectionB() {
-            return new Connection<InterHubMessage>() {
+        RemoteConnection<InterHubMessage> getConnectionB() {
+            return new RemoteConnection<InterHubMessage>() {
                 void dispatch(InterHubMessage message) {
-                    incomingA.put(message)
+                    outgoingB.put(message)
+                }
+
+                @Override
+                void flush()  {
+                    outgoingB.drainTo(incomingA)
                 }
 
                 InterHubMessage receive() {

@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed;
 import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
@@ -37,7 +37,7 @@ class ConnectionSet {
         this.outgoingQueue = outgoingQueue;
     }
 
-    public ConnectionState add(Connection<InterHubMessage> connection) {
+    public ConnectionState add(RemoteConnection<InterHubMessage> connection) {
         incomingQueue.queue(new ConnectionEstablished(connection));
         EndPointQueue queue = outgoingQueue.newEndpoint();
         ConnectionState state = new ConnectionState(this, connection, queue);
