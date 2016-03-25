@@ -17,7 +17,7 @@ charset(s) to use.
 Common situations include:
 
 * Copying and filtering a file from one location to another.
-* Creating an archive (zip, tar, etc.).
+* Creating and reading an archive (zip, tar, etc.).
 
 [GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267) describes just one instance of where this functionality is needed.
 
@@ -34,7 +34,7 @@ In Gradle however, up to version 2.12 at least, the Zip, Jar, War and Ear tasks 
 [Pull Request 499](https://github.com/gradle/gradle/pull/499) which allows specifying a metadata charset, which defaults to
 the platform default encoding. The name of this option is confusing, and the default value is not correct. Moreover, jar, war and ear
 metadata should always be encoded in UTF8 instead of the platform default encoding. The Tar task should use UTF8, but it
-uses ASCII.
+uses the default platform encoding.
 
 ## Solution
 
@@ -62,7 +62,7 @@ charset other than UTF8.
 When reading from zip files using `ZipFileTree`, we should support a metadata charset option as well.
 
 When reading from tar files using `TarFileTree`, we should support a metadata charset option so that we can handle reading 
-tar files which were created by tools other than Gradle.
+non-POSIX tar files, like the tar files created with current and older versions of Gradle, or with other tools.
 
 ## Implementation Plan
 
@@ -82,7 +82,7 @@ inherits from Zip, and should not use any `metadataCharset` other than UTF8. The
 overridden to throw an ÌnsupportedOperationException`. War and Ear inherit from Jar, and will thus automatically benefit
 from this behavior.
 
-The Tar task should use UTF8 rather than ASCII to encode its metadata.
+The Tar task should use UTF8 rather than the default platform charset to encode its metadata, and the POSIX/PAX mode when creating entries.
 
 ZipFileTree should use an additional `metadataCharset` option, defaulting to UTF8.
 
