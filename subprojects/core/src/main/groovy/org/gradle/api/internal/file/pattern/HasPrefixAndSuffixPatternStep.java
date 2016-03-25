@@ -19,20 +19,14 @@ package org.gradle.api.internal.file.pattern;
 public class HasPrefixAndSuffixPatternStep implements PatternStep {
     private final HasPrefixPatternStep prefixMatch;
     private final HasSuffixPatternStep suffixMatch;
-    private final String prefix;
 
     public HasPrefixAndSuffixPatternStep(String prefix, String suffix, boolean caseSensitive) {
-        this.prefix = prefix;
         prefixMatch = new HasPrefixPatternStep(prefix, caseSensitive);
-        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive);
+        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive, prefix.length());
     }
 
     @Override
     public boolean matches(String candidate) {
-        return prefixMatch.matches(candidate) && suffixMatch.matches(candidateWithoutPrefix(candidate));
-    }
-
-    private String candidateWithoutPrefix(String candidate) {
-        return candidate.substring(prefix.length(), candidate.length());
+        return prefixMatch.matches(candidate) && suffixMatch.matches(candidate);
     }
 }
