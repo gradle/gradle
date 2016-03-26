@@ -30,26 +30,12 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-                throw new GradleException("Failure in A")
-"""
+        def rootDirA = singleProjectJavaBuild("A") {
+            buildFile << "throw new GradleException('Failure in A')"
         }
-        def rootDirB = populate("B") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
-        def rootDirC = populate("C") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                throw new GradleException("Different failure in C")
-"""
+        def rootDirB = singleProjectJavaBuild("B")
+        def rootDirC = singleProjectJavaBuild("C") {
+            buildFile << "throw new GradleException('Different failure in C')"
         }
         when:
         def builder = createCompositeBuilder()
@@ -80,37 +66,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate exceptions in composite with multiple multi-project participants"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'ax', 'ay'
-            """
-
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.A'
-                    version = '1.0'
-                }
-            """
+        def rootDirA = multiProjectJavaBuild("A", ['ax', 'ay']) {
             file("ax/build.gradle") << """
                 throw new GradleException("Failure in A::ax")
 """
         }
-        def rootDirB = populate("B") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'bx', 'by'
-            """
+        def rootDirB = multiProjectJavaBuild("B", ['bx', 'by'])
 
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.B'
-                    version = '1.0'
-                }
-            """
-        }
         when:
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)
@@ -137,15 +99,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a single project, single participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-"""
-        }
-        and:
+        def rootDirA = singleProjectJavaBuild("A")
+
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
@@ -170,21 +125,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a multi-project, single participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'x', 'y'
-            """
+        def rootDirA = multiProjectJavaBuild("A", ['x', 'y'])
 
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.A'
-                    version = '1.0'
-                }
-            """
-        }
-        and:
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)
         def connection = builder.build()
@@ -215,31 +157,9 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a single and multi-project, multi-participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-            """
+        def rootDirA = singleProjectJavaBuild("A")
+        def rootDirB = multiProjectJavaBuild("B", ['x', 'y'])
 
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-            """
-        }
-        def rootDirB = populate("B") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'x', 'y'
-            """
-
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.B'
-                    version = '1.0'
-                }
-            """
-        }
         and:
         def builder = createCompositeBuilder()
         def participantA = addCompositeParticipant(builder, rootDirA)

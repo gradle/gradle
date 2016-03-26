@@ -44,14 +44,9 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def setup() {
         GradleDistribution fixedDistribution = GRADLE_2_8
-        varyingProject = populate("project") {
-            buildFile << "apply plugin: 'java'"
-        }
-        def fixedDistributionProject = populate("project_fixed") {
-            buildFile << "apply plugin: 'java'"
-        }
+        varyingProject = singleProjectJavaBuild("project")
+        def fixedDistributionProject = singleProjectJavaBuild("project_fixed")
 
-        println "Testing a composite with ${fixedDistribution.version} and ${targetDist.version}"
         builder = createCompositeBuilder()
 
         varyingBuildIdentity = addCompositeParticipant(builder, varyingProject)
