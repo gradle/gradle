@@ -16,12 +16,8 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
+import org.gradle.internal.serialize.*;
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.ObjectReader;
-import org.gradle.internal.serialize.ObjectWriter;
-import org.gradle.internal.serialize.StatefulSerializer;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -30,58 +26,73 @@ import java.util.Map;
 
 public class MethodInvocationSerializer implements StatefulSerializer<MethodInvocation> {
     private final ClassLoader classLoader;
-    private final StatefulSerializer<Object[]> argsSerializer;
+    private final MethodArgsSerializer methodArgsSerializer;
 
-    public MethodInvocationSerializer(ClassLoader classLoader, StatefulSerializer<Object[]> argsSerializer) {
+    public MethodInvocationSerializer(ClassLoader classLoader, MethodArgsSerializer methodArgsSerializer) {
         this.classLoader = classLoader;
-        this.argsSerializer = argsSerializer;
+        this.methodArgsSerializer = methodArgsSerializer;
     }
 
     public ObjectReader<MethodInvocation> newReader(Decoder decoder) {
-        return new MethodInvocationReader(decoder, classLoader, argsSerializer.newReader(decoder));
+        return new MethodInvocationReader(decoder, classLoader, methodArgsSerializer);
     }
 
     public ObjectWriter<MethodInvocation> newWriter(Encoder encoder) {
-        return new MethodInvocationWriter(encoder, argsSerializer.newWriter(encoder));
+        return new MethodInvocationWriter(encoder, methodArgsSerializer);
+    }
+
+    private static class MethodDetails {
+        final int methodId;
+        final Method method;
+        final Serializer<Object[]> argsSerializer;
+
+        MethodDetails(int methodId, Method method, Serializer<Object[]> argsSerializer) {
+            this.methodId = methodId;
+            this.method = method;
+            this.argsSerializer = argsSerializer;
+        }
     }
 
     private static class MethodInvocationWriter implements ObjectWriter<MethodInvocation> {
         private final Encoder encoder;
-        private final ObjectWriter<Object[]> argsWriter;
-        private final Map<Method, Integer> methods = new HashMap<Method, Integer>();
+        private final MethodArgsSerializer methodArgsSerializer;
+        private final Map<Method, MethodDetails> methods = new HashMap<Method, MethodDetails>();
 
-        public MethodInvocationWriter(Encoder encoder, ObjectWriter<Object[]> argsWriter) {
+        MethodInvocationWriter(Encoder encoder, MethodArgsSerializer methodArgsSerializer) {
             this.encoder = encoder;
-            this.argsWriter = argsWriter;
+            this.methodArgsSerializer = methodArgsSerializer;
         }
 
         public void write(MethodInvocation value) throws Exception {
             if (value.getArguments().length != value.getMethod().getParameterTypes().length) {
                 throw new IllegalArgumentException(String.format("Mismatched number of parameters to method %s.", value.getMethod()));
             }
-            writeMethod(value.getMethod());
-            writeArguments(value);
+            MethodDetails methodDetails = writeMethod(value.getMethod());
+            writeArgs(methodDetails, value);
         }
 
-        private void writeArguments(MethodInvocation value) throws Exception {
-            argsWriter.write(value.getArguments());
+        private void writeArgs(MethodDetails methodDetails, MethodInvocation value) throws Exception {
+            methodDetails.argsSerializer.write(encoder, value.getArguments());
         }
 
-        private void writeMethod(Method method) throws IOException {
-            Integer methodId = methods.get(method);
-            if (methodId == null) {
-                methodId = methods.size();
-                methods.put(method, methodId);
+        private MethodDetails writeMethod(Method method) throws IOException {
+            MethodDetails methodDetails = methods.get(method);
+            if (methodDetails == null) {
+                int methodId = methods.size();
+                methodDetails = new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
+                methods.put(method, methodDetails);
                 encoder.writeSmallInt(methodId);
                 encoder.writeString(method.getDeclaringClass().getName());
                 encoder.writeString(method.getName());
                 encoder.writeSmallInt(method.getParameterTypes().length);
-                for (Class<?> paramType : method.getParameterTypes()) {
+                for (int i = 0; i < method.getParameterTypes().length; i++) {
+                    Class<?> paramType = method.getParameterTypes()[i];
                     encoder.writeString(paramType.getName());
                 }
             } else {
-                encoder.writeSmallInt(methodId);
+                encoder.writeSmallInt(methodDetails.methodId);
             }
+            return methodDetails;
         }
     }
 
@@ -94,29 +105,29 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
 
         private final Decoder decoder;
         private final ClassLoader classLoader;
-        private final ObjectReader<Object[]> argsReader;
-        private final Map<Integer, Method> methods = new HashMap<Integer, Method>();
+        private final MethodArgsSerializer methodArgsSerializer;
+        private final Map<Integer, MethodDetails> methods = new HashMap<Integer, MethodDetails>();
 
-        public MethodInvocationReader(Decoder decoder, ClassLoader classLoader, ObjectReader<Object[]> argsReader) {
+        MethodInvocationReader(Decoder decoder, ClassLoader classLoader, MethodArgsSerializer methodArgsSerializer) {
             this.decoder = decoder;
             this.classLoader = classLoader;
-            this.argsReader = argsReader;
+            this.methodArgsSerializer = methodArgsSerializer;
         }
 
         public MethodInvocation read() throws Exception {
-            Method method = readMethod();
-            Object[] args = readArguments();
-            return new MethodInvocation(method, args);
+            MethodDetails methodDetails = readMethod();
+            Object[] args = readArguments(methodDetails);
+            return new MethodInvocation(methodDetails.method, args);
         }
 
-        private Object[] readArguments() throws Exception {
-            return argsReader.read();
+        private Object[] readArguments(MethodDetails methodDetails) throws Exception {
+            return methodDetails.argsSerializer.read(decoder);
         }
 
-        private Method readMethod() throws ClassNotFoundException, NoSuchMethodException, IOException {
+        private MethodDetails readMethod() throws ClassNotFoundException, NoSuchMethodException, IOException {
             int methodId = decoder.readSmallInt();
-            Method method = methods.get(methodId);
-            if (method == null) {
+            MethodDetails methodDetails = methods.get(methodId);
+            if (methodDetails == null) {
                 Class<?> declaringClass = readType();
                 String methodName = decoder.readString();
                 int paramCount = decoder.readSmallInt();
@@ -124,10 +135,11 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
                 for (int i = 0; i < paramTypes.length; i++) {
                     paramTypes[i] = readType();
                 }
-                method = declaringClass.getDeclaredMethod(methodName, paramTypes);
-                methods.put(methodId, method);
+                Method method = declaringClass.getDeclaredMethod(methodName, paramTypes);
+                methodDetails = new MethodDetails(methodId, method, methodArgsSerializer.forTypes(method.getParameterTypes()));
+                methods.put(methodId, methodDetails);
             }
-            return method;
+            return methodDetails;
         }
 
         private Class<?> readType() throws ClassNotFoundException, IOException {

@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote;
 
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 public interface ObjectConnectionBuilder {
     /**
@@ -41,7 +41,7 @@ public interface ObjectConnectionBuilder {
     <T> void addIncoming(Class<T> type, T instance);
 
     /**
-     * Use the specified serializer for all incoming and outgoing method parameters.
+     * Use the specified serializers for all incoming and outgoing method parameters.
      */
-    void useParameterSerializer(Serializer<Object[]> serializer);
+    void useParameterSerializers(SerializerRegistry serializers);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize
+package org.gradle.messaging.remote.internal.hub;
 
-class ObjectArraySerializerTest extends SerializerSpec {
-    def serializer = new ObjectArraySerializer(new BaseSerializerFactory().getSerializerFor(String))
+import org.gradle.internal.serialize.Serializer;
 
-    def "can serialize arrays"() {
-        expect:
-        serialize(elements as Object[], serializer) == elements as Object[]
-
-        where:
-        elements        | _
-        []              | _
-        ["a", "b", "c"] | _
-    }
+public interface MethodArgsSerializer {
+    Serializer<Object[]> forTypes(Class<?>[] types);
 }

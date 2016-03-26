@@ -23,7 +23,7 @@ import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.*;
 
 public class TestEventSerializer {
-    public static Serializer<Object[]> create() {
+    public static SerializerRegistry create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
@@ -37,7 +37,7 @@ public class TestEventSerializer {
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
         registry.register(Throwable.class, factory.getSerializerFor(Throwable.class));
-        return new ObjectArraySerializer(registry.build(Object.class));
+        return registry;
     }
 
     private static class NullableSerializer<T> implements Serializer<T> {

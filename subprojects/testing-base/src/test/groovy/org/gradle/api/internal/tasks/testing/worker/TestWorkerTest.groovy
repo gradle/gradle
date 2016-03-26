@@ -57,7 +57,7 @@ public class TestWorkerTest extends ConcurrentSpec {
         1 * factory.create(_) >> processor
         1 * connection.addOutgoing(TestResultProcessor) >> resultProcessor
         1 * connection.addIncoming(RemoteTestClassProcessor, worker)
-        1 * connection.useParameterSerializer(_)
+        1 * connection.useParameterSerializers(_)
         1 * connection.connect() >> {
             start {
                 worker.startProcessing()
