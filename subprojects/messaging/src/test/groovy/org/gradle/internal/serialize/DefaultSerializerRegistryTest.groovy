@@ -39,20 +39,21 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         def registry = new DefaultSerializerRegistry()
         registry.register(Long, longSerializer)
         registry.register(Integer, intSerializer)
-        def serializer = registry.build()
+        def serializer = registry.build(Number)
 
         expect:
         serialize(123L, serializer) == 123L
         serialize(123, serializer) == 123
+        toBytes(123L, serializer).length == toBytes(123L, longSerializer).length + 1
     }
 
-    def "does not write type tag when there is only one registered type"() {
+    def "does not write type tag when there is only one matching registered type"() {
         given:
         def registry = new DefaultSerializerRegistry()
         registry.register(Long, longSerializer)
-        def serializer1 = registry.build()
         registry.register(Integer, intSerializer)
-        def serializer2 = registry.build()
+        def serializer1 = registry.build(Long)
+        def serializer2 = registry.build(Number)
 
         expect:
         toBytes(123L, serializer1).length + 1 == toBytes(123L, serializer2).length
@@ -63,13 +64,13 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         def registry = new DefaultSerializerRegistry()
         registry.register(Long, longSerializer)
         registry.register(Integer, intSerializer)
-        def serializer1 = registry.build()
+        def serializer1 = registry.build(Number)
 
         and:
         registry = new DefaultSerializerRegistry()
         registry.register(Integer, intSerializer)
         registry.register(Long, longSerializer)
-        def serializer2 = registry.build()
+        def serializer2 = registry.build(Number)
 
         expect:
         fromBytes(toBytes(123L, serializer1), serializer2) == 123L
@@ -82,7 +83,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         registry.register(Long, longSerializer)
         registry.register(Integer, intSerializer)
         registry.useJavaSerialization(String)
-        def serializer = registry.build()
+        def serializer = registry.build(Object)
 
         when:
         toBytes(123.4, serializer)
@@ -97,7 +98,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         def registry = new DefaultSerializerRegistry()
         registry.useJavaSerialization(Long)
         registry.useJavaSerialization(Integer)
-        def serializer = registry.build()
+        def serializer = registry.build(Number)
 
         expect:
         serialize(123L, serializer) == 123L
@@ -108,7 +109,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         given:
         def registry = new DefaultSerializerRegistry()
         registry.useJavaSerialization(Number)
-        def serializer = registry.build()
+        def serializer = registry.build(Number)
 
         expect:
         serialize(123L, serializer) == 123L
@@ -129,7 +130,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         def registry = new DefaultSerializerRegistry()
         registry.useJavaSerialization(Number)
         registry.register(Long, customSerializer)
-        def serializer = registry.build()
+        def serializer = registry.build(Number)
 
         expect:
         serialize(123L, serializer) == 125L

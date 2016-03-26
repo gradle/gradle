@@ -37,10 +37,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         this.stringInterner = stringInterner;
     }
 
-    public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
-        DefaultSerializerRegistry<FileCollectionSnapshot> nested = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+    public void registerSerializers(SerializerRegistry registry) {
+        DefaultSerializerRegistry nested = new DefaultSerializerRegistry();
         snapshotter.registerSerializers(nested);
-        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build(), stringInterner));
+        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build(FileCollectionSnapshot.class), stringInterner));
     }
 
     public FileCollectionSnapshot emptySnapshot() {

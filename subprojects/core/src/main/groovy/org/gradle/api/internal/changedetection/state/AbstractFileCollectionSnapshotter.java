@@ -42,7 +42,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         this.fileResolver = fileResolver;
     }
 
-    public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
+    public void registerSerializers(SerializerRegistry registry) {
         registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
     }
 

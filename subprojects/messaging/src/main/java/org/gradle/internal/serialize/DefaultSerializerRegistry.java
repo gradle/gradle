@@ -18,7 +18,7 @@ package org.gradle.internal.serialize;
 
 import java.util.*;
 
-public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
+public class DefaultSerializerRegistry implements SerializerRegistry {
     private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
@@ -26,20 +26,34 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
     });
     private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
 
-    public <U extends T> void register(Class<U> implementationType, Serializer<U> serializer) {
+    @Override
+    public <T> void register(Class<T> implementationType, Serializer<T> serializer) {
         serializerMap.put(implementationType, serializer);
     }
 
     @Override
-    public <U extends T> void useJavaSerialization(Class<U> implementationType) {
+    public <T> void useJavaSerialization(Class<T> implementationType) {
         javaSerialization.add(implementationType);
     }
 
-    public Serializer<T> build() {
-        if (serializerMap.size() == 1 && javaSerialization.isEmpty()) {
-            return (Serializer<T>) serializerMap.values().iterator().next();
+    @Override
+    public <T> Serializer<T> build(Class<T> baseType) {
+        Map<Class<?>, Serializer<?>> matches = new LinkedHashMap<Class<?>, Serializer<?>>();
+        for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
+            if (baseType.isAssignableFrom(entry.getKey())) {
+                matches.put(entry.getKey(), entry.getValue());
+            }
         }
-        return new TaggedTypeSerializer<T>(serializerMap, javaSerialization);
+        Set<Class<?>> matchingJavaSerialization = new LinkedHashSet<Class<?>>();
+        for (Class<?> candidate : javaSerialization) {
+            if (baseType.isAssignableFrom(candidate)) {
+                matchingJavaSerialization.add(candidate);
+            }
+        }
+        if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
+            return (Serializer<T>) matches.values().iterator().next();
+        }
+        return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
 
     private static class TypeInfo {

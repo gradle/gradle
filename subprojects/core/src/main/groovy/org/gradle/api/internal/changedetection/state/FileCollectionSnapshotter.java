@@ -22,7 +22,7 @@ public interface FileCollectionSnapshotter {
     /**
      * Registers the serializer(s) that can be used to serialize the {@link FileCollectionSnapshot} implementations produced by this snapshotter.
      */
-    void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry);
+    void registerSerializers(SerializerRegistry registry);
 
     /**
      * Creates an empty snapshot, which changes can be later merged into.
