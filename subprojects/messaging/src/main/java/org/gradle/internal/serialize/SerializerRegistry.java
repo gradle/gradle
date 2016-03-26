@@ -29,7 +29,7 @@ public interface SerializerRegistry {
     <T> void useJavaSerialization(Class<T> implementationType);
 
     /**
-     * Creates a serializer that uses the current registrations to serialize objects of type S.
+     * Creates a serializer that uses the current registrations to serialize objects of type T.
      */
     <T> Serializer<T> build(Class<T> baseType);
 }

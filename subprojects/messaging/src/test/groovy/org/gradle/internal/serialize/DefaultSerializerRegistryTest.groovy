@@ -93,6 +93,34 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         e.message == "Don't know how to serialize an object of type java.math.BigDecimal."
     }
 
+    def "cannot get serializer when no matching types have been registered"() {
+        given:
+        def registry = new DefaultSerializerRegistry()
+        registry.register(Long, longSerializer)
+
+        when:
+        registry.build(String)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Don't know how to serialize objects of type java.lang.String."
+    }
+
+    def "uses serializer registered for Throwable for subtypes of Throwable"() {
+        def failure = new IOException("broken")
+        def throwableSerializer = Mock(Serializer)
+
+        given:
+        _ * throwableSerializer.write(_, failure)
+        _ * throwableSerializer.read(_) >> failure
+        def registry = new DefaultSerializerRegistry()
+        registry.register(Throwable, throwableSerializer)
+        def serializer = registry.build(Object)
+
+        expect:
+        serialize(failure, serializer) == failure
+    }
+
     def "can use Java serialization for registered type"() {
         given:
         def registry = new DefaultSerializerRegistry()
