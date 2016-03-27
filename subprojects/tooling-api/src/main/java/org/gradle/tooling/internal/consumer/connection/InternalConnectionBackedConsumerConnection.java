@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -46,7 +44,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate, getCompatibilityMapperAction());
+        ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate, this);
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         modelProducer = new BuildExecutingModelProducer(modelProducer);
@@ -130,14 +128,14 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;
         private final InternalConnection delegate;
-        private final Action<? super SourceObjectMapping> mapper;
+        private final HasCompatibilityMapperAction mapperProvider;
 
-        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate, Action<? super SourceObjectMapping> mapper) {
+        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate, HasCompatibilityMapperAction mapperProvider) {
             this.adapter = adapter;
             this.versionDetails = versionDetails;
             this.modelMapping = modelMapping;
             this.delegate = delegate;
-            this.mapper = mapper;
+            this.mapperProvider = mapperProvider;
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -146,7 +144,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             Class<?> protocolType = modelMapping.getProtocolType(type);
-            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), mapper);
+            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), mapperProvider.getCompatibilityMapperAction(operationParameters));
         }
     }
 }

@@ -185,8 +185,6 @@ task hello {
         e.cause.message == "Build not part of composite"
     }
 
-    // TODO:DAZ Test and fix on earlier versions
-    @TargetGradleVersion(">=2.6")
     def "executes task in single project selected with Launchable"() {
         given:
         def build1 = singleProjectJavaBuild("build1") {

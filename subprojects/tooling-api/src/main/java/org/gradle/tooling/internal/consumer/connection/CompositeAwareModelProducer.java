@@ -74,12 +74,12 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
             Map<Object, Object> resultMap = (Map) result.getModel();
             for (Map.Entry<Object, Object> entry : resultMap.entrySet()) {
-                ProjectIdentity projectIdentity = adapter.adapt(ProjectIdentity.class, entry.getKey(), getCompatibilityMapperAction());
+                ProjectIdentity projectIdentity = adapter.adapt(ProjectIdentity.class, entry.getKey());
                 if (entry.getValue() instanceof Throwable) {
                     GradleConnectionException failure = exceptionTransformer.transform((Throwable) entry.getValue());
                     models.add(new DefaultModelResult<T>(projectIdentity, failure));
                 } else {
-                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction());
+                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction(projectIdentity));
                     models.add(new DefaultModelResult<T>(projectIdentity, modelResult));
                 }
             }
