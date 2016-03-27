@@ -15,20 +15,21 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.tooling.connection.BuildIdentity
-import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.connection.ModelResults
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.connection.*
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.CollectionUtils
 import spock.lang.Ignore
+
 /**
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
@@ -37,25 +38,24 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     private final static GradleDistribution GRADLE_2_8 = new ReleasedVersionDistributions().getDistribution("2.8")
 
-    def varyingProject
-    def varyingBuildIdentity
-    def fixedBuildIdentity
-    def builder
+    TestFile varyingBuildRoot
+    TestFile fixedBuildRoot
 
     def setup() {
-        GradleDistribution fixedDistribution = GRADLE_2_8
-        varyingProject = singleProjectJavaBuild("project")
-        def fixedDistributionProject = singleProjectJavaBuild("project_fixed")
+        varyingBuildRoot = singleProjectJavaBuild("project")
+        fixedBuildRoot = singleProjectJavaBuild("project_fixed")
+   }
 
-        builder = createCompositeBuilder()
-
-        varyingBuildIdentity = addCompositeParticipant(builder, varyingProject)
-        fixedBuildIdentity = builder.newParticipant(fixedDistributionProject).useInstallation(fixedDistribution.gradleHomeDir.absoluteFile).create()
+    private GradleConnection openConnection() {
+        GradleConnectionBuilder builder = createCompositeBuilder()
+        builder.newParticipant(varyingBuildRoot.absoluteFile).useInstallation(targetDist.gradleHomeDir.absoluteFile).create()
+        builder.newParticipant(fixedBuildRoot.absoluteFile).useInstallation(GRADLE_2_8.gradleHomeDir.absoluteFile).create()
+        return builder.build()
     }
 
     def "retrieve models for composite with heterogeneous Gradle versions"() {
         when:
-        def connection = builder.build()
+        def connection = openConnection()
 
         def eclipseProjects = connection.getModels(EclipseProject)
         def buildEnvironments = connection.getModels(BuildEnvironment)
@@ -71,18 +71,18 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     @TargetGradleVersion(">=1.0 <1.12")
     def "gets errors for unsupported models for composite with heterogeneous Gradle versions"() {
         when:
-        GradleConnection connection = builder.build()
-
+        def connection = openConnection()
         def modelResults = connection.getModels(ProjectPublications)
 
         then:
         modelResults.size() == 2
-        def varyingResult = findModelResult(modelResults, varyingBuildIdentity)
+        def varyingResult = findFailureResult(modelResults, varyingBuildRoot)
         assertFailure(varyingResult.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'ProjectPublications'. Support for building 'ProjectPublications' models was added in Gradle 1.12 and is available in all later versions.")
 
-        def fixedResult = findModelResult(modelResults, fixedBuildIdentity)
+        def fixedResult = modelResults.find {it != varyingResult}
         fixedResult.failure == null
         fixedResult.model != null
+
         cleanup:
         connection?.close()
     }
@@ -90,16 +90,15 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     @TargetGradleVersion(">=1.0 <1.6")
     def "gets errors for unknown models for composite with heterogeneous Gradle versions"() {
         when:
-        GradleConnection connection = builder.build()
-
+        def connection = openConnection()
         def modelResults = connection.getModels(CustomModel)
 
         then:
         modelResults.size() == 2
-        def varyingResult = findModelResult(modelResults, varyingBuildIdentity)
+        def varyingResult = findFailureResult(modelResults, varyingBuildRoot)
         assertFailure(varyingResult.failure, "The version of Gradle you are using (${targetDistVersion.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions.")
 
-        def fixedResult = findModelResult(modelResults, fixedBuildIdentity)
+        def fixedResult = findFailureResult(modelResults, fixedBuildRoot)
         assertFailure(fixedResult.failure, "No model of type 'CustomModel' is available in this build.")
 
         cleanup:
@@ -159,9 +158,15 @@ class CustomPlugin implements Plugin<Project> {
 
     }
 
+    ModelResult findFailureResult(Iterable<ModelResult> modelResults, File rootDir) {
+        BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
+        def results = modelResults.findAll { it instanceof FailureModelResult && buildIdentity.equals(it.buildIdentity)}
+        return CollectionUtils.single(results)
+    }
+
     ModelResult findModelResult(ModelResults modelResults, BuildIdentity buildIdentity) {
         CollectionUtils.single(modelResults.findAll { ModelResult modelResult ->
-            modelResult.projectIdentity.build.equals(buildIdentity)
+            modelResult.model.identifier.build.equals(buildIdentity)
         })
     }
 }

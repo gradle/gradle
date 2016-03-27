@@ -186,7 +186,11 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         int getExpectedNumberOfModelResults() {
-            getNumberOfProjects()
+            if (BUILD_MODELS.contains(modelType) || HIERARCHICAL_IDEA_MODELS.contains(modelType)) {
+                getNumberOfBuilds()
+            } else {
+                getNumberOfProjects()
+            }
         }
 
         int getNumberOfBuilds() {

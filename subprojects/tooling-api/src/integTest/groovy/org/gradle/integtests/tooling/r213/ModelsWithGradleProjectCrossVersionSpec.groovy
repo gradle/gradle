@@ -56,6 +56,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         }.asList()*.model
 
         then:
+        gradleBuilds.size() == 2
         gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootSingle) }
         gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootMulti) }
     }

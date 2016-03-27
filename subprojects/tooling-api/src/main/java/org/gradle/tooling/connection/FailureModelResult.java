@@ -16,32 +16,21 @@
 
 package org.gradle.tooling.connection;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.GradleConnectionException;
 
-/**
- * A model with the identity of the project it was produced from.
- *
- * @param <T> Type of model in the result
- * @since 2.13
- */
-@Incubating
-public interface ModelResult<T> {
+public interface FailureModelResult<T> extends ModelResult<T> {
     /**
-     * Model produced
+     * Identity of the build that originated this failure.
      *
-     * @return the model, never null.
-     * @throws GradleConnectionException if the model could not be retrieved.
+     * @return the build identity, never null.
      */
-    T getModel() throws GradleConnectionException;
+    BuildIdentity getBuildIdentity();
 
     /**
-     * The failure retrieving the model.
-     * If this value is not null, further details can be obtained by casting to {@link FailureModelResult}.
+     * Identity of the project that originated this failure, if any.
      *
-     * @return the failure, or null if the result was successful.
+     * @return the project identity, or null if this failure did not originate from a particular project.
      */
     @Nullable
-    GradleConnectionException getFailure();
+    ProjectIdentity getProjectIdentity();
 }
