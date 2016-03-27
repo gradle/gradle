@@ -77,9 +77,10 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         boolean buildFound = false;
         for (GradleParticipantBuild participant : participantBuilds) {
-            if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
-                continue;
-            }
+            // TODO:DAZ  We are no longer targeting the correct build
+//            if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
+//                continue;
+//            }
             buildFound = true;
             if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
                 break;

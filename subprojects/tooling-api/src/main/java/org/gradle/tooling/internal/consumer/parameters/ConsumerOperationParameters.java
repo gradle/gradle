@@ -176,6 +176,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
+        public Builder setBuildIdentity(BuildIdentity buildIdentity) {
+            this.buildIdentity = buildIdentity;
+            return this;
+        }
+
         public ConsumerOperationParameters build() {
             if (entryPoint == null) {
                 throw new IllegalStateException("No entry point specified.");

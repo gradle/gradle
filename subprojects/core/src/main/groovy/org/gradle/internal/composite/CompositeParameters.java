@@ -27,15 +27,13 @@ public class CompositeParameters implements Serializable {
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
-    private final File compositeTargetBuildRootDir;
 
-    public CompositeParameters(List<GradleParticipantBuild> builds, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File compositeTargetBuildRootDir) {
+    public CompositeParameters(List<GradleParticipantBuild> builds, File gradleUserHomeDir, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.builds = builds;
         this.gradleUserHomeDir = gradleUserHomeDir != null ? new File(gradleUserHomeDir.getAbsolutePath()) : null;
         this.daemonBaseDir = daemonBaseDir != null ? new File(daemonBaseDir.getAbsolutePath()) : null;
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
-        this.compositeTargetBuildRootDir = compositeTargetBuildRootDir != null ? new File(compositeTargetBuildRootDir.getAbsolutePath()) : null;
     }
 
     public List<GradleParticipantBuild> getBuilds() {
@@ -58,7 +56,4 @@ public class CompositeParameters implements Serializable {
         return daemonMaxIdleTimeUnits;
     }
 
-    public File getCompositeTargetBuildRootDir() {
-        return compositeTargetBuildRootDir;
-    }
 }

@@ -170,6 +170,4 @@ public interface ProviderOperationParameters {
      */
     @Nullable
     List<GradleParticipantBuild> getBuilds(List<GradleParticipantBuild> defaultBuilds);
-
-    File getCompositeTargetBuildRootDir(File defaultRootDir);
 }

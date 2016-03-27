@@ -20,9 +20,9 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConsumerActionExecutor connection;
-    private final ConnectionParameters parameters;
+    private final ProjectConnectionParameters parameters;
 
-    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ProjectConnectionParameters parameters) {
         this.connection = connection;
         this.parameters = parameters;
     }
@@ -40,7 +40,7 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public BuildLauncher newBuild() {
-        return new DefaultBuildLauncher(connection, parameters);
+        return new ProjectConnectionBuildLauncher(connection, parameters);
     }
 
     @Override
