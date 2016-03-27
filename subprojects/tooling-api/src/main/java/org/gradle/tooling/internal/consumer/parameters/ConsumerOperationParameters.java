@@ -141,7 +141,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                         + (launchable != null ? launchable.getClass() : "null"));
                 }
             }
-            this.launchables = launchablesParams;
+            // Tasks are ignored by providers if launchables is not null
+            this.launchables = launchablesParams.isEmpty() ? null : launchablesParams;
             tasks = Lists.newArrayList(taskPaths);
             return this;
         }

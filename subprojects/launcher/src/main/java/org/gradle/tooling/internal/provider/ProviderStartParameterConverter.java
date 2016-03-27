@@ -26,7 +26,6 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,12 +60,10 @@ class ProviderStartParameterConverter {
         }
 
         List<InternalLaunchable> launchables = parameters.getLaunchables(null);
-        if (launchables != null && !launchables.isEmpty()) {
+        if (launchables != null) {
             startParameter.setTaskRequests(unpack(launchables));
         } else if (parameters.getTasks() != null) {
             startParameter.setTaskNames(parameters.getTasks());
-        } else if (launchables != null) {
-            startParameter.setTaskRequests(Collections.<TaskExecutionRequest>emptyList());
         }
 
         new PropertiesToStartParameterConverter().convert(properties, startParameter);

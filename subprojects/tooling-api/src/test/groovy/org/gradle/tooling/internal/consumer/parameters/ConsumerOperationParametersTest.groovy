@@ -75,7 +75,7 @@ class ConsumerOperationParametersTest extends Specification {
 
         then:
         params.tasks == [':a', ':b', ':lib:b']
-        params.launchables == []
+        params.launchables == null
     }
 
     def adapt(def object) {
