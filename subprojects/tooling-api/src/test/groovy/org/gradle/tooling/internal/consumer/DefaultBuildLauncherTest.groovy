@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.tooling.internal.consumer
-
 import com.google.common.collect.Sets
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -24,8 +23,11 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
@@ -325,11 +327,15 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         def task = new Object() {
             String getPath() { return path }
         }
-        return new ProtocolToModelAdapter().adapt(Task, task)
+        return new ProtocolToModelAdapter().adapt(Task, task, new FixedBuildIdentifierProvider(id()))
     }
 
     def selector(def object) {
-        return new ProtocolToModelAdapter().adapt(TaskSelector, object)
+        return new ProtocolToModelAdapter().adapt(TaskSelector, object, new FixedBuildIdentifierProvider(id()))
+    }
+
+    def id() {
+        return new DefaultProjectIdentity(new DefaultBuildIdentity(new File("foo")), ":")
     }
 }
 
