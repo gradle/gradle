@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.internal.connection.GradleConnectionParticipant;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.connection.GradleConnectionParticipant;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -65,7 +65,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
-        private File compositeTargetBuildRootDir;
+        private File rootDirectory;
 
         private Builder() {
         }
@@ -170,8 +170,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             this.cancellationToken = cancellationToken;
         }
 
-        public Builder setCompositeTargetBuildRootDir(File compositeTargetBuildRootDir) {
-            this.compositeTargetBuildRootDir = compositeTargetBuildRootDir;
+        public Builder setRootDirectory(File rootDirectory) {
+            this.rootDirectory = rootDirectory;
             return this;
         }
 
@@ -181,7 +181,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken, compositeTargetBuildRootDir);
+                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken, rootDirectory);
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -221,7 +221,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
     private final ClassPath injectedPluginClasspath;
-    private final File compositeTargetBuildRootDir;
+    private final File rootDirectory;
 
     private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
     private final List<ProgressListener> testProgressListeners;
@@ -231,7 +231,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
                                         List<org.gradle.tooling.ProgressListener> legacyProgressListeners, List<ProgressListener> testProgressListeners, List<ProgressListener> taskProgressListeners,
-                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken, File compositeTargetBuildRootDir) {
+                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken, File rootDirectory) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -245,7 +245,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.launchables = launchables;
         this.injectedPluginClasspath = injectedPluginClasspath;
         this.cancellationToken = cancellationToken;
-        this.compositeTargetBuildRootDir = compositeTargetBuildRootDir;
+        this.rootDirectory = rootDirectory;
         this.legacyProgressListeners = legacyProgressListeners;
         this.testProgressListeners = testProgressListeners;
         this.taskProgressListeners = taskProgressListeners;
@@ -409,7 +409,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters) parameters).getBuilds() : null;
     }
 
-    public File getCompositeTargetBuildRootDir() {
-        return compositeTargetBuildRootDir;
+    public File getRootDirectory() {
+        return rootDirectory;
     }
 }

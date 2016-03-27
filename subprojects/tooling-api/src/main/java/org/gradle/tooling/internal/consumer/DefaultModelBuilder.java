@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import java.io.File;
 import java.util.List;
 
 public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<DefaultModelBuilder<T>> implements ModelBuilder<T> {
@@ -37,6 +38,8 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("ModelBuilder API");
+        File projectDir = ((ProjectConnectionParameters) parameters).getProjectDir();
+        operationParamsBuilder.setRootDirectory(projectDir);
     }
 
     @Override

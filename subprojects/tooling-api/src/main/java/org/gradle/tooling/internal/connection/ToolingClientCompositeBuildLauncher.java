@@ -34,7 +34,7 @@ public class ToolingClientCompositeBuildLauncher {
     public void run() {
         for (GradleConnectionParticipant gradleBuildInternal : operationParameters.getBuilds()) {
             // TODO: Use BuildIdentity directly?
-            if (operationParameters.getCompositeTargetBuildRootDir().equals(gradleBuildInternal.getProjectDir())) {
+            if (operationParameters.getRootDirectory().equals(gradleBuildInternal.getProjectDir())) {
                 ProjectConnection connection = null;
                 try {
                     connection = util.createParticipantConnector(gradleBuildInternal).connect();
@@ -49,6 +49,6 @@ public class ToolingClientCompositeBuildLauncher {
                 return;
             }
         }
-        throw new GradleConnectionException("Not a valid build directory: " + operationParameters.getCompositeTargetBuildRootDir(), new IllegalStateException("Build not part of composite"));
+        throw new GradleConnectionException("Not a valid build directory: " + operationParameters.getRootDirectory(), new IllegalStateException("Build not part of composite"));
     }
 }

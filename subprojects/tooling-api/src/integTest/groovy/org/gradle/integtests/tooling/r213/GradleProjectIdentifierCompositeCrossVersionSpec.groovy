@@ -19,6 +19,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -37,13 +39,35 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         rootMulti = multiProjectJavaBuild("B", ['x', 'y'])
     }
 
+    def "ProjectConnection provides identified GradleBuild"() {
+        when:
+        def gradleBuild = getModelWithProjectConnection(rootMulti, GradleBuild)
+
+        then:
+        gradleBuild.identifier == new DefaultBuildIdentity(rootMulti)
+    }
+
+    def "GradleConnection provides identified GradleBuild for each build"() {
+        when:
+        def gradleBuilds = withCompositeConnection([rootMulti, rootSingle]) { GradleConnection connection ->
+            def modelBuilder = connection.models(GradleBuild)
+            modelBuilder.get()
+        }.asList()*.model
+        def singleProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootSingle}
+        def multiProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootMulti}
+
+        then:
+        singleProjectBuild.identifier == new DefaultBuildIdentity(rootSingle)
+        multiProjectBuild.identifier == new DefaultBuildIdentity(rootMulti)
+    }
+
     def "GradleConnection provides GradleProjects for single project build"() {
         when:
         def gradleProjects = getGradleProjectsWithGradleConnection([rootSingle], modelType)
 
         then:
         gradleProjects.size() == 1
-        hasProject(gradleProjects, ':', 'A')
+        hasProject(gradleProjects, rootSingle, ':', 'A')
 
         where:
         modelType << identifiedModels
@@ -51,11 +75,11 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
 
     def "ProjectConnection provides all GradleProjects for root of single project build"() {
         when:
-        def gradleProjects = getGradleProjectsWithProjectConnection(rootSingle, modelType)
+        def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootSingle, modelType)
 
         then:
         gradleProjects.size() == 1
-        hasProject(gradleProjects, ':', 'A')
+        hasProject(gradleProjects, rootSingle, ':', 'A')
 
         where:
         modelType << identifiedBuildModels
@@ -67,9 +91,9 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, ':x', 'x', ':')
-        hasChildProject(gradleProjects, ':y', 'y', ':')
+        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
+        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
         modelType << identifiedModels
@@ -77,13 +101,13 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
 
     def "ProjectConnection provides all GradleProjects for root of multi-project build"() {
         when:
-        def gradleProjects = getGradleProjectsWithProjectConnection(rootMulti, modelType)
+        def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootMulti, modelType)
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, ':x', 'x', ':')
-        hasChildProject(gradleProjects, ':y', 'y', ':')
+        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
+        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
         modelType << identifiedBuildModels
@@ -91,13 +115,14 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
 
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
         when:
-        def gradleProjects = getGradleProjectsWithProjectConnection(rootMulti.file("x"), modelType)
+        def rootDir = rootMulti.file("x")
+        def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootDir, modelType)
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, ':x', 'x', ':')
-        hasChildProject(gradleProjects, ':y', 'y', ':')
+        hasParentProject(gradleProjects, rootDir, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, rootDir, ':x', 'x', ':')
+        hasChildProject(gradleProjects, rootDir, ':y', 'y', ':')
 
         where:
         modelType << identifiedBuildModels
@@ -109,10 +134,10 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
 
         then:
         gradleProjects.size() == 4
-        hasProject(gradleProjects, ':', 'A')
-        hasParentProject(gradleProjects, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, ':x', 'x', ':')
-        hasChildProject(gradleProjects, ':y', 'y', ':')
+        hasProject(gradleProjects, rootSingle, ':', 'A')
+        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
+        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
         modelType << identifiedModels
@@ -123,7 +148,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         GradleProject project = getGradleProjectWithProjectConnection(rootSingle, modelType)
 
         then:
-        assertProject(project, ':', 'A', null, [])
+        assertProject(project, rootSingle, ':', 'A', null, [])
 
         where:
         modelType << identifiedModels
@@ -134,56 +159,60 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         GradleProject project = getGradleProjectWithProjectConnection(rootMulti, modelType)
 
         then:
-        assertProject(project, ':', 'B', null, [':x', ':y'])
+        assertProject(project, rootMulti, ':', 'B', null, [':x', ':y'])
 
         where:
         modelType << identifiedModels
     }
 
     def "ProjectConnection provides GradleProject for subproject of multi-project build"() {
+        given:
+        def rootDir = rootMulti.file("x")
+
         when: "GradleProject is requested directly"
-        GradleProject project = getGradleProjectWithProjectConnection(rootMulti.file("x"), GradleProject)
+        GradleProject project = getGradleProjectWithProjectConnection(rootDir, GradleProject)
 
         then: "Get the GradleProject model for the root project"
-        assertProject(project, ':', 'B', null, [':x', ':y'])
+        assertProject(project, rootDir, ':', 'B', null, [':x', ':y'])
 
         when: "EclipseProject is requested"
-        GradleProject projectFromEclipseProject = getGradleProjectWithProjectConnection(rootMulti.file("x"), EclipseProject)
+        GradleProject projectFromEclipseProject = getGradleProjectWithProjectConnection(rootDir, EclipseProject)
 
         then: "Has a GradleProject model for the subproject"
-        assertProject(projectFromEclipseProject, ':x', 'x', ':', [])
+        assertProject(projectFromEclipseProject, rootDir, ':x', 'x', ':', [])
     }
 
     def "ProjectConnection provides GradleProject for subproject of multi-project build with --no-search-upwards"() {
         when:
-        GradleProject project = getGradleProjectWithProjectConnection(rootMulti.file("x"), modelType, false)
+        def rootDir = rootMulti.file("x")
+        GradleProject project = getGradleProjectWithProjectConnection(rootDir, modelType, false)
 
         then:
-        assertProject(project, ':', 'x', null, [])
+        assertProject(project, rootDir, ':', 'x', null, [])
 
         where:
         modelType << identifiedModels
     }
 
-    private static void hasProject(def projects, String path, String name) {
-        hasProject(projects, path, name, null, [])
+    private static void hasProject(def projects, File rootDir, String path, String name) {
+        hasProject(projects, rootDir, path, name, null, [])
     }
 
-    private static void hasChildProject(def projects, String path, String name, String parentPath) {
-        hasProject(projects, path, name, parentPath, [])
+    private static void hasChildProject(def projects, File rootDir, String path, String name, String parentPath) {
+        hasProject(projects, rootDir, path, name, parentPath, [])
     }
 
-    private static void hasParentProject(def projects, String path, String name, List<String> childPaths) {
-        hasProject(projects, path, name, null, childPaths)
+    private static void hasParentProject(def projects, File rootDir, String path, String name, List<String> childPaths) {
+        hasProject(projects, rootDir, path, name, null, childPaths)
     }
 
-    private static void hasProject(def projects, String path, String name, String parentPath, List<String> childPaths) {
+    private static void hasProject(def projects, File rootDir, String path, String name, String parentPath, List<String> childPaths) {
         def project = projects.find {it.name == name}
         assert project != null :  "No project with name $name found"
-        assertProject(project, path, name, parentPath, childPaths)
+        assertProject(project, rootDir, path, name, parentPath, childPaths)
      }
 
-    private static void assertProject(def project, String path, String name, String parentPath, List<String> childPaths) {
+    private static void assertProject(def project, File rootDir, String path, String name, String parentPath, List<String> childPaths) {
         assert project.path == path
         assert project.name == name
         if (parentPath == null) {
@@ -192,6 +221,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
             assert project.parent.path == parentPath
         }
         assert project.children*.path == childPaths
+        assert project.identifier == new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), ':') // TODO:DAZ This isn't right
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
@@ -200,6 +230,12 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         def model = withConnection(connector) { it.getModel(modelType) }
         return toGradleProject(model)
+    }
+
+    private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
+        GradleConnector connector = connector()
+        connector.forProjectDirectory(rootDir)
+        return withConnection(connector) { it.getModel(modelType) }
     }
 
     private static GradleProject toGradleProject(def model) {
@@ -220,7 +256,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         return models.collect { toGradleProject(it) }
     }
 
-    private getGradleProjectsWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
+    private getGradleProjectsWithProjectConnectionUsingBuildModel(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)

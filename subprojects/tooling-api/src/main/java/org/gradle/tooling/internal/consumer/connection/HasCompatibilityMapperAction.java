@@ -25,16 +25,28 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
 public class HasCompatibilityMapperAction {
 
+    private final Action<SourceObjectMapping> taskPropertyHandlerMapper;
+    private final Action<SourceObjectMapping> ideaProjectCompatibilityMapper;
     private final Action<SourceObjectMapping> mapper;
 
     public HasCompatibilityMapperAction(VersionDetails versionDetails) {
+        taskPropertyHandlerMapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
+        ideaProjectCompatibilityMapper = new IdeaProjectCompatibilityMapper(versionDetails);
         this.mapper = CompositeMappingAction.builder()
-            .add(new TaskPropertyHandlerFactory().forVersion(versionDetails))
-            .add(new IdeaProjectCompatibilityMapper(versionDetails))
+            .add(taskPropertyHandlerMapper)
+            .add(ideaProjectCompatibilityMapper)
             .build();
     }
 
-    public Action<? super SourceObjectMapping> getCompatibilityMapperAction() {
+    public Action<SourceObjectMapping> getCompatibilityMapperAction() {
         return mapper;
+    }
+
+    public Action<SourceObjectMapping> getCompatibilityMapperAction(Action<SourceObjectMapping> requestScopedMapping) {
+        return CompositeMappingAction.builder()
+            .add(taskPropertyHandlerMapper)
+            .add(ideaProjectCompatibilityMapper)
+            .add(requestScopedMapping)
+            .build();
     }
 }

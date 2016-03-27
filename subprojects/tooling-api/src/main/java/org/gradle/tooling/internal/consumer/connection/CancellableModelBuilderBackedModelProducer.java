@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -57,6 +60,9 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         } catch (RuntimeException e) {
             throw exceptionTransformer.transform(e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction());
+        FixedBuildIdentifierProvider buildIdentifierProvider =
+            new FixedBuildIdentifierProvider(operationParameters.getRootDirectory(), ":");
+        Action<SourceObjectMapping> compatibilityMapperAction = getCompatibilityMapperAction(buildIdentifierProvider);
+        return adapter.adapt(type, result.getModel(), compatibilityMapperAction);
     }
 }

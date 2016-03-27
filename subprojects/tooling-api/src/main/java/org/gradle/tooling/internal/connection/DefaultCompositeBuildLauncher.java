@@ -32,7 +32,7 @@ import java.io.File;
 public class DefaultCompositeBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
     public DefaultCompositeBuildLauncher(File targetBuildDir, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(connection, parameters);
-        operationParamsBuilder.setCompositeTargetBuildRootDir(targetBuildDir);
+        operationParamsBuilder.setRootDirectory(targetBuildDir);
     }
 
     public void run(final ResultHandler<? super Void> handler) {

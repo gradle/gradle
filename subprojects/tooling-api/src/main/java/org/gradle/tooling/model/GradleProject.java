@@ -18,6 +18,7 @@ package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.model.gradle.GradleScript;
 
 import java.io.File;
@@ -28,6 +29,12 @@ import java.io.File;
  * @since 1.0-milestone-5
  */
 public interface GradleProject extends HierarchicalElement, BuildableElement {
+    /**
+     * Returns the identifier for this Gradle project.
+     *
+     * @since 2.13
+     */
+    ProjectIdentity getIdentifier();
 
     /**
      * {@inheritDoc}
