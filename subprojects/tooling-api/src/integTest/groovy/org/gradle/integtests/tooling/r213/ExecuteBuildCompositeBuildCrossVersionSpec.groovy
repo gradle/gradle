@@ -18,10 +18,9 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
-
 /**
  * Tooling client can define a composite and execute tasks
  */
@@ -120,7 +119,6 @@ allprojects {
         multiProjectBuild.file('b/hello.txt').assertExists().text == 'Hello world from :b'
     }
 
-    @Ignore("There's not currently any way to target a particular build with a String task")
     def "executes task in a single project within a composite "() {
         given:
         def build1 = populate("build1") {
@@ -143,7 +141,9 @@ task hello {
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("hello")
+            Task task = buildLauncher.targetTask("hello", build1)
+            buildLauncher.forTasks(task)
+            buildLauncher.setStandardOutput(System.out)
             buildLauncher.run()
         }
         then:

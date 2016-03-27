@@ -18,12 +18,20 @@ package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
+import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
+import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import org.gradle.tooling.model.Launchable;
+import org.gradle.tooling.model.Task;
 
-public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
+import java.io.File;
+
+public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncherInternal {
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
     }
@@ -40,5 +48,16 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
             }
         }
         operationParamsBuilder.setBuildIdentity(targetBuildIdentity);
+    }
+
+    @Override
+    public Task targetTask(String task, File buildDirectory) {
+        ConsumerProvidedTask taskObject = new ConsumerProvidedTask()
+            .setName(task)
+            .setPath(task)
+            .setDescription("Task " + task)
+            .setDisplayName("Task " + task);
+        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentity(new DefaultBuildIdentity(buildDirectory), ":"));
+        return new ProtocolToModelAdapter().adapt(Task.class, taskObject, buildIdentifierProvider);
     }
 }

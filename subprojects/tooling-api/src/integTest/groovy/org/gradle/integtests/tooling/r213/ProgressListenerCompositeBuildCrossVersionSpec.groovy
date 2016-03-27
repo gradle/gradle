@@ -162,8 +162,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
 
     private void executeFirstBuild(List<File> builds) {
         withCompositeBuildParticipants(builds) { connection, List buildIds ->
-            def buildId = buildIds[0]
-            runBuild(connection.newBuild(buildId), progressListenerForComposite)
+            runBuild(connection.newBuild(), progressListenerForComposite)
         }
 
         GradleConnector connector = toolingApi.connector()

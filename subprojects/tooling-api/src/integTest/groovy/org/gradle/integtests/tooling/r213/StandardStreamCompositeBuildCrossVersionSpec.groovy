@@ -53,8 +53,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            def buildLauncher = connection.newBuild(buildIds.get(0))
-            buildLauncher.forTasks("log")
+            def buildLauncher = connection.newBuild()
+            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
             buildLauncher.run()
@@ -95,8 +96,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            def buildLauncher = connection.newBuild(buildIds.get(0))
-            buildLauncher.forTasks("log")
+            def buildLauncher = connection.newBuild()
+            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.colorOutput = true
             buildLauncher.run()
@@ -118,8 +120,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            def buildLauncher = connection.newBuild(buildIds.get(0))
-            buildLauncher.forTasks("log")
+            def buildLauncher = connection.newBuild()
+            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardInput(stdIn)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.run()
