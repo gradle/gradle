@@ -58,6 +58,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
+    public TestFile getTmpDir() {
+        return file("integTest.tmpDir", "build/tmp");
+    }
+
     public GradleVersion getVersion() {
         return GradleVersion.current();
     }
@@ -84,6 +88,7 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
+
     private static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
@@ -92,6 +97,4 @@ public class IntegrationTestBuildContext {
         }
         return new TestFile(new File(path));
     }
-
-
 }

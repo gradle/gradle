@@ -190,15 +190,6 @@ public interface GradleExecuter {
     GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
 
     /**
-     * Sets the temp dir to use.
-     *
-     * Only makes sense for forking executers, and is optional.
-     *
-     * @return this executer
-     */
-    GradleExecuter withTmpDir(String tmpDir);
-
-    /**
      * Sets the default locale to use.
      *
      * Only makes sense for forking executers.
