@@ -47,7 +47,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.withArguments("-PprojectProperty=foo")
@@ -80,7 +80,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.withArguments("-DsystemProperty=foo")
@@ -113,7 +113,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
@@ -160,7 +160,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         File javaHome = findJavaHome()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.withArguments("-PprintJavaHome")
             buildLauncher.setJavaHome(javaHome)

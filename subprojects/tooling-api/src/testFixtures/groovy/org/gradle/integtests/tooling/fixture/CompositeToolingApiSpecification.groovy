@@ -69,22 +69,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
     }
 
-    def <T> T withCompositeBuildParticipants(List<File> rootProjectDirectories, Closure<T> c) {
-        GradleConnectionBuilder builder = createCompositeBuilder()
-        def buildIds = []
-
-        rootProjectDirectories.each {
-            buildIds << addCompositeParticipant(builder, it)
-        }
-
-        GradleConnection connection = builder.build()
-        try {
-            return c(connection, buildIds)
-        } finally {
-            connection?.close()
-        }
-    }
-
     TestFile getRootDir() {
         temporaryFolder.testDirectory
     }

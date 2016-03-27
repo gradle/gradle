@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -209,11 +210,10 @@ task hello {
         def build3 = singleProjectJavaBuild("build3")
 
         when:
-        withCompositeBuildParticipants([build1, build2, build3]) { connection, List buildIds ->
-            def build1Id = buildIds[0]
-            def task
+        withCompositeConnection([build1, build2, build3]) { connection ->
+            Task task
             connection.getModels(modelType).each { modelresult ->
-                if (modelresult.projectIdentity.build == build1Id) {
+                if (modelresult.projectIdentity.build == new DefaultBuildIdentity(build1)) {
                     task = modelresult.model.getTasks().find { it.name == 'hello' }
                 }
             }

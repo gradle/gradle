@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
@@ -52,9 +53,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         OutputStream stdErr = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            Task taskSelector = buildLauncher.targetTask("log", builds[0])
             buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
@@ -95,9 +96,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         OutputStream stdOut = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            Task taskSelector = buildLauncher.targetTask("log", builds[0])
             buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.colorOutput = true
@@ -119,9 +120,9 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            def taskSelector = buildLauncher.targetTask("log", builds[0])
+            Task taskSelector = buildLauncher.targetTask("log", builds[0])
             buildLauncher.forTasks(taskSelector)
             buildLauncher.setStandardInput(stdIn)
             buildLauncher.setStandardOutput(stdOut)
