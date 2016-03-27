@@ -111,7 +111,10 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             class MyTest extends groovy.util.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
-                    ${ProjectBuilder.name}.builder().build().plugins.apply(MyPlugin)
+                    def project = ${ProjectBuilder.name}.builder().build()
+                    project.plugins.apply(MyPlugin)
+                    project.plugins.apply(org.gradle.api.plugins.JavaPlugin)
+                    project.evaluate()
                 }
             }
         """

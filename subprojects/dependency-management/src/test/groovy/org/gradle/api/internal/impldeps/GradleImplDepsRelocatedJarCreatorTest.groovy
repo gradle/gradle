@@ -26,6 +26,9 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+
 class GradleImplDepsRelocatedJarCreatorTest extends Specification {
 
     @Rule
@@ -62,9 +65,9 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile1 = inputFilesDir.file('lib1.jar')
-        createJarFile(jarFile1)
+        createJarFileWithClassFile(jarFile1)
         def jarFile2 = inputFilesDir.file('lib2.jar')
-        createJarFile(jarFile2)
+        createJarFileWithClassFile(jarFile2)
 
         when:
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
@@ -81,7 +84,48 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         contents[0] == outputJar
     }
 
-    private void createJarFile(TestFile jar) {
+    def "merges provider-configuration file with the same name"() {
+        given:
+        def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
+        def jarFile1 = inputFilesDir.file('lib1.jar')
+        createJarFileWithProviderConfigurationFile(jarFile1, serviceType, 'org.gradle.api.internal.artifacts.DependencyServices')
+        def jarFile2 = inputFilesDir.file('lib2.jar')
+        createJarFileWithProviderConfigurationFile(jarFile2, serviceType, """
+
+org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+
+""")
+        def jarFile3 = inputFilesDir.file('lib3.jar')
+        createJarFileWithProviderConfigurationFile(jarFile3, serviceType, """
+# This is some same file
+# Ignore comment
+org.gradle.api.internal.tasks.CompileServices
+# Too many comments""")
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3])
+
+        then:
+        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLogger.setDescription('Gradle JARs generation')
+        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
+        1 * progressLogger.started()
+        3 * progressLogger.progress(_)
+        1 * progressLogger.completed()
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        def relocatedJar = contents[0]
+        relocatedJar == outputJar
+        def relocatedJarFile = new JarFile(relocatedJar)
+        JarEntry providerConfigJarEntry = relocatedJarFile.getJarEntry("META-INF/services/$serviceType")
+        relocatedJarFile.getInputStream(providerConfigJarEntry).text == """org.gradle.api.internal.artifacts.DependencyServices
+org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+org.gradle.api.internal.tasks.CompileServices"""
+    }
+
+    private void createJarFileWithClassFile(TestFile jar) {
         TestFile contents = tmpDir.createDir('contents')
         TestFile classFile = contents.createFile('org/gradle/MyClass.class')
 
@@ -98,6 +142,12 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
             it.write(cw.toByteArray())
         }
 
+        contents.zipTo(jar)
+    }
+
+    private void createJarFileWithProviderConfigurationFile(TestFile jar, String serviceType, String serviceProvider) {
+        TestFile contents = tmpDir.createDir("contents/$jar.name")
+        contents.createFile("META-INF/services/$serviceType") << serviceProvider
         contents.zipTo(jar)
     }
 }
