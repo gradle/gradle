@@ -16,13 +16,13 @@
 package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.Factory
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.WorkerProcess
 import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.WorkerProcessFactory
 
 class FindBugsWorkerManager {
-    public FindBugsResult runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+    public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
         WorkerProcess process = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
         process.start();
 
@@ -36,8 +36,8 @@ class FindBugsWorkerManager {
         return result;
     }
 
-    private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        WorkerProcessBuilder builder = workerFactory.create();
+    private WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+        WorkerProcessBuilder builder = workerFactory.create(new FindBugsWorkerServer(spec));
         builder.setBaseName("Gradle FindBugs Worker")
         builder.applicationClasspath(findBugsClasspath);
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
@@ -45,7 +45,6 @@ class FindBugsWorkerManager {
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
 
-        WorkerProcess process = builder.worker(new FindBugsWorkerServer(spec)).build()
-        return process
+        return builder.build()
     }
 }

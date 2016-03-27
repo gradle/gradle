@@ -26,10 +26,9 @@ import org.gradle.api.plugins.quality.internal.findbugs.*
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
-import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.WorkerProcessFactory
 
 import javax.inject.Inject
 
@@ -167,7 +166,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     }
 
     @Inject
-    Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+    WorkerProcessFactory getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 

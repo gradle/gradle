@@ -24,8 +24,7 @@ import org.gradle.api.plugins.antlr.internal.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.Factory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
@@ -164,7 +163,7 @@ public class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+    protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 

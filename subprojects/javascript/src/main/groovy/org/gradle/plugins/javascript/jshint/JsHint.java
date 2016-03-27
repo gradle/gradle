@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.*;
-import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.jshint.internal.JsHintResult;
 import org.gradle.plugins.javascript.jshint.internal.JsHintSpec;
 import org.gradle.plugins.javascript.jshint.internal.JsHintWorker;
@@ -33,7 +32,7 @@ import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -51,7 +50,7 @@ public class JsHint extends SourceTask {
     private Object jsonReport;
 
     @Inject
-    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+    protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 

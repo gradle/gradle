@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
@@ -36,7 +35,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder> {
+public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
@@ -60,12 +59,15 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         this.connectTimeoutSeconds = connectTimeoutSeconds;
     }
 
-    public WorkerProcessBuilder create() {
-        return new DefaultWorkerProcessBuilder();
+    @Override
+    public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder();
+        builder.worker(workerAction);
+        return builder;
     }
 
-    private class DefaultWorkerProcessBuilder extends WorkerProcessBuilder {
-        public DefaultWorkerProcessBuilder() {
+    private class DefaultWorkerProcessBuilder extends AbstractWorkerProcessBuilder {
+        DefaultWorkerProcessBuilder() {
             super(execHandleFactory.newJavaExec());
             setLogLevel(workerLogLevel);
             setGradleUserHomeDir(gradleUserHomeDir);

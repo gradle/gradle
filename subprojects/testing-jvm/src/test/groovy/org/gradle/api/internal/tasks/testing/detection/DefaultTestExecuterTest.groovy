@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.Test
 import org.gradle.messaging.actor.Actor
 import org.gradle.messaging.actor.ActorFactory
+import org.gradle.process.internal.WorkerProcessFactory
 import spock.lang.Specification
 
 class DefaultTestExecuterTest extends Specification {
@@ -31,7 +32,7 @@ class DefaultTestExecuterTest extends Specification {
     TestResultProcessor testResultProcessor = Mock()
     Test testTask = Mock()
     ActorFactory actorFactory = Mock()
-    org.gradle.internal.Factory workerFactory = Mock()
+    WorkerProcessFactory workerFactory = Mock()
     TestFramework testFramework = Mock()
     TestResultProcessor resultProcessor = Mock()
     Actor resultProcessorActor = Mock()

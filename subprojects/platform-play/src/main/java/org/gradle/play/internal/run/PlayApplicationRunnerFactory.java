@@ -16,13 +16,12 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.internal.Factory;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, Factory<WorkerProcessBuilder> workerFactory) {
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory) {
         return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform));
     }
 

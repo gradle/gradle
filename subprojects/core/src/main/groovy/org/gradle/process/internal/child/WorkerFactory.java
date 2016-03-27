@@ -17,8 +17,8 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.messaging.remote.Address;
+import org.gradle.process.internal.AbstractWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.net.URL;
 import java.util.List;
@@ -27,5 +27,5 @@ public interface WorkerFactory {
     /**
      * Configures the Java command that will be used to launch the child process.
      */
-    void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec);
+    void prepareJavaCommand(Object workerId, String displayName, AbstractWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec);
 }

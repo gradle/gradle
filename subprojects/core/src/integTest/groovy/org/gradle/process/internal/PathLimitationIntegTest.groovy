@@ -190,8 +190,7 @@ class PathLimitationIntegTest extends Specification {
         }
 
         public void start() {
-            WorkerProcessBuilder builder = workerFactory.create();
-            builder.worker(action);
+            WorkerProcessBuilder builder = workerFactory.create(action);
             builder.getJavaCommand().jvmArgs(jvmArgs);
             builder.getJavaCommand().setWorkingDir(workingDirectory)
 

@@ -21,16 +21,16 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.internal.Factory;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 
 import java.io.File;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
-    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
@@ -39,7 +39,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
-    public ForkingTestClassProcessor(Factory<WorkerProcessBuilder> workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
+    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -62,10 +62,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     RemoteTestClassProcessor forkProcess() {
-        WorkerProcessBuilder builder = workerFactory.create();
+        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
         builder.applicationClasspath(classPath);
-        builder.worker(new TestWorker(processorFactory));
         options.copyTo(builder.getJavaCommand());
         buildConfigAction.execute(builder);
 

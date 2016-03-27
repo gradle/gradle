@@ -33,7 +33,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.ExecHandleFactory
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.WorkerProcessFactory
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -72,8 +72,8 @@ class BuildSessionScopeServicesTest extends Specification {
         expectParentServiceLocated(ExecHandleFactory)
 
         expect:
-        registry.getFactory(WorkerProcessBuilder) instanceof DefaultWorkerProcessFactory
-        registry.getFactory(WorkerProcessBuilder) == registry.getFactory(WorkerProcessBuilder)
+        registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory
+        registry.get(WorkerProcessFactory) == registry.get(WorkerProcessFactory)
     }
 
     def "provides a ClassPathRegistry"() {

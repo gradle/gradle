@@ -27,7 +27,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -37,7 +36,7 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.ExecHandleFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 
 /**
@@ -64,8 +63,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
-    Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                             TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
+    WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
+                                                    TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,

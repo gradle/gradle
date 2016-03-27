@@ -30,16 +30,16 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 
 /**
  * The default test class scanner factory.
  */
 public class DefaultTestExecuter implements TestExecuter {
-    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
 
-    public DefaultTestExecuter(Factory<WorkerProcessBuilder> workerFactory, ActorFactory actorFactory) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
     }

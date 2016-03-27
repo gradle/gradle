@@ -22,11 +22,13 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.language.base.internal.compile.CompileSpec
-import org.gradle.language.scala.ScalaPlatform
 import org.gradle.play.internal.DefaultPlayPlatform
-import org.gradle.play.internal.run.*
+import org.gradle.play.internal.run.PlayApplicationRunner
+import org.gradle.play.internal.run.PlayRunAdapterV22X
+import org.gradle.play.internal.run.PlayRunAdapterV23X
+import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.WorkerProcessFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,14 +38,12 @@ class DefaultPlayToolProviderTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
-    ScalaPlatform scalaPlatform= Mock()
-    org.gradle.internal.Factory<WorkerProcessBuilder> workerProcessBuilderFactory = Mock()
+    WorkerProcessFactory workerProcessBuilderFactory = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
 
     DefaultPlayToolProvider playToolProvider
-    PlayRunSpec playRunSpec = Mock()
 
     @Unroll
     def "provides playRunner for play #playVersion"(){

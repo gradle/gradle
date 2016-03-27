@@ -18,95 +18,46 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * <p>A builder which configures and creates a {@link WorkerProcess} instance.</p>
  *
- * <p>A worker process is specified using an {@link Action}. The given action instance is serialized across into the worker process and executed.</p>
+ * <p>A worker process is specified using an {@link Action}. The given action instance is serialized across into the worker process and executed.
+ * The worker action is supplied with a {@link WorkerProcessContext} which it can use to receive messages from and send messages to the server process (ie this process).
+ * </p>
+ *
+ * <p>The server process (ie this process) can send messages to and receive message from the worker process using the methods on {@link WorkerProcess#getConnection()}.</p>
  *
  * <p>A worker process can optionally specify an application classpath. The classes of this classpath are loaded into an isolated ClassLoader, which is made visible to the worker action ClassLoader.
  * Only the packages specified in the set of shared packages are visible to the worker action ClassLoader.</p>
  */
-public abstract class WorkerProcessBuilder {
-    private final JavaExecHandleBuilder javaCommand;
-    private final Set<String> packages = new HashSet<String>();
-    private final Set<File> applicationClasspath = new LinkedHashSet<File>();
-    private Action<? super WorkerProcessContext> action;
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private String baseName = "Gradle Worker";
-    private File gradleUserHomeDir;
+public interface WorkerProcessBuilder {
+    WorkerProcessBuilder setBaseName(String baseName);
 
-    public WorkerProcessBuilder(JavaExecHandleBuilder javaCommand) {
-        this.javaCommand = javaCommand;
-    }
+    String getBaseName();
 
-    public WorkerProcessBuilder setBaseName(String baseName) {
-        this.baseName = baseName;
-        return this;
-    }
+    WorkerProcessBuilder applicationClasspath(Iterable<File> files);
 
-    public String getBaseName() {
-        return baseName;
-    }
+    Set<File> getApplicationClasspath();
 
-    public WorkerProcessBuilder applicationClasspath(Iterable<File> files) {
-        GUtil.addToCollection(applicationClasspath, files);
-        return this;
-    }
+    WorkerProcessBuilder sharedPackages(String... packages);
 
-    public Set<File> getApplicationClasspath() {
-        return applicationClasspath;
-    }
+    WorkerProcessBuilder sharedPackages(Iterable<String> packages);
 
-    public WorkerProcessBuilder sharedPackages(String... packages) {
-        sharedPackages(Arrays.asList(packages));
-        return this;
-    }
+    Set<String> getSharedPackages();
 
-    public WorkerProcessBuilder sharedPackages(Iterable<String> packages) {
-        GUtil.addToCollection(this.packages, packages);
-        return this;
-    }
+    WorkerProcessBuilder worker(Action<? super WorkerProcessContext> action);
 
-    public Set<String> getSharedPackages() {
-        return packages;
-    }
+    Action<? super WorkerProcessContext> getWorker();
 
-    public WorkerProcessBuilder worker(Action<? super WorkerProcessContext> action) {
-        this.action = action;
-        return this;
-    }
+    JavaExecHandleBuilder getJavaCommand();
 
-    public Action<? super WorkerProcessContext> getWorker() {
-        return action;
-    }
+    LogLevel getLogLevel();
 
-    public JavaExecHandleBuilder getJavaCommand() {
-        return javaCommand;
-    }
+    void setLogLevel(LogLevel logLevel);
 
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(LogLevel logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-    }
-
-    public abstract WorkerProcess build();
+    WorkerProcess build();
 }

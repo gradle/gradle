@@ -27,16 +27,19 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.*;
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultCacheScopeMapping;
 import org.gradle.internal.Actions;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnectionBuilder;
-import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -68,12 +71,14 @@ import static org.junit.Assert.*;
 public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
-    private final MessagingServices messagingServices = new MessagingServices();
-    private final MessagingServer server = messagingServices.get(MessagingServer.class);
+    private final DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
+            .parent(NativeServicesTestFixture.getInstance())
+            .provider(new GlobalScopeServices(false))
+            .build();
+    private final MessagingServer server = services.get(MessagingServer.class);
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class));
-    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
+    private final CacheFactory factory = services.get(CacheFactory.class);
     private final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current());
     private final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
@@ -89,7 +94,7 @@ public class WorkerProcessIntegrationTest {
 
     @After
     public void tearDown() {
-        messagingServices.stop();
+        services.close();
     }
 
     @Test
@@ -188,7 +193,6 @@ public class WorkerProcessIntegrationTest {
         for (ChildProcess process : processes) {
             process.waitForStop();
         }
-        messagingServices.stop();
         exceptionListener.rethrow();
     }
 
@@ -215,12 +219,11 @@ public class WorkerProcessIntegrationTest {
         }
 
         public void start() {
-            WorkerProcessBuilder builder = workerFactory.create();
+            WorkerProcessBuilder builder = workerFactory.create(action);
             builder.applicationClasspath(classPathRegistry.getClassPath("ANT").getAsFiles());
             builder.sharedPackages("org.apache.tools.ant");
             builder.getJavaCommand().systemProperty("test.system.property", "value");
             builder.getJavaCommand().environment("TEST_ENV_VAR", "value");
-            builder.worker(action);
 
             builder.getJavaCommand().jvmArgs(jvmArgs);
 

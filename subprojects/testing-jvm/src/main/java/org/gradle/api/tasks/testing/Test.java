@@ -51,7 +51,6 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -65,7 +64,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -186,7 +185,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected Factory<WorkerProcessBuilder> getProcessBuilderFactory() {
+    protected WorkerProcessFactory getProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 
