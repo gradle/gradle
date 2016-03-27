@@ -16,13 +16,8 @@
 
 package org.gradle.messaging.remote.internal.hub
 
-import org.gradle.messaging.remote.internal.Connection
-import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
-import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished
-import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
-import org.gradle.messaging.remote.internal.hub.protocol.RejectedMessage
+import org.gradle.messaging.remote.internal.RemoteConnection
+import org.gradle.messaging.remote.internal.hub.protocol.*
 import org.gradle.messaging.remote.internal.hub.queue.AbstractQueueTest
 
 class ConnectionSetTest extends AbstractQueueTest {
@@ -56,7 +51,7 @@ class ConnectionSetTest extends AbstractQueueTest {
 
         given:
         def incoming = incomingQueue.getChannel(channel).newEndpoint()
-        def connection = connections.add(Mock(Connection))
+        def connection = connections.add(Mock(RemoteConnection))
         outgoingQueue.dispatch(message)
 
         when:

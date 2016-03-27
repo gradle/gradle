@@ -17,7 +17,7 @@ where Gradle is actually performing the actions of the build) have been introduc
 * Messages are logged to the console more efficiently.
 * A performance bottleneck when reading `gradle.properties` has been fixed.
 * Compiled build scripts are cached more efficiently.
-* Logging between the client and daemon now occurs asynchronously.
+* Communication between the client and the daemon has been optimized.
 * Test report generation is more efficient.
 
 TODO: Add more numbers here?
@@ -62,10 +62,10 @@ The flags are ignored for versions of Groovy prior to 2.4.6.
 ### Signing with OpenPGP subkeys
 
 OpenPGP supports subkeys, which are like the normal keys, except they're bound to a master key pair.
-One useful consequence of OpenPGP subkeys is that they can be easily revoked independently of the master keys what makes key management easier.
-Another consequence is that you only need the subkey for signature operations. In other words you can deploy only your signing subkey to e.g. a CI server.
+One useful feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier.
+Another feature is that you only need the subkey for signature operations. This means you can deploy only your signing subkey to a CI server, for example.
 
-A simple limitation in the signing plugin prevented to use subkeys, starting with Gradle 2.13, they are supported out of the box.
+A limitation in the previous versions of the signing plugin prevented to use of subkeys. Starting with Gradle 2.13, they are supported out of the box.
 See the documentation for the [Signing](userguide/signing_plugin.html) plugin for more details.
 
 ## Promoted features
@@ -208,27 +208,27 @@ Task input properties now follow the JavaBean specification and thus are on par 
 
 ### Gradle implementation dependencies are not visible to plugins at development time
 
-Implementing a Gradle plugin requires the declaration of `gradleApi()` 
-to the `compile` configuration. The resolved dependency encompasses the 
-entire Gradle runtime including Gradle's third party dependencies 
+Implementing a Gradle plugin requires the declaration of `gradleApi()`
+to the `compile` configuration. The resolved dependency encompasses the
+entire Gradle runtime including Gradle's third party dependencies
 (e.g. Guava). Any third party dependencies declared by the plugin might
 conflict with the ones pulled in by the `gradleApi()` declaration. Gradle
-does not apply conflict resolution. As a result The user will end up with 
+does not apply conflict resolution. As a result The user will end up with
 two addressable copies of a dependency on the compile classpath and in
  the test runtime classpath.
- 
-In previous versions of Gradle the dependency `gradleTestKit()`, which 
+
+In previous versions of Gradle the dependency `gradleTestKit()`, which
 relies on a Gradle runtime, attempts to address this problem via class
-relocation. The use of `gradleApi()` and `gradleTestKit()` together 
+relocation. The use of `gradleApi()` and `gradleTestKit()` together
 became unreliable as classes of duplicate name but of different content
 were added to the classpath.
- 
+
 With this version of Gradle proper class relocation has been implemented
  across the dependencies `gradleApi()`, `gradleTestKit()` and the published
  Tooling API JAR. Projects using any of those dependencies will not
  conflict anymore with classes from third party dependencies used by
  the Gradle runtime.
- 
+
 
 ## External contributions
 

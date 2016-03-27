@@ -486,7 +486,99 @@ task fastTask { }
         getCompileClasspath(initHash, 'init').length == 1
     }
 
+    def "same script can be applied from init script, settings script and build script"() {
+        root {
+            'common.gradle'('println "poke"')
+            'init.gradle'('''
+                // init script
+                apply from: 'common.gradle'
+            ''')
+            'settings.gradle'('''
+                // settings script
+                apply from: 'common.gradle'
+            ''')
+            'build.gradle'('''
+                // build script
+                apply from: 'common.gradle'
+            ''')
+        }
 
+        when:
+        executer.withArgument('-Iinit.gradle')
+        run 'help'
+
+        then:
+        def commonHash = uniqueRemapped('common')
+        def initHash = uniqueRemapped('settings')
+        def settingsHash = uniqueRemapped('init')
+        def coreHash = uniqueRemapped('build')
+        remappedCacheSize() == 4
+        scriptCacheSize() == 4
+        hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
+        getCompileClasspath(commonHash, 'cp_dsl').length == 1
+        getCompileClasspath(commonHash, 'dsl').length == 1
+    }
+
+    def "same script can be applied from identical init script, settings script and build script"() {
+        root {
+            'common.gradle'('println "poke"')
+            'init.gradle'('''
+                apply from: 'common.gradle'
+            ''')
+            'settings.gradle'('''
+                apply from: 'common.gradle'
+            ''')
+            'build.gradle'('''
+                apply from: 'common.gradle'
+            ''')
+        }
+
+        when:
+        executer.withArgument('-Iinit.gradle')
+        run 'help'
+
+        then:
+        def commonHash = uniqueRemapped('common')
+        def initHash = uniqueRemapped('settings')
+        def settingsHash = uniqueRemapped('init')
+        def coreHash = uniqueRemapped('build')
+        remappedCacheSize() == 4
+        scriptCacheSize() == 2
+        hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
+        getCompileClasspath(commonHash, 'cp_dsl').length == 1
+        getCompileClasspath(commonHash, 'dsl').length == 1
+    }
+
+    def "same applied script is compiled once for different projects with different classpath"() {
+        root {
+            'common.gradle'('println "poke"')
+        }
+
+        when:
+        def iterations = 3
+        def builder = root
+        iterations.times { n ->
+            new File(root.baseDir, 'build.gradle').delete()
+            builder {
+                "foo${n}.jar"('abcdef'.bytes)
+                'build.gradle'("""
+                    buildscript {
+                        dependencies {
+                            classpath files('foo${n}.jar')
+                        }
+                    }
+
+                    apply from: 'common.gradle'
+                """)
+            }
+            run 'help'
+            sleep(1000)
+        }
+
+        then:
+        remappedCacheSize() == 2 // build + common
+        scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
+    }
 
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/

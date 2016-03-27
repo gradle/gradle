@@ -20,12 +20,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.RedirectStdOutAndErr
-import org.junit.Rule
 import spock.lang.Ignore
 
 class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
 
     def "can receive stdout and stderr with model requests"() {
@@ -44,8 +41,6 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         !stdOut.toString().contains(escapeHeader)
         stdOut.toString().count("This is standard out") == numberOfParticipants
         stdErr.toString().count("This is standard err") == numberOfParticipants
-        !stdOutAndErr.stdOut.contains("This is standard out")
-        !stdOutAndErr.stdErr.contains("This is standard err")
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -68,8 +63,6 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         !stdOut.toString().contains(escapeHeader)
         stdOut.toString().count("This is standard out") == 1
         stdErr.toString().count("This is standard err") == 1
-        !stdOutAndErr.stdOut.contains("This is standard out")
-        !stdOutAndErr.stdErr.contains("This is standard err")
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -90,8 +83,6 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         }
         then:
         stdOut.toString().count("UP-TO-DATE" + escapeHeader) == numberOfParticipants
-        !stdOutAndErr.stdOut.contains(escapeHeader)
-        !stdOutAndErr.stdErr.contains(escapeHeader)
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -112,8 +103,6 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         }
         then:
         stdOut.toString().count("UP-TO-DATE" + escapeHeader) == 1
-        !stdOutAndErr.stdOut.contains(escapeHeader)
-        !stdOutAndErr.stdErr.contains(escapeHeader)
 
         where:
         numberOfParticipants << [ 1, 3 ]

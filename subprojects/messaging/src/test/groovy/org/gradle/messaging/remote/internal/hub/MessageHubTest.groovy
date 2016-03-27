@@ -18,7 +18,7 @@ package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.RemoteConnection
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
@@ -71,7 +71,7 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "outgoing messages are dispatched asynchronously to connection"() {
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection = new MockOutgoingConnection(outgoing)
 
         given:
@@ -96,6 +96,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
+        _ * outgoing.flush()
         0 * _._
 
         and:
@@ -108,7 +109,7 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "queued outgoing messages are dispatched asynchronously to connection when connection is added"() {
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection = new MockOutgoingConnection(outgoing)
 
         given:
@@ -133,6 +134,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
+        _ * outgoing.flush()
         0 * _._
 
         and:
@@ -145,7 +147,7 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "stop blocks until all outgoing messages dispatched to connection"() {
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection = new MockOutgoingConnection(outgoing)
 
         when:
@@ -160,12 +162,13 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == "message2" })
         1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == 12 })
         1 * outgoing.dispatch({ it instanceof EndOfStream}) >> { connection.stop() }
+        (1.._) * outgoing.flush()
         0 * _._
     }
 
     def "each outgoing message is dispatched in order to connection"() {
         def messages = new CopyOnWriteArrayList()
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection = new MockOutgoingConnection(outgoing)
 
         given:
@@ -193,7 +196,7 @@ class MessageHubTest extends ConcurrentSpec {
 
     def "each outgoing message is dispatched to exactly one connection"() {
         def messages = new CopyOnWriteArrayList()
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection1 = new MockOutgoingConnection(outgoing)
         def connection2 = new MockOutgoingConnection(outgoing)
 
@@ -223,7 +226,7 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "stops dispatching outgoing messages to failed connection"() {
-        Dispatch<InterHubMessage> outgoing = Mock()
+        RemoteConnection<InterHubMessage> outgoing = Mock()
         def connection = new MockOutgoingConnection(outgoing)
         def dispatch = hub.getOutgoing("channel", String)
         def failure = new RuntimeException()
@@ -610,7 +613,7 @@ class MessageHubTest extends ConcurrentSpec {
     def "cannot add connection after stop started"() {
         when:
         hub.requestStop()
-        hub.addConnection(Mock(Connection))
+        hub.addConnection(Mock(RemoteConnection))
 
         then:
         IllegalStateException e = thrown()
@@ -627,16 +630,21 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    private static class MockOutgoingConnection implements Connection<InterHubMessage> {
-        private final Dispatch<InterHubMessage> dispatch
+    private static class MockOutgoingConnection implements RemoteConnection<InterHubMessage> {
+        private final RemoteConnection<InterHubMessage> dispatch
         private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingQueue<>()
 
-        MockOutgoingConnection(Dispatch<InterHubMessage> dispatch) {
-            this.dispatch = dispatch
+        MockOutgoingConnection(RemoteConnection<InterHubMessage> outgoing) {
+            this.dispatch = outgoing
         }
 
         void dispatch(InterHubMessage message) {
             dispatch.dispatch(message)
+        }
+
+        @Override
+        void flush() {
+            dispatch.flush()
         }
 
         InterHubMessage receive() {
@@ -648,14 +656,22 @@ class MessageHubTest extends ConcurrentSpec {
         }
     }
 
-    private static class TestConnection implements Connection<InterHubMessage> {
+    private static class TestConnection implements RemoteConnection<InterHubMessage> {
         private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingQueue<>()
         private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingQueue<>()
+        private final BlockingQueue<InterHubMessage> outgoingBuffered = new LinkedBlockingQueue<>()
 
+        @Override
         void dispatch(InterHubMessage message) {
-            outgoing.put(message)
+            outgoingBuffered.put(message)
         }
 
+        @Override
+        void flush() {
+            outgoingBuffered.drainTo(outgoing)
+        }
+
+        @Override
         InterHubMessage receive() {
             def message = incoming.take()
             return message instanceof EndOfStream ? null : message
@@ -665,6 +681,7 @@ class MessageHubTest extends ConcurrentSpec {
             incoming.put(message)
         }
 
+        @Override
         void stop() {
             incoming.put(new EndOfStream())
         }

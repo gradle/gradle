@@ -44,14 +44,4 @@ public interface ObjectConnectionBuilder {
      * Use the specified serializer for all incoming and outgoing method parameters.
      */
     void useParameterSerializer(Serializer<Object[]> serializer);
-
-    /**
-     * Use Java serialization for the parameters of incoming and outgoing method calls, with the specified ClassLoader used to deserialize incoming
-     * method parameters.
-     *
-     * <p>This method is generally not required as the ClassLoader is inferred from the incoming and outgoing types.</p>
-     *
-     * @param methodParamClassLoader The ClassLoader to use.
-     */
-    void useDefaultSerialization(ClassLoader methodParamClassLoader);
 }

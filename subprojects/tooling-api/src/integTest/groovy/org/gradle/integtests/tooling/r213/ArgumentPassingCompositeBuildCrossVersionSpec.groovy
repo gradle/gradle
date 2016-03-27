@@ -16,11 +16,20 @@
 
 package org.gradle.integtests.tooling.r213
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.junit.Assume
+import spock.lang.Ignore
 
 class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+
+    def setup() {
+        toolingApi.requireDaemons()
+    }
 
     def "can pass additional command-line arguments for project properties"() {
         given:
@@ -121,6 +130,62 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
+    @Ignore
+    @TargetGradleVersion(">=2.10")
+    def "can set javahome for model requests"() {
+        given:
+        File javaHome = findJavaHome()
+        def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        when:
+        def modelResults = withCompositeConnection(builds) { connection ->
+            def modelBuilder = connection.models(EclipseProject)
+            modelBuilder.setJavaHome(javaHome)
+            modelBuilder.get()
+        }
+        then:
+        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum()
+        modelResults.each {
+            it.model.javaSourceSettings.jdk.javaHome == javaHome
+        }
+        where:
+        numberOfParticipants | numberOfSubprojects
+        1                    | [0]
+        3                    | [0, 0, 0]
+        2                    | [3, 0]
+    }
+
+    @Ignore
+    def "can set javahome for build launcher"() {
+        given:
+        File javaHome = findJavaHome()
+        def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        when:
+        withCompositeBuildParticipants(builds) { connection, buildIds ->
+            BuildLauncher buildLauncher = connection.newBuild(buildIds.first())
+            buildLauncher.withArguments("-PprintJavaHome")
+            buildLauncher.setJavaHome(javaHome)
+            buildLauncher.forTasks("run")
+            buildLauncher.run()
+        }
+        then:
+        noExceptionThrown()
+        def results = builds.first().file("result")
+        results.text.count(javaHome.absolutePath) == (numberOfSubprojects.first()+1)
+        where:
+        numberOfParticipants | numberOfSubprojects
+        1                    | [0]
+        3                    | [0, 0, 0]
+        2                    | [3, 0]
+    }
+
+    private File findJavaHome() {
+        def jdk = AvailableJavaHomes.getAvailableJdk {
+            targetDist.isToolingApiTargetJvmSupported(it.javaVersion) &&
+                it.javaHome != Jvm.current().javaHome
+        }
+        Assume.assumeNotNull(jdk)
+        jdk.javaHome
+    }
     private List createBuilds(int numberOfParticipants, List numberOfSubprojects) {
         createBuilds(numberOfParticipants, numberOfSubprojects,
 """
@@ -143,6 +208,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             }
             if (System.properties.systemProperty) {
                 rootProject.results << "System property = \${System.properties.systemProperty}"
+            }
+            if (project.hasProperty("printJavaHome")) {
+                rootProject.results << System.properties['java.home']
             }
         }
     }

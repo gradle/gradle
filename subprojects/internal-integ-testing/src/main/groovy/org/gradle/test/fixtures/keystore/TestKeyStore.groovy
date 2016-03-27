@@ -15,7 +15,9 @@
  */
 
 package org.gradle.test.fixtures.keystore
+
 import org.apache.commons.io.FileUtils
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -57,21 +59,37 @@ class TestKeyStore {
     }
 
     void configureServerCert(GradleExecuter executer) {
-        executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
-                .withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        if (GradleContextualExecuter.embedded) {
+            executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
+            executer.withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        } else {
+            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$trustStore.path")
+            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        }
     }
 
     void configureIncorrectServerCert(GradleExecuter executer) {
         // intentionally use wrong trust store
-        executer.withArgument("-Djavax.net.ssl.trustStore=$keyStore.path")
-                .withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        if (GradleContextualExecuter.embedded) {
+            executer.withArgument("-Djavax.net.ssl.trustStore=$keyStore.path")
+            executer.withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        } else {
+            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$keyStore.path")
+            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+        }
     }
 
     void configureServerAndClientCerts(GradleExecuter executer) {
-        executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
+        if (GradleContextualExecuter.embedded) {
+            executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
                 .withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
                 .withArgument("-Djavax.net.ssl.keyStore=$keyStore.path")
                 .withArgument("-Djavax.net.ssl.keyStorePassword=$keyStorePassword")
+        } else {
+            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$trustStore.path")
+                .withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+                .withBuildJvmOpts("-Djavax.net.ssl.keyStore=$keyStore.path")
+                .withBuildJvmOpts("-Djavax.net.ssl.keyStorePassword=$keyStorePassword")
+        }
     }
-
 }

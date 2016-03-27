@@ -19,10 +19,16 @@ package org.gradle.integtests.resolve.http
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
 @LeaksFileHandles
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
+    @Override
+    MavenHttpRepository getRepo() {
+        return mavenHttpRepo
+    }
+
     @Rule TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
@@ -33,7 +39,7 @@ class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTe
 
     @Override
     String getRepoServerUrl() {
-        "https://repo1.maven.org/maven2/"
+        "https://localhost:${server.sslPort}/repo"
     }
 
     @Override

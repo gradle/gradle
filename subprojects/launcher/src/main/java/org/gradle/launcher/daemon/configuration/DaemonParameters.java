@@ -22,15 +22,11 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -43,7 +39,7 @@ public class DaemonParameters {
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
-    private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+    private final JvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private boolean hasJvmArgs;
     private boolean foreground;
@@ -56,14 +52,9 @@ public class DaemonParameters {
     }
 
     public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
-        jvmOptions.systemProperties(inheritedSystemProperties());
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
-    }
-
-    private Map<String, Object> inheritedSystemProperties() {
-        return new CurrentProcess().getJvmOptions().getImmutableSystemProperties();
     }
 
     public boolean isInteractive() {

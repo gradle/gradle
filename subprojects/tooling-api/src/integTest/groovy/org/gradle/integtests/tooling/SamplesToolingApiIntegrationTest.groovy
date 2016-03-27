@@ -95,7 +95,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @UsesSample('toolingApi/composite')
+    @UsesSample('toolingApi/composite-models')
     def "can use tooling API to compose independent projects"() {
         tweakProject()
 

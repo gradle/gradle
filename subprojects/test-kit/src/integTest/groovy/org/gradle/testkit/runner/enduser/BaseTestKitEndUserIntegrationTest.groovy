@@ -35,7 +35,7 @@ abstract class BaseTestKitEndUserIntegrationTest extends BaseGradleRunnerIntegra
                 allprojects {
                     tasks.withType(Test) {
                         systemProperty "$DefaultGradleRunner.TEST_KIT_DIR_SYS_PROP", "${TextUtil.normaliseFileSeparators(testKitDir.absolutePath)}"
-                        systemProperty "java.io.tmpdir", "${TextUtil.normaliseFileSeparators(file("tmp").absolutePath)}"
+                        systemProperty "java.io.tmpdir", "${TextUtil.normaliseFileSeparators(file("tmp").createDir().absolutePath)}"
                     }
                 }
             """)

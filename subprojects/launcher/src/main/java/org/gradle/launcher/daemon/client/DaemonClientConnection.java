@@ -56,6 +56,7 @@ public class DaemonClientConnection implements Connection<Message> {
             dispatchLock.lock();
             try {
                 connection.dispatch(message);
+                connection.flush();
             } finally {
                 dispatchLock.unlock();
             }

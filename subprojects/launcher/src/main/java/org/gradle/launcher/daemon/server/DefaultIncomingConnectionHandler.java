@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -58,7 +59,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         workers = executorFactory.create("Daemon");
     }
 
-    public void handle(final Connection<Message> connection) {
+    public void handle(final RemoteConnection<Message> connection) {
         // Mark the connection has being handled
         onStartHandling(connection);
 
@@ -106,9 +107,9 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     }
 
     private class ConnectionWorker implements Runnable {
-        private final Connection<Message> connection;
+        private final RemoteConnection<Message> connection;
 
-        public ConnectionWorker(Connection<Message> connection) {
+        public ConnectionWorker(RemoteConnection<Message> connection) {
             this.connection = connection;
         }
 

@@ -43,12 +43,12 @@ public class EndPointQueue implements Dispatch<InterHubMessage> {
     public void take(Collection<InterHubMessage> drainTo) {
         if (queue.isEmpty()) {
             owner.empty(this);
-        }
-        while (queue.isEmpty()) {
-            try {
-                condition.await();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+            while (queue.isEmpty()) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
         }
         drainTo.addAll(queue);

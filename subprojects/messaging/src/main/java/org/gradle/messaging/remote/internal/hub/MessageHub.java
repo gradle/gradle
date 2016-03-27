@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.RemoteConnection;
 import org.gradle.messaging.remote.internal.hub.protocol.*;
 import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * Use {@link #getOutgoing(String, Class)} to create a {@link Dispatch} to send unicast messages on a given channel.
  * Use {@link #addHandler(String, Object)} to create a worker for incoming messages on a given channel.
- * Use {@link #addConnection(Connection)} to attach another router to this router.
+ * Use {@link #addConnection(RemoteConnection)} to attach another router to this router.
  */
 public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
@@ -129,7 +130,7 @@ public class MessageHub implements AsyncStoppable {
      *
      * <p>Does not cleanup connections on stop or disconnect. It is the caller's responsibility to manage the connection lifecycle.</p>
      */
-    public void addConnection(Connection<InterHubMessage> connection) {
+    public void addConnection(RemoteConnection<InterHubMessage> connection) {
         lock.lock();
         try {
             assertRunning("add connection");
@@ -260,7 +261,7 @@ public class MessageHub implements AsyncStoppable {
     }
 
     private class ConnectionDispatch implements Runnable {
-        private final Connection<InterHubMessage> connection;
+        private final RemoteConnection<InterHubMessage> connection;
         private final EndPointQueue queue;
         private final ConnectionState connectionState;
 
@@ -281,13 +282,14 @@ public class MessageHub implements AsyncStoppable {
                         } finally {
                             lock.unlock();
                         }
-                        for (Object message : messages) {
-                            InterHubMessage channelMessage = (InterHubMessage) message;
-                            connection.dispatch(channelMessage);
+                        for (InterHubMessage message : messages) {
+                            connection.dispatch(message);
                             if (message instanceof EndOfStream) {
+                                connection.flush();
                                 return;
                             }
                         }
+                        connection.flush();
                         messages.clear();
                     }
                 } finally {

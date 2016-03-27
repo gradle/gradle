@@ -84,15 +84,17 @@ class PatternStepFactoryTest extends Specification {
         step1.matches("abac")
         !step1.matches("bc")
         !step1.matches("ab")
+        !step1.matches("a")
+        !step1.matches("c")
 
         and:
         def step2 = PatternStepFactory.getStep("a**c", true);
         step2 instanceof HasPrefixAndSuffixPatternStep
 
-        step1.matches("ac")
-        step1.matches("abac")
-        !step1.matches("bc")
-        !step1.matches("ab")
+        step2.matches("ac")
+        step2.matches("abac")
+        !step2.matches("bc")
+        !step2.matches("ab")
     }
 
     def "creates step for wildcard segment"() {
