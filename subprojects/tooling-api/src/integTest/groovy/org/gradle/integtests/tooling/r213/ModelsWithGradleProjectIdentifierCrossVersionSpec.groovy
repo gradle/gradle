@@ -28,6 +28,8 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import spock.lang.Ignore
 
+// TODO:DAZ Test and fix on earlier versions
+@TargetGradleVersion(">=2.6")
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeToolingApiSpecification {
     static modelsHavingGradleProjectIdentifier = [BuildInvocations, ProjectPublications]
     TestFile rootSingle
