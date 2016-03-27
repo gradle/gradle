@@ -18,65 +18,28 @@ package org.gradle.process.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.Action
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DefaultClassPathProvider
-import org.gradle.api.internal.DefaultClassPathRegistry
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
-import org.gradle.api.logging.LogLevel
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.internal.*
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.event.ListenerBroadcast
-import org.gradle.internal.id.LongIdGenerator
-import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.Jvm
-import org.gradle.messaging.remote.MessagingServer
-import org.gradle.messaging.remote.internal.MessagingServices
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import spock.lang.Ignore
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
-class PathLimitationIntegTest extends Specification {
-    private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class);
-    private final MessagingServices messagingServices = new MessagingServices();
-    private final MessagingServer server = messagingServices.get(MessagingServer.class);
-
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment.class));
-    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
-    private final CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current()), factory);
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), TestFiles.execHandleFactory(tmpDir.getTestDirectory()));
-    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
-    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source);
+class PathLimitationIntegTest extends AbstractWorkerProcessIntegrationSpec {
+    private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class)
+    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class)
+    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source)
 
     public void setup() {
-        broadcast.add(listenerMock);
-    }
-
-    public void after() {
-        messagingServices.stop();
+        broadcast.add(listenerMock)
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     @Unroll
-    def "WorkerProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
+    def "WorkerProcessBuilder handles workingDir with absolute path length #absolutePathLength"() {
         when:
         def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)
         then:
@@ -88,7 +51,7 @@ class PathLimitationIntegTest extends Specification {
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     @Unroll
-    def "JavaProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
+    def "JavaProcessBuilder handles workingDir with absolute path length #absolutePathLength"() {
         when:
         def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)
 
@@ -110,41 +73,6 @@ class PathLimitationIntegTest extends Specification {
         absolutePathLength << [258, 259, 260]
     }
 
-    @Ignore
-    @Unroll
-    def "OS handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
-        setup:
-        def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)
-        TestFile testBatchScript = tmpDir.getTestDirectory().createFile("testBatch.cmd")
-        testBatchScript.text = """
-        cd ${testWorkingDir.name}
-        java -version > o.txt 2>&1
-"""
-
-        when:
-
-        assert testWorkingDir.exists()
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(tmpDir.getTestDirectory())
-        processBuilder.command("CMD", "/C", "testBatch.cmd")
-
-        and:
-        Process process = processBuilder.start()
-
-        then:
-        process.waitFor() == 0
-        process.exitValue() == 0
-        and:
-        def outputText = new File(testWorkingDir, "o.txt").text
-        println outputText
-        assert outputText.contains("java version")
-        where:
-        absolutePathLength << [250, 255, 260] // 250 succeeds
-                                              // 255 fails because path + "/o.txt" >= 260
-                                              // 260 fails different because path >= 260
-    }
-
-
     TestFile generateTestWorkingDirectory(int absolutePathLength) {
         // windows can handle a path up to 260 characters (259 + NUL)
         // we create a path that is 260 +1 (absolutePathLength + "/" + randompath)
@@ -161,7 +89,6 @@ class PathLimitationIntegTest extends Specification {
     }
 
     private ChildProcess worker(Action<? super WorkerProcessContext> action, File workingDirectory = tmpDir.getTestDirectory()) {
-
         return new ChildProcess(action, workingDirectory);
     }
 
@@ -172,7 +99,6 @@ class PathLimitationIntegTest extends Specification {
         for (ChildProcess process : processes) {
             process.waitForStop();
         }
-        messagingServices.stop();
         exceptionListener.rethrow();
     }
 
@@ -223,33 +149,5 @@ class PathLimitationIntegTest extends Specification {
             this.jvmArgs = Arrays.asList(jvmArgs);
             return this;
         }
-    }
-
-
-    public static class RemoteExceptionListener implements TestListenerInterface {
-        Throwable ex;
-        final TestListenerInterface dispatch;
-
-        public RemoteExceptionListener(TestListenerInterface dispatch) {
-            this.dispatch = dispatch;
-        }
-
-        void send(String message, int count) {
-            try {
-                dispatch.send(message, count);
-            } catch (Throwable e) {
-                ex = e;
-            }
-        }
-
-        public void rethrow() throws Throwable {
-            if (ex != null) {
-                throw ex;
-            }
-        }
-    }
-
-    public interface TestListenerInterface {
-        public void send(String message, int count);
     }
 }
