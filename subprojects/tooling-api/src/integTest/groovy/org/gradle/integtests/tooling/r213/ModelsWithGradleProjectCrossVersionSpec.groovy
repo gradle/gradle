@@ -28,9 +28,9 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 
-class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingApiSpecification {
-    static identifiedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
-    static identifiedBuildModels = [GradleBuild, IdeaProject]
+class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecification {
+    static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
+    static buildScopedModels = [GradleBuild, IdeaProject]
     TestFile rootSingle
     TestFile rootMulti
 
@@ -70,7 +70,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasProject(gradleProjects, rootSingle, ':', 'A')
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     def "ProjectConnection provides all GradleProjects for root of single project build"() {
@@ -82,7 +82,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasProject(gradleProjects, rootSingle, ':', 'A')
 
         where:
-        modelType << identifiedBuildModels
+        modelType << buildScopedModels
     }
 
     def "GradleConnection provides GradleProjects for multi-project build"() {
@@ -96,7 +96,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     def "ProjectConnection provides all GradleProjects for root of multi-project build"() {
@@ -110,7 +110,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
-        modelType << identifiedBuildModels
+        modelType << buildScopedModels
     }
 
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
@@ -125,7 +125,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasChildProject(gradleProjects, rootDir, ':y', 'y', ':')
 
         where:
-        modelType << identifiedBuildModels
+        modelType << buildScopedModels
     }
 
     def "GradleConnection provides GradleProjects for composite build"() {
@@ -140,7 +140,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     def "ProjectConnection provides GradleProject for root of single project build"() {
@@ -151,7 +151,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         assertProject(project, rootSingle, ':', 'A', null, [])
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     def "ProjectConnection provides GradleProject for root of multi-project build"() {
@@ -162,7 +162,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         assertProject(project, rootMulti, ':', 'B', null, [':x', ':y'])
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     def "ProjectConnection provides GradleProject for subproject of multi-project build"() {
@@ -191,7 +191,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
         assertProject(project, rootDir, ':', 'x', null, [])
 
         where:
-        modelType << identifiedModels
+        modelType << projectScopedModels
     }
 
     private static void hasProject(def projects, File rootDir, String path, String name) {

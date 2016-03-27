@@ -37,6 +37,11 @@ public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable
         this.projectIdentity = new DefaultProjectIdentity(buildIdentity, projectPath);
     }
 
+    public FixedBuildIdentifierProvider(ProjectIdentity projectIdentity) {
+        this.buildIdentity = projectIdentity.getBuild();
+        this.projectIdentity = projectIdentity;
+    }
+
     public void invoke(MethodInvocation invocation) throws Throwable {
         if (BuildIdentity.class.isAssignableFrom(invocation.getReturnType())) {
             invocation.setResult(buildIdentity);
