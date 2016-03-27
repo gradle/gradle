@@ -120,13 +120,16 @@ org.gradle.api.internal.tasks.CompileServices
         contents.length == 1
         def relocatedJar = contents[0]
         relocatedJar == outputJar
-        def relocatedJarFile = new JarFile(relocatedJar)
-        JarEntry providerConfigJarEntry = relocatedJarFile.getJarEntry("META-INF/services/$serviceType")
-        IoActions.withResource(relocatedJarFile.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
-            void execute(InputStream inputStream) {
-                assert inputStream.text == """org.gradle.api.internal.artifacts.DependencyServices
+        IoActions.withResource(new JarFile(relocatedJar), new Action<JarFile>() {
+            void execute(JarFile relocatedJarFile) {
+                JarEntry providerConfigJarEntry = relocatedJarFile.getJarEntry("META-INF/services/$serviceType")
+                IoActions.withResource(relocatedJarFile.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
+                    void execute(InputStream inputStream) {
+                        assert inputStream.text == """org.gradle.api.internal.artifacts.DependencyServices
 org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
 org.gradle.api.internal.tasks.CompileServices"""
+                    }
+                })
             }
         })
     }
