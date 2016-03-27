@@ -228,7 +228,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         def model = withConnection(connector) { it.getModel(modelType) }
         return toGradleProject(model)
@@ -236,7 +236,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
     private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         return withConnection(connector) { it.getModel(modelType) }
     }
 
@@ -260,7 +260,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
     private getGradleProjectsWithProjectConnectionUsingBuildModel(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         def buildModel = withConnection(connector) { it.getModel(modelType) }
         return toGradleProjects(buildModel)
