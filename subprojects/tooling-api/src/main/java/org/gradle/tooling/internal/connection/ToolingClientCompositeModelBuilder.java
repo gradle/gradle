@@ -21,13 +21,13 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.gradle.ProjectPublications;
@@ -44,6 +44,7 @@ public class ToolingClientCompositeModelBuilder<T> {
     private final ToolingClientCompositeUtil util;
     private final Class<T> modelType;
     private final List<CompositeModelResultsBuilder> builders = Lists.newArrayList();
+    private final ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
 
     ToolingClientCompositeModelBuilder(final Class<T> modelType, ConsumerOperationParameters operationParameters) {
         this.modelType = modelType;
@@ -171,7 +172,7 @@ public class ToolingClientCompositeModelBuilder<T> {
                 util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
                 for (final String projectPath : actionResults.keySet()) {
-                    T identified = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), actionResults.get(projectPath));
+                    T identified = unpackAndTransform(participant.toProjectIdentity(projectPath), actionResults.get(projectPath));
                     ModelResult<T> result = createModelResult(identified);
                     results.add(result);
                 }
@@ -180,10 +181,13 @@ public class ToolingClientCompositeModelBuilder<T> {
             }
         }
 
-        protected T transformWithProjectIdentity(ProjectIdentity projectIdentity, T t) {
-            ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
+        protected T unpackAndTransform(ProjectIdentity projectIdentity, T t) {
             Object sourceObject = protocolToModelAdapter.unpack(t);
             // TODO:DAZ This should be done in the BuildControllerAdapter, then we wouldn't need to adapt here
+            return transform(projectIdentity, sourceObject);
+        }
+
+        protected T transform(ProjectIdentity projectIdentity, Object sourceObject) {
             return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentity));
         }
     }
@@ -217,26 +221,19 @@ public class ToolingClientCompositeModelBuilder<T> {
             if (canUseCustomModelAction(participant)) {
                 addResultsUsingModelAction(participant, modelResults);
             } else {
-                // TODO:DAZ Should be using BuildInvocationsConverter instead of loading an EclipseProject
-                addResultsUsingSeparateProjectConnections(participant, modelResults);
+                GradleProject rootProject = getProjectModel(participant, GradleProject.class);
+                constructBuildInvocationsFromGradleProject(participant, rootProject, modelResults);
             }
         }
 
-        private void addResultsUsingSeparateProjectConnections(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
-            buildResultsWithSeparateProjectConnections(participant, rootProject, modelResults);
-        }
-
-        private void buildResultsWithSeparateProjectConnections(ParticipantConnector participant, EclipseProject project, List<ModelResult<T>> results) {
-            ParticipantConnector childBuild = participant.withProjectDirectory(project.getProjectDirectory());
-            T model = getProjectModel(childBuild, modelType);
-            String projectPath = project.getGradleProject().getPath();
-            model = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), model);
+        private void constructBuildInvocationsFromGradleProject(ParticipantConnector participant, GradleProject project, List<ModelResult<T>> results) {
+            Object buildInvocations = new BuildInvocationsConverter().convertSingleProject(project);
+            T model = transform(participant.toProjectIdentity(project.getPath()), buildInvocations);
             ModelResult<T> result = createModelResult(model);
             results.add(result);
 
-            for (EclipseProject childProject : project.getChildren()) {
-                buildResultsWithSeparateProjectConnections(participant, childProject, results);
+            for (GradleProject childProject : project.getChildren()) {
+                constructBuildInvocationsFromGradleProject(participant, childProject, results);
             }
         }
     }
