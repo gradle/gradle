@@ -22,20 +22,12 @@ import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable, Action<SourceObjectMapping> {
     private final BuildIdentity buildIdentity;
     private final ProjectIdentity projectIdentity;
-
-    public FixedBuildIdentifierProvider(File rootDir, String projectPath) {
-        this.buildIdentity = new DefaultBuildIdentity(rootDir);
-        this.projectIdentity = new DefaultProjectIdentity(buildIdentity, projectPath);
-    }
 
     public FixedBuildIdentifierProvider(ProjectIdentity projectIdentity) {
         this.buildIdentity = projectIdentity.getBuild();
