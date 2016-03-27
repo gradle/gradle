@@ -78,6 +78,21 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         modelType << modelsHavingGradleProjectIdentifier
     }
 
+    def "all Launchables are identified when obtained from GradleConnection"() {
+        when:
+        def buildInvocationsSet = getModelsWithGradleConnection([rootMulti, rootSingle], BuildInvocations)
+
+        then:
+        buildInvocationsSet.each { BuildInvocations buildInvocations ->
+            buildInvocations.taskSelectors.each {
+                buildInvocations.gradleProjectIdentifier == it.gradleProjectIdentifier
+            }
+            buildInvocations.tasks.each {
+                buildInvocations.gradleProjectIdentifier == it.gradleProjectIdentifier
+            }
+        }
+    }
+
     @Ignore("Currently this is all done in the composite coordinator: these models are not identified when accessed from a ProjectConnection")
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
