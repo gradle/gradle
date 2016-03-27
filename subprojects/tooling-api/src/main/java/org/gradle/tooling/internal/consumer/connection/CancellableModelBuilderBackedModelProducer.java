@@ -16,16 +16,17 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class CancellableModelBuilderBackedModelProducer extends HasCompatibilityMapperAction implements ModelProducer {
@@ -57,6 +58,9 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         } catch (RuntimeException e) {
             throw exceptionTransformer.transform(e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction());
+        ProjectIdentity projectIdentity = new DefaultProjectIdentity(operationParameters.getBuildIdentity(), ":");
+        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(projectIdentity);
+        Action<SourceObjectMapping> compatibilityMapperAction = getCompatibilityMapperAction(buildIdentifierProvider);
+        return adapter.adapt(type, result.getModel(), compatibilityMapperAction);
     }
 }

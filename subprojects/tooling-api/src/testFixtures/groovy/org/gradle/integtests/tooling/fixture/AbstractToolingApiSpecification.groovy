@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -86,6 +87,10 @@ abstract class AbstractToolingApiSpecification extends Specification {
 
     public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
         toolingApi.withConnector(cl)
+    }
+
+    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        toolingApi.withConnection(connector, cl)
     }
 
     def connector() {

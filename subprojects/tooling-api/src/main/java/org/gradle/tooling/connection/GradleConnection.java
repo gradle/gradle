@@ -96,8 +96,12 @@ public interface GradleConnection {
     <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
 
 
-    BuildLauncher newBuild(BuildIdentity buildIdentity);
-
+    /**
+     * Creates a launcher which can be used to execute a build.
+     *
+     * @return The launcher.
+     */
+    BuildLauncher newBuild();
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

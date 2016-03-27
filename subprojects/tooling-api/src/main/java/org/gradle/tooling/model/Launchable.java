@@ -17,6 +17,7 @@ package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.tooling.connection.ProjectIdentity;
 
 /**
  * Represents an object that can be used to launch a Gradle build, such as a task.
@@ -28,6 +29,13 @@ import org.gradle.api.Nullable;
  */
 @Incubating
 public interface Launchable {
+    /**
+     * Returns the identifier for the Gradle project that this model originated from.
+     *
+     * @since 2.13
+     */
+    ProjectIdentity getGradleProjectIdentifier();
+
     /**
      * Returns a human-consumable display name for this launchable.
      *

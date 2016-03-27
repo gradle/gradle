@@ -15,18 +15,110 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
-
 /**
  * Tooling client can define a composite and execute tasks
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+
+    def "executes tasks in composite containing one single-project build"() {
+        given:
+        def build1 = singleProjectJavaBuild("build1") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world"
+  }
+}
+task goodbye {
+    doLast {
+        file('hello.txt') << "!!! (and goodbye)"
+    }
+}
+"""
+        }
+        when:
+        withCompositeConnection(build1) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("hello", "goodbye")
+            buildLauncher.run()
+        }
+        then:
+        build1.file('hello.txt').assertExists().text == 'Hello world!!! (and goodbye)'
+    }
+
+    def "executes tasks in composite containing one multi-project build"() {
+        given:
+        def build1 = multiProjectJavaBuild("build1", ['a', 'b']) {
+            buildFile << """
+allprojects {
+    task hello {
+      doLast {
+         file('hello.txt').text = "Hello world from \${project.path}"
+      }
+    }
+}
+project(':a') {
+    task helloA {
+         file('helloA.txt').text = "Another hello from \${project.path}"
+    }
+}
+"""
+        }
+        when:
+        withCompositeConnection(build1) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("hello", "helloA")
+            buildLauncher.run()
+        }
+        then:
+        build1.file('hello.txt').assertExists().text == 'Hello world from :'
+        build1.file('a/hello.txt').assertExists().text == 'Hello world from :a'
+        build1.file('a/helloA.txt').assertExists().text == 'Another hello from :a'
+        build1.file('b/hello.txt').assertExists().text == 'Hello world from :b'
+    }
+
+
+    def "executes tasks for all builds in composite"() {
+        given:
+        def singleProjectBuild = singleProjectJavaBuild("single-project") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world from \${project.path}"
+  }
+}
+"""
+        }
+        def multiProjectBuild = multiProjectJavaBuild("multi-project", ['a', 'b']) {
+            buildFile << """
+allprojects {
+    task hello {
+      doLast {
+         file('hello.txt').text = "Hello world from \${project.path}"
+      }
+    }
+}
+"""
+        }
+        when:
+        withCompositeConnection([singleProjectBuild, multiProjectBuild]) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("hello")
+            buildLauncher.run()
+        }
+        then:
+        singleProjectBuild.file('hello.txt').assertExists().text == 'Hello world from :'
+        multiProjectBuild.file('hello.txt').assertExists().text == 'Hello world from :'
+        multiProjectBuild.file('a/hello.txt').assertExists().text == 'Hello world from :a'
+        multiProjectBuild.file('b/hello.txt').assertExists().text == 'Hello world from :b'
+    }
 
     def "executes task in a single project within a composite "() {
         given:
@@ -48,10 +140,11 @@ task hello {
             })
         }
         when:
-        withCompositeBuildParticipants(builds) { connection, List buildIds ->
-            def build1Id = buildIds[0]
-            def buildLauncher = connection.newBuild(build1Id)
-            buildLauncher.forTasks("hello")
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            Task task = buildLauncher.targetTask("hello", build1)
+            buildLauncher.forTasks(task)
+            buildLauncher.setStandardOutput(System.out)
             buildLauncher.run()
         }
         then:
@@ -74,39 +167,49 @@ task hello {
         def build3 = populate("build3") {
             buildFile << "apply plugin: 'java'"
         }
-        def builds = [build1, build2]
         when:
-        def buildId = new DefaultBuildIdentity(build3)
-        withCompositeConnection(builds) { connection ->
-            def buildLauncher = connection.newBuild(buildId)
-            buildLauncher.forTasks("jar")
+        def jarTaskFromBuild3
+        withCompositeConnection(build3) { connection ->
+            connection.getModels(BuildInvocations).each { modelresult ->
+                jarTaskFromBuild3 = modelresult.model.getTasks().find { it.name == 'jar' }
+            }
+        }
+        withCompositeConnection([build1, build2]) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forLaunchables(jarTaskFromBuild3)
             buildLauncher.run()
-
         }
         then:
         def e = thrown(GradleConnectionException)
         e.cause.message == "Build not part of composite"
     }
 
+    // TODO:DAZ Test and fix on earlier versions
+    @TargetGradleVersion(">=2.6")
     def "executes task in single project selected with Launchable"() {
         given:
-        def build1 = populate("build1") {
+        def build1 = singleProjectJavaBuild("build1") {
             buildFile << """
 task hello {
   doLast {
-     file('hello.txt').text = "Hello world"
+     file('hello.txt').text = "Hello world from \${project.name}"
   }
 }
 """
         }
-        def builds = [build1]
-        builds.addAll([2..3].collect {
-            populate("build${it}") {
-                buildFile << "apply plugin: 'java'"
-            }
-        })
+        def build2 = singleProjectJavaBuild("build2") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world from \${project.path}"
+  }
+}
+"""
+        }
+        def build3 = singleProjectJavaBuild("build3")
+
         when:
-        withCompositeBuildParticipants(builds) { connection, List buildIds ->
+        withCompositeBuildParticipants([build1, build2, build3]) { connection, List buildIds ->
             def build1Id = buildIds[0]
             def task
             connection.getModels(modelType).each { modelresult ->
@@ -115,14 +218,13 @@ task hello {
                 }
             }
             assert task != null
-            def buildLauncher = connection.newBuild(build1Id)
+            def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(task)
             buildLauncher.run()
         }
         then:
-        def helloFile = build1.file("hello.txt")
-        helloFile.exists()
-        helloFile.text == 'Hello world'
+        build1.file('hello.txt').assertExists().text == 'Hello world from build1'
+        build2.file('hello.txt').assertDoesNotExist()
 
         where:
         modelType << launchableSources()

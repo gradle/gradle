@@ -32,11 +32,12 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ProjectConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("ModelBuilder API");
+        operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 
     @Override

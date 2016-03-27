@@ -48,7 +48,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
+            BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.withArguments("-PprojectProperty=foo")
             buildLauncher.run()
@@ -81,7 +81,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
+            BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.withArguments("-DsystemProperty=foo")
             buildLauncher.run()
@@ -114,7 +114,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
+            BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks("run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
             buildLauncher.run()
@@ -161,7 +161,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
         when:
         withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds.first())
+            BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.withArguments("-PprintJavaHome")
             buildLauncher.setJavaHome(javaHome)
             buildLauncher.forTasks("run")

@@ -36,6 +36,7 @@ import java.lang.reflect.Proxy
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
+// TODO:DAZ Consolidate this with ModelsWithXXXCrossVersionSpecs
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]

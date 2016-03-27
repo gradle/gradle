@@ -19,22 +19,39 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.CompositeMappingAction;
+import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMapping;
 import org.gradle.tooling.internal.consumer.converters.IdeaProjectCompatibilityMapper;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 
 public class HasCompatibilityMapperAction {
 
+    private final Action<SourceObjectMapping> taskPropertyHandlerMapper;
+    private final Action<SourceObjectMapping> ideaProjectCompatibilityMapper;
     private final Action<SourceObjectMapping> mapper;
+    private final Action<SourceObjectMapping> gradleProjectIdentifierMapper;
 
     public HasCompatibilityMapperAction(VersionDetails versionDetails) {
+        taskPropertyHandlerMapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
+        ideaProjectCompatibilityMapper = new IdeaProjectCompatibilityMapper(versionDetails);
+        gradleProjectIdentifierMapper = new GradleProjectIdentifierMapping();
         this.mapper = CompositeMappingAction.builder()
-            .add(new TaskPropertyHandlerFactory().forVersion(versionDetails))
-            .add(new IdeaProjectCompatibilityMapper(versionDetails))
+            .add(taskPropertyHandlerMapper)
+            .add(ideaProjectCompatibilityMapper)
+            .add(gradleProjectIdentifierMapper)
             .build();
     }
 
-    public Action<? super SourceObjectMapping> getCompatibilityMapperAction() {
+    public Action<SourceObjectMapping> getCompatibilityMapperAction() {
         return mapper;
+    }
+
+    public Action<SourceObjectMapping> getCompatibilityMapperAction(Action<SourceObjectMapping> requestScopedMapping) {
+        return CompositeMappingAction.builder()
+            .add(taskPropertyHandlerMapper)
+            .add(ideaProjectCompatibilityMapper)
+            .add(gradleProjectIdentifierMapper)
+            .add(requestScopedMapping)
+            .build();
     }
 }

@@ -19,14 +19,14 @@ package org.gradle.tooling.internal.connection;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.*;
 import org.gradle.tooling.connection.ModelResult;
+import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.HasGradleProject;
-import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.tooling.model.gradle.BasicGradleProject;
-import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.gradle.*;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
@@ -228,11 +228,11 @@ public class ToolingClientCompositeModelBuilder<T> {
     private class CustomActionModelResultsBuilder extends GradleBuildModelResultsBuilder {
         @Override
         public boolean canBuild(ParticipantConnector participant) {
-            // Only use custom model action for Gradle >= 1.12, since `BuildInvocations` is adapted in the Tooling API for earlier versions.
-            return canUseCustomModelAction(participant);
+            return ProjectPublications.class.isAssignableFrom(modelType)
+                || BuildInvocations.class.isAssignableFrom(modelType);
         }
 
-        private boolean canUseCustomModelAction(ParticipantConnector participant) {
+        protected boolean canUseCustomModelAction(ParticipantConnector participant) {
             BuildEnvironment buildEnvironment = getProjectModel(participant, BuildEnvironment.class);
             GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
             return gradleVersion.compareTo(USE_CUSTOM_MODEL_ACTION_VERSION) >= 0;
@@ -240,23 +240,52 @@ public class ToolingClientCompositeModelBuilder<T> {
 
         @Override
         public void addModelResults(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            addResultsUsingModelAction(participant, modelResults);
+            if (canUseCustomModelAction(participant)) {
+                addResultsUsingModelAction(participant, modelResults);
+            } else {
+                addResultsUsingSeparateProjectConnections(participant, modelResults);
+            }
         }
 
         private void addResultsUsingModelAction(ParticipantConnector participant, List<ModelResult<T>> results) {
             ProjectConnection projectConnection = participant.connect();
-
             try {
                 BuildActionExecuter<Map<String, T>> actionExecuter = projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
                 util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
-                for (String projectPath : actionResults.keySet()) {
-                    ModelResult<T> result = createModelResult(participant, projectPath, actionResults.get(projectPath));
+                for (final String projectPath : actionResults.keySet()) {
+                    T identified = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), actionResults.get(projectPath));
+                    ModelResult<T> result = createModelResult(participant, projectPath, identified);
                     results.add(result);
                 }
             } finally {
                 projectConnection.close();
             }
+        }
+
+        private void addResultsUsingSeparateProjectConnections(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
+            EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
+            buildResultsWithSeparateProjectConnections(participant, rootProject, modelResults);
+        }
+
+        private void buildResultsWithSeparateProjectConnections(ParticipantConnector participant, EclipseProject project, List<ModelResult<T>> results) {
+            ParticipantConnector childBuild = participant.withProjectDirectory(project.getProjectDirectory());
+            T model = getProjectModel(childBuild, modelType);
+            String projectPath = project.getGradleProject().getPath();
+            model = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), model);
+            ModelResult<T> result = createModelResult(participant, projectPath, model);
+            results.add(result);
+
+            for (EclipseProject childProject : project.getChildren()) {
+                buildResultsWithSeparateProjectConnections(participant, childProject, results);
+            }
+        }
+
+        protected T transformWithProjectIdentity(ProjectIdentity projectIdentity, T t) {
+            ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
+            Object sourceObject = protocolToModelAdapter.unpack(t);
+            // TODO:DAZ This should be done in the BuildControllerAdapter, then we wouldn't need to adapt here
+            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentity));
         }
     }
 

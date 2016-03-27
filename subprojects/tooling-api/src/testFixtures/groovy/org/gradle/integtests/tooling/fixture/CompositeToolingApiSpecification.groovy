@@ -93,10 +93,49 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         rootDir.file(path)
     }
 
-    TestFile populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
+    def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
         def project = new ProjectTestFile(rootDir, projectName)
         project.with(cl)
         project
+    }
+
+    def singleProjectJavaBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        def project = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+            """
+
+            buildFile << """
+                apply plugin: 'java'
+                group = 'org.A'
+                version = '1.0'
+            """
+        }
+        project.with(cl)
+        return project
+    }
+
+    def multiProjectJavaBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        String subprojectList = subprojects.collect({"'$it'"}).join(',')
+        def rootMulti = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include ${subprojectList}
+            """
+
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.B'
+                    version = '1.0'
+                }
+            """
+        }
+        rootMulti.with(cl)
+        subprojects.each {
+            rootMulti.file(it, 'dummy.txt') << "temp"
+        }
+        return rootMulti
     }
 
     TestFile projectDir(String project) {

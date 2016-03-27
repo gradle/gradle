@@ -28,7 +28,7 @@ public class ToolingClientCompositeUtil {
     }
 
     <V extends ConfigurableLauncher> void configureRequest(ConfigurableLauncher<V> request) {
-        ((AbstractLongRunningOperation)request).copyFrom(operationParameters);
+        ((AbstractLongRunningOperation) request).copyFrom(operationParameters);
     }
 
     ParticipantConnector createParticipantConnector(GradleConnectionParticipant participant) {

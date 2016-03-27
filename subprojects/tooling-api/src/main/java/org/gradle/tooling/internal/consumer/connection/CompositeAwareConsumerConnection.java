@@ -38,7 +38,8 @@ public class CompositeAwareConsumerConnection extends TestExecutionConsumerConne
 
     @Override
     protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
-        return new CompositeAwareModelProducer(adapter, getVersionDetails(), modelMapping, (InternalCompositeAwareConnection) connection, exceptionTransformer);
+        ModelProducer delegate = super.createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
+        return new CompositeAwareModelProducer(delegate, adapter, getVersionDetails(), modelMapping, (InternalCompositeAwareConnection) connection, exceptionTransformer);
     }
 
     protected MultiModelProducer getMultiModelProducer() {
