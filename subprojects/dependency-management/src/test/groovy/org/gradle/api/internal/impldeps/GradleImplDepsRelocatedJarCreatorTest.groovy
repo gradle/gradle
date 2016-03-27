@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.impldeps
 
+import org.gradle.api.Action
+import org.gradle.internal.IoActions
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -120,9 +122,13 @@ org.gradle.api.internal.tasks.CompileServices
         relocatedJar == outputJar
         def relocatedJarFile = new JarFile(relocatedJar)
         JarEntry providerConfigJarEntry = relocatedJarFile.getJarEntry("META-INF/services/$serviceType")
-        relocatedJarFile.getInputStream(providerConfigJarEntry).text == """org.gradle.api.internal.artifacts.DependencyServices
+        IoActions.withResource(relocatedJarFile.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
+            void execute(InputStream inputStream) {
+                assert inputStream.text == """org.gradle.api.internal.artifacts.DependencyServices
 org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
 org.gradle.api.internal.tasks.CompileServices"""
+            }
+        })
     }
 
     private void createJarFileWithClassFile(TestFile jar) {
