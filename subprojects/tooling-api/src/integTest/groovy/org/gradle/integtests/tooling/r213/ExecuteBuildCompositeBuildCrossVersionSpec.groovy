@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
 import org.gradle.tooling.model.GradleProject

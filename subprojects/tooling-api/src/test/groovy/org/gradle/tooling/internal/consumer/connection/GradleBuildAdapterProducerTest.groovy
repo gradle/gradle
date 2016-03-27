@@ -31,7 +31,7 @@ class GradleBuildAdapterProducerTest extends Specification {
     ModelBuilder builder = Mock(ModelBuilder);
     ModelProducer delegate = Mock(ModelProducer)
 
-    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate);
+    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate, this);
 
     def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:

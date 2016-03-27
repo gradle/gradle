@@ -45,7 +45,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate, this);
-        modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
+        modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer, this);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         modelProducer = new BuildExecutingModelProducer(modelProducer);
         if (GradleVersion.version(getVersionDetails().getVersion()).compareTo(GradleVersion.version("1.0")) < 0) {

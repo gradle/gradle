@@ -29,8 +29,6 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 
-// TODO:DAZ Test and fix on earlier versions
-@TargetGradleVersion(">=2.6")
 class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
     static buildScopedModels = [GradleBuild, IdeaProject]
@@ -56,12 +54,10 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
             def modelBuilder = connection.models(GradleBuild)
             modelBuilder.get()
         }.asList()*.model
-        def singleProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootSingle}
-        def multiProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootMulti}
 
         then:
-        singleProjectBuild.identifier == new DefaultBuildIdentity(rootSingle)
-        multiProjectBuild.identifier == new DefaultBuildIdentity(rootMulti)
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootSingle) }
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootMulti) }
     }
 
     def "GradleConnection provides GradleProjects for single project build"() {
@@ -76,6 +72,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << projectScopedModels
     }
 
+    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for root of single project build"() {
         when:
         def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootSingle, modelType)
@@ -102,6 +99,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << projectScopedModels
     }
 
+    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for root of multi-project build"() {
         when:
         def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootMulti, modelType)
@@ -116,6 +114,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << buildScopedModels
     }
 
+    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
         when:
         def rootDir = rootMulti.file("x")
