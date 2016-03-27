@@ -822,7 +822,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected TestFile getDefaultTmpDir() {
-        return buildContext.getTmpDir();
+        return buildContext.getTmpDir().createDir();
     }
 
     public GradleExecuter noExtraLogging() {
