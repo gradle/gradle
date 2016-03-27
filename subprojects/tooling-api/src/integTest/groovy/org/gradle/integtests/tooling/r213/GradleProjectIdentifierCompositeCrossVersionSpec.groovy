@@ -221,7 +221,7 @@ class GradleProjectIdentifierCompositeCrossVersionSpec extends CompositeToolingA
             assert project.parent.path == parentPath
         }
         assert project.children*.path == childPaths
-        assert project.identifier == new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), ':') // TODO:DAZ This isn't right
+        assert project.identifier == new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), path)
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
