@@ -127,8 +127,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         }
 
         static com.typesafe.zinc.Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
-            String zincCacheHomeProperty = System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY);
-            File zincCacheHomeDir = zincCacheHomeProperty != null ? new File(zincCacheHomeProperty) : gradleUserHome;
+            File zincCacheHomeDir = new File(System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
             CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
             final PersistentCache zincCache = cacheRepository.cache("zinc")
                                                             .withDisplayName("Zinc compiler cache")
