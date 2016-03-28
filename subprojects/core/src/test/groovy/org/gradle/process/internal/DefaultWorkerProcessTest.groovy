@@ -76,6 +76,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             one(execHandle).start()
             one(execHandle).getState()
             will(returnValue(ExecHandleState.STARTED))
+            one(execHandle).abort()
             one(acceptor).stop()
         }
 
@@ -112,6 +113,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             will(returnValue(execResult))
             allowing(execResult).assertNormalExitValue()
             will(returnValue(execResult))
+            one(execHandle).abort()
             one(acceptor).stop()
         }
 
@@ -144,6 +146,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             }
             one(execResult).rethrowFailure()
             will(throwException(failure))
+            one(execHandle).abort()
             one(acceptor).stop()
         }
 
@@ -178,6 +181,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
         context.checking {
             one(execHandle).waitForFinish()
             will(returnValue(execResult))
+            one(execHandle).abort()
             one(acceptor).stop()
             one(connection).stop()
             one(execResult).assertNormalExitValue()
