@@ -24,8 +24,6 @@ import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ports.ReleasingPortAllocator
-import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Timeout
@@ -40,7 +38,6 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
-    @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def "client can connect to server"() {
         Action action = Mock()
@@ -282,13 +279,14 @@ class TcpConnectorTest extends ConcurrentSpec {
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()
-        def port = portAllocator.assignPort()
         def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
-        def selfConnect = new InetSocketAddress(localAddress, port)
+        def bindAnyPort = new InetSocketAddress(localAddress, 0)
+        socketChannel.socket().bind(bindAnyPort)
+        def selfConnect = new InetSocketAddress(localAddress, socketChannel.socket().getLocalPort())
 
         when:
-        socketChannel.socket().bind(selfConnect)
         socketChannel.socket().connect(selfConnect)
+
         then:
         outgoingConnector.detectSelfConnect(socketChannel)
 
@@ -304,12 +302,11 @@ class TcpConnectorTest extends ConcurrentSpec {
         def socketChannel = SocketChannel.open()
         def acceptor = incomingConnector.accept(action, false)
         def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
-        def bindPort = portAllocator.assignPort()
-        def bindAddress = new InetSocketAddress(localAddress, bindPort)
+        def bindAnyPort = new InetSocketAddress(localAddress, 0)
         def connectAddress = new InetSocketAddress(localAddress, acceptor.address.port)
 
         when:
-        socketChannel.socket().bind(bindAddress)
+        socketChannel.socket().bind(bindAnyPort)
         socketChannel.socket().connect(connectAddress)
 
         then:
