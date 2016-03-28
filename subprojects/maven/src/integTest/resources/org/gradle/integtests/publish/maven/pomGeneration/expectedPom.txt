@@ -12,6 +12,12 @@
       <version>1.0</version>
       <type>zip</type>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>group4</groupId>
@@ -19,6 +25,12 @@
       <version>1.0</version>
       <type>war</type>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>group6</groupId>
@@ -31,6 +43,12 @@
       <artifactId>providedCompile</artifactId>
       <version>1.0</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>group1</groupId>
