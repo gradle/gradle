@@ -40,6 +40,8 @@ public interface ObjectConnectionBuilder {
      */
     <T> void addIncoming(Class<T> type, T instance);
 
+    void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader);
+
     /**
      * Use the specified serializers for all incoming and outgoing method parameters.
      */

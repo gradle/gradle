@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 public interface TestWorkInterface {
-    String convert(String param1, long param2);
+    Object convert(String param1, long param2);
 
     void doSomething();
 }

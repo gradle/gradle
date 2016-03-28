@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
@@ -53,6 +54,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
         DefaultWorkerProcessBuilder builder = newWorker();
         builder.worker(workerAction);
+        builder.setImplementationClassPath(ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader()));
         return builder;
     }
 

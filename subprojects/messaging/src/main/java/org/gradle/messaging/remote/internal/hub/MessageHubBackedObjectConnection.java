@@ -50,6 +50,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         this.completion = completion;
     }
 
+    @Override
+    public void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader) {
+        methodParamClassLoader = incomingMessageClassLoader;
+    }
+
     public <T> void addIncoming(Class<T> type, T instance) {
         if (methodParamClassLoader == null) {
             methodParamClassLoader = type.getClassLoader();

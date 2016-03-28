@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal
 
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
 import spock.lang.Timeout
@@ -30,6 +32,29 @@ class SingleUseWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegra
 
         then:
         result == "[abc 12]"
+    }
+
+    def "infers worker implementation classpath"() {
+        given:
+        def cl = compileToDirectoryAndLoad("CustomTestWorker", """
+import ${TestWorkInterface.name}
+class CustomTestWorker implements TestWorkInterface {
+    Object convert(String param1, long param2) { return new CustomResult() }
+    void doSomething() { }
+}
+
+class CustomResult implements Serializable {
+    String toString() { return "custom-result" }
+}
+""")
+
+        when:
+        def builder = workerFactory.create(TestWorkInterface.class, cl)
+        def worker = builder.build()
+        def result = worker.convert("abc", 12)
+
+        then:
+        result.toString() == "custom-result"
     }
 
     def "runs method in worker process and returns null"() {
@@ -114,5 +139,19 @@ class SingleUseWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegra
     @Ignore
     def "reports failure when worker does not stop within expected time"() {
         expect: false
+    }
+
+    Class<?> compileToDirectoryAndLoad(String className, String classText) {
+        def classesDir = tmpDir.createDir("classes/$className")
+        def compilationUnit = new CompilationUnit(new GroovyClassLoader(getClass().classLoader))
+        compilationUnit.addSource(className, classText)
+
+        def configuration = new CompilerConfiguration()
+        configuration.setTargetDirectory(classesDir)
+
+        compilationUnit.setConfiguration(configuration)
+        compilationUnit.compile()
+
+        return new URLClassLoader([classesDir.toURI().toURL()] as URL[], getClass().classLoader).loadClass(className)
     }
 }

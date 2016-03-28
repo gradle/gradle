@@ -18,7 +18,6 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectionAcceptor;
@@ -47,6 +46,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private String baseName = "Gradle Worker";
     private File gradleUserHomeDir;
     private int connectTimeoutSeconds;
+    private List<URL> implementationClassPath;
 
     DefaultWorkerProcessBuilder(ExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory) {
         this.javaCommand = execHandleFactory.newJavaExec();
@@ -125,6 +125,14 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
+    public void setImplementationClassPath(List<URL> implementationClassPath) {
+        this.implementationClassPath = implementationClassPath;
+    }
+
+    public List<URL> getImplementationClassPath() {
+        return implementationClassPath;
+    }
+
     @Override
     public WorkerProcess build() {
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
@@ -137,13 +145,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         Address localAddress = acceptor.getAddress();
 
         // Build configuration for GradleWorkerMain
-        List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
-
         Object id = idGenerator.generateId();
         String displayName = getBaseName() + " " + id;
 
         LOGGER.debug("Creating {}", displayName);
-        LOGGER.debug("Using application classpath {}", getApplicationClasspath());
+        LOGGER.debug("Using application classpath {}", applicationClasspath);
         LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
         JavaExecHandleBuilder javaCommand = getJavaCommand();

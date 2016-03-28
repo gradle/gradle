@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.messaging.remote.ObjectConnection;
 
 import java.io.File;
@@ -32,12 +33,15 @@ import java.util.concurrent.CountDownLatch;
 
 class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessBuilder<T> {
     private final Class<T> protocolType;
+    private final Class<? extends T> workerImplementation;
     private final DefaultWorkerProcessBuilder builder;
 
     public DefaultSingleUseWorkerProcessBuilder(Class<T> protocolType, Class<? extends T> workerImplementation, DefaultWorkerProcessBuilder builder) {
         this.protocolType = protocolType;
+        this.workerImplementation = workerImplementation;
         this.builder = builder;
         builder.worker(new WorkerAction(workerImplementation));
+        builder.setImplementationClassPath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
     }
 
     @Override
@@ -106,9 +110,9 @@ class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessB
                 RequestProtocol requestProtocol = connection.addOutgoing(RequestProtocol.class);
                 Receiver receiver = new Receiver();
                 connection.addIncoming(ResponseProtocol.class, receiver);
+                connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
                 connection.connect();
                 requestProtocol.run(method.getName(), method.getParameterTypes(), args);
-                receiver.waitForResult();
                 workerProcess.waitForStop();
                 return receiver.getResult();
             }
@@ -133,10 +137,6 @@ class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessB
         private final CountDownLatch received = new CountDownLatch(1);
         private Object result;
         private Throwable failure;
-
-        void waitForResult() throws Throwable {
-            received.await();
-        }
 
         Object getResult() throws Throwable {
             received.await();
