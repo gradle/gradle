@@ -17,11 +17,14 @@
 package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.connection.*;
+import org.gradle.tooling.connection.GradleConnection;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -30,7 +33,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderInternal {
-    private final Set<GradleConnectionParticipant> participants = Sets.newLinkedHashSet();
+    private final Set<DefaultGradleConnectionParticipantBuilder> participantBuilders = Sets.newLinkedHashSet();
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
     private File gradleUserHomeDir;
@@ -52,19 +55,27 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public ParticipantBuilder newParticipant(File projectDirectory) {
-        return new DefaultGradleConnectionParticipantBuilder(projectDirectory);
+    public ParticipantBuilder addParticipant(File projectDirectory) {
+        DefaultGradleConnectionParticipantBuilder participantBuilder = new DefaultGradleConnectionParticipantBuilder(projectDirectory);
+        participantBuilders.add(participantBuilder);
+        return participantBuilder;
     }
 
     @Override
     public GradleConnection build() throws GradleConnectionException {
-        if (participants.isEmpty()) {
+        if (participantBuilders.isEmpty()) {
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
         return createGradleConnection();
     }
 
     private GradleConnection createGradleConnection() {
+        Set<GradleConnectionParticipant> participants = CollectionUtils.collect(participantBuilders, new Transformer<GradleConnectionParticipant, DefaultGradleConnectionParticipantBuilder>() {
+            @Override
+            public GradleConnectionParticipant transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
+                return participantBuilder.build();
+            }
+        });
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
@@ -165,11 +176,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             return this;
         }
 
-        @Override
-        public BuildIdentity create() {
-            DefaultGradleConnectionParticipant gradleBuild = new DefaultGradleConnectionParticipant(projectDir, gradleHome, gradleDistribution, gradleVersion);
-            participants.add(gradleBuild);
-            return gradleBuild.toBuildIdentity();
+        public GradleConnectionParticipant build() {
+            return new DefaultGradleConnectionParticipant(projectDir, gradleHome, gradleDistribution, gradleVersion);
         }
 
         private void resetDistribution() {

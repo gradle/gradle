@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
@@ -52,8 +50,8 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return toolingApi.createCompositeBuilder()
     }
 
-    BuildIdentity addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
-        return toolingApi.addCompositeParticipant(builder, rootDir)
+    void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+        toolingApi.addCompositeParticipant(builder, rootDir)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, Closure<T> c) {

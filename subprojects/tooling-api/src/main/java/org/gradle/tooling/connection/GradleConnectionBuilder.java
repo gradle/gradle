@@ -67,7 +67,7 @@ public interface GradleConnectionBuilder {
      *
      * @return The builder. Never returns null.
      */
-    ParticipantBuilder newParticipant(File projectDirectory);
+    ParticipantBuilder addParticipant(File projectDirectory);
 
     /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
@@ -112,12 +112,5 @@ public interface GradleConnectionBuilder {
          * @return this
          */
         ParticipantBuilder useDistribution(URI gradleDistribution);
-
-        /**
-         * Creates the participant and adds it to the Gradle connection.
-         *
-         * @return The identity of the created participant.
-         */
-        BuildIdentity create();
     }
 }

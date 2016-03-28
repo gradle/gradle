@@ -48,8 +48,8 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     private GradleConnection openConnection() {
         GradleConnectionBuilder builder = createCompositeBuilder()
-        builder.newParticipant(varyingBuildRoot.absoluteFile).useInstallation(targetDist.gradleHomeDir.absoluteFile).create()
-        builder.newParticipant(fixedBuildRoot.absoluteFile).useInstallation(GRADLE_2_8.gradleHomeDir.absoluteFile).create()
+        builder.addParticipant(varyingBuildRoot.absoluteFile).useInstallation(targetDist.gradleHomeDir.absoluteFile)
+        builder.addParticipant(fixedBuildRoot.absoluteFile).useInstallation(GRADLE_2_8.gradleHomeDir.absoluteFile)
         return builder.build()
     }
 

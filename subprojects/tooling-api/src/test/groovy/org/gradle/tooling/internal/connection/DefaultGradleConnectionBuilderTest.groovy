@@ -39,8 +39,8 @@ class DefaultGradleConnectionBuilderTest extends Specification {
 
     def "builds a participant with just a project directory"() {
         when:
-        builder.newParticipant(rootDir).create()
-        def gradleBuild = builder.participants.first()
+        builder.addParticipant(rootDir)
+        def gradleBuild = builder.participantBuilders.first().build()
 
         then:
         gradleBuild.projectDir.absolutePath == rootDir.absolutePath
@@ -49,51 +49,47 @@ class DefaultGradleConnectionBuilderTest extends Specification {
 
     def "participant requires a project directory"() {
         when:
-        builder.newParticipant(null).create()
+        builder.addParticipant(null)
         then:
         thrown(IllegalArgumentException)
     }
 
     def "uses last configured distribution option for participant"() {
         when:
-        def participant1 = builder.newParticipant(rootDir)
+        def participant1 = builder.addParticipant(rootDir)
         participant1.useDistribution(gradleDistribution)
         participant1.useInstallation(gradleHome)
         participant1.useGradleVersion(gradleVersion)
         participant1.useBuildDistribution()
-        participant1.create()
         then:
-        assertBuildDistribution(builder.participants.last())
+        assertBuildDistribution(builder.participantBuilders.last().build())
 
         when:
-        def participant2 = builder.newParticipant(rootDir)
+        def participant2 = builder.addParticipant(rootDir)
         participant2.useBuildDistribution()
         participant2.useDistribution(gradleDistribution)
         participant2.useInstallation(gradleHome)
         participant2.useGradleVersion(gradleVersion)
-        participant2.create()
         then:
-        assertGradleVersionDistribution(builder.participants.last())
+        assertGradleVersionDistribution(builder.participantBuilders.last().build())
 
         when:
-        def participant3 = builder.newParticipant(rootDir)
+        def participant3 = builder.addParticipant(rootDir)
         participant3.useGradleVersion(gradleVersion)
         participant3.useBuildDistribution()
         participant3.useDistribution(gradleDistribution)
         participant3.useInstallation(gradleHome)
-        participant3.create()
         then:
-        assertFileDistribution(builder.participants.last())
+        assertFileDistribution(builder.participantBuilders.last().build())
 
         when:
-        def participant4 = builder.newParticipant(rootDir)
+        def participant4 = builder.addParticipant(rootDir)
         participant4.useInstallation(gradleHome)
         participant4.useGradleVersion(gradleVersion)
         participant4.useBuildDistribution()
         participant4.useDistribution(gradleDistribution)
-        participant4.create()
         then:
-        assertURIDistribution(builder.participants.last())
+        assertURIDistribution(builder.participantBuilders.last().build())
     }
 
     void assertBuildDistribution(gradleBuildInternal) {
