@@ -6,7 +6,7 @@ task printModel << {
     def builder = GradleConnector.newGradleConnection()
     rootProjectDirectories().each {
         println "Adding project $it.absolutePath to composite"
-        builder.newParticipant(it).useInstallation(gradle.gradleHomeDir).create()
+        builder.addParticipant(it).useInstallation(gradle.gradleHomeDir)
     }
     def connection = builder.build()
 
@@ -21,9 +21,9 @@ task printModel << {
         println "GradleProject: " + gradleProject.path
     }
 
-    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications)
+    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications).collect {it.model}
     publicationResults.each { publicationResult ->
-        println "Pubs: " + publicationResult.projectIdentity + " :: " + publicationResult.model.publications*.id
+        println "Pubs: " + publicationResult.gradleProjectIdentifier + " :: " + publicationResult.publications*.id
     }
 
     def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }
@@ -34,17 +34,21 @@ task printModel << {
 
 task executeTasks << {
     def builder = GradleConnector.newGradleConnection()
-    def buildIds = []
-    rootProjectDirectories().each {
+    def buildRoots = rootProjectDirectories()
+    buildRoots.each {
         println "Adding project $it.absolutePath to composite"
-        buildIds << builder.newParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir).create()
+        builder.addParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir)
     }
     def connection = builder.build()
-    def targetBuild = buildIds.find { it.rootDirectory.toString().endsWith(project.targetProject) }
+    def targetBuild = buildRoots.find { it.toString().endsWith(project.targetBuild) }
     def targetTasks = project.targetTasks
+
     println "Running tasks '${targetTasks}' in $targetBuild"
-    def buildLauncher = connection.newBuild(targetBuild)
-    buildLauncher.forTasks(targetTasks.split(","))
+    def buildLauncher = connection.newBuild()
+    def taskSelectors = targetTasks.split(',').collect {
+        buildLauncher.targetTask(it, targetBuild)
+    }
+    buildLauncher.forTasks(taskSelectors)
     buildLauncher.withArguments("--info")
     buildLauncher.standardOutput = System.out
     buildLauncher.standardError = System.err
