@@ -34,14 +34,14 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringCo
             import org.gradle.cache.CacheRepository
             import org.gradle.api.internal.ClassPathRegistry
             import org.gradle.process.internal.child.WorkerProcessClassPathProvider
-            import org.gradle.process.internal.WorkerProcessBuilder
+            import org.gradle.process.internal.WorkerProcessFactory
 
             task captureService {
                 inputs.file file("$triggerFileName")
                 doLast {
                     def idFile = file("${idFileName}")
                     mkdir(idFile.parent)
-                    def service = services.${method}(${service})
+                    def service = services.get(${service})
                     idFile << System.identityHashCode(service) + "\\n"
                 }
             }
@@ -65,9 +65,9 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringCo
         ids[0] == ids[1]
 
         where:
-        service                          | method
-        "WorkerProcessBuilder"           | "getFactory"
-        "CacheRepository"                | "get"
-        "WorkerProcessClassPathProvider" | "get"
+        service                          | _
+        "WorkerProcessFactory"           | _
+        "CacheRepository"                | _
+        "WorkerProcessClassPathProvider" | _
     }
 }
