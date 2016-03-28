@@ -21,7 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
 
 /**
- * A model with the identity of the project it was produced from.
+ * The result of a model request.
  *
  * @param <T> Type of model in the result
  * @since 2.13

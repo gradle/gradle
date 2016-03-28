@@ -18,6 +18,12 @@ package org.gradle.tooling.connection;
 
 import org.gradle.api.Nullable;
 
+/**
+ * The result of a failed model request.
+ *
+ * @param <T> Type of model in the result
+ * @since 2.13
+ */
 public interface FailureModelResult<T> extends ModelResult<T> {
     /**
      * Identity of the build that originated this failure.
