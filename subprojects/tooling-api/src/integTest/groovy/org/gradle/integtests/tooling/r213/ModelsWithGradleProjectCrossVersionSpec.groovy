@@ -19,8 +19,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.internal.connection.DefaultBuildIdentity
-import org.gradle.tooling.internal.connection.DefaultProjectIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -44,7 +44,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         def gradleBuild = getModelWithProjectConnection(rootMulti, GradleBuild)
 
         then:
-        gradleBuild.identifier == new DefaultBuildIdentity(rootMulti)
+        gradleBuild.identifier == new DefaultBuildIdentifier(rootMulti)
     }
 
     def "GradleConnection provides identified GradleBuild for each build"() {
@@ -56,8 +56,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
         then:
         gradleBuilds.size() == 2
-        gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootSingle) }
-        gradleBuilds.find { it.identifier == new DefaultBuildIdentity(rootMulti) }
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootSingle) }
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootMulti) }
     }
 
     def "GradleConnection provides GradleProjects for single project build"() {
@@ -220,7 +220,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
             assert project.parent.path == parentPath
         }
         assert project.children*.path == childPaths
-        assert project.identifier == new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), path)
+        assert project.identifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {

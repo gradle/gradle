@@ -28,10 +28,10 @@ import org.gradle.api.Incubating;
  * @since 2.13
  */
 @Incubating
-public interface ProjectIdentity {
+public interface ProjectIdentifier {
     /**
      * Identity of the build this project is a member of.
      * @return build identity, never null.
      */
-    BuildIdentity getBuild();
+    BuildIdentifier getBuild();
 }

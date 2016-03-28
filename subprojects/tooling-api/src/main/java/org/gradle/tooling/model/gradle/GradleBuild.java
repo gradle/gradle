@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 
@@ -33,7 +33,7 @@ public interface GradleBuild extends Model {
      *
      * @since 2.13
      */
-    BuildIdentity getIdentifier();
+    BuildIdentifier getIdentifier();
 
     /**
      * Returns the root project for this build.

@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.*;
 
 /**
@@ -37,7 +37,7 @@ public interface BuildInvocations extends Model {
      *
      * @since 2.13
      */
-    ProjectIdentity getGradleProjectIdentifier();
+    ProjectIdentifier getGradleProjectIdentifier();
 
     /**
      * Returns tasks selectors that can be used to execute a build.

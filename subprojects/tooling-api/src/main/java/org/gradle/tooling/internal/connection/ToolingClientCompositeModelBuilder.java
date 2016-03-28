@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.*;
 import org.gradle.tooling.connection.ModelResult;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
@@ -183,14 +183,14 @@ public class ToolingClientCompositeModelBuilder<T> {
             }
         }
 
-        protected T unpackAndTransform(ProjectIdentity projectIdentity, T t) {
+        protected T unpackAndTransform(ProjectIdentifier projectIdentifier, T t) {
             Object sourceObject = protocolToModelAdapter.unpack(t);
             // TODO:DAZ This should be done in the BuildControllerAdapter, then we wouldn't need to adapt here
-            return transform(projectIdentity, sourceObject);
+            return transform(projectIdentifier, sourceObject);
         }
 
-        protected T transform(ProjectIdentity projectIdentity, Object sourceObject) {
-            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentity));
+        protected T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
+            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentifier));
         }
     }
 

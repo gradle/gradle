@@ -17,8 +17,8 @@
 package org.gradle.tooling.connection;
 
 import org.gradle.api.Nullable;
-import org.gradle.tooling.model.BuildIdentity;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 /**
  * The result of a failed model request.
@@ -32,7 +32,7 @@ public interface FailedModelResult<T> extends ModelResult<T> {
      *
      * @return the build identity, never null.
      */
-    BuildIdentity getBuildIdentity();
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Identity of the project that originated this failure, if any.
@@ -40,5 +40,5 @@ public interface FailedModelResult<T> extends ModelResult<T> {
      * @return the project identity, or null if this failure did not originate from a particular project.
      */
     @Nullable
-    ProjectIdentity getProjectIdentity();
+    ProjectIdentifier getProjectIdentifier();
 }

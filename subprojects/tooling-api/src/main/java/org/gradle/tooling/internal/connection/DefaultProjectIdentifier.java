@@ -16,25 +16,32 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultBuildIdentity implements BuildIdentity, Serializable {
-    private final File rootDir;
+public class DefaultProjectIdentifier implements ProjectIdentifier, Serializable {
+    private final BuildIdentifier build;
+    private final String projectPath;
 
-    public DefaultBuildIdentity(File rootDir) {
-        this.rootDir = rootDir.getAbsoluteFile();
+    public DefaultProjectIdentifier(BuildIdentifier build, String projectPath) {
+        this.build = build;
+        this.projectPath = projectPath;
     }
 
-    public File getRootDir() {
-        return rootDir;
+    public DefaultProjectIdentifier(File rootDir, String projectPath) {
+        this(new DefaultBuildIdentifier(rootDir), projectPath);
+    }
+
+    public BuildIdentifier getBuild() {
+        return build;
     }
 
     @Override
     public String toString() {
-        return String.format("build=%s", rootDir.getPath());
+        return String.format("project=%s, %s", projectPath, build);
     }
 
     @Override
@@ -46,14 +53,19 @@ public class DefaultBuildIdentity implements BuildIdentity, Serializable {
             return false;
         }
 
-        DefaultBuildIdentity that = (DefaultBuildIdentity) o;
+        DefaultProjectIdentifier that = (DefaultProjectIdentifier) o;
 
-        return rootDir.equals(that.rootDir);
+        if (!build.equals(that.build)) {
+            return false;
+        }
+        return projectPath.equals(that.projectPath);
 
     }
 
     @Override
     public int hashCode() {
-        return rootDir.hashCode();
+        int result = build.hashCode();
+        result = 31 * result + projectPath.hashCode();
+        return result;
     }
 }

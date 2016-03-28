@@ -18,25 +18,25 @@ package org.gradle.tooling.internal.connection;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.connection.FailedModelResult;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
     private final GradleConnectionException failure;
-    private final BuildIdentity buildIdentity;
-    private final ProjectIdentity projectIdentity;
+    private final BuildIdentifier buildIdentifier;
+    private final ProjectIdentifier projectIdentifier;
 
-    public DefaultFailedModelResult(BuildIdentity buildIdentity, GradleConnectionException failure) {
+    public DefaultFailedModelResult(BuildIdentifier buildIdentifier, GradleConnectionException failure) {
         this.failure = failure;
-        this.buildIdentity = buildIdentity;
-        this.projectIdentity = null;
+        this.buildIdentifier = buildIdentifier;
+        this.projectIdentifier = null;
     }
 
-    public DefaultFailedModelResult(ProjectIdentity projectIdentity, GradleConnectionException failure) {
+    public DefaultFailedModelResult(ProjectIdentifier projectIdentifier, GradleConnectionException failure) {
         this.failure = failure;
-        this.buildIdentity = projectIdentity.getBuild();
-        this.projectIdentity = projectIdentity;
+        this.buildIdentifier = projectIdentifier.getBuild();
+        this.projectIdentifier = projectIdentifier;
     }
 
     @Override
@@ -49,15 +49,13 @@ public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
         return failure;
     }
 
-    @Override
-    public BuildIdentity getBuildIdentity() {
-        return buildIdentity;
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
     }
 
     @Nullable
-    @Override
-    public ProjectIdentity getProjectIdentity() {
-        return projectIdentity;
+    public ProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
     }
 
     @Override

@@ -27,5 +27,5 @@ import org.gradle.api.Incubating;
  * @since 2.13
  */
 @Incubating
-public interface BuildIdentity {
+public interface BuildIdentifier {
 }

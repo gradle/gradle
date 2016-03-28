@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.model.BuildIdentity
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
-import org.gradle.tooling.model.ProjectIdentity
-import org.gradle.tooling.internal.connection.DefaultBuildIdentity
-import org.gradle.tooling.internal.connection.DefaultProjectIdentity
+import org.gradle.tooling.model.ProjectIdentifier
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -195,20 +195,20 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
     }
 
     private findModelsByProjectIdentity(File rootDir, String projectPath) {
-        def projectIdentity = new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), projectPath)
+        def projectIdentity = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
         def results = modelResults.findAll { it.failure == null && projectIdentity.equals(it.model.gradleProject.identifier) }
         return results*.model
     }
 
     private findModelsByBuildIdentity(File rootDir) {
-        BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
+        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
         def results = modelResults.findAll { it.failure == null && buildIdentity.equals(it.model.gradleProject.identifier.build) }
         return results*.model
     }
 
     private findFailureByBuildIdentity(File rootDir) {
-        BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
-        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentity) }
+        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
+        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentifier) }
         return CollectionUtils.single(failures)
     }
 
@@ -217,7 +217,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         return modules.collect { it.gradleProject.identifier }
     }
 
-    void containSameIdentifiers(Iterable<ProjectIdentity> otherModelResults) {
+    void containSameIdentifiers(Iterable<ProjectIdentifier> otherModelResults) {
         // should contain the same number of results
         assert otherModelResults.size() == modelResults.size()
 

@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
@@ -36,16 +36,16 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
 
     @Override
     public void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
-        BuildIdentity targetBuildIdentity = null;
+        BuildIdentifier targetBuildIdentifier = null;
         for (Launchable launchable : launchables) {
-            BuildIdentity launchableBuildIdentity = launchable.getGradleProjectIdentifier().getBuild();
-            if (targetBuildIdentity == null) {
-                targetBuildIdentity = launchableBuildIdentity;
-            } else if (!targetBuildIdentity.equals(launchableBuildIdentity)) {
+            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuild();
+            if (targetBuildIdentifier == null) {
+                targetBuildIdentifier = launchableBuildIdentifier;
+            } else if (!targetBuildIdentifier.equals(launchableBuildIdentifier)) {
                 throw new IllegalArgumentException("All Launchables must originate from the same build.");
             }
         }
-        operationParamsBuilder.setBuildIdentity(targetBuildIdentity);
+        operationParamsBuilder.setBuildIdentifier(targetBuildIdentifier);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
             .setPath(task)
             .setDescription("Task " + task)
             .setDisplayName("Task " + task);
-        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentity(new DefaultBuildIdentity(buildDirectory), ":"));
+        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(new DefaultBuildIdentifier(buildDirectory), ":"));
         return new ProtocolToModelAdapter().adapt(Task.class, taskObject, buildIdentifierProvider);
     }
 }

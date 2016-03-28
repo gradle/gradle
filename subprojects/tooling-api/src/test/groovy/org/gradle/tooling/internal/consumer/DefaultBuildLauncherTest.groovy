@@ -26,8 +26,8 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
-import org.gradle.tooling.internal.connection.DefaultBuildIdentity
-import org.gradle.tooling.internal.connection.DefaultProjectIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
@@ -335,7 +335,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     }
 
     def id() {
-        return new DefaultProjectIdentity(new DefaultBuildIdentity(new File("foo")), ":")
+        return new DefaultProjectIdentifier(new DefaultBuildIdentifier(new File("foo")), ":")
     }
 }
 

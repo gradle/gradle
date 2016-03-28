@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 
@@ -34,7 +34,7 @@ public interface ProjectPublications extends Model {
      *
      * @since 2.13
      */
-    ProjectIdentity getGradleProjectIdentifier();
+    ProjectIdentifier getGradleProjectIdentifier();
 
     /**
      * Returns the publications for this project.

@@ -17,9 +17,9 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.model.BuildIdentity
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.internal.connection.DefaultBuildIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -213,7 +213,7 @@ task hello {
             Task task
             connection.getModels(modelType).each { modelresult ->
                 def identifier = getBuildIdentity(modelresult, modelType)
-                if (identifier == new DefaultBuildIdentity(build1)) {
+                if (identifier == new DefaultBuildIdentifier(build1)) {
                     task = modelresult.model.getTasks().find { it.name == 'hello' }
                 }
             }
@@ -230,7 +230,7 @@ task hello {
         modelType << launchableSources()
     }
 
-    private BuildIdentity getBuildIdentity(ModelResult<?> result, Class<?> type) {
+    private BuildIdentifier getBuildIdentity(ModelResult<?> result, Class<?> type) {
         if (type == GradleProject) {
             return ((GradleProject) result.model).identifier.build
         }

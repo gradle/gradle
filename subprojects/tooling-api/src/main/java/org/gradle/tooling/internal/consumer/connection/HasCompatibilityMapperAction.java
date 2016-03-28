@@ -17,12 +17,12 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.converters.*;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentity;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 
 public class HasCompatibilityMapperAction {
 
@@ -37,12 +37,12 @@ public class HasCompatibilityMapperAction {
     }
 
     public Action<SourceObjectMapping> getCompatibilityMapperAction(ConsumerOperationParameters parameters) {
-        ProjectIdentity projectIdentity = new DefaultProjectIdentity(parameters.getBuildIdentity(), ":");
-        return getCompatibilityMapperAction(projectIdentity);
+        ProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getBuildIdentifier(), ":");
+        return getCompatibilityMapperAction(projectIdentifier);
     }
 
-    public Action<SourceObjectMapping> getCompatibilityMapperAction(ProjectIdentity projectIdentity) {
-        FixedBuildIdentifierProvider identityProvider = new FixedBuildIdentifierProvider(projectIdentity);
+    public Action<SourceObjectMapping> getCompatibilityMapperAction(ProjectIdentifier projectIdentifier) {
+        FixedBuildIdentifierProvider identityProvider = new FixedBuildIdentifierProvider(projectIdentifier);
         return getCompatibilityMapperAction(identityProvider);
     }
 

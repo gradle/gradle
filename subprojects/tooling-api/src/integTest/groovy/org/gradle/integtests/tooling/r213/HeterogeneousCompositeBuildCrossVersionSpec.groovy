@@ -23,8 +23,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.*
-import org.gradle.tooling.internal.connection.DefaultBuildIdentity
-import org.gradle.tooling.model.BuildIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -160,12 +160,12 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     ModelResult findFailureResult(Iterable<ModelResult> modelResults, File rootDir) {
-        BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
-        def results = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentity)}
+        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
+        def results = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentifier)}
         return CollectionUtils.single(results)
     }
 
-    ModelResult findModelResult(ModelResults modelResults, BuildIdentity buildIdentity) {
+    ModelResult findModelResult(ModelResults modelResults, BuildIdentifier buildIdentity) {
         CollectionUtils.single(modelResults.findAll { ModelResult modelResult ->
             modelResult.model.identifier.build.equals(buildIdentity)
         })

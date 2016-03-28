@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.connection;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.BuildIdentity;
-import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.File;
@@ -47,12 +47,12 @@ class ParticipantConnector {
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
     }
 
-    public BuildIdentity toBuildIdentity() {
-        return new DefaultBuildIdentity(build.getProjectDir());
+    public BuildIdentifier toBuildIdentity() {
+        return new DefaultBuildIdentifier(build.getProjectDir());
     }
 
-    public ProjectIdentity toProjectIdentity(String projectPath) {
-        return new DefaultProjectIdentity(build.getProjectDir(), projectPath);
+    public ProjectIdentifier toProjectIdentity(String projectPath) {
+        return new DefaultProjectIdentifier(build.getProjectDir(), projectPath);
     }
 
     public ProjectConnection connect() {

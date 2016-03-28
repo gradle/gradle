@@ -33,7 +33,7 @@ public interface Launchable {
      *
      * @since 2.13
      */
-    ProjectIdentity getGradleProjectIdentifier();
+    ProjectIdentifier getGradleProjectIdentifier();
 
     /**
      * Returns a human-consumable display name for this launchable.
