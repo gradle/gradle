@@ -16,18 +16,14 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.Action;
+public class BrokenTestWorker implements TestWorkInterface {
+    @Override
+    public String convert(String param1, long param2) {
+        throw new IllegalArgumentException(String.format("Could not convert [%s, %s]", param1, param2));
+    }
 
-public interface WorkerProcessFactory {
-    /**
-     * Creates a builder for a worker that will run the given worker action. The worker action is serialized to the worker process and executed.
-     *
-     * <p>The worker process is not started until {@link WorkerProcess#start()} is called.</p>
-     */
-    WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction);
-
-    /**
-     * Creates a build for a worker that will run a single action using the given worker implementation.
-     */
-    <T> SingleUseWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation);
+    @Override
+    public void doSomething() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 }

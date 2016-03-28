@@ -28,7 +28,7 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.AbstractWorkerProcessBuilder;
+import org.gradle.process.internal.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
@@ -68,7 +68,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     @Override
-    public void prepareJavaCommand(Object workerId, String displayName, AbstractWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
+    public void prepareJavaCommand(Object workerId, String displayName, DefaultWorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();

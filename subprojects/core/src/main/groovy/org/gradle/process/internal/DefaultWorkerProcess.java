@@ -111,13 +111,14 @@ public class DefaultWorkerProcess implements WorkerProcess {
         return connection;
     }
 
-    public void start() {
+    public WorkerProcess start() {
         try {
             doStart();
         } catch (Throwable t) {
             cleanup();
             throw UncheckedException.throwAsUncheckedException(t);
         }
+        return this;
     }
 
     private void doStart() {

@@ -20,23 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URL;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
     private final IdGenerator<?> idGenerator;
@@ -61,53 +51,23 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     @Override
     public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
-        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder();
+        DefaultWorkerProcessBuilder builder = newWorker();
         builder.worker(workerAction);
         return builder;
     }
 
-    private class DefaultWorkerProcessBuilder extends AbstractWorkerProcessBuilder {
-        DefaultWorkerProcessBuilder() {
-            super(execHandleFactory.newJavaExec());
-            setLogLevel(workerLogLevel);
-            setGradleUserHomeDir(gradleUserHomeDir);
-        }
-
-        @Override
-        public WorkerProcess build() {
-            if (getWorker() == null) {
-                throw new IllegalStateException("No worker action specified for this worker process.");
-            }
-
-            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS);
-            ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
-                public void execute(ObjectConnection connection) {
-                    workerProcess.onConnect(connection);
-                }
-            });
-            workerProcess.startAccepting(acceptor);
-            Address localAddress = acceptor.getAddress();
-
-            // Build configuration for GradleWorkerMain
-            List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
-            Object id = idGenerator.generateId();
-            String displayName = getBaseName() + " " + id;
-
-            LOGGER.debug("Creating {}", displayName);
-            LOGGER.debug("Using application classpath {}", getApplicationClasspath());
-            LOGGER.debug("Using implementation classpath {}", implementationClassPath);
-
-            JavaExecHandleBuilder javaCommand = getJavaCommand();
-            javaCommand.setDisplayName(displayName);
-
-            workerFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand);
-
-            javaCommand.args("'" + displayName + "'");
-            ExecHandle execHandle = javaCommand.build();
-
-            workerProcess.setExecHandle(execHandle);
-
-            return workerProcess;
-        }
+    private DefaultWorkerProcessBuilder newWorker() {
+        DefaultWorkerProcessBuilder workerProcessBuilder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerFactory);
+        workerProcessBuilder.setLogLevel(workerLogLevel);
+        workerProcessBuilder.setGradleUserHomeDir(gradleUserHomeDir);
+        workerProcessBuilder.setConnectTimeoutSeconds(connectTimeoutSeconds);
+        return workerProcessBuilder;
     }
+
+    @Override
+    public <T> SingleUseWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation) {
+        final DefaultWorkerProcessBuilder builder = newWorker();
+        return new DefaultSingleUseWorkerProcessBuilder<T>(protocolType, workerImplementation, builder);
+    }
+
 }

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * <p>A builder which configures and creates a {@link WorkerProcess} instance.</p>
@@ -30,34 +29,29 @@ import java.util.Set;
  * </p>
  *
  * <p>The server process (ie this process) can send messages to and receive message from the worker process using the methods on {@link WorkerProcess#getConnection()}.</p>
- *
- * <p>A worker process can optionally specify an application classpath. The classes of this classpath are loaded into an isolated ClassLoader, which is made visible to the worker action ClassLoader.
- * Only the packages specified in the set of shared packages are visible to the worker action ClassLoader.</p>
  */
-public interface WorkerProcessBuilder {
-    WorkerProcessBuilder setBaseName(String baseName);
-
-    String getBaseName();
-
+public interface WorkerProcessBuilder extends WorkerProcessSettings {
+    @Override
     WorkerProcessBuilder applicationClasspath(Iterable<File> files);
 
-    Set<File> getApplicationClasspath();
+    @Override
+    WorkerProcessBuilder setBaseName(String baseName);
 
-    WorkerProcessBuilder sharedPackages(String... packages);
+    @Override
+    WorkerProcessBuilder setLogLevel(LogLevel logLevel);
 
+    @Override
     WorkerProcessBuilder sharedPackages(Iterable<String> packages);
 
-    Set<String> getSharedPackages();
-
-    WorkerProcessBuilder worker(Action<? super WorkerProcessContext> action);
+    @Override
+    WorkerProcessBuilder sharedPackages(String... packages);
 
     Action<? super WorkerProcessContext> getWorker();
 
-    JavaExecHandleBuilder getJavaCommand();
-
-    LogLevel getLogLevel();
-
-    void setLogLevel(LogLevel logLevel);
-
+    /**
+     * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.
+     *
+     * <p>This method can be called multiple times, to create multiple worker processes.</p>
+     */
     WorkerProcess build();
 }

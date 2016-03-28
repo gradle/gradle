@@ -18,16 +18,12 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 
-public interface WorkerProcessFactory {
-    /**
-     * Creates a builder for a worker that will run the given worker action. The worker action is serialized to the worker process and executed.
-     *
-     * <p>The worker process is not started until {@link WorkerProcess#start()} is called.</p>
-     */
-    WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction);
+import java.io.Serializable;
 
-    /**
-     * Creates a build for a worker that will run a single action using the given worker implementation.
-     */
-    <T> SingleUseWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation);
+public class LoggingProcess implements Action<WorkerProcessContext>, Serializable {
+    @Override
+    public void execute(WorkerProcessContext workerProcessContext) {
+        System.out.println("this is stdout");
+        System.err.println("this is stderr");
+    }
 }

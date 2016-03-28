@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,9 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.process.ExecResult;
-
-/**
- * A Java child process that performs some worker action. You can send and receive messages to/from the worker action
- * using a supplied {@link org.gradle.messaging.remote.ObjectConnection}.
- */
-public interface WorkerProcess {
-    WorkerProcess start();
-
+public interface SingleUseWorkerProcessBuilder<T> extends WorkerProcessSettings {
     /**
-     * The connection to the worker. Call {@link org.gradle.messaging.remote.ObjectConnection#connect()} to complete the connection.
+     * Creates the worker. Each method call on the returned object will start a worker process, run the method in the worker, stop the worker process and return the result.
      */
-    ObjectConnection getConnection();
-
-    ExecResult waitForStop();
+    T build();
 }
