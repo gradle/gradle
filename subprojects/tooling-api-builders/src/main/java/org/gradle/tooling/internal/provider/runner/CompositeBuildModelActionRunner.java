@@ -77,7 +77,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         boolean buildFound = false;
         for (GradleParticipantBuild participant : participantBuilds) {
-            // TODO:DAZ  We are no longer targeting the correct build
+            // TODO  We are no longer targeting the correct build
 //            if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
 //                continue;
 //            }
@@ -112,7 +112,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    // TODO:DAZ Need to fix this for `BuildEnvironment`
+    // TODO Need to fix this for `BuildEnvironment`
     private <T> Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, Class<T> modelType, BuildRequestContext buildRequestContext,
                                                                   List<GradleParticipantBuild> participantBuilds,
                                                                   ServiceRegistry sharedServices) {
@@ -123,7 +123,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new ClientProvidedBuildActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
-        // TODO: Need to consider how to handle builds in parallel when sharing event consumers/output streams
+        // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
         DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),
             buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
             buildRequestContext.getErrorListener());
