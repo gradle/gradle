@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
 @LeaksFileHandles
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
@@ -113,6 +114,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("Project: project3::b")
     }
 
+    @Ignore
     @UsesSample('toolingApi/composite-tasks')
     def "can use tooling API to compose independent projects and run tasks"() {
         when:
