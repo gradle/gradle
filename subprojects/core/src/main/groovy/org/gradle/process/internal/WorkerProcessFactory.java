@@ -29,5 +29,5 @@ public interface WorkerProcessFactory {
     /**
      * Creates a build for a worker that will run a single action using the given worker implementation.
      */
-    <T> SingleUseWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation);
+    <T> SingleRequestWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation);
 }

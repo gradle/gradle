@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.SingleUseWorkerProcessBuilder;
+import org.gradle.process.internal.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.WorkerProcessFactory;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
 
     @Override
     public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
-        SingleUseWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.create(protocolType, workerImplementationType);
+        SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.create(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
         builder.applicationClasspath(rhinoClasspath);

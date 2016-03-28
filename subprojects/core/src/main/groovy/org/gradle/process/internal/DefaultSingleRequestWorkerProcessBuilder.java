@@ -31,12 +31,12 @@ import java.lang.reflect.Proxy;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
-class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessBuilder<T> {
+class DefaultSingleRequestWorkerProcessBuilder<T> implements SingleRequestWorkerProcessBuilder<T> {
     private final Class<T> protocolType;
     private final Class<? extends T> workerImplementation;
     private final DefaultWorkerProcessBuilder builder;
 
-    public DefaultSingleUseWorkerProcessBuilder(Class<T> protocolType, Class<? extends T> workerImplementation, DefaultWorkerProcessBuilder builder) {
+    public DefaultSingleRequestWorkerProcessBuilder(Class<T> protocolType, Class<? extends T> workerImplementation, DefaultWorkerProcessBuilder builder) {
         this.protocolType = protocolType;
         this.workerImplementation = workerImplementation;
         this.builder = builder;

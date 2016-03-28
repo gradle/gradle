@@ -23,7 +23,7 @@ import spock.lang.Ignore
 import spock.lang.Timeout
 
 @Timeout(120)
-class SingleUseWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
+class SingleRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     def "runs method in worker process and returns the result"() {
         when:
         def builder = workerFactory.create(TestWorkInterface.class, TestWorker.class)
