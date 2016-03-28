@@ -39,6 +39,7 @@ import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
+import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -50,6 +51,8 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
     final CacheFactory factory = services.get(CacheFactory.class)
     final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, GradleVersion.current())
     final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)

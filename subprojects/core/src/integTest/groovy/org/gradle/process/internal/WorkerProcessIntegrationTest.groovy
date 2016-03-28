@@ -20,10 +20,13 @@ import org.gradle.api.Action
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.messaging.remote.ObjectConnectionBuilder
+import org.gradle.util.TextUtil
+import spock.lang.Timeout
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
+@Timeout(120)
 class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class)
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class)
@@ -45,6 +48,15 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             process.waitForStop();
         }
         exceptionListener.rethrow();
+    }
+
+    def workerProcessStdoutAndStderrIsForwardedToThisProcess() {
+        when:
+        execute(worker(new LoggingProcess()))
+
+        then:
+        stdout.stdOut == TextUtil.toPlatformLineSeparators("this is stdout\n")
+        stdout.stdErr.endsWith(TextUtil.toPlatformLineSeparators("this is stderr\n"))
     }
 
     def workerProcessCanSendMessagesToThisProcess() {
