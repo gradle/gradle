@@ -146,7 +146,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
             String typeName = decoder.readString();
             Class<?> paramType = PRIMITIVE_TYPES.get(typeName);
             if (paramType == null) {
-                paramType = classLoader.loadClass(typeName);
+                paramType = Class.forName(typeName, false, classLoader);
             }
             return paramType;
         }

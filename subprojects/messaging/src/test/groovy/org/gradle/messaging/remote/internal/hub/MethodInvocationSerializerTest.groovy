@@ -38,6 +38,23 @@ class MethodInvocationSerializerTest extends Specification {
         result.arguments == [1, 2] as Object[]
     }
 
+    interface Thing {
+        String doStuff(Thing[] things)
+    }
+
+    def "serializes a method invocation with array type parameters"() {
+        def method = Thing.class.getMethod("doStuff", Thing[].class)
+        def invocation = new MethodInvocation(method, [[] as Thing[]] as Object[])
+
+        when:
+        def serialized = serialize(invocation)
+        def result = deserialize(serialized)
+
+        then:
+        result.method == method
+        result.arguments == [[] as Thing[]] as Object[]
+    }
+
     def "replaces a method that has already been seen with an integer ID"() {
         def method1 = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)
         def method2 = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)
