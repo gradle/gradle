@@ -18,17 +18,13 @@ package org.gradle.plugins.javascript.rhino.worker.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandle;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.SingleUseWorkerProcessBuilder;
 import org.gradle.process.internal.WorkerProcessFactory;
 
 import java.io.File;
-import java.io.Serializable;
 
 public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory {
 
@@ -38,8 +34,9 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
-    public <R extends Serializable, P extends Serializable> RhinoWorkerHandle<R, P> create(Iterable<File> rhinoClasspath, RhinoWorkerSpec<R, P> workerSpec, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
-        WorkerProcessBuilder builder = workerProcessBuilderFactory.create(new RhinoServer<R, P>(workerSpec));
+    @Override
+    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
+        SingleUseWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.create(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
         builder.applicationClasspath(rhinoClasspath);
@@ -50,8 +47,6 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
             javaExecSpecAction.execute(javaCommand);
         }
 
-        WorkerProcess workerProcess = builder.build();
-        return new DefaultRhinoWorkerHandle<R, P>(workerSpec.getResultType(), workerProcess);
+        return builder.build();
     }
-
 }

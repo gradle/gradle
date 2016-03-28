@@ -24,12 +24,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.*;
+import org.gradle.plugins.javascript.jshint.internal.JsHintProtocol;
 import org.gradle.plugins.javascript.jshint.internal.JsHintResult;
 import org.gradle.plugins.javascript.jshint.internal.JsHintSpec;
 import org.gradle.plugins.javascript.jshint.internal.JsHintWorker;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandle;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessFactory;
@@ -95,7 +94,7 @@ public class JsHint extends SourceTask {
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
         LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
-        RhinoWorkerHandle<JsHintResult, JsHintSpec> rhinoHandle = handleFactory.create(getRhinoClasspath(), createWorkerSpec(), logLevel, new Action<JavaExecSpec>() {
+        JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, new Action<JavaExecSpec>() {
             public void execute(JavaExecSpec javaExecSpec) {
                 javaExecSpec.setWorkingDir(getProject().getProjectDir());
             }
@@ -106,7 +105,7 @@ public class JsHint extends SourceTask {
         spec.setEncoding(getEncoding());
         spec.setJsHint(getJsHint().getSingleFile());
 
-        JsHintResult result = rhinoHandle.process(spec);
+        JsHintResult result = worker.process(spec);
         setDidWork(true);
 
         // TODO - this is all terribly lame. We need some proper reporting here (which means implementing Reporting).
@@ -156,9 +155,4 @@ public class JsHint extends SourceTask {
             throw new TaskExecutionException(this, new GradleException("JsHint detected errors"));
         }
     }
-
-    private RhinoWorkerSpec<JsHintResult, JsHintSpec> createWorkerSpec() {
-        return new RhinoWorkerSpec<JsHintResult, JsHintSpec>(JsHintResult.class, JsHintSpec.class, JsHintWorker.class);
-    }
-
 }

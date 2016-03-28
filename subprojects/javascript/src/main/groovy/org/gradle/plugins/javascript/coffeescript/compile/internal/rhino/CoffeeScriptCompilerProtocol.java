@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.javascript.rhino.worker.internal;
+package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
-import java.io.Serializable;
+import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 
-public interface RhinoWorkerClientProtocol {
-
-    void initialisationError(Exception e);
-
-    void receiveResult(Serializable result);
-
-    void executionError(Exception e);
-
+public interface CoffeeScriptCompilerProtocol {
+    void process(SerializableCoffeeScriptCompileSpec spec);
 }
