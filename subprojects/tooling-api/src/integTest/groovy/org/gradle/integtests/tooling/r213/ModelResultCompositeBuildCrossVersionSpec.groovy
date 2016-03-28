@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.connection.BuildIdentity
-import org.gradle.tooling.connection.FailureModelResult
+import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.connection.ProjectIdentity
 import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
@@ -208,7 +208,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     private findFailureByBuildIdentity(File rootDir) {
         BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
-        def failures = modelResults.findAll { it instanceof FailureModelResult && buildIdentity.equals(it.buildIdentity) }
+        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentity) }
         return CollectionUtils.single(failures)
     }
 

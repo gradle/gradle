@@ -38,7 +38,7 @@ public interface ModelResult<T> {
 
     /**
      * The failure retrieving the model.
-     * If this value is not null, further details can be obtained by casting to {@link FailureModelResult}.
+     * If this value is not null, further details can be obtained by casting to {@link FailedModelResult}.
      *
      * @return the failure, or null if the result was successful.
      */

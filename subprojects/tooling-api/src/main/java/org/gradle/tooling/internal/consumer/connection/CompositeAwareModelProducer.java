@@ -21,7 +21,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.connection.DefaultFailureModelResult;
+import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
 import org.gradle.tooling.internal.connection.DefaultModelResult;
 import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
@@ -78,7 +78,7 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
                 ProjectIdentity projectIdentity = adapter.adapt(ProjectIdentity.class, entry.getKey());
                 if (entry.getValue() instanceof Throwable) {
                     GradleConnectionException failure = exceptionTransformer.transform((Throwable) entry.getValue());
-                    models.add(new DefaultFailureModelResult<T>(projectIdentity, failure));
+                    models.add(new DefaultFailedModelResult<T>(projectIdentity, failure));
                 } else {
                     T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction(projectIdentity));
                     models.add(new DefaultModelResult<T>(modelResult));

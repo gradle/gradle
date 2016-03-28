@@ -66,7 +66,7 @@ public class ToolingClientCompositeModelBuilder<T> {
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
                 String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                results.add(new DefaultFailureModelResult<T>(participant.toBuildIdentity(), new GradleConnectionException(message, e)));
+                results.add(new DefaultFailedModelResult<T>(participant.toBuildIdentity(), new GradleConnectionException(message, e)));
             }
         }
         return results;

@@ -24,7 +24,7 @@ import org.gradle.api.Nullable;
  * @param <T> Type of model in the result
  * @since 2.13
  */
-public interface FailureModelResult<T> extends ModelResult<T> {
+public interface FailedModelResult<T> extends ModelResult<T> {
     /**
      * Identity of the build that originated this failure.
      *

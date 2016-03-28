@@ -19,21 +19,21 @@ package org.gradle.tooling.internal.connection;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.FailureModelResult;
+import org.gradle.tooling.connection.FailedModelResult;
 import org.gradle.tooling.connection.ProjectIdentity;
 
-public class DefaultFailureModelResult<T> implements FailureModelResult<T> {
+public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
     private final GradleConnectionException failure;
     private final BuildIdentity buildIdentity;
     private final ProjectIdentity projectIdentity;
 
-    public DefaultFailureModelResult(BuildIdentity buildIdentity, GradleConnectionException failure) {
+    public DefaultFailedModelResult(BuildIdentity buildIdentity, GradleConnectionException failure) {
         this.failure = failure;
         this.buildIdentity = buildIdentity;
         this.projectIdentity = null;
     }
 
-    public DefaultFailureModelResult(ProjectIdentity projectIdentity, GradleConnectionException failure) {
+    public DefaultFailedModelResult(ProjectIdentity projectIdentity, GradleConnectionException failure) {
         this.failure = failure;
         this.buildIdentity = projectIdentity.getBuild();
         this.projectIdentity = projectIdentity;
