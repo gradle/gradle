@@ -414,9 +414,9 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
         expect:
         fails("check")
-        failure.assertHasCause 'FindBugs encountered an error.'
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
-        errorOutput.contains 'Caused by: java.lang.NoClassDefFoundError'
+        failure.assertHasCause 'Failed to run Gradle FindBugs Worker'
+        failure.assertHasCause 'org/apache/bcel/classfile/ClassFormatException'
     }
 
     def "valid adjustPriority extra args"() {

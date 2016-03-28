@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-public interface FindBugsWorkerClientProtocol {
-    void executed(FindBugsResult result);
+import java.io.IOException;
+
+public interface FindBugsWorker {
+    FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException;
 }

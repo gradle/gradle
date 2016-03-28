@@ -17,27 +17,17 @@ package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.process.internal.JavaExecHandleBuilder
-import org.gradle.process.internal.WorkerProcess
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.SingleUseWorkerProcessBuilder
 import org.gradle.process.internal.WorkerProcessFactory
 
 class FindBugsWorkerManager {
     public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
-        process.start();
-
-        FindBugsWorkerClient clientCallBack = new FindBugsWorkerClient()
-        process.connection.addIncoming(FindBugsWorkerClientProtocol.class, clientCallBack);
-        process.connection.connect()
-
-        FindBugsResult result = clientCallBack.getResult();
-
-        process.waitForStop();
-        return result;
+        FindBugsWorker worker = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
+        return worker.runFindbugs(spec)
     }
 
-    private WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
-        WorkerProcessBuilder builder = workerFactory.create(new FindBugsWorkerServer(spec));
+    private FindBugsWorker createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+        SingleUseWorkerProcessBuilder<FindBugsWorker> builder = workerFactory.create(FindBugsWorker.class, FindBugsExecuter.class);
         builder.setBaseName("Gradle FindBugs Worker")
         builder.applicationClasspath(findBugsClasspath);
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
