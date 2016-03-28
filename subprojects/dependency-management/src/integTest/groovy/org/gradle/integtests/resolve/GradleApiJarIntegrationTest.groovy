@@ -416,6 +416,32 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileAndLineSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
+    def "Gradle API JAR is generated in an acceptable time frame"() {
+        requireOwnGradleUserHomeDir()
+        buildFile << """
+            configurations {
+                deps
+            }
+
+            dependencies {
+                deps gradleApi()
+            }
+
+            task resolveDependencies {
+                doLast {
+                    def timeStart = new Date()
+                    configurations.deps.resolve()
+                    def timeStop = new Date()
+                    def duration = groovy.time.TimeCategory.minus(timeStop, timeStart)
+                    assert duration.toMilliseconds() < 5000
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolveDependencies'
+    }
+
     static String applyJavaPlugin() {
         """
             plugins {
