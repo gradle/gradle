@@ -44,7 +44,14 @@ public class RedirectStdOutAndErr implements MethodRule {
                 try {
                     System.setOut(stdOutPrintStream);
                     System.setErr(stdErrPrintStream);
-                    base.evaluate();
+                    try {
+                        base.evaluate();
+                    } catch (Throwable throwable) {
+                        // An unexpected failure: forward the captured output to the original stdout and stderr in case it contains useful diagnostics
+                        originalStdOut.write(stdoutContent.toByteArray());
+                        originalStdErr.write(stderrContent.toByteArray());
+                        throw throwable;
+                    }
                 } finally {
                     System.setOut(originalStdOut);
                     System.setErr(originalStdErr);
