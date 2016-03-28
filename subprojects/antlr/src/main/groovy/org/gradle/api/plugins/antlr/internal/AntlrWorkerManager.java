@@ -18,8 +18,7 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.SingleUseWorkerProcessBuilder;
 import org.gradle.process.internal.WorkerProcessFactory;
 
 import java.io.File;
@@ -28,20 +27,12 @@ public class AntlrWorkerManager {
 
     public AntlrResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
 
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
-        process.start();
-
-        AntlrWorkerClient clientCallBack = new AntlrWorkerClient();
-        process.getConnection().addIncoming(AntlrWorkerClientProtocol.class, clientCallBack);
-        process.getConnection().connect();
-
-        process.waitForStop();
-
-        return clientCallBack.getResult();
+        AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
+        return antlrWorker.runAntlr(spec);
     }
 
-    private WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-        WorkerProcessBuilder builder = workerFactory.create(new AntlrWorkerServer(spec));
+    private AntlrWorker createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
+        SingleUseWorkerProcessBuilder<AntlrWorker> builder = workerFactory.create(AntlrWorker.class, AntlrExecuter.class);
         builder.setBaseName("Gradle ANTLR Worker");
 
         if (antlrClasspath != null) {

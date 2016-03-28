@@ -206,7 +206,9 @@ public class AntlrTask extends SourceTask {
 
     private void evaluate(AntlrResult result) {
         int errorCount = result.getErrorCount();
-        if (errorCount == 1) {
+        if(errorCount < 0) {
+            throw new AntlrSourceGenerationException("There were errors during grammar generation", result.getException());
+        } else if (errorCount == 1) {
             throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());
         } else if (errorCount > 1) {
             throw new AntlrSourceGenerationException("There were "
