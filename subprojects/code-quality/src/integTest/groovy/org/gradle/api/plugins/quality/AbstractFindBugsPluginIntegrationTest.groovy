@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.Matchers
 import org.gradle.util.Resources
 import org.hamcrest.Matcher
 import org.junit.Rule
@@ -416,7 +417,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         fails("check")
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
         failure.assertHasCause 'Failed to run Gradle FindBugs Worker'
-        failure.assertHasCause 'org/apache/bcel/classfile/ClassFormatException'
+        failure.assertThatCause(Matchers.matchesRegexp("org[\\./]apache[\\./]bcel[\\./]classfile[\\./]ClassFormatException"))
     }
 
     def "valid adjustPriority extra args"() {
