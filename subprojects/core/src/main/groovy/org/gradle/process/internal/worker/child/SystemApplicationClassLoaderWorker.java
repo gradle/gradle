@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * <p>Stage 2 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
  * care of deserializing and invoking the worker action.</p>
  *
- * <p> Instantiated in the implementation ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
+ * <p> Instantiated in the implementation ClassLoader and invoked from {@link org.gradle.process.internal.worker.GradleWorkerMain}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {

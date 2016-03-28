@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker.child;
 
 import com.tonicsystems.jarjar.JarJarTask;
 import com.tonicsystems.jarjar.Rule;
@@ -39,7 +39,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.*;
 import org.gradle.internal.reflect.NoSuchMethodException;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.AntUtil;
 import org.slf4j.Logger;

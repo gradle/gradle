@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.messaging.remote.ObjectConnection
-import org.gradle.process.internal.WorkerProcessContext
+import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule

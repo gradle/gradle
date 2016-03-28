@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -23,6 +23,9 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecException;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleListener;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;

@@ -35,7 +35,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.dispatch.ContextClassLoaderProxy;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,8 +18,8 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.SingleRequestWorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 

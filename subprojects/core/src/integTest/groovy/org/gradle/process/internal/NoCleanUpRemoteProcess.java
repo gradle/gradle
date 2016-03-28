@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
 import java.util.concurrent.locks.Lock;

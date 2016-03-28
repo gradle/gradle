@@ -31,10 +31,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.messaging.remote.MessagingServer
-import org.gradle.process.internal.DefaultWorkerProcessFactory
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.ExecHandleFactory
-import org.gradle.process.internal.WorkerProcessFactory
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider
+import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

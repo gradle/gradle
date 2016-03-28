@@ -28,7 +28,7 @@ import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
 import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 

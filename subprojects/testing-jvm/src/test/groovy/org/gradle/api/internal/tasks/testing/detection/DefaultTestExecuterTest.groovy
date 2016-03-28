@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.Test
 import org.gradle.messaging.actor.Actor
 import org.gradle.messaging.actor.ActorFactory
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
 class DefaultTestExecuterTest extends Specification {

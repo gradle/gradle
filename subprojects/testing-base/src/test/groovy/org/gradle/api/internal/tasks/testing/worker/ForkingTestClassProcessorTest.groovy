@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 import spock.lang.Subject
 

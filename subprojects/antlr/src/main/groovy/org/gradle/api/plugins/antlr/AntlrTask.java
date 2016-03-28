@@ -24,7 +24,7 @@ import org.gradle.api.plugins.antlr.internal.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;

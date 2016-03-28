@@ -31,7 +31,7 @@ import org.gradle.play.internal.javascript.GoogleClosureCompiler;
 import org.gradle.play.internal.routes.RoutesCompilerFactory;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 

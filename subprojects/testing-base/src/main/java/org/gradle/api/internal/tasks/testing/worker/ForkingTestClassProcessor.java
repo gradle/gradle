@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 

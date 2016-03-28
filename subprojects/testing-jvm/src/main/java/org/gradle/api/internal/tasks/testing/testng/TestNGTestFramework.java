@@ -36,7 +36,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;

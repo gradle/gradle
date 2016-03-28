@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
 import spock.lang.Timeout

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-package org.gradle.process.internal
+package org.gradle.process.internal.worker
 
 import org.gradle.messaging.remote.ConnectionAcceptor
 import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.process.ExecResult
-import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.process.internal.ExecException
+import org.gradle.process.internal.ExecHandle
+import org.gradle.process.internal.ExecHandleListener
+import org.gradle.process.internal.ExecHandleState
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JMock

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -23,7 +23,10 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -29,7 +29,7 @@ import org.gradle.language.scala.ScalaPlatform
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain
 import org.gradle.play.internal.twirl.TwirlCompileSpec
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 

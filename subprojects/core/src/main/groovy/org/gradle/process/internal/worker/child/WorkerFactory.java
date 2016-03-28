@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker.child;
 
 import org.gradle.messaging.remote.Address;
-import org.gradle.process.internal.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 
 import java.net.URL;

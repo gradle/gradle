@@ -20,6 +20,9 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.Action
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.internal.worker.WorkerProcess
+import org.gradle.process.internal.worker.WorkerProcessBuilder
+import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

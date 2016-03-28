@@ -18,9 +18,9 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 

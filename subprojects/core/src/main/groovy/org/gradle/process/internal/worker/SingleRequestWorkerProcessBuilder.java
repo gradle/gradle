@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
 /**
  * Configures and builds single request workers. A single request worker runs each request in a separate forked worker process.

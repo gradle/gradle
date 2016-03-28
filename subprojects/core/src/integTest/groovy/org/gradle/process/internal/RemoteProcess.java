@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
 

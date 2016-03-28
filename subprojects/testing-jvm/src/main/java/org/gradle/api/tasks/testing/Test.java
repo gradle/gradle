@@ -64,7 +64,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;

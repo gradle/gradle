@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker.child;
 
 import org.gradle.messaging.remote.ObjectConnection;
 
-public interface WorkerProcessContext {
-    /**
-     * Returns the unique identifier for this worker process.
-     */
-    Object getWorkerId();
-
-    /**
-     * Returns a display name for this worker process.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the connection which can be used to send/receive messages to/from the server process. Call {@link ObjectConnection#connect()} to complete the connection.
-     */
-    ObjectConnection getServerConnection();
-
+public interface WorkerContext {
     ClassLoader getApplicationClassLoader();
+    ObjectConnection getServerConnection();
 }

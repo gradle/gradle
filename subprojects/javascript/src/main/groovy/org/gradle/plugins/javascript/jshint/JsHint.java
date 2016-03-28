@@ -31,7 +31,7 @@ import org.gradle.plugins.javascript.jshint.internal.JsHintWorker;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
 import java.io.File;

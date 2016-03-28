@@ -33,7 +33,7 @@ import org.gradle.plugins.javascript.rhino.RhinoExtension
 import org.gradle.plugins.javascript.rhino.RhinoPlugin
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 
 import javax.inject.Inject
 

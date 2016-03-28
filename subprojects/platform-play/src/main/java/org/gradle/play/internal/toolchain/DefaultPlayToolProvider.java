@@ -33,7 +33,7 @@ import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;

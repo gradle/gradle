@@ -28,7 +28,7 @@ import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.internal.WorkerProcessFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 
 import javax.inject.Inject
 

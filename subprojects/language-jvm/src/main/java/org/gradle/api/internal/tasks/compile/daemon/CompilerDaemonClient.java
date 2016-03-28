@@ -19,7 +19,7 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcess;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;

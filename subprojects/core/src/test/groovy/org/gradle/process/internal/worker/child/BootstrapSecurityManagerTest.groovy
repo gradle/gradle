@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child
+package org.gradle.process.internal.worker.child
 
 import org.gradle.process.internal.streams.EncodedStream
 import org.gradle.util.RedirectStdIn

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 
 import java.io.File;
 import java.io.Serializable;

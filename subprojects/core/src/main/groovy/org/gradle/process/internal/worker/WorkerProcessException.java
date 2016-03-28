@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;

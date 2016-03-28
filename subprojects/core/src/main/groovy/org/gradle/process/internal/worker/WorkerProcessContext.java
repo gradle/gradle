@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker;
 
 import org.gradle.messaging.remote.ObjectConnection;
 
-public interface WorkerContext {
-    ClassLoader getApplicationClassLoader();
+public interface WorkerProcessContext {
+    /**
+     * Returns the unique identifier for this worker process.
+     */
+    Object getWorkerId();
+
+    /**
+     * Returns a display name for this worker process.
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the connection which can be used to send/receive messages to/from the server process. Call {@link ObjectConnection#connect()} to complete the connection.
+     */
     ObjectConnection getServerConnection();
+
+    ClassLoader getApplicationClassLoader();
 }

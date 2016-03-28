@@ -19,9 +19,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.Clock;
 
 import java.io.File;

@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 

@@ -30,7 +30,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.progress.OperationIdGenerator;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 /**
  * The default test class scanner factory.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
@@ -28,9 +28,9 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.GUtil;
 

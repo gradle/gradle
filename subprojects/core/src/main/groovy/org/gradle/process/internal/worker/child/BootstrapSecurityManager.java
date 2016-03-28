@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.child;
+package org.gradle.process.internal.worker.child;
 
 import org.gradle.process.internal.streams.EncodedStream;
 

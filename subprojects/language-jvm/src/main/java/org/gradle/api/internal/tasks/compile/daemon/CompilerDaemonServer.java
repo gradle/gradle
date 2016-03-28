@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
