@@ -78,9 +78,17 @@ class SingleUseWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegra
         result3 == "[d 11]"
     }
 
-    @Ignore
     def "propagates failure to instantiate worker implementation"() {
-        expect: false
+        when:
+        def builder = workerFactory.create(TestWorkInterface.class, TestWorkInterface.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof InstantiationException
     }
 
     @Ignore

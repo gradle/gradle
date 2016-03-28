@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.ObjectConnection;
@@ -123,10 +122,14 @@ class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessB
     interface ResponseProtocol {
         void completed(Object result);
 
+        // Called when the method throws an exception
         void failed(Throwable failure);
+
+        // Called when some other problem occurs
+        void infrastructureFailed(Throwable failure);
     }
 
-    private static class Receiver implements ResponseProtocol {
+    private class Receiver implements ResponseProtocol {
         private final CountDownLatch received = new CountDownLatch(1);
         private Object result;
         private Throwable failure;
@@ -147,6 +150,11 @@ class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessB
         public void completed(Object result) {
             this.result = result;
             received.countDown();
+        }
+
+        @Override
+        public void infrastructureFailed(Throwable failure) {
+            failed(new WorkerProcessException(String.format("Failed to run %s", builder.getBaseName()), failure));
         }
 
         @Override
@@ -188,12 +196,18 @@ class DefaultSingleUseWorkerProcessBuilder<T> implements SingleUseWorkerProcessB
                 try {
                     result = method.invoke(implementation, args);
                 } catch (InvocationTargetException e) {
-                    responder.failed(e.getCause());
+                    Throwable failure = e.getCause();
+                    if (failure instanceof NoClassDefFoundError) {
+                        // Assume an infrastructure problem
+                        responder.infrastructureFailed(failure);
+                    } else {
+                        responder.failed(failure);
+                    }
                     return;
                 }
                 responder.completed(result);
-            } catch (Exception e) {
-                responder.failed(new GradleException(String.format("Failed to call method %s on worker implementation %s.", methodName, workerImplementation), e));
+            } catch (Throwable t) {
+                responder.infrastructureFailed(t);
             } finally {
                 completed.countDown();
             }
