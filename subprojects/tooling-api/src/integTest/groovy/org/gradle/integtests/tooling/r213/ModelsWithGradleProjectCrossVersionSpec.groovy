@@ -219,7 +219,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         } else {
             assert project.parent.path == parentPath
         }
-        assert project.children*.path == childPaths
+        // Order of children is not guaranteed for Gradle < 2.0
+        assert project.children*.path as Set == childPaths as Set
         assert project.identifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
     }
 
