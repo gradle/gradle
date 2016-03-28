@@ -52,7 +52,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps fatGradleApi()
+                deps gradleApi()
             }
 
             task resolveDependencyArtifacts {
@@ -340,7 +340,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -411,8 +411,8 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         where:
-        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
-                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.fatGradleTestKit()'),
+        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.gradleApi()'),
+                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileAndLineSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
@@ -443,7 +443,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String gradleApiDependency() {
         """
             dependencies {
-                compile fatGradleApi()
+                compile gradleApi()
             }
         """
     }
@@ -451,7 +451,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String testKitDependency() {
         """
             dependencies {
-                testCompile fatGradleTestKit()
+                testCompile gradleTestKit()
             }
         """
     }
@@ -495,7 +495,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencies {

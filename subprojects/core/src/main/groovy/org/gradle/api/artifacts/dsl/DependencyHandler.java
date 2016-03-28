@@ -319,15 +319,6 @@ public interface DependencyHandler {
     Dependency gradleApi();
 
     /**
-     * Creates a dependency on the API of the current version of Gradle including all external dependencies as shaded class references.
-     *
-     * @return The dependency.
-     * @since 2.13
-     */
-    @Incubating
-    Dependency fatGradleApi();
-
-    /**
      * Creates a dependency on the <a href="http://docs.gradle.org/current/userguide/test_kit.html">Gradle test-kit</a> API.
      *
      * @return The dependency.
@@ -335,16 +326,6 @@ public interface DependencyHandler {
      */
     @Incubating
     Dependency gradleTestKit();
-
-    /**
-     * Creates a dependency on the <a href="http://docs.gradle.org/current/userguide/test_kit.html">Gradle test-kit</a> API
-     * including all external dependencies as shaded class references.
-     *
-     * @return The dependency.
-     * @since 2.13
-     */
-    @Incubating
-    Dependency fatGradleTestKit();
 
     /**
      * Creates a dependency on the Groovy that is distributed with the current version of Gradle.
