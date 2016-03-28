@@ -83,14 +83,13 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         project
     }
 
-    def singleProjectJavaBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
         def project = populate(projectName) {
             settingsFile << """
                 rootProject.name = '${rootProjectName}'
             """
 
             buildFile << """
-                apply plugin: 'java'
                 group = 'org.A'
                 version = '1.0'
             """
@@ -99,7 +98,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return project
     }
 
-    def multiProjectJavaBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
         String subprojectList = subprojects.collect({"'$it'"}).join(',')
         def rootMulti = populate(projectName) {
             settingsFile << """
@@ -109,7 +108,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
                     group = 'org.B'
                     version = '1.0'
                 }

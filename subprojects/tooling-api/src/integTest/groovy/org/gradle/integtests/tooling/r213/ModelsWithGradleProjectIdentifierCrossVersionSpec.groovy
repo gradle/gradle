@@ -34,8 +34,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
     TestFile rootMulti
 
     TestFile setup() {
-        rootSingle = singleProjectJavaBuild("A")
-        rootMulti = multiProjectJavaBuild("B", ['x', 'y'])
+        rootSingle = singleProjectBuild("A")
+        rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
     def "GradleConnection provides identified models for single project build"() {

@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
@@ -36,8 +35,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
     TestFile rootMulti
 
     TestFile setup() {
-        rootSingle = singleProjectJavaBuild("A")
-        rootMulti = multiProjectJavaBuild("B", ['x', 'y'])
+        rootSingle = singleProjectBuild("A")
+        rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
     def "ProjectConnection provides identified GradleBuild"() {
@@ -73,7 +72,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << projectScopedModels
     }
 
-    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for root of single project build"() {
         when:
         def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootSingle, modelType)
@@ -100,7 +98,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << projectScopedModels
     }
 
-    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for root of multi-project build"() {
         when:
         def gradleProjects = getGradleProjectsWithProjectConnectionUsingBuildModel(rootMulti, modelType)
@@ -115,7 +112,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         modelType << buildScopedModels
     }
 
-    @TargetGradleVersion(">=1.1") // These tests fail for Gradle 1.0 on Java 7
     def "ProjectConnection provides all GradleProjects for subproject of multi-project build"() {
         when:
         def rootDir = rootMulti.file("x")

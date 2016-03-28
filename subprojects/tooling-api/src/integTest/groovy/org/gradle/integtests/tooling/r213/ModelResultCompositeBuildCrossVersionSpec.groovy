@@ -33,11 +33,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
-        def rootDirA = singleProjectJavaBuild("A") {
+        def rootDirA = singleProjectBuild("A") {
             buildFile << "throw new GradleException('Failure in A')"
         }
-        def rootDirB = singleProjectJavaBuild("B")
-        def rootDirC = singleProjectJavaBuild("C") {
+        def rootDirB = singleProjectBuild("B")
+        def rootDirC = singleProjectBuild("C") {
             buildFile << "throw new GradleException('Different failure in C')"
         }
         when:
@@ -63,12 +63,12 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate exceptions in composite with multiple multi-project participants"() {
         given:
-        def rootDirA = multiProjectJavaBuild("A", ['ax', 'ay']) {
+        def rootDirA = multiProjectBuild("A", ['ax', 'ay']) {
             file("ax/build.gradle") << """
                 throw new GradleException("Failure in A::ax")
 """
         }
-        def rootDirB = multiProjectJavaBuild("B", ['bx', 'by'])
+        def rootDirB = multiProjectBuild("B", ['bx', 'by'])
 
         when:
         withCompositeConnection([rootDirA, rootDirB]) {
@@ -90,7 +90,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a single project, single participant composite"() {
         given:
-        def rootDirA = singleProjectJavaBuild("A")
+        def rootDirA = singleProjectBuild("A")
 
         when:
         Iterable<IdeaProject> ideaProjects = []
@@ -111,7 +111,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a multi-project, single participant composite"() {
         given:
-        def rootDirA = multiProjectJavaBuild("A", ['x', 'y'])
+        def rootDirA = multiProjectBuild("A", ['x', 'y'])
 
         when:
         def otherHierarchicalModelResults = []
@@ -144,8 +144,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate models in a single and multi-project, multi-participant composite"() {
         given:
-        def rootDirA = singleProjectJavaBuild("A")
-        def rootDirB = multiProjectJavaBuild("B", ['x', 'y'])
+        def rootDirA = singleProjectBuild("A")
+        def rootDirB = multiProjectBuild("B", ['x', 'y'])
 
         when:
         def otherHierarchicalModelResults = []

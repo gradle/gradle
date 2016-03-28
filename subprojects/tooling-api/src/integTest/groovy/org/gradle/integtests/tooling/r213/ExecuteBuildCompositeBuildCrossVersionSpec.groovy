@@ -31,7 +31,7 @@ class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "executes tasks in composite containing one single-project build"() {
         given:
-        def build1 = singleProjectJavaBuild("build1") {
+        def build1 = singleProjectBuild("build1") {
             buildFile << """
 task hello {
   doLast {
@@ -57,7 +57,7 @@ task goodbye {
 
     def "executes tasks in composite containing one multi-project build"() {
         given:
-        def build1 = multiProjectJavaBuild("build1", ['a', 'b']) {
+        def build1 = multiProjectBuild("build1", ['a', 'b']) {
             buildFile << """
 allprojects {
     task hello {
@@ -89,7 +89,7 @@ project(':a') {
 
     def "executes tasks for all builds in composite"() {
         given:
-        def singleProjectBuild = singleProjectJavaBuild("single-project") {
+        def singleProjectBuild = singleProjectBuild("single-project") {
             buildFile << """
 task hello {
   doLast {
@@ -98,7 +98,7 @@ task hello {
 }
 """
         }
-        def multiProjectBuild = multiProjectJavaBuild("multi-project", ['a', 'b']) {
+        def multiProjectBuild = multiProjectBuild("multi-project", ['a', 'b']) {
             buildFile << """
 allprojects {
     task hello {
@@ -188,7 +188,7 @@ task hello {
 
     def "executes task in single project selected with Launchable"() {
         given:
-        def build1 = singleProjectJavaBuild("build1") {
+        def build1 = singleProjectBuild("build1") {
             buildFile << """
 task hello {
   doLast {
@@ -197,7 +197,7 @@ task hello {
 }
 """
         }
-        def build2 = singleProjectJavaBuild("build2") {
+        def build2 = singleProjectBuild("build2") {
             buildFile << """
 task hello {
   doLast {
@@ -206,7 +206,7 @@ task hello {
 }
 """
         }
-        def build3 = singleProjectJavaBuild("build3")
+        def build3 = singleProjectBuild("build3")
 
         when:
         withCompositeConnection([build1, build2, build3]) { connection ->

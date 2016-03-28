@@ -42,8 +42,8 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     TestFile fixedBuildRoot
 
     def setup() {
-        varyingBuildRoot = singleProjectJavaBuild("project")
-        fixedBuildRoot = singleProjectJavaBuild("project_fixed")
+        varyingBuildRoot = singleProjectBuild("project")
+        fixedBuildRoot = singleProjectBuild("project_fixed")
    }
 
     private GradleConnection openConnection() {
