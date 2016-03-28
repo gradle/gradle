@@ -23,12 +23,14 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
-class PathLimitationIntegTest extends AbstractWorkerProcessIntegrationSpec {
+@Timeout(120)
+class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class)
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class)
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source)
