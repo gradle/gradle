@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 import org.gradle.tooling.model.*;
 
 /**

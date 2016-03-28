@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;

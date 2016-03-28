@@ -19,11 +19,9 @@ package org.gradle.tooling.internal.connection;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;

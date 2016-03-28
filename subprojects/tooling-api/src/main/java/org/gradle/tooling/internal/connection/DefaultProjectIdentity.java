@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 
 import java.io.File;
 import java.io.Serializable;

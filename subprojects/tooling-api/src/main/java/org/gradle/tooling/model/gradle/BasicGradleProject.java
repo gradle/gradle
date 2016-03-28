@@ -18,7 +18,7 @@ package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 

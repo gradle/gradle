@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.ModelResult;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
 import org.gradle.tooling.internal.connection.DefaultModelResult;

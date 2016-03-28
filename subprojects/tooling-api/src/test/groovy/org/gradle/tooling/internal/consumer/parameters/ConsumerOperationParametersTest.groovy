@@ -21,8 +21,8 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentity
+import org.gradle.tooling.internal.connection.DefaultProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.model.TaskSelector
 import spock.lang.Specification

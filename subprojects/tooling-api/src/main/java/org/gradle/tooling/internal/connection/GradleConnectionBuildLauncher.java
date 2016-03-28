@@ -17,15 +17,13 @@
 package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 

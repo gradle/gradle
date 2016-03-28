@@ -19,8 +19,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentity
+import org.gradle.tooling.internal.connection.DefaultProjectIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject

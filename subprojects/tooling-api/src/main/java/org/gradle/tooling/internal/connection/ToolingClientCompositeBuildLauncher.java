@@ -20,9 +20,8 @@ import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentity;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
 
 public class ToolingClientCompositeBuildLauncher {
 

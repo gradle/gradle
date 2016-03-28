@@ -17,9 +17,9 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.connection.BuildIdentity
+import org.gradle.tooling.model.BuildIdentity
 import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations

@@ -23,7 +23,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.*
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentity
+import org.gradle.tooling.model.BuildIdentity
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications

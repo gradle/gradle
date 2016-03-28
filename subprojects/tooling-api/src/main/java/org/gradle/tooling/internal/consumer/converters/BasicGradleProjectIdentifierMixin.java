@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.connection.ProjectIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentity;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 public class BasicGradleProjectIdentifierMixin {

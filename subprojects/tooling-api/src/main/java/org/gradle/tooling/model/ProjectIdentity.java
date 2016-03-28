@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.connection;
+package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 

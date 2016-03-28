@@ -17,6 +17,8 @@
 package org.gradle.tooling.connection;
 
 import org.gradle.api.Nullable;
+import org.gradle.tooling.model.BuildIdentity;
+import org.gradle.tooling.model.ProjectIdentity;
 
 /**
  * The result of a failed model request.

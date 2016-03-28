@@ -17,7 +17,6 @@ package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.tooling.connection.ProjectIdentity;
 
 /**
  * Represents an object that can be used to launch a Gradle build, such as a task.
