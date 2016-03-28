@@ -33,6 +33,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      *
      * @since 2.13
      */
+    @Incubating
     ProjectIdentifier getIdentifier();
 
     /**

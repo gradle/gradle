@@ -33,6 +33,7 @@ public interface Launchable {
      *
      * @since 2.13
      */
+    @Incubating
     ProjectIdentifier getGradleProjectIdentifier();
 
     /**

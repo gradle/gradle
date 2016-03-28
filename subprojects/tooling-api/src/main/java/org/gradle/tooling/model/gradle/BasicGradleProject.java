@@ -36,6 +36,7 @@ public interface BasicGradleProject extends Model {
      *
      * @since 2.13
      */
+    @Incubating
     ProjectIdentifier getIdentifier();
 
     /**

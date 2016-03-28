@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.connection;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -26,6 +27,7 @@ import org.gradle.tooling.model.ProjectIdentifier;
  * @param <T> Type of model in the result
  * @since 2.13
  */
+@Incubating
 public interface FailedModelResult<T> extends ModelResult<T> {
     /**
      * Identity of the build that originated this failure.
