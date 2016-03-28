@@ -1,0 +1,39 @@
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.GradleProject
+
+task buildProject << {
+    def targetProjectDir = file("projects/project3")
+    def buildRoots = [ 
+        file("projects/project1"),
+        file("projects/project2"), 
+        targetProjectDir
+    ]
+
+    def builder = GradleConnector.newGradleConnection()
+    buildRoots.each {
+        logger.info("Adding project $it to composite.")
+        builder.addParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir)
+    }
+    def connection = builder.build()
+    
+    def gradleProjects = connection.getModels(GradleProject)
+
+    def targetBuild = gradleProjects.find { gradleProject ->
+        gradleProject.model.projectDirectory == targetProjectDir
+    }
+    def allBuildTasks = gradleProjects.collect { gradleProject ->
+        gradleProject.model.tasks.findAll { it.name == "build" }
+    }.flatten()
+
+    def targetBuildTasks = allBuildTasks.findAll {
+        it.project.identifier.build == targetBuild.model.identifier.build
+    }
+
+    logger.lifecycle("Running build tasks in target project")
+    def buildLauncher = connection.newBuild()
+    buildLauncher.forLaunchables(targetBuildTasks)
+    buildLauncher.standardOutput = System.out
+    buildLauncher.standardError = System.err
+    buildLauncher.run()
+    connection.close()
+}

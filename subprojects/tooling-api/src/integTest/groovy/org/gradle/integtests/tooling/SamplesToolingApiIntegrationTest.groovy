@@ -113,6 +113,17 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("Project: project3::b")
     }
 
+    @UsesSample('toolingApi/composite-tasks')
+    def "can use tooling API to compose independent projects and run tasks"() {
+        when:
+        def result = run('buildProject')
+
+        then:
+        result.assertOutputContains("Running build tasks in target project")
+        result.assertOutputContains(":b:build")
+        result.assertOutputContains(":a:build")
+    }
+
     private void tweakProject(File projectDir = sample.dir) {
         // Inject some additional configuration into the sample build script
         def buildFile = projectDir.file('build.gradle')
