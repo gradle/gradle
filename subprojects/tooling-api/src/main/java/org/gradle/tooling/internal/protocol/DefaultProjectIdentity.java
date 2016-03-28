@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.protocol;
 import org.gradle.tooling.connection.BuildIdentity;
 import org.gradle.tooling.connection.ProjectIdentity;
 
+import java.io.File;
 import java.io.Serializable;
 
 public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
@@ -28,6 +29,10 @@ public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
     public DefaultProjectIdentity(BuildIdentity build, String projectPath) {
         this.build = build;
         this.projectPath = projectPath;
+    }
+
+    public DefaultProjectIdentity(File rootDir, String projectPath) {
+        this(new DefaultBuildIdentity(rootDir), projectPath);
     }
 
     public BuildIdentity getBuild() {

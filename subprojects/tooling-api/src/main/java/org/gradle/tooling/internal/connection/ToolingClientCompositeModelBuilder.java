@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.*;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ProjectIdentity;
@@ -60,13 +61,14 @@ public class ToolingClientCompositeModelBuilder<T> {
     public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
         final List<ModelResult<T>> results = Lists.newArrayList();
 
-        for (GradleConnectionParticipant participant : operationParameters.getBuilds()) {
+        for (GradleParticipantBuild participant : operationParameters.getBuilds()) {
+            ParticipantConnector participantConnector = util.createParticipantConnector(participant);
             try {
-                final List<ModelResult<T>> participantResults = buildResultsForParticipant(util.createParticipantConnector(participant));
+                final List<ModelResult<T>> participantResults = buildResultsForParticipant(participantConnector);
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
                 String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                results.add(new DefaultFailedModelResult<T>(participant.toBuildIdentity(), new GradleConnectionException(message, e)));
+                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentity(), new GradleConnectionException(message, e)));
             }
         }
         return results;

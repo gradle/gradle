@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
+import org.gradle.internal.composite.DefaultGradleParticipantBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.GradleConnectionBuilder;
@@ -70,9 +72,9 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     private GradleConnection createGradleConnection() {
-        Set<GradleConnectionParticipant> participants = CollectionUtils.collect(participantBuilders, new Transformer<GradleConnectionParticipant, DefaultGradleConnectionParticipantBuilder>() {
+        Set<GradleParticipantBuild> participants = CollectionUtils.collect(participantBuilders, new Transformer<GradleParticipantBuild, DefaultGradleConnectionParticipantBuilder>() {
             @Override
-            public GradleConnectionParticipant transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
+            public GradleParticipantBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
                 return participantBuilder.build();
             }
         });
@@ -176,8 +178,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             return this;
         }
 
-        public GradleConnectionParticipant build() {
-            return new DefaultGradleConnectionParticipant(projectDir, gradleHome, gradleDistribution, gradleVersion);
+        public GradleParticipantBuild build() {
+            return new DefaultGradleParticipantBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
         }
 
         private void resetDistribution() {
