@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
@@ -92,27 +93,20 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def rootDirA = singleProjectJavaBuild("A")
 
         when:
+        Iterable<IdeaProject> ideaProjects = []
         withCompositeConnection([rootDirA]) {
             modelResults = it.getModels(EclipseProject)
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
         then:
         // We can locate the root project by its project identity
         assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':'), "A", ":")
         // We can locate all projects (just one in this case) by the build identity for the participant
         assertSingleEclipseProject(findModelsByBuildIdentity(rootDirA), "A", ":")
-/*
 
-        // TODO:DAZ Add BuildIdentity for IdeaProject
-        when:
-        // We can take the results from one model request and correlate it with other model requests by
-        // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
-        then:
-        containSameIdentifiers(otherModelResults)
-
-        cleanup:
-        connection?.close()
-*/
+        and:
+        ideaProjects.size() == 1
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
     def "can correlate models in a multi-project, single participant composite"() {
@@ -122,10 +116,12 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
+        def ideaProjects = []
         withCompositeConnection([rootDirA]) {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.identifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.gradleProjectIdentifier
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
 
         then:
@@ -140,6 +136,10 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         and:
         containSameIdentifiers(otherHierarchicalModelResults)
         containSameIdentifiers(otherPerBuildModelResults)
+
+        and:
+        ideaProjects.size() == 1
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
     def "can correlate models in a single and multi-project, multi-participant composite"() {
@@ -150,10 +150,12 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         when:
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
+        def ideaProjects = []
         withCompositeConnection([rootDirA, rootDirB]) {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.identifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.gradleProjectIdentifier
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
 
         then:
@@ -168,6 +170,10 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         and:
         containSameIdentifiers(otherHierarchicalModelResults)
         containSameIdentifiers(otherPerBuildModelResults)
+
+        and:
+        ideaProjects.size() == 2
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
     void assertSingleEclipseProject(Iterable<EclipseProject> modelResults, String rootProjectName, String projectPath) {
@@ -204,6 +210,11 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir)
         def failures = modelResults.findAll { it instanceof FailureModelResult && buildIdentity.equals(it.buildIdentity) }
         return CollectionUtils.single(failures)
+    }
+
+    private ideaModuleProjectIdentifiers(Iterable<IdeaProject> ideaProject) {
+        def modules = ideaProject*.modules.flatten()
+        return modules.collect { it.gradleProject.identifier }
     }
 
     void containSameIdentifiers(Iterable<ProjectIdentity> otherModelResults) {
