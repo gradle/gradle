@@ -135,7 +135,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         def resultHandler = new ResultCollector()
         withCompositeConnection([build1, build2, build3]) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(build1, "run")
             buildLauncher.withCancellationToken(cancellationToken.token())
             // async ask for results
             buildLauncher.run(resultHandler)

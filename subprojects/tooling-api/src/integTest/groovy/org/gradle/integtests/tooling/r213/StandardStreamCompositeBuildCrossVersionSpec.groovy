@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
@@ -55,8 +53,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            Task taskSelector = buildLauncher.targetTask("log", builds[0])
-            buildLauncher.forTasks(taskSelector)
+            buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
             buildLauncher.run()
@@ -98,8 +95,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            Task taskSelector = buildLauncher.targetTask("log", builds[0])
-            buildLauncher.forTasks(taskSelector)
+            buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.colorOutput = true
             buildLauncher.run()
@@ -122,8 +118,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            Task taskSelector = buildLauncher.targetTask("log", builds[0])
-            buildLauncher.forTasks(taskSelector)
+            buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardInput(stdIn)
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.run()

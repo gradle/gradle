@@ -48,8 +48,8 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
         when:
         withCompositeConnection(builds) { connection ->
-            BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
             buildLauncher.run()
         }
@@ -82,7 +82,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         when:
         withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -115,7 +115,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         when:
         withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -164,7 +164,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.withArguments("-PprintJavaHome")
             buildLauncher.setJavaHome(javaHome)
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.run()
         }
         then:
