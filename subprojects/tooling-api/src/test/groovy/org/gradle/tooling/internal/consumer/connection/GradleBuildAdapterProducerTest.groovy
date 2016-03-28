@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.api.Action
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -26,19 +27,22 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
 class GradleBuildAdapterProducerTest extends Specification {
-    ProtocolToModelAdapter adapter = Mock(ProtocolToModelAdapter);
-    ModelMapping mapping = Mock(ModelMapping);
-    ModelBuilder builder = Mock(ModelBuilder);
-    ModelProducer delegate = Mock(ModelProducer)
+    def adapter = Mock(ProtocolToModelAdapter);
+    def mapping = Mock(ModelMapping);
+    def builder = Mock(ModelBuilder);
+    def delegate = Mock(ModelProducer)
+    def mappingProvider = Mock(HasCompatibilityMapperAction)
 
-    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate, this);
+    GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate, mappingProvider);
 
     def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:
-        GradleProject gradleProject = gradleProject()
-        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
+        def gradleProject = gradleProject()
+        def operationParameters = Mock(ConsumerOperationParameters)
+        def mappingAction = Mock(Action)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
-        adapter.adapt(GradleBuild, _) >> Mock(GradleBuild)
+        mappingProvider.getCompatibilityMapperAction(operationParameters) >> mappingAction
+        adapter.adapt(GradleBuild, _, mappingAction) >> Mock(GradleBuild)
         when:
         def model = modelProducer.produceModel(GradleBuild, operationParameters)
         then:
