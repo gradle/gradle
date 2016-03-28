@@ -16,38 +16,48 @@
 
 package org.gradle.plugin.devel.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
+import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.TestKitAndPluginClasspathDependenciesAction
 
 class JavaGradlePluginPluginTestKitSetupTest extends Specification {
 
     Project project = TestUtil.builder().build()
 
     def setup() {
-        project.pluginManager.apply(JavaGradlePluginPlugin)
-        Configuration configuration = project.configurations.create('gradleApi')
-        project.dependencies.add(configuration.name, project.dependencies.gradleApi())
+        project.plugins.apply(JavaPlugin)
     }
 
-    def "can configure functional testing by conventions"() {
+    def "can configure with default conventions"() {
+        given:
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        SourceSet pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet testSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(pluginSourceSet, testSourceSet)
+        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
+
         when:
-        project.evaluate()
+        action.execute(project)
 
         then:
-        PluginUnderTestMetadata pluginUnderTestMetadataTask = project.tasks.getByPath(JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME)
-        assertTaskPluginClasspath(pluginUnderTestMetadataTask, project.sourceSets.main)
-        assertTestKitDependency(project, project.sourceSets.test)
-        assertInferredTaskDependency(pluginUnderTestMetadataTask, project.sourceSets.test)
-        assertTestTaskDependency(pluginUnderTestMetadataTask, project.tasks.getByPath('test'))
+        assertTestKitDependency(project, testSourceSet)
+        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.test)
+        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('test'))
     }
 
-    def "can configure plugin and test source set by extension"() {
-        when:
+    def "can configure single custom main and test source set"() {
+        given:
         project.sourceSets {
             customMain {
                 java {
@@ -73,23 +83,21 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest.runtimeClasspath
         }
 
-        project.gradlePlugin {
-            pluginSourceSet project.sourceSets.customMain
-            testSourceSets project.sourceSets.functionalTest
-        }
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project.sourceSets.customMain, project.sourceSets.functionalTest)
+        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
-        project.evaluate()
+        when:
+        action.execute(project)
 
         then:
-        PluginUnderTestMetadata pluginUnderTestMetadataTask = project.tasks.getByPath(JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME)
-        assertTaskPluginClasspath(pluginUnderTestMetadataTask, project.sourceSets.customMain)
         assertTestKitDependency(project, project.sourceSets.functionalTest)
-        assertInferredTaskDependency(pluginUnderTestMetadataTask, project.sourceSets.functionalTest)
-        assertTestTaskDependency(pluginUnderTestMetadataTask, project.tasks.getByPath('functionalTest'))
+        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest)
+        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest'))
     }
 
-    def "can configure multiple test source sets"() {
-        when:
+    def "can configure multiple custom test source sets"() {
+        given:
         project.sourceSets {
             functionalTest1 {
                 java {
@@ -120,25 +128,20 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest2.runtimeClasspath
         }
 
-        project.gradlePlugin {
-            testSourceSets project.sourceSets.functionalTest1, project.sourceSets.functionalTest2
-        }
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project.sourceSets.main, project.sourceSets.functionalTest1, project.sourceSets.functionalTest2)
+        PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
+        Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
-        project.evaluate()
+        when:
+        action.execute(project)
 
         then:
-        PluginUnderTestMetadata pluginUnderTestMetadataTask = project.tasks.getByPath(JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME)
-        assertTaskPluginClasspath(pluginUnderTestMetadataTask, project.sourceSets.main)
         assertTestKitDependency(project, project.sourceSets.functionalTest1)
         assertTestKitDependency(project, project.sourceSets.functionalTest2)
-        assertInferredTaskDependency(pluginUnderTestMetadataTask, project.sourceSets.functionalTest1)
-        assertInferredTaskDependency(pluginUnderTestMetadataTask, project.sourceSets.functionalTest2)
-        assertTestTaskDependency(pluginUnderTestMetadataTask, project.tasks.getByPath('functionalTest1'))
-        assertTestTaskDependency(pluginUnderTestMetadataTask, project.tasks.getByPath('functionalTest2'))
-    }
-
-    private void assertTaskPluginClasspath(PluginUnderTestMetadata pluginClasspathManifestTask, SourceSet mainSourceSet) {
-        assert pluginClasspathManifestTask.pluginClasspath.files == (mainSourceSet.runtimeClasspath - project.configurations.gradleApi.incoming.files).files
+        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest1)
+        assertInferredTaskDependency(pluginUnderTestMetadata, project.sourceSets.functionalTest2)
+        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest1'))
+        assertTestTaskDependency(pluginUnderTestMetadata, project.tasks.getByPath('functionalTest2'))
     }
 
     private void assertTestKitDependency(Project project, SourceSet testSourceSet) {

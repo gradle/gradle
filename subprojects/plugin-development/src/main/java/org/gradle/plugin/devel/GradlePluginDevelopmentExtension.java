@@ -49,8 +49,12 @@ public class GradlePluginDevelopmentExtension {
     private Set<SourceSet> testSourceSets = Collections.emptySet();
 
     public GradlePluginDevelopmentExtension(SourceSet pluginSourceSet, SourceSet testSourceSet) {
+        this(pluginSourceSet, new SourceSet[] {testSourceSet});
+    }
+
+    public GradlePluginDevelopmentExtension(SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
         this.pluginSourceSet = pluginSourceSet;
-        testSourceSets(testSourceSet);
+        testSourceSets(testSourceSets);
     }
 
     /**

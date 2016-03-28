@@ -217,7 +217,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * An action that automatically declares the TestKit dependency for the test compile configuration and a dependency
      * on the plugin classpath manifest generation task for the test runtime configuration.
      */
-    private static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
+    static class TestKitAndPluginClasspathDependenciesAction implements Action<Project> {
         private final GradlePluginDevelopmentExtension extension;
         private final PluginUnderTestMetadata pluginClasspathTask;
 
