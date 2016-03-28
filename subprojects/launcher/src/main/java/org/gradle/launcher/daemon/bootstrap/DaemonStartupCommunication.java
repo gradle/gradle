@@ -29,7 +29,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
 

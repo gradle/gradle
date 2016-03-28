@@ -31,6 +31,7 @@ import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.process.internal.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.GUtil;
 
 import java.io.*;

@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.child;
 
+import org.gradle.process.internal.streams.EncodedStream;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.lang.reflect.Method;

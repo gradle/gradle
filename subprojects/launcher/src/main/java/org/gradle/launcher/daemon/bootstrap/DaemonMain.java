@@ -34,7 +34,7 @@ import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.Address;
-import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
 import java.util.ArrayList;

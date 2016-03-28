@@ -40,6 +40,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.*;
 import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.AntUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

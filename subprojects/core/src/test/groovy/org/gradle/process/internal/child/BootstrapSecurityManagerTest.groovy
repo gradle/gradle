@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.child
 
+import org.gradle.process.internal.streams.EncodedStream
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
