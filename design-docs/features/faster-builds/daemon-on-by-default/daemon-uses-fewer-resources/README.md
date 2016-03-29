@@ -1,10 +1,60 @@
-Daemon uses fewer resources on developer machine.
+# Daemon uses fewer resources on developer machine.
 
-## Implementation plan
+## Feature: Expire daemons in a smarter way
 
-- Expire daemons in a smarter way
-- Reduce wasted heap in the daemon  
-- Reduce default heap sizes for the daemon
+### Story: Expire daemons from least recently used builds based on total number of daemons
+
+A very simple expiration strategy by limiting the the number of daemon processes running in parallel on a machine.
+
+#### Implementation
+
+- Define max number of daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.maxnumber', defaulting to __2__).
+- Track last daemon usage in daemon registry.
+- When requesting daemon process number > threshold, stop the least recently used daemon process
+    1. iterate over idle daemons and stop least recently used ones till threshold is met.
+    2. iterate over busy daemons and request graceful stop of least recently used ones till threshold is met.
+
+##### Test Coverage
+
+- Running two daemons alternately on a build multiple times does not expire daemons
+- Initiating a third daemon process stops the oldest idling daemon process.
+- TBD.
+
+##### Open questions
+
+- What to do if already max number of daemons are _Busy_ running a build.
+    possible Options:
+    - warn and stop current build
+    - stop initiated daemon after the build (no long running process)
+    - run build and request graceful stop of _oldest_ daemon
+
+### Story: Expire daemons from least recently used builds based on accumulated total heap size
+
+#### Implementation
+
+- Define total max heap memory used by daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.totalheapsize', defaulting to __4096m__).
+- When invoking daemon process and memory threshold is reached
+
+##### Test Coverage
+
+- TBD
+
+### Story: Expire daemons from least recently used builds based on accumulated total percentage of available heap size
+
+##### Implementation
+
+##### Open questions
+
+- How to gather these Statistics of current machine
+
+### Story: Apply expiration metrics across daemons from all versions >= 2.14)
+
+#### Implementation
+
+
+## Feature: Reduce wasted heap in the daemon
+
+## Feature: Reduce default heap sizes for the daemon
 
 ## Candidate improvements
 
