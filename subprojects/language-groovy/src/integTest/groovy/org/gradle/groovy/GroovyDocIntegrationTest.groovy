@@ -16,7 +16,7 @@
 
 package org.gradle.groovy
 
-import groovy.transform.NotYetImplemented
+import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovydocCoverage
@@ -25,7 +25,7 @@ import spock.lang.Issue
 @TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-3116")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3116")
     def "can run groovydoc"() {
         when:
         buildFile << """
@@ -60,9 +60,11 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         module << ['groovy']
     }
 
-    @NotYetImplemented
-    @Issue("https://issues.gradle.org//browse/GRADLE-3349")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3349")
     def "changes to overview causes groovydoc to be out of date"() {
+        File overviewFile = file("overview.html")
+        String escapedOverviewPath = StringEscapeUtils.escapeJava(overviewFile.absolutePath)
+
         when:
         buildFile << """
             apply plugin: "groovy"
@@ -76,11 +78,11 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             groovydoc {
-                overview = file("overview.html").absolutePath
+                overviewText = resources.text.fromFile("${escapedOverviewPath}")
             }
         """
 
-        file("overview.html").text = """
+        overviewFile.text = """
 <b>Hello World</b>
 """
         file("src/main/groovy/pkg/Thing.groovy") << """
@@ -98,13 +100,13 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         overviewSummary.text.contains("Hello World")
 
         when:
-        file("overview.html").text = """
+        overviewFile.text = """
 <b>Goodbye World</b>
 """
         and:
         succeeds "groovydoc"
         then:
-        result.assertTaskNotSkipped("groovydoc")
+        result.assertTaskNotSkipped(":groovydoc")
         overviewSummary.text.contains("Goodbye World")
 
         where:
