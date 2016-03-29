@@ -4,6 +4,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 task printModel << {
     def builder = GradleConnector.newGradleConnection()
+    builder.useInstallation(gradle.gradleHomeDir)
     rootProjectDirectories().each {
         println "Adding project $it.absolutePath to composite"
         builder.addParticipant(it).useInstallation(gradle.gradleHomeDir)
@@ -34,10 +35,11 @@ task printModel << {
 
 task executeTasks << {
     def builder = GradleConnector.newGradleConnection()
+    builder.useInstallation(gradle.gradleHomeDir)
     def buildRoots = rootProjectDirectories()
     buildRoots.each {
         println "Adding project $it.absolutePath to composite"
-        builder.addParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir)
+        builder.addParticipant(it).useInstallation(gradle.gradleHomeDir)
     }
     def connection = builder.build()
     def targetBuild = buildRoots.find { it.toString().endsWith(project.targetBuild) }
