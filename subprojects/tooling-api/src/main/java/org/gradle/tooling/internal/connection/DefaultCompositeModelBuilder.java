@@ -33,6 +33,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -58,8 +59,12 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
 
     @Override
     public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        throw new UnsupportedOperationException(
-            "This is unsupported for composite models from GradleConnections at this time.");
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
+        return unsupportedMethod();
     }
 
     @Override
@@ -102,5 +107,10 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                 }
             }));
         }
+    }
+
+    private DefaultCompositeModelBuilder<T> unsupportedMethod() {
+        throw new UnsupportedOperationException(
+            "This is unsupported for composite models from GradleConnections at this time.");
     }
 }

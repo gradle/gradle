@@ -28,11 +28,11 @@ import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncherInternal {
-
 
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
@@ -42,6 +42,11 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
     public BuildLauncher forTasks(String... tasks) {
         throw new UnsupportedOperationException(
             "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`.");
+    }
+
+    @Override
+    public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
+        throw new UnsupportedOperationException("This is unsupported for composite models from GradleConnections at this time.");
     }
 
     @Override
