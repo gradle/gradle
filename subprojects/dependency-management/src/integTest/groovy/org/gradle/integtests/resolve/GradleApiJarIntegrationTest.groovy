@@ -44,6 +44,31 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
+    def "Gradle API is not generated if not declared by build"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        buildFile << applyJavaPlugin()
+
+        when:
+        succeeds 'build'
+
+        then:
+        assertNoGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+    }
+
+    def "buildSrc project implicitly forces generation of Gradle API JAR"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        buildFile << applyJavaPlugin()
+        temporaryFolder.createFile('buildSrc/src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
+
+        when:
+        succeeds 'build'
+
+        then:
+        assertSingleGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+    }
+
     def "Gradle API dependency resolves the expected JAR files"() {
         expect:
         buildFile << """
@@ -295,8 +320,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
                 def projectBuildFile = file("$projectDirName/build.gradle")
                 projectBuildFile << resolveGradleApiAndTestKitDependencies()
 
-                def executionResult = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').run()
-                outputs << executionResult.output
+                def gradleHandle = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').start()
+                gradleHandle.waitForFinish()
+                outputs << gradleHandle.standardOutput
             }
         }
 
@@ -325,11 +351,11 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         args('--parallel')
-        def result = succeeds 'resolveDependencies'
+        succeeds 'resolveDependencies'
 
         then:
-        assertApiGenerationOutput(result.output)
-        assertTestKitGenerationOutput(result.output)
+        assertApiGenerationOutput(output)
+        assertTestKitGenerationOutput(output)
     }
 
     def "Gradle API and TestKit dependencies are not duplicative"() {
@@ -565,5 +591,11 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         def pattern = /\b${regex}\b/
         def matcher = output =~ pattern
         assert matcher.count == 1
+    }
+
+    static void assertNoGenerationOutput(String output, String regex) {
+        def pattern = /\b${regex}\b/
+        def matcher = output =~ pattern
+        assert matcher.count == 0
     }
 }

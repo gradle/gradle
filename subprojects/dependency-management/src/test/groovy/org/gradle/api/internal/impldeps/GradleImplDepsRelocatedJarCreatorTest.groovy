@@ -138,6 +138,7 @@ org.gradle.api.internal.tasks.CompileServices"""
                                       'java/lang/String',
                                       'javax/swing/Action',
                                       'groovy/util/XmlSlurper',
+                                      'net/rubygrapefruit/platform/FileInfo',
                                       'org/codehaus/groovy/ant/Groovyc',
                                       'org/apache/tools/ant/taskdefs/Ant']
         def relocationClassNames = ['org/apache/commons/lang3/StringUtils',
@@ -167,6 +168,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert jar.getJarEntry('java/lang/String.class')
             assert jar.getJarEntry('javax/swing/Action.class')
             assert jar.getJarEntry('groovy/util/XmlSlurper.class')
+            assert jar.getJarEntry('net/rubygrapefruit/platform/FileInfo.class')
             assert jar.getJarEntry('org/codehaus/groovy/ant/Groovyc.class')
             assert jar.getJarEntry('org/apache/tools/ant/taskdefs/Ant.class')
             assert jar.getJarEntry('org/gradle/impldep/org/apache/commons/lang3/StringUtils.class')
