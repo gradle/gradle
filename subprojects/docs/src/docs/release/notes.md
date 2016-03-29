@@ -19,11 +19,13 @@ where Gradle is actually performing the actions of the build) have been introduc
 * Compiled build scripts are cached more efficiently.
 * Communication between the client and the daemon has been optimized.
 * Test report generation is more efficient.
+* Forked test processes start up faster.
 
-TODO: Add more numbers here?
-Stress tests run as part of Gradle's own build pipeline have demonstrated up to a 10% improvement in build time.
+Stress tests run as part of Gradle's own build pipeline have demonstrated up to a 25% improvement in build time.  For example, the
+build time for a full assemble of a 500 project build has been reduced by 10%; a partial assemble of the same 500 project build has been
+reduced by 18%; and the time for assembly and test execution of a 25 project build has been reduced by 25%.
 
-No change is required to builds to leverage these performance improvements.
+No change is required for builds to leverage these performance improvements.
 
 ### More convenient testing of Gradle plugins
 
