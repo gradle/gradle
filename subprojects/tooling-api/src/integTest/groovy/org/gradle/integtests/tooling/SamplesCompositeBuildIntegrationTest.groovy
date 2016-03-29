@@ -17,17 +17,21 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    private IntegrationTestBuildContext buildContext
-
+    @Ignore("Need to improve this so that the current distribution is used for each participant, and it shares daemons with other tests")
     @UsesSample('compositeBuild')
     def "can define composite build and execute task"() {
+        given:
+        tweakProject()
+
         when:
         executer.inDirectory(sample.dir)
         succeeds('buildProject')
@@ -36,5 +40,16 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("Running build tasks in target project: project3")
         result.assertOutputContains(":3a:build")
         result.assertOutputContains(":3b:build")
+    }
+
+    private void tweakProject(TestFile projectDir = sample.dir) {
+        // Inject some additional configuration into the sample build script
+        def buildFile = projectDir.file('build.gradle')
+
+        def buildScript = buildFile.text
+        buildScript = buildScript.replaceFirst("newGradleConnection\\(\\)", 'newGradleConnection().useGradleUserHomeDir(new File("' + TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath) + '"))')
+        // TODO:DAZ Should be using the current gradle version for each participant, but injecting the daemon registry and daemon timeout
+        buildScript = buildScript.replaceAll("addParticipant\\((project.)\\)", 'addParticipant($1).useGradleVersion("2.12")')
+        buildFile.text = buildScript
     }
 }
