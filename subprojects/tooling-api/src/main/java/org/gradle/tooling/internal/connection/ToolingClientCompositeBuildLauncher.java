@@ -36,9 +36,9 @@ public class ToolingClientCompositeBuildLauncher {
     public void run() {
         boolean built = false;
         for (GradleParticipantBuild gradleBuildInternal : operationParameters.getBuilds()) {
-            BuildIdentifier participantIdentity = new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
+            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
             if (operationParameters.getBuildIdentifier() == null
-                || operationParameters.getBuildIdentifier().equals(participantIdentity)) {
+                || operationParameters.getBuildIdentifier().equals(participantIdentifier)) {
                 ProjectConnection connection = null;
                 try {
                     connection = util.createParticipantConnector(gradleBuildInternal).connect();

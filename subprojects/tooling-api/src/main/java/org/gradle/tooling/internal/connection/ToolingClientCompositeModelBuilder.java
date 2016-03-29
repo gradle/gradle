@@ -68,7 +68,7 @@ public class ToolingClientCompositeModelBuilder<T> {
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
                 String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentity(), new GradleConnectionException(message, e)));
+                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentifier(), new GradleConnectionException(message, e)));
             }
         }
         return results;
@@ -174,7 +174,7 @@ public class ToolingClientCompositeModelBuilder<T> {
                 util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
                 for (final String projectPath : actionResults.keySet()) {
-                    T identified = unpackAndTransform(participant.toProjectIdentity(projectPath), actionResults.get(projectPath));
+                    T identified = unpackAndTransform(participant.toProjectIdentifier(projectPath), actionResults.get(projectPath));
                     ModelResult<T> result = createModelResult(identified);
                     results.add(result);
                 }
@@ -230,7 +230,7 @@ public class ToolingClientCompositeModelBuilder<T> {
 
         private void constructBuildInvocationsFromGradleProject(ParticipantConnector participant, GradleProject project, List<ModelResult<T>> results) {
             Object buildInvocations = new BuildInvocationsConverter().convertSingleProject(project);
-            T model = transform(participant.toProjectIdentity(project.getPath()), buildInvocations);
+            T model = transform(participant.toProjectIdentifier(project.getPath()), buildInvocations);
             ModelResult<T> result = createModelResult(model);
             results.add(result);
 

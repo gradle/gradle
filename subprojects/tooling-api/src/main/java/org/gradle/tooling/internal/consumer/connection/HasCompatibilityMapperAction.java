@@ -42,8 +42,8 @@ public class HasCompatibilityMapperAction {
     }
 
     public Action<SourceObjectMapping> getCompatibilityMapperAction(ProjectIdentifier projectIdentifier) {
-        FixedBuildIdentifierProvider identityProvider = new FixedBuildIdentifierProvider(projectIdentifier);
-        return getCompatibilityMapperAction(identityProvider);
+        FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(projectIdentifier);
+        return getCompatibilityMapperAction(identifierProvider);
     }
 
     private Action<SourceObjectMapping> getCompatibilityMapperAction(Action<SourceObjectMapping> requestScopedMapping) {

@@ -24,6 +24,23 @@ import java.net.URI;
 
 /**
  * Builds a new composite Gradle connection.
+ *
+ * <pre autoTested=''>
+ * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
+ * // Add a participant with root directory 'someFolder' using the Gradle version defined in the build
+ * builder.addParticipant(new File("someFolder"));
+ * // Add a participant with root directory 'someOtherFolder' using Gradle Version 2.6
+ * builder.addParticipant(new File("someOtherFolder")).useGradleVersion("2.6");
+ * // Set the Gradle user home for the entire connection
+ * builder.useGradleUserHomeDir(new File("/path/to/.gradle"));
+ * GradleConnection connection = builder.build();
+ *
+ * try {
+ *    // Use connection
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
  */
 @Incubating
 public interface GradleConnectionBuilder {

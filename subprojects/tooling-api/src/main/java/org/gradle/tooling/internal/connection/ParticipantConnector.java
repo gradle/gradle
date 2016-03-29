@@ -47,11 +47,11 @@ class ParticipantConnector {
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
     }
 
-    public BuildIdentifier toBuildIdentity() {
+    public BuildIdentifier toBuildIdentifier() {
         return new DefaultBuildIdentifier(build.getProjectDir());
     }
 
-    public ProjectIdentifier toProjectIdentity(String projectPath) {
+    public ProjectIdentifier toProjectIdentifier(String projectPath) {
         return new DefaultProjectIdentifier(build.getProjectDir(), projectPath);
     }
 

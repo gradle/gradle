@@ -30,16 +30,16 @@ import org.gradle.tooling.model.ProjectIdentifier;
 @Incubating
 public interface FailedModelResult<T> extends ModelResult<T> {
     /**
-     * Identity of the build that originated this failure.
+     * Identifier of the build that originated this failure.
      *
-     * @return the build identity, never null.
+     * @return the build identifier, never null.
      */
     BuildIdentifier getBuildIdentifier();
 
     /**
-     * Identity of the project that originated this failure, if any.
+     * Identifier of the project that originated this failure, if any.
      *
-     * @return the project identity, or null if this failure did not originate from a particular project.
+     * @return the project identifier, or null if this failure did not originate from a particular project.
      */
     @Nullable
     ProjectIdentifier getProjectIdentifier();
