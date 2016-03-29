@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -26,7 +28,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @Ignore("Need to improve this so that the current distribution is used for each participant, and it shares daemons with other tests")
+    @Ignore
     @UsesSample('compositeBuild')
     def "can define composite build and execute task"() {
         given:
@@ -46,10 +48,25 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         // Inject some additional configuration into the sample build script
         def buildFile = projectDir.file('build.gradle')
 
+        def buildContext = new IntegrationTestBuildContext()
+
+        def gradleHomePath = TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)
+        def gradleUserHomePath = TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)
+        def daemonBaseDirPath = TextUtil.escapeString(projectDir.file("daemon").absolutePath)
+
         def buildScript = buildFile.text
-        buildScript = buildScript.replaceFirst("newGradleConnection\\(\\)", 'newGradleConnection().useGradleUserHomeDir(new File("' + TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath) + '"))')
-        // TODO:DAZ Should be using the current gradle version for each participant, but injecting the daemon registry and daemon timeout
-        buildScript = buildScript.replaceAll("addParticipant\\((project.)\\)", 'addParticipant($1).useGradleVersion("2.12")')
+        buildScript = buildScript.replaceFirst(
+            "newGradleConnection\\(\\)",
+            "newGradleConnection()" +
+                ".useGradleUserHomeDir(new File('${gradleUserHomePath}'))" +
+                ".daemonBaseDir(new File('${daemonBaseDirPath}'))" +
+                ".daemonMaxIdleTime(10, java.util.concurrent.TimeUnit.SECONDS)"
+        )
+        buildScript = buildScript.replaceAll(
+            "addParticipant\\((project.)\\)",
+            "addParticipant(\$1)" +
+                ".useInstallation(new File('${gradleHomePath}'))"
+        )
         buildFile.text = buildScript
     }
 }
