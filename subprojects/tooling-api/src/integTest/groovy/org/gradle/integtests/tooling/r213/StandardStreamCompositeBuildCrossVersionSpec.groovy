@@ -68,6 +68,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     }
 
     @TargetGradleVersion(">=2.3")
+    @Ignore("We do not support forTasks(String) on a composite connection for now")
     def "can colorize output with model requests"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()
