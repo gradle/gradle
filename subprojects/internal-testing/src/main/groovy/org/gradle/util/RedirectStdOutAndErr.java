@@ -16,6 +16,7 @@
 
 package org.gradle.util;
 
+import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -30,10 +31,10 @@ import java.io.PrintStream;
 public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream originalStdOut;
     private PrintStream originalStdErr;
-    private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
-    private ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
-    private PrintStream stdOutPrintStream = new PrintStream(stdoutContent);
-    private PrintStream stdErrPrintStream = new PrintStream(stderrContent);
+    private ByteArrayOutputStream stdoutContent;
+    private ByteArrayOutputStream stderrContent;
+    private PrintStream stdOutPrintStream;
+    private PrintStream stdErrPrintStream;
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
@@ -41,17 +42,14 @@ public class RedirectStdOutAndErr implements MethodRule {
             public void evaluate() throws Throwable {
                 originalStdOut = System.out;
                 originalStdErr = System.err;
+                stdoutContent = new ByteArrayOutputStream();
+                stderrContent = new ByteArrayOutputStream();
+                stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, originalStdOut));
+                stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, originalStdErr));
                 try {
                     System.setOut(stdOutPrintStream);
                     System.setErr(stdErrPrintStream);
-                    try {
-                        base.evaluate();
-                    } catch (Throwable throwable) {
-                        // An unexpected failure: forward the captured output to the original stdout and stderr in case it contains useful diagnostics
-                        originalStdOut.write(stdoutContent.toByteArray());
-                        originalStdErr.write(stderrContent.toByteArray());
-                        throw throwable;
-                    }
+                    base.evaluate();
                 } finally {
                     System.setOut(originalStdOut);
                     System.setErr(originalStdErr);
