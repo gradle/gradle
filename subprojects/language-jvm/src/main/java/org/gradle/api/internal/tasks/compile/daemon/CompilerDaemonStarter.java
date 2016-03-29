@@ -19,8 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.worker.WorkerProcess;
-import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.Clock;
 
@@ -39,7 +38,7 @@ public class CompilerDaemonStarter {
     public CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);
         Clock clock = new Clock();
-        WorkerProcessBuilder builder = workerFactory.create(new CompilerDaemonServer());
+        MultiRequestWorkerProcessBuilder<CompilerDaemonWorker> builder = workerFactory.multiRequestWorker(CompilerDaemonWorker.class, CompilerDaemonProtocol.class, CompilerDaemonServer.class);
         builder.setBaseName("Gradle Compiler Daemon");
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
@@ -49,13 +48,10 @@ public class CompilerDaemonStarter {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
-        WorkerProcess process = builder.build();
-        process.start();
+        CompilerDaemonWorker worker = builder.build();
+        worker.start();
 
-        CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, process, server);
-        process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
-        process.getConnection().connect();
+        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, worker);
 
         LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getTime(), forkOptions);
 

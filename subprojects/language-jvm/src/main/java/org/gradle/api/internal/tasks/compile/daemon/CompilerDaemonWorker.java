@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.compile.daemon;
 
-/**
- * Client part of the compiler daemon protocol. Used to report back compilation results.
- */
-public interface CompilerDaemonClientProtocol {
-    void executed(CompileResult result);
+import org.gradle.process.internal.worker.WorkerControl;
+
+public interface CompilerDaemonWorker extends CompilerDaemonProtocol, WorkerControl {
 }
