@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal
 
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
@@ -63,6 +65,20 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
 
     def cleanup() {
         services.close()
+    }
+
+    Class<?> compileToDirectoryAndLoad(String className, String classText) {
+        def classesDir = tmpDir.createDir("classes/$className")
+        def compilationUnit = new CompilationUnit(new GroovyClassLoader(getClass().classLoader))
+        compilationUnit.addSource(className, classText)
+
+        def configuration = new CompilerConfiguration()
+        configuration.setTargetDirectory(classesDir)
+
+        compilationUnit.setConfiguration(configuration)
+        compilationUnit.compile()
+
+        return new URLClassLoader([classesDir.toURI().toURL()] as URL[], getClass().classLoader).loadClass(className)
     }
 
     public static class RemoteExceptionListener implements TestListenerInterface {

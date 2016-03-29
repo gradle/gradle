@@ -40,4 +40,33 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
         cleanup:
         worker?.stop()
     }
+
+    def "infers worker implementation classpath"() {
+        given:
+        def cl = compileToDirectoryAndLoad("CustomTestWorker", """
+import ${TestProtocol.name}
+class CustomTestWorker implements TestProtocol {
+    Object convert(String param1, long param2) { return new CustomResult() }
+    void doSomething() { }
+}
+
+class CustomResult implements Serializable {
+    String toString() { return "custom-result" }
+}
+""")
+
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, cl)
+        def worker = builder.build()
+        worker.start()
+        def result = worker.convert("abc", 12)
+        worker.stop()
+
+        then:
+        result.toString() == "custom-result"
+
+        cleanup:
+        worker?.stop()
+    }
+
 }

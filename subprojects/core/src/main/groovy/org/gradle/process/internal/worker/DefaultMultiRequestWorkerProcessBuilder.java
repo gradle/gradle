@@ -35,6 +35,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private static final Method START_METHOD;
     private static final Method STOP_METHOD;
     private final Class<WORKER> workerType;
+    private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
 
     static {
@@ -48,6 +49,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
 
     public DefaultMultiRequestWorkerProcessBuilder(Class<WORKER> workerType, Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder) {
         this.workerType = workerType;
+        this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
         workerProcessBuilder.setImplementationClassPath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
@@ -120,6 +122,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                 if (method.equals(START_METHOD)) {
                     workerProcess.start();
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
+                    workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
                     workerProcess.getConnection().connect();
                     return null;

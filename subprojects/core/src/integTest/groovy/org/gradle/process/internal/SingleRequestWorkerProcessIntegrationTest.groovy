@@ -16,8 +16,6 @@
 
 package org.gradle.process.internal
 
-import org.codehaus.groovy.control.CompilationUnit
-import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
@@ -140,19 +138,5 @@ class CustomResult implements Serializable {
     @Ignore
     def "reports failure when worker does not stop within expected time"() {
         expect: false
-    }
-
-    Class<?> compileToDirectoryAndLoad(String className, String classText) {
-        def classesDir = tmpDir.createDir("classes/$className")
-        def compilationUnit = new CompilationUnit(new GroovyClassLoader(getClass().classLoader))
-        compilationUnit.addSource(className, classText)
-
-        def configuration = new CompilerConfiguration()
-        configuration.setTargetDirectory(classesDir)
-
-        compilationUnit.setConfiguration(configuration)
-        compilationUnit.compile()
-
-        return new URLClassLoader([classesDir.toURI().toURL()] as URL[], getClass().classLoader).loadClass(className)
     }
 }
