@@ -120,4 +120,21 @@ task printSystemProp << {
         then:
         result.assertOutputContains('mySystemProp=commandline')
     }
+
+    def "handles properties which are not String when calling GradleBuild"() {
+        given:
+        buildFile << '''
+            task buildInBuild(type:GradleBuild) {
+                buildFile = 'other.gradle'
+                startParameter.projectProperties['foo'] = true // not a String
+            }
+        '''
+        file('other.gradle') << 'assert foo==true'
+
+        when:
+        run 'buildInBuild'
+
+        then:
+        noExceptionThrown()
+    }
 }
