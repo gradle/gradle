@@ -79,7 +79,7 @@ compatibility, since up to Gradle 1.12 at least, the platform default charset is
 
 The Zip task should support a `metadataCharset` option, or type String, defaulting to UTF8. Unfortunately, the Jar task 
 inherits from Zip, and should not use any `metadataCharset` other than UTF8. The setter of this property should thus be 
-overridden to throw an ÌnsupportedOperationException`. War and Ear inherit from Jar, and will thus automatically benefit
+overridden to throw an `UnsupportedOperationException`. War and Ear inherit from Jar, and will thus automatically benefit
 from this behavior.
 
 The Tar task should use UTF8 rather than the default platform charset to encode its metadata, and the POSIX/PAX mode when creating entries.
@@ -101,7 +101,7 @@ We need to add tests which cover each of these scenarios:
 - The default encoding is honored when `filteringCharset` or `metadataCharset` is not set.
 - When `filteringCharset` is set to something other than the default platform encoding, it is honored.
 - When `metadataCharset` is set to something other than the default UTF8 value in Zip, ZipFileTree and TarFileTree, it is honored.
-- When `metadataCharset` is set in Jar, an UnsupportedOperationException is thrown.
+- When `metadataCharset` is set in Jar, an `UnsupportedOperationException` is thrown.
 - When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
 
 ## Documentation Plan
