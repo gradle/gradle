@@ -123,12 +123,14 @@ task printSystemProp << {
 
     def "handles properties which are not String when calling GradleBuild"() {
         given:
-        buildFile << '''
+        executer.requireGradleHome()
+        buildFile << """
             task buildInBuild(type:GradleBuild) {
                 buildFile = 'other.gradle'
+                startParameter.searchUpwards = false
                 startParameter.projectProperties['foo'] = true // not a String
             }
-        '''
+        """
         file('other.gradle') << 'assert foo==true'
 
         when:
