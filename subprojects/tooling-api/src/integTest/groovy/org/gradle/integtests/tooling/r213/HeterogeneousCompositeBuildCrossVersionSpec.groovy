@@ -29,8 +29,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.CollectionUtils
-import spock.lang.Ignore
-
 /**
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
@@ -106,10 +104,9 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
         connection?.close()
     }
 
-    @Ignore("Need to support custom types from the client")
     @TargetGradleVersion(">=1.6")
     def "can retrieve custom models from some participants"() {
-        varyingProject.file("build.gradle") <<
+        varyingBuildRoot.file("build.gradle") <<
                 """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -142,20 +139,21 @@ class CustomPlugin implements Plugin<Project> {
     }
 }
 """
-        GradleConnection connection = builder.build()
+        GradleConnection connection = openConnection()
         when:
         def modelResults = connection.getModels(CustomModel)
 
         then:
         modelResults.size() == 2
-        def varyingResult = findModelResult(modelResults, varyingBuildIdentity)
+
+        def fixedResult = findFailureResult(modelResults, fixedBuildRoot)
+        assertFailure(fixedResult.failure, "No model of type 'CustomModel' is available in this build.")
+
+        def varyingResult = modelResults.find { it != fixedResult }
         varyingResult.failure == null
         varyingResult.model.value == 'greetings'
         varyingResult.model.things.find { it instanceof CustomModel.Thing }
         varyingResult.model.thingsByName.thing instanceof CustomModel.Thing
-
-        def fixedResult = findModelResult(modelResults, fixedBuildIdentity)
-        assertFailure(fixedResult.failure, "No model of type 'CustomModel' is available in this build.")
 
     }
 
